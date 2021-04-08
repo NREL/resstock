@@ -391,27 +391,6 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     well_pump_scale_energy.setDefaultValue(true)
     args << well_pump_scale_energy
 
-    # Make a string argument for 24 weekday schedule values
-    well_pump_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("well_pump_weekday_sch")
-    well_pump_weekday_sch.setDisplayName("Well Pump: Weekday schedule")
-    well_pump_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    well_pump_weekday_sch.setDefaultValue("0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065")
-    args << well_pump_weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    well_pump_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("well_pump_weekend_sch")
-    well_pump_weekend_sch.setDisplayName("Well Pump: Weekend schedule")
-    well_pump_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    well_pump_weekend_sch.setDefaultValue("0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065")
-    args << well_pump_weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    well_pump_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("well_pump_monthly_sch")
-    well_pump_monthly_sch.setDisplayName("Well Pump: Month schedule")
-    well_pump_monthly_sch.setDescription("Specify the 12-month schedule.")
-    well_pump_monthly_sch.setDefaultValue("1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154")
-    args << well_pump_monthly_sch
-
     # Gas Fireplace
 
     # make a double argument for Annual Energy Use
@@ -435,27 +414,6 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     gas_fireplace_scale_energy.setDescription("If true, scales the energy use relative to a 3-bedroom, 1920 sqft house using the following equation: Fscale = (0.5 + 0.25 x Nbr/3 + 0.25 x FFA/1920) where Nbr is the number of bedrooms and FFA is the finished floor area.")
     gas_fireplace_scale_energy.setDefaultValue(true)
     args << gas_fireplace_scale_energy
-
-    # Make a string argument for 24 weekday schedule values
-    gas_fireplace_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("gas_fireplace_weekday_sch")
-    gas_fireplace_weekday_sch.setDisplayName("Gas Fireplace: Weekday schedule")
-    gas_fireplace_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    gas_fireplace_weekday_sch.setDefaultValue("0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065")
-    args << gas_fireplace_weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    gas_fireplace_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("gas_fireplace_weekend_sch")
-    gas_fireplace_weekend_sch.setDisplayName("Gas Fireplace: Weekend schedule")
-    gas_fireplace_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    gas_fireplace_weekend_sch.setDefaultValue("0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065")
-    args << gas_fireplace_weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    gas_fireplace_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("gas_fireplace_monthly_sch")
-    gas_fireplace_monthly_sch.setDisplayName("Gas Fireplace: Month schedule")
-    gas_fireplace_monthly_sch.setDescription("Specify the 12-month schedule.")
-    gas_fireplace_monthly_sch.setDefaultValue("1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154")
-    args << gas_fireplace_monthly_sch
 
     # make a choice argument for location
     gas_fireplace_location_args = OpenStudio::StringVector.new
@@ -500,27 +458,6 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     gas_grill_scale_energy.setDefaultValue(true)
     args << gas_grill_scale_energy
 
-    # Make a string argument for 24 weekday schedule values
-    gas_grill_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("gas_grill_weekday_sch")
-    gas_grill_weekday_sch.setDisplayName("Gas Grill: Weekday schedule")
-    gas_grill_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    gas_grill_weekday_sch.setDefaultValue("0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007")
-    args << gas_grill_weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    gas_grill_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("gas_grill_weekend_sch")
-    gas_grill_weekend_sch.setDisplayName("Gas Grill: Weekend schedule")
-    gas_grill_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    gas_grill_weekend_sch.setDefaultValue("0.004, 0.001, 0.001, 0.002, 0.007, 0.012, 0.029, 0.046, 0.044, 0.041, 0.044, 0.046, 0.042, 0.038, 0.049, 0.059, 0.110, 0.161, 0.115, 0.070, 0.044, 0.019, 0.013, 0.007")
-    args << gas_grill_weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    gas_grill_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("gas_grill_monthly_sch")
-    gas_grill_monthly_sch.setDisplayName("Gas Grill: Month schedule")
-    gas_grill_monthly_sch.setDescription("Specify the 12-month schedule.")
-    gas_grill_monthly_sch.setDefaultValue("1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097")
-    args << gas_grill_monthly_sch
-
     # Gas Lighting
 
     # make a double argument for Annual Energy Use
@@ -545,27 +482,6 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     gas_lighting_scale_energy.setDefaultValue(true)
     args << gas_lighting_scale_energy
 
-    # Make a string argument for 24 weekday schedule values
-    gas_lighting_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("gas_lighting_weekday_sch")
-    gas_lighting_weekday_sch.setDisplayName("Gas Lighting: Weekday schedule")
-    gas_lighting_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    gas_lighting_weekday_sch.setDefaultValue("0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065")
-    args << gas_lighting_weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    gas_lighting_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("gas_lighting_weekend_sch")
-    gas_lighting_weekend_sch.setDisplayName("Gas Lighting: Weekend schedule")
-    gas_lighting_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    gas_lighting_weekend_sch.setDefaultValue("0.044, 0.023, 0.019, 0.015, 0.016, 0.018, 0.026, 0.033, 0.033, 0.032, 0.033, 0.033, 0.032, 0.032, 0.032, 0.033, 0.045, 0.057, 0.066, 0.076, 0.081, 0.086, 0.075, 0.065")
-    args << gas_lighting_weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    gas_lighting_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("gas_lighting_monthly_sch")
-    gas_lighting_monthly_sch.setDisplayName("Gas Lighting: Month schedule")
-    gas_lighting_monthly_sch.setDescription("Specify the 12-month schedule.")
-    gas_lighting_monthly_sch.setDefaultValue("1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154")
-    args << gas_lighting_monthly_sch
-
     # Electric Vehicle
 
     # Make a double argument for EV annual energy usage
@@ -588,29 +504,6 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     ev_charger_mult.setDescription("Sets the annual energy use equal to the annual energy use times this multiplier.")
     ev_charger_mult.setDefaultValue(1)
     args << ev_charger_mult
-
-    # These ev schedules are placeholders, evenly divided across the day and year. Replace with more accurate values when known.
-
-    # Make a string argument for 24 weekday schedule values
-    ev_charger_weekday_sch = OpenStudio::Measure::OSArgument::makeStringArgument("ev_charger_weekday_sch")
-    ev_charger_weekday_sch.setDisplayName("EV charger: Weekday schedule")
-    ev_charger_weekday_sch.setDescription("Specify the 24-hour weekday schedule.")
-    ev_charger_weekday_sch.setDefaultValue("0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042")
-    args << ev_charger_weekday_sch
-
-    # Make a string argument for 24 weekend schedule values
-    ev_charger_weekend_sch = OpenStudio::Measure::OSArgument::makeStringArgument("ev_charger_weekend_sch")
-    ev_charger_weekend_sch.setDisplayName("EV charger: Weekend schedule")
-    ev_charger_weekend_sch.setDescription("Specify the 24-hour weekend schedule.")
-    ev_charger_weekend_sch.setDefaultValue("0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042")
-    args << ev_charger_weekend_sch
-
-    # Make a string argument for 12 monthly schedule values
-    ev_charger_monthly_sch = OpenStudio::Measure::OSArgument::makeStringArgument("ev_charger_monthly_sch")
-    ev_charger_monthly_sch.setDisplayName("EV charger: Month schedule")
-    ev_charger_monthly_sch.setDescription("Specify the 12-month schedule.")
-    ev_charger_monthly_sch.setDefaultValue("1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1")
-    args << ev_charger_monthly_sch
 
     return args
   end # end the arguments method
@@ -639,9 +532,6 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     has_gas_lighting = runner.getBoolArgumentValue("has_gas_lighting", user_arguments)
     has_electric_vehicle = runner.getBoolArgumentValue("has_electric_vehicle", user_arguments)
 
-    ev_charger_weekday_sch = runner.getStringArgumentValue("ev_charger_weekday_sch", user_arguments)
-    ev_charger_weekend_sch = runner.getStringArgumentValue("ev_charger_weekend_sch", user_arguments)
-    ev_charger_monthly_sch = runner.getStringArgumentValue("ev_charger_monthly_sch", user_arguments)
     ev_charger_mult = runner.getDoubleArgumentValue("ev_charger_mult", user_arguments)
     ev_annual_energy = runner.getDoubleArgumentValue("ev_annual_energy", user_arguments)
 
@@ -684,32 +574,20 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     well_pump_annual_energy = runner.getDoubleArgumentValue("well_pump_annual_energy", user_arguments)
     well_pump_mult = runner.getDoubleArgumentValue("well_pump_mult", user_arguments)
     well_pump_scale_energy = runner.getBoolArgumentValue("well_pump_scale_energy", user_arguments)
-    well_pump_weekday_sch = runner.getStringArgumentValue("well_pump_weekday_sch", user_arguments)
-    well_pump_weekend_sch = runner.getStringArgumentValue("well_pump_weekend_sch", user_arguments)
-    well_pump_monthly_sch = runner.getStringArgumentValue("well_pump_monthly_sch", user_arguments)
 
     gas_fireplace_annual_energy = runner.getDoubleArgumentValue("gas_fireplace_annual_energy", user_arguments)
     gas_fireplace_mult = runner.getDoubleArgumentValue("gas_fireplace_mult", user_arguments)
     gas_fireplace_scale_energy = runner.getBoolArgumentValue("gas_fireplace_scale_energy", user_arguments)
-    gas_fireplace_weekday_sch = runner.getStringArgumentValue("gas_fireplace_weekday_sch", user_arguments)
-    gas_fireplace_weekend_sch = runner.getStringArgumentValue("gas_fireplace_weekend_sch", user_arguments)
-    gas_fireplace_monthly_sch = runner.getStringArgumentValue("gas_fireplace_monthly_sch", user_arguments)
     gas_fireplace_location = runner.getStringArgumentValue("gas_fireplace_location", user_arguments)
     model.getBuilding.additionalProperties.setFeature("has_fireplace_chimney", runner.getBoolArgumentValue("has_fireplace_chimney", user_arguments))
 
     gas_grill_annual_energy = runner.getDoubleArgumentValue("gas_grill_annual_energy", user_arguments)
     gas_grill_mult = runner.getDoubleArgumentValue("gas_grill_mult", user_arguments)
     gas_grill_scale_energy = runner.getBoolArgumentValue("gas_grill_scale_energy", user_arguments)
-    gas_grill_weekday_sch = runner.getStringArgumentValue("gas_grill_weekday_sch", user_arguments)
-    gas_grill_weekend_sch = runner.getStringArgumentValue("gas_grill_weekend_sch", user_arguments)
-    gas_grill_monthly_sch = runner.getStringArgumentValue("gas_grill_monthly_sch", user_arguments)
 
     gas_lighting_annual_energy = runner.getDoubleArgumentValue("gas_lighting_annual_energy", user_arguments)
     gas_lighting_mult = runner.getDoubleArgumentValue("gas_lighting_mult", user_arguments)
     gas_lighting_scale_energy = runner.getBoolArgumentValue("gas_lighting_scale_energy", user_arguments)
-    gas_lighting_weekday_sch = runner.getStringArgumentValue("gas_lighting_weekday_sch", user_arguments)
-    gas_lighting_weekend_sch = runner.getStringArgumentValue("gas_lighting_weekend_sch", user_arguments)
-    gas_lighting_monthly_sch = runner.getStringArgumentValue("gas_lighting_monthly_sch", user_arguments)
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -746,6 +624,11 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
     gas_fireplace_location_hierarchy = [Constants.SpaceTypeLiving,
                                         Constants.SpaceTypeFinishedBasement]
 
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
     fridge_sch = nil
     freezer_sch = nil
     pool_sch = nil
@@ -770,7 +653,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           unit_obj_name = Constants.ObjectNameExtraRefrigerator(unit.name.to_s)
           success, ann_e, fridge_sch = MiscLoads.apply_electric(model, unit, runner, fridge_rated_annual_energy, fridge_mult,
                                                                 fridge_weekday_sch, fridge_weekend_sch, fridge_monthly_sch,
-                                                                fridge_sch, space, unit_obj_name, false)
+                                                                fridge_sch, space, unit_obj_name, false, nil)
 
           return false if not success
 
@@ -793,7 +676,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           unit_obj_name = Constants.ObjectNameFreezer(unit.name.to_s)
           success, ann_e, freezer_sch = MiscLoads.apply_electric(model, unit, runner, freezer_rated_annual_energy, freezer_mult,
                                                                  freezer_weekday_sch, freezer_weekend_sch, freezer_monthly_sch,
-                                                                 freezer_sch, space, unit_obj_name, false)
+                                                                 freezer_sch, space, unit_obj_name, false, nil)
 
           return false if not success
 
@@ -814,7 +697,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_e, pool_sch = MiscLoads.apply_electric(model, unit, runner, pool_heater_elec_annual_energy,
                                                             pool_heater_elec_mult, pool_weekday_sch, pool_weekend_sch,
                                                             pool_monthly_sch, pool_sch, nil, unit_obj_name,
-                                                            pool_scale_energy)
+                                                            pool_scale_energy, nil)
 
         return false if not success
 
@@ -833,7 +716,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_g, pool_sch = MiscLoads.apply_gas(model, unit, runner, pool_heater_gas_annual_energy,
                                                        pool_heater_gas_mult, pool_weekday_sch, pool_weekend_sch,
                                                        pool_monthly_sch, pool_sch, nil, unit_obj_name,
-                                                       pool_scale_energy)
+                                                       pool_scale_energy, nil)
 
         return false if not success
 
@@ -852,7 +735,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_e, pool_sch = MiscLoads.apply_electric(model, unit, runner, pool_pump_annual_energy,
                                                             pool_pump_mult, pool_weekday_sch, pool_weekend_sch,
                                                             pool_monthly_sch, pool_sch, nil, unit_obj_name,
-                                                            pool_scale_energy)
+                                                            pool_scale_energy, nil)
 
         return false if not success
 
@@ -871,7 +754,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_e, hot_tub_sch = MiscLoads.apply_electric(model, unit, runner, hot_tub_heater_elec_annual_energy,
                                                                hot_tub_heater_elec_mult, hot_tub_weekday_sch,
                                                                hot_tub_weekend_sch, hot_tub_monthly_sch, hot_tub_sch,
-                                                               nil, unit_obj_name, hot_tub_scale_energy)
+                                                               nil, unit_obj_name, hot_tub_scale_energy, nil)
 
         return false if not success
 
@@ -890,7 +773,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         success, ann_g, hot_tub_sch = MiscLoads.apply_gas(model, unit, runner, hot_tub_heater_gas_annual_energy,
                                                           hot_tub_heater_gas_mult, hot_tub_weekday_sch,
                                                           hot_tub_weekend_sch, hot_tub_monthly_sch, hot_tub_sch,
-                                                          nil, unit_obj_name, hot_tub_scale_energy)
+                                                          nil, unit_obj_name, hot_tub_scale_energy, nil)
 
         return false if not success
 
@@ -908,7 +791,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
         unit_obj_name = Constants.ObjectNameHotTubPump(unit.name.to_s)
         success, ann_e, hot_tub_sch = MiscLoads.apply_electric(model, unit, runner, hot_tub_pump_annual_energy, hot_tub_pump_mult,
                                                                hot_tub_weekday_sch, hot_tub_weekend_sch, hot_tub_monthly_sch,
-                                                               hot_tub_sch, nil, unit_obj_name, hot_tub_scale_energy)
+                                                               hot_tub_sch, nil, unit_obj_name, hot_tub_scale_energy, nil)
 
         return false if not success
 
@@ -925,8 +808,8 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
 
         unit_obj_name = Constants.ObjectNameWellPump(unit.name.to_s)
         success, ann_e, well_pump_sch = MiscLoads.apply_electric(model, unit, runner, well_pump_annual_energy, well_pump_mult,
-                                                                 well_pump_weekday_sch, well_pump_weekend_sch, well_pump_monthly_sch,
-                                                                 well_pump_sch, nil, unit_obj_name, well_pump_scale_energy)
+                                                                 nil, nil, nil,
+                                                                 well_pump_sch, nil, unit_obj_name, well_pump_scale_energy, schedules_file)
 
         return false if not success
 
@@ -946,8 +829,8 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
 
           unit_obj_name = Constants.ObjectNameGasFireplace(unit.name.to_s)
           success, ann_g, gas_fireplace_sch = MiscLoads.apply_gas(model, unit, runner, gas_fireplace_annual_energy, gas_fireplace_mult,
-                                                                  gas_fireplace_weekday_sch, gas_fireplace_weekend_sch, gas_fireplace_monthly_sch,
-                                                                  gas_fireplace_sch, space, unit_obj_name, gas_fireplace_scale_energy)
+                                                                  nil, nil, nil,
+                                                                  gas_fireplace_sch, space, unit_obj_name, gas_fireplace_scale_energy, schedules_file)
 
           return false if not success
 
@@ -966,8 +849,8 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
 
         unit_obj_name = Constants.ObjectNameGasGrill(unit.name.to_s)
         success, ann_g, gas_grill_sch = MiscLoads.apply_gas(model, unit, runner, gas_grill_annual_energy, gas_grill_mult,
-                                                            gas_grill_weekday_sch, gas_grill_weekend_sch, gas_grill_monthly_sch,
-                                                            gas_grill_sch, space, unit_obj_name, gas_grill_scale_energy)
+                                                            nil, nil, nil,
+                                                            gas_grill_sch, space, unit_obj_name, gas_grill_scale_energy, schedules_file)
 
         return false if not success
 
@@ -984,8 +867,8 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
 
         unit_obj_name = Constants.ObjectNameGasLighting(unit.name.to_s)
         success, ann_g, gas_lighting_sch = MiscLoads.apply_gas(model, unit, runner, gas_lighting_annual_energy, gas_lighting_mult,
-                                                               gas_lighting_weekday_sch, gas_lighting_weekend_sch, gas_lighting_monthly_sch,
-                                                               gas_lighting_sch, space, unit_obj_name, gas_lighting_scale_energy)
+                                                               nil, nil, nil,
+                                                               gas_lighting_sch, space, unit_obj_name, gas_lighting_scale_energy, schedules_file)
 
         return false if not success
 
@@ -1001,8 +884,9 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
       if has_electric_vehicle
 
         unit_obj_name = Constants.ObjectNameElectricVehicle(unit.name.to_s)
-        success, ann_e, electric_vehicle_sch = MiscLoads.apply_electric(model, unit, runner, ev_annual_energy, ev_charger_mult, ev_charger_weekday_sch,
-                                                                        ev_charger_weekend_sch, ev_charger_monthly_sch, nil, nil, unit_obj_name, false)
+        success, ann_e, electric_vehicle_sch = MiscLoads.apply_electric(model, unit, runner, ev_annual_energy, ev_charger_mult,
+                                                                        nil, nil, nil,
+                                                                        nil, nil, unit_obj_name, false, schedules_file)
 
         return false if not success
 
@@ -1013,6 +897,12 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
 
       end
     end
+
+    schedules_file.set_vacancy(col_name: "plug_loads_vehicle")
+    schedules_file.set_vacancy(col_name: "plug_loads_well_pump")
+    schedules_file.set_vacancy(col_name: "fuel_loads_grill")
+    schedules_file.set_vacancy(col_name: "fuel_loads_lighting")
+    schedules_file.set_vacancy(col_name: "fuel_loads_fireplace")
 
     # Reporting
     if msgs.size > 1
