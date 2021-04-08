@@ -50,47 +50,48 @@ class ScheduleGenerator
   end
 
   def self.col_names
-    return [
-      'occupants',
-      'lighting_interior',
-      'lighting_exterior',
-      'lighting_garage',
-      'lighting_exterior_holiday',
-      'cooking_range',
-      'refrigerator',
-      'extra_refrigerator',
-      'freezer',
-      'dishwasher',
-      'dishwasher_power',
-      'clothes_washer',
-      'clothes_washer_power',
-      'clothes_dryer',
-      'clothes_dryer_exhaust',
-      'baths',
-      'showers',
-      'sinks',
-      'fixtures',
-      'ceiling_fan',
-      'plug_loads_other',
-      'plug_loads_tv',
-      'plug_loads_vehicle',
-      'plug_loads_well_pump',
-      'fuel_loads_grill',
-      'fuel_loads_lighting',
-      'fuel_loads_fireplace',
-      'pool_pump',
-      'pool_heater',
-      'hot_tub_pump',
-      'hot_tub_heater',
-      'sleep',
-      'vacancy'
-    ]
+    # col_name => affected_by_vacancy
+    return {
+      'occupants' => true,
+      'lighting_interior' => true,
+      'lighting_exterior' => true,
+      'lighting_garage' => true,
+      'lighting_exterior_holiday' => true,
+      'cooking_range' => true,
+      'refrigerator' => false,
+      'extra_refrigerator' => false,
+      'freezer' => false,
+      'dishwasher' => true,
+      'dishwasher_power' => true,
+      'clothes_washer' => true,
+      'clothes_washer_power' => true,
+      'clothes_dryer' => true,
+      'clothes_dryer_exhaust' => true,
+      'baths' => true,
+      'showers' => true,
+      'sinks' => true,
+      'fixtures' => true,
+      'ceiling_fan' => true,
+      'plug_loads_other' => true,
+      'plug_loads_tv' => true,
+      'plug_loads_vehicle' => true,
+      'plug_loads_well_pump' => true,
+      'fuel_loads_grill' => true,
+      'fuel_loads_lighting' => true,
+      'fuel_loads_fireplace' => true,
+      'pool_pump' => false,
+      'pool_heater' => false,
+      'hot_tub_pump' => false,
+      'hot_tub_heater' => false,
+      'sleep' => nil,
+      'vacancy' => nil
+    }
   end
 
-  def initialize_schedules(args:)
+  def initialize_schedules
     @schedules = {}
 
-    ScheduleGenerator.col_names.each do |col_name|
+    ScheduleGenerator.col_names.keys.each do |col_name|
       @schedules[col_name] = Array.new(@total_days_in_year * @steps_in_day, 0.0)
     end
 
@@ -103,7 +104,7 @@ class ScheduleGenerator
 
   def create(args:)
     get_simulation_parameters
-    initialize_schedules(args: args)
+    initialize_schedules
 
     success = create_average_schedules(args: args)
     return false if not success
@@ -111,7 +112,7 @@ class ScheduleGenerator
     success = create_stochastic_schedules(args: args)
     return false if not success
 
-    success = set_vacancy(args: args, sim_year: @sim_year)
+    success = set_vacancy(args: args)
     return false if not success
 
     return true
@@ -525,7 +526,7 @@ class ScheduleGenerator
       cluster_per_day.times do |cluster_count|
         todays_probable_steps = sink_activtiy_probable_mins[day * @mkc_ts_per_day...((day + 1) * @mkc_ts_per_day)]
         todays_probablities = todays_probable_steps.map.with_index { |p, i| p * hourly_onset_prob[i / @mkc_ts_per_hour] }
-        prob_sum = todays_probablities.reduce(0, :+)
+        prob_sum = todays_probablities.sum(0)
         normalized_probabilities = todays_probablities.map { |p| p * 1 / prob_sum }
         cluster_start_index = weighted_random(prng, normalized_probabilities)
         sink_activtiy_probable_mins[cluster_start_index] = 0 # mark the 15-min interval as unavailable for another sink event
@@ -855,15 +856,14 @@ class ScheduleGenerator
     return true
   end
 
-  def set_vacancy(args:,
-                  sim_year:)
+  def set_vacancy(args:)
     if args[:schedules_vacancy_begin_month].is_initialized && args[:schedules_vacancy_begin_day_of_month].is_initialized && args[:schedules_vacancy_end_month].is_initialized && args[:schedules_vacancy_end_day_of_month].is_initialized
       begin
-        vacancy_start_date = Time.new(sim_year, args[:schedules_vacancy_begin_month].get, args[:schedules_vacancy_begin_day_of_month].get)
-        vacancy_end_date = Time.new(sim_year, args[:schedules_vacancy_end_month].get, args[:schedules_vacancy_end_day_of_month].get, 24)
+        vacancy_start_date = Time.new(@sim_year, args[:schedules_vacancy_begin_month].get, args[:schedules_vacancy_begin_day_of_month].get)
+        vacancy_end_date = Time.new(@sim_year, args[:schedules_vacancy_end_month].get, args[:schedules_vacancy_end_day_of_month].get, 24)
 
         sec_per_step = @minutes_per_step * 60.0
-        ts = Time.new(sim_year, 'Jan', 1)
+        ts = Time.new(@sim_year, 'Jan', 1)
         @schedules['vacancy'].each_with_index do |step, i|
           if vacancy_start_date <= ts && ts <= vacancy_end_date # in the vacancy period
             @schedules['vacancy'][i] = 1.0
@@ -885,16 +885,17 @@ class ScheduleGenerator
     new_array_size = array.size / group_size
     new_array = [0] * new_array_size
     new_array_size.times do |j|
-      new_array[j] = array[(j * group_size)...(j + 1) * group_size].reduce(0, :+)
+      new_array[j] = array[(j * group_size)...(j + 1) * group_size].sum(0)
     end
     return new_array
   end
 
   def apply_monthly_offsets(array:, weekday_monthly_shift_dict:, weekend_monthly_shift_dict:)
+    month_strs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    new_array = []
     @total_days_in_year.times do |day|
       today = @sim_start_day + day
       day_of_week = today.wday
-      month_strs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
       month = month_strs[today.month - 1]
       if [0, 6].include?(day_of_week)
         # Weekend
@@ -907,9 +908,9 @@ class ScheduleGenerator
         raise "Could not find the entry for month #{month}, day #{day_of_week} and state #{@state}"
       end
 
-      array[day * 1440, 1440] = array[day * 1440, 1440].rotate(lead)
+      new_array << array[day * 1440, 1440].rotate(lead)
     end
-    return array
+    return new_array.flatten!
   end
 
   def read_monthly_shift_minutes(resources_path:, daytype:)

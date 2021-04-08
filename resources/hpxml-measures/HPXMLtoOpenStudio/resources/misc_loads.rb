@@ -145,17 +145,18 @@ class MiscLoads
         heater_sch = heater_sch.schedule
       end
 
-      mel_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
-      mel = OpenStudio::Model::GasEquipment.new(mel_def)
-      mel.setName(obj_name)
-      mel.setEndUseSubcategory(obj_name)
-      mel.setSpace(living_space)
-      mel_def.setName(obj_name)
-      mel_def.setDesignLevel(space_design_level)
-      mel_def.setFractionRadiant(0)
-      mel_def.setFractionLatent(0)
-      mel_def.setFractionLost(1)
-      mel.setSchedule(heater_sch)
+      mfl_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
+      mfl = OpenStudio::Model::OtherEquipment.new(mfl_def)
+      mfl.setName(obj_name)
+      mfl.setEndUseSubcategory(obj_name)
+      mfl.setFuelType(EPlus.fuel_type(HPXML::FuelTypeNaturalGas))
+      mfl.setSpace(living_space)
+      mfl_def.setName(obj_name)
+      mfl_def.setDesignLevel(space_design_level)
+      mfl_def.setFractionRadiant(0)
+      mfl_def.setFractionLatent(0)
+      mfl_def.setFractionLost(1)
+      mfl.setSchedule(heater_sch)
     end
   end
 

@@ -1143,7 +1143,11 @@ class Airflow
     return if @spaces[HPXML::LocationAtticVented].nil?
 
     if not vented_attic.vented_attic_sla.nil?
-      vented_attic_sla = vented_attic.vented_attic_sla
+      if @apply_ashrae140_assumptions
+        vented_attic_const_ach = get_infiltration_ACH_from_SLA(vented_attic.vented_attic_sla, 8.202, weather)
+      else
+        vented_attic_sla = vented_attic.vented_attic_sla
+      end
     elsif not vented_attic.vented_attic_ach.nil?
       if @apply_ashrae140_assumptions
         vented_attic_const_ach = vented_attic.vented_attic_ach
