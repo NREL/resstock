@@ -6,7 +6,7 @@ class HPXMLDefaults
   # being written to the HPXML file. This is useful to associate additional values
   # with the HPXML objects that will ultimately get passed around.
 
-  def self.apply(hpxml, eri_version, weather, epw_file = nil)
+  def self.apply(hpxml, eri_version, weather, epw_file: nil, do_hvac_sizing: true)
     cfa = hpxml.building_construction.conditioned_floor_area
     nbeds = hpxml.building_construction.number_of_bedrooms
     ncfl = hpxml.building_construction.number_of_conditioned_floors
@@ -27,7 +27,7 @@ class HPXMLDefaults
     apply_slabs(hpxml)
     apply_windows(hpxml)
     apply_skylights(hpxml)
-    apply_hvac(hpxml, weather)
+    apply_hvac(hpxml, weather, do_hvac_sizing)
     apply_hvac_control(hpxml)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     apply_ventilation_fans(hpxml)
@@ -43,6 +43,8 @@ class HPXMLDefaults
     apply_fuel_loads(hpxml, cfa, nbeds)
     apply_pv_systems(hpxml)
     apply_generators(hpxml)
+
+    return unless do_hvac_sizing
 
     # Do HVAC sizing after all other defaults have been applied
     apply_hvac_sizing(hpxml, weather, cfa, nbeds)
@@ -423,8 +425,8 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_hvac(hpxml, weather)
-    HVAC.apply_shared_systems(hpxml)
+  def self.apply_hvac(hpxml, weather, do_hvac_sizing)
+    HVAC.apply_shared_systems(hpxml, do_hvac_sizing)
 
     # Default AC/HP compressor type
     hpxml.cooling_systems.each do |cooling_system|
@@ -508,6 +510,7 @@ class HPXMLDefaults
 
       cooling_system.charge_defect_ratio = 0.0
       cooling_system.charge_defect_ratio_isdefaulted = true
+      cooling_system.charge_not_tested = nil
     end
     hpxml.heat_pumps.each do |heat_pump|
       next unless [HPXML::HVACTypeHeatPumpAirToAir,
@@ -517,6 +520,7 @@ class HPXMLDefaults
 
       heat_pump.charge_defect_ratio = 0.0
       heat_pump.charge_defect_ratio_isdefaulted = true
+      heat_pump.charge_not_tested = nil
     end
 
     # Airflow defect ratio
@@ -526,6 +530,7 @@ class HPXMLDefaults
 
       heating_system.airflow_defect_ratio = 0.0
       heating_system.airflow_defect_ratio_isdefaulted = true
+      heating_system.airflow_not_tested = nil
     end
     hpxml.cooling_systems.each do |cooling_system|
       next unless [HPXML::HVACTypeCentralAirConditioner,
@@ -537,6 +542,7 @@ class HPXMLDefaults
 
       cooling_system.airflow_defect_ratio = 0.0
       cooling_system.airflow_defect_ratio_isdefaulted = true
+      cooling_system.airflow_not_tested = nil
     end
     hpxml.heat_pumps.each do |heat_pump|
       next unless [HPXML::HVACTypeHeatPumpAirToAir,
@@ -549,6 +555,7 @@ class HPXMLDefaults
 
       heat_pump.airflow_defect_ratio = 0.0
       heat_pump.airflow_defect_ratio_isdefaulted = true
+      heat_pump.airflow_not_tested = nil
     end
 
     # Fan power
@@ -558,12 +565,15 @@ class HPXMLDefaults
     hpxml.heating_systems.each do |heating_system|
       if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
         if heating_system.fan_watts_per_cfm.nil?
-          if heating_system.heating_efficiency_afue > 0.9 # HEScore assumption
+          if heating_system.distribution_system.air_type == HPXML::AirTypeGravity
+            heating_system.fan_watts_per_cfm = 0.0
+          elsif heating_system.heating_efficiency_afue > 0.9 # HEScore assumption
             heating_system.fan_watts_per_cfm = ecm_watts_per_cfm
           else
             heating_system.fan_watts_per_cfm = psc_watts_per_cfm
           end
           heating_system.fan_watts_per_cfm_isdefaulted = true
+          heating_system.fan_power_not_tested = nil
         end
       elsif [HPXML::HVACTypeStove].include? heating_system.heating_system_type
         if heating_system.fan_watts.nil?
@@ -587,6 +597,7 @@ class HPXMLDefaults
       if (not cooling_system.attached_heating_system.nil?) && (not cooling_system.attached_heating_system.fan_watts_per_cfm.nil?)
         cooling_system.fan_watts_per_cfm = cooling_system.attached_heating_system.fan_watts_per_cfm
         cooling_system.fan_watts_per_cfm_isdefaulted = true
+        cooling_system.fan_power_not_tested = nil
       elsif [HPXML::HVACTypeCentralAirConditioner].include? cooling_system.cooling_system_type
         if cooling_system.cooling_efficiency_seer > 13.5 # HEScore assumption
           cooling_system.fan_watts_per_cfm = ecm_watts_per_cfm
@@ -594,11 +605,13 @@ class HPXMLDefaults
           cooling_system.fan_watts_per_cfm = psc_watts_per_cfm
         end
         cooling_system.fan_watts_per_cfm_isdefaulted = true
+        cooling_system.fan_power_not_tested = nil
       elsif [HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
         if not cooling_system.distribution_system.nil?
           cooling_system.fan_watts_per_cfm = mini_split_ducted_watts_per_cfm
         end
         cooling_system.fan_watts_per_cfm_isdefaulted = true
+        cooling_system.fan_power_not_tested = nil
       elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
         # Depends on airflow rate, so defaulted in hvac_sizing.rb
       end
@@ -613,6 +626,7 @@ class HPXMLDefaults
           heat_pump.fan_watts_per_cfm = psc_watts_per_cfm
         end
         heat_pump.fan_watts_per_cfm_isdefaulted = true
+        heat_pump.fan_power_not_tested = nil
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
         if heat_pump.heating_efficiency_cop > 8.75 / 3.2 # HEScore assumption
           heat_pump.fan_watts_per_cfm = ecm_watts_per_cfm
@@ -620,11 +634,13 @@ class HPXMLDefaults
           heat_pump.fan_watts_per_cfm = psc_watts_per_cfm
         end
         heat_pump.fan_watts_per_cfm_isdefaulted = true
+        heat_pump.fan_power_not_tested = nil
       elsif [HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
         if not heat_pump.distribution_system.nil?
           heat_pump.fan_watts_per_cfm = mini_split_ducted_watts_per_cfm
         end
         heat_pump.fan_watts_per_cfm_isdefaulted = true
+        heat_pump.fan_power_not_tested = nil
       end
     end
 
@@ -890,7 +906,7 @@ class HPXMLDefaults
       end
       if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage)
         if water_heating_system.heating_capacity.nil?
-          water_heating_system.heating_capacity = Waterheater.get_default_heating_capacity(water_heating_system.fuel_type, nbeds, hpxml.water_heating_systems.size, hpxml.building_construction.number_of_bathrooms) * 1000.0
+          water_heating_system.heating_capacity = (Waterheater.get_default_heating_capacity(water_heating_system.fuel_type, nbeds, hpxml.water_heating_systems.size, hpxml.building_construction.number_of_bathrooms) * 1000.0).round
           water_heating_system.heating_capacity_isdefaulted = true
         end
         if water_heating_system.tank_volume.nil?
@@ -948,6 +964,8 @@ class HPXMLDefaults
   end
 
   def self.apply_water_fixtures(hpxml)
+    return if hpxml.hot_water_distributions.size == 0
+
     if hpxml.water_heating.water_fixtures_usage_multiplier.nil?
       hpxml.water_heating.water_fixtures_usage_multiplier = 1.0
       hpxml.water_heating.water_fixtures_usage_multiplier_isdefaulted = true
@@ -1714,7 +1732,7 @@ class HPXMLDefaults
               # Fixed value entered; scale w/ heating_capacity in case allow_increased_fixed_capacities=true
               htg_cap_17f = htg_sys.heating_capacity_17F * hvac_sizing_values.Heat_Capacity.round / htg_sys.heating_capacity
               if (htg_sys.heating_capacity_17F - htg_cap_17f).abs >= 1.0
-                htg_sys.heating_capacity_17F = htg_cap_17f
+                htg_sys.heating_capacity_17F = htg_cap_17f.round
                 htg_sys.heating_capacity_17F_isdefaulted = true
               end
             else
