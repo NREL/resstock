@@ -1815,19 +1815,19 @@ class Geometry
       attic_space_type = OpenStudio::Model::SpaceType.new(model)
       attic_space_type.setStandardsSpaceType(attic_space_name)
       attic_space.setSpaceType(attic_space_type)
-    end
 
-    # Adiabatic surfaces for attic walls
-    attic_space.surfaces.each do |surface|
-      os_facade = get_facade_for_surface(surface)
-      next unless surface.surfaceType == 'Wall'
-      next unless adb_facade.include? os_facade
-      x_ft = UnitConversions.convert(x, 'm', 'ft')
-      max_x = getSurfaceXValues([surface]).max
-      min_x = getSurfaceXValues([surface]).min
-      next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
+      # Adiabatic surfaces for attic walls
+      attic_space.surfaces.each do |surface|
+        os_facade = get_facade_for_surface(surface)
+        next unless surface.surfaceType == 'Wall'
+        next unless adb_facade.include? os_facade
+        x_ft = UnitConversions.convert(x, 'm', 'ft')
+        max_x = getSurfaceXValues([surface]).max
+        min_x = getSurfaceXValues([surface]).min
+        next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
 
-      surface.setOutsideBoundaryCondition('Adiabatic')
+        surface.setOutsideBoundaryCondition('Adiabatic')
+      end
     end
 
     # put all of the spaces in the model into a vector

@@ -244,7 +244,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_corridor_position', corridor_position_choices, true)
     arg.setDisplayName('Geometry: Corridor Position')
-    arg.setDescription("The position of the corridor. Only applies to #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} units.")
+    arg.setDescription("The position of the corridor. Only applies to #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} units. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.")
     arg.setDefaultValue('Double-Loaded Interior')
     args << arg
 
@@ -951,6 +951,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heating_system_type_choices << HPXML::HVACTypePortableHeater
     heating_system_type_choices << HPXML::HVACTypeFireplace
     heating_system_type_choices << HPXML::HVACTypeFixedHeater
+    heating_system_type_choices << "Shared #{HPXML::HVACTypeBoiler} w/ Baseboard"
+    heating_system_type_choices << "Shared #{HPXML::HVACTypeBoiler} w/ Ductless Fan Coil"
 
     heating_system_fuel_choices = OpenStudio::StringVector.new
     heating_system_fuel_choices << HPXML::FuelTypeElectricity
@@ -1493,7 +1495,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_fan_type_2', mech_vent_fan_type_choices, true)
+    mech_vent_fan_type_2_choices = OpenStudio::StringVector.new
+    mech_vent_fan_type_2_choices << 'none'
+    mech_vent_fan_type_2_choices << HPXML::MechVentTypeExhaust
+    mech_vent_fan_type_2_choices << HPXML::MechVentTypeSupply
+    mech_vent_fan_type_2_choices << HPXML::MechVentTypeERV
+    mech_vent_fan_type_2_choices << HPXML::MechVentTypeHRV
+    mech_vent_fan_type_2_choices << HPXML::MechVentTypeBalanced
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_fan_type_2', mech_vent_fan_type_2_choices, true)
     arg.setDisplayName('Mechanical Ventilation 2: Fan Type')
     arg.setDescription("The type of the second mechanical ventilation. Use 'none' if there is no second mechanical ventilation system.")
     arg.setDefaultValue('none')
@@ -3027,6 +3037,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       errors << "foundation_wall_insulation_distance_to_bottom=#{args[:foundation_wall_insulation_distance_to_bottom]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
     end
 
+    # number of bedrooms not greater than zero
+    error = (args[:geometry_num_bedrooms] <= 0)
+    errors << "geometry_num_bedrooms=#{args[:geometry_num_bedrooms]}" if error
+
+    # single-family detached with shared system
+    error = [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type]) && args[:heating_system_type].include?('Shared')
+    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and heating_system_type=#{args[:heating_system_type]}" if error
+
     return warnings, errors
   end
 
@@ -3149,6 +3167,7 @@ class HPXMLFile
       success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
       args[:geometry_roof_type] = 'flat'
+      args[:geometry_attic_type] = HPXML::AtticTypeVented
       success = Geometry.create_multifamily(runner: runner, model: model, **args)
     end
     return false if not success
@@ -3814,7 +3833,7 @@ class HPXMLFile
           end
 
           # Get max z coordinate of this window
-          sub_surface_z = Geometry.getSurfaceZValues([surface]).max + UnitConversions.convert(sub_surface.space.get.zOrigin, 'm', 'ft')
+          sub_surface_z = Geometry.getSurfaceZValues([sub_surface]).max + UnitConversions.convert(sub_surface.space.get.zOrigin, 'm', 'ft')
 
           overhangs_depth = args[:geometry_eaves_depth]
           overhangs_distance_to_top_of_window = eaves_z - sub_surface_z # difference between max z coordinates of eaves and this window
@@ -3917,9 +3936,9 @@ class HPXMLFile
       heating_system_fuel = args[:heating_system_fuel]
     end
 
-    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeBoiler].include? heating_system_type
+    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace].include?(heating_system_type) || heating_system_type.include?(HPXML::HVACTypeBoiler)
       heating_efficiency_afue = args[:heating_system_heating_efficiency]
-    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace, HPXML::HVACTypeFixedHeater].include? heating_system_type
+    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace, HPXML::HVACTypeFixedHeater].include?(heating_system_type)
       heating_efficiency_percent = args[:heating_system_heating_efficiency]
     end
 
@@ -3934,6 +3953,16 @@ class HPXMLFile
       fraction_heat_load_served = 1.0 - args[:heating_system_fraction_heat_load_served_2]
     end
 
+    if heating_system_type.include?('Shared')
+      is_shared_system = true
+      number_of_units_served = args[:geometry_building_num_units].get
+      heating_capacity = nil
+    end
+
+    if heating_system_type.include?(HPXML::HVACTypeBoiler)
+      heating_system_type = HPXML::HVACTypeBoiler
+    end
+
     hpxml.heating_systems.add(id: 'HeatingSystem',
                               heating_system_type: heating_system_type,
                               heating_system_fuel: heating_system_fuel,
@@ -3941,7 +3970,9 @@ class HPXMLFile
                               fraction_heat_load_served: fraction_heat_load_served,
                               heating_efficiency_afue: heating_efficiency_afue,
                               heating_efficiency_percent: heating_efficiency_percent,
-                              airflow_defect_ratio: airflow_defect_ratio)
+                              airflow_defect_ratio: airflow_defect_ratio,
+                              is_shared_system: is_shared_system,
+                              number_of_units_served: number_of_units_served)
   end
 
   def self.set_cooling_systems(hpxml, runner, args)
@@ -4095,40 +4126,45 @@ class HPXMLFile
   end
 
   def self.set_secondary_heating_systems(hpxml, runner, args)
-    heating_system_type_2 = args[:heating_system_type_2]
+    heating_system_type = args[:heating_system_type_2]
 
-    return if heating_system_type_2 == 'none'
+    return if heating_system_type == 'none'
 
     if args[:heating_system_heating_capacity_2] != Constants.Auto
-      heating_capacity_2 = args[:heating_system_heating_capacity_2]
+      heating_capacity = args[:heating_system_heating_capacity_2]
     end
 
     if args[:heating_system_fuel_2] == HPXML::HVACTypeElectricResistance
-      heating_system_fuel_2 = HPXML::FuelTypeElectricity
+      heating_system_fuel = HPXML::FuelTypeElectricity
     else
-      heating_system_fuel_2 = args[:heating_system_fuel_2]
+      heating_system_fuel = args[:heating_system_fuel_2]
     end
 
-    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeBoiler].include? heating_system_type_2
-      heating_efficiency_afue_2 = args[:heating_system_heating_efficiency_2]
-    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace].include? heating_system_type_2
-      heating_efficiency_percent_2 = args[:heating_system_heating_efficiency_2]
+    if [HPXML::HVACTypeFurnace, HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace].include?(heating_system_type) || heating_system_type.include?(HPXML::HVACTypeBoiler)
+      heating_efficiency_afue = args[:heating_system_heating_efficiency_2]
+    elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace].include?(heating_system_type)
+      heating_efficiency_percent = args[:heating_system_heating_efficiency_2]
+    end
+
+    if heating_system_type.include?(HPXML::HVACTypeBoiler)
+      heating_system_type = HPXML::HVACTypeBoiler
     end
 
     hpxml.heating_systems.add(id: 'SecondHeatingSystem',
-                              heating_system_type: heating_system_type_2,
-                              heating_system_fuel: heating_system_fuel_2,
-                              heating_capacity: heating_capacity_2,
+                              heating_system_type: heating_system_type,
+                              heating_system_fuel: heating_system_fuel,
+                              heating_capacity: heating_capacity,
                               fraction_heat_load_served: args[:heating_system_fraction_heat_load_served_2],
-                              heating_efficiency_afue: heating_efficiency_afue_2,
-                              heating_efficiency_percent: heating_efficiency_percent_2)
+                              heating_efficiency_afue: heating_efficiency_afue,
+                              heating_efficiency_percent: heating_efficiency_percent)
   end
 
   def self.set_hvac_distribution(hpxml, runner, args)
     # HydronicDistribution?
     hydr_idx = 0
     hpxml.heating_systems.each do |heating_system|
-      next unless [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
+      next unless [heating_system.heating_system_type].include?(HPXML::HVACTypeBoiler)
+      next if args[:heating_system_type].include?('Fan Coil')
 
       hydr_idx += 1
       hpxml.hvac_distributions.add(id: "HydronicDistribution#{hydr_idx}",
@@ -4140,12 +4176,12 @@ class HPXMLFile
     # AirDistribution?
     air_distribution_systems = []
     hpxml.heating_systems.each do |heating_system|
-      if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
+      if [HPXML::HVACTypeFurnace].include?(heating_system.heating_system_type)
         air_distribution_systems << heating_system
       end
     end
     hpxml.cooling_systems.each do |cooling_system|
-      if [HPXML::HVACTypeCentralAirConditioner].include? cooling_system.cooling_system_type
+      if [HPXML::HVACTypeCentralAirConditioner].include?(cooling_system.cooling_system_type)
         air_distribution_systems << cooling_system
       elsif [HPXML::HVACTypeEvaporativeCooler, HPXML::HVACTypeMiniSplitAirConditioner].include?(cooling_system.cooling_system_type) && args[:cooling_system_is_ducted]
         air_distribution_systems << cooling_system
@@ -4160,33 +4196,62 @@ class HPXMLFile
         end
       end
     end
-    return unless air_distribution_systems.size > 0
+
+    # FanCoil?
+    fan_coil_distribution_systems = []
+    hpxml.heating_systems.each do |heating_system|
+      if args[:heating_system_type].include?('Fan Coil')
+        fan_coil_distribution_systems << heating_system
+      end
+    end
+
+    return if air_distribution_systems.size == 0 && fan_coil_distribution_systems.size == 0
 
     if args[:ducts_number_of_return_registers] != Constants.Auto
       number_of_return_registers = args[:ducts_number_of_return_registers]
     end
 
-    hpxml.hvac_distributions.add(id: 'AirDistribution',
-                                 distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 conditioned_floor_area_served: args[:geometry_cfa],
-                                 number_of_return_registers: number_of_return_registers)
-
-    air_distribution_systems.each do |hvac_system|
-      hvac_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
+    if [HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && hpxml.heating_systems.size == 0 && hpxml.heat_pumps.size == 0
+      number_of_return_registers = nil
     end
 
-    # Duct Leakage
-    hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
-                                                               duct_leakage_units: args[:ducts_supply_leakage_units],
-                                                               duct_leakage_value: args[:ducts_supply_leakage_value],
-                                                               duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+    if air_distribution_systems.size > 0
+      hpxml.hvac_distributions.add(id: 'AirDistribution',
+                                   distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                   conditioned_floor_area_served: args[:geometry_cfa],
+                                   air_type: HPXML::AirTypeRegularVelocity,
+                                   number_of_return_registers: number_of_return_registers)
+      air_distribution_systems.each do |hvac_system|
+        hvac_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
+      end
+      set_duct_leakages(args, hpxml.hvac_distributions[-1])
+      set_ducts(args, hpxml.hvac_distributions[-1])
+    end
 
-    hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
-                                                               duct_leakage_units: args[:ducts_return_leakage_units],
-                                                               duct_leakage_value: args[:ducts_return_leakage_value],
-                                                               duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+    if fan_coil_distribution_systems.size > 0
+      hpxml.hvac_distributions.add(id: 'FanCoilDistribution',
+                                   distribution_system_type: HPXML::HVACDistributionTypeAir,
+                                   conditioned_floor_area_served: args[:geometry_cfa],
+                                   air_type: HPXML::AirTypeFanCoil)
+      fan_coil_distribution_systems.each do |hvac_system|
+        hvac_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
+      end
+    end
+  end
 
-    # Ducts
+  def self.set_duct_leakages(args, hvac_distribution)
+    hvac_distribution.duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
+                                                    duct_leakage_units: args[:ducts_supply_leakage_units],
+                                                    duct_leakage_value: args[:ducts_supply_leakage_value],
+                                                    duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+
+    hvac_distribution.duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
+                                                    duct_leakage_units: args[:ducts_return_leakage_units],
+                                                    duct_leakage_value: args[:ducts_return_leakage_value],
+                                                    duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+  end
+
+  def self.set_ducts(args, hvac_distribution)
     if args[:ducts_supply_location] != Constants.Auto
       ducts_supply_location = args[:ducts_supply_location]
     end
@@ -4203,16 +4268,16 @@ class HPXMLFile
       ducts_return_surface_area = args[:ducts_return_surface_area]
     end
 
-    hpxml.hvac_distributions[-1].ducts.add(duct_type: HPXML::DuctTypeSupply,
-                                           duct_insulation_r_value: args[:ducts_supply_insulation_r],
-                                           duct_location: ducts_supply_location,
-                                           duct_surface_area: ducts_supply_surface_area)
+    hvac_distribution.ducts.add(duct_type: HPXML::DuctTypeSupply,
+                                duct_insulation_r_value: args[:ducts_supply_insulation_r],
+                                duct_location: ducts_supply_location,
+                                duct_surface_area: ducts_supply_surface_area)
 
     if not ([HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && args[:cooling_system_is_ducted])
-      hpxml.hvac_distributions[-1].ducts.add(duct_type: HPXML::DuctTypeReturn,
-                                             duct_insulation_r_value: args[:ducts_return_insulation_r],
-                                             duct_location: ducts_return_location,
-                                             duct_surface_area: ducts_return_surface_area)
+      hvac_distribution.ducts.add(duct_type: HPXML::DuctTypeReturn,
+                                  duct_insulation_r_value: args[:ducts_return_insulation_r],
+                                  duct_location: ducts_return_location,
+                                  duct_surface_area: ducts_return_surface_area)
     end
   end
 
@@ -4275,6 +4340,7 @@ class HPXMLFile
       if args[:mech_vent_fan_type] == HPXML::MechVentTypeCFIS
         hpxml.hvac_distributions.each do |hvac_distribution|
           next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
+          next if hvac_distribution.air_type != HPXML::AirTypeRegularVelocity
 
           distribution_system_idref = hvac_distribution.id
         end
@@ -4337,15 +4403,6 @@ class HPXMLFile
         end
       end
 
-      distribution_system_idref = nil
-      if args[:mech_vent_fan_type_2] == HPXML::MechVentTypeCFIS
-        hpxml.hvac_distributions.each do |hvac_distribution|
-          next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
-
-          distribution_system_idref = hvac_distribution.id
-        end
-      end
-
       hpxml.ventilation_fans.add(id: 'SecondMechanicalVentilation',
                                  fan_type: args[:mech_vent_fan_type_2],
                                  rated_flow_rate: args[:mech_vent_flow_rate_2],
@@ -4355,8 +4412,7 @@ class HPXMLFile
                                  total_recovery_efficiency_adjusted: total_recovery_efficiency_adjusted,
                                  sensible_recovery_efficiency: sensible_recovery_efficiency,
                                  sensible_recovery_efficiency_adjusted: sensible_recovery_efficiency_adjusted,
-                                 fan_power: args[:mech_vent_fan_power_2],
-                                 distribution_system_idref: distribution_system_idref)
+                                 fan_power: args[:mech_vent_fan_power_2])
     end
 
     if (args[:kitchen_fans_quantity] == Constants.Auto) || (args[:kitchen_fans_quantity].to_i > 0)
