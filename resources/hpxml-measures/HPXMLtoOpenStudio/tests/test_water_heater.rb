@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'minitest/autorun'

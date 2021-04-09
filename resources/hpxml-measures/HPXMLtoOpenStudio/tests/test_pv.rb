@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -42,7 +41,7 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
       assert_equal(pv_system.array_azimuth, generator.azimuthAngle)
       assert_equal(pv_system.max_power_output, generator.dcSystemCapacity)
       assert_equal(pv_system.system_losses_fraction, generator.systemLosses)
-      assert_equal(pv_system.module_type, generator.moduleType.downcase)
+      # assert_equal(pv_system.module_type, generator.moduleType.downcase)
       assert_equal('FixedRoofMounted', generator.arrayType)
 
       # Check inverter
@@ -64,7 +63,7 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
       assert_equal(pv_system.array_azimuth, generator.azimuthAngle)
       assert_equal(max_power, generator.dcSystemCapacity)
       assert_equal(pv_system.system_losses_fraction, generator.systemLosses)
-      assert_equal(pv_system.module_type, generator.moduleType.downcase)
+      # assert_equal(pv_system.module_type, generator.moduleType.downcase)
       assert_equal('FixedOpenRack', generator.arrayType)
 
       # Check inverter

@@ -5,11 +5,10 @@
 
 require 'rake'
 require 'rake/testtask'
-require 'ci/reporter/rake/minitest'
 
 desc 'Run all tests'
 Rake::TestTask.new('test_all') do |t|
-  t.test_files = Dir['*/tests/*.rb']
+  t.test_files = Dir['*/tests/*.rb'] - Dir['workflow/tests/compare.rb']
   t.warning = false
   t.verbose = true
 end
