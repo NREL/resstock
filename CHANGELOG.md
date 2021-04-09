@@ -10,6 +10,7 @@ Features
 - Include electric zonal heating equipment as a dependency in heating setpoint-related tsvs ([#549](https://github.com/NREL/resstock/pull/549))
 - Geo-temporal shifting of the stochastic load model schedules using the American Time Use Survey ([#550](https://github.com/NREL/resstock/pull/550))
 - Use Schedule:File with well pump / vehicle plug loads, as well as gas grill / fireplace / lighting fuel loads. This enables the optional vacancy period to apply to these end uses ([#566](https://github.com/NREL/resstock/pull/556))
+- Introduce GEB capabilities for water heaters, including the ability to schedule setpoint and HPWH operating mode ([#483] (https://github.com/NREL/resstock/pull/483))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))

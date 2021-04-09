@@ -58,7 +58,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     setpoint_type_args = OpenStudio::StringVector.new
     setpoint_type_args << Constants.WaterHeaterSetpointTypeConstant
     setpoint_type_args << Constants.WaterHeaterSetpointTypeScheduled
-    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true, true)
+    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true)
     setpoint_type.setDisplayName("Setpoint type")
     setpoint_type.setDescription("The water heater setpoint type. The '#{Constants.WaterHeaterSetpointTypeConstant}' option will use a constant value for the whole year, while '#{Constants.WaterHeaterSetpointTypeScheduled}' will use 8760 values in a schedule file.")
     setpoint_type.setDefaultValue(Constants.WaterHeaterSetpointTypeConstant)
@@ -92,7 +92,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
       location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
     location.setDisplayName("Location")
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)
@@ -153,6 +153,16 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     has_water_heater_flue.setDefaultValue(false)
     args << has_water_heater_flue
 
+    # make a string argument for mixed or stratified tank
+    tank_model_type_display_name = OpenStudio::StringVector.new
+    tank_model_type_display_name << Constants.WaterHeaterTypeTankModelTypeMixed
+    tank_model_type_display_name << Constants.WaterHeaterTypeTankModelTypeStratified
+    tank_model_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("tank_model_type", tank_model_type_display_name, true)
+    tank_model_type.setDisplayName("Tank Type")
+    tank_model_type.setDescription("Type of tank model to use. The '#{Constants.WaterHeaterTypeTankModelTypeStratified}' tank generally provide more accurate results, but may significantly increase run time.")
+    tank_model_type.setDefaultValue(Constants.WaterHeaterTypeTankModelTypeMixed)
+    args << tank_model_type
+
     return args
   end # end the arguments method
 
@@ -175,6 +185,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     offcycle_power = runner.getDoubleArgumentValue("offcyc_power", user_arguments)
     tank_model_type = runner.getStringArgumentValue("tank_model_type", user_arguments)
     model.getBuilding.additionalProperties.setFeature("has_water_heater_flue", runner.getBoolArgumentValue("has_water_heater_flue", user_arguments))
+    tank_model_type = runner.getStringArgumentValue("tank_model_type", user_arguments)
 
     # Validate inputs
     if not runner.validateUserArguments(arguments(model), user_arguments)
@@ -208,6 +219,27 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
         schedule_directory = File.expand_path(File.join(File.dirname(__FILE__), schedule_directory))
       end
       setpoint_schedule_file = File.join(schedule_directory, setpoint_schedule)
+
+      # Error checking: make sure the schedule file is an appropriate length and values are valid
+      # setpoint_hourly = HourlySchedule.new(model, runner, sch_name, dr_schedule_file, 0, false, [])
+      # setpoint_hourly_array = setpoint_hourly.schedule_array.map { |x| x.to_i }
+      # setpoint_hourly.schedule.remove
+
+      # year_description = model.getYearDescription
+      # assumed_year = year_description.assumedYear
+      # yr_hrs = Constants.NumHoursInYear(year_description.isLeapYear)
+      # run_period = model.getRunPeriod
+      # run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+      # run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
+      # sim_hours = (run_period_end - run_period_start) / 3600
+
+      # year_description = model.getYearDescription
+      # n_days = Constants.NumDaysInYear(year_description.isLeapYear)
+      # if (sp_hourly_array.length != sim_hours) and (sp_hourly_array.length != n_days * 24)
+      #  runner.registerError("Hourly water heater setpoint schedule length must equal to a full year")
+      #  return false
+      # end
+      # return true
 
       if not File.exists?(setpoint_schedule_file)
         runner.registerError("'#{setpoint_schedule_file}' does not exist.")

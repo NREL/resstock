@@ -34,7 +34,7 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
 
     args = ruleset::OSArgumentVector.new
 
-    # make a string argument for furnace fuel type
+    # make a string argument for tankless fuel type
     fuel_display_names = OpenStudio::StringVector.new
     fuel_display_names << Constants.FuelTypeGas
     fuel_display_names << Constants.FuelTypePropane
@@ -83,7 +83,7 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
       location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
     location.setDisplayName("Location")
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)
@@ -212,8 +212,8 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
 
       success = Waterheater.apply_tankless(model, unit, runner, loop, space, fuel_type,
                                            capacity, energy_factor, cycling_derate,
-                                           setpoint_type, setpoint_temp,
-                                           setpoint_schedule_file, oncycle_power,
+                                           Constants.WaterHeaterSetpointTypeConstant, setpoint_temp,
+                                           'none', oncycle_power,
                                            offcycle_power, 1.0)
       return false if not success
     end

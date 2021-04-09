@@ -2,8 +2,8 @@
   <schema_version>3.0</schema_version>
   <name>residential_hot_water_heater_tank</name>
   <uid>0f2214ac-12ca-4350-9942-8d1fb1277608</uid>
-  <version_id>5acc491b-abcd-4521-b87c-92e1f1c95455</version_id>
-  <version_modified>20210409T161824Z</version_modified>
+  <version_id>9b7a5faf-6cdd-4b02-b036-00454bbf5b27</version_id>
+  <version_modified>20210222T151310Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTank</class_name>
   <display_name>Set Residential Tank Water Heater</display_name>
@@ -53,7 +53,7 @@
       <description>The water heater setpoint type. The 'constant' option will use a constant value for the whole year, while 'scheduled' will use 8760 values in a schedule file.</description>
       <type>Choice</type>
       <required>true</required>
-      <model_dependent>true</model_dependent>
+      <model_dependent>false</model_dependent>
       <default_value>constant</default_value>
       <choices>
         <choice>
@@ -100,7 +100,7 @@
       <description>The space type for the location. 'auto' will automatically choose a space type based on the space types found in the model.</description>
       <type>Choice</type>
       <required>true</required>
-      <model_dependent>true</model_dependent>
+      <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
       <choices>
         <choice>
@@ -159,25 +159,6 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>tank_model_type</name>
-      <display_name>Tank Type</display_name>
-      <description>Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>mixed</default_value>
-      <choices>
-        <choice>
-          <value>mixed</value>
-          <display_name>mixed</display_name>
-        </choice>
-        <choice>
-          <value>stratified</value>
-          <display_name>stratified</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>has_water_heater_flue</name>
       <display_name>Air Leakage: Has Open Water Heater Flue</display_name>
       <description>Specifies whether the building has an open flue associated with the water heater.</description>
@@ -193,6 +174,25 @@
         <choice>
           <value>false</value>
           <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>tank_model_type</name>
+      <display_name>Tank Type</display_name>
+      <description>Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>mixed</default_value>
+      <choices>
+        <choice>
+          <value>mixed</value>
+          <display_name>mixed</display_name>
+        </choice>
+        <choice>
+          <value>stratified</value>
+          <display_name>stratified</display_name>
         </choice>
       </choices>
     </argument>
@@ -224,19 +224,61 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>15934F96</checksum>
-    </file>
-    <file>
-      <filename>ResidentialWaterHeaterTank_Test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6BFA9567</checksum>
+      <checksum>3B542BFE</checksum>
     </file>
     <file>
       <filename>hourly_setpoint_schedule.csv</filename>
       <filetype>csv</filetype>
       <usage_type>resource</usage_type>
-      <checksum>997C4FF8</checksum>
+      <checksum>B3202901</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_high_above_140.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>3B35C026</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_high_above_212.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>16B39C36</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_low_below_0.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>7BC74F60</checksum>
+    </file>
+    <file>
+      <filename>hourly_schedule_low_below_110.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>446D9749</checksum>
+    </file>
+    <file>
+      <filename>hourly_setpoint_schedule_feb.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>DCD58087</checksum>
+    </file>
+    <file>
+      <filename>hourly_setpoint_schedule_leapyear.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>9642842F</checksum>
+    </file>
+    <file>
+      <filename>wrong_length_schedule.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>D56796AD</checksum>
+    </file>
+    <file>
+      <filename>ResidentialWaterHeaterTank_Test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A4C49865</checksum>
     </file>
   </files>
 </measure>

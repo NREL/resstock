@@ -98,6 +98,46 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    # Get building units
+    units = Geometry.get_building_units(model, runner)
+    if units.nil?
+      return false
+    end
+
+    # Remove all existing objects
+    obj_names = [Constants.ObjectNameShower,
+                 Constants.ObjectNameSink,
+                 Constants.ObjectNameBath]
+    model.getSpaces.each do |space|
+      remove_existing(model, runner, space, obj_names)
+    end
+
+    location_hierarchy = [Constants.SpaceTypeBathroom,
+                          Constants.SpaceTypeLiving,
+                          Constants.SpaceTypeFinishedBasement]
+
+    year_description = model.getYearDescription
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+    # @type [SchedulesFile]
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
+    if not schedules_file.validated?
+      return false
+    end
+
+    mixed_use_t = Constants.MixedUseT # F
+
+    if sh_mult > 0 or s_mult > 0 or b_mult > 0
+      temperature_sch = OpenStudio::Model::ScheduleConstant.new(model)
+      temperature_sch.setValue(UnitConversions.convert(mixed_use_t, "F", "C"))
+      temperature_sch.setName("fixtures temperature schedule")
+      Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
+    end
+
+    tot_sh_gpd = 0
+    tot_s_gpd = 0
+    tot_b_gpd = 0
+    msgs = []
+    sch_sh = nil
     sch_s = nil
     sch_b = nil
     units.each_with_index do |unit, unit_index|
@@ -247,7 +287,6 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         end
 
         tot_sh_gpd += sh_gpd
-
         # Unmet Shower Energy
         obj_name_sh = obj_name_sh.gsub("unit ", "").gsub("|", "_")
 
@@ -416,6 +455,35 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
   end
 
   def remove_existing(model, runner, space, obj_names)
+    # Remove existing EMS
+    obj_name_sh = Constants.ObjectNameShower
+    model.getEnergyManagementSystemProgramCallingManagers.each do |pcm|
+      if pcm.name.to_s.start_with? obj_name_sh
+        pcm.remove
+      end
+    end
+
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      if sensor.name.to_s.start_with? obj_name_sh.gsub(' ', '_')
+        sensor.remove
+      end
+    end
+
+    model.getEnergyManagementSystemPrograms.each do |program|
+      if program.name.to_s.start_with? obj_name_sh.gsub(' ', '_')
+        program.remove
+      end
+    end
+
+    unmet_sh_outputs = ["Unmet Shower Energy", "Unmet Shower Time", "Shower Draw Time"]
+    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+      unmet_sh_outputs.each do |unmet_sh_output|
+        if ems_output_var.name.to_s.start_with? unmet_sh_output
+          ems_output_var.remove
+        end
+      end
+    end
+
     # Remove any existing ssb
     objects_to_remove = []
     space.otherEquipment.each do |space_equipment|
