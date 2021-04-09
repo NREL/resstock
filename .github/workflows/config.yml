@@ -1,5 +1,12 @@
 name: ci
-on: [push]
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    types: [ opened, synchronize, closed ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,8 +23,60 @@ jobs:
         run: |
           bundle exec rake test_all
 
+      - name: Compare results
+        run: |
+          ruby workflow/tests/compare.rb
+
       - name: Store results
         uses: actions/upload-artifact@v2
         with:
           path: workflow/tests/results
-          name: results          
+          name: results
+
+      - name: Store comparisons
+        uses: actions/upload-artifact@v2
+        with:
+          path: workflow/tests/comparisons
+          name: comparisons
+
+  update-results:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }} # Checkout the target branch
+
+      - name: Setup git branch
+        shell: bash
+        run: |
+          branch_name="${{ github.base_ref }}"
+          branch_sha="${{ github.event.pull_request.base.sha }}"
+          echo "Checking out: $branch_name, $branch_sha"
+          git checkout -b $branch_name || git checkout $branch_name
+          git pull origin $branch_name
+
+      - name: Download results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            results
+          name: results
+
+      - name: Commit latest results
+        shell: bash        
+        run: |
+          git status
+          cp -r results/results* workflow/tests/base_results
+          git add workflow/tests/base_results
+          git status
+          if [[ $(git diff --cached --exit-code) ]]; then
+            git config --global user.email "github-action@users.noreply.github.com"
+            git config --global user.name "GitHub Action"
+            git commit -m "Latest results."
+            branch_name="${{ github.base_ref }}"
+            #git pull origin $branch_name
+            echo "Pushing to branch: $branch_name"
+            git push --force -u origin $branch_name
+          fi
