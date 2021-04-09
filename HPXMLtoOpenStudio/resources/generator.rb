@@ -40,7 +40,7 @@ class Generator
     gmt.setElectricalEfficiencyFunctionofTemperatureCurve(curve_cubic_constant)
     gmt.setElectricalEfficiencyFunctionofPartLoadRatioCurve(curve_cubic_constant)
 
-    elcd = gmt.electricLoadCenterDistribution.get
+    elcd = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
     elcd.setName("#{obj_name} elec load center dist")
     elcd.setGeneratorOperationSchemeType('Baseload')
     elcd.addGenerator(gmt)
