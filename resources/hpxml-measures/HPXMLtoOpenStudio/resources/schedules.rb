@@ -1086,7 +1086,7 @@ class SchedulesFile
     schedule_file.setColumnNumber(col_index + 1)
     schedule_file.setRowstoSkipatTop(rows_to_skip)
     schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
-    schedule_file.setMinutesperItem("#{min_per_item.to_i}")
+    schedule_file.setMinutesperItem(min_per_item.to_i)
 
     return schedule_file
   end
