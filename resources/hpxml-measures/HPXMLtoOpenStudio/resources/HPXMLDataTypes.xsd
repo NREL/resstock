@@ -4663,4 +4663,23 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
+	<xs:simpleType name="PerformanceClass_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="residential"/>
+			<xs:enumeration value="architectural"/>
+			<xs:enumeration value="light commercial"/>
+			<xs:enumeration value="commercial"/>
+			<xs:enumeration value="heavy commercial"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="PerformanceClass">
+		<xs:annotation>
+			<xs:documentation>The North American Fenestration Standard/Specification for windows, doors and, skylights provides a method for rating the structural performance, water resistance and air leakage of fenestration products.</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="PerformanceClass_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 </xs:schema>

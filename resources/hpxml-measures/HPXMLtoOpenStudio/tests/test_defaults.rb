@@ -487,6 +487,16 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_furnace_values(hpxml_default, 0.375, 0, nil)
+
+    # Test defaults w/ gravity distribution system
+    hpxml = _create_hpxml('base-hvac-furnace-gas-only.xml')
+    hpxml.heating_systems[0].distribution_system.air_type = HPXML::AirTypeGravity
+    hpxml.heating_systems[0].fan_watts_per_cfm = nil
+    hpxml.heating_systems[0].airflow_defect_ratio = nil
+    hpxml.heating_systems[0].heating_capacity = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_furnace_values(hpxml_default, 0.0, 0, nil)
   end
 
   def test_wall_furnaces

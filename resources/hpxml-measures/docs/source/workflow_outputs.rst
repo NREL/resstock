@@ -60,7 +60,7 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Electricity: Cooling Fans/Pumps (MBtu)
    End Use: Electricity: Hot Water (MBtu)                              Excludes recirc pump and solar thermal pump
    End Use: Electricity: Hot Water Recirc Pump (MBtu)
-   End Use: Electricity: Hot Water Solar Thermal Pump (MBtu)
+   End Use: Electricity: Hot Water Solar Thermal Pump (MBtu)           Non-zero only when using detailed (not simple) solar thermal inputs
    End Use: Electricity: Lighting Interior (MBtu)
    End Use: Electricity: Lighting Garage (MBtu)
    End Use: Electricity: Lighting Exterior (MBtu)
@@ -208,8 +208,12 @@ Current peak building loads are listed below.
 Annual Component Building Loads
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+**Note**: This section is only available if the ``--add-component-loads`` argument is used.
+The argument is not used by default for faster performance.
+
 Component loads represent the estimated contribution of different building components to the annual heating/cooling building loads.
 The sum of component loads for heating (or cooling) will roughly equal the annual heating (or cooling) building load reported above.
+
 Current component loads disaggregated by Heating/Cooling are listed below.
    
    ================================================= =========================================================================================================
