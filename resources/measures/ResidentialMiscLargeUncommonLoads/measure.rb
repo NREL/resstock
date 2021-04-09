@@ -818,6 +818,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           tot_ann_e += ann_e
         end
 
+        schedules_file.set_vacancy(col_name: "plug_loads_well_pump")
       end
 
       # Gas Fireplace
@@ -841,6 +842,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
 
         end
 
+        schedules_file.set_vacancy(col_name: "fuel_loads_fireplace")
       end
 
       # Gas Grill
@@ -859,6 +861,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           tot_ann_g += ann_g
         end
 
+        schedules_file.set_vacancy(col_name: "fuel_loads_grill")
       end
 
       # Gas Lighting
@@ -877,6 +880,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           tot_ann_g += ann_g
         end
 
+        schedules_file.set_vacancy(col_name: "fuel_loads_lighting")
       end
 
       # Electric Vehicle
@@ -895,14 +899,9 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
           tot_ann_e += ann_e
         end
 
+        schedules_file.set_vacancy(col_name: "plug_loads_vehicle")
       end
     end
-
-    schedules_file.set_vacancy(col_name: "plug_loads_vehicle")
-    schedules_file.set_vacancy(col_name: "plug_loads_well_pump")
-    schedules_file.set_vacancy(col_name: "fuel_loads_grill")
-    schedules_file.set_vacancy(col_name: "fuel_loads_lighting")
-    schedules_file.set_vacancy(col_name: "fuel_loads_fireplace")
 
     # Reporting
     if msgs.size > 1
