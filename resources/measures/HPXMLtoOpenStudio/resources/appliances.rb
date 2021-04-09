@@ -698,8 +698,6 @@ class ClothesDryer
 
     col_name = "clothes_dryer"
     if ann_e > 0 or ann_f > 0
-
-    if ann_e > 0 or ann_f > 0
       if sch.nil?
         sch = schedules_file.create_schedule_file(col_name: col_name)
       end
