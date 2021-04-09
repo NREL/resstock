@@ -1315,8 +1315,7 @@ class OutputMeters
         next unless water_heater.is_a?(OpenStudio::Model::WaterHeaterMixed) or water_heater.is_a?(OpenStudio::Model::WaterHeaterStratified)
         next if water_heater.heaterFuelType != "NaturalGas"
 
-          custom_meter_infos["#{unit.name}:NaturalGasWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater Gas Energy"]
-        end
+        custom_meter_infos["#{unit.name}:NaturalGasWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater Gas Energy"]
       end
     end
   end
@@ -1418,8 +1417,7 @@ class OutputMeters
         next unless water_heater.is_a?(OpenStudio::Model::WaterHeaterMixed) or water_heater.is_a?(OpenStudio::Model::WaterHeaterStratified)
         next if water_heater.heaterFuelType != "FuelOil#1"
 
-          custom_meter_infos["#{unit.name}:FuelOilWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater FuelOil#1 Energy"]
-        end
+        custom_meter_infos["#{unit.name}:FuelOilWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater FuelOil#1 Energy"]
       end
     end
   end
@@ -1541,8 +1539,7 @@ class OutputMeters
         next unless water_heater.is_a?(OpenStudio::Model::WaterHeaterMixed) or water_heater.is_a?(OpenStudio::Model::WaterHeaterStratified)
         next if water_heater.heaterFuelType != "PropaneGas"
 
-          custom_meter_infos["#{unit.name}:PropaneWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater Propane Energy"]
-        end
+        custom_meter_infos["#{unit.name}:PropaneWaterSystems"]["key_var_groups"] << ["#{water_heater.name}", "Water Heater Propane Energy"]
       end
     end
   end
