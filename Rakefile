@@ -5,7 +5,6 @@
 
 require 'rake'
 require 'rake/testtask'
-require 'ci/reporter/rake/minitest'
 
 desc 'Perform tasks related to unit tests'
 namespace :unit_tests do
