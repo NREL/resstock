@@ -72,6 +72,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
+    arg.setDisplayName('Add component loads?')
+    arg.setDescription('If true, adds the calculation of heating/cooling component loads (not enabled by default for faster performance).')
+    arg.setDefaultValue(false)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('skip_validation', false)
     arg.setDisplayName('Skip Validation?')
     arg.setDescription('If true, bypasses HPXML input validation for faster performance. WARNING: This should only be used if the supplied HPXML file has already been validated against the Schema & Schematron documents.')
@@ -102,6 +108,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     hpxml_path = runner.getStringArgumentValue('hpxml_path', user_arguments)
     output_dir = runner.getStringArgumentValue('output_dir', user_arguments)
+    add_component_loads = runner.getBoolArgumentValue('add_component_loads', user_arguments)
     debug = runner.getBoolArgumentValue('debug', user_arguments)
     skip_validation = runner.getBoolArgumentValue('skip_validation', user_arguments)
     building_id = runner.getOptionalStringArgumentValue('building_id', user_arguments)
@@ -146,7 +153,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         FileUtils.cp(epw_path, epw_output_path)
       end
 
-      OSModel.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir, building_id, debug)
+      OSModel.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir,
+                     add_component_loads, building_id, debug)
     rescue Exception => e
       runner.registerError("#{e.message}\n#{e.backtrace.join("\n")}")
       return false
@@ -195,7 +203,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 end
 
 class OSModel
-  def self.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir, building_id, debug)
+  def self.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir,
+                  add_component_loads, building_id, debug)
     @hpxml = hpxml
     @debug = debug
 
@@ -214,8 +223,8 @@ class OSModel
     add_simulation_params(model)
 
     @schedules_file = nil
-    if not @hpxml.header.schedules_path.nil?
-      @schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path, col_names: ScheduleGenerator.col_names)
+    unless @hpxml.header.schedules_path.nil?
+      @schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path, col_names: ScheduleGenerator.col_names.keys)
     end
 
     # Conditioned space/zone
@@ -274,13 +283,15 @@ class OSModel
 
     # Output
 
-    add_component_loads_output(runner, model, spaces)
+    add_loads_output(runner, model, spaces, add_component_loads)
     add_output_control_files(runner, model)
     # Uncomment to debug EMS
     # add_ems_debug_output(runner, model)
 
     # Vacancy
-    set_vacancy(runner, model)
+    unless @schedules_file.nil?
+      @schedules_file.set_vacancy
+    end
 
     if debug
       osm_output_path = File.join(output_dir, 'in.osm')
@@ -307,7 +318,7 @@ class OSModel
     @default_azimuths = get_default_azimuths()
 
     # Apply defaults to HPXML object
-    HPXMLDefaults.apply(@hpxml, @eri_version, weather, epw_file)
+    HPXMLDefaults.apply(@hpxml, @eri_version, weather, epw_file: epw_file)
 
     @frac_windows_operable = @hpxml.fraction_of_windows_operable()
 
@@ -2456,31 +2467,71 @@ class OSModel
     return map_str.to_s
   end
 
-  def self.add_component_loads_output(runner, model, spaces)
+  def self.add_loads_output(runner, model, spaces, add_component_loads)
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
 
-    # Prevent certain objects (e.g., OtherEquipment) from being counted towards both, e.g., ducts and internal gains
-    objects_already_processed = []
+    liv_load_sensors, intgain_dehumidifier = add_total_loads_output(runner, model, living_zone)
+    return unless add_component_loads
 
-    # EMS Sensors: Global
+    add_component_loads_output(runner, model, living_zone, liv_load_sensors, intgain_dehumidifier)
+  end
 
+  def self.add_total_loads_output(runner, model, living_zone)
     liv_load_sensors = {}
-
     liv_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
     liv_load_sensors[:htg].setName('htg_load_liv')
-
     liv_load_sensors[:clg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
     liv_load_sensors[:clg].setName('clg_load_liv')
 
     tot_load_sensors = {}
-
     tot_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating:EnergyTransfer')
     tot_load_sensors[:htg].setName('htg_load_tot')
-
     tot_load_sensors[:clg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Cooling:EnergyTransfer')
     tot_load_sensors[:clg].setName('clg_load_tot')
 
-    load_adj_sensors = {} # Sensors used to adjust E+ EnergyTransfer meter, eg. dehumidifier as load in our program, but included in Heating:EnergyTransfer as HVAC equipment
+    # Need to adjusted E+ EnergyTransfer meters for dehumidifiers
+    intgain_dehumidifier = nil
+    model.getZoneHVACDehumidifierDXs.each do |e|
+      next unless e.thermalZone.get.name.to_s == living_zone.name.to_s
+
+      { 'Zone Dehumidifier Sensible Heating Energy' => 'ig_dehumidifier' }.each do |var, name|
+        intgain_dehumidifier = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
+        intgain_dehumidifier.setName(name)
+        intgain_dehumidifier.setKeyName(e.name.to_s)
+      end
+    end
+
+    # EMS program
+    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    program.setName(Constants.ObjectNameTotalLoadsProgram)
+    program.addLine('Set loads_htg_tot = 0')
+    program.addLine('Set loads_clg_tot = 0')
+    program.addLine("If #{liv_load_sensors[:htg].name} > 0")
+    s = "  Set loads_htg_tot = #{tot_load_sensors[:htg].name} - #{tot_load_sensors[:clg].name}"
+    if not intgain_dehumidifier.nil?
+      s += " - #{intgain_dehumidifier.name}"
+    end
+    program.addLine(s)
+    program.addLine("ElseIf #{liv_load_sensors[:clg].name} > 0")
+    s = "  Set loads_clg_tot = #{tot_load_sensors[:clg].name} - #{tot_load_sensors[:htg].name}"
+    if not intgain_dehumidifier.nil?
+      s += " + #{intgain_dehumidifier.name}"
+    end
+    program.addLine(s)
+    program.addLine('EndIf')
+
+    # EMS calling manager
+    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_calling_manager.setName("#{program.name} calling manager")
+    program_calling_manager.setCallingPoint('EndOfZoneTimestepAfterZoneReporting')
+    program_calling_manager.addProgram(program)
+
+    return liv_load_sensors, intgain_dehumidifier
+  end
+
+  def self.add_component_loads_output(runner, model, living_zone, liv_load_sensors, intgain_dehumidifier)
+    # Prevent certain objects (e.g., OtherEquipment) from being counted towards both, e.g., ducts and internal gains
+    objects_already_processed = []
 
     # EMS Sensors: Surfaces, SubSurfaces, InternalMass
 
@@ -2670,27 +2721,7 @@ class OSModel
       ducts_mix_loss_sensor.setKeyName(living_zone.name.to_s)
     end
 
-    # Return duct losses
-    model.getOtherEquipments.sort.each do |o|
-      next if objects_already_processed.include? o
-
-      is_duct_load = o.additionalProperties.getFeatureAsBoolean(Constants.IsDuctLoadForReport)
-      next unless is_duct_load.is_initialized
-
-      objects_already_processed << o
-      next unless is_duct_load.get
-
-      ducts_sensors << []
-      { 'Other Equipment Convective Heating Energy' => 'ducts_conv',
-        'Other Equipment Radiant Heating Energy' => 'ducts_rad' }.each do |var, name|
-        ducts_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
-        ducts_sensor.setName(name)
-        ducts_sensor.setKeyName(o.name.to_s)
-        ducts_sensors[-1] << ducts_sensor
-      end
-    end
-
-    # Supply duct losses
+    # Duct losses
     model.getOtherEquipments.sort.each do |o|
       next if objects_already_processed.include? o
 
@@ -2725,20 +2756,6 @@ class OSModel
         intgains_elec_equip_sensor.setName(name)
         intgains_elec_equip_sensor.setKeyName(o.name.to_s)
         intgains_sensors[-1] << intgains_elec_equip_sensor
-      end
-    end
-
-    model.getGasEquipments.sort.each do |o|
-      next unless o.space.get.thermalZone.get.name.to_s == living_zone.name.to_s
-      next if objects_already_processed.include? o
-
-      intgains_sensors << []
-      { 'Gas Equipment Convective Heating Energy' => 'ig_ge_conv',
-        'Gas Equipment Radiant Heating Energy' => 'ig_ge_rad' }.each do |var, name|
-        intgains_gas_equip_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
-        intgains_gas_equip_sensor.setName(name)
-        intgains_gas_equip_sensor.setKeyName(o.name.to_s)
-        intgains_sensors[-1] << intgains_gas_equip_sensor
       end
     end
 
@@ -2783,17 +2800,8 @@ class OSModel
       end
     end
 
-    model.getZoneHVACDehumidifierDXs.each do |e|
-      next unless e.thermalZone.get.name.to_s == living_zone.name.to_s
-
-      intgains_sensors << []
-      { 'Zone Dehumidifier Sensible Heating Energy' => 'ig_dehumidifier' }.each do |var, name|
-        intgain_dehumidifier = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
-        intgain_dehumidifier.setName(name)
-        intgain_dehumidifier.setKeyName(e.name.to_s)
-        load_adj_sensors[:dehumidifier] = intgain_dehumidifier
-        intgains_sensors[-1] << intgain_dehumidifier
-      end
+    if not intgain_dehumidifier.nil?
+      intgains_sensors[-1] << intgain_dehumidifier
     end
 
     intgains_dhw_sensors = {}
@@ -2915,38 +2923,11 @@ class OSModel
       end
     end
 
-    # EMS program: Total loads
-    program.addLine('Set loads_htg_tot = 0')
-    program.addLine('Set loads_clg_tot = 0')
-    program.addLine("If #{liv_load_sensors[:htg].name} > 0")
-    s = "  Set loads_htg_tot = #{tot_load_sensors[:htg].name} - #{tot_load_sensors[:clg].name}"
-    load_adj_sensors.each do |key, adj_sensor|
-      if ['dehumidifier'].include? key.to_s
-        s += " - #{adj_sensor.name}"
-      end
-    end
-    program.addLine(s)
-    program.addLine("ElseIf #{liv_load_sensors[:clg].name} > 0")
-    s = "  Set loads_clg_tot = #{tot_load_sensors[:clg].name} - #{tot_load_sensors[:htg].name}"
-    load_adj_sensors.each do |key, adj_sensor|
-      if ['dehumidifier'].include? key.to_s
-        s += " + #{adj_sensor.name}"
-      end
-    end
-    program.addLine(s)
-    program.addLine('EndIf')
-
     # EMS calling manager
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{program.name} calling manager")
     program_calling_manager.setCallingPoint('EndOfZoneTimestepAfterZoneReporting')
     program_calling_manager.addProgram(program)
-  end
-
-  def self.set_vacancy(runner, model)
-    return if @schedules_file.nil?
-
-    @schedules_file.set_vacancy(col_names: ScheduleGenerator.col_names)
   end
 
   def self.add_output_control_files(runner, model)
