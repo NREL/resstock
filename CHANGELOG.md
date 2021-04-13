@@ -6,9 +6,18 @@ Features
 - Reduce vacant unit heating setpoints to 55F ([#541](https://github.com/NREL/resstock/pull/541))
 - Introduce a CEC Building Climate Zone tag for samples in California ([#548](https://github.com/NREL/resstock/pull/548))
 - Increase LED saturation to approximately 2019 levels ([#545](https://github.com/NREL/resstock/pull/545))
+- Include HVAC cooling type as a dependency to cooling setpoint ([#551](https://github.com/NREL/resstock/pull/551))
+- Include electric zonal heating equipment as a dependency in heating setpoint-related tsvs ([#549](https://github.com/NREL/resstock/pull/549))
+- Geo-temporal shifting of the stochastic load model schedules using the American Time Use Survey ([#550](https://github.com/NREL/resstock/pull/550))
+- Use Schedule:File with well pump / vehicle plug loads, as well as gas grill / fireplace / lighting fuel loads. This enables the optional vacancy period to apply to these end uses ([#566](https://github.com/NREL/resstock/pull/556))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
+- Dwelling units that are 0-499 ft2 are limited to a maximum of 2 bedrooms ([#553](https://github.com/NREL/resstock/pull/553))
+- Reverses the material layers of the unfinished attic floor construction so that they are correctly ordered outside-to-inside ([#556](https://github.com/NREL/resstock/pull/556))
+- Fixes invalid garage and living space dimension errors ([#560](https://github.com/NREL/resstock/pull/560))
+- Set all mini-split heat pump supplemental capacity to autosize ([#564](https://github.com/NREL/resstock/pull/564))
+- Reduce stochastic schedule generation runtime by over 50% ([#571](https://github.com/NREL/resstock/pull/571))
 
 ## ResStock v2.4.0
 

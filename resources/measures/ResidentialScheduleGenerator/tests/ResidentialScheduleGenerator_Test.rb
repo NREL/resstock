@@ -26,6 +26,14 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     "showers" => 507081.308470722, # test_new_construction_standard
     "sinks" => 158036.112491921, # test_new_construction_standard
     "ceiling_fan" => 22.5, # test_specified_num
+    "plug_loads_vehicle" => 228.31050228310502, # test_electric_vehicle_new_construction_electric
+    "plug_loads_well_pump" => 110.01639291891935 # test_well_pump_new_construction_electric
+  }
+
+  @@design_levels_g = {
+    "fuel_loads_grill" => 427.95296983055385, # test_gas_grill_new_construction_gas
+    "fuel_loads_lighting" => 153.15245454386806, # test_gas_lighting_new_construction_gas
+    "fuel_loads_fireplace" => 483.6393301385308 # test_gas_fireplace_new_construction_gas
   }
 
   @@peak_flow_rates = {
@@ -42,7 +50,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     hot_water_gpd = { "schedules_length" => [], "building_id" => [], "num_occupants" => [] }
     args_hash = {}
 
-    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 18 } # these are the old schedules
+    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 23 } # these are the old schedules
     full_load_hours["building_id"] << 1
     full_load_hours["num_occupants"] << 2.64
     annual_energy_use["building_id"] << 1
@@ -51,7 +59,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     hot_water_gpd["num_occupants"] << 2.64
     full_load_hours, annual_energy_use, hot_water_gpd = _test_generator("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, "8760", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
 
-    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 18 } # these are the old schedules
+    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 23 } # these are the old schedules
     full_load_hours["building_id"] << 1
     full_load_hours["num_occupants"] << 2.64
     annual_energy_use["building_id"] << 1
@@ -64,7 +72,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     num_occupants = [2]
     vacancy_start_date = "NA"
     vacancy_end_date = "NA"
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 19 }
+    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 24 }
     prng = Random.new(1) # initialize with certain seed
     (1..num_building_ids).to_a.each do |building_id|
       building_id = rand(1..450000)
@@ -124,6 +132,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
   def test_error_invalid_vacancy
     args_hash = {}
+    args_hash['state'] = 'CO'
     args_hash["vacancy_start_date"] = "April 31"
     result = _test_error_or_NA("Denver.osm", args_hash)
     assert(result.errors.size == 1)
@@ -133,6 +142,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
   def test_NA_vacancy
     args_hash = {}
+    args_hash['state'] = 'CO'
     args_hash["vacancy_start_date"] = "NA"
     args_hash["vacancy_end_date"] = "NA"
     expected_num_del_objects = {}
@@ -143,11 +153,13 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
   def test_change_vacancy
     args_hash = {}
+    args_hash['state'] = 'CO'
     expected_num_del_objects = {}
     expected_num_new_objects = { "Building" => 1 }
     expected_values = {}
     model = _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
     args_hash = {}
+    args_hash['state'] = 'CO'
     args_hash["vacancy_start_date"] = "April 8"
     args_hash["vacancy_end_date"] = "October 27"
     expected_num_del_objects = {}
@@ -181,6 +193,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     model = get_model(File.dirname(__FILE__), osm_file_or_model)
 
     args_hash[:schedules_path] = File.join(File.dirname(__FILE__), "../../HPXMLtoOpenStudio/resources/schedules")
+    args_hash[:state] = 'CO' # use an arbitrary state for testing
 
     if "#{test_name}".include? "8760"
       schedules_path = File.join(File.dirname(__FILE__), "../../../../files/8760.csv")
@@ -327,6 +340,9 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
       aeu = nil
       if @@design_levels_e.keys.include? col_name
         aeu = UnitConversions.convert(flh * @@design_levels_e[col_name], "Wh", "kWh")
+      end
+      if @@design_levels_g.keys.include? col_name
+        aeu = UnitConversions.convert(flh * @@design_levels_g[col_name], "Wh", "therm")
       end
       hwg = nil
       if @@peak_flow_rates.keys.include? col_name
