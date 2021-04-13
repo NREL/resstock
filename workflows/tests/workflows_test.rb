@@ -3,6 +3,7 @@
 require 'openstudio'
 require 'minitest/autorun'
 
+require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../resources/buildstock'
 
 class RegressionWorkflowTest < MiniTest::Test

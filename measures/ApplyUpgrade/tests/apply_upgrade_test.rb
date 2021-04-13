@@ -4,6 +4,7 @@ require 'openstudio'
 require 'minitest/autorun'
 
 require_relative '../measure.rb'
+require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/measure'
 
 class ApplyUpgradeTest < MiniTest::Test
