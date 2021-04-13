@@ -100,7 +100,7 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 76,
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 73 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
     # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
   end
 
@@ -120,7 +120,7 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 76,
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 73 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 6)
+    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_February.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
     # 6 assertions: 2 DR sched found, 2 Thermostat found, 2 setting thermostat
   end
 
@@ -223,7 +223,7 @@ class DemandResponseScheduleTest < MiniTest::Test
                         "cool_tsp_non_dr" => 76, # default
                         "cool_tsp_dr_plus" => 79,
                         "cool_tsp_dr_minus" => 73 }
-    _test_measure("MF_40units_4story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2 * num_units + 4)
+    _test_measure("MF_40units_4story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2 * num_units + 5)
     # 84 assertions: 2 DR sched found, 2 Thermostat found, 40 setting cooling TSP, 40 setting heating TSP
   end
 
