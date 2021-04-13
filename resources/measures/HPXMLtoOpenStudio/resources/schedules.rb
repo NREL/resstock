@@ -1566,10 +1566,11 @@ class ScheduleGenerator
   end
 
   def apply_monthly_offsets(array)
+    month_strs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    new_array = []
     @total_days_in_year.times do |day|
       today = @sim_start_day + day
       day_of_week = today.wday
-      month_strs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
       month = month_strs[today.month - 1]
       if [0, 6].include?(day_of_week)
         # Weekend
@@ -1582,9 +1583,9 @@ class ScheduleGenerator
         raise "Could not find the entry for month #{month}, day #{day_of_week} and state #{@state}"
       end
 
-      array[day * 1440, 1440] = array[day * 1440, 1440].rotate(lead)
+      new_array << array[day * 1440, 1440].rotate(lead)
     end
-    return array
+    return new_array.flatten!
   end
 
   def read_monthly_shift_minutes(daytype)
