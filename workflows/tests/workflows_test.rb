@@ -17,7 +17,6 @@ class RegressionWorkflowTest < MiniTest::Test
     FileUtils.rm_rf(File.join(@top_dir, 'run'))
     FileUtils.rm_rf(File.join(@top_dir, 'reports'))
     FileUtils.rm_rf(File.join(@top_dir, 'generated_files'))
-    FileUtils.rm(File.join(@top_dir, 'out.osw'))
   end
 
   def test_examples_osw
@@ -30,8 +29,6 @@ class RegressionWorkflowTest < MiniTest::Test
     create_lib_folder
 
     Dir["#{@top_dir}/*.osw"].sort.each do |osw|
-      next if File.basename(osw).include? 'out'
-
       puts "\n\tOSW: #{osw} ...\n"
 
       RunOSWs.add_simulation_output_report(osw)
