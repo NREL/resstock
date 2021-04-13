@@ -2,7 +2,6 @@
 
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../test/integrity_checks'
-require 'minitest/autorun'
 
 class TestProjectTesting < MiniTest::Test
   def test_housing_characteristics
