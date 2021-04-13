@@ -5,7 +5,6 @@
 
 require 'rake'
 require 'rake/testtask'
-require 'ci/reporter/rake/minitest'
 
 desc 'Run all tests'
 Rake::TestTask.new('test_all') do |t|

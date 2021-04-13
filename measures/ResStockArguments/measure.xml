@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>fdbd767e-5fae-467a-be1f-44eab79de6d2</version_id>
-  <version_modified>20210405T201826Z</version_modified>
+  <version_id>daa6f995-3ac3-42f2-90bc-e52313f9b31b</version_id>
+  <version_modified>20210413T152632Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -302,7 +302,7 @@
     <argument>
       <name>geometry_corridor_position</name>
       <display_name>Geometry: Corridor Position</display_name>
-      <description>The position of the corridor. Only applies to single-family attached and apartment unit units.</description>
+      <description>The position of the corridor. Only applies to single-family attached and apartment unit units. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1585,6 +1585,14 @@
           <value>FixedHeater</value>
           <display_name>FixedHeater</display_name>
         </choice>
+        <choice>
+          <value>Shared Boiler w/ Baseboard</value>
+          <display_name>Shared Boiler w/ Baseboard</display_name>
+        </choice>
+        <choice>
+          <value>Shared Boiler w/ Ductless Fan Coil</value>
+          <display_name>Shared Boiler w/ Ductless Fan Coil</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -2015,6 +2023,96 @@
       <name>heat_pump_is_ducted</name>
       <display_name>Heat Pump: Is Ducted</display_name>
       <description>Whether the heat pump is ducted or not. Only used for mini-split.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_modulating</name>
+      <display_name>Heat Pump: Demand Flexibility Modulating</display_name>
+      <description></description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_dual_source</name>
+      <display_name>Heat Pump: Demand Flexibility Dual-Source</display_name>
+      <description></description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_ihp_grid_ac</name>
+      <display_name>Heat Pump: Demand Flexibility Integrated Heat Pump Modulating</display_name>
+      <description></description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_ihp_ice_storage</name>
+      <display_name>Heat Pump: Demand Flexibility Integrated Heat Pump Modulating w/ Ice Storage</display_name>
+      <description></description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_ihp_pcm_storage</name>
+      <display_name>Heat Pump: Demand Flexibility Integrated Heat Pump Modulating w/ Pcm Storage</display_name>
+      <description></description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2652,10 +2750,6 @@
         <choice>
           <value>balanced</value>
           <display_name>balanced</display_name>
-        </choice>
-        <choice>
-          <value>central fan integrated supply</value>
-          <display_name>central fan integrated supply</display_name>
         </choice>
       </choices>
     </argument>
@@ -5588,7 +5682,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FD7D3D61</checksum>
+      <checksum>720CA50C</checksum>
     </file>
   </files>
 </measure>

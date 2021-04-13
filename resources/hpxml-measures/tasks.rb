@@ -300,6 +300,8 @@ def create_osws
     'extra-zero-clothes-washer-kwh.osw' => 'base.osw',
     'extra-zero-dishwasher-kwh.osw' => 'base.osw',
     'extra-bldgtype-single-family-attached-atticroof-flat.osw' => 'base-bldgtype-single-family-attached.osw',
+    'extra-gas-pool-heater-with-zero-kwh.osw' => 'base.osw',
+    'extra-gas-hot-tub-heater-with-zero-kwh.osw' => 'base.osw',
 
     'extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw' => 'extra-bldgtype-single-family-attached-slab.osw',
     'extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-hip.osw' => 'extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw',
@@ -2095,6 +2097,14 @@ def get_values(osw_file, step)
     step.setArgument('ducts_return_leakage_value', 0.0)
     step.setArgument('ducts_supply_location', HPXML::LocationBasementConditioned)
     step.setArgument('ducts_return_location', HPXML::LocationBasementConditioned)
+  elsif ['extra-gas-pool-heater-with-zero-kwh.osw'].include? osw_file
+    step.setArgument('pool_present', true)
+    step.setArgument('pool_heater_type', HPXML::HeaterTypeGas)
+    step.setArgument('pool_heater_annual_kwh', 0)
+  elsif ['extra-gas-hot-tub-heater-with-zero-kwh.osw'].include? osw_file
+    step.setArgument('hot_tub_present', true)
+    step.setArgument('hot_tub_heater_type', HPXML::HeaterTypeGas)
+    step.setArgument('hot_tub_heater_annual_kwh', 0)
 
   elsif ['extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw'].include? osw_file
     step.setArgument('geometry_num_floors_above_grade', 2)
