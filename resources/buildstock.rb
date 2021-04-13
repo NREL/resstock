@@ -452,14 +452,14 @@ class RunOSWs
     workflow_start = Time.now
     system(command)
     workflow_time = (Time.now - workflow_start).round(1)
-    out_osw = File.join(parent_dir, 'out.osw')
+    finished_job = File.join(parent_dir, 'run/finished.job')
 
     result = {}
     rows = {}
 
-    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
-    if File.exist?(File.expand_path(data_point_out))
-      old_rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    results = File.join(parent_dir, 'run/results.json')
+    if File.exist?(File.expand_path(results))
+      old_rows = JSON.parse(File.read(File.expand_path(results)))
       old_rows.each do |measure, values|
         rows[measure] = {}
         values.each do |arg, val|
@@ -473,7 +473,7 @@ class RunOSWs
     result = get_measure_results(rows, result, 'SimulationOutputReport')
     result = get_measure_results(rows, result, 'UpgradeCosts')
     result['workflow.time'] = workflow_time
-    return out_osw, result
+    return finished_job, result
   end
 
   def self.get_measure_results(rows, result, measure)

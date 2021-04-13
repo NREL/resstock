@@ -25,7 +25,6 @@ class IntegrationWorkflowTest < MiniTest::Test
     FileUtils.rm_rf(File.join(@top_dir, 'run'))
     FileUtils.rm_rf(File.join(@top_dir, 'reports'))
     FileUtils.rm_rf(File.join(@top_dir, 'generated_files'))
-    FileUtils.rm(File.join(@top_dir, 'out.osw'))
     FileUtils.rm(File.join(@top_dir, 'buildstock.csv'))
   end
 
@@ -95,11 +94,11 @@ class IntegrationWorkflowTest < MiniTest::Test
         puts "\n\tBuilding Unit ID: #{building_id} ...\n"
 
         change_building_id(osw, building_id)
-        out_osw, result = RunOSWs.run_and_check(osw, @top_dir)
+        finished_job, result = RunOSWs.run_and_check(osw, @top_dir)
         result['OSW'] = "#{building_id}.osw"
         all_results << result
 
-        result = check_out_osw(result, out_osw)
+        result = check_finished_job(result, finished_job)
 
         # Save existing/upgraded osws and xmls
         ['existing', 'upgraded'].each do |scen|
@@ -157,22 +156,15 @@ class IntegrationWorkflowTest < MiniTest::Test
     end
   end
 
-  def check_out_osw(result, out_osw)
-    assert(File.exist?(out_osw))
-    data_hash = JSON.parse(File.read(out_osw))
-
-    completed_status = data_hash['completed_status']
-    result['completed_status'] = completed_status
-
-    data_hash['steps'].each do |step|
-      return result unless step.keys.include?('result')
-
-      step_time_str = "#{OpenStudio::toUnderscoreCase(step['measure_dir_name'])}.time"
-
-      next unless step['result'].keys.include?('started_at') && step['result'].keys.include?('completed_at')
-      started_at = DateTime.strptime(step['result']['started_at'], '%Y%m%dT%H%M%SZ')
-      completed_at = DateTime.strptime(step['result']['completed_at'], '%Y%m%dT%H%M%SZ')
-      result[step_time_str] = ((completed_at - started_at) * 24 * 3600).to_i
+  def check_finished_job(result, finished_job)
+    begin
+      assert(File.exist?(finished_job))
+      result['completed_status'] = 'Invalid'
+      if result.keys.any? { |x| x.include?('apply_upgrade') }
+        result['completed_status'] = 'Success'
+      end
+    rescue
+      result['completed_status'] = 'Fail'
     end
 
     return result

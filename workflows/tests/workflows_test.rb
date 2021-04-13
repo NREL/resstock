@@ -35,7 +35,7 @@ class RegressionWorkflowTest < MiniTest::Test
       puts "\n\tOSW: #{osw} ...\n"
 
       RunOSWs.add_simulation_output_report(osw)
-      out_osw, result = RunOSWs.run_and_check(osw, @top_dir)
+      finished_job, result = RunOSWs.run_and_check(osw, @top_dir)
       result['OSW'] = File.basename(osw)
       if osw.include?('single_family_detached')
         result['build_existing_model.geometry_building_type_recs'] = 'Single-Family Detached'
@@ -48,9 +48,7 @@ class RegressionWorkflowTest < MiniTest::Test
       all_results << result
 
       # Check workflow was successful
-      assert(File.exist?(out_osw))
-      data_hash = JSON.parse(File.read(out_osw))
-      assert_equal(data_hash['completed_status'], 'Success')
+      assert(File.exist?(finished_job))
     end
 
     results_dir = File.join(@top_dir, 'results')
