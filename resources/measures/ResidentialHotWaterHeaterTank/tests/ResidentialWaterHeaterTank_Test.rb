@@ -15,37 +15,6 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
-  def test_new_construction_standard_gas_stratified
-    args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["tank_model_type"] = Constants.WaterHeaterTypeTankModelTypeStratified
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 1.0, "TankUA" => 0.8066, "Setpoint" => 119.02, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 1.0 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
-  def test_new_construction_standard_gas_scheduled_setpoint
-    args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 123.19, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
-  def test_new_construction_standard_gas_stratified_scheduled_setpoint
-    args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
-    args_hash["tank_model_type"] = Constants.WaterHeaterTypeTankModelTypeStratified
-    args_hash["setpoint_type"] = Constants.WaterHeaterSetpointTypeScheduled
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleFixedInterval" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 1.0, "TankUA" => 0.8066, "Setpoint" => 118.22, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 1.0 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
-  end
-
   def test_new_construction_premium_gas
     args_hash = {}
     args_hash["energy_factor"] = "0.67"
@@ -438,7 +407,6 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
   end
 
   def test_retrofit_replace_hpwh_with_tank_gas
-    skip
     args_hash = {}
     args_hash["fuel_type"] = Constants.FuelTypeGas
     expected_num_del_objects = { "WaterHeaterStratified" => 1, "ScheduleConstant" => 6, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemTrendVariable" => 3 }
