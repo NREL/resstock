@@ -85,25 +85,25 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
     dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CW", false)
     dr_arg.setDisplayName("If clothes washer operation should be shifted to avoid the peaks")
     dr_arg.setDescription("The operation of clothes washer would be delayed or started earlier to avoid the peak hours.")
-    dr_arg.setDefaultValue(true)
+    dr_arg.setDefaultValue(false)
     args << dr_arg
 
     dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CD", false)
     dr_arg.setDisplayName("If clothes dryer operation should be shifted to avoid the peaks")
     dr_arg.setDescription("The operation of clothes dryer would be delayed or started earlier to avoid the peak hours.")
-    dr_arg.setDefaultValue(true)
+    dr_arg.setDefaultValue(false)
     args << dr_arg
 
     dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_DW", false)
     dr_arg.setDisplayName("If dish washer operation should be shifted to avoid the peaks")
     dr_arg.setDescription("The operation of dishwasher would be delayed or started earlier to avoid the peak hours")
-    dr_arg.setDefaultValue(true)
+    dr_arg.setDefaultValue(false)
     args << dr_arg
 
     dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_PP", false)
     dr_arg.setDisplayName("If pool pump operation should be shifted to avoid the peaks")
     dr_arg.setDescription("The operation of pool pump would be shifted form peak hours to the take hours")
-    dr_arg.setDefaultValue(true)
+    dr_arg.setDefaultValue(false)
     args << dr_arg
 
     return args
@@ -191,6 +191,11 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
       puts("Got before Sch_Vals: #{old_vals}")
       puts("Got after Sch_Vals: #{day_sch.values}")
       return day_sch
+    end
+
+    if (shift_CW == false) and (shift_CD == false) and (shift_DW == false) and (shift_PP == false)
+      runner.registerInfo("No appliance DR defined, ResidentialApplianceDR measure not applied")
+      return true
     end
 
     units = Geometry.get_building_units(model, runner)
