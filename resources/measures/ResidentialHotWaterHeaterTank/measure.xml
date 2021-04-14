@@ -1,12 +1,9 @@
 <measure>
   <schema_version>3.0</schema_version>
-  <error>C:/Users/aspeake/Documents/resstock/resources/measures/HPXMLtoOpenStudio/resources/util.rb:1425: syntax error, unexpected keyword_end, expecting end-of-input
-  end&#xd;
-     ^</error>
   <name>residential_hot_water_heater_tank</name>
   <uid>0f2214ac-12ca-4350-9942-8d1fb1277608</uid>
-  <version_id>07372eed-2bd5-4320-809e-415ef90d231f</version_id>
-  <version_modified>20210409T193149Z</version_modified>
+  <version_id>0b9d35bc-9426-4cb6-b623-d74afbb184a0</version_id>
+  <version_modified>20210414T195430Z</version_modified>
   <xml_checksum>9882CBDB</xml_checksum>
   <class_name>ResidentialHotWaterHeaterTank</class_name>
   <display_name>Set Residential Tank Water Heater</display_name>
@@ -162,6 +159,25 @@
       <default_value>0</default_value>
     </argument>
     <argument>
+      <name>tank_model_type</name>
+      <display_name>Tank Type</display_name>
+      <description>Type of tank model to use. The 'stratified' tank generally provide more accurate results, but may significantly increase run time.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>mixed</default_value>
+      <choices>
+        <choice>
+          <value>mixed</value>
+          <display_name>mixed</display_name>
+        </choice>
+        <choice>
+          <value>stratified</value>
+          <display_name>stratified</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>has_water_heater_flue</name>
       <display_name>Air Leakage: Has Open Water Heater Flue</display_name>
       <description>Specifies whether the building has an open flue associated with the water heater.</description>
@@ -281,7 +297,7 @@
       <filename>ResidentialWaterHeaterTank_Test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>67327620</checksum>
+      <checksum>76CC797D</checksum>
     </file>
   </files>
 </measure>

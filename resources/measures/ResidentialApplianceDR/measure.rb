@@ -20,11 +20,11 @@ require File.join(resources_path, "geometry")
 require File.join(File.dirname(__FILE__), "./schedule_modifier.rb")
 
 # start the measure
-class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
+class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Demand Response Schedule"
+    return "Set Appliance Demand Response Schedule"
   end
 
   def description
