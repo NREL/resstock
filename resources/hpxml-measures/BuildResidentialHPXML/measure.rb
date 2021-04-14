@@ -4231,7 +4231,6 @@ class HPXMLFile
     if fan_coil_distribution_systems.size > 0
       hpxml.hvac_distributions.add(id: 'FanCoilDistribution',
                                    distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                   conditioned_floor_area_served: args[:geometry_cfa],
                                    air_type: HPXML::AirTypeFanCoil)
       fan_coil_distribution_systems.each do |hvac_system|
         hvac_system.distribution_system_idref = hpxml.hvac_distributions[-1].id

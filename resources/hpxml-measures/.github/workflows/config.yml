@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    types: [ opened, synchronize, closed ]
+    types: [ synchronize, opened, ready_for_review ]
   workflow_dispatch:
 
 jobs:
@@ -23,30 +23,20 @@ jobs:
         run: |
           bundle exec rake test_all
 
-      - name: Compare results
-        run: |
-          ruby workflow/tests/compare.rb
-
       - name: Store results
         uses: actions/upload-artifact@v2
         with:
           path: workflow/tests/results
           name: results
 
-      - name: Store comparisons
-        uses: actions/upload-artifact@v2
-        with:
-          path: workflow/tests/comparisons
-          name: comparisons
-
-  update-results:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+  compare-results:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: build
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.base.sha }} # Checkout the target branch
+          ref: ${{ github.event.pull_request.base.sha }}
 
       - name: Setup git branch
         shell: bash
@@ -55,7 +45,43 @@ jobs:
           branch_sha="${{ github.event.pull_request.base.sha }}"
           echo "Checking out: $branch_name, $branch_sha"
           git checkout -b $branch_name || git checkout $branch_name
-          git pull origin $branch_name
+          # git pull origin $branch_name
+
+      - name: Download results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            results
+          name: results
+
+      - name: Compare results
+        run: |
+          mkdir workflow/tests/results
+          cp -r results/results* workflow/tests/results
+          ruby workflow/tests/compare.rb
+
+      - name: Store comparisons
+        uses: actions/upload-artifact@v2
+        with:
+          path: workflow/tests/comparisons
+          name: comparisons
+
+  update-results:
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    needs: compare-results
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup git branch
+        shell: bash
+        run: |
+          branch_name="${{ github.head_ref }}"
+          branch_sha="${{ github.event.pull_request.head.sha }}"
+          echo "Checking out branch: $branch_name, $branch_sha"
+          git checkout -b $branch_name || git checkout $branch_name
 
       - name: Download results
         uses: actions/download-artifact@v2
@@ -75,8 +101,7 @@ jobs:
             git config --global user.email "github-action@users.noreply.github.com"
             git config --global user.name "GitHub Action"
             git commit -m "Latest results."
-            branch_name="${{ github.base_ref }}"
-            #git pull origin $branch_name
+            branch_name="${{ github.head_ref }}"
             echo "Pushing to branch: $branch_name"
-            git push --force -u origin $branch_name
+            git push -u origin $branch_name
           fi

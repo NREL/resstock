@@ -13,4 +13,3 @@ Not all may apply:
 - [ ] No unexpected integration/regression test changes<sup>1</sup>
 
 <sup>1</sup> Pull request label "Ready for Testing" has been added and all subsequent comparison figures have been checked
-
