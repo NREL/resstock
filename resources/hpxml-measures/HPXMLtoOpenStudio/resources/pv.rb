@@ -28,13 +28,13 @@ class PV
     elsif pv_system.tracking == HPXML::PVTrackingType2Axis
       gpvwatts.setArrayType('TwoAxis')
     end
-    # if pv_system.module_type == HPXML::PVModuleTypeStandard
-    #  gpvwatts.setModuleType('Standard')
-    # elsif pv_system.module_type == HPXML::PVModuleTypePremium
-    gpvwatts.setModuleType('Premium')
-    # elsif pv_system.module_type == HPXML::PVModuleTypeThinFilm
-    #  gpvwatts.setModuleType('ThinFilm')
-    # end
+    if pv_system.module_type == HPXML::PVModuleTypeStandard
+      gpvwatts.setModuleType('Standard')
+    elsif pv_system.module_type == HPXML::PVModuleTypePremium
+      gpvwatts.setModuleType('Premium')
+    elsif pv_system.module_type == HPXML::PVModuleTypeThinFilm
+      gpvwatts.setModuleType('ThinFilm')
+    end
 
     ipvwatts = OpenStudio::Model::ElectricLoadCenterInverterPVWatts.new(model)
     ipvwatts.setName("#{obj_name} inverter")
