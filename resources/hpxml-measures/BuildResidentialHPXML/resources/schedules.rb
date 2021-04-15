@@ -453,7 +453,6 @@ class ScheduleGenerator
 
     # fill in the yearly time_step resolution schedule for plug/lighting and ceiling fan based on weekday/weekend sch
     # States are: 0='sleeping', 1='shower', 2='laundry', 3='cooking', 4='dishwashing', 5='absent', 6='nothingAtHome'
-    sim_year = @model.getYearDescription.calendarYear.get
     @total_days_in_year.times do |day|
       today = @sim_start_day + day
       month = today.month
@@ -723,7 +722,7 @@ class ScheduleGenerator
     dw_power_sch = [0] * mins_in_year
     step = 0
     last_state = 0
-    start_time = Time.new(sim_year, 1, 1)
+    start_time = Time.new(@sim_year, 1, 1)
     while step < mkc_steps_in_a_year
       dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip = 1)
       step_jump = 1
@@ -747,7 +746,7 @@ class ScheduleGenerator
     cd_power_sch = [0] * mins_in_year
     step = 0
     last_state = 0
-    start_time = Time.new(sim_year, 1, 1)
+    start_time = Time.new(@sim_year, 1, 1)
     while step < mkc_steps_in_a_year
       clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip = 1)
       step_jump = 1
@@ -775,7 +774,7 @@ class ScheduleGenerator
     cooking_power_sch = [0] * mins_in_year
     step = 0
     last_state = 0
-    start_time = Time.new(sim_year, 1, 1)
+    start_time = Time.new(@sim_year, 1, 1)
     while step < mkc_steps_in_a_year
       cooking_state = sum_across_occupants(all_simulated_values, 3, step, max_clip = 1)
       step_jump = 1
