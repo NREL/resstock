@@ -59,21 +59,61 @@ class PowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    outage_start_date = runner.getStringArgumentValue('outage_start_date', user_arguments)
-    outage_start_hour = runner.getIntegerArgumentValue('outage_start_hour', user_arguments)
-    outage_duration = runner.getIntegerArgumentValue('outage_duration', user_arguments)
+    args = get_argument_values(runner, arguments(model), user_arguments)
 
     # check for valid inputs
-    if (outage_start_hour < 0) || (outage_start_hour > 23)
+    if (args['outage_start_hour'] < 0) || (args['outage_start_hour'] > 23)
       runner.registerError('Start hour must be between 0 and 23.')
       return false
     end
 
-    if outage_duration == 0
+    if args['outage_duration'] == 0
       runner.registerError('Outage must last for at least one hour.')
       return false
     end
 
+    # create outage start/end date time objects
+    sim_year = model.getYearDescription.calendarYear.get
+    start_month = args['outage_start_date'].split[0]
+    start_day = args['outage_start_date'].split[1].to_i
+    outage_start_date = Time.new(sim_year, OpenStudio::monthOfYear(start_month).value, start_day, args['outage_start_hour'])
+    outage_end_date = outage_start_date + args['outage_duration'] * 3600.0
+
+    # make an outage availability schedule
+    annual_hrs = (Time.new(sim_year + 1) - Time.new(sim_year)) / 3600.0
+    outage_availability = [1] * annual_hrs
+    outage_start_hour_of_year = ((outage_start_date - Time.new(sim_year)) / 3600.0).to_i
+    outage_end_hour_of_year = ((outage_end_date - Time.new(sim_year)) / 3600.0).to_i
+    outage_availability[outage_start_hour_of_year...outage_end_hour_of_year] = [0] * (outage_end_hour_of_year - outage_start_hour_of_year)
+    year_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, sim_year)
+    interval_length = OpenStudio::Time.new(0, 1, 0, 0) # hour
+    outage_availability = OpenStudio::createVector(outage_availability)
+    timeseries = OpenStudio::TimeSeries.new(year_start_date, interval_length, outage_availability, '')
+    outage_availability_schedule = OpenStudio::Model::ScheduleInterval.fromTimeSeries(timeseries, model).get
+    outage_availability_schedule.setName('Outage Availability Schedule')
+
+    model.getElectricEquipments.each do |electric_equipment|
+      electric_equipment.setSchedule(outage_availability_schedule)
+    end
+
+    # set outage availability schedule on all hvac objects
+    # model.getThermalZones.each do |thermal_zone|
+    # equipments = HVAC.existing_heating_equipment(model, runner, thermal_zone) + HVAC.existing_cooling_equipment(model, runner, thermal_zone)
+    # equipments.each do |equipment|
+    # equipment.setAvailabilitySchedule(outage_availability_schedule)
+    # runner.registerInfo("Modified the availability schedule for '#{equipment.name}'.")
+    # end
+    # end
+
+    # set the outage availability schedule on res_infil_1_wh_sch_s (so house fan zeroes out)
+    # model.getEnergyManagementSystemSensors.each do |ems_sensor|
+    # next unless ems_sensor.name.to_s.include? "_wh_sch_s"
+
+    # ems_sensor.setKeyName("Outage Availability Schedule")
+    # runner.registerInfo("Modified the key name for '#{ems_sensor.name}'.")
+    # end
+
+    # set outage on schedule file
     schedules_file = nil
     model.getExternalFiles.each do |external_file|
       next unless external_file.fileName.end_with?('schedules.csv')
@@ -86,15 +126,15 @@ class PowerOutage < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    schedules_file.set_outage(outage_start_date: outage_start_date, outage_start_hour: outage_start_hour, outage_duration: outage_duration)
+    schedules_file.set_outage(outage_start_date: outage_start_date, outage_end_date: outage_end_date)
 
     # add additional properties object with the date of the outage for use by reporting measures
     additional_properties = model.getYearDescription.additionalProperties
-    additional_properties.setFeature('PowerOutageStartDate', outage_start_date)
-    additional_properties.setFeature('PowerOutageStartHour', outage_start_hour)
-    additional_properties.setFeature('PowerOutageDuration', outage_duration)
+    additional_properties.setFeature('PowerOutageStartDate', args['outage_start_date'])
+    additional_properties.setFeature('PowerOutageStartHour', args['outage_start_hour'])
+    additional_properties.setFeature('PowerOutageDuration', args['outage_duration'])
 
-    runner.registerFinalCondition("A power outage has been added, starting on #{outage_start_date} at hour #{outage_start_hour} and lasting for #{outage_duration} hours.")
+    runner.registerFinalCondition("A power outage has been added, starting on #{args['outage_start_date']} at hour #{args['outage_start_hour']} and lasting for #{args['outage_duration']} hours.")
 
     return true
   end
