@@ -159,10 +159,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   def check_finished_job(result, finished_job)
     begin
       assert(File.exist?(finished_job))
-      result['completed_status'] = 'Invalid'
-      if result.keys.any? { |x| x.include?('apply_upgrade') }
-        result['completed_status'] = 'Success'
-      end
+      result['completed_status'] = 'Success'
     rescue
       result['completed_status'] = 'Fail'
     end
