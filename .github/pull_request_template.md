@@ -15,7 +15,7 @@ Not all may apply:
 - [ ] `project_testing` runs without any failures
 - [ ] No unexpected regression test changes
 - [ ] All tests are passing
-- [ ] The [changelog](https://github.com/NREL/resstock/blob/master/CHANGELOG.md) has been updated appropriately
+- [ ] The [changelog](https://github.com/NREL/resstock/blob/develop/CHANGELOG.md) has been updated appropriately
 - [ ] This branch is up-to-date with develop
 
 For more information on how to perform these checklist items, see the documentation's [Advanced Tutorial](https://resstock.readthedocs.io/en/latest/advanced_tutorial/index.html).
