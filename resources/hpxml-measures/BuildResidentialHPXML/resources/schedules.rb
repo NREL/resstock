@@ -512,9 +512,12 @@ class ScheduleGenerator
     sink_duration_probs = schedule_config['sink']['duration_probability']
     events_per_cluster_probs = schedule_config['sink']['events_per_cluster_probs']
     hourly_onset_prob = schedule_config['sink']['hourly_onset_prob']
-    total_clusters = schedule_config['sink']['total_annual_cluster']
+    # Lookup avg_clusters_per_occ from json
+    avg_sink_clusters_per_hh = schedule_config['sink']['avg_sink_clusters_per_hh']
+    # Adjust avg_clusters_per_hh for number of occupants in household
+    total_clusters = avg_sink_clusters_per_hh * (0.29 * args[:geometry_num_occupants] + 0.26) # Eq based on cluster scaling in Building America DHW Event Schedule Generator (fewer sink draw clusters for larger households)
     sink_minutes_between_event_gap = schedule_config['sink']['minutes_between_event_gap']
-    cluster_per_day = total_clusters / @total_days_in_year
+    cluster_per_day = (total_clusters / @total_days_in_year).to_i
     sink_flow_rate_mean = schedule_config['sink']['flow_rate_mean']
     sink_flow_rate_std = schedule_config['sink']['flow_rate_std']
     sink_flow_rate = gaussian_rand(prng, sink_flow_rate_mean, sink_flow_rate_std, 0.1)
