@@ -8,7 +8,7 @@ __New Features__
 - Allows `Slab/ExposedPerimeter` to be zero.
 - Removes `ClothesDryer/ControlType` from being a required input, it is not used.
 - Relaxes tolerance for duct leakage to outside warning when ducts solely in conditioned space.
-- Moves additional error-checking from the ruby measure to the schematron validator.
+- Moves additional error-checking from the ruby measure to the schematron validator. 
 
 __Bugfixes__
 - Fixes room air conditioner performance curve.

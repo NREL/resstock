@@ -39,3 +39,5 @@ Power draw distribution is based on csv files.
 Probabilities for all water draw events are extracted from DHW event generators.
 The onset, duration, events_per_cluster_probs, flow rate mean and std could all refer to the DHW event generator excel sheet ('event characteristics' and 'Start Times' sheet).
 
+#### sink
+avg_sink_clusters_per_hh -> Average sink cluster per house hold. Set to 6657 for U.S. average of 2.53 occupants per household, based on relationship of 6885 clusters for 25 gpd, from Building America DHW Event Schedule Generator,

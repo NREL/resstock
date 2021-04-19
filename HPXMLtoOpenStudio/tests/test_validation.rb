@@ -7,7 +7,7 @@ require 'fileutils'
 require_relative '../measure.rb'
 
 class HPXMLtoOpenStudioValidationTest < MiniTest::Test
-  def before_setup
+  def setup
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
 
     # load the Schematron xml

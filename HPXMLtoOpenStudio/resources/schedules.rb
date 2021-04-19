@@ -1221,19 +1221,12 @@ class SchedulesFile
   end
 
   def set_outage(outage_start_date:,
-                 outage_start_hour:,
-                 outage_duration:)
+                 outage_end_date:)
 
     minutes_per_step = 60
     if @model.getSimulationControl.timestep.is_initialized
       minutes_per_step = 60 / @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
     end
-    sim_year = @model.getYearDescription.calendarYear.get
-
-    start_month = outage_start_date.split[0]
-    start_day = outage_start_date.split[1].to_i
-    outage_start_date = Time.new(sim_year, OpenStudio::monthOfYear(start_month).value, start_day, outage_start_hour)
-    outage_end_date = outage_start_date + outage_duration * 3600
 
     col_names = ScheduleGenerator.col_names
 
@@ -1242,7 +1235,7 @@ class SchedulesFile
       next if col_name == 'occupants'
       next if val.nil?
 
-      ts = Time.new(sim_year, 'Jan', 1)
+      ts = Time.new(outage_start_date.year, 'Jan', 1)
       @schedules[col_name].each_with_index do |step, i|
         if outage_start_date <= ts && ts < outage_end_date # in the outage period
           @schedules[col_name][i] = 0.0
