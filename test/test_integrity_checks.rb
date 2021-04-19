@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative 'integrity_checks'
-require 'minitest/autorun'
 
 class TestResStockErrors < MiniTest::Test
   def before_setup

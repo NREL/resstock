@@ -106,6 +106,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
+    arg.setDisplayName('Debug Mode?')
+    arg.setDescription('If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.')
+    args << arg
+
     return args
   end
 
@@ -225,7 +230,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0][step_value.name] = value
     end
 
-    measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../existing.xml'), 'output_dir' => File.expand_path('..') }]
+    measures['HPXMLtoOpenStudio'] = [{}]
+    measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = File.expand_path('../existing.xml')
+    measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
+    measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'] if args['debug'].is_initialized
 
     # Get software program used and version
     measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used

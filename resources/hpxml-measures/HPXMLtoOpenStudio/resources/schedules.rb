@@ -1220,6 +1220,33 @@ class SchedulesFile
     update(col_names: col_names.keys)
   end
 
+  def set_outage(outage_start_date:,
+                 outage_end_date:)
+
+    minutes_per_step = 60
+    if @model.getSimulationControl.timestep.is_initialized
+      minutes_per_step = 60 / @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
+    end
+
+    col_names = ScheduleGenerator.col_names
+
+    sec_per_step = minutes_per_step * 60.0
+    col_names.each do |col_name, val|
+      next if col_name == 'occupants'
+      next if val.nil?
+
+      ts = Time.new(outage_start_date.year, 'Jan', 1)
+      @schedules[col_name].each_with_index do |step, i|
+        if outage_start_date <= ts && ts < outage_end_date # in the outage period
+          @schedules[col_name][i] = 0.0
+        end
+        ts += sec_per_step
+      end
+    end
+
+    update(col_names: col_names.keys)
+  end
+
   def import(col_names:)
     @schedules = {}
     col_names += ['vacancy']

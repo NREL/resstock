@@ -2587,7 +2587,7 @@ class HVACSizing
     else # Unvented space
       ach = 0.1 # Assumption
     end
-    # FUTURE: Reuse code from measure.rb set_zone_volumes()
+    # FUTURE: Reuse code from Geometry.set_zone_volumes()
     if [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include? space_type
       floor_area = @hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? space_type }.map { |s| s.area }.sum(0.0)
       roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == space_type }

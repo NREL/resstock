@@ -73,7 +73,13 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
     end
   end
 
+  run_options = OpenStudio::RunOptions.new
+  run_options.setFast(true)
+  run_options.setSkipExpandObjects(true)
+  run_options.setSkipEnergyPlusPreprocess(true)
+
   workflowJSON.setWorkflowSteps(steps)
+  workflowJSON.setRunOptions(run_options)
   workflowJSON.save
 
   # Strip created_at/updated_at

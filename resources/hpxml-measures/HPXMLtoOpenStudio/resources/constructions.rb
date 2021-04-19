@@ -1169,6 +1169,44 @@ class Constructions
     constr.create_and_assign_constructions(runner, [subsurface], model)
   end
 
+  def self.apply_window_skylight_shading(model, window_or_skylight, shading_vertices, parent_surface, sub_surface, shading_group,
+                                         shading_schedules, name, cooling_season)
+    sf_summer = window_or_skylight.interior_shading_factor_summer * window_or_skylight.exterior_shading_factor_summer
+    sf_winter = window_or_skylight.interior_shading_factor_winter * window_or_skylight.exterior_shading_factor_winter
+    if (sf_summer < 1.0) || (sf_winter < 1.0)
+      # Apply shading
+      # We use a ShadingSurface instead of a Shade so that we perfectly get the result we want.
+      # The latter object is complex and it is essentially impossible to achieve the target reduction in transmitted
+      # solar (due to, e.g., re-reflectance, absorptance, angle modifiers, effects on convection, etc.).
+
+      # Shading surface is used to reduce beam solar and sky diffuse solar
+      shading_surface = OpenStudio::Model::ShadingSurface.new(shading_vertices, model)
+      shading_surface.setName("#{window_or_skylight.id} shading surface")
+      shading_surface.additionalProperties.setFeature('Azimuth', window_or_skylight.azimuth)
+      shading_surface.additionalProperties.setFeature('ParentSurface', parent_surface.name.to_s)
+
+      # Create transmittance schedule for heating/cooling seasons
+      trans_values = cooling_season.map { |c| c == 1 ? sf_summer : sf_winter }
+      if shading_schedules[trans_values].nil?
+        trans_sch = MonthWeekdayWeekendSchedule.new(model, "trans schedule winter=#{sf_winter} summer=#{sf_summer}", Array.new(24, 1), Array.new(24, 1), trans_values, Constants.ScheduleTypeLimitsFraction, false)
+        shading_schedules[trans_values] = trans_sch
+      end
+      shading_surface.setTransmittanceSchedule(shading_schedules[trans_values].schedule)
+
+      # Adjustment to default view factor is used to reduce ground diffuse solar
+      avg_trans_value = trans_values.sum(0.0) / 12.0 # FUTURE: Create EnergyPlus actuator to adjust this
+      default_vf_to_ground = ((1.0 - Math::cos(parent_surface.tilt)) / 2.0).round(2)
+      sub_surface.setViewFactortoGround(default_vf_to_ground * avg_trans_value)
+
+      if shading_group.nil?
+        shading_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+        shading_group.setName(name)
+      end
+      shading_surface.setShadingSurfaceGroup(shading_group)
+    end
+    return shading_group
+  end
+
   def self.calc_non_cavity_r(film_r, constr_set)
     # Calculate R-value for all non-cavity layers
     non_cavity_r = film_r
