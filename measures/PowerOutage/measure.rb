@@ -64,6 +64,43 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(24)
     args << arg
 
+    # Specify a Thermal Comfort Model type
+    # While none are required, up to 5 models may be specified at a time
+    # These get added to the People object in the idf
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("comfort_model_1", false)
+    arg.setDisplayName("Thermal Comfort Model type 1")
+    arg.setDescription("Thermal Comfort Model type")
+    arg.setDefaultValue("Pierce")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("comfort_model_2", false)
+    arg.setDisplayName("Thermal Comfort Model type 2")
+    arg.setDescription("Thermal Comfort Model type")
+    arg.setDefaultValue("Fanger")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("comfort_model_3", false)
+    arg.setDisplayName("Thermal Comfort Model type 3")
+    arg.setDescription("Thermal Comfort Model type")
+    arg.setDefaultValue("KSU")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("comfort_model_4", false)
+    arg.setDisplayName("Thermal Comfort Model type 4")
+    arg.setDescription("Thermal Comfort Model type")
+    arg.setDefaultValue("AdaptiveASH55")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument("comfort_model_5", false)
+    arg.setDisplayName("Thermal Comfort Model type 5")
+    arg.setDescription("Thermal Comfort Model type")
+    arg.setDefaultValue("AdaptiveCEN15251")
+    args << arg
+
     return args
   end # end the arguments method
 
@@ -80,6 +117,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_date = runner.getStringArgumentValue("otg_date", user_arguments)
     otg_hr = runner.getIntegerArgumentValue("otg_hr", user_arguments)
     otg_len = runner.getIntegerArgumentValue("otg_len", user_arguments)
+    comfort_model_1 = runner.getStringArgumentValue("comfort_model_1", user_arguments)
+    comfort_model_2 = runner.getStringArgumentValue("comfort_model_2", user_arguments)
+    comfort_model_3 = runner.getStringArgumentValue("comfort_model_3", user_arguments)
+    comfort_model_4 = runner.getStringArgumentValue("comfort_model_4", user_arguments)
+    comfort_model_5 = runner.getStringArgumentValue("comfort_model_5", user_arguments)
 
     # check for valid inputs
     if otg_hr < 0 or otg_hr > 23
@@ -90,6 +132,28 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     if otg_len == 0
       runner.registerError("Outage must last for at least one hour.")
       return false
+    end
+
+    if comfort_model_1
+      model.getSpaces.each do |space|
+        space.people.each do |people|
+          people.peopleDefinition.each do |peopleDef|
+            peopleDef.pushThermalComfortModelType(comfort_model_1)
+            if comfort_model_2
+              peopleDef.pushThermalComfortModelType(comfort_model_2)
+            end
+            if comfort_model_3
+              peopleDef.pushThermalComfortModelType(comfort_model_3)
+            end
+            if comfort_model_4
+              peopleDef.pushThermalComfortModelType(comfort_model_4)
+            end
+            if comfort_model_5
+              peopleDef.pushThermalComfortModelType(comfort_model_5)
+            end
+          end
+        end
+      end
     end
 
     # get daylight saving info to use to modify the schedules as appropriate
