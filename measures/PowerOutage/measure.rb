@@ -162,20 +162,18 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     if comfort_model_1.is_initialized
       model.getSpaces.each do |space|
         space.people.each do |people|
-          people.peopleDefinition.each do |peopleDef|
-            peopleDef.pushThermalComfortModelType(comfort_model_1.get)
-            if comfort_model_2.is_initialized
-              peopleDef.pushThermalComfortModelType(comfort_model_2.get)
-            end
-            if comfort_model_3.is_initialized
-              peopleDef.pushThermalComfortModelType(comfort_model_3.get)
-            end
-            if comfort_model_4.is_initialized
-              peopleDef.pushThermalComfortModelType(comfort_model_4.get)
-            end
-            if comfort_model_5.is_initialized
-              peopleDef.pushThermalComfortModelType(comfort_model_5.get)
-            end
+          people.peopleDefinition.pushThermalComfortModelType(comfort_model_1.get)
+          if comfort_model_2.is_initialized
+            people.peopleDefinition.pushThermalComfortModelType(comfort_model_2.get)
+          end
+          if comfort_model_3.is_initialized
+            people.peopleDefinition.pushThermalComfortModelType(comfort_model_3.get)
+          end
+          if comfort_model_4.is_initialized
+            people.peopleDefinition.pushThermalComfortModelType(comfort_model_4.get)
+          end
+          if comfort_model_5.is_initialized
+            people.peopleDefinition.pushThermalComfortModelType(comfort_model_5.get)
           end
         end
       end
