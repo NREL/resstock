@@ -243,6 +243,12 @@ class OutageTest < MiniTest::Test
     check_num_objects(all_new_objects, expected_num_new_objects, "added")
     check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
 
+    model.getPeopleDefinitions.each do |people_def|
+      # make sure you have the right def object, or skip
+      puts people_def
+      puts people_def.getThermalComfortModelType(0) # int
+    end
+
     return model
   end
 end
