@@ -162,17 +162,21 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     if comfort_model_1.is_initialized
       model.getSpaces.each do |space|
         space.people.each do |people|
-        
+          # constant schedule
+          work_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+          work_schedule.setValue(0)
+          activity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+          activity_schedule.setValue(120)
+          air_velocity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+          air_velocity_schedule.setValue(0.2)
+          # clothing_insulation_schedule = OpenStudio::Model::Schedule.new(model)
 
-# constant schedule
-work_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-work_schedule.setValue(0)
+          # other schedule
+          people.setWorkEfficiencySchedule(work_schedule)
+          people.setActivityLevelSchedule(activity_schedule)
+          people.setAirVelocitySchedule(air_velocity_schedule)
+          # people.setClothingInsulationSchedule(clothing_insulation_schedule)
 
-# other schedule
-
-
-people.setWorkEfficiencySchedule(work_schedule)
-        
           people.peopleDefinition.pushThermalComfortModelType(comfort_model_1.get)
           if comfort_model_2.is_initialized
             people.peopleDefinition.pushThermalComfortModelType(comfort_model_2.get)
@@ -253,7 +257,7 @@ people.setWorkEfficiencySchedule(work_schedule)
           end
         end
         set_rule_days_and_dates(otg_rule, otg_start_date, otg_start_date)
-      else # does not occur within on calendar day
+      else # does not occur within one calendar day
         (otg_start_date_day..otg_end_date_day).each do |day|
           day_date = OpenStudio::Date::fromDayOfYear(day, assumed_year)
           otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
@@ -402,5 +406,5 @@ people.setWorkEfficiencySchedule(work_schedule)
   end
 end # end the measure
 
-# this allows the measure to be use by the application
+# this allows the measure to be used by the application
 ProcessPowerOutage.new.registerWithApplication
