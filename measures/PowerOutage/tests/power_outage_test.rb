@@ -145,7 +145,7 @@ class OutageTest < MiniTest::Test
     args_hash["otg_len"] = 8
     args_hash["comfort_model_1"] = "Pierce"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 12, "ScheduleDay" => 12, "ScheduleFixedInterval" => 1 }
+    expected_num_new_objects = { "ScheduleRule" => 12, "ScheduleDay" => 12, "ScheduleFixedInterval" => 1 ,"ScheduleConstant" => 6 , "ScheduleTypeLimits" => 1 }
     expected_values = {}
     _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 26)
   end
