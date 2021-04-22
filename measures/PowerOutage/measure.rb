@@ -162,6 +162,17 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     if comfort_model_1.is_initialized
       model.getSpaces.each do |space|
         space.people.each do |people|
+        
+
+# constant schedule
+work_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+work_schedule.setValue(0)
+
+# other schedule
+
+
+people.setWorkEfficiencySchedule(work_schedule)
+        
           people.peopleDefinition.pushThermalComfortModelType(comfort_model_1.get)
           if comfort_model_2.is_initialized
             people.peopleDefinition.pushThermalComfortModelType(comfort_model_2.get)
