@@ -243,10 +243,19 @@ class OutageTest < MiniTest::Test
     check_num_objects(all_new_objects, expected_num_new_objects, "added")
     check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
 
+    puts "PeopleDefinitions"
     model.getPeopleDefinitions.each do |people_def|
       # make sure you have the right def object, or skip
-      puts people_def
-      puts people_def.getThermalComfortModelType(0) # int
+      # puts people_def
+      # puts people_def.getThermalComfortModelType(0) # int
+    end
+
+    puts "People:"
+    model.getPeoples.each do |people|
+      puts people
+      # people.each do |object|
+      #   puts object
+      # end
     end
 
     return model
