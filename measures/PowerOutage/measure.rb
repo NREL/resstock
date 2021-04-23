@@ -162,21 +162,38 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     if comfort_model_1.is_initialized
       model.getSpaces.each do |space|
         space.people.each do |people|
-          # constant schedule
+          # Create schedules
           work_schedule = OpenStudio::Model::ScheduleConstant.new(model)
           work_schedule.setValue(0)
+          work_schedule.setName("Work Efficiency Schedule")
           activity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
           activity_schedule.setValue(120)
+          activity_schedule.setName("Activity Level Schedule")
           air_velocity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
           air_velocity_schedule.setValue(0.2)
-          # clothing_insulation_schedule = OpenStudio::Model::Schedule.new(model)
+          air_velocity_schedule.setName("Air Velocity Schedule")
+          clothing_insulation_schedule = OpenStudio::Model::ScheduleRule.new(model)
+          clothing_insulation_schedule.setName("Clothing Schedule")
+          clothing_insulation_schedule.setEndDate('4/30')
+          clothing_insulation_schedule.setFor('AllDays')
+          clothing_insulation_schedule.setUntil('24:00')
+          clothing_insulation_schedule.setValue(1)
+          clothing_insulation_schedule.setEndDate('9/30')
+          clothing_insulation_schedule.setFor('AllDays')
+          clothing_insulation_schedule.setUntil('24:00')
+          clothing_insulation_schedule.setValue(0.5)
+          clothing_insulation_schedule.setEndDate('12/31')
+          clothing_insulation_schedule.setFor('AllDays')
+          clothing_insulation_schedule.setUntil('24:00')
+          clothing_insulation_schedule.setValue(1)
 
-          # other schedule
+          # Set schedules
           people.setWorkEfficiencySchedule(work_schedule)
           people.setActivityLevelSchedule(activity_schedule)
           people.setAirVelocitySchedule(air_velocity_schedule)
-          # people.setClothingInsulationSchedule(clothing_insulation_schedule)
+          people.setClothingInsulationSchedule(clothing_insulation_schedule)
 
+          # Add thermal model types
           people.peopleDefinition.pushThermalComfortModelType(comfort_model_1.get)
           if comfort_model_2.is_initialized
             people.peopleDefinition.pushThermalComfortModelType(comfort_model_2.get)
