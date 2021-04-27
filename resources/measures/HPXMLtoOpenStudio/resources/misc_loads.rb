@@ -88,7 +88,7 @@ class MiscLoads
 
   def self.apply_electric(model, unit, runner, annual_energy, mult,
                           weekday_sch, weekend_sch, monthly_sch, sch, space,
-                          unit_obj_name, scale_energy)
+                          unit_obj_name, scale_energy, schedules_file)
 
     # check for valid inputs
     if annual_energy < 0
@@ -142,13 +142,25 @@ class MiscLoads
 
       if sch.nil?
         # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
-        if not sch.validated?
-          return false
+        if unit_obj_name.include? Constants.ObjectNameElectricVehicle
+          col_name = "plug_loads_vehicle"
+        elsif unit_obj_name.include? Constants.ObjectNameWellPump
+          col_name = "plug_loads_well_pump"
+        else
+          sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+          if not sch.validated?
+            return false
+          end
         end
       end
 
-      design_level = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
+      if schedules_file.nil?
+        design_level = sch.calcDesignLevelFromDailykWh(ann_e / num_days_in_year)
+        schedule = sch.schedule
+      else
+        design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: col_name, daily_kwh: ann_e / num_days_in_year)
+        schedule = schedules_file.create_schedule_file(col_name: col_name)
+      end
 
       # Add electric equipment for the load
       load_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -171,7 +183,7 @@ class MiscLoads
       load_def.setFractionLatent(0)
       load_def.setName(unit_obj_name)
       load_def.setDesignLevel(design_level)
-      load.setSchedule(sch.schedule)
+      load.setSchedule(schedule)
 
     end
 
@@ -180,7 +192,7 @@ class MiscLoads
 
   def self.apply_gas(model, unit, runner, annual_energy, mult,
                      weekday_sch, weekend_sch, monthly_sch, sch, space,
-                     unit_obj_name, scale_energy)
+                     unit_obj_name, scale_energy, schedules_file)
 
     # check for valid inputs
     if annual_energy < 0
@@ -234,13 +246,27 @@ class MiscLoads
 
       if sch.nil?
         # Create schedule
-        sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
-        if not sch.validated?
-          return false
+        if unit_obj_name.include? Constants.ObjectNameGasGrill
+          col_name = "fuel_loads_grill"
+        elsif unit_obj_name.include? Constants.ObjectNameGasLighting
+          col_name = "fuel_loads_lighting"
+        elsif unit_obj_name.include? Constants.ObjectNameGasFireplace
+          col_name = "fuel_loads_fireplace"
+        else
+          sch = MonthWeekdayWeekendSchedule.new(model, runner, unit_obj_name + " schedule", weekday_sch, weekend_sch, monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch, summer_design_day_sch)
+          if not sch.validated?
+            return false
+          end
         end
       end
 
-      design_level = sch.calcDesignLevelFromDailyTherm(ann_g / num_days_in_year)
+      if schedules_file.nil?
+        design_level = sch.calcDesignLevelFromDailyTherm(ann_g / num_days_in_year)
+        schedule = sch.schedule
+      else
+        design_level = schedules_file.calc_design_level_from_daily_therm(col_name: col_name, daily_therm: ann_g / num_days_in_year)
+        schedule = schedules_file.create_schedule_file(col_name: col_name)
+      end
 
       # Add gas equipment for the load
       load_def = OpenStudio::Model::GasEquipmentDefinition.new(model)
@@ -263,7 +289,7 @@ class MiscLoads
       load_def.setFractionLatent(0)
       load_def.setName(unit_obj_name)
       load_def.setDesignLevel(design_level)
-      load.setSchedule(sch.schedule)
+      load.setSchedule(schedule)
 
     end
 
