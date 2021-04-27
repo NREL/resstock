@@ -79,48 +79,24 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     args << arg
 
     # Specify another Thermal Comfort Model type
-    chs = OpenStudio::StringVector.new
-    chs << "Pierce"
-    chs << "Fanger"
-    chs << "KSU"
-    chs << "AdaptiveASH55"
-    chs << "AdaptiveCEN15251"
     arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_2', chs, false)
     arg.setDisplayName("Thermal Comfort Model type 2")
     arg.setDescription("Thermal Comfort Model type")
     args << arg
 
     # Specify another Thermal Comfort Model type
-    chs = OpenStudio::StringVector.new
-    chs << "Pierce"
-    chs << "Fanger"
-    chs << "KSU"
-    chs << "AdaptiveASH55"
-    chs << "AdaptiveCEN15251"
     arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_3', chs, false)
     arg.setDisplayName("Thermal Comfort Model type 3")
     arg.setDescription("Thermal Comfort Model type")
     args << arg
 
     # Specify another Thermal Comfort Model type
-    chs = OpenStudio::StringVector.new
-    chs << "Pierce"
-    chs << "Fanger"
-    chs << "KSU"
-    chs << "AdaptiveASH55"
-    chs << "AdaptiveCEN15251"
     arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_4', chs, false)
     arg.setDisplayName("Thermal Comfort Model type 4")
     arg.setDescription("Thermal Comfort Model type")
     args << arg
 
     # Specify another Thermal Comfort Model type
-    chs = OpenStudio::StringVector.new
-    chs << "Pierce"
-    chs << "Fanger"
-    chs << "KSU"
-    chs << "AdaptiveASH55"
-    chs << "AdaptiveCEN15251"
     arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_5', chs, false)
     arg.setDisplayName("Thermal Comfort Model type 5")
     arg.setDescription("Thermal Comfort Model type")
@@ -157,58 +133,6 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     if otg_len == 0
       runner.registerError("Outage must last for at least one hour.")
       return false
-    end
-
-    if comfort_model_1.is_initialized
-      model.getSpaces.each do |space|
-        space.people.each do |people|
-          # Create schedules
-          work_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-          work_schedule.setValue(0)
-          work_schedule.setName("Work Efficiency Schedule")
-          activity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-          activity_schedule.setValue(120)
-          activity_schedule.setName("Activity Level Schedule")
-          air_velocity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-          air_velocity_schedule.setValue(0.2)
-          air_velocity_schedule.setName("Air Velocity Schedule")
-          clothing_insulation_schedule = OpenStudio::Model::ScheduleRule.new(model)
-          clothing_insulation_schedule.setName("Clothing Schedule")
-          clothing_insulation_schedule.setEndDate('4/30')
-          clothing_insulation_schedule.setFor('AllDays')
-          clothing_insulation_schedule.setUntil('24:00')
-          clothing_insulation_schedule.setValue(1)
-          clothing_insulation_schedule.setEndDate('9/30')
-          clothing_insulation_schedule.setFor('AllDays')
-          clothing_insulation_schedule.setUntil('24:00')
-          clothing_insulation_schedule.setValue(0.5)
-          clothing_insulation_schedule.setEndDate('12/31')
-          clothing_insulation_schedule.setFor('AllDays')
-          clothing_insulation_schedule.setUntil('24:00')
-          clothing_insulation_schedule.setValue(1)
-
-          # Set schedules
-          people.setWorkEfficiencySchedule(work_schedule)
-          people.setActivityLevelSchedule(activity_schedule)
-          people.setAirVelocitySchedule(air_velocity_schedule)
-          people.setClothingInsulationSchedule(clothing_insulation_schedule)
-
-          # Add thermal model types
-          people.peopleDefinition.pushThermalComfortModelType(comfort_model_1.get)
-          if comfort_model_2.is_initialized
-            people.peopleDefinition.pushThermalComfortModelType(comfort_model_2.get)
-          end
-          if comfort_model_3.is_initialized
-            people.peopleDefinition.pushThermalComfortModelType(comfort_model_3.get)
-          end
-          if comfort_model_4.is_initialized
-            people.peopleDefinition.pushThermalComfortModelType(comfort_model_4.get)
-          end
-          if comfort_model_5.is_initialized
-            people.peopleDefinition.pushThermalComfortModelType(comfort_model_5.get)
-          end
-        end
-      end
     end
 
     # get daylight saving info to use to modify the schedules as appropriate
@@ -406,6 +330,74 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     additional_properties.setFeature("PowerOutageDuration", otg_len)
 
     runner.registerFinalCondition("A power outage has been added, starting on #{otg_date} at hour #{otg_hr.to_i} and lasting for #{otg_len.to_i} hours.")
+
+    if comfort_model_1.is_initialized
+
+      # Create schedules
+
+      # Work
+      work_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      work_schedule.setValue(0)
+      work_schedule.setName("Work Efficiency Schedule")
+
+      # Activity
+      activity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      activity_schedule.setValue(120)
+      activity_schedule.setName("Activity Level Schedule")
+
+      # Air Velocity
+      air_velocity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      air_velocity_schedule.setValue(0.2)
+      air_velocity_schedule.setName("Air Velocity Schedule")
+
+      # Clothing Insulation
+      clothing_insulation_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
+      clothing_insulation_schedule.setName("Clothing Schedule")
+
+      # Rule 1: Jan 1 - Dec 31, value = 1.0
+      clothing_insulation_schedule_rule1 = OpenStudio::Model::ScheduleRule.new(clothing_insulation_schedule)
+      start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, assumed_year)
+      end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(12), 31, assumed_year)
+      clothing_insulation_schedule_rule1.setStartDate(start_date)
+      clothing_insulation_schedule_rule1.setEndDate(end_date)
+      rule1_day_schedule = clothing_insulation_schedule_rule1.daySchedule
+      rule1_day_schedule.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1.0)
+
+      # Rule 2: May 1 - Sep 30, value = 0.5
+      clothing_insulation_schedule_rule2 = OpenStudio::Model::ScheduleRule.new(clothing_insulation_schedule)
+      start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(5), 1, assumed_year)
+      end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(9), 30, assumed_year)
+      clothing_insulation_schedule_rule2.setStartDate(start_date)
+      clothing_insulation_schedule_rule2.setEndDate(end_date)
+      rule2_day_schedule = clothing_insulation_schedule_rule2.daySchedule
+      rule2_day_schedule.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0.5)
+
+      model.getPeoples.each do |people|
+
+        # Set schedules
+        people.setWorkEfficiencySchedule(work_schedule)
+        people.setActivityLevelSchedule(activity_schedule)
+        people.setAirVelocitySchedule(air_velocity_schedule)
+        people.setClothingInsulationSchedule(clothing_insulation_schedule)
+
+        people_definition = people.peopleDefinition
+
+        # Add thermal model types
+        people_definition.pushThermalComfortModelType(comfort_model_1.get)
+        if comfort_model_2.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_2.get)
+        end
+        if comfort_model_3.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_3.get)
+        end
+        if comfort_model_4.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_4.get)
+        end
+        if comfort_model_5.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_5.get)
+        end
+      end
+    end
 
     return true
   end # end the run method
