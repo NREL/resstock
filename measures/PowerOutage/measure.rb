@@ -67,6 +67,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     # Specify a Thermal Comfort Model type
     # While none are required, up to 5 models may be specified at a time
     # These get added to the People object in the idf
+    # If a comfort model is specified, additional schedules are required and get automatically generated below
     chs = OpenStudio::StringVector.new
     chs << "Pierce"
     chs << "Fanger"
