@@ -30,6 +30,13 @@ class HVACSizing
     hvac_systems.each do |hvac_system|
       hvac = get_hvac_information(hvac_system)
 
+      # These shared systems should be converted to other equivalent
+      # systems before being autosized
+      next if [HPXML::HVACTypeChiller,
+               HPXML::HVACTypeCoolingTower].include?(hvac.CoolType)
+      next if [HPXML::HVACTypeHeatPumpWaterLoopToAir].include?(hvac.HeatType) &&
+              hvac.HeatingLoadFraction.nil?
+
       # Add duct losses
       apply_hvac_temperatures(hvac, bldg_design_loads)
       apply_load_ducts_heating(bldg_design_loads, weather, hvac)
@@ -1434,7 +1441,6 @@ class HVACSizing
 
       hvac_sizing_values.Cool_Capacity = (hvac_sizing_values.Cool_Load_Tot / totalCap_CurveValue)
       hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
-      # FIXME: Why not use calc_airflow_rate?
       hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[-1] * hvac.CapacityRatioCooling[-1] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
 
     elsif hvac.CoolType == HPXML::HVACTypeRoomAirConditioner
@@ -1444,7 +1450,6 @@ class HVACSizing
 
       hvac_sizing_values.Cool_Capacity = hvac_sizing_values.Cool_Load_Tot / totalCap_CurveValue
       hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
-      # FIXME: Why not use calc_airflow_rate?
       hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[hvac.SizingSpeed] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
 
     elsif hvac.CoolType == HPXML::HVACTypeHeatPumpGroundToAir
@@ -1543,7 +1548,6 @@ class HVACSizing
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
       end
-      # FIXME: Why not use calc_airflow_rate?
       hvac_sizing_values.Heat_Airflow = hvac.RatedCFMperTonHeating[-1] * hvac.CapacityRatioHeating[-1] * UnitConversions.convert(hvac_sizing_values.Heat_Capacity, 'Btu/hr', 'ton') # Maximum air flow under heating operation
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpGroundToAir

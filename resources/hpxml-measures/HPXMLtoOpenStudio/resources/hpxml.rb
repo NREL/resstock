@@ -351,6 +351,10 @@ class HPXML < Object
     end
   end
 
+  def hvac_systems
+    return (@heating_systems + @cooling_systems + @heat_pumps)
+  end
+
   def has_space_type(space_type)
     # Look for surfaces attached to this space type
     (@roofs + @rim_joists + @walls + @foundation_walls + @frame_floors + @slabs).each do |surface|
@@ -382,7 +386,10 @@ class HPXML < Object
       fuel_fracs[fuel] += heat_pump.fraction_heat_load_served.to_f
     end
     return FuelTypeElectricity if fuel_fracs.empty?
+    return FuelTypeElectricity if fuel_fracs[FuelTypeElectricity].to_f > 0.5
 
+    # Choose fossil fuel
+    fuel_fracs.delete FuelTypeElectricity
     return fuel_fracs.key(fuel_fracs.values.max)
   end
 
@@ -390,11 +397,17 @@ class HPXML < Object
     fuel_fracs = {}
     @water_heating_systems.each do |water_heating_system|
       fuel = water_heating_system.fuel_type
+      if fuel.nil? # Combi boiler
+        fuel = water_heating_system.related_hvac_system.heating_system_fuel
+      end
       fuel_fracs[fuel] = 0.0 if fuel_fracs[fuel].nil?
       fuel_fracs[fuel] += water_heating_system.fraction_dhw_load_served
     end
     return FuelTypeElectricity if fuel_fracs.empty?
+    return FuelTypeElectricity if fuel_fracs[FuelTypeElectricity].to_f > 0.5
 
+    # Choose fossil fuel
+    fuel_fracs.delete FuelTypeElectricity
     return fuel_fracs.key(fuel_fracs.values.max)
   end
 
@@ -753,7 +766,7 @@ class HPXML < Object
              :sim_begin_month, :sim_begin_day, :sim_end_month, :sim_end_day, :sim_calendar_year,
              :dst_enabled, :dst_begin_month, :dst_begin_day, :dst_end_month, :dst_end_day,
              :use_max_load_for_heat_pumps, :allow_increased_fixed_capacities,
-             :apply_ashrae140_assumptions, :schedules_path]
+             :apply_ashrae140_assumptions, :energystar_calculation_version, :schedules_path]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -844,6 +857,11 @@ class HPXML < Object
         XMLHelper.add_element(eri_calculation, 'Version', @eri_calculation_version, :string) unless @eri_calculation_version.nil?
         XMLHelper.add_element(eri_calculation, 'Design', @eri_design, :string) unless @eri_design.nil?
       end
+      if not @energystar_calculation_version.nil?
+        extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
+        energystar_calculation = XMLHelper.add_element(extension, 'EnergyStarCalculation')
+        XMLHelper.add_element(energystar_calculation, 'Version', @energystar_calculation_version, :string) unless @energystar_calculation_version.nil?
+      end
       if (not @timestep.nil?) || (not @sim_begin_month.nil?) || (not @sim_begin_day.nil?) || (not @sim_end_month.nil?) || (not @sim_end_day.nil?) || (not @dst_enabled.nil?) || (not @dst_begin_month.nil?) || (not @dst_begin_day.nil?) || (not @dst_end_month.nil?) || (not @dst_end_day.nil?)
         extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
         simulation_control = XMLHelper.add_element(extension, 'SimulationControl')
@@ -898,6 +916,7 @@ class HPXML < Object
       @software_program_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/SoftwareProgramVersion', :string)
       @eri_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ERICalculation/Version', :string)
       @eri_design = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ERICalculation/Design', :string)
+      @energystar_calculation_version = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/EnergyStarCalculation/Version', :string)
       @timestep = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/Timestep', :integer)
       @sim_begin_month = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/BeginMonth', :integer)
       @sim_begin_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/BeginDayOfMonth', :integer)
@@ -3306,7 +3325,7 @@ class HPXML < Object
 
     def hvac_systems
       list = []
-      (@hpxml_object.heating_systems + @hpxml_object.cooling_systems + @hpxml_object.heat_pumps).each do |hvac_system|
+      @hpxml_object.hvac_systems.each do |hvac_system|
         next if hvac_system.distribution_system_idref.nil?
         next unless hvac_system.distribution_system_idref == @id
 
@@ -3352,7 +3371,7 @@ class HPXML < Object
 
     def delete
       @hpxml_object.hvac_distributions.delete(self)
-      (@hpxml_object.heating_systems + @hpxml_object.cooling_systems + @hpxml_object.heat_pumps).each do |hvac_system|
+      @hpxml_object.hvac_systems.each do |hvac_system|
         next if hvac_system.distribution_system_idref.nil?
         next unless hvac_system.distribution_system_idref == @id
 
@@ -3811,7 +3830,7 @@ class HPXML < Object
     def related_hvac_system
       return if @related_hvac_idref.nil?
 
-      (@hpxml_object.heating_systems + @hpxml_object.cooling_systems + @hpxml_object.heat_pumps).each do |hvac_system|
+      @hpxml_object.hvac_systems.each do |hvac_system|
         next unless hvac_system.id == @related_hvac_idref
 
         return hvac_system
@@ -5515,7 +5534,7 @@ class HPXML < Object
     end
 
     # Check for HVAC systems referenced by multiple water heating systems
-    (@heating_systems + @cooling_systems + @heat_pumps).each do |hvac_system|
+    hvac_systems.each do |hvac_system|
       num_attached = 0
       @water_heating_systems.each do |water_heating_system|
         next if water_heating_system.related_hvac_idref.nil?
