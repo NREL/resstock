@@ -384,10 +384,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     if not @eri_design.nil?
       # ERI run, store files in a particular location
       output_dir = File.dirname(hpxml_path)
-      design_name = @eri_design.gsub(' ', '')
-      annual_output_path = File.join(output_dir, "#{design_name}.#{output_format}")
-      eri_output_path = File.join(output_dir, "#{design_name}_ERI.csv")
-      timeseries_output_path = File.join(output_dir, "#{design_name}_#{timeseries_frequency.capitalize}.#{output_format}")
+      hpxml_name = File.basename(hpxml_path).gsub('.xml', '')
+      annual_output_path = File.join(output_dir, "#{hpxml_name}.#{output_format}")
+      eri_output_path = File.join(output_dir, "#{hpxml_name}_ERI.csv")
+      timeseries_output_path = File.join(output_dir, "#{hpxml_name}_#{timeseries_frequency.capitalize}.#{output_format}")
     else
       output_dir = File.dirname(@sqlFile.path.to_s)
       annual_output_path = File.join(output_dir, "results_annual.#{output_format}")
@@ -487,6 +487,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     outputs[:hpxml_cfa] = @hpxml.building_construction.conditioned_floor_area
     outputs[:hpxml_nbr] = @hpxml.building_construction.number_of_bedrooms
     outputs[:hpxml_nst] = @hpxml.building_construction.number_of_conditioned_floors_above_grade
+    outputs[:hpxml_residential_facility_type] = @hpxml.building_construction.residential_facility_type
 
     # HPXML Systems
     if not @eri_design.nil?
@@ -1107,6 +1108,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     results_out << ['hpxml_cfa', outputs[:hpxml_cfa].to_s]
     results_out << ['hpxml_nbr', outputs[:hpxml_nbr].to_s]
     results_out << ['hpxml_nst', outputs[:hpxml_nst].to_s]
+    results_out << ['hpxml_residential_facility_type', '"' + outputs[:hpxml_residential_facility_type] + '"']
 
     CSV.open(csv_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
   end

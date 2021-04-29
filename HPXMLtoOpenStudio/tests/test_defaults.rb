@@ -870,8 +870,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     expected_supply_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
     expected_return_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
-    expected_supply_areas = [91.125, 91.125] * hpxml_default.hvac_distributions.size
-    expected_return_areas = [33.75, 33.75] * hpxml_default.hvac_distributions.size
+    expected_supply_areas = [36.45, 36.45] * hpxml_default.hvac_distributions.size
+    expected_return_areas = [13.5, 13.5] * hpxml_default.hvac_distributions.size
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
 
@@ -888,8 +888,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     expected_supply_locations = ['basement - conditioned', 'basement - conditioned', 'living space', 'living space'] * hpxml_default.hvac_distributions.size
     expected_return_locations = ['basement - conditioned', 'basement - conditioned', 'living space', 'living space'] * hpxml_default.hvac_distributions.size
-    expected_supply_areas = [68.34, 68.34, 22.78, 22.78] * hpxml_default.hvac_distributions.size
-    expected_return_areas = [25.31, 25.31, 8.44, 8.44] * hpxml_default.hvac_distributions.size
+    expected_supply_areas = [27.34, 27.34, 9.11, 9.11] * hpxml_default.hvac_distributions.size
+    expected_return_areas = [10.13, 10.13, 3.38, 3.38] * hpxml_default.hvac_distributions.size
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
   end

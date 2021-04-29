@@ -409,6 +409,7 @@ class SimulationOutputReportTest < MiniTest::Test
     'hpxml_cfa',
     'hpxml_nbr',
     'hpxml_nst',
+    'hpxml_residential_facility_type',
   ]
 
   def all_timeseries_cols
@@ -975,14 +976,14 @@ class SimulationOutputReportTest < MiniTest::Test
     require 'oga'
     old_hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml')
     [Constants.CalcTypeERIReferenceHome, Constants.CalcTypeERIReferenceHome].each do |eri_design|
-      new_hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-eri.xml')
+      new_hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/tests/test-eri.xml')
       FileUtils.cp(old_hpxml_path, new_hpxml_path)
       hpxml = HPXML.new(hpxml_path: new_hpxml_path)
       hpxml.header.eri_design = eri_design
       XMLHelper.write_file(hpxml.to_oga(), new_hpxml_path)
 
       # Run tests
-      args_hash = { 'hpxml_path' => '../workflow/sample_files/base-eri.xml',
+      args_hash = { 'hpxml_path' => '../workflow/tests/test-eri.xml',
                     'timeseries_frequency' => 'hourly',
                     'include_timeseries_fuel_consumptions' => true,
                     'include_timeseries_end_use_consumptions' => true,
@@ -1044,9 +1045,11 @@ class SimulationOutputReportTest < MiniTest::Test
     File.delete(osw_path)
 
     if not eri_design.nil?
-      annual_csv = File.join(File.dirname(template_osw), File.dirname(args_hash['hpxml_path']), "#{eri_design.gsub(' ', '')}.csv")
-      timeseries_csv = File.join(File.dirname(template_osw), File.dirname(args_hash['hpxml_path']), "#{eri_design.gsub(' ', '')}_Hourly.csv")
-      eri_csv = File.join(File.dirname(template_osw), File.dirname(args_hash['hpxml_path']), "#{eri_design.gsub(' ', '')}_ERI.csv")
+      output_dir = File.dirname(File.join(File.dirname(__FILE__), '..', args_hash['hpxml_path']))
+      hpxml_name = File.basename(args_hash['hpxml_path']).gsub('.xml', '')
+      annual_csv = File.join(output_dir, "#{hpxml_name}.csv")
+      timeseries_csv = File.join(output_dir, "#{hpxml_name}_Hourly.csv")
+      eri_csv = File.join(output_dir, "#{hpxml_name}_ERI.csv")
     else
       annual_csv = File.join(File.dirname(template_osw), 'run', 'results_annual.csv')
       timeseries_csv = File.join(File.dirname(template_osw), 'run', 'results_timeseries.csv')
