@@ -38,16 +38,24 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
-      - name: Setup git branch
-        shell: bash
-        run: |
-          branch_name="${{ github.base_ref }}"
-          branch_sha="${{ github.event.pull_request.base.sha }}"
-          echo "Checking out: $branch_name, $branch_sha"
-          git checkout -b $branch_name || git checkout $branch_name
-          # git pull origin $branch_name
+      - name: Store base results
+        uses: actions/upload-artifact@v2
+        with:
+          path: workflow/tests/base_results
+          name: base_results
 
-      - name: Download results
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Download base results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            base_results
+          name: base_results
+
+      - name: Download feature results
         uses: actions/download-artifact@v2
         with:
           path: |
@@ -56,6 +64,7 @@ jobs:
 
       - name: Compare results
         run: |
+          cp -r base_results/results*.csv workflow/tests/base_results
           mkdir workflow/tests/results
           cp -r results/results* workflow/tests/results
           ruby workflow/tests/compare.rb
@@ -83,7 +92,7 @@ jobs:
           echo "Checking out branch: $branch_name, $branch_sha"
           git checkout -b $branch_name || git checkout $branch_name
 
-      - name: Download results
+      - name: Download feature results
         uses: actions/download-artifact@v2
         with:
           path: |
@@ -93,7 +102,8 @@ jobs:
       - name: Commit latest results
         shell: bash        
         run: |
-          git status
+          branch_name="${{ github.head_ref }}"
+          git pull origin $branch_name
           cp -r results/results* workflow/tests/base_results
           git add workflow/tests/base_results
           git status
@@ -101,7 +111,6 @@ jobs:
             git config --global user.email "github-action@users.noreply.github.com"
             git config --global user.name "GitHub Action"
             git commit -m "Latest results."
-            branch_name="${{ github.head_ref }}"
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi

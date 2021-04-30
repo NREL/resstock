@@ -11,9 +11,7 @@ require_relative '../../HPXMLtoOpenStudio/resources/unit_conversions'
 require_relative '../../HPXMLtoOpenStudio/resources/xmlhelper'
 
 class HPXMLTest < MiniTest::Test
-  @@workflow_runtime_key = 'Workflow Runtime'
-
-  def before_setup
+  def setup
     @this_dir = File.dirname(__FILE__)
     @results_dir = File.join(@this_dir, 'results')
     FileUtils.mkdir_p @results_dir
@@ -374,7 +372,7 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? timeseries_csv_path)
 
     # Get results
-    results = _get_simulation_results(rundir, workflow_time, annual_csv_path, xml)
+    results = _get_simulation_results(annual_csv_path, xml)
 
     # Check outputs
     hpxml_defaults_path = File.join(rundir, 'in.xml')
@@ -393,7 +391,7 @@ class HPXMLTest < MiniTest::Test
     return results, sizing_results
   end
 
-  def _get_simulation_results(rundir, workflow_time, annual_csv_path, xml)
+  def _get_simulation_results(annual_csv_path, xml)
     # Grab all outputs from reporting measure CSV annual results
     results = {}
     CSV.foreach(annual_csv_path) do |row|
@@ -411,8 +409,6 @@ class HPXMLTest < MiniTest::Test
       assert_operator(residual_htg_load.abs, :<, 0.5)
       assert_operator(residual_clg_load.abs, :<, 0.5)
     end
-
-    results[@@workflow_runtime_key] = workflow_time
 
     return results
   end
@@ -569,8 +565,10 @@ class HPXMLTest < MiniTest::Test
       next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too low) for fluid')
       next if err_line.include?('Glycol: Temperature') && err_line.include?('out of range (too high) for fluid')
       next if err_line.include? 'Plant loop exceeding upper temperature limit'
+      next if err_line.include? 'Plant loop falling below lower temperature limit'
       next if err_line.include?('Foundation:Kiva') && err_line.include?('wall surfaces with more than four vertices') # TODO: Check alternative approach
       next if err_line.include? 'Temperature out of range [-100. to 200.] (PsyPsatFnTemp)'
+      next if err_line.include? 'Enthalpy out of range (PsyTsatFnHPb)'
       next if err_line.include? 'Full load outlet air dry-bulb temperature < 2C. This indicates the possibility of coil frost/freeze.'
       next if err_line.include? 'Full load outlet temperature indicates a possibility of frost/freeze error continues.'
       next if err_line.include? 'Air-cooled condenser inlet dry-bulb temperature below 0 C.'
@@ -602,12 +600,6 @@ class HPXMLTest < MiniTest::Test
       if hpxml.hvac_distributions.select { |d| d.air_type.to_s == HPXML::AirTypeFanCoil }.size > 0
         next if err_line.include? 'In calculating the design coil UA for Coil:Cooling:Water' # Warning for unused cooling coil for fan coil
       end
-      if hpxml_path.include?('ASHRAE_Standard_140') || (hpxml.windows.size == 0)
-        next if err_line.include? 'GetShadowingInput: DetailedSkyDiffuseModeling is chosen but not needed'
-      end
-      if hpxml_path.include? 'base-enclosure-split-surfaces2.xml'
-        next if err_line.include? 'GetSurfaceData: Very small surface area' # FUTURE: Prevent this warning
-      end
       if hpxml_path.include?('ground-to-air-heat-pump-cooling-only.xml') || hpxml_path.include?('ground-to-air-heat-pump-heating-only.xml')
         next if err_line.include? 'COIL:HEATING:WATERTOAIRHEATPUMP:EQUATIONFIT' # heating capacity is > 20% different than cooling capacity; safe to ignore
       end
@@ -633,7 +625,7 @@ class HPXMLTest < MiniTest::Test
       hpxml_value = hpxml.building_construction.conditioned_floor_area
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='InputVerificationandResultsSummary' AND ReportForString='Entire Facility' AND TableName='Zone Summary' AND RowName='Conditioned Total' AND ColumnName='Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
-      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
     end
 
     # Enclosure Roofs
@@ -652,7 +644,7 @@ class HPXMLTest < MiniTest::Test
         query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
       end
       sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
-      assert_in_epsilon(hpxml_value, sql_value, 0.1) # TODO: Higher due to outside air film?
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # Net area
       hpxml_value = roof.area
@@ -664,7 +656,7 @@ class HPXMLTest < MiniTest::Test
       query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='Net Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # Solar absorptance
       hpxml_value = roof.solar_absorptance
@@ -731,7 +723,7 @@ class HPXMLTest < MiniTest::Test
         query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{slab_id}' AND ColumnName='Gross Area' AND Units='m2'"
         sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
         assert_operator(sql_value, :>, 0.01)
-        assert_in_epsilon(hpxml_value, sql_value, 0.01)
+        assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
         # Tilt
         query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{slab_id}' AND ColumnName='Tilt' AND Units='deg'"
@@ -781,7 +773,7 @@ class HPXMLTest < MiniTest::Test
           query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
         end
         sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
-        assert_in_epsilon(hpxml_value, sql_value, 0.03)
+        assert_in_epsilon(hpxml_value, sql_value, 0.1)
       end
 
       # Net area
@@ -825,7 +817,7 @@ class HPXMLTest < MiniTest::Test
       end
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # Solar absorptance
       if wall.respond_to? :solar_absorptance
@@ -895,14 +887,14 @@ class HPXMLTest < MiniTest::Test
         query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
       end
       sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
-      assert_in_epsilon(hpxml_value, sql_value, 0.03)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # Area
       hpxml_value = frame_floor.area
       query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='Net Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # Tilt
       if frame_floor.is_ceiling
@@ -935,7 +927,7 @@ class HPXMLTest < MiniTest::Test
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='#{col_name}' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_operator(sql_value, :>, 0.01)
-      assert_in_epsilon(hpxml_value, sql_value, 0.02)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
 
       # U-Factor
       if subsurface.is_exterior
@@ -1005,7 +997,7 @@ class HPXMLTest < MiniTest::Test
         query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='Gross Area' AND Units='m2'"
         sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
         assert_operator(sql_value, :>, 0.01)
-        assert_in_epsilon(hpxml_value, sql_value, 0.01)
+        assert_in_epsilon(hpxml_value, sql_value, 0.1)
       end
 
       # R-Value
@@ -1023,7 +1015,7 @@ class HPXMLTest < MiniTest::Test
       end
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='#{col_name}' AND Units='W/m2-K'"
       sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
-      assert_in_epsilon(hpxml_value, sql_value, 0.02)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
     end
 
     # HVAC Load Fractions
@@ -1193,6 +1185,17 @@ class HPXMLTest < MiniTest::Test
       else
         assert_equal(0, energy_cr)
       end
+    end
+
+    # Check unmet loads
+    unmet_htg_load = results.select { |k, v| k.include? 'Unmet Load: Heating' }.map { |k, v| v }.sum(0.0)
+    unmet_clg_load = results.select { |k, v| k.include? 'Unmet Load: Cooling' }.map { |k, v| v }.sum(0.0)
+    if hpxml_path.include? 'base-hvac-undersized.xml'
+      assert_operator(unmet_htg_load, :>, 0.5)
+      assert_operator(unmet_clg_load, :>, 0.5)
+    else
+      assert_operator(unmet_htg_load, :<, 0.5)
+      assert_operator(unmet_clg_load, :<, 0.5)
     end
 
     sqlFile.close

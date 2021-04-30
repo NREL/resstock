@@ -2,80 +2,122 @@
 
 require 'csv'
 
-folder = 'comparisons'
-files = Dir[File.join(File.dirname(__FILE__), 'base_results/results*')].map { |x| File.basename(x) }
+base = 'base'
+feature = 'feature'
+folder = 'comparisons' # comparison csv files will be exported to this folder
+files = Dir[File.join(Dir.getwd, 'workflow/tests/base_results/*.csv')].map { |x| File.basename(x) }
 
-dir = File.join(File.dirname(__FILE__), folder)
+dir = File.join(Dir.getwd, "workflow/tests/#{folder}")
 unless Dir.exist?(dir)
   Dir.mkdir(dir)
 end
 
 files.each do |file|
-  # load file
-  base_rows = CSV.read(File.join(File.dirname(__FILE__), "base_results/#{file}"))
-  feature_rows = CSV.read(File.join(File.dirname(__FILE__), "results/#{file}"))
+  results = { base => {}, feature => {} }
 
-  # get columns
-  base_cols = base_rows[0]
-  feature_cols = feature_rows[0]
+  # load files
+  results.keys.each do |key|
+    if key == base
+      results[key]['file'] = "workflow/tests/base_results/#{file}"
+    elsif key == feature
+      results[key]['file'] = "workflow/tests/results/#{file}"
+    end
 
-  # get data
-  base = {}
-  base_rows[1..-1].each do |row|
-    hpxml = row[0]
-    base[hpxml] = {}
-    row[1..-1].each_with_index do |field, i|
-      begin
-        base[hpxml][base_cols[i + 1]] = Float(field)
-      rescue
-      end
+    filepath = File.join(Dir.getwd, results[key]['file'])
+    if File.exist?(filepath)
+      results[key]['rows'] = CSV.read(filepath)
+    else
+      puts "Could not find #{filepath}."
+      next
     end
   end
 
-  feature = {}
-  feature_rows[1..-1].each do |row|
-    hpxml = row[0]
-    feature[hpxml] = {}
-    row[1..-1].each_with_index do |field, i|
-      begin
-        feature[hpxml][feature_cols[i + 1]] = Float(field)
-      rescue
+  # get columns
+  results.keys.each do |key|
+    results[key]['cols'] = results[key]['rows'][0][1..-1] # exclude index column
+  end
+
+  # get data
+  results.keys.each do |key|
+    results[key]['rows'][1..-1].each do |row|
+      hpxml = row[0]
+      results[key][hpxml] = {}
+      row[1..-1].each_with_index do |field, i|
+        col = results[key]['cols'][i]
+
+        if field.nil?
+          vals = [''] # string
+        elsif field.include?(',')
+          begin
+            vals = field.split(',').map { |x| Float(x) } # float
+          rescue ArgumentError
+            vals = [field] # string
+          end
+        else
+          begin
+            vals = [Float(field)] # float
+          rescue ArgumentError
+            vals = [field] # string
+          end
+        end
+
+        results[key][hpxml][col] = vals
       end
     end
   end
 
   # get hpxml union
-  base_hpxmls = base_rows.transpose[0][1..-1]
-  feature_hpxmls = feature_rows.transpose[0][1..-1]
+  base_hpxmls = results[base]['rows'].transpose[0][1..-1]
+  feature_hpxmls = results[feature]['rows'].transpose[0][1..-1]
   hpxmls = base_hpxmls | feature_hpxmls
 
   # get column union
+  base_cols = results[base]['cols']
+  feature_cols = results[feature]['cols']
   cols = base_cols | feature_cols
 
   # create comparison table
-  rows = [cols]
-  hpxmls.each do |hpxml|
+  rows = [[results[base]['rows'][0][0]] + cols] # index column + union of all other columns
+
+  # populate the rows hash
+  hpxmls.sort.each do |hpxml|
     row = [hpxml]
-    cols.each do |col|
-      next if col == 'HPXML'
+    cols.each_with_index do |col, i|
+      if results[base].keys.include?(hpxml) && (not results[feature].keys.include?(hpxml)) # feature removed an xml
+        m = 'N/A'
+      elsif (not results[base].keys.include?(hpxml)) && results[feature].keys.include?(hpxml) # feature added an xml
+        m = 'N/A'
+      elsif results[base][hpxml].keys.include?(col) && (not results[feature][hpxml].keys.include?(col)) # feature removed a column
+        m = 'N/A'
+      elsif (not results[base][hpxml].keys.include?(col)) && results[feature][hpxml].keys.include?(col) # feature added a column
+        m = 'N/A'
+      else
+        base_field = results[base][hpxml][col]
+        feature_field = results[feature][hpxml][col]
 
-      begin
-        base_field = base[hpxml][col]
-      rescue
-      end
-
-      begin
-        feature_field = feature[hpxml][col]
-      rescue
-      end
-
-      m = 'N/A'
-      if (not base_field.nil?) && (not feature_field.nil?)
-        m = "#{(feature_field - base_field).round(1)}"
+        begin
+          # float comparisons
+          m = []
+          base_field.zip(feature_field).each do |b, f|
+            m << (f - b).round(1)
+          end
+        rescue NoMethodError
+          # string comparisons
+          m = []
+          base_field.zip(feature_field).each do |b, f|
+            if b != f
+              m << 1
+            else
+              m << 0
+            end
+          end
+        end
+        m = m.sum()
       end
 
       row << m
     end
+
     rows << row
   end
 

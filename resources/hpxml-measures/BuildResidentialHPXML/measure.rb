@@ -1405,7 +1405,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('ducts_number_of_return_registers', true)
     arg.setDisplayName('Ducts: Number of Return Registers')
-    arg.setDescription('The number of return registers of the ducts.')
+    arg.setDescription("The number of return registers of the ducts. Ignored for ducted #{HPXML::HVACTypeEvaporativeCooler}.")
     arg.setUnits('#')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -4263,6 +4263,9 @@ class HPXMLFile
 
     if [HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && hpxml.heating_systems.size == 0 && hpxml.heat_pumps.size == 0
       number_of_return_registers = nil
+      if args[:cooling_system_is_ducted]
+        number_of_return_registers = 0
+      end
     end
 
     if air_distribution_systems.size > 0
