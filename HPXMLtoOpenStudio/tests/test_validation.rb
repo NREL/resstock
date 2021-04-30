@@ -183,7 +183,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
   def _test_schematron_validation(hpxml_doc, expected_error_msg = nil)
     # Validate via validator.rb
-    errors, warnings = Validator.run_validators(hpxml_doc, [@stron_path])
+    errors, warnings = Validator.run_validators(hpxml_doc, [@stron_path], include_id: false)
     idx_of_msg = errors.index { |i| i == expected_error_msg }
     if expected_error_msg.nil?
       assert_nil(idx_of_msg)

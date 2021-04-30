@@ -40,7 +40,7 @@ class PV
     ipvwatts.setName("#{obj_name} inverter")
     ipvwatts.setInverterEfficiency(pv_system.inverter_efficiency)
 
-    elcd = gpvwatts.electricLoadCenterDistribution.get
+    elcd = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
     elcd.setName("#{obj_name} elec load center dist")
     elcd.addGenerator(gpvwatts)
     elcd.setInverter(ipvwatts)

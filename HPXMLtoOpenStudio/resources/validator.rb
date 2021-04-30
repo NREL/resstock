@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 class Validator
-  def self.run_validators(hpxml_doc, stron_paths)
+  def self.run_validators(hpxml_doc, stron_paths, include_id: true)
     errors = []
     warnings = []
 
     context_elements_cache = {}
     stron_paths.each do |stron_path|
-      error, warning = run_validator(hpxml_doc, stron_path, context_elements_cache)
+      error, warning = run_validator(hpxml_doc, stron_path, context_elements_cache, include_id)
       errors += error
       warnings += warning
     end
@@ -17,7 +17,7 @@ class Validator
 
   private
 
-  def self.run_validator(hpxml_doc, stron_path, context_elements_cache)
+  def self.run_validator(hpxml_doc, stron_path, context_elements_cache, include_id)
     errors = []
     warnings = []
 
@@ -40,17 +40,26 @@ class Validator
               fail "Invalid xpath: #{test_attr}"
             end
 
+            next unless (element_name == 'sch:assert' && !xpath_result) || (element_name == 'sch:report' && xpath_result)
+
+            # Try to retrieve ID (and associated element) for the context element
+            if include_id
+              sys_id = XMLHelper.get_attribute_value(XMLHelper.get_element(context_element, 'SystemIdentifier'), 'id')
+              if sys_id.nil?
+                # Keep checking parent elements
+                context_element.each_ancestor do |parent_element|
+                  sys_id = XMLHelper.get_attribute_value(XMLHelper.get_element(parent_element, 'SystemIdentifier'), 'id')
+                  break unless sys_id.nil?
+                end
+              end
+              sys_id_string = ", id: \"#{sys_id}\"" unless sys_id.nil?
+            end
+
+            message = "#{element.children.text} [context: #{context_xpath}#{sys_id_string}]"
             if element_name == 'sch:assert'
-              next if xpath_result # check if assert_test is false
-
-              error_message = element.children.text # the value of sch:assert
-              extended_error_message = [error_message, "[context: #{context_xpath}]"].join(' ') # add context xpath to the error message
-              errors << extended_error_message
+              errors << message
             elsif element_name == 'sch:report'
-              next unless xpath_result # check if assert_test is true
-
-              warning_message = element.children.text # the value of sch:report
-              warnings << warning_message
+              warnings << message
             end
           end
         end
