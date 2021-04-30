@@ -9,6 +9,7 @@ __New Features__
 - Switches room air conditioner model to use Cutler performance curves.
 - Relaxes tolerance for duct leakage to outside warning when ducts solely in conditioned space.
 - Removes limitation that a shared water heater serving a shared laundry room can't also serve dwelling unit fixtures (i.e., FractionDHWLoadServed is no longer required to be zero).
+- Adds IDs to schematron validation errors/warnings when possible.
 - Moves additional error-checking from the ruby measure to the schematron validator. 
 
 __Bugfixes__
