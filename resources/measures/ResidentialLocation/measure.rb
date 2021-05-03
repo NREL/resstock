@@ -44,13 +44,13 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("dst_start_date", true)
     arg.setDisplayName("Daylight Saving Start Date")
     arg.setDescription("Set to 'NA' if no daylight saving.")
-    arg.setDefaultValue("April 7")
+    arg.setDefaultValue("March 12")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument("dst_end_date", true)
     arg.setDisplayName("Daylight Saving End Date")
     arg.setDescription("Set to 'NA' if no daylight saving.")
-    arg.setDefaultValue("October 26")
+    arg.setDefaultValue("November 5")
     args << arg
 
     return args
