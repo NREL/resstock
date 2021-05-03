@@ -2020,19 +2020,20 @@ class HVAC
 
     return true if frac_cool_load_served <= 0
 
-    # Performance curves
-    # From Frigidaire 10.7 EER unit in Winkler et. al. Lab Testing of Window ACs (2013)
-    # NOTE: These coefficients are in SI UNITS
-    cOOL_CAP_FT_SPEC = [0.6405, 0.01568, 0.0004531, 0.001615, -0.0001825, 0.00006614]
-    cOOL_EIR_FT_SPEC = [2.287, -0.1732, 0.004745, 0.01662, 0.000484, -0.001306]
-    cOOL_CAP_FFLOW_SPEC = [0.887, 0.1128, 0]
-    cOOL_EIR_FFLOW_SPEC = [1.763, -0.6081, 0]
-    cOOL_PLF_FPLR = [0.78, 0.22, 0]
-    cfms_ton_rated = [312] # medium speed
+    # From "Improved Modeling of Residential Air Conditioners and Heat Pumps for Energy Calculations", Cutler at al
+    # https://www.nrel.gov/docs/fy13osti/56354.pdf
+    cOOL_CAP_FT_SPEC = [[3.68637657, -0.098352478, 0.000956357, 0.005838141, -0.0000127, -0.000131702]]
+    cOOL_EIR_FT_SPEC = [[-3.437356399, 0.136656369, -0.001049231, -0.0079378, 0.000185435, -0.0001441]]
+    cOOL_CAP_FFLOW_SPEC = [[1, 0, 0]]
+    cOOL_EIR_FFLOW_SPEC = [[1, 0, 0]]
 
-    roomac_cap_ft_curve = create_curve_biquadratic(model, cOOL_CAP_FT_SPEC, "RoomAC-Cap-fT", 0, 100, 0, 100)
+    # Performance curves
+    cOOL_CAP_FT_SPEC_SI = convert_curve_biquadratic(cOOL_CAP_FT_SPEC[0])
+    cOOL_EIR_FT_SPEC_SI = convert_curve_biquadratic(cOOL_EIR_FT_SPEC[0])
+
+    roomac_cap_ft_curve = create_curve_biquadratic(model, cOOL_CAP_FT_SPEC_SI, "RoomAC-Cap-fT", 0, 100, 0, 100)
     roomac_cap_fff_curve = create_curve_quadratic(model, cOOL_CAP_FFLOW_SPEC, "RoomAC-Cap-fFF", 0, 2, 0, 2)
-    roomac_eir_ft_curve = create_curve_biquadratic(model, cOOL_EIR_FT_SPEC, "RoomAC-EIR-fT", 0, 100, 0, 100)
+    roomac_eir_ft_curve = create_curve_biquadratic(model, cOOL_EIR_FT_SPEC_SI, "RoomAC-EIR-fT", 0, 100, 0, 100)
     roomcac_eir_fff_curve = create_curve_quadratic(model, cOOL_EIR_FFLOW_SPEC, "RoomAC-EIR-fFF", 0, 2, 0, 2)
     roomac_plf_fplr_curve = create_curve_quadratic(model, cOOL_PLF_FPLR, "RoomAC-PLF-fPLR", 0, 1, 0, 1)
 
