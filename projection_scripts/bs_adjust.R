@@ -289,11 +289,13 @@ write.csv(bs_hiMFRFA_sim,file='../scen_bscsv_sim/bs_hiMFRFA.csv', row.names = FA
 write.csv(bs_hiMFDERFA_sim,file='../scen_bscsv_sim/bs_hiMFDERFA.csv', row.names = FALSE)
 
 # also save the full bs files and the identification of duplicate rows
-save(bs_base_all,bs_hiDR_all,bs_hiMF_all,file="../Intermediate_results/agg_bscsv.RData") # when do I use these?
+save(bs_base_all,bs_hiDR_all,bs_hiMF_all,file="../Intermediate_results/agg_bscsv.RData") # when do I use these? in a couple of results files, e.g. RS_results
 
 # save the data frame needed for the HSM analysis
-save(bs_baseRFA,file="../../HSM_github/Resstock_outputs/bs_baseRFA.RData") # refers to this github repository https://github.com/peterberr/US_county_HSM
-
+save(bs_baseRFA,file="../../HSM_github/Resstock_outputs/bs_baseRFA.RData") # repo refers to this github repository https://github.com/peterberr/US_county_HSM
+save(bs_hiDRRFA,file="../../HSM_github/Resstock_outputs/bs_hiDRRFA.RData")
+save(bs_hiMFRFA,file="../../HSM_github/Resstock_outputs/bs_hiMFRFA.RData")
+save(bs_base,file="../../HSM_github/Resstock_outputs/bs_base.RData")
 # show the difference between bs_base_base and bs_baseRFA and bshiMF ############### 
 # these figures are used in the supporting information of the HSM manuscript
 bs_base<-bs_base_all[bs_base_all$scen=="base",]
@@ -307,6 +309,10 @@ bs_hiMF$`House Type`<-gsub(" with",",",bs_hiMF$`House Type`)
 bs_baseRFA<-bs_base_all[bs_base_all$scen=="baseRFA",]
 bs_baseRFA$`House Type`<-bs_baseRFA$Geometry.Building.Type.RECS
 bs_baseRFA$`House Type`<-gsub(" with",",",bs_baseRFA$`House Type`)
+
+bs_hiMFRFA<-bs_hiMF_all[bs_hiMF_all$scen=="hiMFRFA",]
+bs_hiMFRFA$`House Type`<-bs_hiMFRFA$Geometry.Building.Type.RECS
+bs_hiMFRFA$`House Type`<-gsub(" with",",",bs_hiMFRFA$`House Type`)
 
 library(ggplot2)
 
@@ -323,7 +329,7 @@ bs_base[bs_base$Geometry.Floor.Area=="4000+",]$or<-9
 windows(10,6.3)
 ggplot(bs_base, aes(x = reorder(Geometry.Floor.Area,or), y = count/120000))+
   geom_col(aes(fill = `House Type`), width = 0.75) + theme_bw() +
-  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 1. Baseline") + 
+  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 1A. Baseline") + 
   scale_y_continuous(labels=scales::percent_format(accuracy = 1),limits=c(0,0.25)) + 
   theme(axis.text=element_text(size=11),
         axis.title=element_text(size=12,face = "bold"),
@@ -341,7 +347,7 @@ bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="4000+",]$or<-9
 windows(8.6,6.3)
 ggplot(bs_baseRFA, aes(x = reorder(Geometry.Floor.Area,or), y = count/120000))+
   geom_col(aes(fill = `House Type`), width = 0.75) + theme_bw() +
-  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 5. Reduced Floor Area") + 
+  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 1B. Reduced Floor Area") + 
   scale_y_continuous(labels=scales::percent_format(accuracy = 1),limits=c(0,0.25)) + 
   theme(axis.text=element_text(size=11),
         axis.title=element_text(size=12,face = "bold"),
@@ -360,7 +366,28 @@ bs_hiMF[bs_hiMF$Geometry.Floor.Area=="4000+",]$or<-9
 windows(10,6.3)
 ggplot(bs_hiMF, aes(x = reorder(Geometry.Floor.Area,or), y = count/120000))+
   geom_col(aes(fill = `House Type`), width = 0.75) + theme_bw() +
-  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 3.High Multifamily") + 
+  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 3A.High Multifamily") + 
+  scale_y_continuous(labels=scales::percent_format(accuracy = 1),limits=c(0,0.25)) + 
+  theme(axis.text=element_text(size=11),
+        axis.title=element_text(size=12,face = "bold"),
+        plot.title = element_text(size = 14, face = "bold")) + scale_fill_brewer(palette="Dark2") 
+
+# hiMFRFA
+bs_hiMFRFA$count<-bs_base$count<-bs_baseRFA$count<-1
+bs_hiMFRFA$or<-bs_base$or<-bs_baseRFA$or<-1
+bs_hiMFRFA[bs_hiMFRFA$Geometry.Floor.Area=="500-749",]$or<-2
+bs_hiMFRFA[bs_hiMFRFA$Geometry.Floor.Area=="750-999",]$or<-3
+bs_hiMFRFA[bs_hiMFRFA$Geometry.Floor.Area=="1000-1499",]$or<-4
+bs_hiMFRFA[bs_hiMFRFA$Geometry.Floor.Area=="1500-1999",]$or<-5
+bs_hiMFRFA[bs_hiMFRFA$Geometry.Floor.Area=="2000-2499",]$or<-6
+bs_hiMFRFA[bs_hiMFRFA$Geometry.Floor.Area=="2500-2999",]$or<-7
+bs_hiMFRFA[bs_hiMFRFA$Geometry.Floor.Area=="3000-3999",]$or<-8
+bs_hiMFRFA[bs_hiMFRFA$Geometry.Floor.Area=="4000+",]$or<-9
+
+windows(8.6,6.3)
+ggplot(bs_hiMFRFA, aes(x = reorder(Geometry.Floor.Area,or), y = count/120000))+
+  geom_col(aes(fill = `House Type`), width = 0.75) + theme_bw() +
+  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 3B.High Multifamily, Reduced Floor Area") + 
   scale_y_continuous(labels=scales::percent_format(accuracy = 1),limits=c(0,0.25)) + 
   theme(axis.text=element_text(size=11),
         axis.title=element_text(size=12,face = "bold"),

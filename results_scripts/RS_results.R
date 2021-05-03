@@ -3,6 +3,7 @@
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
 library(dplyr)
+library(reshape2)
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/results_scripts")
 # import ResStock results csvs
 # 2020 base stock
@@ -17,17 +18,25 @@ rs50RR<-read.csv("../Eagle_outputs/res_RR_2050.csv")
 rs55RR<-read.csv("../Eagle_outputs/res_RR_2055.csv")
 rs60RR<-read.csv("../Eagle_outputs/res_RR_2060_complete.csv")
 
+rs25AR<-read.csv("../Eagle_outputs/res_AR_2025.csv")
+rs30AR<-read.csv("../Eagle_outputs/res_AR_2030.csv")
+rs35AR<-read.csv("../Eagle_outputs/res_AR_2035.csv")
+rs40AR<-read.csv("../Eagle_outputs/res_AR_2040.csv")
+rs45AR<-read.csv("../Eagle_outputs/res_AR_2045.csv")
+rs50AR<-read.csv("../Eagle_outputs/res_AR_2050.csv")
+rs55AR<-read.csv("../Eagle_outputs/res_AR_2055.csv")
+rs60AR<-read.csv("../Eagle_outputs/res_AR_2060.csv")
 
 # import R modified bcsv files, these describe the characteristics of future cohorts in three stock scenarios (base, hiDR, hiMF) and 4 characteristics scenarios 'scen' (base, DE, RFA, DERFA)
 load("../Intermediate_results/agg_bscsv.RData")
 
 # import renovation metadata
-load("../Intermediate_results/RenAdvanced.RData")
-rs_2020_60_AR<-rs_2020_2060
-rm(rs_2020_2060)
-load("../Intermediate_results/RenStandard.RData")
-rs_2020_60_RR<-rs_2020_2060
-rm(rs_2020_2060)
+# load("../Intermediate_results/RenAdvanced.RData")
+# rs_2020_60_AR<-rs_2020_2060
+# rm(rs_2020_2060)
+# load("../Intermediate_results/RenStandard.RData")
+# rs_2020_60_RR<-rs_2020_2060
+# rm(rs_2020_2060)
 
 # remove columns of job id simulation details, upgrade details, bathroom spot vent hour, cooling setpoint offset details, corridor, door area and type, eaves, EV, 
 # heating setpoint offset details, lighting use (both 100%), some misc equip presence and type, overhangs, report.applicable, single door area, upgrade cost
@@ -36,7 +45,6 @@ rmcol<-c(2:4,6:8,10,12,28:30,34:35,37:38,57:58,84:85,93:96,100:101,106,130,131,1
 colremove<-names(rs2020)[rmcol]
 # rs<-rs25RR
 result_sum<-function(rs,yr) {
-  # rs<-rs[rs$completed_status=="Success",] # hopefully this will not remove any rows.
   # remove unneeded columns to shrink data frame size
   rs<-rs[,-rmcol] 
   # tidy up names a bit
@@ -45,7 +53,7 @@ result_sum<-function(rs,yr) {
   
   # calculate energy consumption by end use and fuel in SI units
   rs$Elec_GJ<-rs$total_site_electricity_kwh*0.0036
-  rs$Elec_GJ_SPH<-(rs$electricity_heating_kwh+rs$electricity_heating_kwh+rs$electricity_heating_supplemental_kwh+rs$electricity_fans_heating_kwh +rs$electricity_pumps_heating_kwh )*0.0036
+  rs$Elec_GJ_SPH<-(rs$electricity_heating_kwh+rs$electricity_heating_supplemental_kwh+rs$electricity_fans_heating_kwh +rs$electricity_pumps_heating_kwh )*0.0036
   rs$Elec_GJ_SPC<-(rs$electricity_cooling_kwh+rs$electricity_pumps_cooling_kwh +rs$electricity_fans_cooling_kwh)*0.0036
   rs$Elec_GJ_DHW<-(rs$electricity_water_systems_kwh)*0.0036
   rs$Elec_GJ_OTH<-rs$Elec_GJ-rs$Elec_GJ_SPH-rs$Elec_GJ_SPC-rs$Elec_GJ_DHW
@@ -90,62 +98,73 @@ rs50RR_sum<-result_sum(rs50RR,2050)
 rs55RR_sum<-result_sum(rs55RR,2055)
 rs60RR_sum<-result_sum(rs60RR,2060)
 
-rs_all_RR<-rs_2020_60_RR
-rs_all_RR$Year_Building<-paste(rs_all_RR$Year,rs_all_RR$Building,sep="_")
+rs25AR_sum<-result_sum(rs25AR,2025)
+rs30AR_sum<-result_sum(rs30AR,2030)
+rs35AR_sum<-result_sum(rs35AR,2035)
+rs40AR_sum<-result_sum(rs40AR,2040)
+rs45AR_sum<-result_sum(rs45AR,2045)
+rs50AR_sum<-result_sum(rs50AR,2050)
+rs55AR_sum<-result_sum(rs55AR,2055)
+rs60AR_sum<-result_sum(rs60AR,2060)
 
-rs_all_RR<-rs_all_RR[,c("Year_Building","Year", "Building","County","State","Location.Region","Census.Division", "Census.Region", "ASHRAE.IECC.Climate.Zone.2004", "PUMA", "ISO.RTO.Region", "Geometry.Building.Type.ACS","Geometry.Building.Type.RECS",
-                        "Vintage","Vintage.ACS","Heating.Fuel","Geometry.Floor.Area","Geometry.Foundation.Type","Geometry.Wall.Type","Geometry.Stories","Geometry.Garage",
-                        "HVAC.Heating.Type.And.Fuel","HVAC.Heating.Efficiency","HVAC.Cooling.Type","HVAC.Cooling.Efficiency","Water.Heater.Fuel","Water.Heater.Efficiency",
-                        "Clothes.Dryer","Infiltration", "change_cren","change_iren","change_wren","change_hren","base_weight")] # currently comes to 34 columns
-# numbered columns are base weight, energy by type, change in renovated systems
-
-rs_all_RR<-rs_all_RR[order(rs_all_RR$Building),]
+# rs_all_RR<-rs_2020_60_RR
+# rs_all_RR$Year_Building<-paste(rs_all_RR$Year,rs_all_RR$Building,sep="_")
+# 
+# rs_all_RR<-rs_all_RR[,c("Year_Building","Year", "Building","County","State","Location.Region","Census.Division", "Census.Region", "ASHRAE.IECC.Climate.Zone.2004", "PUMA", "ISO.RTO.Region", "Geometry.Building.Type.ACS","Geometry.Building.Type.RECS",
+#                         "Vintage","Vintage.ACS","Heating.Fuel","Geometry.Floor.Area","Geometry.Foundation.Type","Geometry.Wall.Type","Geometry.Stories","Geometry.Garage",
+#                         "HVAC.Heating.Type.And.Fuel","HVAC.Heating.Efficiency","HVAC.Cooling.Type","HVAC.Cooling.Efficiency","Water.Heater.Fuel","Water.Heater.Efficiency",
+#                         "Clothes.Dryer","Infiltration", "change_cren","change_iren","change_wren","change_hren","base_weight")] # currently comes to 34 columns
+# # numbered columns are base weight, energy by type, change in renovated systems
+# 
+# rs_all_RR<-rs_all_RR[order(rs_all_RR$Building),]
 
 load("../Intermediate_results/decayFactorsProj.RData")
 
+# rs_all_RR$TC<-"MF"
+# rs_all_RR[rs_all_RR$Geometry.Building.Type.RECS=="Single-Family Attached" | rs_all_RR$Geometry.Building.Type.RECS=="Single-Family Detached",]$TC<-"SF"
+# rs_all_RR[rs_all_RR$Geometry.Building.Type.RECS=="Mobile Home",]$TC<-"MH"
+# rs_all_RR$TC<-paste(rs_all_RR$TC,rs_all_RR$Vintage.ACS,sep="_")
+# rs_all_RR$ctyTC<-paste(rs_all_RR$County,rs_all_RR$TC,sep = "")
+# rs_all_RR$ctyTC<-gsub("2010s","2010-19",rs_all_RR$ctyTC)
+# 
+# # at this stage we are at 36 columns
+# # now add 9 columns for each stock scenario to bring us to 63
+# rs_all_RR<-left_join(rs_all_RR,sbm,by="ctyTC")
+# rs_all_RR<-left_join(rs_all_RR,shdrm,by="ctyTC")
+# rs_all_RR<-left_join(rs_all_RR,shmfm,by="ctyTC")
 
-rs_all_RR$TC<-"MF"
-rs_all_RR[rs_all_RR$Geometry.Building.Type.RECS=="Single-Family Attached" | rs_all_RR$Geometry.Building.Type.RECS=="Single-Family Detached",]$TC<-"SF"
-rs_all_RR[rs_all_RR$Geometry.Building.Type.RECS=="Mobile Home",]$TC<-"MH"
-rs_all_RR$TC<-paste(rs_all_RR$TC,rs_all_RR$Vintage.ACS,sep="_")
-rs_all_RR$ctyTC<-paste(rs_all_RR$County,rs_all_RR$TC,sep = "")
-rs_all_RR$ctyTC<-gsub("2010s","2010-19",rs_all_RR$ctyTC)
-
-# at this stage we are at 36 columns
-# now add 9 columns for each stock scenario to bring us to 63
-rs_all_RR<-left_join(rs_all_RR,sbm,by="ctyTC")
-rs_all_RR<-left_join(rs_all_RR,shdrm,by="ctyTC")
-rs_all_RR<-left_join(rs_all_RR,shmfm,by="ctyTC")
-# rs_all_RR<-left_join(rs_all_RR,shdmm,by="ctyTC") excluding the high dem and high MF scenario
 
 # replace the failed simulations in some TX counties, actually do this later, after adding the energy consumption data
 load("../Intermediate_results/FailReplace.RData")
 
-rs_all_RR$sim.range<-"Undefined"
-for (b in 1:180000) { # this takes a while, started at 3.14pm
-  # for (b in c(1:15,9900,9934)) {
-  print(b)
-  w<-which(rs_all_RR$Building==b)
+# rs_all_RR$sim.range<-"Undefined"
+# for (b in 1:180000) { # this takes a while, about 3.5 hours
+#   # for (b in c(1:15,9900,9934)) {
+#   print(b)
+#   w<-which(rs_all_RR$Building==b)
+# 
+#   for (sr in 1:(length(w)-1)) {
+#     rs_all_RR$sim.range[w[sr]]<-paste(rs_all_RR[w[sr],"Year"],rs_all_RR[w[sr+1],"Year"]-5,sep = ".")
+#   }
+#   for (sr in length(w)) {
+#     rs_all_RR$sim.range[w[sr]]<-paste(rs_all_RR[w[sr],"Year"],"2060",sep = ".")
+#   }
+#   # create concordance matrix to identify which weighting factors should be zero and non-zero
+#   conc<-matrix(rep(0,9*length(w)),length(w),9)
+#   for (c in 1:length(w)) {
+#     conc[c, which(names(rs_all_RR[37:45])==paste("wbase", substr(rs_all_RR$sim.range[w[c]],1,4),sep="_")):
+#            which(names(rs_all_RR[37:45])==paste("wbase", substr(rs_all_RR$sim.range[w[c]],6,9),sep="_"))]<-1
+#   }
+# 
+#   rs_all_RR[w,37:45]<-rs_all_RR[w,37:45]*conc
+#   rs_all_RR[w,46:54]<-rs_all_RR[w,46:54]*conc
+#   rs_all_RR[w,55:63]<-rs_all_RR[w,55:63]*conc
+# 
+# }
+# save(rs_all_RR,file="../Intermediate_results/RenStandard_full.Rdata")
+load("../Intermediate_results/RenStandard_full.Rdata") # script to produce this file is commented out, I now load it in instead
 
-  for (sr in 1:(length(w)-1)) {
-    rs_all_RR$sim.range[w[sr]]<-paste(rs_all_RR[w[sr],"Year"],rs_all_RR[w[sr+1],"Year"]-5,sep = ".")
-  }
-  for (sr in length(w)) {
-    rs_all_RR$sim.range[w[sr]]<-paste(rs_all_RR[w[sr],"Year"],"2060",sep = ".")
-  }
-  # create concordance matrix to identify which weighting factors should be zero and non-zero
-  conc<-matrix(rep(0,9*length(w)),length(w),9)
-  for (c in 1:length(w)) {
-    conc[c, which(names(rs_all_RR[37:45])==paste("wbase", substr(rs_all_RR$sim.range[w[c]],1,4),sep="_")):
-           which(names(rs_all_RR[37:45])==paste("wbase", substr(rs_all_RR$sim.range[w[c]],6,9),sep="_"))]<-1
-  }
 
-  rs_all_RR[w,37:45]<-rs_all_RR[w,37:45]*conc
-  rs_all_RR[w,46:54]<-rs_all_RR[w,46:54]*conc
-  rs_all_RR[w,55:63]<-rs_all_RR[w,55:63]*conc
-
-}
-save(rs_all_RR,file="../Intermediate_results/RenStandard_full.Rdata")
 # merge with the energy results
 rs_all_RR_res<-rbind(rs2020_sum,rs25RR_sum,rs30RR_sum,rs35RR_sum,rs40RR_sum,rs45RR_sum,rs50RR_sum,rs55RR_sum,rs60RR_sum)
 # rs_all_RR_res<-rs_all_RR_res[,c(1:3,176:200)]
@@ -237,7 +256,7 @@ rs_RRn[,c("Tot_GJ_base_2020",  "Tot_GJ_base_2025","Tot_GJ_base_2030","Tot_GJ_bas
 rs_RRn[,c("Tot_GJ_hiDR_2020",  "Tot_GJ_hiDR_2025","Tot_GJ_hiDR_2030","Tot_GJ_hiDR_2035","Tot_GJ_hiDR_2040","Tot_GJ_hiDR_2045","Tot_GJ_hiDR_2050","Tot_GJ_hiDR_2055","Tot_GJ_hiDR_2060")]<-
   (rs_RRn$base_weight*rs_RRn[,c("whiDR_2020", "whiDR_2025", "whiDR_2030", "whiDR_2035", "whiDR_2040", "whiDR_2045", "whiDR_2050", "whiDR_2055", "whiDR_2060")])*
   (rs_RRn$Elec_GJ+rs_RRn$Gas_GJ+rs_RRn$Prop_GJ+rs_RRn$Oil_GJ)
-
+# NEED to include the MF results, for combination with the projection results
 rs_RRn[,c("Tot_GJ_hiMF_2020",  "Tot_GJ_hiMF_2025","Tot_GJ_hiMF_2030","Tot_GJ_hiMF_2035","Tot_GJ_hiMF_2040","Tot_GJ_hiMF_2045","Tot_GJ_hiMF_2050","Tot_GJ_hiMF_2055","Tot_GJ_hiMF_2060")]<-
   (rs_RRn$base_weight*rs_RRn[,c("whiMF_2020", "whiMF_2025", "whiMF_2030", "whiMF_2035", "whiMF_2040", "whiMF_2045", "whiMF_2050", "whiMF_2055", "whiMF_2060")])*
   (rs_RRn$Elec_GJ+rs_RRn$Gas_GJ+rs_RRn$Prop_GJ+rs_RRn$Oil_GJ)
@@ -261,13 +280,29 @@ rs_RRn[,c("EnGHGkg_hiMF_2020","EnGHGkg_hiMF_2025","EnGHGkg_hiMF_2030","EnGHGkg_h
   (rs_RRn$Elec_GJ*rs_RRn[,c("GHG_int_2020", "GHG_int_2025","GHG_int_2030","GHG_int_2035","GHG_int_2040","GHG_int_2045","GHG_int_2050","GHG_int_2055","GHG_int_2060")]+
      matrix(rep(rs_RRn$Gas_GJ*GHGI_NG,9),nrow(rs_RRn),9)+ matrix(rep(rs_RRn$Oil_GJ*GHGI_FO,9),nrow(rs_RRn),9)+ matrix(rep(rs_RRn$Prop_GJ*GHGI_LP,9),nrow(rs_RRn),9))
 
+# tot LRE kgGHG per archetype group/year in kg
+rs_RRn[,c("EnGHGkg_base_2020_LRE","EnGHGkg_base_2025_LRE","EnGHGkg_base_2030_LRE","EnGHGkg_base_2035_LRE","EnGHGkg_base_2040_LRE","EnGHGkg_base_2045_LRE","EnGHGkg_base_2050_LRE","EnGHGkg_base_2055_LRE","EnGHGkg_base_2060_LRE")]<-1000* 
+  (rs_RRn$base_weight*rs_RRn[,c("wbase_2020",  "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")])*
+  (rs_RRn$Elec_GJ*rs_RRn[,c("GHG_int_2020_LRE", "GHG_int_2025_LRE","GHG_int_2030_LRE","GHG_int_2035_LRE","GHG_int_2040_LRE","GHG_int_2045_LRE","GHG_int_2050_LRE","GHG_int_2055_LRE","GHG_int_2060_LRE")]+
+     matrix(rep(rs_RRn$Gas_GJ*GHGI_NG,9),nrow(rs_RRn),9)+ matrix(rep(rs_RRn$Oil_GJ*GHGI_FO,9),nrow(rs_RRn),9)+ matrix(rep(rs_RRn$Prop_GJ*GHGI_LP,9),nrow(rs_RRn),9))
 
+# tot LRE kgGHG per archetype group/year in kg
+rs_RRn[,c("EnGHGkg_hiDR_2020_LRE","EnGHGkg_hiDR_2025_LRE","EnGHGkg_hiDR_2030_LRE","EnGHGkg_hiDR_2035_LRE","EnGHGkg_hiDR_2040_LRE","EnGHGkg_hiDR_2045_LRE","EnGHGkg_hiDR_2050_LRE","EnGHGkg_hiDR_2055_LRE","EnGHGkg_hiDR_2060_LRE")]<-1000* 
+  (rs_RRn$base_weight*rs_RRn[,c("whiDR_2020",  "whiDR_2025", "whiDR_2030", "whiDR_2035", "whiDR_2040", "whiDR_2045", "whiDR_2050", "whiDR_2055", "whiDR_2060")])*
+  (rs_RRn$Elec_GJ*rs_RRn[,c("GHG_int_2020_LRE", "GHG_int_2025_LRE","GHG_int_2030_LRE","GHG_int_2035_LRE","GHG_int_2040_LRE","GHG_int_2045_LRE","GHG_int_2050_LRE","GHG_int_2055_LRE","GHG_int_2060_LRE")]+
+     matrix(rep(rs_RRn$Gas_GJ*GHGI_NG,9),nrow(rs_RRn),9)+ matrix(rep(rs_RRn$Oil_GJ*GHGI_FO,9),nrow(rs_RRn),9)+ matrix(rep(rs_RRn$Prop_GJ*GHGI_LP,9),nrow(rs_RRn),9))
+
+# tot LRE kgGHG per archetype group/year in kg
+rs_RRn[,c("EnGHGkg_hiMF_2020_LRE","EnGHGkg_hiMF_2025_LRE","EnGHGkg_hiMF_2030_LRE","EnGHGkg_hiMF_2035_LRE","EnGHGkg_hiMF_2040_LRE","EnGHGkg_hiMF_2045_LRE","EnGHGkg_hiMF_2050_LRE","EnGHGkg_hiMF_2055_LRE","EnGHGkg_hiMF_2060_LRE")]<-1000* 
+  (rs_RRn$base_weight*rs_RRn[,c("whiMF_2020",  "whiMF_2025", "whiMF_2030", "whiMF_2035", "whiMF_2040", "whiMF_2045", "whiMF_2050", "whiMF_2055", "whiMF_2060")])*
+  (rs_RRn$Elec_GJ*rs_RRn[,c("GHG_int_2020_LRE", "GHG_int_2025_LRE","GHG_int_2030_LRE","GHG_int_2035_LRE","GHG_int_2040_LRE","GHG_int_2045_LRE","GHG_int_2050_LRE","GHG_int_2055_LRE","GHG_int_2060_LRE")]+
+     matrix(rep(rs_RRn$Gas_GJ*GHGI_NG,9),nrow(rs_RRn),9)+ matrix(rep(rs_RRn$Oil_GJ*GHGI_FO,9),nrow(rs_RRn),9)+ matrix(rep(rs_RRn$Prop_GJ*GHGI_LP,9),nrow(rs_RRn),9))
 
 
 # calculate avg reductions per renovation type
 rs_RRn$redn_hren<-rs_RRn$redn_wren<-rs_RRn$redn_iren<-rs_RRn$redn_cren<-0
 rs_RRn$change_hren_only<-rs_RRn$change_wren_only<-rs_RRn$change_iren_only<-rs_RRn$change_cren_only<-FALSE
-for (k in 1:180000) { print(k) # this will probably take a while, about 3hs
+for (k in 1:180000) { print(k) # this will probably take a while, about 3hs. Have to come back and redo this
   w<-which(rs_RRn$Building==k) 
   if (length(w) > 1) { # if there are any renovations
   for (j in 1:(length(w)-1)) {
@@ -291,517 +326,916 @@ for (k in 1:180000) { print(k) # this will probably take a while, about 3hs
   }
 }
 
-tapply(rs_RRn$redn_cren,rs_RRn$change_cren_only,mean)
-tapply(rs_RRn$redn_iren,rs_RRn$change_iren_only,mean)
-tapply(rs_RRn$redn_wren,rs_RRn$change_wren_only,mean)
-tapply(rs_RRn$redn_hren,rs_RRn$change_hren_only,mean)
+tapply(rs_RRn$redn_cren,rs_RRn$change_cren_only,mean) # 1.5%
+tapply(rs_RRn$redn_iren,rs_RRn$change_iren_only,mean) # 13.9%
+tapply(rs_RRn$redn_wren,rs_RRn$change_wren_only,mean) # 3.25#
+tapply(rs_RRn$redn_hren,rs_RRn$change_hren_only,mean) # 6.9%
 
-tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Geometry.Building.Type.RECS), mean)
-tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Geometry.Building.Type.RECS), mean)
-tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Geometry.Building.Type.RECS), mean)
-tapply(rs_RRn$redn_hren,list(rs_RRn$change_hren_only,rs_RRn$Geometry.Building.Type.RECS), mean)
+tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Geometry.Building.Type.RECS), mean) # highest in SFD and MH, negative in MF
+tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Geometry.Building.Type.RECS), mean) # highest in MF2-4 & SFD (both 15%)
+tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Geometry.Building.Type.RECS), mean) # highest in SFA (4.8%), lowest in MH
+tapply(rs_RRn$redn_hren,list(rs_RRn$change_hren_only,rs_RRn$Geometry.Building.Type.RECS), mean) # highest in SFD (7.5%) & MH (7.2%)
 
-tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Vintage), mean)
-tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Vintage), mean)
-tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Vintage), mean)
-tapply(rs_RRn$redn_hren,list(rs_RRn$change_hren_only,rs_RRn$Vintage), mean)
+tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Vintage), mean) # negative in older homes (<1970)
+tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Vintage), mean) # highest in older homes (~20%)
+tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Vintage), mean) # reasonably steady across vintages, slightly higher in older homes
+tapply(rs_RRn$redn_hren,list(rs_RRn$change_hren_only,rs_RRn$Vintage), mean) # highest in older homes (>8%)
 
-tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Census.Region), mean)
-tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Census.Region), mean)
-tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Census.Region), mean)
-tapply(rs_RRn$redn_hren,list(rs_RRn$change_hren_only,rs_RRn$Census.Region), mean)
+tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Census.Region), mean) # only >0 in South
+tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Census.Region), mean) # highest in MW and NE (17%)
+tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Census.Region), mean) # lowest in the south (2.4%), highest in NE and W, ~4%
+tapply(rs_RRn$redn_hren,list(rs_RRn$change_hren_only,rs_RRn$Census.Region), mean) # highest in NE, ME, ~8%
+
+heat_typ_reg_rr<-tapply(rs_RRn$redn_hren,list(rs_RRn$change_hren_only,rs_RRn$Geometry.Building.Type.RECS,rs_RRn$Census.Region), mean)[2,,] 
+cool_typ_reg_rr<-tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Geometry.Building.Type.RECS,rs_RRn$Census.Region), mean)[2,,] 
+dhw_typ_reg_rr<-tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Geometry.Building.Type.RECS,rs_RRn$Census.Region), mean)[2,,] 
+ins_typ_reg_rr<-tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Geometry.Building.Type.RECS,rs_RRn$Census.Region), mean)[2,,] 
+
+heat_age_reg_rr<-tapply(rs_RRn$redn_hren,list(rs_RRn$change_hren_only,rs_RRn$Vintage.ACS,rs_RRn$Census.Region), mean)[2,,] 
+cool_age_reg_rr<-tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Vintage.ACS,rs_RRn$Census.Region), mean)[2,,] 
+dhw_age_reg_rr<-tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Vintage.ACS,rs_RRn$Census.Region), mean)[2,,] 
+ins_age_reg_rr<-tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Vintage.ACS,rs_RRn$Census.Region), mean)[2,,] 
+
+heat_typ_age_rr<-tapply(rs_RRn$redn_hren,list(rs_RRn$change_hren_only,rs_RRn$Geometry.Building.Type.RECS,rs_RRn$Vintage.ACS), mean)[2,,] 
+cool_typ_age_rr<-tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Geometry.Building.Type.RECS,rs_RRn$Vintage.ACS), mean)[2,,] 
+dhw_typ_age_rr<-tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Geometry.Building.Type.RECS,rs_RRn$Vintage.ACS), mean)[2,,] 
+ins_typ_age_rr<-tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Geometry.Building.Type.RECS,rs_RRn$Vintage.ACS), mean)[2,,] 
 
 # save this modified dataframe
 save(rs_RRn,file = "../Intermediate_results/RenStandard_EG.RData")
-
-colSums(rs_RRn[,196:204])*1e-9 # now they look correct
+save(heat_typ_reg_rr,heat_age_reg_rr,heat_typ_age_rr, cool_typ_reg_rr,cool_age_reg_rr,cool_typ_age_rr, dhw_typ_reg_rr,dhw_age_reg_rr,dhw_typ_age_rr,
+     ins_typ_reg_rr,ins_age_reg_rr,ins_typ_age_rr,file = "../Intermediate_results/RR_redn.RData")
 
 # repeat the long function of adding decay factors with the AR files ########
-rs_all_AR<-rs_2020_60_AR
-rs_all_AR$Year_Building<-paste(rs_all_AR$Year,rs_all_AR$Building,sep="_")
-
-rs_all_AR<-rs_all_AR[,c("Year_Building","Year", "Building","County","State","Location.Region","Census.Division", "Census.Region", "ASHRAE.IECC.Climate.Zone.2004", "PUMA", "ISO.RTO.Region", "Geometry.Building.Type.ACS","Geometry.Building.Type.RECS",
-                        "Vintage","Vintage.ACS","Heating.Fuel","Geometry.Floor.Area","Geometry.Foundation.Type","Geometry.Wall.Type","Geometry.Stories","Geometry.Garage",
-                        "HVAC.Heating.Type.And.Fuel","HVAC.Heating.Efficiency","HVAC.Cooling.Type","HVAC.Cooling.Efficiency","Water.Heater.Fuel","Water.Heater.Efficiency",
-                        "Clothes.Dryer","Infiltration", "change_cren","change_iren","change_wren","change_hren","base_weight")] # currently comes to 34 columns
-
-rs_all_AR<-rs_all_AR[order(rs_all_AR$Building),]
-
-rs_all_AR$TC<-"MF"
-rs_all_AR[rs_all_AR$Geometry.Building.Type.RECS=="Single-Family Attached" | rs_all_AR$Geometry.Building.Type.RECS=="Single-Family Detached",]$TC<-"SF"
-rs_all_AR[rs_all_AR$Geometry.Building.Type.RECS=="Mobile Home",]$TC<-"MH"
-rs_all_AR$TC<-paste(rs_all_AR$TC,rs_all_AR$Vintage.ACS,sep="_")
-rs_all_AR$ctyTC<-paste(rs_all_AR$County,rs_all_AR$TC,sep = "")
-rs_all_AR$ctyTC<-gsub("2010s","2010-19",rs_all_AR$ctyTC)
-
-# at this stage we are at 36 columns
-# now add 9 columns for each stock scenario to bring us to 63
-rs_all_AR<-left_join(rs_all_AR,sbm,by="ctyTC")
-rs_all_AR<-left_join(rs_all_AR,shdrm,by="ctyTC")
-rs_all_AR<-left_join(rs_all_AR,shmfm,by="ctyTC")
+# rs_all_AR<-rs_2020_60_AR
+# rs_all_AR$Year_Building<-paste(rs_all_AR$Year,rs_all_AR$Building,sep="_")
+# 
+# rs_all_AR<-rs_all_AR[,c("Year_Building","Year", "Building","County","State","Location.Region","Census.Division", "Census.Region", "ASHRAE.IECC.Climate.Zone.2004", "PUMA", "ISO.RTO.Region", "Geometry.Building.Type.ACS","Geometry.Building.Type.RECS",
+#                         "Vintage","Vintage.ACS","Heating.Fuel","Geometry.Floor.Area","Geometry.Foundation.Type","Geometry.Wall.Type","Geometry.Stories","Geometry.Garage",
+#                         "HVAC.Heating.Type.And.Fuel","HVAC.Heating.Efficiency","HVAC.Cooling.Type","HVAC.Cooling.Efficiency","Water.Heater.Fuel","Water.Heater.Efficiency",
+#                         "Clothes.Dryer","Infiltration", "change_cren","change_iren","change_wren","change_hren","base_weight")] # currently comes to 34 columns
+# 
+# rs_all_AR<-rs_all_AR[order(rs_all_AR$Building),]
+# 
+# rs_all_AR$TC<-"MF"
+# rs_all_AR[rs_all_AR$Geometry.Building.Type.RECS=="Single-Family Attached" | rs_all_AR$Geometry.Building.Type.RECS=="Single-Family Detached",]$TC<-"SF"
+# rs_all_AR[rs_all_AR$Geometry.Building.Type.RECS=="Mobile Home",]$TC<-"MH"
+# rs_all_AR$TC<-paste(rs_all_AR$TC,rs_all_AR$Vintage.ACS,sep="_")
+# rs_all_AR$ctyTC<-paste(rs_all_AR$County,rs_all_AR$TC,sep = "")
+# rs_all_AR$ctyTC<-gsub("2010s","2010-19",rs_all_AR$ctyTC)
+# 
+# # at this stage we are at 36 columns
+# # now add 9 columns for each stock scenario to bring us to 63
+# rs_all_AR<-left_join(rs_all_AR,sbm,by="ctyTC")
+# rs_all_AR<-left_join(rs_all_AR,shdrm,by="ctyTC")
+# rs_all_AR<-left_join(rs_all_AR,shmfm,by="ctyTC")
 # rs_all_AR<-left_join(rs_all_AR,shdmm,by="ctyTC") excluding the high dem and high MF scenario
 
+# rs_all_AR$sim.range<-"Undefined"
+# for (b in 1:180000) { # this takes a while, up to 4 hours, it's done once and can be loaded in using the call below
+#   # for (b in c(1:15,9900,9934)) {
+#   print(b)
+#   w<-which(rs_all_AR$Building==b)
+#   
+#   for (sr in 1:(length(w)-1)) {
+#     rs_all_AR$sim.range[w[sr]]<-paste(rs_all_AR[w[sr],"Year"],rs_all_AR[w[sr+1],"Year"]-5,sep = ".")
+#   }
+#   for (sr in length(w)) {
+#     rs_all_AR$sim.range[w[sr]]<-paste(rs_all_AR[w[sr],"Year"],"2060",sep = ".")
+#   }
+#   # create concordance matrix to identify which weighting factors should be zero and non-zero
+#   conc<-matrix(rep(0,9*length(w)),length(w),9)
+#   for (c in 1:length(w)) {
+#     conc[c, which(names(rs_all_AR[37:45])==paste("wbase", substr(rs_all_AR$sim.range[w[c]],1,4),sep="_")):
+#            which(names(rs_all_AR[37:45])==paste("wbase", substr(rs_all_AR$sim.range[w[c]],6,9),sep="_"))]<-1
+#   }
+#   
+#   rs_all_AR[w,37:45]<-rs_all_AR[w,37:45]*conc
+#   rs_all_AR[w,46:54]<-rs_all_AR[w,46:54]*conc
+#   rs_all_AR[w,55:63]<-rs_all_AR[w,55:63]*conc
+#   
+# }
+# save(rs_all_AR,file="../Intermediate_results/RenAdvanced_full.Rdata")
+load("../Intermediate_results/RenAdvanced_full.Rdata")
 
-rs_all_AR$sim.range<-"Undefined"
-for (b in 1:180000) { # this takes a while, up to 4 hours
-  # for (b in c(1:15,9900,9934)) {
-  print(b)
-  w<-which(rs_all_AR$Building==b)
+# merge with the energy results
+rs_all_AR_res<-rbind(rs2020_sum,rs25AR_sum,rs30AR_sum,rs35AR_sum,rs40AR_sum,rs45AR_sum,rs50AR_sum,rs55AR_sum,rs60AR_sum)
+rs_all_AR_res<-rs_all_AR_res[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,124:129,131,133,135:141,148:200)] # bigger reduced version
+
+rs_AR<-merge(rs_all_AR,rs_all_AR_res)
+rs_AR<-rs_AR[order(rs_AR$Building),]
+
+# modify the failed TX simulations
+
+rsARf<-rs_AR[which(rs_AR$Building %in% failrep$fail),] # fail
+rsARr<-rs_AR[which(rs_AR$Building %in% failrep$replace),] # replace
+
+rsARfr<-rsARr # fail replace
+
+for (k in 1:nrow(failrep)) {
+  f<-failrep$fail[k]
+  r<-failrep$replace[k]
   
-  for (sr in 1:(length(w)-1)) {
-    rs_all_AR$sim.range[w[sr]]<-paste(rs_all_AR[w[sr],"Year"],rs_all_AR[w[sr+1],"Year"]-5,sep = ".")
-  }
-  for (sr in length(w)) {
-    rs_all_AR$sim.range[w[sr]]<-paste(rs_all_AR[w[sr],"Year"],"2060",sep = ".")
-  }
-  # create concordance matrix to identify which weighting factors should be zero and non-zero
-  conc<-matrix(rep(0,9*length(w)),length(w),9)
-  for (c in 1:length(w)) {
-    conc[c, which(names(rs_all_AR[37:45])==paste("wbase", substr(rs_all_AR$sim.range[w[c]],1,4),sep="_")):
-           which(names(rs_all_AR[37:45])==paste("wbase", substr(rs_all_AR$sim.range[w[c]],6,9),sep="_"))]<-1
-  }
+  rsARfr[rsARfr$Building==r,c("Building","building_id", "County","base_weight","ctyTC")]<-
+    rsARf[which(rsARf$Building==f)[1],c("Building","building_id", "County","base_weight","ctyTC")]
   
-  rs_all_AR[w,37:45]<-rs_all_AR[w,37:45]*conc
-  rs_all_AR[w,46:54]<-rs_all_AR[w,46:54]*conc
-  rs_all_AR[w,55:63]<-rs_all_AR[w,55:63]*conc
+  wb<-colSums(rsARf[rsARf$Building==f,37:45]) # base weights
+  nr<-nrow(rsARfr[rsARfr$Building==f,37:45])
+  co<-matrix(as.numeric(rsARfr[rsARfr$Building==f,37:45]>0),nr,9)
+  wbn<-co*matrix(rep(wb,each=nr),nr,9) # new base weights
   
+  whd<-colSums(rsARf[rsARf$Building==f,46:54]) # hi dr weights 
+  whdn<-co*matrix(rep(whd,each=nr),nr,9) # new hi dr weights
+  whm<-colSums(rsARf[rsARf$Building==f,55:63]) # hi mf weights
+  whmn<-co*matrix(rep(whm,each=nr),nr,9) # new hi mf weigts
+  
+  rsARfr[rsARfr$Building==f,37:63]<-cbind(wbn,whdn,whmn)
 }
-save(rs_all_AR,file="../Intermediate_results/RenAdvanced_full.Rdata")
+
+rsARfr$Year_Building<-paste(rsARfr$Year,rsARfr$Building,sep = "_")
+# replace the failed with succesful simulations
+rs_ARn<-rs_AR[-c(which(rs_AR$Building %in% failrep$fail)),] 
+rs_ARn<-rbind(rs_ARn,rsARfr)
+# re-order by building
+rs_ARn<-rs_ARn[order(rs_ARn$Building),]
 
 
-
+# load("../ExtData/ctycode.RData") # from the HSM repo
+# load("../ExtData/GHGI_MidCase.RData") # Elec GHG int data in Mid-Case scenario
+# load("../ExtData/GHGI_LowRECost.RData") # Elec GHG int data in Low RE Cost Scenario
+# ctycode_num<-ctycode
+# ctycode_num$GeoID<-as.numeric(ctycode_num$GeoID)
+# 
+# gicty_rto[gicty_rto$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
+# gicty_rto[gicty_rto$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
+# gicty_rto<-merge(gicty_rto,ctycode_num,by.x="geoid10",by.y="GeoID") #
+# 
+# gicty_rto_yr<-gicty_rto[gicty_rto$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
+# gic<-dcast(gicty_rto_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
+# names(gic)[2:8]<-paste("GHG_int",names(gic)[2:8],sep="_")
+# gic$GHG_int_2055<-0.95* gic$GHG_int_2050
+# gic$GHG_int_2060<-0.95* gic$GHG_int_2055
+# gic[,2:10]<-gic[,2:10]/3600 # convert from kg/MWh to kg/MJ
+# 
+# # do the same process for the Low RE Cost electricity data
+# gicty_rto_LREC[gicty_rto_LREC$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
+# gicty_rto_LREC[gicty_rto_LREC$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
+# gicty_rto_LREC<-merge(gicty_rto_LREC,ctycode_num,by.x="geoid10",by.y="GeoID") #
+# 
+# gicty_rto_LREC_yr<-gicty_rto_LREC[gicty_rto_LREC$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
+# gic_LRE<-dcast(gicty_rto_LREC_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
+# names(gic_LRE)[2:8]<-paste("GHG_int",names(gic_LRE)[2:8],sep="_")
+# gic_LRE$GHG_int_2055<-0.93* gic_LRE$GHG_int_2050 # assume greater decreases in GHGI post-2050 in LREC
+# gic_LRE$GHG_int_2060<-0.9* gic_LRE$GHG_int_2055 # assume greater decreases in GHGI post-2050 in LREC
+# gic_LRE[,2:10]<-gic_LRE[,2:10]/3600 # convert from kg/MWh to kg/MJ
+# names(gic_LRE)[2:10]<-paste(names(gic_LRE)[2:10],"LRE",sep = "_")
 
 # add GHG intensities, Mid-Case
-rs_all_AR<-left_join(rs_all_AR,gic,by = c("County" = "RS_ID"))
+rs_ARn<-left_join(rs_ARn,gic,by = c("County" = "RS_ID"))
 # add GHG intensities, Low RE Cost
-rs_all_AR<-left_join(rs_all_AR,gic_LRE,by = c("County" = "RS_ID"))
-# merge resstock baseline stock scenario results with pre-simulation meta data ###### for this step i need the completed simulation of the future cohorts
-rs_base_sum<-result_sum(rs_base)
-bs_base_meta<-bs_base_all[,c("Building","sim_year","scen","Building_id")]
-rs_base_sum<-merge(rs_base_sum,bs_base_meta,by.x = "building_id",by.y = "Building")
-# extract individual results for base stock scenarios, with different combinations of electrification/floor area characteristics
-rs_base_base<-rs_base_sum[rs_base_sum$scen=="base",]
-rs_base_base$cht_group<-0
-rs_base_base[rs_base_base$sim_year==2030,]$cht_group<-1
-rs_base_base[rs_base_base$sim_year==2035,]$cht_group<-2
-rs_base_base[rs_base_base$sim_year==2040,]$cht_group<-3
-rs_base_base[rs_base_base$sim_year==2045,]$cht_group<-4
-rs_base_base[rs_base_base$sim_year==2050,]$cht_group<-5
-rs_base_base[rs_base_base$sim_year==2055,]$cht_group<-6
-rs_base_base[rs_base_base$sim_year==2060,]$cht_group<-7
-rs_base_base$Building_id0<-(xs*rs_base_base$cht_group)+rs_base_base$Building_id
-bid<-data.frame(bid=dupe_base-xs)
-rs_base_base<-rbind(rs_base_base,inner_join(rs_base_base,bid,by=c("Building_id0"="bid")))
-rs_base_base[(nrow(rs_base_base)-length(dupe_base)+1):nrow(rs_base_base),]$Building_id0<-dupe_base
-rs_base_base<-rs_base_base[order(rs_base_base$Building_id0),]
-rs_base_base$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+rs_ARn<-left_join(rs_ARn,gic_LRE,by = c("County" = "RS_ID"))
 
-# avg energy efficiency by cohort
-tapply(rs_base_base$Tot_MJ_m2,rs_base_base$sim_year,mean)
-tapply(rs_base_base$Tot_GJ,rs_base_base$sim_year,mean)
+# calculation total energy and GHG
+# GHGI_FO<-((.07396)+(25*3e-6)+(298*6e-7))/1.055  # intensity for heating oil (DFO #2) in kgCO2eq / MJ
+# GHGI_NG<-((0.05302)+(25*10e-6) + (298*1e-7))/1.055  # intensity for natural gas in kgCO2eq / MJ
+# GHGI_LP<-((.06298)+(25*3e-6)+(298*6e-7))/1.055   # intensity for LPG in kgCO2eq / MJ
 
-# deep electrification
-rs_base_DE<-rs_base_sum[rs_base_sum$scen=="baseDE",]
-rs_base_DE$cht_group<-0
-rs_base_DE[rs_base_DE$sim_year==2030,]$cht_group<-1
-rs_base_DE[rs_base_DE$sim_year==2035,]$cht_group<-2
-rs_base_DE[rs_base_DE$sim_year==2040,]$cht_group<-3
-rs_base_DE[rs_base_DE$sim_year==2045,]$cht_group<-4
-rs_base_DE[rs_base_DE$sim_year==2050,]$cht_group<-5
-rs_base_DE[rs_base_DE$sim_year==2055,]$cht_group<-6
-rs_base_DE[rs_base_DE$sim_year==2060,]$cht_group<-7
-rs_base_DE$Building_id0<-(xs*rs_base_DE$cht_group)+rs_base_DE$Building_id
-bid<-data.frame(bid=dupe_baseDE-xs)
-rs_base_DE<-rbind(rs_base_DE,inner_join(rs_base_DE,bid,by=c("Building_id0"="bid")))
-rs_base_DE[(nrow(rs_base_DE)-length(dupe_baseDE)+1):nrow(rs_base_DE),]$Building_id0<-dupe_baseDE
-rs_base_DE<-rs_base_DE[order(rs_base_DE$Building_id0),]
-rs_base_DE$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# total energy in GJ
+rs_ARn[,c("Tot_GJ_base_2020",  "Tot_GJ_base_2025","Tot_GJ_base_2030","Tot_GJ_base_2035","Tot_GJ_base_2040","Tot_GJ_base_2045","Tot_GJ_base_2050","Tot_GJ_base_2055","Tot_GJ_base_2060")]<-
+  (rs_ARn$base_weight*rs_ARn[,c("wbase_2020", "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")])*
+  (rs_ARn$Elec_GJ+rs_ARn$Gas_GJ+rs_ARn$Prop_GJ+rs_ARn$Oil_GJ)
 
-# avg energy efficiency by cohort
-tapply(rs_base_DE$Tot_MJ_m2,rs_base_DE$sim_year,mean)
-tapply(rs_base_DE$Tot_GJ,rs_base_DE$sim_year,mean)
+rs_ARn[,c("Tot_GJ_hiDR_2020",  "Tot_GJ_hiDR_2025","Tot_GJ_hiDR_2030","Tot_GJ_hiDR_2035","Tot_GJ_hiDR_2040","Tot_GJ_hiDR_2045","Tot_GJ_hiDR_2050","Tot_GJ_hiDR_2055","Tot_GJ_hiDR_2060")]<-
+  (rs_ARn$base_weight*rs_ARn[,c("whiDR_2020", "whiDR_2025", "whiDR_2030", "whiDR_2035", "whiDR_2040", "whiDR_2045", "whiDR_2050", "whiDR_2055", "whiDR_2060")])*
+  (rs_ARn$Elec_GJ+rs_ARn$Gas_GJ+rs_ARn$Prop_GJ+rs_ARn$Oil_GJ)
 
-# reduced Floor Area
-rs_base_RFA<-rs_base_sum[rs_base_sum$scen=="baseRFA",]
-rs_base_RFA$cht_group<-0
-rs_base_RFA[rs_base_RFA$sim_year==2030,]$cht_group<-1
-rs_base_RFA[rs_base_RFA$sim_year==2035,]$cht_group<-2
-rs_base_RFA[rs_base_RFA$sim_year==2040,]$cht_group<-3
-rs_base_RFA[rs_base_RFA$sim_year==2045,]$cht_group<-4
-rs_base_RFA[rs_base_RFA$sim_year==2050,]$cht_group<-5
-rs_base_RFA[rs_base_RFA$sim_year==2055,]$cht_group<-6
-rs_base_RFA[rs_base_RFA$sim_year==2060,]$cht_group<-7
-rs_base_RFA$Building_id0<-(xs*rs_base_RFA$cht_group)+rs_base_RFA$Building_id
-bid<-data.frame(bid=dupe_baseRFA-xs)
-rs_base_RFA<-rbind(rs_base_RFA,inner_join(rs_base_RFA,bid,by=c("Building_id0"="bid")))
-rs_base_RFA[(nrow(rs_base_RFA)-length(dupe_baseRFA)+1):nrow(rs_base_RFA),]$Building_id0<-dupe_baseRFA
-rs_base_RFA<-rs_base_RFA[order(rs_base_RFA$Building_id0),]
-rs_base_RFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+rs_ARn[,c("Tot_GJ_hiMF_2020",  "Tot_GJ_hiMF_2025","Tot_GJ_hiMF_2030","Tot_GJ_hiMF_2035","Tot_GJ_hiMF_2040","Tot_GJ_hiMF_2045","Tot_GJ_hiMF_2050","Tot_GJ_hiMF_2055","Tot_GJ_hiMF_2060")]<-
+  (rs_ARn$base_weight*rs_ARn[,c("whiMF_2020", "whiMF_2025", "whiMF_2030", "whiMF_2035", "whiMF_2040", "whiMF_2045", "whiMF_2050", "whiMF_2055", "whiMF_2060")])*
+  (rs_ARn$Elec_GJ+rs_ARn$Gas_GJ+rs_ARn$Prop_GJ+rs_ARn$Oil_GJ)
 
-# avg energy efficiency by cohort
-tapply(rs_base_RFA$Tot_MJ_m2,rs_base_RFA$sim_year,mean)
-tapply(rs_base_RFA$Tot_GJ,rs_base_RFA$sim_year,mean)
+# tot kgGHG per archetype group/year in kg
+rs_ARn[,c("EnGHGkg_base_2020","EnGHGkg_base_2025","EnGHGkg_base_2030","EnGHGkg_base_2035","EnGHGkg_base_2040","EnGHGkg_base_2045","EnGHGkg_base_2050","EnGHGkg_base_2055","EnGHGkg_base_2060")]<-1000* 
+  (rs_ARn$base_weight*rs_ARn[,c("wbase_2020",  "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")])*
+  (rs_ARn$Elec_GJ*rs_ARn[,c("GHG_int_2020", "GHG_int_2025","GHG_int_2030","GHG_int_2035","GHG_int_2040","GHG_int_2045","GHG_int_2050","GHG_int_2055","GHG_int_2060")]+
+     matrix(rep(rs_ARn$Gas_GJ*GHGI_NG,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Oil_GJ*GHGI_FO,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Prop_GJ*GHGI_LP,9),nrow(rs_ARn),9))
 
-# reduced Floor Area
-rs_base_DERFA<-rs_base_sum[rs_base_sum$scen=="baseDERFA",]
-rs_base_DERFA$cht_group<-0
-rs_base_DERFA[rs_base_DERFA$sim_year==2030,]$cht_group<-1
-rs_base_DERFA[rs_base_DERFA$sim_year==2035,]$cht_group<-2
-rs_base_DERFA[rs_base_DERFA$sim_year==2040,]$cht_group<-3
-rs_base_DERFA[rs_base_DERFA$sim_year==2045,]$cht_group<-4
-rs_base_DERFA[rs_base_DERFA$sim_year==2050,]$cht_group<-5
-rs_base_DERFA[rs_base_DERFA$sim_year==2055,]$cht_group<-6
-rs_base_DERFA[rs_base_DERFA$sim_year==2060,]$cht_group<-7
-rs_base_DERFA$Building_id0<-(xs*rs_base_DERFA$cht_group)+rs_base_DERFA$Building_id
-bid<-data.frame(bid=dupe_baseDERFA-xs)
-rs_base_DERFA<-rbind(rs_base_DERFA,inner_join(rs_base_DERFA,bid,by=c("Building_id0"="bid")))
-rs_base_DERFA[(nrow(rs_base_DERFA)-length(dupe_baseDERFA)+1):nrow(rs_base_DERFA),]$Building_id0<-dupe_baseDERFA
-rs_base_DERFA<-rs_base_DERFA[order(rs_base_DERFA$Building_id0),]
-rs_base_DERFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# tot kgGHG per archetype group/year in kg
+rs_ARn[,c("EnGHGkg_hiDR_2020","EnGHGkg_hiDR_2025","EnGHGkg_hiDR_2030","EnGHGkg_hiDR_2035","EnGHGkg_hiDR_2040","EnGHGkg_hiDR_2045","EnGHGkg_hiDR_2050","EnGHGkg_hiDR_2055","EnGHGkg_hiDR_2060")]<-1000* 
+  (rs_ARn$base_weight*rs_ARn[,c("whiDR_2020",  "whiDR_2025", "whiDR_2030", "whiDR_2035", "whiDR_2040", "whiDR_2045", "whiDR_2050", "whiDR_2055", "whiDR_2060")])*
+  (rs_ARn$Elec_GJ*rs_ARn[,c("GHG_int_2020", "GHG_int_2025","GHG_int_2030","GHG_int_2035","GHG_int_2040","GHG_int_2045","GHG_int_2050","GHG_int_2055","GHG_int_2060")]+
+     matrix(rep(rs_ARn$Gas_GJ*GHGI_NG,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Oil_GJ*GHGI_FO,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Prop_GJ*GHGI_LP,9),nrow(rs_ARn),9))
 
-# avg energy efficiency by cohort
-tapply(rs_base_DERFA$Tot_MJ_m2,rs_base_DERFA$sim_year,mean)
-tapply(rs_base_DERFA$Tot_GJ,rs_base_DERFA$sim_year,mean)
+rs_ARn[,c("EnGHGkg_hiMF_2020","EnGHGkg_hiMF_2025","EnGHGkg_hiMF_2030","EnGHGkg_hiMF_2035","EnGHGkg_hiMF_2040","EnGHGkg_hiMF_2045","EnGHGkg_hiMF_2050","EnGHGkg_hiMF_2055","EnGHGkg_hiMF_2060")]<-1000*
+  (rs_ARn$base_weight*rs_ARn[,c("whiMF_2020",  "whiMF_2025", "whiMF_2030", "whiMF_2035", "whiMF_2040", "whiMF_2045", "whiMF_2050", "whiMF_2055", "whiMF_2060")])*
+  (rs_ARn$Elec_GJ*rs_ARn[,c("GHG_int_2020", "GHG_int_2025","GHG_int_2030","GHG_int_2035","GHG_int_2040","GHG_int_2045","GHG_int_2050","GHG_int_2055","GHG_int_2060")]+
+     matrix(rep(rs_ARn$Gas_GJ*GHGI_NG,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Oil_GJ*GHGI_FO,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Prop_GJ*GHGI_LP,9),nrow(rs_ARn),9))
+
+# tot LRE kgGHG per archetype group/year in kg
+rs_ARn[,c("EnGHGkg_base_2020_LRE","EnGHGkg_base_2025_LRE","EnGHGkg_base_2030_LRE","EnGHGkg_base_2035_LRE","EnGHGkg_base_2040_LRE","EnGHGkg_base_2045_LRE","EnGHGkg_base_2050_LRE","EnGHGkg_base_2055_LRE","EnGHGkg_base_2060_LRE")]<-1000* 
+  (rs_ARn$base_weight*rs_ARn[,c("wbase_2020",  "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")])*
+  (rs_ARn$Elec_GJ*rs_ARn[,c("GHG_int_2020_LRE", "GHG_int_2025_LRE","GHG_int_2030_LRE","GHG_int_2035_LRE","GHG_int_2040_LRE","GHG_int_2045_LRE","GHG_int_2050_LRE","GHG_int_2055_LRE","GHG_int_2060_LRE")]+
+     matrix(rep(rs_ARn$Gas_GJ*GHGI_NG,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Oil_GJ*GHGI_FO,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Prop_GJ*GHGI_LP,9),nrow(rs_ARn),9))
+
+# tot LRE kgGHG per archetype group/year in kg
+rs_ARn[,c("EnGHGkg_hiDR_2020_LRE","EnGHGkg_hiDR_2025_LRE","EnGHGkg_hiDR_2030_LRE","EnGHGkg_hiDR_2035_LRE","EnGHGkg_hiDR_2040_LRE","EnGHGkg_hiDR_2045_LRE","EnGHGkg_hiDR_2050_LRE","EnGHGkg_hiDR_2055_LRE","EnGHGkg_hiDR_2060_LRE")]<-1000* 
+  (rs_ARn$base_weight*rs_ARn[,c("whiDR_2020",  "whiDR_2025", "whiDR_2030", "whiDR_2035", "whiDR_2040", "whiDR_2045", "whiDR_2050", "whiDR_2055", "whiDR_2060")])*
+  (rs_ARn$Elec_GJ*rs_ARn[,c("GHG_int_2020_LRE", "GHG_int_2025_LRE","GHG_int_2030_LRE","GHG_int_2035_LRE","GHG_int_2040_LRE","GHG_int_2045_LRE","GHG_int_2050_LRE","GHG_int_2055_LRE","GHG_int_2060_LRE")]+
+     matrix(rep(rs_ARn$Gas_GJ*GHGI_NG,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Oil_GJ*GHGI_FO,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Prop_GJ*GHGI_LP,9),nrow(rs_ARn),9))
+
+# tot LRE kgGHG per archetype group/year in kg
+rs_ARn[,c("EnGHGkg_hiMF_2020_LRE","EnGHGkg_hiMF_2025_LRE","EnGHGkg_hiMF_2030_LRE","EnGHGkg_hiMF_2035_LRE","EnGHGkg_hiMF_2040_LRE","EnGHGkg_hiMF_2045_LRE","EnGHGkg_hiMF_2050_LRE","EnGHGkg_hiMF_2055_LRE","EnGHGkg_hiMF_2060_LRE")]<-1000* 
+  (rs_ARn$base_weight*rs_ARn[,c("whiMF_2020",  "whiMF_2025", "whiMF_2030", "whiMF_2035", "whiMF_2040", "whiMF_2045", "whiMF_2050", "whiMF_2055", "whiMF_2060")])*
+  (rs_ARn$Elec_GJ*rs_ARn[,c("GHG_int_2020_LRE", "GHG_int_2025_LRE","GHG_int_2030_LRE","GHG_int_2035_LRE","GHG_int_2040_LRE","GHG_int_2045_LRE","GHG_int_2050_LRE","GHG_int_2055_LRE","GHG_int_2060_LRE")]+
+     matrix(rep(rs_ARn$Gas_GJ*GHGI_NG,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Oil_GJ*GHGI_FO,9),nrow(rs_ARn),9)+ matrix(rep(rs_ARn$Prop_GJ*GHGI_LP,9),nrow(rs_ARn),9))
+
+# calculate avg reductions per renovation type
+rs_ARn$redn_hren<-rs_ARn$redn_wren<-rs_ARn$redn_iren<-rs_ARn$redn_cren<-0
+rs_ARn$change_hren_only<-rs_ARn$change_wren_only<-rs_ARn$change_iren_only<-rs_ARn$change_cren_only<-FALSE
+for (k in 1:180000) { print(k) # this will probably take a while, about 3hs
+  w<-which(rs_ARn$Building==k) 
+  if (length(w) > 1) { # if there are any renovations
+    for (j in 1:(length(w)-1)) {
+      if (rs_ARn[w[j+1],]$change_cren!=rs_ARn[w[j],]$change_cren & identical(as.numeric(rs_ARn[w[j+1],31:33]),as.numeric(rs_ARn[w[j],31:33])) ) { # if only change_cren changes
+        rs_ARn$redn_cren[w[j+1]]<-1-(rs_ARn$Tot_GJ[w[j+1]]/rs_ARn$Tot_GJ[w[j]])
+        rs_ARn$change_cren_only[w[j+1]]<-TRUE
+      }
+      if (rs_ARn[w[j+1],]$change_iren!=rs_ARn[w[j],]$change_iren & identical(as.numeric(rs_ARn[w[j+1],c(30,32,33)]),as.numeric(rs_ARn[w[j],c(30,32,33)])) ) { # if only change_iren changes
+        rs_ARn$redn_iren[w[j+1]]<-1-(rs_ARn$Tot_GJ[w[j+1]]/rs_ARn$Tot_GJ[w[j]])
+        rs_ARn$change_iren_only[w[j+1]]<-TRUE
+      } 
+      if (rs_ARn[w[j+1],]$change_wren!=rs_ARn[w[j],]$change_wren & identical(as.numeric(rs_ARn[w[j+1],c(30,31,33)]),as.numeric(rs_ARn[w[j],c(30,31,33)])) ) { # if only change_wren changes
+        rs_ARn$redn_wren[w[j+1]]<-1-(rs_ARn$Tot_GJ[w[j+1]]/rs_ARn$Tot_GJ[w[j]])
+        rs_ARn$change_wren_only[w[j+1]]<-TRUE
+      }
+      if (rs_ARn[w[j+1],]$change_hren!=rs_ARn[w[j],]$change_hren & identical(as.numeric(rs_ARn[w[j+1],30:32]),as.numeric(rs_ARn[w[j],30:32])) ) { # if only change_hren changes
+        rs_ARn$redn_hren[w[j+1]]<-1-(rs_ARn$Tot_GJ[w[j+1]]/rs_ARn$Tot_GJ[w[j]])
+        rs_ARn$change_hren_only[w[j+1]]<-TRUE
+      }
+    }
+  }
+}
+
+tapply(rs_ARn$redn_cren,rs_ARn$change_cren_only,mean) # 0.3%
+tapply(rs_ARn$redn_iren,rs_ARn$change_iren_only,mean) # 11.5%
+tapply(rs_ARn$redn_wren,rs_ARn$change_wren_only,mean) # 5.1%
+tapply(rs_ARn$redn_hren,rs_ARn$change_hren_only,mean) # 12.6#
+
+tapply(rs_ARn$redn_cren,list(rs_ARn$change_cren_only,rs_ARn$Geometry.Building.Type.RECS), mean) # highest in MH. Negative in MF, 
+tapply(rs_ARn$redn_iren,list(rs_ARn$change_iren_only,rs_ARn$Geometry.Building.Type.RECS), mean) # highest in MF 2-4, followed by SFD
+tapply(rs_ARn$redn_wren,list(rs_ARn$change_wren_only,rs_ARn$Geometry.Building.Type.RECS), mean) # # highest in MF 5+, lowest in MH
+tapply(rs_ARn$redn_hren,list(rs_ARn$change_hren_only,rs_ARn$Geometry.Building.Type.RECS), mean) # highest in MH and SFD
+
+tapply(rs_ARn$redn_cren,list(rs_ARn$change_cren_only,rs_ARn$Vintage), mean) # negative in old homes
+tapply(rs_ARn$redn_iren,list(rs_ARn$change_iren_only,rs_ARn$Vintage), mean) # highest (~17%) in old homes
+tapply(rs_ARn$redn_wren,list(rs_ARn$change_wren_only,rs_ARn$Vintage), mean) # very similar acroess vintages
+tapply(rs_ARn$redn_hren,list(rs_ARn$change_hren_only,rs_ARn$Vintage), mean) # highest in old homes
+
+tapply(rs_ARn$redn_cren,list(rs_ARn$change_cren_only,rs_ARn$Census.Region), mean) # only get savings in the south
+tapply(rs_ARn$redn_iren,list(rs_ARn$change_iren_only,rs_ARn$Census.Region), mean) # highest in the MW, NE (14%)
+tapply(rs_ARn$redn_wren,list(rs_ARn$change_wren_only,rs_ARn$Census.Region), mean) # highest in the West
+tapply(rs_ARn$redn_hren,list(rs_ARn$change_hren_only,rs_ARn$Census.Region), mean) # highest (15-16%) in MW and NE
+
+heat_typ_reg_ar<-tapply(rs_ARn$redn_hren,list(rs_ARn$change_hren_only,rs_ARn$Geometry.Building.Type.RECS,rs_ARn$Census.Region), mean)[2,,] 
+cool_typ_reg_ar<-tapply(rs_ARn$redn_cren,list(rs_ARn$change_cren_only,rs_ARn$Geometry.Building.Type.RECS,rs_ARn$Census.Region), mean)[2,,] 
+dhw_typ_reg_ar<-tapply(rs_ARn$redn_wren,list(rs_ARn$change_wren_only,rs_ARn$Geometry.Building.Type.RECS,rs_ARn$Census.Region), mean)[2,,] 
+ins_typ_reg_ar<-tapply(rs_ARn$redn_iren,list(rs_ARn$change_iren_only,rs_ARn$Geometry.Building.Type.RECS,rs_ARn$Census.Region), mean)[2,,] 
+
+heat_age_reg_ar<-tapply(rs_ARn$redn_hren,list(rs_ARn$change_hren_only,rs_ARn$Vintage.ACS,rs_ARn$Census.Region), mean)[2,,] 
+cool_age_reg_ar<-tapply(rs_ARn$redn_cren,list(rs_ARn$change_cren_only,rs_ARn$Vintage.ACS,rs_ARn$Census.Region), mean)[2,,] 
+dhw_age_reg_ar<-tapply(rs_ARn$redn_wren,list(rs_ARn$change_wren_only,rs_ARn$Vintage.ACS,rs_ARn$Census.Region), mean)[2,,] 
+ins_age_reg_ar<-tapply(rs_ARn$redn_iren,list(rs_ARn$change_iren_only,rs_ARn$Vintage.ACS,rs_ARn$Census.Region), mean)[2,,] 
+
+heat_typ_age_ar<-tapply(rs_ARn$redn_hren,list(rs_ARn$change_hren_only,rs_ARn$Geometry.Building.Type.RECS,rs_ARn$Vintage.ACS), mean)[2,,] 
+cool_typ_age_ar<-tapply(rs_ARn$redn_cren,list(rs_ARn$change_cren_only,rs_ARn$Geometry.Building.Type.RECS,rs_ARn$Vintage.ACS), mean)[2,,] 
+dhw_typ_age_ar<-tapply(rs_ARn$redn_wren,list(rs_ARn$change_wren_only,rs_ARn$Geometry.Building.Type.RECS,rs_ARn$Vintage.ACS), mean)[2,,] 
+ins_typ_age_ar<-tapply(rs_ARn$redn_iren,list(rs_ARn$change_iren_only,rs_ARn$Geometry.Building.Type.RECS,rs_ARn$Vintage.ACS), mean)[2,,] 
+
+save(heat_typ_reg_ar,heat_age_reg_ar,heat_typ_age_ar, cool_typ_reg_ar,cool_age_reg_ar,cool_typ_age_ar,dhw_typ_reg_ar,dhw_age_reg_ar,dhw_typ_age_ar,ins_typ_reg_ar,ins_age_reg_ar,ins_typ_age_ar,
+     file = "../Intermediate_results/AR_redn.RData")
+
+# save this modified dataframe
+save(rs_ARn,file = "../Intermediate_results/RenAdvanced_EG.RData")
+
+# compare the emissions trajectories with mid-case and LRE GHG intensity, base stock scenario, need to redo the column selections
+# mid-case elec
+colSums(rs_ARn[,205:213])*1e-9
+# LRE elec
+colSums(rs_ARn[,223:231])*1e-9
+
+windows()
+plot(colSums(rs_ARn[,205:213])*1e-9,ylim = c(100,820))
+lines(colSums(rs_ARn[,223:231])*1e-9)
+lines(colSums(rs_RRn[,205:213])*1e-9,col="blue")
+lines(colSums(rs_RRn[,223:231])*1e-9,col="blue")
+
+# load in projection results ######
+rsbase_base<-read.csv("../Eagle_outputs/res_proj_base.csv")
+
+# load("../Intermediate_results/agg_bscsv.RData") # should be already loaded if run from beginning
+nce<-read.csv("../../HSM_github/HSM_results/NewConEstimates.csv")
+nce<-nce[2:9,]
+names(nce)<-c("Year","base","hiDR","hiMF","hiDRMF")
+nce$Year<-seq(2025,2060,5)
+
+bs_base_base<-bs_base_all[bs_base_all$scen=="base",]
+bs_base_base$Year<-bs_base_base$sim_year
+
+bs_base_base$Year_Building<-paste(bs_base_base$Year,bs_base_base$Building,sep="_")
+
+bs_base_base<-bs_base_base[,c("Year_Building","Year", "Building","County","State","Location.Region","Census.Division", "Census.Region", "ASHRAE.IECC.Climate.Zone.2004", "PUMA", "ISO.RTO.Region", "Geometry.Building.Type.ACS","Geometry.Building.Type.RECS",
+                        "Vintage","Vintage.ACS","Heating.Fuel","Geometry.Floor.Area","Geometry.Foundation.Type","Geometry.Wall.Type","Geometry.Stories","Geometry.Garage",
+                        "HVAC.Heating.Type.And.Fuel","HVAC.Heating.Efficiency","HVAC.Cooling.Type","HVAC.Cooling.Efficiency","Water.Heater.Fuel","Water.Heater.Efficiency",
+                        "Clothes.Dryer","Infiltration")] # currently comes to 29 columns, without "change_cren","change_iren","change_wren","change_hren", "base_weight". Add these in for consistency
+bs_base_base[,c("change_cren","change_iren","change_wren","change_hren")]<-0
+
+bs_base_base$base_weight<-0
+# add base weights for each sim year, based on the new construction estimates
+for (y in seq(2025,2060,5)) {
+  bs_base_base[bs_base_base$Year==y,]$base_weight<-nce[nce$Year==y,]$base/15000
+}
+# load("../Intermediate_results/decayFactorsProj.RData") # should be already loaded 
+
+bs_base_base$TC<-"MF"
+bs_base_base[bs_base_base$Geometry.Building.Type.RECS=="Single-Family Attached" | bs_base_base$Geometry.Building.Type.RECS=="Single-Family Detached",]$TC<-"SF"
+bs_base_base[bs_base_base$Geometry.Building.Type.RECS=="Mobile Home",]$TC<-"MH"
+bs_base_base$TC<-paste(bs_base_base$TC,bs_base_base$Vintage.ACS,sep="_")
+bs_base_base$ctyTC<-paste(bs_base_base$County,bs_base_base$TC,sep = "")
+bs_base_base$ctyTC<-gsub("2010s","2010-19",bs_base_base$ctyTC)
+bs_base_base$ctyTC<-gsub("2020s","2020-29",bs_base_base$ctyTC)
+bs_base_base$ctyTC<-gsub("2030s","2030-39",bs_base_base$ctyTC)
+bs_base_base$ctyTC<-gsub("2040s","2040-49",bs_base_base$ctyTC)
+bs_base_base$ctyTC<-gsub("2050s","2050-60",bs_base_base$ctyTC)
+
+# at this stage we are at 36 columns
+# now add 9 columns for the applicable stock scenario to bring us to 45
+bs_base_base<-left_join(bs_base_base,sbm,by="ctyTC")
+
+# merge with the energy results
+rsbb_sum<-result_sum(rsbase_base,0)
+rsbb_sum<-rsbb_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,124:129,131,133,135:141,148:200)] # bigger version
+
+# # rs_base<-merge(bs_base_base,rsbase_base) # too big to merge, use cbind.
+# all.equal(rsbb_sum$building_id,bs_base_base$Building) # check if its true
+rs_base<-merge(bs_base_base,rsbb_sum,by.x = "Building",by.y = "building_id")
+rs_base<-rs_base[,-c(which(names(rs_base) %in% c("Year.y", "Year_Building.y")))]
+names(rs_base)[2:3]<-c("Year_Building","Year")
+
+# modify the failed TX simulations
+
+rs_basef<-rs_base[rs_base$completed_status=="Fail",] # fail
+rs_baser0<-rs_base[rs_base$PUMA=="TX, 02600" & rs_base$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_base$completed_status=="Success",]
+rs_rep<-rs_basef[1,]
+for (rn in 1:nrow(rs_basef)) {
+rs_rep[rn,]<-rs_baser0[rs_baser0$Geometry.Building.Type.RECS==rs_basef$Geometry.Building.Type.RECS[rn] & rs_baser0$Year==rs_basef$Year[rn] ,][1,]
+}
+
+# if any of these fail to find a match, try to match on vintage rather than year
+for (rn in which(is.na(rs_rep$Building))) {
+  rs_rep[rn,]<-rs_baser0[rs_baser0$Geometry.Building.Type.RECS==rs_basef$Geometry.Building.Type.RECS[rn] & rs_baser0$Vintage==rs_basef$Vintage[rn] ,][1,]
+}
+any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
+# overwrite the temporal and geo fields of the replacement df
+rs_rep[,c(1:4,34:45)]<-rs_basef[,c(1:4,34:45)] # 
+# sub in the replacement rows in the main df
+rs_base[rs_base$completed_status=="Fail",]<-rs_rep
+
+# add GHG intensities, Mid-Case
+rs_base<-left_join(rs_base,gic,by = c("County" = "RS_ID"))
+# add GHG intensities, Low RE Cost
+rs_base<-left_join(rs_base,gic_LRE,by = c("County" = "RS_ID"))
+
+rs_base[rs_base$Year==2030,]$wbase_2025<-0
+rs_base[rs_base$Year==2040,]$wbase_2035<-0
+rs_base[rs_base$Year==2050,]$wbase_2045<-0
+rs_base[rs_base$Year==2060,]$wbase_2055<-0
+
+rs_base[,c("Tot_GJ_base_2020",  "Tot_GJ_base_2025","Tot_GJ_base_2030","Tot_GJ_base_2035","Tot_GJ_base_2040","Tot_GJ_base_2045","Tot_GJ_base_2050","Tot_GJ_base_2055","Tot_GJ_base_2060")]<-
+  (rs_base$base_weight*rs_base[,c("wbase_2020", "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")])*
+  (rs_base$Elec_GJ+rs_base$Gas_GJ+rs_base$Prop_GJ+rs_base$Oil_GJ)
+
+# tot kgGHG per archetype group/year in kg
+rs_base[,c("EnGHGkg_base_2020","EnGHGkg_base_2025","EnGHGkg_base_2030","EnGHGkg_base_2035","EnGHGkg_base_2040","EnGHGkg_base_2045","EnGHGkg_base_2050","EnGHGkg_base_2055","EnGHGkg_base_2060")]<-1000* 
+  (rs_base$base_weight*rs_base[,c("wbase_2020",  "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")])*
+  (rs_base$Elec_GJ*rs_base[,c("GHG_int_2020", "GHG_int_2025","GHG_int_2030","GHG_int_2035","GHG_int_2040","GHG_int_2045","GHG_int_2050","GHG_int_2055","GHG_int_2060")]+
+     matrix(rep(rs_base$Gas_GJ*GHGI_NG,9),nrow(rs_base),9)+ matrix(rep(rs_base$Oil_GJ*GHGI_FO,9),nrow(rs_base),9)+ matrix(rep(rs_base$Prop_GJ*GHGI_LP,9),nrow(rs_base),9))
+
+# tot LRE kgGHG per archetype group/year in kg
+rs_base[,c("EnGHGkg_base_2020_LRE","EnGHGkg_base_2025_LRE","EnGHGkg_base_2030_LRE","EnGHGkg_base_2035_LRE","EnGHGkg_base_2040_LRE","EnGHGkg_base_2045_LRE","EnGHGkg_base_2050_LRE","EnGHGkg_base_2055_LRE","EnGHGkg_base_2060_LRE")]<-1000* 
+  (rs_base$base_weight*rs_base[,c("wbase_2020",  "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")])*
+  (rs_base$Elec_GJ*rs_base[,c("GHG_int_2020_LRE", "GHG_int_2025_LRE","GHG_int_2030_LRE","GHG_int_2035_LRE","GHG_int_2040_LRE","GHG_int_2045_LRE","GHG_int_2050_LRE","GHG_int_2055_LRE","GHG_int_2060_LRE")]+
+     matrix(rep(rs_base$Gas_GJ*GHGI_NG,9),nrow(rs_base),9)+ matrix(rep(rs_base$Oil_GJ*GHGI_FO,9),nrow(rs_base),9)+ matrix(rep(rs_base$Prop_GJ*GHGI_LP,9),nrow(rs_base),9))
 
 
-# merge resstock hiDR stock scenario results with pre-simulation meta data #########
-rs_hiDR_sum<-result_sum(rs_hiDR)
-bs_hiDR_meta<-bs_hiDR_all[,c("Building","sim_year","scen","Building_id")]
-rs_hiDR_sum<-merge(rs_hiDR_sum,bs_hiDR_meta,by.x = "building_id",by.y = "Building")
-# extract individual results for hiDR stock scenarios, with different combinations of electrification/floor area characteristics
-rs_hiDR_base<-rs_hiDR_sum[rs_hiDR_sum$scen=="hiDR",]
-rs_hiDR_base$cht_group<-0
-rs_hiDR_base[rs_hiDR_base$sim_year==2030,]$cht_group<-1
-rs_hiDR_base[rs_hiDR_base$sim_year==2035,]$cht_group<-2
-rs_hiDR_base[rs_hiDR_base$sim_year==2040,]$cht_group<-3
-rs_hiDR_base[rs_hiDR_base$sim_year==2045,]$cht_group<-4
-rs_hiDR_base[rs_hiDR_base$sim_year==2050,]$cht_group<-5
-rs_hiDR_base[rs_hiDR_base$sim_year==2055,]$cht_group<-6
-rs_hiDR_base[rs_hiDR_base$sim_year==2060,]$cht_group<-7
-rs_hiDR_base$Building_id0<-(xs*rs_hiDR_base$cht_group)+rs_hiDR_base$Building_id
-bid<-data.frame(bid=dupe_hiDR-xs)
-rs_hiDR_base<-rbind(rs_hiDR_base,inner_join(rs_hiDR_base,bid,by=c("Building_id0"="bid")))
-rs_hiDR_base[(nrow(rs_hiDR_base)-length(dupe_hiDR)+1):nrow(rs_hiDR_base),]$Building_id0<-dupe_hiDR
-rs_hiDR_base<-rs_hiDR_base[order(rs_hiDR_base$Building_id0),]
-rs_hiDR_base$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# some summary stats
+# growth of new housing stock
+colSums((rs_base$base_weight*rs_base[,c("wbase_2020",  "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")]))
+# avg household energy consumption per construction year
+tapply(rs_base$Tot_GJ,rs_base$Year,mean)
+# avg energy efficiency per construction year
+tapply(rs_base$Tot_MJ_m2,rs_base$Year,mean)
 
-# avg energy efficiency by cohort
-tapply(rs_hiDR_base$Tot_MJ_m2,rs_hiDR_base$sim_year,mean)
-tapply(rs_hiDR_base$Tot_GJ,rs_hiDR_base$sim_year,mean)
+# avg energy efficiency per construction year, in kWh/m2. These are quite efficient. In EU, current range is 200-300 kWh/m2 https://ec.europa.eu/energy/eu-buildings-factsheets-topics-tree/energy-use-buildings_en, actually maybe more like 150 https://www.osti.gov/servlets/purl/1249501
+tapply(rs_base$Tot_MJ_m2,rs_base$Year,mean)/3.6
 
-# deep electrification
-rs_hiDR_DE<-rs_hiDR_sum[rs_hiDR_sum$scen=="hiDRDE",]
-rs_hiDR_DE$cht_group<-0
-rs_hiDR_DE[rs_hiDR_DE$sim_year==2030,]$cht_group<-1
-rs_hiDR_DE[rs_hiDR_DE$sim_year==2035,]$cht_group<-2
-rs_hiDR_DE[rs_hiDR_DE$sim_year==2040,]$cht_group<-3
-rs_hiDR_DE[rs_hiDR_DE$sim_year==2045,]$cht_group<-4
-rs_hiDR_DE[rs_hiDR_DE$sim_year==2050,]$cht_group<-5
-rs_hiDR_DE[rs_hiDR_DE$sim_year==2055,]$cht_group<-6
-rs_hiDR_DE[rs_hiDR_DE$sim_year==2060,]$cht_group<-7
-rs_hiDR_DE$Building_id0<-(xs*rs_hiDR_DE$cht_group)+rs_hiDR_DE$Building_id
-bid<-data.frame(bid=dupe_hiDRDE-xs)
-rs_hiDR_DE<-rbind(rs_hiDR_DE,inner_join(rs_hiDR_DE,bid,by=c("Building_id0"="bid")))
-rs_hiDR_DE[(nrow(rs_hiDR_DE)-length(dupe_hiDRDE)+1):nrow(rs_hiDR_DE),]$Building_id0<-dupe_hiDRDE
-rs_hiDR_DE<-rs_hiDR_DE[order(rs_hiDR_DE$Building_id0),]
-rs_hiDR_DE$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# total GHG emissions from NC 2025-2060 in Mid-Case
+colSums((rs_base[,176:184]))*1e-9
 
-# avg energy efficiency by cohort
-tapply(rs_hiDR_DE$Tot_MJ_m2,rs_hiDR_DE$sim_year,mean)
-tapply(rs_hiDR_DE$Tot_GJ,rs_hiDR_DE$sim_year,mean)
+# total GHG emissions from NC 2025-2060 in LRE scenario. I was a bit confused about this, but I think the reduction between 2040-2045 is from reductions in GHGI of elec, which outweigh the stock growth
+colSums((rs_base[,185:193]))*1e-9
+# see the difference bewteen average GHGI elec here
+mean(rs_base$GHG_int_2040_LRE)
+mean(rs_base$GHG_int_2045_LRE)
 
-# reduced Floor Area
-rs_hiDR_RFA<-rs_hiDR_sum[rs_hiDR_sum$scen=="hiDRRFA",]
-rs_hiDR_RFA$cht_group<-0
-rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2030,]$cht_group<-1
-rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2035,]$cht_group<-2
-rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2040,]$cht_group<-3
-rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2045,]$cht_group<-4
-rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2050,]$cht_group<-5
-rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2055,]$cht_group<-6
-rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2060,]$cht_group<-7
-rs_hiDR_RFA$Building_id0<-(xs*rs_hiDR_RFA$cht_group)+rs_hiDR_RFA$Building_id
-bid<-data.frame(bid=dupe_hiDRRFA-xs)
-rs_hiDR_RFA<-rbind(rs_hiDR_RFA,inner_join(rs_hiDR_RFA,bid,by=c("Building_id0"="bid")))
-rs_hiDR_RFA[(nrow(rs_hiDR_RFA)-length(dupe_hiDRRFA)+1):nrow(rs_hiDR_RFA),]$Building_id0<-dupe_hiDRRFA
-rs_hiDR_RFA<-rs_hiDR_RFA[order(rs_hiDR_RFA$Building_id0),]
-rs_hiDR_RFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+save(rs_base,file="../Intermediate_results/rs_base_EG.RData")
+# load("../Intermediate_results/rs_base_EG.RData")
+# now try to merge with the AR/RR files
 
-# avg energy efficiency by cohort
-tapply(rs_hiDR_RFA$Tot_MJ_m2,rs_hiDR_RFA$sim_year,mean)
-tapply(rs_hiDR_RFA$Tot_GJ,rs_hiDR_RFA$sim_year,mean)
+load("../Intermediate_results/RenStandard_EG.RData")
 
-# reduced Floor Area
-rs_hiDR_DERFA<-rs_hiDR_sum[rs_hiDR_sum$scen=="hiDRDERFA",]
-rs_hiDR_DERFA$cht_group<-0
-rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2030,]$cht_group<-1
-rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2035,]$cht_group<-2
-rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2040,]$cht_group<-3
-rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2045,]$cht_group<-4
-rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2050,]$cht_group<-5
-rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2055,]$cht_group<-6
-rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2060,]$cht_group<-7
-rs_hiDR_DERFA$Building_id0<-(xs*rs_hiDR_DERFA$cht_group)+rs_hiDR_DERFA$Building_id
-bid<-data.frame(bid=dupe_hiDRDERFA-xs)
-rs_hiDR_DERFA<-rbind(rs_hiDR_DERFA,inner_join(rs_hiDR_DERFA,bid,by=c("Building_id0"="bid")))
-rs_hiDR_DERFA[(nrow(rs_hiDR_DERFA)-length(dupe_hiDRDERFA)+1):nrow(rs_hiDR_DERFA),]$Building_id0<-dupe_hiDRDERFA
-rs_hiDR_DERFA<-rs_hiDR_DERFA[order(rs_hiDR_DERFA$Building_id0),]
-rs_hiDR_DERFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+n1<-names(rs_RRn) # <2020 stock, Reg Ren
+n2<-names(rs_base) # new construction
+bdiff<-rs_RRn[,!n1 %in% n2]
 
-# avg energy efficiency by cohort
-tapply(rs_hiDR_DERFA$Tot_MJ_m2,rs_hiDR_DERFA$sim_year,mean)
-tapply(rs_hiDR_DERFA$Tot_GJ,rs_hiDR_DERFA$sim_year,mean)
+# new insert: before binding rows, make the Building codes in rs_base distinct from thos in rs_RRb
+rs_base$Building<-180000+rs_base$Building
+rs_base$Year_Building<-paste(rs_base$Year,rs_base$Building,sep="_")
+rs_base_all_RR<-bind_rows(rs_RRn,rs_base)
 
-# merge resstock hiDR stock scenario results with pre-simulation meta data #########
-rs_hiMF_sum<-result_sum(rs_hiMF)
-bs_hiMF_meta<-bs_hiMF_all[,c("Building","sim_year","scen","Building_id")]
-rs_hiMF_sum<-merge(rs_hiMF_sum,bs_hiMF_meta,by.x = "building_id",by.y = "Building")
-# extract individual results for hiMF stock scenarios, with different combinations of electrification/floor area characteristics
-rs_hiMF_base<-rs_hiMF_sum[rs_hiMF_sum$scen=="hiMF",]
-rs_hiMF_base$cht_group<-0
-rs_hiMF_base[rs_hiMF_base$sim_year==2030,]$cht_group<-1
-rs_hiMF_base[rs_hiMF_base$sim_year==2035,]$cht_group<-2
-rs_hiMF_base[rs_hiMF_base$sim_year==2040,]$cht_group<-3
-rs_hiMF_base[rs_hiMF_base$sim_year==2045,]$cht_group<-4
-rs_hiMF_base[rs_hiMF_base$sim_year==2050,]$cht_group<-5
-rs_hiMF_base[rs_hiMF_base$sim_year==2055,]$cht_group<-6
-rs_hiMF_base[rs_hiMF_base$sim_year==2060,]$cht_group<-7
-rs_hiMF_base$Building_id0<-(xs*rs_hiMF_base$cht_group)+rs_hiMF_base$Building_id
-bid<-data.frame(bid=dupe_hiMF-xs)
-rs_hiMF_base<-rbind(rs_hiMF_base,inner_join(rs_hiMF_base,bid,by=c("Building_id0"="bid")))
-rs_hiMF_base[(nrow(rs_hiMF_base)-length(dupe_hiMF)+1):nrow(rs_hiMF_base),]$Building_id0<-dupe_hiMF
-rs_hiMF_base<-rs_hiMF_base[order(rs_hiMF_base$Building_id0),]
-rs_hiMF_base$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+rs_base_all_RR<-rs_base_all_RR[,names(rs_base_all_RR) %in% names(rs_base)]
 
-# avg energy efficiency by cohort
-tapply(rs_hiMF_base$Tot_MJ_m2,rs_hiMF_base$sim_year,mean)
-tapply(rs_hiMF_base$Tot_GJ,rs_hiMF_base$sim_year,mean)
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_base_all_RR$Tot_MJ_m2,rs_base_all_RR$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_base_all_RR$Tot_MJ_m2,list(rs_base_all_RR$Vintage,rs_base_all_RR$Year),mean)/3.6
 
-# deep electrification
-rs_hiMF_DE<-rs_hiMF_sum[rs_hiMF_sum$scen=="hiMFDE",]
-rs_hiMF_DE$cht_group<-0
-rs_hiMF_DE[rs_hiMF_DE$sim_year==2030,]$cht_group<-1
-rs_hiMF_DE[rs_hiMF_DE$sim_year==2035,]$cht_group<-2
-rs_hiMF_DE[rs_hiMF_DE$sim_year==2040,]$cht_group<-3
-rs_hiMF_DE[rs_hiMF_DE$sim_year==2045,]$cht_group<-4
-rs_hiMF_DE[rs_hiMF_DE$sim_year==2050,]$cht_group<-5
-rs_hiMF_DE[rs_hiMF_DE$sim_year==2055,]$cht_group<-6
-rs_hiMF_DE[rs_hiMF_DE$sim_year==2060,]$cht_group<-7
-rs_hiMF_DE$Building_id0<-(xs*rs_hiMF_DE$cht_group)+rs_hiMF_DE$Building_id
-bid<-data.frame(bid=dupe_hiMFDE-xs)
-rs_hiMF_DE<-rbind(rs_hiMF_DE,inner_join(rs_hiMF_DE,bid,by=c("Building_id0"="bid")))
-rs_hiMF_DE[(nrow(rs_hiMF_DE)-length(dupe_hiMFDE)+1):nrow(rs_hiMF_DE),]$Building_id0<-dupe_hiMFDE
-rs_hiMF_DE<-rs_hiMF_DE[order(rs_hiMF_DE$Building_id0),]
-rs_hiMF_DE$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_base_all_RR[,176:184])*1e-9 # 
+# example of calculating national level emissions in each year a la  Fig 2, LRE elec
+colSums(rs_base_all_RR[,185:193])*1e-9 # 
 
-# avg energy efficiency by cohort
-tapply(rs_hiMF_DE$Tot_MJ_m2,rs_hiMF_DE$sim_year,mean)
-tapply(rs_hiMF_DE$Tot_GJ,rs_hiMF_DE$sim_year,mean)
+# example of calculation state level emissions in one year
+tapply(rs_base_all_RR$EnGHGkg_base_2020,rs_base_all_RR$State,sum)*1e-9
+tapply(rs_base_all_RR$EnGHGkg_base_2060,rs_base_all_RR$State,sum)*1e-9
+# biggest reductions in AL, OK, WV, SC, much of this likely populations related
+tapply(rs_base_all_RR$EnGHGkg_base_2060,rs_base_all_RR$State,sum)/tapply(rs_base_all_RR$EnGHGkg_base_2020,rs_base_all_RR$State,sum)
 
-# reduced Floor Area
-rs_hiMF_RFA<-rs_hiMF_sum[rs_hiMF_sum$scen=="hiMFRFA",]
-rs_hiMF_RFA$cht_group<-0
-rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2030,]$cht_group<-1
-rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2035,]$cht_group<-2
-rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2040,]$cht_group<-3
-rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2045,]$cht_group<-4
-rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2050,]$cht_group<-5
-rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2055,]$cht_group<-6
-rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2060,]$cht_group<-7
-rs_hiMF_RFA$Building_id0<-(xs*rs_hiMF_RFA$cht_group)+rs_hiMF_RFA$Building_id
-bid<-data.frame(bid=dupe_hiMFRFA-xs)
-rs_hiMF_RFA<-rbind(rs_hiMF_RFA,inner_join(rs_hiMF_RFA,bid,by=c("Building_id0"="bid")))
-rs_hiMF_RFA[(nrow(rs_hiMF_RFA)-length(dupe_hiMFRFA)+1):nrow(rs_hiMF_RFA),]$Building_id0<-dupe_hiMFRFA
-rs_hiMF_RFA<-rs_hiMF_RFA[order(rs_hiMF_RFA$Building_id0),]
-rs_hiMF_RFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+save(rs_base_all_RR,file="../Final_results/res_base_RR.RData")
 
-# avg energy efficiency by cohort
-tapply(rs_hiMF_RFA$Tot_MJ_m2,rs_hiMF_RFA$sim_year,mean)
-tapply(rs_hiMF_RFA$Tot_GJ,rs_hiMF_RFA$sim_year,mean)
+load("../Intermediate_results/RenAdvanced_EG.RData")
 
-# reduced Floor Area
-rs_hiMF_DERFA<-rs_hiMF_sum[rs_hiMF_sum$scen=="hiMFDERFA",]
-rs_hiMF_DERFA$cht_group<-0
-rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2030,]$cht_group<-1
-rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2035,]$cht_group<-2
-rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2040,]$cht_group<-3
-rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2045,]$cht_group<-4
-rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2050,]$cht_group<-5
-rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2055,]$cht_group<-6
-rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2060,]$cht_group<-7
-rs_hiMF_DERFA$Building_id0<-(xs*rs_hiMF_DERFA$cht_group)+rs_hiMF_DERFA$Building_id
-bid<-data.frame(bid=dupe_hiMFDERFA-xs)
-rs_hiMF_DERFA<-rbind(rs_hiMF_DERFA,inner_join(rs_hiMF_DERFA,bid,by=c("Building_id0"="bid")))
-rs_hiMF_DERFA[(nrow(rs_hiMF_DERFA)-length(dupe_hiMFDERFA)+1):nrow(rs_hiMF_DERFA),]$Building_id0<-dupe_hiMFDERFA
-rs_hiMF_DERFA<-rs_hiMF_DERFA[order(rs_hiMF_DERFA$Building_id0),]
-rs_hiMF_DERFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+n1<-names(rs_ARn) # <2020 stock, Reg Ren
+n2<-names(rs_base) # new construction
+bdiff<-rs_ARn[,!n1 %in% n2]
 
-# avg energy efficiency by cohort
-tapply(rs_hiMF_DERFA$Tot_MJ_m2,rs_hiMF_DERFA$sim_year,mean)
-tapply(rs_hiMF_DERFA$Tot_GJ,rs_hiMF_DERFA$sim_year,mean)
+rs_base_all_AR<-bind_rows(rs_ARn,rs_base)
 
-# compare efficiencies
-tapply(rs_base_base$Tot_GJ,rs_base_base$vintage,mean)
-tapply(rs_base_DE$Tot_GJ,rs_base_DE$vintage,mean)
-tapply(rs_base_RFA$Tot_GJ,rs_base_RFA$vintage,mean)
-tapply(rs_base_DERFA$Tot_GJ,rs_base_DERFA$vintage,mean)
+rs_base_all_AR<-rs_base_all_AR[,names(rs_base_all_AR) %in% names(rs_base)]
 
-tapply(rs_hiDR_base$Tot_GJ,rs_hiDR_base$vintage,mean)
-tapply(rs_hiDR_DE$Tot_GJ,rs_hiDR_DE$vintage,mean)
-tapply(rs_hiDR_RFA$Tot_GJ,rs_hiDR_RFA$vintage,mean)
-tapply(rs_hiDR_DERFA$Tot_GJ,rs_hiDR_DERFA$vintage,mean)
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_base_all_AR$Tot_MJ_m2,rs_base_all_AR$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_base_all_AR$Tot_MJ_m2,list(rs_base_all_AR$Vintage,rs_base_all_AR$Year),mean)/3.6
 
-tapply(rs_hiMF_base$Tot_GJ,rs_hiMF_base$vintage,mean)
-tapply(rs_hiMF_DE$Tot_GJ,rs_hiMF_DE$vintage,mean)
-tapply(rs_hiMF_RFA$Tot_GJ,rs_hiMF_RFA$vintage,mean)
-tapply(rs_hiMF_DERFA$Tot_GJ,rs_hiMF_DERFA$vintage,mean)
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_base_all_AR[,176:184])*1e-9 # 
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_base_all_AR[,185:193])*1e-9 # 
 
-tapply(rs_2020_sum$Tot_GJ,rs_2020_sum$vintage,mean)
+# example of calculation state level emissions in one year
+tapply(rs_base_all_AR$EnGHGkg_base_2020,rs_base_all_AR$State,sum)*1e-9
+tapply(rs_base_all_AR$EnGHGkg_base_2060,rs_base_all_AR$State,sum)*1e-9
+# biggest reductions in AL, OK, WV, SC, much of this likely populations related
+tapply(rs_base_all_AR$EnGHGkg_base_2060,rs_base_all_AR$State,sum)/tapply(rs_base_all_AR$EnGHGkg_base_2020,rs_base_all_AR$State,sum)
 
-save(rs_2020_sum,rs_base_base,rs_base_DE,rs_base_RFA,rs_base_DERFA,
-     rs_hiDR_base,rs_hiDR_DE,rs_hiDR_RFA,rs_hiDR_DERFA,
-     rs_hiMF_base,rs_hiMF_DE,rs_hiMF_RFA,rs_hiMF_DERFA,file="../Final_results/results_summaries.RData")
+save(rs_base_all_AR,file="../Final_results/res_base_AR.RData")
 
-# compared household energy by different groups
-# tapply(d$Tot_GJ_unit,d$building_america_climate_zone,mean)
+# OLD merge resstock baseline stock scenario results with pre-simulation meta data ###### for this step i need the completed simulation of the future cohorts
+# rs_base_sum<-result_sum(rs_base)
+# bs_base_meta<-bs_base_all[,c("Building","sim_year","scen","Building_id")]
+# rs_base_sum<-merge(rs_base_sum,bs_base_meta,by.x = "building_id",by.y = "Building")
+# # extract individual results for base stock scenarios, with different combinations of electrification/floor area characteristics
+# rs_base_base<-rs_base_sum[rs_base_sum$scen=="base",]
+# rs_base_base$cht_group<-0
+# rs_base_base[rs_base_base$sim_year==2030,]$cht_group<-1
+# rs_base_base[rs_base_base$sim_year==2035,]$cht_group<-2
+# rs_base_base[rs_base_base$sim_year==2040,]$cht_group<-3
+# rs_base_base[rs_base_base$sim_year==2045,]$cht_group<-4
+# rs_base_base[rs_base_base$sim_year==2050,]$cht_group<-5
+# rs_base_base[rs_base_base$sim_year==2055,]$cht_group<-6
+# rs_base_base[rs_base_base$sim_year==2060,]$cht_group<-7
+# rs_base_base$Building_id0<-(xs*rs_base_base$cht_group)+rs_base_base$Building_id
+# bid<-data.frame(bid=dupe_base-xs)
+# rs_base_base<-rbind(rs_base_base,inner_join(rs_base_base,bid,by=c("Building_id0"="bid")))
+# rs_base_base[(nrow(rs_base_base)-length(dupe_base)+1):nrow(rs_base_base),]$Building_id0<-dupe_base
+# rs_base_base<-rs_base_base[order(rs_base_base$Building_id0),]
+# rs_base_base$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
 # 
-# tapply(d$Tot_GJ_unit,d$geometry_building_type_recs,mean)
+# # avg energy efficiency by cohort
+# tapply(rs_base_base$Tot_MJ_m2,rs_base_base$sim_year,mean)
+# tapply(rs_base_base$Tot_GJ,rs_base_base$sim_year,mean)
 # 
-# tapply(d$Tot_GJ_unit,d$vintage,mean)
+# # deep electrification
+# rs_base_DE<-rs_base_sum[rs_base_sum$scen=="baseDE",]
+# rs_base_DE$cht_group<-0
+# rs_base_DE[rs_base_DE$sim_year==2030,]$cht_group<-1
+# rs_base_DE[rs_base_DE$sim_year==2035,]$cht_group<-2
+# rs_base_DE[rs_base_DE$sim_year==2040,]$cht_group<-3
+# rs_base_DE[rs_base_DE$sim_year==2045,]$cht_group<-4
+# rs_base_DE[rs_base_DE$sim_year==2050,]$cht_group<-5
+# rs_base_DE[rs_base_DE$sim_year==2055,]$cht_group<-6
+# rs_base_DE[rs_base_DE$sim_year==2060,]$cht_group<-7
+# rs_base_DE$Building_id0<-(xs*rs_base_DE$cht_group)+rs_base_DE$Building_id
+# bid<-data.frame(bid=dupe_baseDE-xs)
+# rs_base_DE<-rbind(rs_base_DE,inner_join(rs_base_DE,bid,by=c("Building_id0"="bid")))
+# rs_base_DE[(nrow(rs_base_DE)-length(dupe_baseDE)+1):nrow(rs_base_DE),]$Building_id0<-dupe_baseDE
+# rs_base_DE<-rs_base_DE[order(rs_base_DE$Building_id0),]
+# rs_base_DE$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
 # 
-# tapply(d$Tot_MJ_m2,d$geometry_building_type_recs,mean)
-
-d10<-result_sum(rs2010)
-d20<-result_sum(rs2020)
-d30<-result_sum(rs2030)
-d40<-result_sum(rs2040)
-d50<-result_sum(rs2050)
-
-tapply(d10$Oil_GJ,d10$heating_fuel,mean)
-tapply(d20$Oil_GJ,d20$heating_fuel,mean) # ok there are no new homes built with oil
-
-tapply(d10$Gas_GJ,d10$heating_fuel,mean)
-tapply(d20$Gas_GJ,d20$heating_fuel,mean)
-tapply(d30$Gas_GJ,d30$heating_fuel,mean)
-tapply(d40$Gas_GJ,d40$heating_fuel,mean)
-tapply(d50$Gas_GJ,d50$heating_fuel,mean)
-
-tapply(d10$Gas_GJ,list(d10$heating_fuel,d10$water_heater_fuel),mean)
-# compare 2010s with 2020s ##########
-d10$Gas_GJ_20<-NA
-d10$Elec_GJ_20<-NA
-d10$Prop_GJ_20<-NA
-for (i in 1:nrow(d10)) {
-  for (j in 1:nrow(d20)) {
-    # d10[d10$building_id[i]==d20$building_id[j],]$Gas_GJ_20<-d20$Gas_GJ[j]
-    if (d10$building_id[i]==d20$building_id[j] & d10$heating_fuel[i]==d20$heating_fuel[j] &d10$water_heater_fuel[i]==d20$water_heater_fuel[j]) {
-      d10$Gas_GJ_20[i]<-d20$Gas_GJ[j]
-      d10$Elec_GJ_20[i]<-d20$Elec_GJ[j]
-      d10$Prop_GJ_20[i]<-d20$Prop_GJ[j]
-    }
-  }
-}
-d10$Gas_GJ_20_10<-d10$Gas_GJ_20/d10$Gas_GJ
-d10[is.nan(d10$Gas_GJ_20_10) | is.infinite((d10$Gas_GJ_20_10)),]$Gas_GJ_20_10<-NA
-mean(d10$Gas_GJ_20_10,na.rm = TRUE) # 15% reduction in gas in 2020 vs 2010
-mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Gas_GJ_20_10,na.rm = TRUE ) # 14% in SF
-mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Gas_GJ_20_10,na.rm = TRUE ) # 26% in MF
-
-d10$Elec_GJ_20_10<-d10$Elec_GJ_20/d10$Elec_GJ
-d10[is.nan(d10$Elec_GJ_20_10) | is.infinite((d10$Elec_GJ_20_10)),]$Elec_GJ_20_10<-NA # not applicable to elec
-mean(d10$Elec_GJ_20_10,na.rm = TRUE) # 9% reduction in Elec in 2020 vs 2010
-mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Elec_GJ_20_10,na.rm = TRUE ) # 8% in SF
-mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Elec_GJ_20_10,na.rm = TRUE ) # 14% in MF
-
-d10$Prop_GJ_20_10<-d10$Prop_GJ_20/d10$Prop_GJ
-d10[is.nan(d10$Prop_GJ_20_10) | is.infinite((d10$Prop_GJ_20_10)),]$Prop_GJ_20_10<-NA
-mean(d10$Prop_GJ_20_10,na.rm = TRUE) # 42% reduction in Prop in 2020 vs 2010, not sure if i believe, or probably a very small sample
-# compare with 2030s ########
-d10$Gas_GJ_30<-NA
-d10$Elec_GJ_30<-NA
-d10$Prop_GJ_30<-NA
-for (i in 1:nrow(d10)) {
-  for (j in 1:nrow(d30)) {
-    # d10[d10$building_id[i]==d30$building_id[j],]$Gas_GJ_30<-d30$Gas_GJ[j]
-    if (d10$building_id[i]==d30$building_id[j] & d10$heating_fuel[i]==d30$heating_fuel[j] &d10$water_heater_fuel[i]==d30$water_heater_fuel[j]) {
-      d10$Gas_GJ_30[i]<-d30$Gas_GJ[j]
-      d10$Elec_GJ_30[i]<-d30$Elec_GJ[j]
-      d10$Prop_GJ_30[i]<-d30$Prop_GJ[j]
-    }
-  }
-}
-d10$Gas_GJ_30_10<-d10$Gas_GJ_30/d10$Gas_GJ
-d10[is.nan(d10$Gas_GJ_30_10) | is.infinite((d10$Gas_GJ_30_10)),]$Gas_GJ_30_10<-NA
-mean(d10$Gas_GJ_30_10,na.rm = TRUE) # 28% reduction in gas in 2030 vs 2010
-mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Gas_GJ_30_10,na.rm = TRUE ) # 28% in SF
-mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Gas_GJ_30_10,na.rm = TRUE ) # 24% in MF
-
-d10$Elec_GJ_30_10<-d10$Elec_GJ_30/d10$Elec_GJ
-d10[is.nan(d10$Elec_GJ_30_10) | is.infinite((d10$Elec_GJ_30_10)),]$Elec_GJ_30_10<-NA # not applicable to elec
-mean(d10$Elec_GJ_30_10,na.rm = TRUE) # 16% reduction in Elec in 2030 vs 2010
-mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Elec_GJ_30_10,na.rm = TRUE ) # 16% in SF
-mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Elec_GJ_30_10,na.rm = TRUE ) # 15% in MF
-
-d10$Prop_GJ_30_10<-d10$Prop_GJ_30/d10$Prop_GJ
-d10[is.nan(d10$Prop_GJ_30_10) | is.infinite((d10$Prop_GJ_30_10)),]$Prop_GJ_30_10<-NA
-mean(d10$Prop_GJ_30_10,na.rm = TRUE) # 54% reduction in Prop in 2020 vs 2010, not sure if i believe, or probably a very small sample
-
-# compare with 2040s ########
-d10$Gas_GJ_40<-NA
-d10$Elec_GJ_40<-NA
-d10$Prop_GJ_40<-NA
-for (i in 1:nrow(d10)) {
-  for (j in 1:nrow(d40)) {
-    # d10[d10$building_id[i]==d40$building_id[j],]$Gas_GJ_40<-d40$Gas_GJ[j]
-    if (d10$building_id[i]==d40$building_id[j] & d10$heating_fuel[i]==d40$heating_fuel[j] &d10$water_heater_fuel[i]==d40$water_heater_fuel[j]) {
-      d10$Gas_GJ_40[i]<-d40$Gas_GJ[j]
-      d10$Elec_GJ_40[i]<-d40$Elec_GJ[j]
-      d10$Prop_GJ_40[i]<-d40$Prop_GJ[j]
-    }
-  }
-}
-d10$Gas_GJ_40_10<-d10$Gas_GJ_40/d10$Gas_GJ
-d10[is.nan(d10$Gas_GJ_40_10) | is.infinite((d10$Gas_GJ_40_10)),]$Gas_GJ_40_10<-NA
-mean(d10$Gas_GJ_40_10,na.rm = TRUE) # 35% reduction in gas in 2040 vs 2010
-mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Gas_GJ_40_10,na.rm = TRUE ) # 36% in SF
-mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Gas_GJ_40_10,na.rm = TRUE ) # 29% in MF, 8 observations
-
-d10$Elec_GJ_40_10<-d10$Elec_GJ_40/d10$Elec_GJ
-d10[is.nan(d10$Elec_GJ_40_10) | is.infinite((d10$Elec_GJ_40_10)),]$Elec_GJ_40_10<-NA # not applicable to elec
-mean(d10$Elec_GJ_40_10,na.rm = TRUE) # 22% reduction in Elec in 2040 vs 2010
-mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Elec_GJ_40_10,na.rm = TRUE ) # 23% in SF
-mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Elec_GJ_40_10,na.rm = TRUE ) # 18% in MF, 14 observations
-
-d10$Prop_GJ_40_10<-d10$Prop_GJ_40/d10$Prop_GJ
-d10[is.nan(d10$Prop_GJ_40_10) | is.infinite((d10$Prop_GJ_40_10)),]$Prop_GJ_40_10<-NA
-mean(d10$Prop_GJ_40_10,na.rm = TRUE) # 60% reduction in Prop in 2020 vs 2010, not sure if i believe, or probably a very small sample
-
-# compare with 2050s ########
-d10$Gas_GJ_50<-NA
-d10$Elec_GJ_50<-NA
-d10$Prop_GJ_50<-NA
-for (i in 1:nrow(d10)) {
-  for (j in 1:nrow(d50)) {
-    # d10[d10$building_id[i]==d50$building_id[j],]$Gas_GJ_50<-d50$Gas_GJ[j]
-    if (d10$building_id[i]==d50$building_id[j] & d10$heating_fuel[i]==d50$heating_fuel[j] &d10$water_heater_fuel[i]==d50$water_heater_fuel[j]) {
-      d10$Gas_GJ_50[i]<-d50$Gas_GJ[j]
-      d10$Elec_GJ_50[i]<-d50$Elec_GJ[j]
-      d10$Prop_GJ_50[i]<-d50$Prop_GJ[j]
-    }
-  }
-}
-d10$Gas_GJ_50_10<-d10$Gas_GJ_50/d10$Gas_GJ
-d10[is.nan(d10$Gas_GJ_50_10) | is.infinite((d10$Gas_GJ_50_10)),]$Gas_GJ_50_10<-NA
-mean(d10$Gas_GJ_50_10,na.rm = TRUE) # 36% reduction in gas in 2050 vs 2010
-mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Gas_GJ_50_10,na.rm = TRUE ) # 43% in SF
-mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Gas_GJ_50_10,na.rm = TRUE ) # 7% in MF, base on only 5 observations
-
-d10$Elec_GJ_50_10<-d10$Elec_GJ_50/d10$Elec_GJ
-d10[is.nan(d10$Elec_GJ_50_10) | is.infinite((d10$Elec_GJ_50_10)),]$Elec_GJ_50_10<-NA # not applicable to elec
-mean(d10$Elec_GJ_50_10,na.rm = TRUE) # 25% reduction in Elec in 2050 vs 2010
-mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Elec_GJ_50_10,na.rm = TRUE ) # 26% in SF, 48 observation
-mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Elec_GJ_50_10,na.rm = TRUE ) # 24% in MF, 10 observations
-
-d10$Prop_GJ_50_10<-d10$Prop_GJ_50/d10$Prop_GJ
-d10[is.nan(d10$Prop_GJ_50_10) | is.infinite((d10$Prop_GJ_50_10)),]$Prop_GJ_50_10<-NA
-mean(d10$Prop_GJ_50_10,na.rm = TRUE) # 0% reduction in Prop in 2020 vs 2010, not sure if i believe, or probably a very small sample
+# # avg energy efficiency by cohort
+# tapply(rs_base_DE$Tot_MJ_m2,rs_base_DE$sim_year,mean)
+# tapply(rs_base_DE$Tot_GJ,rs_base_DE$sim_year,mean)
+# 
+# # reduced Floor Area
+# rs_base_RFA<-rs_base_sum[rs_base_sum$scen=="baseRFA",]
+# rs_base_RFA$cht_group<-0
+# rs_base_RFA[rs_base_RFA$sim_year==2030,]$cht_group<-1
+# rs_base_RFA[rs_base_RFA$sim_year==2035,]$cht_group<-2
+# rs_base_RFA[rs_base_RFA$sim_year==2040,]$cht_group<-3
+# rs_base_RFA[rs_base_RFA$sim_year==2045,]$cht_group<-4
+# rs_base_RFA[rs_base_RFA$sim_year==2050,]$cht_group<-5
+# rs_base_RFA[rs_base_RFA$sim_year==2055,]$cht_group<-6
+# rs_base_RFA[rs_base_RFA$sim_year==2060,]$cht_group<-7
+# rs_base_RFA$Building_id0<-(xs*rs_base_RFA$cht_group)+rs_base_RFA$Building_id
+# bid<-data.frame(bid=dupe_baseRFA-xs)
+# rs_base_RFA<-rbind(rs_base_RFA,inner_join(rs_base_RFA,bid,by=c("Building_id0"="bid")))
+# rs_base_RFA[(nrow(rs_base_RFA)-length(dupe_baseRFA)+1):nrow(rs_base_RFA),]$Building_id0<-dupe_baseRFA
+# rs_base_RFA<-rs_base_RFA[order(rs_base_RFA$Building_id0),]
+# rs_base_RFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_base_RFA$Tot_MJ_m2,rs_base_RFA$sim_year,mean)
+# tapply(rs_base_RFA$Tot_GJ,rs_base_RFA$sim_year,mean)
+# 
+# # reduced Floor Area
+# rs_base_DERFA<-rs_base_sum[rs_base_sum$scen=="baseDERFA",]
+# rs_base_DERFA$cht_group<-0
+# rs_base_DERFA[rs_base_DERFA$sim_year==2030,]$cht_group<-1
+# rs_base_DERFA[rs_base_DERFA$sim_year==2035,]$cht_group<-2
+# rs_base_DERFA[rs_base_DERFA$sim_year==2040,]$cht_group<-3
+# rs_base_DERFA[rs_base_DERFA$sim_year==2045,]$cht_group<-4
+# rs_base_DERFA[rs_base_DERFA$sim_year==2050,]$cht_group<-5
+# rs_base_DERFA[rs_base_DERFA$sim_year==2055,]$cht_group<-6
+# rs_base_DERFA[rs_base_DERFA$sim_year==2060,]$cht_group<-7
+# rs_base_DERFA$Building_id0<-(xs*rs_base_DERFA$cht_group)+rs_base_DERFA$Building_id
+# bid<-data.frame(bid=dupe_baseDERFA-xs)
+# rs_base_DERFA<-rbind(rs_base_DERFA,inner_join(rs_base_DERFA,bid,by=c("Building_id0"="bid")))
+# rs_base_DERFA[(nrow(rs_base_DERFA)-length(dupe_baseDERFA)+1):nrow(rs_base_DERFA),]$Building_id0<-dupe_baseDERFA
+# rs_base_DERFA<-rs_base_DERFA[order(rs_base_DERFA$Building_id0),]
+# rs_base_DERFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_base_DERFA$Tot_MJ_m2,rs_base_DERFA$sim_year,mean)
+# tapply(rs_base_DERFA$Tot_GJ,rs_base_DERFA$sim_year,mean)
+# 
+# 
+# # merge resstock hiDR stock scenario results with pre-simulation meta data #########
+# rs_hiDR_sum<-result_sum(rs_hiDR)
+# bs_hiDR_meta<-bs_hiDR_all[,c("Building","sim_year","scen","Building_id")]
+# rs_hiDR_sum<-merge(rs_hiDR_sum,bs_hiDR_meta,by.x = "building_id",by.y = "Building")
+# # extract individual results for hiDR stock scenarios, with different combinations of electrification/floor area characteristics
+# rs_hiDR_base<-rs_hiDR_sum[rs_hiDR_sum$scen=="hiDR",]
+# rs_hiDR_base$cht_group<-0
+# rs_hiDR_base[rs_hiDR_base$sim_year==2030,]$cht_group<-1
+# rs_hiDR_base[rs_hiDR_base$sim_year==2035,]$cht_group<-2
+# rs_hiDR_base[rs_hiDR_base$sim_year==2040,]$cht_group<-3
+# rs_hiDR_base[rs_hiDR_base$sim_year==2045,]$cht_group<-4
+# rs_hiDR_base[rs_hiDR_base$sim_year==2050,]$cht_group<-5
+# rs_hiDR_base[rs_hiDR_base$sim_year==2055,]$cht_group<-6
+# rs_hiDR_base[rs_hiDR_base$sim_year==2060,]$cht_group<-7
+# rs_hiDR_base$Building_id0<-(xs*rs_hiDR_base$cht_group)+rs_hiDR_base$Building_id
+# bid<-data.frame(bid=dupe_hiDR-xs)
+# rs_hiDR_base<-rbind(rs_hiDR_base,inner_join(rs_hiDR_base,bid,by=c("Building_id0"="bid")))
+# rs_hiDR_base[(nrow(rs_hiDR_base)-length(dupe_hiDR)+1):nrow(rs_hiDR_base),]$Building_id0<-dupe_hiDR
+# rs_hiDR_base<-rs_hiDR_base[order(rs_hiDR_base$Building_id0),]
+# rs_hiDR_base$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_hiDR_base$Tot_MJ_m2,rs_hiDR_base$sim_year,mean)
+# tapply(rs_hiDR_base$Tot_GJ,rs_hiDR_base$sim_year,mean)
+# 
+# # deep electrification
+# rs_hiDR_DE<-rs_hiDR_sum[rs_hiDR_sum$scen=="hiDRDE",]
+# rs_hiDR_DE$cht_group<-0
+# rs_hiDR_DE[rs_hiDR_DE$sim_year==2030,]$cht_group<-1
+# rs_hiDR_DE[rs_hiDR_DE$sim_year==2035,]$cht_group<-2
+# rs_hiDR_DE[rs_hiDR_DE$sim_year==2040,]$cht_group<-3
+# rs_hiDR_DE[rs_hiDR_DE$sim_year==2045,]$cht_group<-4
+# rs_hiDR_DE[rs_hiDR_DE$sim_year==2050,]$cht_group<-5
+# rs_hiDR_DE[rs_hiDR_DE$sim_year==2055,]$cht_group<-6
+# rs_hiDR_DE[rs_hiDR_DE$sim_year==2060,]$cht_group<-7
+# rs_hiDR_DE$Building_id0<-(xs*rs_hiDR_DE$cht_group)+rs_hiDR_DE$Building_id
+# bid<-data.frame(bid=dupe_hiDRDE-xs)
+# rs_hiDR_DE<-rbind(rs_hiDR_DE,inner_join(rs_hiDR_DE,bid,by=c("Building_id0"="bid")))
+# rs_hiDR_DE[(nrow(rs_hiDR_DE)-length(dupe_hiDRDE)+1):nrow(rs_hiDR_DE),]$Building_id0<-dupe_hiDRDE
+# rs_hiDR_DE<-rs_hiDR_DE[order(rs_hiDR_DE$Building_id0),]
+# rs_hiDR_DE$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_hiDR_DE$Tot_MJ_m2,rs_hiDR_DE$sim_year,mean)
+# tapply(rs_hiDR_DE$Tot_GJ,rs_hiDR_DE$sim_year,mean)
+# 
+# # reduced Floor Area
+# rs_hiDR_RFA<-rs_hiDR_sum[rs_hiDR_sum$scen=="hiDRRFA",]
+# rs_hiDR_RFA$cht_group<-0
+# rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2030,]$cht_group<-1
+# rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2035,]$cht_group<-2
+# rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2040,]$cht_group<-3
+# rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2045,]$cht_group<-4
+# rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2050,]$cht_group<-5
+# rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2055,]$cht_group<-6
+# rs_hiDR_RFA[rs_hiDR_RFA$sim_year==2060,]$cht_group<-7
+# rs_hiDR_RFA$Building_id0<-(xs*rs_hiDR_RFA$cht_group)+rs_hiDR_RFA$Building_id
+# bid<-data.frame(bid=dupe_hiDRRFA-xs)
+# rs_hiDR_RFA<-rbind(rs_hiDR_RFA,inner_join(rs_hiDR_RFA,bid,by=c("Building_id0"="bid")))
+# rs_hiDR_RFA[(nrow(rs_hiDR_RFA)-length(dupe_hiDRRFA)+1):nrow(rs_hiDR_RFA),]$Building_id0<-dupe_hiDRRFA
+# rs_hiDR_RFA<-rs_hiDR_RFA[order(rs_hiDR_RFA$Building_id0),]
+# rs_hiDR_RFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_hiDR_RFA$Tot_MJ_m2,rs_hiDR_RFA$sim_year,mean)
+# tapply(rs_hiDR_RFA$Tot_GJ,rs_hiDR_RFA$sim_year,mean)
+# 
+# # reduced Floor Area
+# rs_hiDR_DERFA<-rs_hiDR_sum[rs_hiDR_sum$scen=="hiDRDERFA",]
+# rs_hiDR_DERFA$cht_group<-0
+# rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2030,]$cht_group<-1
+# rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2035,]$cht_group<-2
+# rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2040,]$cht_group<-3
+# rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2045,]$cht_group<-4
+# rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2050,]$cht_group<-5
+# rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2055,]$cht_group<-6
+# rs_hiDR_DERFA[rs_hiDR_DERFA$sim_year==2060,]$cht_group<-7
+# rs_hiDR_DERFA$Building_id0<-(xs*rs_hiDR_DERFA$cht_group)+rs_hiDR_DERFA$Building_id
+# bid<-data.frame(bid=dupe_hiDRDERFA-xs)
+# rs_hiDR_DERFA<-rbind(rs_hiDR_DERFA,inner_join(rs_hiDR_DERFA,bid,by=c("Building_id0"="bid")))
+# rs_hiDR_DERFA[(nrow(rs_hiDR_DERFA)-length(dupe_hiDRDERFA)+1):nrow(rs_hiDR_DERFA),]$Building_id0<-dupe_hiDRDERFA
+# rs_hiDR_DERFA<-rs_hiDR_DERFA[order(rs_hiDR_DERFA$Building_id0),]
+# rs_hiDR_DERFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_hiDR_DERFA$Tot_MJ_m2,rs_hiDR_DERFA$sim_year,mean)
+# tapply(rs_hiDR_DERFA$Tot_GJ,rs_hiDR_DERFA$sim_year,mean)
+# 
+# # merge resstock hiDR stock scenario results with pre-simulation meta data #########
+# rs_hiMF_sum<-result_sum(rs_hiMF)
+# bs_hiMF_meta<-bs_hiMF_all[,c("Building","sim_year","scen","Building_id")]
+# rs_hiMF_sum<-merge(rs_hiMF_sum,bs_hiMF_meta,by.x = "building_id",by.y = "Building")
+# # extract individual results for hiMF stock scenarios, with different combinations of electrification/floor area characteristics
+# rs_hiMF_base<-rs_hiMF_sum[rs_hiMF_sum$scen=="hiMF",]
+# rs_hiMF_base$cht_group<-0
+# rs_hiMF_base[rs_hiMF_base$sim_year==2030,]$cht_group<-1
+# rs_hiMF_base[rs_hiMF_base$sim_year==2035,]$cht_group<-2
+# rs_hiMF_base[rs_hiMF_base$sim_year==2040,]$cht_group<-3
+# rs_hiMF_base[rs_hiMF_base$sim_year==2045,]$cht_group<-4
+# rs_hiMF_base[rs_hiMF_base$sim_year==2050,]$cht_group<-5
+# rs_hiMF_base[rs_hiMF_base$sim_year==2055,]$cht_group<-6
+# rs_hiMF_base[rs_hiMF_base$sim_year==2060,]$cht_group<-7
+# rs_hiMF_base$Building_id0<-(xs*rs_hiMF_base$cht_group)+rs_hiMF_base$Building_id
+# bid<-data.frame(bid=dupe_hiMF-xs)
+# rs_hiMF_base<-rbind(rs_hiMF_base,inner_join(rs_hiMF_base,bid,by=c("Building_id0"="bid")))
+# rs_hiMF_base[(nrow(rs_hiMF_base)-length(dupe_hiMF)+1):nrow(rs_hiMF_base),]$Building_id0<-dupe_hiMF
+# rs_hiMF_base<-rs_hiMF_base[order(rs_hiMF_base$Building_id0),]
+# rs_hiMF_base$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_hiMF_base$Tot_MJ_m2,rs_hiMF_base$sim_year,mean)
+# tapply(rs_hiMF_base$Tot_GJ,rs_hiMF_base$sim_year,mean)
+# 
+# # deep electrification
+# rs_hiMF_DE<-rs_hiMF_sum[rs_hiMF_sum$scen=="hiMFDE",]
+# rs_hiMF_DE$cht_group<-0
+# rs_hiMF_DE[rs_hiMF_DE$sim_year==2030,]$cht_group<-1
+# rs_hiMF_DE[rs_hiMF_DE$sim_year==2035,]$cht_group<-2
+# rs_hiMF_DE[rs_hiMF_DE$sim_year==2040,]$cht_group<-3
+# rs_hiMF_DE[rs_hiMF_DE$sim_year==2045,]$cht_group<-4
+# rs_hiMF_DE[rs_hiMF_DE$sim_year==2050,]$cht_group<-5
+# rs_hiMF_DE[rs_hiMF_DE$sim_year==2055,]$cht_group<-6
+# rs_hiMF_DE[rs_hiMF_DE$sim_year==2060,]$cht_group<-7
+# rs_hiMF_DE$Building_id0<-(xs*rs_hiMF_DE$cht_group)+rs_hiMF_DE$Building_id
+# bid<-data.frame(bid=dupe_hiMFDE-xs)
+# rs_hiMF_DE<-rbind(rs_hiMF_DE,inner_join(rs_hiMF_DE,bid,by=c("Building_id0"="bid")))
+# rs_hiMF_DE[(nrow(rs_hiMF_DE)-length(dupe_hiMFDE)+1):nrow(rs_hiMF_DE),]$Building_id0<-dupe_hiMFDE
+# rs_hiMF_DE<-rs_hiMF_DE[order(rs_hiMF_DE$Building_id0),]
+# rs_hiMF_DE$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_hiMF_DE$Tot_MJ_m2,rs_hiMF_DE$sim_year,mean)
+# tapply(rs_hiMF_DE$Tot_GJ,rs_hiMF_DE$sim_year,mean)
+# 
+# # reduced Floor Area
+# rs_hiMF_RFA<-rs_hiMF_sum[rs_hiMF_sum$scen=="hiMFRFA",]
+# rs_hiMF_RFA$cht_group<-0
+# rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2030,]$cht_group<-1
+# rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2035,]$cht_group<-2
+# rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2040,]$cht_group<-3
+# rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2045,]$cht_group<-4
+# rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2050,]$cht_group<-5
+# rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2055,]$cht_group<-6
+# rs_hiMF_RFA[rs_hiMF_RFA$sim_year==2060,]$cht_group<-7
+# rs_hiMF_RFA$Building_id0<-(xs*rs_hiMF_RFA$cht_group)+rs_hiMF_RFA$Building_id
+# bid<-data.frame(bid=dupe_hiMFRFA-xs)
+# rs_hiMF_RFA<-rbind(rs_hiMF_RFA,inner_join(rs_hiMF_RFA,bid,by=c("Building_id0"="bid")))
+# rs_hiMF_RFA[(nrow(rs_hiMF_RFA)-length(dupe_hiMFRFA)+1):nrow(rs_hiMF_RFA),]$Building_id0<-dupe_hiMFRFA
+# rs_hiMF_RFA<-rs_hiMF_RFA[order(rs_hiMF_RFA$Building_id0),]
+# rs_hiMF_RFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_hiMF_RFA$Tot_MJ_m2,rs_hiMF_RFA$sim_year,mean)
+# tapply(rs_hiMF_RFA$Tot_GJ,rs_hiMF_RFA$sim_year,mean)
+# 
+# # reduced Floor Area
+# rs_hiMF_DERFA<-rs_hiMF_sum[rs_hiMF_sum$scen=="hiMFDERFA",]
+# rs_hiMF_DERFA$cht_group<-0
+# rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2030,]$cht_group<-1
+# rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2035,]$cht_group<-2
+# rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2040,]$cht_group<-3
+# rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2045,]$cht_group<-4
+# rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2050,]$cht_group<-5
+# rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2055,]$cht_group<-6
+# rs_hiMF_DERFA[rs_hiMF_DERFA$sim_year==2060,]$cht_group<-7
+# rs_hiMF_DERFA$Building_id0<-(xs*rs_hiMF_DERFA$cht_group)+rs_hiMF_DERFA$Building_id
+# bid<-data.frame(bid=dupe_hiMFDERFA-xs)
+# rs_hiMF_DERFA<-rbind(rs_hiMF_DERFA,inner_join(rs_hiMF_DERFA,bid,by=c("Building_id0"="bid")))
+# rs_hiMF_DERFA[(nrow(rs_hiMF_DERFA)-length(dupe_hiMFDERFA)+1):nrow(rs_hiMF_DERFA),]$Building_id0<-dupe_hiMFDERFA
+# rs_hiMF_DERFA<-rs_hiMF_DERFA[order(rs_hiMF_DERFA$Building_id0),]
+# rs_hiMF_DERFA$sim_year<-rep(rep(seq(2025,2060,5),each=xs)) # each = xs; xs depends on how many simulations for each year/scenario combo
+# 
+# # avg energy efficiency by cohort
+# tapply(rs_hiMF_DERFA$Tot_MJ_m2,rs_hiMF_DERFA$sim_year,mean)
+# tapply(rs_hiMF_DERFA$Tot_GJ,rs_hiMF_DERFA$sim_year,mean)
+# 
+# # compare efficiencies
+# tapply(rs_base_base$Tot_GJ,rs_base_base$vintage,mean)
+# tapply(rs_base_DE$Tot_GJ,rs_base_DE$vintage,mean)
+# tapply(rs_base_RFA$Tot_GJ,rs_base_RFA$vintage,mean)
+# tapply(rs_base_DERFA$Tot_GJ,rs_base_DERFA$vintage,mean)
+# 
+# tapply(rs_hiDR_base$Tot_GJ,rs_hiDR_base$vintage,mean)
+# tapply(rs_hiDR_DE$Tot_GJ,rs_hiDR_DE$vintage,mean)
+# tapply(rs_hiDR_RFA$Tot_GJ,rs_hiDR_RFA$vintage,mean)
+# tapply(rs_hiDR_DERFA$Tot_GJ,rs_hiDR_DERFA$vintage,mean)
+# 
+# tapply(rs_hiMF_base$Tot_GJ,rs_hiMF_base$vintage,mean)
+# tapply(rs_hiMF_DE$Tot_GJ,rs_hiMF_DE$vintage,mean)
+# tapply(rs_hiMF_RFA$Tot_GJ,rs_hiMF_RFA$vintage,mean)
+# tapply(rs_hiMF_DERFA$Tot_GJ,rs_hiMF_DERFA$vintage,mean)
+# 
+# tapply(rs_2020_sum$Tot_GJ,rs_2020_sum$vintage,mean)
+# 
+# save(rs_2020_sum,rs_base_base,rs_base_DE,rs_base_RFA,rs_base_DERFA,
+#      rs_hiDR_base,rs_hiDR_DE,rs_hiDR_RFA,rs_hiDR_DERFA,
+#      rs_hiMF_base,rs_hiMF_DE,rs_hiMF_RFA,rs_hiMF_DERFA,file="../Final_results/results_summaries.RData")
+# 
+# # compared household energy by different groups
+# # tapply(d$Tot_GJ_unit,d$building_america_climate_zone,mean)
+# # 
+# # tapply(d$Tot_GJ_unit,d$geometry_building_type_recs,mean)
+# # 
+# # tapply(d$Tot_GJ_unit,d$vintage,mean)
+# # 
+# # tapply(d$Tot_MJ_m2,d$geometry_building_type_recs,mean)
+# 
+# d10<-result_sum(rs2010)
+# d20<-result_sum(rs2020)
+# d30<-result_sum(rs2030)
+# d40<-result_sum(rs2040)
+# d50<-result_sum(rs2050)
+# 
+# tapply(d10$Oil_GJ,d10$heating_fuel,mean)
+# tapply(d20$Oil_GJ,d20$heating_fuel,mean) # ok there are no new homes built with oil
+# 
+# tapply(d10$Gas_GJ,d10$heating_fuel,mean)
+# tapply(d20$Gas_GJ,d20$heating_fuel,mean)
+# tapply(d30$Gas_GJ,d30$heating_fuel,mean)
+# tapply(d40$Gas_GJ,d40$heating_fuel,mean)
+# tapply(d50$Gas_GJ,d50$heating_fuel,mean)
+# 
+# tapply(d10$Gas_GJ,list(d10$heating_fuel,d10$water_heater_fuel),mean)
+# # compare 2010s with 2020s ##########
+# d10$Gas_GJ_20<-NA
+# d10$Elec_GJ_20<-NA
+# d10$Prop_GJ_20<-NA
+# for (i in 1:nrow(d10)) {
+#   for (j in 1:nrow(d20)) {
+#     # d10[d10$building_id[i]==d20$building_id[j],]$Gas_GJ_20<-d20$Gas_GJ[j]
+#     if (d10$building_id[i]==d20$building_id[j] & d10$heating_fuel[i]==d20$heating_fuel[j] &d10$water_heater_fuel[i]==d20$water_heater_fuel[j]) {
+#       d10$Gas_GJ_20[i]<-d20$Gas_GJ[j]
+#       d10$Elec_GJ_20[i]<-d20$Elec_GJ[j]
+#       d10$Prop_GJ_20[i]<-d20$Prop_GJ[j]
+#     }
+#   }
+# }
+# d10$Gas_GJ_20_10<-d10$Gas_GJ_20/d10$Gas_GJ
+# d10[is.nan(d10$Gas_GJ_20_10) | is.infinite((d10$Gas_GJ_20_10)),]$Gas_GJ_20_10<-NA
+# mean(d10$Gas_GJ_20_10,na.rm = TRUE) # 15% reduction in gas in 2020 vs 2010
+# mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Gas_GJ_20_10,na.rm = TRUE ) # 14% in SF
+# mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Gas_GJ_20_10,na.rm = TRUE ) # 26% in MF
+# 
+# d10$Elec_GJ_20_10<-d10$Elec_GJ_20/d10$Elec_GJ
+# d10[is.nan(d10$Elec_GJ_20_10) | is.infinite((d10$Elec_GJ_20_10)),]$Elec_GJ_20_10<-NA # not applicable to elec
+# mean(d10$Elec_GJ_20_10,na.rm = TRUE) # 9% reduction in Elec in 2020 vs 2010
+# mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Elec_GJ_20_10,na.rm = TRUE ) # 8% in SF
+# mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Elec_GJ_20_10,na.rm = TRUE ) # 14% in MF
+# 
+# d10$Prop_GJ_20_10<-d10$Prop_GJ_20/d10$Prop_GJ
+# d10[is.nan(d10$Prop_GJ_20_10) | is.infinite((d10$Prop_GJ_20_10)),]$Prop_GJ_20_10<-NA
+# mean(d10$Prop_GJ_20_10,na.rm = TRUE) # 42% reduction in Prop in 2020 vs 2010, not sure if i believe, or probably a very small sample
+# # compare with 2030s ########
+# d10$Gas_GJ_30<-NA
+# d10$Elec_GJ_30<-NA
+# d10$Prop_GJ_30<-NA
+# for (i in 1:nrow(d10)) {
+#   for (j in 1:nrow(d30)) {
+#     # d10[d10$building_id[i]==d30$building_id[j],]$Gas_GJ_30<-d30$Gas_GJ[j]
+#     if (d10$building_id[i]==d30$building_id[j] & d10$heating_fuel[i]==d30$heating_fuel[j] &d10$water_heater_fuel[i]==d30$water_heater_fuel[j]) {
+#       d10$Gas_GJ_30[i]<-d30$Gas_GJ[j]
+#       d10$Elec_GJ_30[i]<-d30$Elec_GJ[j]
+#       d10$Prop_GJ_30[i]<-d30$Prop_GJ[j]
+#     }
+#   }
+# }
+# d10$Gas_GJ_30_10<-d10$Gas_GJ_30/d10$Gas_GJ
+# d10[is.nan(d10$Gas_GJ_30_10) | is.infinite((d10$Gas_GJ_30_10)),]$Gas_GJ_30_10<-NA
+# mean(d10$Gas_GJ_30_10,na.rm = TRUE) # 28% reduction in gas in 2030 vs 2010
+# mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Gas_GJ_30_10,na.rm = TRUE ) # 28% in SF
+# mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Gas_GJ_30_10,na.rm = TRUE ) # 24% in MF
+# 
+# d10$Elec_GJ_30_10<-d10$Elec_GJ_30/d10$Elec_GJ
+# d10[is.nan(d10$Elec_GJ_30_10) | is.infinite((d10$Elec_GJ_30_10)),]$Elec_GJ_30_10<-NA # not applicable to elec
+# mean(d10$Elec_GJ_30_10,na.rm = TRUE) # 16% reduction in Elec in 2030 vs 2010
+# mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Elec_GJ_30_10,na.rm = TRUE ) # 16% in SF
+# mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Elec_GJ_30_10,na.rm = TRUE ) # 15% in MF
+# 
+# d10$Prop_GJ_30_10<-d10$Prop_GJ_30/d10$Prop_GJ
+# d10[is.nan(d10$Prop_GJ_30_10) | is.infinite((d10$Prop_GJ_30_10)),]$Prop_GJ_30_10<-NA
+# mean(d10$Prop_GJ_30_10,na.rm = TRUE) # 54% reduction in Prop in 2020 vs 2010, not sure if i believe, or probably a very small sample
+# 
+# # compare with 2040s ########
+# d10$Gas_GJ_40<-NA
+# d10$Elec_GJ_40<-NA
+# d10$Prop_GJ_40<-NA
+# for (i in 1:nrow(d10)) {
+#   for (j in 1:nrow(d40)) {
+#     # d10[d10$building_id[i]==d40$building_id[j],]$Gas_GJ_40<-d40$Gas_GJ[j]
+#     if (d10$building_id[i]==d40$building_id[j] & d10$heating_fuel[i]==d40$heating_fuel[j] &d10$water_heater_fuel[i]==d40$water_heater_fuel[j]) {
+#       d10$Gas_GJ_40[i]<-d40$Gas_GJ[j]
+#       d10$Elec_GJ_40[i]<-d40$Elec_GJ[j]
+#       d10$Prop_GJ_40[i]<-d40$Prop_GJ[j]
+#     }
+#   }
+# }
+# d10$Gas_GJ_40_10<-d10$Gas_GJ_40/d10$Gas_GJ
+# d10[is.nan(d10$Gas_GJ_40_10) | is.infinite((d10$Gas_GJ_40_10)),]$Gas_GJ_40_10<-NA
+# mean(d10$Gas_GJ_40_10,na.rm = TRUE) # 35% reduction in gas in 2040 vs 2010
+# mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Gas_GJ_40_10,na.rm = TRUE ) # 36% in SF
+# mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Gas_GJ_40_10,na.rm = TRUE ) # 29% in MF, 8 observations
+# 
+# d10$Elec_GJ_40_10<-d10$Elec_GJ_40/d10$Elec_GJ
+# d10[is.nan(d10$Elec_GJ_40_10) | is.infinite((d10$Elec_GJ_40_10)),]$Elec_GJ_40_10<-NA # not applicable to elec
+# mean(d10$Elec_GJ_40_10,na.rm = TRUE) # 22% reduction in Elec in 2040 vs 2010
+# mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Elec_GJ_40_10,na.rm = TRUE ) # 23% in SF
+# mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Elec_GJ_40_10,na.rm = TRUE ) # 18% in MF, 14 observations
+# 
+# d10$Prop_GJ_40_10<-d10$Prop_GJ_40/d10$Prop_GJ
+# d10[is.nan(d10$Prop_GJ_40_10) | is.infinite((d10$Prop_GJ_40_10)),]$Prop_GJ_40_10<-NA
+# mean(d10$Prop_GJ_40_10,na.rm = TRUE) # 60% reduction in Prop in 2020 vs 2010, not sure if i believe, or probably a very small sample
+# 
+# # compare with 2050s ########
+# d10$Gas_GJ_50<-NA
+# d10$Elec_GJ_50<-NA
+# d10$Prop_GJ_50<-NA
+# for (i in 1:nrow(d10)) {
+#   for (j in 1:nrow(d50)) {
+#     # d10[d10$building_id[i]==d50$building_id[j],]$Gas_GJ_50<-d50$Gas_GJ[j]
+#     if (d10$building_id[i]==d50$building_id[j] & d10$heating_fuel[i]==d50$heating_fuel[j] &d10$water_heater_fuel[i]==d50$water_heater_fuel[j]) {
+#       d10$Gas_GJ_50[i]<-d50$Gas_GJ[j]
+#       d10$Elec_GJ_50[i]<-d50$Elec_GJ[j]
+#       d10$Prop_GJ_50[i]<-d50$Prop_GJ[j]
+#     }
+#   }
+# }
+# d10$Gas_GJ_50_10<-d10$Gas_GJ_50/d10$Gas_GJ
+# d10[is.nan(d10$Gas_GJ_50_10) | is.infinite((d10$Gas_GJ_50_10)),]$Gas_GJ_50_10<-NA
+# mean(d10$Gas_GJ_50_10,na.rm = TRUE) # 36% reduction in gas in 2050 vs 2010
+# mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Gas_GJ_50_10,na.rm = TRUE ) # 43% in SF
+# mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Gas_GJ_50_10,na.rm = TRUE ) # 7% in MF, base on only 5 observations
+# 
+# d10$Elec_GJ_50_10<-d10$Elec_GJ_50/d10$Elec_GJ
+# d10[is.nan(d10$Elec_GJ_50_10) | is.infinite((d10$Elec_GJ_50_10)),]$Elec_GJ_50_10<-NA # not applicable to elec
+# mean(d10$Elec_GJ_50_10,na.rm = TRUE) # 25% reduction in Elec in 2050 vs 2010
+# mean(d10[d10$geometry_building_type_recs %in% c("Single-Family Detached","Single-Family Attached"),]$Elec_GJ_50_10,na.rm = TRUE ) # 26% in SF, 48 observation
+# mean(d10[d10$geometry_building_type_recs %in% c("Multi-Family with 2-4 Units","Multi-Family with 5+ Units"),]$Elec_GJ_50_10,na.rm = TRUE ) # 24% in MF, 10 observations
+# 
+# d10$Prop_GJ_50_10<-d10$Prop_GJ_50/d10$Prop_GJ
+# d10[is.nan(d10$Prop_GJ_50_10) | is.infinite((d10$Prop_GJ_50_10)),]$Prop_GJ_50_10<-NA
+# mean(d10$Prop_GJ_50_10,na.rm = TRUE) # 0% reduction in Prop in 2020 vs 2010, not sure if i believe, or probably a very small sample

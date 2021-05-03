@@ -18,7 +18,11 @@ rm_dot2<-function(df) {
   df
 }
 
-bs<-read.csv("../scen_bscsv/bs2020_180k.csv")
+# bs<-read.csv("../scen_bscsv/bs2020_180k.csv")
+# save the 2020 stock for use in the HSM model
+# save(bs,file="../../HSM_github/Resstock_outputs/bs2020_180k.RData")
+load("../../HSM_github/Resstock_outputs/bs2020_180k.RData")
+
 failed<-read.csv("../Eagle_outputs/RawResults/results_2020.csv")
 fail<-failed[failed$completed_status=="Fail",]
 f<-fail$building_id
@@ -43,14 +47,14 @@ for (j in 1:nrow(success)) {
 
 fail_fixed<-failed[f,]
 # Now fix the TX sims ########
-failedTX<-bs[bs$County %in% c("TX, Fisher County", "TX, Nolan County","TX, Stonewall County"),]
+failedTX<-bs2020[bs2020$County %in% c("TX, Fisher County", "TX, Nolan County","TX, Stonewall County"),]
 # check that all the remaining failed simulations are from the three TX counties with no weather files
 all.equal(failedTX$Building, fr)
 # see all the sim outputs (fail and success) from TX, 02600 & CZ 3B
 # pumaTX<-failed[failed$build_existing_model.puma=="TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004=="3B",]
 
-bspumaTX<-bs[bs$PUMA=="TX, 02600" & bs$ASHRAE.IECC.Climate.Zone.2004=="3B",]
-table(bspumaTX$County,bspumaTX$Geometry.Building.Type.RECS)
+bs2020pumaTX<-bs2020[bs2020$PUMA=="TX, 02600" & bs2020$ASHRAE.IECC.Climate.Zone.2004=="3B",]
+table(bs2020pumaTX$County,bs2020pumaTX$Geometry.Building.Type.RECS)
 
 # puma0<-failed[failed$build_existing_model.puma=="TX, 02600",]
 
@@ -62,20 +66,20 @@ TX_repl_SF<-failed[failed$build_existing_model.puma == "TX, 02600" & failed$buil
 TX_repl_MH<-failed[failed$build_existing_model.puma == "TX, 02600" & failed$build_existing_model.ashrae_iecc_climate_zone_2004 =="3B" & failed$build_existing_model.geometry_building_type_recs=="Mobile Home",]
 
 failrep<-data.frame(fail=fr,replace=0)
-failrep$Type<-bs[fr,]$Geometry.Building.Type.RECS
-failrep$Vintage<-bs[fr,]$Vintage
-failrep$FA<-bs[fr,]$Geometry.Floor.Area
-failrep$HeatFuel<-bs[fr,]$Heating.Fuel
+failrep$Type<-bs2020[fr,]$Geometry.Building.Type.RECS
+failrep$Vintage<-bs2020[fr,]$Vintage
+failrep$FA<-bs2020[fr,]$Geometry.Floor.Area
+failrep$HeatFuel<-bs2020[fr,]$Heating.Fuel
 
 # use these FEW queries to find appropriate replacements
 TX_repl_SF$building_id[which(TX_repl_SF$build_existing_model.vintage=="1950s"  & TX_repl_SF$build_existing_model.geometry_floor_area=="1000-1499" & TX_repl_SF$build_existing_model.heating_fuel=="Natural Gas")]
 
-TX_repl_SF[TX_repl_SF$building_id==120433,c("build_existing_model.vintage","build_existing_model.geometry_floor_area","build_existing_model.heating_fuel","build_existing_model.water_heater_fuel")]
+TX_repl_SF[TX_repl_SF$building_id==124070,c("build_existing_model.vintage","build_existing_model.geometry_floor_area","build_existing_model.heating_fuel","build_existing_model.water_heater_fuel")]
 
 TX_repl_MH[TX_repl_MH$building_id==22459,c("build_existing_model.vintage","build_existing_model.geometry_floor_area","build_existing_model.heating_fuel")]
 
 
-failrep$replace<-c(26009,22459,141434,17128,145756,5031,120433,96358,69365,138402,120433)
+failrep$replace<-c(26009,22459,141434,17128,145756,5031,120433,96358,69365,138402,124070)
 save(failrep,file="../Intermediate_results/FailReplace.RData")
 for (r in 1:nrow(failrep)) {
 
@@ -85,14 +89,14 @@ for (r in 1:nrow(failrep)) {
 
 fail_fixed2<-failed[f,]
 # some extra checks
-table(fail_fixed2$build_existing_model.vintage)
-table(bs[f,]$Vintage)
+table(fail_fixed2$build_existing_model.vintage) # exact match
+table(bs2020[f,]$Vintage)
 
 table(fail_fixed2$build_existing_model.geometry_floor_area) # not exact, but close
-table(bs[f,]$Geometry.Floor.Area)
+table(bs2020[f,]$Geometry.Floor.Area)
 
 table(fail_fixed2$build_existing_model.heating_fuel) # not exact, but close
-table(bs[f,]$Heating.Fuel)
+table(bs2020[f,]$Heating.Fuel)
 
 failed_save<-rm_dot2(failed)
 
