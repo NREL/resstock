@@ -335,6 +335,26 @@ class Geometry
     end
   end
 
+  def self.calculate_zone_volume(hpxml, space_type)
+    if [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? space_type
+      floor_area = hpxml.slabs.select { |s| s.interior_adjacent_to == space_type }.map { |s| s.area }.sum(0.0)
+      if space_type == HPXML::LocationGarage
+        height = 8.0
+      else
+        height = hpxml.foundation_walls.select { |w| w.interior_adjacent_to == space_type }.map { |w| w.height }.max
+      end
+      return floor_area * height
+    elsif [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? space_type
+      floor_area = hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? space_type }.map { |s| s.area }.sum(0.0)
+      roofs = hpxml.roofs.select { |r| r.interior_adjacent_to == space_type }
+      avg_pitch = roofs.map { |r| r.pitch }.sum(0.0) / roofs.size
+      # Assume square hip roof for volume calculation
+      length = floor_area**0.5
+      height = 0.5 * Math.sin(Math.atan(avg_pitch / 12.0)) * length
+      return [floor_area * height / 3.0, 0.01].max
+    end
+  end
+
   def self.set_zone_volumes(runner, model, spaces, hpxml, apply_ashrae140_assumptions)
     # Living space
     spaces[HPXML::LocationLivingSpace].thermalZone.get.setVolume(UnitConversions.convert(hpxml.building_construction.conditioned_building_volume, 'ft^3', 'm^3'))
@@ -343,32 +363,18 @@ class Geometry
     spaces.keys.each do |space_type|
       next unless [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? space_type
 
-      floor_area = hpxml.slabs.select { |s| s.interior_adjacent_to == space_type }.map { |s| s.area }.sum(0.0)
-      if space_type == HPXML::LocationGarage
-        height = 8.0
-      else
-        height = hpxml.foundation_walls.select { |w| w.interior_adjacent_to == space_type }.map { |w| w.height }.max
-      end
-
-      spaces[space_type].thermalZone.get.setVolume(UnitConversions.convert(floor_area * height, 'ft^3', 'm^3'))
+      volume = calculate_zone_volume(hpxml, space_type)
+      spaces[space_type].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
     end
 
     # Attic
     spaces.keys.each do |space_type|
       next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? space_type
 
-      floor_area = hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? space_type }.map { |s| s.area }.sum(0.0)
-      roofs = hpxml.roofs.select { |r| r.interior_adjacent_to == space_type }
-      avg_pitch = roofs.map { |r| r.pitch }.sum(0.0) / roofs.size
-
       if apply_ashrae140_assumptions
-        # Hardcode the attic volume to match ASHRAE 140 Table 7-2 specification
-        volume = 3463
+        volume = 3463 # Hardcode the attic volume to match ASHRAE 140 Table 7-2 specification
       else
-        # Assume square hip roof for volume calculations; energy results are very insensitive to actual volume
-        length = floor_area**0.5
-        height = 0.5 * Math.sin(Math.atan(avg_pitch / 12.0)) * length
-        volume = [floor_area * height / 3.0, 0.01].max
+        volume = calculate_zone_volume(hpxml, space_type)
       end
 
       spaces[space_type].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))

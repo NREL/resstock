@@ -28,8 +28,11 @@ files.each do |file|
       results[key]['rows'] = CSV.read(filepath)
     else
       puts "Could not find #{filepath}."
-      next
     end
+  end
+
+  if (not results[base].keys.include?('rows')) || (not results[feature].keys.include?('rows'))
+    next
   end
 
   # get columns

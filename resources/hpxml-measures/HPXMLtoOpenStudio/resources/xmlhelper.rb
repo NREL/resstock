@@ -62,6 +62,7 @@ class XMLHelper
     if element.nil?
       return
     end
+
     value = element.text
 
     if datatype == :integer

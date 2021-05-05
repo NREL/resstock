@@ -6,6 +6,7 @@ require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
+require_relative 'util.rb'
 
 class HPXMLtoOpenStudioHVACTest < MiniTest::Test
   def sample_files_dir
@@ -31,7 +32,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     assert(program_values.empty?) # Check no EMS program
   end
 
@@ -56,7 +57,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     assert(program_values.empty?) # Check no EMS program
   end
 
@@ -81,7 +82,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     assert(program_values.empty?) # Check no EMS program
   end
 
@@ -271,7 +272,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     assert(program_values.empty?) # Check no EMS program
   end
 
@@ -314,7 +315,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     assert(program_values.empty?) # Check no EMS program
   end
 
@@ -357,7 +358,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     assert(program_values.empty?) # Check no EMS program
   end
 
@@ -397,7 +398,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     assert(program_values.empty?) # Check no EMS program
   end
 
@@ -422,7 +423,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     assert(program_values.empty?) # Check no EMS program
   end
 
@@ -461,7 +462,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check EMS
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
     unitary_system = model.getAirLoopHVACUnitarySystems[0]
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     assert(program_values.empty?) # Check no EMS program
   end
 
@@ -673,7 +674,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     assert_in_epsilon(fan_watts_cfm, fanonoff.pressureRise / fanonoff.fanEfficiency * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
 
     # Check installation quality EMS
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
 
     # defect ratios in EMS is calculated correctly
     assert_in_epsilon(program_values['F_CH'].sum, charge_defect, 0.01)
@@ -731,7 +732,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     assert_in_epsilon(fan_watts_cfm2, fanonoff.pressureRise / fanonoff.fanEfficiency * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
 
     # Check installation quality EMS
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
 
     # defect ratios in EMS is calculated correctly
     assert_in_epsilon(program_values['F_CH'].sum, charge_defect, 0.01)
@@ -840,31 +841,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     return model, hpxml
   end
 
-  def _get_ems_values(ems_objects, name)
-    values = {}
-    ems_objects.each do |ems_object|
-      next unless ems_object.name.to_s.include? name.gsub(' ', '_')
-
-      ems_object.lines.each do |line|
-        next unless line.downcase.start_with? 'set'
-
-        lhs, rhs = line.split('=')
-        lhs = lhs.gsub('Set', '').gsub('set', '').strip
-        rhs = rhs.gsub(',', '').gsub(';', '').strip
-        values[lhs] = [] if values[lhs].nil?
-        # eg. "Q = Q + 1.5"
-        if rhs.include? '+'
-          rhs_els = rhs.split('+')
-          rhs = rhs_els.map { |s| s.to_f }.sum(0.0)
-        else
-          rhs = rhs.to_f
-        end
-        values[lhs] << rhs
-      end
-    end
-    return values
-  end
-
   def _check_install_quality_multispeed_ratio(hpxml_clg_sys, model, hpxml_htg_sys = nil)
     airflow_defect = hpxml_clg_sys.airflow_defect_ratio
     charge_defect = hpxml_clg_sys.charge_defect_ratio
@@ -891,7 +867,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     assert_in_epsilon(fan_watts_cfm, fanonoff.pressureRise / fanonoff.fanEfficiency * UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.01)
 
     # Check installation quality EMS
-    program_values = _get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
+    program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{unitary_system.name} install quality")
     clg_speed_cfms = clg_ratios.map { |ratio| cooling_cfm * ratio }
     assert_in_epsilon(program_values['F_CH'].sum, charge_defect, 0.01)
     assert_in_epsilon(program_values['FF_AF_c'].sum, clg_speed_cfms.zip(rated_airflow_cfm_clg).map { |cfm, rated_cfm| cfm / rated_cfm }.sum, 0.01)
