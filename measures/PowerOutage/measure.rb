@@ -374,7 +374,6 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       rule2_day_schedule.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0.5)
 
       model.getPeoples.each do |people|
-
         # Set schedules
         people.setWorkEfficiencySchedule(work_schedule)
         people.setActivityLevelSchedule(activity_schedule)
