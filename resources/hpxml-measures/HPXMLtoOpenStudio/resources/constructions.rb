@@ -1169,8 +1169,8 @@ class Constructions
     constr.create_and_assign_constructions(runner, [subsurface], model)
   end
 
-  def self.apply_window_skylight_shading(model, window_or_skylight, shading_vertices, parent_surface, sub_surface, shading_group,
-                                         shading_schedules, name, cooling_season)
+  def self.apply_window_skylight_shading(model, window_or_skylight, index, shading_vertices, parent_surface, sub_surface, shading_group,
+                                         shading_schedules, shading_ems, name, cooling_season)
     sf_summer = window_or_skylight.interior_shading_factor_summer * window_or_skylight.exterior_shading_factor_summer
     sf_winter = window_or_skylight.interior_shading_factor_winter * window_or_skylight.exterior_shading_factor_winter
     if (sf_summer < 1.0) || (sf_winter < 1.0)
@@ -1193,10 +1193,34 @@ class Constructions
       end
       shading_surface.setTransmittanceSchedule(shading_schedules[trans_values].schedule)
 
-      # Adjustment to default view factor is used to reduce ground diffuse solar
-      avg_trans_value = trans_values.sum(0.0) / 12.0 # FUTURE: Create EnergyPlus actuator to adjust this
-      default_vf_to_ground = ((1.0 - Math::cos(parent_surface.tilt)) / 2.0).round(2)
-      sub_surface.setViewFactortoGround(default_vf_to_ground * avg_trans_value)
+      # EMS to actuate view factor to ground
+      sub_surface_type = sub_surface.subSurfaceType.downcase.to_s
+      actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(sub_surface, *EPlus::EMSActuatorSurfaceViewFactorToGround)
+      actuator.setName("#{sub_surface_type}#{index}_actuator")
+
+      if shading_ems[:sensors][trans_values].nil?
+        shading_schedule_name = shading_schedules[trans_values].schedule.name.to_s
+        shading_coeff_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        shading_coeff_sensor.setName("#{sub_surface_type}_shading_coefficient")
+        shading_coeff_sensor.setKeyName(shading_schedule_name)
+        shading_ems[:sensors][trans_values] = shading_coeff_sensor
+      end
+
+      default_vf_to_ground = ((1.0 - Math::cos(sub_surface.tilt)) / 2.0).round(2)
+      shading_coeff = shading_ems[:sensors][trans_values].name
+      if shading_ems[:program].nil?
+        program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+        program.setName("#{sub_surface_type}_view_factor_to_ground_program")
+        program.addLine("Set #{actuator.name} = #{default_vf_to_ground}*#{shading_coeff}")
+        shading_ems[:program] = program
+
+        program_cm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+        program_cm.setName("#{program.name} calling manager")
+        program_cm.setCallingPoint('BeginZoneTimestepAfterInitHeatBalance') # https://github.com/NREL/EnergyPlus/pull/8477#discussion_r567320478
+        program_cm.addProgram(program)
+      else
+        shading_ems[:program].addLine("Set #{actuator.name} = #{default_vf_to_ground}*#{shading_coeff}")
+      end
 
       if shading_group.nil?
         shading_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)

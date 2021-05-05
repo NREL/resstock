@@ -75,16 +75,54 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     sql_path = File.join(File.dirname(xml), 'run', 'eplusout.sql')
     assert(File.exist? sql_path)
-    csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.json')
-    assert(File.exist? csv_output_path)
-    csv_output_path = File.join(File.dirname(xml), 'run', 'results_timeseries.json')
-    assert(File.exist? csv_output_path)
+    json_output_path = File.join(File.dirname(xml), 'run', 'results_annual.json')
+    assert(File.exist? json_output_path)
+    json_output_path = File.join(File.dirname(xml), 'run', 'results_timeseries.json')
+    assert(File.exist? json_output_path)
 
     # Check for debug files
     osm_path = File.join(File.dirname(xml), 'run', 'in.osm')
     assert(File.exist? osm_path)
     hpxml_defaults_path = File.join(File.dirname(xml), 'run', 'in.xml')
     assert(File.exist? hpxml_defaults_path)
+  end
+
+  def test_run_simulation_epjson_input
+    # Check that we can run a simulation using epJSON (instead of IDF) if requested
+    os_cli = OpenStudio.getOpenStudioCLI
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
+    command = "#{os_cli} #{rb_path} -x #{xml} --ep-input-format epjson"
+    system(command, err: File::NULL)
+
+    # Check for epjson file
+    epjson = File.join(File.dirname(xml), 'run', 'in.epJSON')
+    assert(File.exist? epjson)
+
+    # Check for output files
+    sql_path = File.join(File.dirname(xml), 'run', 'eplusout.sql')
+    assert(File.exist? sql_path)
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
+    assert(File.exist? csv_output_path)
+  end
+
+  def test_run_simulation_idf_input
+    # Check that we can run a simulation using IDF (instead of epJSON) if requested
+    os_cli = OpenStudio.getOpenStudioCLI
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
+    command = "#{os_cli} #{rb_path} -x #{xml} --ep-input-format idf"
+    system(command, err: File::NULL)
+
+    # Check for idf file
+    idf = File.join(File.dirname(xml), 'run', 'in.idf')
+    assert(File.exist? idf)
+
+    # Check for output files
+    sql_path = File.join(File.dirname(xml), 'run', 'eplusout.sql')
+    assert(File.exist? sql_path)
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
+    assert(File.exist? csv_output_path)
   end
 
   def test_run_simulation_faster_performance
@@ -211,7 +249,7 @@ class HPXMLTest < MiniTest::Test
                             'hvac-inconsistent-fan-powers.xml' => ["Fan powers for heating system 'HeatingSystem' and cooling system 'CoolingSystem' are attached to a single distribution system and therefore must be the same."],
                             'hvac-invalid-distribution-system-type.xml' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
                             'hvac-shared-negative-seer-eq.xml' => ["Negative SEER equivalent calculated for cooling system 'CoolingSystem', double check inputs."],
-                            'invalid-assembly-effective-rvalue.xml' => ['Expected Insulation/AssemblyEffectiveRValue to be greater than 0 [context: /HPXML/Building/BuildingDetails/Enclosure/Walls/Wall, id: "Wall"]'],
+                            'invalid-assembly-effective-rvalue.xml' => ['Expected AssemblyEffectiveRValue to be greater than 0 [context: /HPXML/Building/BuildingDetails/Enclosure/Walls/Wall/Insulation, id: "WallInsulation"]'],
                             'invalid-datatype-boolean.xml' => ["Cannot convert 'FOOBAR' to boolean for Roof/RadiantBarrier."],
                             'invalid-datatype-integer.xml' => ["Cannot convert '2.5' to integer for BuildingConstruction/NumberofBedrooms."],
                             'invalid-datatype-float.xml' => ["Cannot convert 'FOOBAR' to float for Slab/extension/CarpetFraction."],
@@ -351,6 +389,7 @@ class HPXMLTest < MiniTest::Test
           found_error_msg = false
           run_log.each do |run_line|
             next unless run_line.start_with? 'Error: '
+
             n_errors += 1 if i == 0
 
             next unless run_line.include? error_msg
@@ -582,6 +621,7 @@ class HPXMLTest < MiniTest::Test
         next if err_line.include? 'SimHVAC: Maximum iterations (20) exceeded for all HVAC loops'
         next if err_line.include? 'Rated air volume flow rate per watt of rated total water heating capacity is out of range'
         next if err_line.include? 'For object = Coil:WaterHeating:AirToWaterHeatPump:Wrapped'
+        next if err_line.include? 'Enthalpy out of range (PsyTsatFnHPb)'
       end
       # HP defrost curves
       if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? hp.heat_pump_type }.size > 0
@@ -604,6 +644,9 @@ class HPXMLTest < MiniTest::Test
       end
       if hpxml_path.include?('ground-to-air-heat-pump-cooling-only.xml') || hpxml_path.include?('ground-to-air-heat-pump-heating-only.xml')
         next if err_line.include? 'COIL:HEATING:WATERTOAIRHEATPUMP:EQUATIONFIT' # heating capacity is > 20% different than cooling capacity; safe to ignore
+      end
+      if hpxml.solar_thermal_systems.size > 0
+        next if err_line.include? 'Supply Side is storing excess heat the majority of the time.'
       end
       if hpxml_path.include?('base-schedules-stochastic.xml') || hpxml_path.include?('base-schedules-stochastic-vacant.xml') || hpxml_path.include?('base-schedules-user-specified.xml')
         next if err_line.include?('GetCurrentScheduleValue: Schedule=') && err_line.include?('is a Schedule:File')

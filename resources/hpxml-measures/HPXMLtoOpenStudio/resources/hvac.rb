@@ -60,6 +60,7 @@ class HVAC
     if (not cooling_system.nil?) && (not heating_system.nil?) && (cooling_system.fan_watts_per_cfm.to_f != heating_system.fan_watts_per_cfm.to_f)
       fail "Fan powers for heating system '#{heating_system.id}' and cooling system '#{cooling_system.id}' are attached to a single distribution system and therefore must be the same."
     end
+
     if (not cooling_system.nil?) && (not cooling_system.fan_watts_per_cfm.nil?)
       fan_watts_per_cfm = cooling_system.fan_watts_per_cfm
     else

@@ -1262,6 +1262,18 @@
 		</xs:simpleContent>
 	</xs:complexType>
 	<!--Insulation Below-->
+	<xs:simpleType name="AssemblyRValue_simple">
+		<xs:restriction base="xs:double">
+			<xs:minExclusive value="0"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="AssemblyRValue">
+		<xs:simpleContent>
+			<xs:extension base="AssemblyRValue_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
 	<xs:simpleType name="DoorThirdPartyCertifications_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="Energy Star"/>
@@ -1765,6 +1777,7 @@
 			<xs:enumeration value="evaporative cooler"/>
 			<xs:enumeration value="chiller"/>
 			<xs:enumeration value="cooling tower"/>
+			<xs:enumeration value="packaged terminal air conditioner"/>
 			<xs:enumeration value="other"/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -1855,6 +1868,7 @@
 			<xs:enumeration value="mini-split"/>
 			<xs:enumeration value="ground-to-air"/>
 			<xs:enumeration value="ground-to-water"/>
+			<xs:enumeration value="packaged terminal heat pump"/>
 			<xs:enumeration value="water-loop-to-air"/>
 			<xs:enumeration value="variable refrigerant flow"/>
 		</xs:restriction>

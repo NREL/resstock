@@ -1,3 +1,15 @@
+## OpenStudio-HPXML v1.3.0 (Pending)
+
+__New Features__
+- Updates to OpenStudio 3.2.0/EnergyPlus 9.5.0.
+- Introduces a small amount of infiltration for unvented spaces.
+- **Breaking change**: Replaces ClothesDryer `extension/IsVented` and `extension/VentedFlowRate` with `Vented` and `VentedFlowRate`.
+- Allows additional fuel types for generators.
+- Adds an `--ep-input-format` argument to run_simulation.rb to choose epJSON as the EnergyPlus input file format instead of IDF.
+
+__Bugfixes__
+- Improves ground reflectance when there is shading of windows/skylights.
+
 ## OpenStudio-HPXML v1.2.0
 
 __New Features__

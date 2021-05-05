@@ -6,7 +6,7 @@ Setup
 
 To get started:
 
-#. Download `OpenStudio 3.1.0 <https://github.com/NREL/OpenStudio/releases/tag/v3.1.0>`_ and install the Command Line Interface/EnergyPlus components, or use the `nrel/openstudio docker image <https://hub.docker.com/r/nrel/openstudio>`_.
+#. Download `OpenStudio 3.2.0 <https://github.com/NREL/OpenStudio/releases/tag/v3.2.0>`_ and install the Command Line Interface/EnergyPlus components, or use the `nrel/openstudio docker image <https://hub.docker.com/r/nrel/openstudio>`_.
 #. Download the `latest release <https://github.com/NREL/OpenStudio-HPXML/releases>`_.
 
 Running

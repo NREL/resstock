@@ -183,6 +183,7 @@ class Waterheater
       if water_heating_system.standby_loss <= 0
         fail 'A negative indirect water heater standby loss was calculated, double check water heater inputs.'
       end
+
       act_vol = calc_storage_tank_actual_vol(water_heating_system.tank_volume, nil)
       a_side = calc_tank_areas(act_vol)[1]
       ua = calc_indirect_ua_with_standbyloss(act_vol, water_heating_system, a_side, solar_fraction)

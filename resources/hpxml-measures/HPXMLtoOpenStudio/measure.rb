@@ -337,11 +337,13 @@ class OSModel
 
   def self.update_conditioned_basement(runner, model, spaces)
     return if @cond_bsmnt_surfaces.empty?
+
     # Update @cond_bsmnt_surfaces to include subsurfaces
     new_cond_bsmnt_surfaces = @cond_bsmnt_surfaces.dup
     @cond_bsmnt_surfaces.each do |cond_bsmnt_surface|
       next if cond_bsmnt_surface.is_a? OpenStudio::Model::InternalMassDefinition
       next if cond_bsmnt_surface.subSurfaces.empty?
+
       cond_bsmnt_surface.subSurfaces.each do |ss|
         new_cond_bsmnt_surfaces << ss
       end
@@ -359,6 +361,7 @@ class OSModel
     @cond_bsmnt_surfaces.each do |cond_bsmnt_surface|
       # skip windows because windows don't have such property to change.
       next if cond_bsmnt_surface.is_a?(OpenStudio::Model::SubSurface) && (cond_bsmnt_surface.subSurfaceType.downcase == 'fixedwindow')
+
       adj_surface = nil
       if not cond_bsmnt_surface.is_a? OpenStudio::Model::InternalMassDefinition
         if not cond_bsmnt_surface.is_a? OpenStudio::Model::SubSurface
@@ -397,6 +400,7 @@ class OSModel
       innermost_material.setSolarAbsorptance(0.0)
       innermost_material.setVisibleAbsorptance(0.0)
       next if adj_surface.nil?
+
       # Create new construction in case of shared construciton.
       layered_const_adj = OpenStudio::Model::Construction.new(model)
       layered_const_adj.setName(cond_bsmnt_surface.construction.get.name.get + ' Reversed Bsmnt')
@@ -1344,9 +1348,10 @@ class OSModel
 
     shading_group = nil
     shading_schedules = {}
+    shading_ems = { sensors: {}, program: nil }
 
     surfaces = []
-    @hpxml.windows.each do |window|
+    @hpxml.windows.each_with_index do |window, i|
       window_height = 4.0 # ft, default
 
       overhang_depth = nil
@@ -1393,7 +1398,8 @@ class OSModel
 
         # Apply interior/exterior shading (as needed)
         shading_vertices = Geometry.create_wall_vertices(window_length, window_height, z_origin, window.azimuth)
-        shading_group = Constructions.apply_window_skylight_shading(model, window, shading_vertices, surface, sub_surface, shading_group, shading_schedules, Constants.ObjectNameWindowShade, @cooling_season)
+        shading_group = Constructions.apply_window_skylight_shading(model, window, i, shading_vertices, surface, sub_surface, shading_group,
+                                                                    shading_schedules, shading_ems, Constants.ObjectNameWindowShade, @cooling_season)
       else
         # Window is on an interior surface, which E+ does not allow. Model
         # as a door instead so that we can get the appropriate conduction
@@ -1435,8 +1441,9 @@ class OSModel
 
     shading_group = nil
     shading_schedules = {}
+    shading_ems = { sensors: {}, program: nil }
 
-    @hpxml.skylights.each do |skylight|
+    @hpxml.skylights.each_with_index do |skylight, i|
       tilt = skylight.roof.pitch / 12.0
       width = Math::sqrt(skylight.area)
       length = skylight.area / width
@@ -1467,7 +1474,8 @@ class OSModel
 
       # Apply interior/exterior shading (as needed)
       shading_vertices = Geometry.create_roof_vertices(length, width, z_origin, skylight.azimuth, tilt)
-      shading_group = Constructions.apply_window_skylight_shading(model, skylight, shading_vertices, surface, sub_surface, shading_group, shading_schedules, Constants.ObjectNameSkylightShade, @cooling_season)
+      shading_group = Constructions.apply_window_skylight_shading(model, skylight, i, shading_vertices, surface, sub_surface, shading_group,
+                                                                  shading_schedules, shading_ems, Constants.ObjectNameSkylightShade, @cooling_season)
     end
 
     apply_adiabatic_construction(runner, model, surfaces, 'roof')

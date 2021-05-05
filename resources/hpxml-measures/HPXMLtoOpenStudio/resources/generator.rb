@@ -10,6 +10,7 @@ class Generator
     else
       # Apportion to single dwelling unit by # bedrooms
       fail if generator.number_of_bedrooms_served.to_f <= nbeds.to_f # EPvalidator.xml should prevent this
+
       annual_consumption_kbtu = generator.annual_consumption_kbtu * nbeds.to_f / generator.number_of_bedrooms_served.to_f
       annual_output_kwh = generator.annual_output_kwh * nbeds.to_f / generator.number_of_bedrooms_served.to_f
     end
