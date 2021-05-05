@@ -11,6 +11,7 @@ Features
 - Geo-temporal shifting of the stochastic load model schedules using the American Time Use Survey ([#550](https://github.com/NREL/resstock/pull/550))
 - Use Schedule:File with well pump / vehicle plug loads, as well as gas grill / fireplace / lighting fuel loads. This enables the optional vacancy period to apply to these end uses ([#566](https://github.com/NREL/resstock/pull/556))
 - Update example project yaml files to use buildstockbatch input schema version 0.3 ([#583](https://github.com/NREL/resstock/pull/583))
+- Update default daylight saving start and end dates to March 12 and November 5, respectively ([#585](https://github.com/NREL/resstock/pull/585))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
@@ -20,6 +21,7 @@ Fixes
 - Set all mini-split heat pump supplemental capacity to autosize ([#564](https://github.com/NREL/resstock/pull/564))
 - Reduce stochastic schedule generation runtime by over 50% ([#571](https://github.com/NREL/resstock/pull/571), [#577](https://github.com/NREL/resstock/pull/577))
 - Fixes the problem that `Heating Type=Void` is showing up in buildstock samples ([#568](https://github.com/NREL/resstock/pull/568))
+- Set AZ counties to NA daylight saving times instead of some AR counties ([#585](https://github.com/NREL/resstock/pull/585)) 
 
 ## ResStock v2.4.0
 
