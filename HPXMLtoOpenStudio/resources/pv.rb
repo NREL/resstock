@@ -9,6 +9,7 @@ class PV
     else
       # Apportion to single dwelling unit by # bedrooms
       fail if pv_system.number_of_bedrooms_served.to_f <= nbeds.to_f # EPvalidator.xml should prevent this
+
       max_power = pv_system.max_power_output * nbeds.to_f / pv_system.number_of_bedrooms_served.to_f
     end
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 start_time = Time.now
 
 require 'fileutils'
@@ -11,7 +13,7 @@ require_relative '../HPXMLtoOpenStudio/resources/version'
 basedir = File.expand_path(File.dirname(__FILE__))
 
 def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, add_comp_loads,
-                 output_format, building_id)
+                 output_format, building_id, ep_input_format)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
@@ -43,7 +45,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
   update_args_hash(measures, measure_subdir, args)
 
-  results = run_hpxml_workflow(rundir, measures, measures_dir, debug: debug)
+  results = run_hpxml_workflow(rundir, measures, measures_dir, debug: debug, ep_input_format: ep_input_format)
 
   return results[:success]
 end
@@ -94,6 +96,11 @@ OptionParser.new do |opts|
   options[:add_comp_loads] = false
   opts.on('--add-component-loads', 'Add heating/cooling component loads calculation') do |t|
     options[:add_comp_loads] = true
+  end
+
+  options[:ep_input_format] = 'idf'
+  opts.on('--ep-input-format TYPE', 'EnergyPlus input file format (idf, epjson)') do |t|
+    options[:ep_input_format] = t
   end
 
   opts.on('-b', '--building-id <ID>', 'ID of Building to simulate (required when multiple HPXML Building elements)') do |t|
@@ -179,7 +186,8 @@ rundir = File.join(options[:output_dir], 'run')
 # Run design
 puts "HPXML: #{options[:hpxml]}"
 success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
-                       options[:skip_validation], options[:add_comp_loads], options[:output_format], options[:building_id])
+                       options[:skip_validation], options[:add_comp_loads], options[:output_format], options[:building_id],
+                       options[:ep_input_format])
 
 if not success
   exit! 1

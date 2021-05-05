@@ -6,6 +6,7 @@ require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
+require_relative 'util.rb'
 
 class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
   def sample_files_dir
@@ -33,12 +34,9 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
 
     summer_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('June'), 1, model.yearDescription.get.assumedYear)
-    summer_length = 6 # 6 months for Denver
     winter_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('January'), 1, model.yearDescription.get.assumedYear)
-    winter_length = 12 - summer_length # months
 
     hpxml.windows.each do |window|
-      os_window = model.getSubSurfaces.select { |w| w.name.to_s == window.id }[0]
       sf_summer = window.interior_shading_factor_summer
       sf_winter = window.interior_shading_factor_winter
       sf_summer *= window.exterior_shading_factor_summer unless window.exterior_shading_factor_summer.nil?
@@ -56,10 +54,11 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
         assert_equal(sf_winter, winter_transmittance)
       end
 
-      # Check view factor for ground diffuse
-      default_view_factor = 0.5 # Default for vertical wall
-      view_factor = default_view_factor * (sf_summer * summer_length + sf_winter * winter_length) / 12.0
-      assert_in_delta(view_factor, os_window.viewFactortoGround.get, 0.001)
+      # Check subsurface view factor to ground
+      subsurface_view_factor = 0.5
+      window_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == window.id }[0]
+      program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'fixedwindow view factor to ground program')
+      assert_equal(subsurface_view_factor, program_values["#{window_actuator.name.to_s}"][0])
     end
   end
 
@@ -84,12 +83,9 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
 
     summer_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('June'), 1, model.yearDescription.get.assumedYear)
-    summer_length = 6 # 6 months for Denver
     winter_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('January'), 1, model.yearDescription.get.assumedYear)
-    winter_length = 12 - summer_length # months
 
     hpxml.skylights.each do |skylight|
-      os_window = model.getSubSurfaces.select { |w| w.name.to_s == skylight.id }[0]
       sf_summer = skylight.interior_shading_factor_summer
       sf_winter = skylight.interior_shading_factor_winter
       sf_summer *= skylight.exterior_shading_factor_summer unless skylight.exterior_shading_factor_summer.nil?
@@ -107,10 +103,11 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
         assert_equal(sf_winter, winter_transmittance)
       end
 
-      # Check view factor for ground diffuse
-      default_view_factor = 0.05 # Based on 6:12 pitch in HPXML
-      view_factor = default_view_factor * (sf_summer * summer_length + sf_winter * winter_length) / 12.0
-      assert_in_delta(view_factor, os_window.viewFactortoGround.get, 0.001)
+      # Check subsurface view factor to ground
+      subsurface_view_factor = 0.05 # 6:12 pitch
+      skylight_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == skylight.id }[0]
+      program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'skylight view factor to ground program')
+      assert_equal(subsurface_view_factor, program_values["#{skylight_actuator.name.to_s}"][0])
     end
   end
 
