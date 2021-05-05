@@ -1381,6 +1381,11 @@ class Airflow
 
     # Sensors
 
+    # Add a new sensor here for the outage schedule (otg_availability_schedule)
+    otg_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+    otg_sensor.setName("#{obj_name_infil} outage s")
+    otg_sensor.setKeyName(otg_sensor_name.to_s)
+
     nvavail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     nvavail_sensor.setName("#{obj_name_natvent} nva s")
     nvavail_sensor.setKeyName(avail_sch.name.to_s)
@@ -1415,7 +1420,7 @@ class Airflow
     nv_program.addLine("Set MRH = #{nat_vent.max_oa_rh}")
     nv_program.addLine("Set temp1 = (#{nvavail_sensor.name}*NVA)")
     nv_program.addLine("Set SGNV = temp1*((((Cs*dT)+(Cw*(#{vwind_sensor.name}^2)))^0.5)/1000)")
-    nv_program.addLine("If (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name})")
+    nv_program.addLine("If (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name}) || (#{otg_sensor.name} > 0 && #{tin_sensor.name} > #{tout_sensor.name}")
     nv_program.addLine("  Set temp2 = (#{tin_sensor.name}-#{nvsp_sensor.name})")
     nv_program.addLine("  Set NVadj1 = temp2/(#{tin_sensor.name}-#{tout_sensor.name})")
     nv_program.addLine("  Set NVadj2 = (@Min NVadj1 1)")
@@ -1972,6 +1977,7 @@ class Airflow
 
     # Sensors
 
+    
     range_array = [0.0] * 24
     range_array[mech_vent.range_exhaust_hour - 1] = 1.0
     range_hood_sch = HourlyByMonthSchedule.new(model, runner, obj_name_mech_vent + " range exhaust schedule", [range_array] * 12, [range_array] * 12, normalize_values = false, create_sch_object = true, winter_design_day_sch = winter_design_day_sch, summer_design_day_sch = summer_design_day_sch, schedule_type_limits_name = Constants.ScheduleTypeLimitsOnOff)
