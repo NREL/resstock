@@ -3,7 +3,8 @@
 require 'fileutils'
 
 def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars: [],
-                       output_meters: [], run_measures_only: false, print_prefix: '')
+                       output_meters: [], run_measures_only: false, print_prefix: '',
+                       ep_input_format: 'idf')
   rm_path(rundir)
   FileUtils.mkdir_p(rundir)
 
@@ -47,10 +48,10 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
     om.setReportingFrequency(output_meter[1])
   end
 
-  # Translate model to IDF
+  # Translate model to workspace
   forward_translator = OpenStudio::EnergyPlus::ForwardTranslator.new
   forward_translator.setExcludeLCCObjects(true)
-  model_idf = forward_translator.translateModel(model)
+  workspace = forward_translator.translateModel(model)
   success = report_ft_errors_warnings(forward_translator, rundir)
 
   if not success
@@ -60,16 +61,25 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
   end
 
   # Apply reporting measure output requests
-  apply_energyplus_output_requests(measures_dir, measures, runner, model, model_idf)
+  apply_energyplus_output_requests(measures_dir, measures, runner, model, workspace)
 
-  # Write IDF to file
-  File.open(File.join(rundir, 'in.idf'), 'w') { |f| f << model_idf.to_s }
+  # Write to file
+  if ep_input_format == 'idf'
+    ep_input_filename = 'in.idf'
+    File.open(File.join(rundir, ep_input_filename), 'w') { |f| f << workspace.to_s }
+  elsif ep_input_format == 'epjson'
+    ep_input_filename = 'in.epJSON'
+    json = OpenStudio::EPJSON::toJSONString(workspace.toIdfFile)
+    File.open(File.join(rundir, ep_input_filename), 'w') { |f| f << json.to_s }
+  else
+    fail "Unexpected ep_input_format: #{ep_input_format}."
+  end
 
   # Run simulation
   print "#{print_prefix}Running simulation...\n"
   ep_path = File.absolute_path(File.join(OpenStudio.getOpenStudioCLI.to_s, '..', '..', 'EnergyPlus', 'energyplus')) # getEnergyPlusDirectory can be unreliable, using getOpenStudioCLI instead
   simulation_start = Time.now
-  command = "\"#{ep_path}\" -w \"#{model.getWeatherFile.path.get}\" in.idf"
+  command = "\"#{ep_path}\" -w \"#{model.getWeatherFile.path.get}\" #{ep_input_filename}"
   if debug
     File.open(File.join(rundir, 'run.log'), 'a') do |f|
       f << "Executing command '#{command}' from working directory '#{rundir}'.\n"
@@ -159,7 +169,7 @@ def apply_measures(measures_dir, measures, runner, model, show_measure_calls = t
   return true
 end
 
-def apply_energyplus_output_requests(measures_dir, measures, runner, model, model_idf)
+def apply_energyplus_output_requests(measures_dir, measures, runner, model, workspace)
   # Call each measure in the specified order
   measures.keys.each do |measure_subdir|
     # Gather measure arguments and call measure
@@ -173,7 +183,7 @@ def apply_energyplus_output_requests(measures_dir, measures, runner, model, mode
       runner.setLastOpenStudioModel(model)
       idf_objects = measure.energyPlusOutputRequests(runner, argument_map)
       idf_objects.each do |idf_object|
-        model_idf.addObject(idf_object)
+        workspace.addObject(idf_object)
       end
     end
   end
@@ -433,6 +443,7 @@ def report_os_warnings(os_log, rundir)
       next if s.logMessage.include? 'WorkflowStepResult value called with undefined stepResult'
       next if s.logMessage.include?("Object of type 'Schedule:Constant' and named 'Always") && s.logMessage.include?('points to an object named') && s.logMessage.include?('but that object cannot be located')
       next if s.logMessage.include? 'Appears there are no design condition fields in the EPW file'
+      next if s.logMessage.include?('Using EnergyPlusVersion version') && s.logMessage.include?("which should have 'Year' field, but it's always zero")
 
       f << "OS Message: #{s.logMessage}\n"
     end
