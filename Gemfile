@@ -8,4 +8,6 @@ group :test do
   gem 'rake'
   gem 'minitest', '~> 5.9'
   gem 'minitest-reporters'
+  gem 'simplecov'
+  gem 'simplecov-html'
 end
