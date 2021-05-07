@@ -49,12 +49,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args << arg
     end
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_television_usage_multiplier_2', true)
-    arg.setDisplayName('Plug Loads: Television Usage Multiplier 2')
-    arg.setDefaultValue(1.0)
-    arg.setDescription('Additional multiplier on the television energy usage that can reflect, e.g., high/low usage occupants.')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_usage_multiplier_2', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
@@ -240,11 +234,81 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
+    # Num Occupants
+    if args['geometry_num_occupants'] == Constants.Auto
+      args['geometry_num_occupants'] = Geometry.get_occupancy_default_num(args['geometry_num_bedrooms'])
+    else
+      args['geometry_num_occupants'] = Integer(args['geometry_num_occupants'])
+    end
+
     # Plug Loads
-    args['plug_loads_television_usage_multiplier'] *= args['plug_loads_television_usage_multiplier_2']
+    args['plug_loads_television_annual_kwh'] = 0.0 # "other" now accounts for television
+    args['plug_loads_television_usage_multiplier'] = 0.0 # "other" now accounts for television
     args['plug_loads_other_usage_multiplier'] *= args['plug_loads_other_usage_multiplier_2']
     args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
     args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
+
+    if args['plug_loads_other_annual_kwh'] == Constants.Auto
+      if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
+        args['plug_loads_other_annual_kwh'] = 1146.95 + 296.94 * args['geometry_num_occupants'] + 0.3 * args['geometry_cfa'] # RECS 2015
+      elsif [HPXML::ResidentialTypeSFA].include?(args['geometry_unit_type'])
+        args['plug_loads_other_annual_kwh'] = 1395.84 + 136.53 * args['geometry_num_occupants'] + 0.16 * args['geometry_cfa'] # RECS 2015
+      elsif [HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
+        args['plug_loads_other_annual_kwh'] = 875.22 + 184.11 * args['geometry_num_occupants'] + 0.38 * args['geometry_cfa'] # RECS 2015
+      end
+    end
+
+    # Misc LULs
+    constant = 1.0 / 2
+    nbr_coef = 1.0 / 4 / 3
+    ffa_coef = 1.0 / 4 / 1920
+
+    ['plug_loads_well_pump_annual_kwh',
+     'fuel_loads_grill_annual_therm',
+     'fuel_loads_lighting_annual_therm',
+     'fuel_loads_fireplace_annual_therm',
+     'pool_pump_annual_kwh',
+     'pool_heater_annual_kwh',
+     'pool_heater_annual_therm',
+     'hot_tub_pump_annual_kwh',
+     'hot_tub_heater_annual_kwh',
+     'hot_tub_heater_annual_therm'].each do |annual_energy|
+      next if args[annual_energy] != Constants.Auto
+
+      if annual_energy == 'plug_loads_well_pump_annual_kwh'
+        args[annual_energy] = 50.8 / 0.127
+      elsif annual_energy == 'fuel_loads_grill_annual_therm'
+        args[annual_energy] = 0.87 / 0.029
+      elsif annual_energy == 'fuel_loads_lighting_annual_therm'
+        args[annual_energy] = 0.22 / 0.012
+      elsif annual_energy == 'fuel_loads_fireplace_annual_therm'
+        args[annual_energy] = 1.95 / 0.032
+      elsif annual_energy == 'pool_pump_annual_kwh'
+        args[annual_energy] = 158.6 / 0.070
+      elsif annual_energy == 'pool_heater_annual_kwh'
+        args[annual_energy] = 8.3 / 0.004
+      elsif annual_energy == 'pool_heater_annual_therm'
+        args[annual_energy] = 3.0 / 0.014
+      elsif annual_energy == 'hot_tub_pump_annual_kwh'
+        args[annual_energy] = 59.5 / 0.059
+      elsif annual_energy == 'hot_tub_heater_annual_kwh'
+        args[annual_energy] = 49.0 / 0.048
+      elsif annual_energy == 'hot_tub_heater_annual_therm'
+        args[annual_energy] = 0.87 / 0.011
+      end
+
+      if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
+        args[annual_energy] *= (constant + nbr_coef * (-1.47 + 1.69 * args['geometry_num_occupants']) + ffa_coef * args['geometry_cfa'])
+      elsif [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
+        args[annual_energy] *= (constant + nbr_coef * (-0.68 + 1.09 * args['geometry_num_occupants']) + ffa_coef * args['geometry_cfa'])
+      end
+
+      if annual_energy == 'pool_heater_annual_kwh' && args['pool_heater_type'] == HPXML::HeaterTypeHeatPump
+        args[annual_energy] /= 5.0
+      elsif annual_energy == 'hot_tub_heater_annual_kwh' && args['hot_tub_heater_type'] == HPXML::HeaterTypeHeatPump
+        args[annual_energy] /= 5.0
+      end
+    end
 
     # Setpoints
     weekday_heating_setpoints = [args['setpoint_heating_weekday_temp']] * 24

@@ -7,8 +7,7 @@ group :test do
   gem 'oga'
   gem 'rake'
   gem 'minitest', '~> 5.9'
-  gem 'ci_reporter_minitest', '~> 1.0.0'
-  gem 'simplecov'
-  gem 'codecov'
   gem 'minitest-reporters'
+  gem 'simplecov'
+  gem 'simplecov-html'
 end

@@ -3,12 +3,11 @@
 require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
-require 'minitest/autorun'
 require 'fileutils'
 require_relative '../measure.rb'
 
 class HPXMLtoOpenStudioValidationTest < MiniTest::Test
-  def before_setup
+  def setup
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
 
     # load the Schematron xml
@@ -184,7 +183,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
   def _test_schematron_validation(hpxml_doc, expected_error_msg = nil)
     # Validate via validator.rb
-    errors, warnings = Validator.run_validators(hpxml_doc, [@stron_path])
+    errors, warnings = Validator.run_validators(hpxml_doc, [@stron_path], include_id: false)
     idx_of_msg = errors.index { |i| i == expected_error_msg }
     if expected_error_msg.nil?
       assert_nil(idx_of_msg)

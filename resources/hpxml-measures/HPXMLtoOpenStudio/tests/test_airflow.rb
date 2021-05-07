@@ -3,40 +3,14 @@
 require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
-require 'minitest/autorun'
 require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
+require_relative 'util.rb'
 
 class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def sample_files_dir
     return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
-  end
-
-  def get_ems_values(ems_objects, name)
-    values = {}
-    ems_objects.each do |ems_object|
-      next unless ems_object.name.to_s.include? name.gsub(' ', '_')
-
-      ems_object.lines.each do |line|
-        next unless line.downcase.start_with? 'set'
-
-        lhs, rhs = line.split('=')
-        lhs = lhs.gsub('Set', '').gsub('set', '').strip
-        rhs = rhs.gsub(',', '').gsub(';', '').strip
-        values[lhs] = [] if values[lhs].nil?
-        # eg. "Q = Q + 1.5"
-        if rhs.include? '+'
-          rhs_els = rhs.split('+')
-          rhs = rhs_els.map { |s| s.to_f }.sum(0.0)
-        else
-          rhs = rhs.to_f
-        end
-        values[lhs] << rhs
-      end
-    end
-    assert_operator(values.size, :>, 0)
-    return values
   end
 
   def get_eed_for_ventilation(model, ee_name)
@@ -127,7 +101,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
-    assert_in_epsilon(0.3028, program_values['c'].sum, 0.01)
+    assert_in_epsilon(0.0904, program_values['c'].sum, 0.01)
     assert_in_epsilon(0.0573, program_values['Cs'].sum, 0.01)
     assert_in_epsilon(0.1446, program_values['Cw'].sum, 0.01)
   end

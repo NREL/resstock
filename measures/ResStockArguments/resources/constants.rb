@@ -15,6 +15,8 @@ class Constants
             'cooling_system_airflow_defect_ratio',
             'cooling_system_charge_defect_ratio',
             'heat_pump_airflow_defect_ratio',
-            'heat_pump_charge_defect_ratio']
+            'heat_pump_charge_defect_ratio',
+            'plug_loads_television_annual_kwh',
+            'plug_loads_television_usage_multiplier']
   end
 end

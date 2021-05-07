@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../../HPXMLtoOpenStudio/resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -132,7 +131,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'multifamily-no-building-orientation.osw' => 'geometry_unit_type=apartment unit and geometry_building_num_units=false and geometry_level=false and geometry_horizontal_location=false',
       'dhw-indirect-without-boiler.osw' => 'water_heater_type=space-heating boiler with storage tank and heating_system_type=Furnace',
       'foundation-wall-insulation-greater-than-height.osw' => 'foundation_wall_insulation_distance_to_bottom=6.0 and geometry_foundation_height=4.0',
-      'conditioned-attic-with-one-floor-above-grade.osw' => 'geometry_num_floors_above_grade=1 and geometry_attic_type=ConditionedAttic'
+      'conditioned-attic-with-one-floor-above-grade.osw' => 'geometry_num_floors_above_grade=1 and geometry_attic_type=ConditionedAttic',
+      'zero-number-of-bedrooms.osw' => 'geometry_num_bedrooms=0',
+      'single-family-detached-with-shared-system.osw' => 'geometry_unit_type=single-family detached and heating_system_type=Shared Boiler w/ Baseboard'
     }
 
     measures = {}
@@ -151,7 +152,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         success = apply_measures(measures_dir, measures, runner, model)
 
         # Report warnings/errors
-        assert(runner.result.stepWarnings.length > 1 || runner.result.stepErrors.length > 0)
+        if Gem::Specification::find_all_by_name('nokogiri').any?
+          assert(runner.result.stepWarnings.length > 0 || runner.result.stepErrors.length > 0)
+        else
+          assert(runner.result.stepWarnings.length > 1 || runner.result.stepErrors.length > 0)
+        end
         runner.result.stepWarnings.each do |s|
           next if s.include? 'nokogiri'
 
@@ -262,6 +267,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         heating_system.electric_auxiliary_energy = nil # Detailed input not offered
         heating_system.fan_watts = nil # Detailed input not offered
         heating_system.fan_watts_per_cfm = nil # Detailed input not offered
+        heating_system.shared_loop_watts = nil # Always defaulted
+        heating_system.fan_coil_watts = nil # Always defaulted
       end
       hpxml.cooling_systems.each do |cooling_system|
         cooling_system.fan_watts_per_cfm = nil # Detailed input not offered

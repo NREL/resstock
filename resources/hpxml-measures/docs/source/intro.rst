@@ -47,6 +47,7 @@ There are additional ways that software developers using this workflow can reduc
 - Run on Linux/Mac platform, which is significantly faster than Windows.
 - Run on computing environments with 1) fast CPUs, 2) sufficient memory, and 3) enough processors to allow all simulations to run in parallel.
 - Limit requests for timeseries output (e.g., ``--hourly``, ``--daily``, ``--timestep`` arguments) and limit the number of output variables requested.
+- Avoid using the ``--add-component-loads`` argument if heating/cooling component loads are not of interest.
 - Use the ``--skip-validation`` argument if the HPXML input file has already been validated against the Schema & Schematron documents.
 
 License

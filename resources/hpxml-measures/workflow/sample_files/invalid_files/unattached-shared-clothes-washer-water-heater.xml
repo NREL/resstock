@@ -196,7 +196,7 @@
                 <Furnace/>
               </HeatingSystemType>
               <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>64000.0</HeatingCapacity>
+              <HeatingCapacity>12000.0</HeatingCapacity>
               <AnnualHeatingEfficiency>
                 <Units>AFUE</Units>
                 <Value>0.92</Value>
@@ -208,7 +208,7 @@
               <DistributionSystem idref='HVACDistribution'/>
               <CoolingSystemType>central air conditioner</CoolingSystemType>
               <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>48000.0</CoolingCapacity>
+              <CoolingCapacity>12000.0</CoolingCapacity>
               <CompressorType>single stage</CompressorType>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
@@ -228,6 +228,7 @@
             <SystemIdentifier id='HVACDistribution'/>
             <DistributionSystemType>
               <AirDistribution>
+                <AirDistributionType>regular velocity</AirDistributionType>
                 <DuctLeakageMeasurement>
                   <DuctType>supply</DuctType>
                   <DuctLeakage>
@@ -264,27 +265,17 @@
         </HVAC>
         <WaterHeating>
           <WaterHeatingSystem>
-            <SystemIdentifier id='WaterHeater'/>
-            <FuelType>electricity</FuelType>
+            <SystemIdentifier id='SharedWaterHeater'/>
+            <FuelType>natural gas</FuelType>
             <WaterHeaterType>storage water heater</WaterHeaterType>
             <Location>living space</Location>
-            <TankVolume>40.0</TankVolume>
-            <FractionDHWLoadServed>1.0</FractionDHWLoadServed>
-            <HeatingCapacity>18767.0</HeatingCapacity>
-            <EnergyFactor>0.95</EnergyFactor>
-            <HotWaterTemperature>125.0</HotWaterTemperature>
-          </WaterHeatingSystem>
-          <WaterHeatingSystem>
-            <SystemIdentifier id='SharedWaterHeater'/>
-            <FuelType>electricity</FuelType>
-            <WaterHeaterType>storage water heater</WaterHeaterType>
-            <Location>other heated space</Location>
             <IsSharedSystem>true</IsSharedSystem>
             <NumberofUnitsServed>6</NumberofUnitsServed>
-            <TankVolume>40.0</TankVolume>
-            <FractionDHWLoadServed>0.0</FractionDHWLoadServed>
-            <HeatingCapacity>18767.0</HeatingCapacity>
-            <EnergyFactor>0.95</EnergyFactor>
+            <TankVolume>120.0</TankVolume>
+            <FractionDHWLoadServed>1.0</FractionDHWLoadServed>
+            <HeatingCapacity>40000.0</HeatingCapacity>
+            <EnergyFactor>0.59</EnergyFactor>
+            <RecoveryEfficiency>0.76</RecoveryEfficiency>
             <HotWaterTemperature>125.0</HotWaterTemperature>
           </WaterHeatingSystem>
           <HotWaterDistribution>
@@ -330,10 +321,8 @@
           <Location>other heated space</Location>
           <FuelType>electricity</FuelType>
           <CombinedEnergyFactor>3.73</CombinedEnergyFactor>
-          <extension>
-            <IsVented>true</IsVented>
-            <VentedFlowRate>150.0</VentedFlowRate>
-          </extension>
+          <Vented>true</Vented>
+          <VentedFlowRate>150.0</VentedFlowRate>
         </ClothesDryer>
         <Dishwasher>
           <SystemIdentifier id='SharedDishwasher'/>

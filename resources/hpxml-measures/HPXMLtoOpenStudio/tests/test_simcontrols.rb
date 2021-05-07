@@ -3,7 +3,6 @@
 require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
-require 'minitest/autorun'
 require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'

@@ -1169,6 +1169,68 @@ class Constructions
     constr.create_and_assign_constructions(runner, [subsurface], model)
   end
 
+  def self.apply_window_skylight_shading(model, window_or_skylight, index, shading_vertices, parent_surface, sub_surface, shading_group,
+                                         shading_schedules, shading_ems, name, cooling_season)
+    sf_summer = window_or_skylight.interior_shading_factor_summer * window_or_skylight.exterior_shading_factor_summer
+    sf_winter = window_or_skylight.interior_shading_factor_winter * window_or_skylight.exterior_shading_factor_winter
+    if (sf_summer < 1.0) || (sf_winter < 1.0)
+      # Apply shading
+      # We use a ShadingSurface instead of a Shade so that we perfectly get the result we want.
+      # The latter object is complex and it is essentially impossible to achieve the target reduction in transmitted
+      # solar (due to, e.g., re-reflectance, absorptance, angle modifiers, effects on convection, etc.).
+
+      # Shading surface is used to reduce beam solar and sky diffuse solar
+      shading_surface = OpenStudio::Model::ShadingSurface.new(shading_vertices, model)
+      shading_surface.setName("#{window_or_skylight.id} shading surface")
+      shading_surface.additionalProperties.setFeature('Azimuth', window_or_skylight.azimuth)
+      shading_surface.additionalProperties.setFeature('ParentSurface', parent_surface.name.to_s)
+
+      # Create transmittance schedule for heating/cooling seasons
+      trans_values = cooling_season.map { |c| c == 1 ? sf_summer : sf_winter }
+      if shading_schedules[trans_values].nil?
+        trans_sch = MonthWeekdayWeekendSchedule.new(model, "trans schedule winter=#{sf_winter} summer=#{sf_summer}", Array.new(24, 1), Array.new(24, 1), trans_values, Constants.ScheduleTypeLimitsFraction, false)
+        shading_schedules[trans_values] = trans_sch
+      end
+      shading_surface.setTransmittanceSchedule(shading_schedules[trans_values].schedule)
+
+      # EMS to actuate view factor to ground
+      sub_surface_type = sub_surface.subSurfaceType.downcase.to_s
+      actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(sub_surface, *EPlus::EMSActuatorSurfaceViewFactorToGround)
+      actuator.setName("#{sub_surface_type}#{index}_actuator")
+
+      if shading_ems[:sensors][trans_values].nil?
+        shading_schedule_name = shading_schedules[trans_values].schedule.name.to_s
+        shading_coeff_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        shading_coeff_sensor.setName("#{sub_surface_type}_shading_coefficient")
+        shading_coeff_sensor.setKeyName(shading_schedule_name)
+        shading_ems[:sensors][trans_values] = shading_coeff_sensor
+      end
+
+      default_vf_to_ground = ((1.0 - Math::cos(sub_surface.tilt)) / 2.0).round(2)
+      shading_coeff = shading_ems[:sensors][trans_values].name
+      if shading_ems[:program].nil?
+        program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+        program.setName("#{sub_surface_type}_view_factor_to_ground_program")
+        program.addLine("Set #{actuator.name} = #{default_vf_to_ground}*#{shading_coeff}")
+        shading_ems[:program] = program
+
+        program_cm = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+        program_cm.setName("#{program.name} calling manager")
+        program_cm.setCallingPoint('BeginZoneTimestepAfterInitHeatBalance') # https://github.com/NREL/EnergyPlus/pull/8477#discussion_r567320478
+        program_cm.addProgram(program)
+      else
+        shading_ems[:program].addLine("Set #{actuator.name} = #{default_vf_to_ground}*#{shading_coeff}")
+      end
+
+      if shading_group.nil?
+        shading_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
+        shading_group.setName(name)
+      end
+      shading_surface.setShadingSurfaceGroup(shading_group)
+    end
+    return shading_group
+  end
+
   def self.calc_non_cavity_r(film_r, constr_set)
     # Calculate R-value for all non-cavity layers
     non_cavity_r = film_r

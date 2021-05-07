@@ -60,6 +60,7 @@ class HVAC
     if (not cooling_system.nil?) && (not heating_system.nil?) && (cooling_system.fan_watts_per_cfm.to_f != heating_system.fan_watts_per_cfm.to_f)
       fail "Fan powers for heating system '#{heating_system.id}' and cooling system '#{cooling_system.id}' are attached to a single distribution system and therefore must be the same."
     end
+
     if (not cooling_system.nil?) && (not cooling_system.fan_watts_per_cfm.nil?)
       fan_watts_per_cfm = cooling_system.fan_watts_per_cfm
     else
@@ -413,25 +414,12 @@ class HVAC
     end
 
     # Cooling Coil
-    clg_coil = OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit.new(model)
+    clg_total_cap_curve = create_curve_quad_linear(model, hp_ap.cool_cap_ft_spec[0], obj_name + ' clg total cap curve')
+    clg_sens_cap_curve = create_curve_quint_linear(model, hp_ap.cool_sh_ft_spec[0], obj_name + ' clg sens cap curve')
+    clg_power_curve = create_curve_quad_linear(model, hp_ap.cool_power_ft_spec[0], obj_name + ' clg power curve')
+    clg_coil = OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit.new(model, clg_total_cap_curve, clg_sens_cap_curve, clg_power_curve)
     clg_coil.setName(obj_name + ' clg coil')
     clg_coil.setRatedCoolingCoefficientofPerformance(1.0 / hp_ap.cool_rated_eirs[0])
-    clg_coil.setTotalCoolingCapacityCoefficient1(hp_ap.cool_cap_ft_spec[0][0])
-    clg_coil.setTotalCoolingCapacityCoefficient2(hp_ap.cool_cap_ft_spec[0][1])
-    clg_coil.setTotalCoolingCapacityCoefficient3(hp_ap.cool_cap_ft_spec[0][2])
-    clg_coil.setTotalCoolingCapacityCoefficient4(hp_ap.cool_cap_ft_spec[0][3])
-    clg_coil.setTotalCoolingCapacityCoefficient5(hp_ap.cool_cap_ft_spec[0][4])
-    clg_coil.setSensibleCoolingCapacityCoefficient1(hp_ap.cool_sh_ft_spec[0][0])
-    clg_coil.setSensibleCoolingCapacityCoefficient2(hp_ap.cool_sh_ft_spec[0][1])
-    clg_coil.setSensibleCoolingCapacityCoefficient3(hp_ap.cool_sh_ft_spec[0][2])
-    clg_coil.setSensibleCoolingCapacityCoefficient4(hp_ap.cool_sh_ft_spec[0][3])
-    clg_coil.setSensibleCoolingCapacityCoefficient5(hp_ap.cool_sh_ft_spec[0][4])
-    clg_coil.setSensibleCoolingCapacityCoefficient6(hp_ap.cool_sh_ft_spec[0][5])
-    clg_coil.setCoolingPowerConsumptionCoefficient1(hp_ap.cool_power_ft_spec[0][0])
-    clg_coil.setCoolingPowerConsumptionCoefficient2(hp_ap.cool_power_ft_spec[0][1])
-    clg_coil.setCoolingPowerConsumptionCoefficient3(hp_ap.cool_power_ft_spec[0][2])
-    clg_coil.setCoolingPowerConsumptionCoefficient4(hp_ap.cool_power_ft_spec[0][3])
-    clg_coil.setCoolingPowerConsumptionCoefficient5(hp_ap.cool_power_ft_spec[0][4])
     clg_coil.setNominalTimeforCondensateRemovaltoBegin(1000)
     clg_coil.setRatioofInitialMoistureEvaporationRateandSteadyStateLatentCapacity(1.5)
     clg_coil.setRatedAirFlowRate(UnitConversions.convert(clg_cfm, 'cfm', 'm^3/s'))
@@ -441,19 +429,11 @@ class HVAC
     hvac_map[heat_pump.id] << clg_coil
 
     # Heating Coil
-    htg_coil = OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit.new(model)
+    htg_cap_curve = create_curve_quad_linear(model, hp_ap.heat_cap_ft_spec[0], obj_name + ' htg cap curve')
+    htg_power_curve = create_curve_quad_linear(model, hp_ap.heat_power_ft_spec[0], obj_name + ' htg power curve')
+    htg_coil = OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit.new(model, htg_cap_curve, htg_power_curve)
     htg_coil.setName(obj_name + ' htg coil')
     htg_coil.setRatedHeatingCoefficientofPerformance(1.0 / hp_ap.heat_rated_eirs[0])
-    htg_coil.setHeatingCapacityCoefficient1(hp_ap.heat_cap_ft_spec[0][0])
-    htg_coil.setHeatingCapacityCoefficient2(hp_ap.heat_cap_ft_spec[0][1])
-    htg_coil.setHeatingCapacityCoefficient3(hp_ap.heat_cap_ft_spec[0][2])
-    htg_coil.setHeatingCapacityCoefficient4(hp_ap.heat_cap_ft_spec[0][3])
-    htg_coil.setHeatingCapacityCoefficient5(hp_ap.heat_cap_ft_spec[0][4])
-    htg_coil.setHeatingPowerConsumptionCoefficient1(hp_ap.heat_power_ft_spec[0][0])
-    htg_coil.setHeatingPowerConsumptionCoefficient2(hp_ap.heat_power_ft_spec[0][1])
-    htg_coil.setHeatingPowerConsumptionCoefficient3(hp_ap.heat_power_ft_spec[0][2])
-    htg_coil.setHeatingPowerConsumptionCoefficient4(hp_ap.heat_power_ft_spec[0][3])
-    htg_coil.setHeatingPowerConsumptionCoefficient5(hp_ap.heat_power_ft_spec[0][4])
     htg_coil.setRatedAirFlowRate(UnitConversions.convert(htg_cfm, 'cfm', 'm^3/s'))
     htg_coil.setRatedWaterFlowRate(UnitConversions.convert(hp_ap.GSHP_Loop_flow, 'gal/min', 'm^3/s'))
     htg_coil.setRatedHeatingCapacity(UnitConversions.convert(heat_pump.heating_capacity, 'Btu/hr', 'W'))
@@ -629,7 +609,7 @@ class HVAC
     hvac_map[heat_pump.id] << htg_supp_coil
 
     # Fan
-    fan_power_installed = 0.5 # FIXME
+    fan_power_installed = 0.0 # Use provided net COP
     fan = create_supply_fan(model, obj_name, 1, fan_power_installed, htg_cfm)
     hvac_map[heat_pump.id] += disaggregate_fan_or_pump(model, fan, htg_coil, clg_coil, htg_supp_coil)
 
@@ -1307,11 +1287,12 @@ class HVAC
   def self.set_cool_curves_room_ac(cooling_system)
     clg_ap = cooling_system.additional_properties
 
-    # From Frigidaire 10.7 EER unit in Winkler et. al. Lab Testing of Window ACs (2013)
-    clg_ap.cool_cap_ft_spec = [[0.43945980246913574, -0.0008922469135802481, 0.00013984567901234569, 0.0038489259259259253, -5.6327160493827156e-05, 2.041358024691358e-05]]
-    clg_ap.cool_eir_ft_spec = [[6.310506172839506, -0.17705185185185185, 0.0014645061728395061, 0.012571604938271608, 0.0001493827160493827, -0.00040308641975308644]]
-    clg_ap.cool_cap_fflow_spec = [[0.887, 0.1128, 0]]
-    clg_ap.cool_eir_fflow_spec = [[1.763, -0.6081, 0]]
+    # From "Improved Modeling of Residential Air Conditioners and Heat Pumps for Energy Calculations", Cutler at al
+    # https://www.nrel.gov/docs/fy13osti/56354.pdf
+    clg_ap.cool_cap_ft_spec = [[3.68637657, -0.098352478, 0.000956357, 0.005838141, -0.0000127, -0.000131702]]
+    clg_ap.cool_eir_ft_spec = [[-3.437356399, 0.136656369, -0.001049231, -0.0079378, 0.000185435, -0.0001441]]
+    clg_ap.cool_cap_fflow_spec = [[1, 0, 0]]
+    clg_ap.cool_eir_fflow_spec = [[1, 0, 0]]
   end
 
   def self.set_cool_curves_mshp(heat_pump, num_speeds)
@@ -1851,41 +1832,28 @@ class HVAC
       distribution_system = heating_system.distribution_system
       distribution_type = distribution_system.distribution_system_type
 
-      if distribution_type == HPXML::HVACDistributionTypeHydronic
-        if distribution_system.hydronic_type == HPXML::HydronicTypeWaterLoop
-          # Shared boiler w/ WLHP
-          if heating_system.shared_loop_watts.nil?
-            return 265.0 # kWh/yr, per ANSI/RESNET/ICC 301-2019 Table 4.5.2(5)
-          else
-            sp_kw = UnitConversions.convert(heating_system.shared_loop_watts, 'W', 'kW')
-            n_dweq = heating_system.number_of_units_served.to_f
-            aux_in = 0.0 # ANSI/RESNET/ICC 301-2019 Section 4.4.7.2
-          end
+      if not heating_system.shared_loop_watts.nil?
+        sp_kw = UnitConversions.convert(heating_system.shared_loop_watts, 'W', 'kW')
+        n_dweq = heating_system.number_of_units_served.to_f
+        if distribution_system.air_type == HPXML::AirTypeFanCoil
+          aux_in = UnitConversions.convert(heating_system.fan_coil_watts, 'W', 'kW')
         else
-          # Shared boiler w/ baseboard/radiators/etc
-          if heating_system.shared_loop_watts.nil?
-            return 220.0 # kWh/yr, per ANSI/RESNET/ICC 301-2019 Table 4.5.2(5)
-          else
-            sp_kw = UnitConversions.convert(heating_system.shared_loop_watts, 'W', 'kW')
-            n_dweq = heating_system.number_of_units_served.to_f
-            aux_in = 0.0
-          end
+          aux_in = 0.0 # ANSI/RESNET/ICC 301-2019 Section 4.4.7.2
+        end
+        # ANSI/RESNET/ICC 301-2019 Equation 4.4-5
+        return (((sp_kw / n_dweq) + aux_in) * 2080.0).round(2) # kWh/yr
+      elsif distribution_type == HPXML::HVACDistributionTypeHydronic
+        # kWh/yr, per ANSI/RESNET/ICC 301-2019 Table 4.5.2(5)
+        if distribution_system.hydronic_type == HPXML::HydronicTypeWaterLoop # Shared boiler w/ WLHP
+          return 265.0
+        else # Shared boiler w/ baseboard/radiators/etc
+          return 220.0
         end
       elsif distribution_type == HPXML::HVACDistributionTypeAir
-        if distribution_system.air_type == HPXML::AirTypeFanCoil
-          # Shared boiler w/ fan coil
-          if heating_system.shared_loop_watts.nil? || heating_system.fan_coil_watts.nil?
-            return 438.0 # kWh/yr, per ANSI/RESNET/ICC 301-2019 Table 4.5.2(5)
-          else
-            sp_kw = UnitConversions.convert(heating_system.shared_loop_watts, 'W', 'kW')
-            n_dweq = heating_system.number_of_units_served.to_f
-            aux_in = UnitConversions.convert(heating_system.fan_coil_watts, 'W', 'kW')
-          end
+        if distribution_system.air_type == HPXML::AirTypeFanCoil # Shared boiler w/ fan coil
+          return 438.0
         end
       end
-
-      # ANSI/RESNET/ICC 301-2019 Equation 4.4-5
-      return ((sp_kw / n_dweq) + aux_in) * 2080.0 # kWh/yr
 
     else # In-unit boilers
 
@@ -2765,19 +2733,19 @@ class HVAC
   end
 
   def self.create_curve_biquadratic_constant(model)
-    const_biquadratic = OpenStudio::Model::CurveBiquadratic.new(model)
-    const_biquadratic.setName('ConstantBiquadratic')
-    const_biquadratic.setCoefficient1Constant(1)
-    const_biquadratic.setCoefficient2x(0)
-    const_biquadratic.setCoefficient3xPOW2(0)
-    const_biquadratic.setCoefficient4y(0)
-    const_biquadratic.setCoefficient5yPOW2(0)
-    const_biquadratic.setCoefficient6xTIMESY(0)
-    const_biquadratic.setMinimumValueofx(-100)
-    const_biquadratic.setMaximumValueofx(100)
-    const_biquadratic.setMinimumValueofy(-100)
-    const_biquadratic.setMaximumValueofy(100)
-    return const_biquadratic
+    curve = OpenStudio::Model::CurveBiquadratic.new(model)
+    curve.setName('ConstantBiquadratic')
+    curve.setCoefficient1Constant(1)
+    curve.setCoefficient2x(0)
+    curve.setCoefficient3xPOW2(0)
+    curve.setCoefficient4y(0)
+    curve.setCoefficient5yPOW2(0)
+    curve.setCoefficient6xTIMESY(0)
+    curve.setMinimumValueofx(-100)
+    curve.setMaximumValueofx(100)
+    curve.setMinimumValueofy(-100)
+    curve.setMaximumValueofy(100)
+    return curve
   end
 
   def self.create_curve_quadratic_constant(model)
@@ -2794,15 +2762,15 @@ class HVAC
   end
 
   def self.create_curve_cubic_constant(model)
-    constant_cubic = OpenStudio::Model::CurveCubic.new(model)
-    constant_cubic.setName('ConstantCubic')
-    constant_cubic.setCoefficient1Constant(1)
-    constant_cubic.setCoefficient2x(0)
-    constant_cubic.setCoefficient3xPOW2(0)
-    constant_cubic.setCoefficient4xPOW3(0)
-    constant_cubic.setMinimumValueofx(-100)
-    constant_cubic.setMaximumValueofx(100)
-    return constant_cubic
+    curve = OpenStudio::Model::CurveCubic.new(model)
+    curve.setName('ConstantCubic')
+    curve.setCoefficient1Constant(1)
+    curve.setCoefficient2x(0)
+    curve.setCoefficient3xPOW2(0)
+    curve.setCoefficient4xPOW3(0)
+    curve.setMinimumValueofx(-100)
+    curve.setMaximumValueofx(100)
+    return curve
   end
 
   def self.convert_curve_biquadratic(coeff, ip_to_si = true)
@@ -2908,6 +2876,29 @@ class HVAC
     curve.setCoefficient3Constant(coeff[2])
     curve.setMinimumValueofx(min_x)
     curve.setMaximumValueofx(max_x)
+    return curve
+  end
+
+  def self.create_curve_quad_linear(model, coeff, name)
+    curve = OpenStudio::Model::CurveQuadLinear.new(model)
+    curve.setName(name)
+    curve.setCoefficient1Constant(coeff[0])
+    curve.setCoefficient2w(coeff[1])
+    curve.setCoefficient3x(coeff[2])
+    curve.setCoefficient4y(coeff[3])
+    curve.setCoefficient5z(coeff[4])
+    return curve
+  end
+
+  def self.create_curve_quint_linear(model, coeff, name)
+    curve = OpenStudio::Model::CurveQuintLinear.new(model)
+    curve.setName(name)
+    curve.setCoefficient1Constant(coeff[0])
+    curve.setCoefficient2v(coeff[1])
+    curve.setCoefficient3w(coeff[2])
+    curve.setCoefficient4x(coeff[3])
+    curve.setCoefficient5y(coeff[4])
+    curve.setCoefficient6z(coeff[5])
     return curve
   end
 
@@ -4000,7 +3991,7 @@ class HVAC
     # Remove any orphaned HVAC distributions
     hpxml.hvac_distributions.each do |hvac_distribution|
       hvac_systems = []
-      (hpxml.heating_systems + hpxml.cooling_systems + hpxml.heat_pumps).each do |hvac_system|
+      hpxml.hvac_systems.each do |hvac_system|
         next if hvac_system.distribution_system_idref.nil?
         next unless hvac_system.distribution_system_idref == hvac_distribution.id
 
@@ -4063,12 +4054,19 @@ class HVAC
         fail "Unexpected cooling system type '#{cooling_system.cooling_system_type}'."
       end
 
+      if seer_eq <= 0
+        fail "Negative SEER equivalent calculated for cooling system '#{cooling_system.id}', double check inputs."
+      end
+
       cooling_system.cooling_system_type = HPXML::HVACTypeCentralAirConditioner
-      cooling_system.cooling_efficiency_seer = seer_eq
+      cooling_system.cooling_efficiency_seer = seer_eq.round(2)
       cooling_system.cooling_efficiency_kw_per_ton = nil
       cooling_system.cooling_capacity = nil # Autosize the equipment
       cooling_system.is_shared_system = false
       cooling_system.number_of_units_served = nil
+      cooling_system.shared_loop_watts = nil
+      cooling_system.shared_loop_motor_efficiency = nil
+      cooling_system.fan_coil_watts = nil
 
       # Assign new distribution system to air conditioner
       if distribution_type == HPXML::HVACDistributionTypeHydronic
@@ -4084,6 +4082,29 @@ class HVAC
                                        annual_cooling_dse: 1.0,
                                        annual_heating_dse: 1.0)
           cooling_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
+        end
+      elsif (distribution_type == HPXML::HVACDistributionTypeAir) && (distribution_system.air_type == HPXML::AirTypeFanCoil)
+        # Convert "fan coil" air distribution system to "regular velocity"
+        if distribution_system.hvac_systems.size > 1
+          # Has attached heating system, so create a copy specifically for the cooling system
+          hpxml.hvac_distributions << distribution_system.dup
+          hpxml.hvac_distributions[-1].id += "#{cooling_system.id}AirDistributionSystem"
+          cooling_system.distribution_system_idref = hpxml.hvac_distributions[-1].id
+        end
+        hpxml.hvac_distributions[-1].air_type = HPXML::AirTypeRegularVelocity
+        if hpxml.hvac_distributions[-1].duct_leakage_measurements.select { |lm| (lm.duct_type == HPXML::DuctTypeSupply) && (lm.duct_leakage_total_or_to_outside == HPXML::DuctLeakageToOutside) }.size == 0
+          # Assign zero supply leakage
+          hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
+                                                                     duct_leakage_units: HPXML::UnitsCFM25,
+                                                                     duct_leakage_value: 0,
+                                                                     duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
+        end
+        if hpxml.hvac_distributions[-1].duct_leakage_measurements.select { |lm| (lm.duct_type == HPXML::DuctTypeReturn) && (lm.duct_leakage_total_or_to_outside == HPXML::DuctLeakageToOutside) }.size == 0
+          # Assign zero return leakage
+          hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
+                                                                     duct_leakage_units: HPXML::UnitsCFM25,
+                                                                     duct_leakage_value: 0,
+                                                                     duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
         end
       end
     end

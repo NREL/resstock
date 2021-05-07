@@ -1,18 +1,38 @@
-## OpenStudio-HPXML v1.2.0 (Pending)
+## OpenStudio-HPXML v1.3.0 (Pending)
 
 __New Features__
-- Allow `Slab/ExposedPerimeter` to be zero.
-- **Breaking change**: Replaces `Site/extension/ShelterCoefficient` with `Site/ShieldingofHome`.
-- Removes `ClothesDryer/ControlType` from being a required input, it is not used.
-- Moves additional error-checking from the ruby measure to the schematron validator.
-- Adds more detail to error messages regarding the wrong data type in the HPXML file.
-- Relaxes tolerance for duct leakage to outside warning when ducts solely in conditioned space.
+- Updates to OpenStudio 3.2.0/EnergyPlus 9.5.0.
+- Introduces a small amount of infiltration for unvented spaces.
+- **Breaking change**: Replaces ClothesDryer `extension/IsVented` and `extension/VentedFlowRate` with `Vented` and `VentedFlowRate`.
+- Allows additional fuel types for generators.
+- Adds an `--ep-input-format` argument to run_simulation.rb to choose epJSON as the EnergyPlus input file format instead of IDF.
 
 __Bugfixes__
+- Improves ground reflectance when there is shading of windows/skylights.
+
+## OpenStudio-HPXML v1.2.0
+
+__New Features__
+- **Breaking change**: Heating/cooling component loads no longer calculated by default for faster performance; use `--add-component-loads` argument if desired.
+- **Breaking change**: Replaces `Site/extension/ShelterCoefficient` with `Site/ShieldingofHome`.
+- Allows `DuctLeakageMeasurement` & `ConditionedFloorAreaServed` to not be specified for ductless fan coil systems; **Breaking change**: `AirDistributionType` is now required for all air distribution systems.
+- Allows `Slab/ExposedPerimeter` to be zero.
+- Removes `ClothesDryer/ControlType` from being a required input, it is not used.
+- Switches room air conditioner model to use Cutler performance curves.
+- Relaxes tolerance for duct leakage to outside warning when ducts solely in conditioned space.
+- Removes limitation that a shared water heater serving a shared laundry room can't also serve dwelling unit fixtures (i.e., FractionDHWLoadServed is no longer required to be zero).
+- Adds IDs to schematron validation errors/warnings when possible.
+- Moves additional error-checking from the ruby measure to the schematron validator. 
+
+__Bugfixes__
+- Fixes room air conditioner performance curve.
 - Fixes ruby error if elements (e.g., `SystemIdentifier`) exist without the proper 'id'/'idref' attribute.
 - Fixes error if boiler/GSHP pump power is zero
 - Fixes possible "Electricity category end uses do not sum to total" error due to boiler pump energy.
 - Fixes possible "Construction R-value ... does not match Assembly R-value" error for highly insulated enclosure elements.
+- Adds error-checking for negative SEEReq results for shared cooling systems.
+- Adds more detail to error messages regarding the wrong data type in the HPXML file.
+- Prevents a solar hot water system w/ SolarFraction=1.
 
 ## OpenStudio-HPXML v1.1.0
 

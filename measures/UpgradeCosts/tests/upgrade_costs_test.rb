@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 require 'openstudio'
-require 'minitest/autorun'
 
 require_relative '../measure.rb'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
-require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/measure'
 
 class UpgradeCostsTest < MiniTest::Test
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH

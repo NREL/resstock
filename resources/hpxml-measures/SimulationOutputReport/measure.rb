@@ -154,7 +154,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Get a few things from the model
     get_object_maps()
 
-    loads_program = @model.getModelObjectByName(Constants.ObjectNameComponentLoadsProgram.gsub(' ', '_')).get.to_EnergyManagementSystemProgram.get
+    total_loads_program = @model.getModelObjectByName(Constants.ObjectNameTotalLoadsProgram.gsub(' ', '_')).get.to_EnergyManagementSystemProgram.get
+    comp_loads_program = @model.getModelObjectByName(Constants.ObjectNameComponentLoadsProgram.gsub(' ', '_'))
+    if comp_loads_program.is_initialized
+      comp_loads_program = comp_loads_program.get.to_EnergyManagementSystemProgram.get
+    else
+      comp_loads_program = nil
+    end
 
     # Annual outputs
 
@@ -202,13 +208,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Add component load outputs
     @component_loads.each do |key, comp_load|
-      result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{comp_load.ems_variable}_annual_outvar,#{comp_load.ems_variable},Summed,ZoneTimestep,#{loads_program.name},J;").get
+      next if comp_loads_program.nil?
+      result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{comp_load.ems_variable}_annual_outvar,#{comp_load.ems_variable},Summed,ZoneTimestep,#{comp_loads_program.name},J;").get
       result << OpenStudio::IdfObject.load("Output:Variable,*,#{comp_load.ems_variable}_annual_outvar,runperiod;").get
     end
+
+    # Add total load outputs
     @loads.each do |load_type, load|
       next if load.ems_variable.nil?
 
-      result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{load.ems_variable}_annual_outvar,#{load.ems_variable},Summed,ZoneTimestep,#{loads_program.name},J;").get
+      result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{load.ems_variable}_annual_outvar,#{load.ems_variable},Summed,ZoneTimestep,#{total_loads_program.name},J;").get
       result << OpenStudio::IdfObject.load("Output:Variable,*,#{load.ems_variable}_annual_outvar,runperiod;").get
     end
 
@@ -295,7 +304,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       @loads.each do |load_type, load|
         next if load.ems_variable.nil?
 
-        result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{load.ems_variable}_timeseries_outvar,#{load.ems_variable},Summed,ZoneTimestep,#{loads_program.name},J;").get
+        result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{load.ems_variable}_timeseries_outvar,#{load.ems_variable},Summed,ZoneTimestep,#{total_loads_program.name},J;").get
         result << OpenStudio::IdfObject.load("Output:Variable,*,#{load.ems_variable}_timeseries_outvar,#{timeseries_frequency};").get
       end
       # And add HotWaterDelivered:
@@ -304,7 +313,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     if include_timeseries_component_loads
       @component_loads.each do |key, comp_load|
-        result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{comp_load.ems_variable}_timeseries_outvar,#{comp_load.ems_variable},Summed,ZoneTimestep,#{loads_program.name},J;").get
+        next if comp_loads_program.nil?
+
+        result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{comp_load.ems_variable}_timeseries_outvar,#{comp_load.ems_variable},Summed,ZoneTimestep,#{comp_loads_program.name},J;").get
         result << OpenStudio::IdfObject.load("Output:Variable,*,#{comp_load.ems_variable}_timeseries_outvar,#{timeseries_frequency};").get
       end
     end
@@ -373,10 +384,10 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     if not @eri_design.nil?
       # ERI run, store files in a particular location
       output_dir = File.dirname(hpxml_path)
-      design_name = @eri_design.gsub(' ', '')
-      annual_output_path = File.join(output_dir, "#{design_name}.#{output_format}")
-      eri_output_path = File.join(output_dir, "#{design_name}_ERI.csv")
-      timeseries_output_path = File.join(output_dir, "#{design_name}_#{timeseries_frequency.capitalize}.#{output_format}")
+      hpxml_name = File.basename(hpxml_path).gsub('.xml', '')
+      annual_output_path = File.join(output_dir, "#{hpxml_name}.#{output_format}")
+      eri_output_path = File.join(output_dir, "#{hpxml_name}_ERI.csv")
+      timeseries_output_path = File.join(output_dir, "#{hpxml_name}_#{timeseries_frequency.capitalize}.#{output_format}")
     else
       output_dir = File.dirname(@sqlFile.path.to_s)
       annual_output_path = File.join(output_dir, "results_annual.#{output_format}")
@@ -476,6 +487,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     outputs[:hpxml_cfa] = @hpxml.building_construction.conditioned_floor_area
     outputs[:hpxml_nbr] = @hpxml.building_construction.number_of_bedrooms
     outputs[:hpxml_nst] = @hpxml.building_construction.number_of_conditioned_floors_above_grade
+    outputs[:hpxml_residential_facility_type] = @hpxml.building_construction.residential_facility_type
 
     # HPXML Systems
     if not @eri_design.nil?
@@ -947,9 +959,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @peak_loads.each do |load_type, peak_load|
       results_out << ["#{peak_load.name} (#{peak_load.annual_units})", peak_load.annual_output.round(2)]
     end
-    results_out << [line_break]
-    @component_loads.each do |load_type, load|
-      results_out << ["#{load.name} (#{load.annual_units})", load.annual_output.round(2)]
+    if @component_loads.values.map { |load| load.annual_output }.sum > 0 # Skip if component loads not calculated
+      results_out << [line_break]
+      @component_loads.each do |load_type, load|
+        results_out << ["#{load.name} (#{load.annual_units})", load.annual_output.round(2)]
+      end
     end
     results_out << [line_break]
     @hot_water_uses.each do |hot_water_type, hot_water|
@@ -1094,6 +1108,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     results_out << ['hpxml_cfa', outputs[:hpxml_cfa].to_s]
     results_out << ['hpxml_nbr', outputs[:hpxml_nbr].to_s]
     results_out << ['hpxml_nst', outputs[:hpxml_nst].to_s]
+    results_out << ['hpxml_residential_facility_type', '"' + outputs[:hpxml_residential_facility_type] + '"']
 
     CSV.open(csv_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
   end
@@ -1597,7 +1612,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     return values if disable_ems_shift
 
-    if (key_values.size == 1) && (key_values[0] == 'EMS')
+    if (key_values.size == 1) && (key_values[0] == 'EMS') && (@timestamps.size > 0)
       if (timeseries_frequency.downcase == 'timestep' || (timeseries_frequency.downcase == 'hourly' && @model.getTimestep.numberOfTimestepsPerHour == 1))
         # Shift all values by 1 timestep due to EMS reporting lag
         return values[1..-1] + [values[-1]]
@@ -2131,6 +2146,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       @end_uses[[FT::Oil, EUT::Lighting]] = EndUse.new(meters: ["#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{EPlus::FuelTypeOil}"])
       @end_uses[[FT::Oil, EUT::Fireplace]] = EndUse.new(meters: ["#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{EPlus::FuelTypeOil}"])
     end
+    @end_uses[[FT::Oil, EUT::Generator]] = EndUse.new(meters: ["Cogeneration:#{EPlus::FuelTypeOil}"])
     @end_uses[[FT::Propane, EUT::Heating]] = EndUse.new(variables: OutputVars.SpaceHeating(EPlus::FuelTypePropane))
     @end_uses[[FT::Propane, EUT::HotWater]] = EndUse.new(variables: OutputVars.WaterHeating(EPlus::FuelTypePropane))
     @end_uses[[FT::Propane, EUT::ClothesDryer]] = EndUse.new(meters: ["#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{EPlus::FuelTypePropane}"])
@@ -2152,6 +2168,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       @end_uses[[FT::WoodCord, EUT::Lighting]] = EndUse.new(meters: ["#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{EPlus::FuelTypeWoodCord}"])
       @end_uses[[FT::WoodCord, EUT::Fireplace]] = EndUse.new(meters: ["#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{EPlus::FuelTypeWoodCord}"])
     end
+    @end_uses[[FT::WoodCord, EUT::Generator]] = EndUse.new(meters: ["Cogeneration:#{EPlus::FuelTypeWoodCord}"])
     @end_uses[[FT::WoodPellets, EUT::Heating]] = EndUse.new(variables: OutputVars.SpaceHeating(EPlus::FuelTypeWoodPellets))
     @end_uses[[FT::WoodPellets, EUT::HotWater]] = EndUse.new(variables: OutputVars.WaterHeating(EPlus::FuelTypeWoodPellets))
     @end_uses[[FT::WoodPellets, EUT::ClothesDryer]] = EndUse.new(meters: ["#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{EPlus::FuelTypeWoodPellets}"])
@@ -2162,6 +2179,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       @end_uses[[FT::WoodPellets, EUT::Lighting]] = EndUse.new(meters: ["#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{EPlus::FuelTypeWoodPellets}"])
       @end_uses[[FT::WoodPellets, EUT::Fireplace]] = EndUse.new(meters: ["#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{EPlus::FuelTypeWoodPellets}"])
     end
+    @end_uses[[FT::WoodPellets, EUT::Generator]] = EndUse.new(meters: ["Cogeneration:#{EPlus::FuelTypeWoodPellets}"])
     @end_uses[[FT::Coal, EUT::Heating]] = EndUse.new(variables: OutputVars.SpaceHeating(EPlus::FuelTypeCoal))
     @end_uses[[FT::Coal, EUT::HotWater]] = EndUse.new(variables: OutputVars.WaterHeating(EPlus::FuelTypeCoal))
     @end_uses[[FT::Coal, EUT::ClothesDryer]] = EndUse.new(meters: ["#{Constants.ObjectNameClothesDryer}:InteriorEquipment:#{EPlus::FuelTypeCoal}"])
@@ -2172,6 +2190,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       @end_uses[[FT::Coal, EUT::Lighting]] = EndUse.new(meters: ["#{Constants.ObjectNameMiscLighting}:InteriorEquipment:#{EPlus::FuelTypeCoal}"])
       @end_uses[[FT::Coal, EUT::Fireplace]] = EndUse.new(meters: ["#{Constants.ObjectNameMiscFireplace}:InteriorEquipment:#{EPlus::FuelTypeCoal}"])
     end
+    @end_uses[[FT::Coal, EUT::Generator]] = EndUse.new(meters: ["Cogeneration:#{EPlus::FuelTypeCoal}"])
 
     @end_uses.each do |key, end_use|
       fuel_type, end_use_type = key

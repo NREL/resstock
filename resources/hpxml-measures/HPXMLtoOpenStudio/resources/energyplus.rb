@@ -7,6 +7,7 @@ class EPlus
   EMSActuatorPumpMassFlowRate = 'Pump', 'Pump Mass Flow Rate'
   EMSActuatorPumpPressureRise = 'Pump', 'Pump Pressure Rise'
   EMSActuatorScheduleConstantValue = 'Schedule:Constant', 'Schedule Value'
+  EMSActuatorSurfaceViewFactorToGround = 'Surface', 'View Factor To Ground'
   EMSActuatorZoneInfiltrationFlowRate = 'Zone Infiltration', 'Air Exchange Flow Rate'
   EMSActuatorZoneMixingFlowRate = 'ZoneMixing', 'Air Exchange Flow Rate'
   EMSIntVarFanMFR = 'Fan Maximum Mass Flow Rate'

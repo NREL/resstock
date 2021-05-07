@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master, develop ]
   pull_request:
-    types: [ synchronize, labeled ]
+    types: [ synchronize, opened, labeled ]
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     if: "!(contains(github.event.head_commit.message, '[ci skip]'))"
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.1.0
+      image: docker://nrel/openstudio:3.2.0
     steps:
       - uses: actions/checkout@v2
 
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     container:
-      image: docker://nrel/openstudio:3.1.0
+      image: docker://nrel/openstudio:3.2.0
     steps:
       - uses: actions/checkout@v2
 
@@ -73,14 +73,9 @@ jobs:
     needs: integration-tests
     steps:
       - name: Checkout for PR
-        if: ${{ github.event_name == 'pull_request' }}
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }} # Checkout the PR branch instead of the merge commit
-
-      - name: Checkout for push
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: actions/checkout@v2
 
       - uses: actions/setup-python@v2
         with:
@@ -89,12 +84,9 @@ jobs:
       - name: Setup git branch and python deps
         shell: bash
         run: |
-          branch_name=""
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            branch_name="${{ github.head_ref }}"
-            echo "Checking out branch: $branch_name"
-            git checkout -b $branch_name || git checkout $branch_name
-          fi
+          branch_name="${{ github.head_ref }}"
+          echo "Checking out branch: $branch_name"
+          git checkout -b $branch_name || git checkout $branch_name
 
           pip install numpy
           pip install pandas
@@ -122,19 +114,14 @@ jobs:
           git status
           git add test/test_samples_osw/results/project_national_feature.csv
           git add test/test_samples_osw/results/comparisons
-
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
             git config --global user.name "GitHub Action"
             git commit -m "Figure comparisons."
-            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-              branch_name="${{ github.head_ref }}"
-              echo "Pushing to branch: $branch_name"
-              git push -u origin $branch_name
-            else
-              git push
-            fi
+            branch_name="${{ github.head_ref }}"
+            echo "Pushing to branch: $branch_name"
+            git push -u origin $branch_name
           fi
 
   docs:

@@ -72,6 +72,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
+    arg.setDisplayName('Add component loads?')
+    arg.setDescription('If true, adds the calculation of heating/cooling component loads (not enabled by default for faster performance).')
+    arg.setDefaultValue(false)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('skip_validation', false)
     arg.setDisplayName('Skip Validation?')
     arg.setDescription('If true, bypasses HPXML input validation for faster performance. WARNING: This should only be used if the supplied HPXML file has already been validated against the Schema & Schematron documents.')
@@ -102,6 +108,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     hpxml_path = runner.getStringArgumentValue('hpxml_path', user_arguments)
     output_dir = runner.getStringArgumentValue('output_dir', user_arguments)
+    add_component_loads = runner.getBoolArgumentValue('add_component_loads', user_arguments)
     debug = runner.getBoolArgumentValue('debug', user_arguments)
     skip_validation = runner.getBoolArgumentValue('skip_validation', user_arguments)
     building_id = runner.getOptionalStringArgumentValue('building_id', user_arguments)
@@ -146,7 +153,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
         FileUtils.cp(epw_path, epw_output_path)
       end
 
-      OSModel.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir, building_id, debug)
+      OSModel.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir,
+                     add_component_loads, building_id, debug)
     rescue Exception => e
       runner.registerError("#{e.message}\n#{e.backtrace.join("\n")}")
       return false
@@ -195,7 +203,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
 end
 
 class OSModel
-  def self.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir, building_id, debug)
+  def self.create(hpxml, runner, model, hpxml_path, epw_path, cache_path, output_dir,
+                  add_component_loads, building_id, debug)
     @hpxml = hpxml
     @debug = debug
 
@@ -214,8 +223,8 @@ class OSModel
     add_simulation_params(model)
 
     @schedules_file = nil
-    if not @hpxml.header.schedules_path.nil?
-      @schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path, col_names: ScheduleGenerator.col_names)
+    unless @hpxml.header.schedules_path.nil?
+      @schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path, col_names: ScheduleGenerator.col_names.keys)
     end
 
     # Conditioned space/zone
@@ -238,8 +247,8 @@ class OSModel
     add_conditioned_floor_area(runner, model, spaces)
     add_thermal_mass(runner, model, spaces)
     update_conditioned_basement(runner, model, spaces)
-    set_zone_volumes(runner, model, spaces)
-    explode_surfaces(runner, model)
+    Geometry.set_zone_volumes(runner, model, spaces, @hpxml, @apply_ashrae140_assumptions)
+    Geometry.explode_surfaces(runner, model, @hpxml, @walls_top)
     add_num_occupants(model, runner, spaces)
 
     # HVAC
@@ -274,13 +283,15 @@ class OSModel
 
     # Output
 
-    add_component_loads_output(runner, model, spaces)
+    add_loads_output(runner, model, spaces, add_component_loads)
     add_output_control_files(runner, model)
     # Uncomment to debug EMS
     # add_ems_debug_output(runner, model)
 
     # Vacancy
-    set_vacancy(runner, model)
+    unless @schedules_file.nil?
+      @schedules_file.set_vacancy
+    end
 
     if debug
       osm_output_path = File.join(output_dir, 'in.osm')
@@ -307,7 +318,7 @@ class OSModel
     @default_azimuths = get_default_azimuths()
 
     # Apply defaults to HPXML object
-    HPXMLDefaults.apply(@hpxml, @eri_version, weather, epw_file)
+    HPXMLDefaults.apply(@hpxml, @eri_version, weather, epw_file: epw_file)
 
     @frac_windows_operable = @hpxml.fraction_of_windows_operable()
 
@@ -321,204 +332,18 @@ class OSModel
   end
 
   def self.add_simulation_params(model)
-    SimControls.apply(model, @hpxml.header)
-  end
-
-  def self.set_zone_volumes(runner, model, spaces)
-    # Living space
-    spaces[HPXML::LocationLivingSpace].thermalZone.get.setVolume(UnitConversions.convert(@hpxml.building_construction.conditioned_building_volume, 'ft^3', 'm^3'))
-
-    # Basement, crawlspace, garage
-    spaces.keys.each do |space_type|
-      next unless [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? space_type
-
-      floor_area = @hpxml.slabs.select { |s| s.interior_adjacent_to == space_type }.map { |s| s.area }.sum(0.0)
-      if space_type == HPXML::LocationGarage
-        height = 8.0
-      else
-        height = @hpxml.foundation_walls.select { |w| w.interior_adjacent_to == space_type }.map { |w| w.height }.max
-      end
-
-      spaces[space_type].thermalZone.get.setVolume(UnitConversions.convert(floor_area * height, 'ft^3', 'm^3'))
-    end
-
-    # Attic
-    spaces.keys.each do |space_type|
-      next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? space_type
-
-      floor_area = @hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? space_type }.map { |s| s.area }.sum(0.0)
-      roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == space_type }
-      avg_pitch = roofs.map { |r| r.pitch }.sum(0.0) / roofs.size
-
-      if @apply_ashrae140_assumptions
-        # Hardcode the attic volume to match ASHRAE 140 Table 7-2 specification
-        volume = 3463
-      else
-        # Assume square hip roof for volume calculations; energy results are very insensitive to actual volume
-        length = floor_area**0.5
-        height = 0.5 * Math.sin(Math.atan(avg_pitch / 12.0)) * length
-        volume = [floor_area * height / 3.0, 0.01].max
-      end
-
-      spaces[space_type].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
-    end
-  end
-
-  def self.explode_surfaces(runner, model)
-    # Re-position surfaces so as to not shade each other and to make it easier to visualize the building.
-
-    gap_distance = UnitConversions.convert(10.0, 'ft', 'm') # distance between surfaces of the same azimuth
-    rad90 = UnitConversions.convert(90, 'deg', 'rad')
-
-    # Determine surfaces to shift and distance with which to explode surfaces horizontally outward
-    surfaces = []
-    azimuth_lengths = {}
-    model.getSurfaces.sort.each do |surface|
-      next unless ['wall', 'roofceiling'].include? surface.surfaceType.downcase
-      next unless ['outdoors', 'foundation', 'adiabatic'].include? surface.outsideBoundaryCondition.downcase
-      next if surface.additionalProperties.getFeatureAsDouble('Tilt').get <= 0 # skip flat roofs
-
-      surfaces << surface
-      azimuth = surface.additionalProperties.getFeatureAsInteger('Azimuth').get
-      if azimuth_lengths[azimuth].nil?
-        azimuth_lengths[azimuth] = 0.0
-      end
-      azimuth_lengths[azimuth] += surface.additionalProperties.getFeatureAsDouble('Length').get + gap_distance
-    end
-    max_azimuth_length = azimuth_lengths.values.max
-
-    # Using the max length for a given azimuth, calculate the apothem (radius of the incircle) of a regular
-    # n-sided polygon to create the smallest polygon possible without self-shading. The number of polygon
-    # sides is defined by the minimum difference between two azimuths.
-    min_azimuth_diff = 360
-    azimuths_sorted = azimuth_lengths.keys.sort
-    azimuths_sorted.each_with_index do |az, idx|
-      diff1 = (az - azimuths_sorted[(idx + 1) % azimuths_sorted.size]).abs
-      diff2 = 360.0 - diff1 # opposite direction
-      if diff1 < min_azimuth_diff
-        min_azimuth_diff = diff1
-      end
-      if diff2 < min_azimuth_diff
-        min_azimuth_diff = diff2
-      end
-    end
-    if min_azimuth_diff > 0
-      nsides = [(360.0 / min_azimuth_diff).ceil, 4].max # assume rectangle at the minimum
-    else
-      nsides = 4
-    end
-    explode_distance = max_azimuth_length / (2.0 * Math.tan(UnitConversions.convert(180.0 / nsides, 'deg', 'rad')))
-
-    add_neighbors(runner, model, max_azimuth_length)
-
-    # Initial distance of shifts at 90-degrees to horizontal outward
-    azimuth_side_shifts = {}
-    azimuth_lengths.keys.each do |azimuth|
-      azimuth_side_shifts[azimuth] = max_azimuth_length / 2.0
-    end
-
-    # Explode neighbors
-    model.getShadingSurfaceGroups.each do |shading_group|
-      next unless shading_group.name.to_s == Constants.ObjectNameNeighbors
-
-      shading_group.shadingSurfaces.each do |shading_surface|
-        azimuth = shading_surface.additionalProperties.getFeatureAsInteger('Azimuth').get
-        azimuth_rad = UnitConversions.convert(azimuth, 'deg', 'rad')
-        distance = shading_surface.additionalProperties.getFeatureAsDouble('Distance').get
-
-        unless azimuth_lengths.keys.include? azimuth
-          fail "A neighbor building has an azimuth (#{azimuth}) not equal to the azimuth of any wall."
-        end
-
-        # Push out horizontally
-        distance += explode_distance
-        transformation = get_surface_transformation(distance, Math::sin(azimuth_rad), Math::cos(azimuth_rad), 0)
-
-        shading_surface.setVertices(transformation * shading_surface.vertices)
-      end
-    end
-
-    # Explode walls, windows, doors, roofs, and skylights
-    surfaces_moved = []
-
-    surfaces.sort.each do |surface|
-      next if surface.additionalProperties.getFeatureAsDouble('Tilt').get <= 0 # skip flat roofs
-
-      if surface.adjacentSurface.is_initialized
-        next if surfaces_moved.include? surface.adjacentSurface.get
-      end
-
-      azimuth = surface.additionalProperties.getFeatureAsInteger('Azimuth').get
-      azimuth_rad = UnitConversions.convert(azimuth, 'deg', 'rad')
-
-      # Get associated shading surfaces (e.g., overhangs, interior shading surfaces)
-      overhang_surfaces = []
-      shading_surfaces = []
-      surface.subSurfaces.each do |subsurface|
-        next unless subsurface.subSurfaceType.downcase == 'fixedwindow'
-
-        subsurface.shadingSurfaceGroups.each do |overhang_group|
-          overhang_group.shadingSurfaces.each do |overhang|
-            overhang_surfaces << overhang
-          end
-        end
-      end
-      model.getShadingSurfaceGroups.each do |shading_group|
-        next unless [Constants.ObjectNameSkylightShade, Constants.ObjectNameWindowShade].include? shading_group.name.to_s
-
-        shading_group.shadingSurfaces.each do |window_shade|
-          next unless window_shade.additionalProperties.getFeatureAsString('ParentSurface').get == surface.name.to_s
-
-          shading_surfaces << window_shade
-        end
-      end
-
-      # Push out horizontally
-      distance = explode_distance
-
-      if surface.surfaceType.downcase == 'roofceiling'
-        # Ensure pitched surfaces are positioned outward justified with walls, etc.
-        tilt = surface.additionalProperties.getFeatureAsDouble('Tilt').get
-        width = surface.additionalProperties.getFeatureAsDouble('Width').get
-        distance -= 0.5 * Math.cos(Math.atan(tilt)) * width
-      end
-      transformation = get_surface_transformation(distance, Math::sin(azimuth_rad), Math::cos(azimuth_rad), 0)
-      transformation_shade = get_surface_transformation(distance + 0.001, Math::sin(azimuth_rad), Math::cos(azimuth_rad), 0) # Offset slightly from window
-
-      ([surface] + surface.subSurfaces + overhang_surfaces).each do |s|
-        s.setVertices(transformation * s.vertices)
-      end
-      shading_surfaces.each do |s|
-        s.setVertices(transformation_shade * s.vertices)
-      end
-      if surface.adjacentSurface.is_initialized
-        surface.adjacentSurface.get.setVertices(transformation * surface.adjacentSurface.get.vertices)
-      end
-
-      # Shift at 90-degrees to previous transformation, so surfaces don't overlap and shade each other
-      azimuth_side_shifts[azimuth] -= surface.additionalProperties.getFeatureAsDouble('Length').get / 2.0
-      transformation_shift = get_surface_transformation(azimuth_side_shifts[azimuth], Math::sin(azimuth_rad + rad90), Math::cos(azimuth_rad + rad90), 0)
-
-      ([surface] + surface.subSurfaces + overhang_surfaces + shading_surfaces).each do |s|
-        s.setVertices(transformation_shift * s.vertices)
-      end
-      if surface.adjacentSurface.is_initialized
-        surface.adjacentSurface.get.setVertices(transformation_shift * surface.adjacentSurface.get.vertices)
-      end
-
-      azimuth_side_shifts[azimuth] -= (surface.additionalProperties.getFeatureAsDouble('Length').get / 2.0 + gap_distance)
-
-      surfaces_moved << surface
-    end
+    SimControls.apply(model, @hpxml)
   end
 
   def self.update_conditioned_basement(runner, model, spaces)
     return if @cond_bsmnt_surfaces.empty?
+
     # Update @cond_bsmnt_surfaces to include subsurfaces
     new_cond_bsmnt_surfaces = @cond_bsmnt_surfaces.dup
     @cond_bsmnt_surfaces.each do |cond_bsmnt_surface|
       next if cond_bsmnt_surface.is_a? OpenStudio::Model::InternalMassDefinition
       next if cond_bsmnt_surface.subSurfaces.empty?
+
       cond_bsmnt_surface.subSurfaces.each do |ss|
         new_cond_bsmnt_surfaces << ss
       end
@@ -536,6 +361,7 @@ class OSModel
     @cond_bsmnt_surfaces.each do |cond_bsmnt_surface|
       # skip windows because windows don't have such property to change.
       next if cond_bsmnt_surface.is_a?(OpenStudio::Model::SubSurface) && (cond_bsmnt_surface.subSurfaceType.downcase == 'fixedwindow')
+
       adj_surface = nil
       if not cond_bsmnt_surface.is_a? OpenStudio::Model::InternalMassDefinition
         if not cond_bsmnt_surface.is_a? OpenStudio::Model::SubSurface
@@ -574,6 +400,7 @@ class OSModel
       innermost_material.setSolarAbsorptance(0.0)
       innermost_material.setVisibleAbsorptance(0.0)
       next if adj_surface.nil?
+
       # Create new construction in case of shared construciton.
       layered_const_adj = OpenStudio::Model::Construction.new(model)
       layered_const_adj.setName(cond_bsmnt_surface.construction.get.name.get + ' Reversed Bsmnt')
@@ -715,163 +542,26 @@ class OSModel
     return vf_map
   end
 
-  # FUTURE: Move this method and many below to geometry.rb
-  def self.create_space_and_zone(model, spaces, space_type)
-    if not spaces.keys.include? space_type
-      thermal_zone = OpenStudio::Model::ThermalZone.new(model)
-      thermal_zone.setName(space_type)
-
-      space = OpenStudio::Model::Space.new(model)
-      space.setName(space_type)
-
-      st = OpenStudio::Model::SpaceType.new(model)
-      st.setStandardsSpaceType(space_type)
-      space.setSpaceType(st)
-
-      space.setThermalZone(thermal_zone)
-      spaces[space_type] = space
-    end
-  end
-
-  def self.get_surface_transformation(offset, x, y, z)
-    x = UnitConversions.convert(x, 'ft', 'm')
-    y = UnitConversions.convert(y, 'ft', 'm')
-    z = UnitConversions.convert(z, 'ft', 'm')
-
-    m = OpenStudio::Matrix.new(4, 4, 0)
-    m[0, 0] = 1
-    m[1, 1] = 1
-    m[2, 2] = 1
-    m[3, 3] = 1
-    m[0, 3] = x * offset
-    m[1, 3] = y * offset
-    m[2, 3] = z.abs * offset
-
-    return OpenStudio::Transformation.new(m)
-  end
-
-  def self.add_floor_polygon(x, y, z)
-    x = UnitConversions.convert(x, 'ft', 'm')
-    y = UnitConversions.convert(y, 'ft', 'm')
-    z = UnitConversions.convert(z, 'ft', 'm')
-
-    vertices = OpenStudio::Point3dVector.new
-    vertices << OpenStudio::Point3d.new(0 - x / 2, 0 - y / 2, z)
-    vertices << OpenStudio::Point3d.new(0 - x / 2, y / 2, z)
-    vertices << OpenStudio::Point3d.new(x / 2, y / 2, z)
-    vertices << OpenStudio::Point3d.new(x / 2, 0 - y / 2, z)
-
-    # Rotate about the z axis
-    # This is not strictly needed, but will make the floor edges
-    # parallel to the walls for a better geometry rendering.
-    azimuth_rad = UnitConversions.convert(@default_azimuths[0], 'deg', 'rad')
-    m = OpenStudio::Matrix.new(4, 4, 0)
-    m[0, 0] = Math::cos(-azimuth_rad)
-    m[1, 1] = Math::cos(-azimuth_rad)
-    m[0, 1] = -Math::sin(-azimuth_rad)
-    m[1, 0] = Math::sin(-azimuth_rad)
-    m[2, 2] = 1
-    m[3, 3] = 1
-    transformation = OpenStudio::Transformation.new(m)
-
-    return transformation * vertices
-  end
-
-  def self.add_wall_polygon(x, y, z, azimuth, offsets = [0] * 4, subsurface_area = 0)
-    x = UnitConversions.convert(x, 'ft', 'm')
-    y = UnitConversions.convert(y, 'ft', 'm')
-    z = UnitConversions.convert(z, 'ft', 'm')
-
-    vertices = OpenStudio::Point3dVector.new
-    vertices << OpenStudio::Point3d.new(0 - (x / 2) - offsets[1], 0, z - offsets[0])
-    vertices << OpenStudio::Point3d.new(0 - (x / 2) - offsets[1], 0, z + y + offsets[2])
-    if subsurface_area > 0
-      subsurface_area = UnitConversions.convert(subsurface_area, 'ft^2', 'm^2')
-      sub_length = x / 10.0
-      sub_height = subsurface_area / sub_length
-      if sub_height >= y
-        sub_height = y - 0.1
-        sub_length = subsurface_area / sub_height
-      end
-      vertices << OpenStudio::Point3d.new(x - (x / 2) + offsets[3] - sub_length, 0, z + y + offsets[2])
-      vertices << OpenStudio::Point3d.new(x - (x / 2) + offsets[3] - sub_length, 0, z + y + offsets[2] - sub_height)
-      vertices << OpenStudio::Point3d.new(x - (x / 2) + offsets[3], 0, z + y + offsets[2] - sub_height)
-    else
-      vertices << OpenStudio::Point3d.new(x - (x / 2) + offsets[3], 0, z + y + offsets[2])
-    end
-    vertices << OpenStudio::Point3d.new(x - (x / 2) + offsets[3], 0, z - offsets[0])
-
-    # Rotate about the z axis
-    azimuth_rad = UnitConversions.convert(azimuth, 'deg', 'rad')
-    m = OpenStudio::Matrix.new(4, 4, 0)
-    m[0, 0] = Math::cos(-azimuth_rad)
-    m[1, 1] = Math::cos(-azimuth_rad)
-    m[0, 1] = -Math::sin(-azimuth_rad)
-    m[1, 0] = Math::sin(-azimuth_rad)
-    m[2, 2] = 1
-    m[3, 3] = 1
-    transformation = OpenStudio::Transformation.new(m)
-
-    return transformation * vertices
-  end
-
-  def self.add_roof_polygon(x, y, z, azimuth, tilt)
-    x = UnitConversions.convert(x, 'ft', 'm')
-    y = UnitConversions.convert(y, 'ft', 'm')
-    z = UnitConversions.convert(z, 'ft', 'm')
-
-    vertices = OpenStudio::Point3dVector.new
-    vertices << OpenStudio::Point3d.new(x / 2, -y / 2, 0)
-    vertices << OpenStudio::Point3d.new(x / 2, y / 2, 0)
-    vertices << OpenStudio::Point3d.new(-x / 2, y / 2, 0)
-    vertices << OpenStudio::Point3d.new(-x / 2, -y / 2, 0)
-
-    # Rotate about the x axis
-    m = OpenStudio::Matrix.new(4, 4, 0)
-    m[0, 0] = 1
-    m[1, 1] = Math::cos(Math::atan(tilt))
-    m[1, 2] = -Math::sin(Math::atan(tilt))
-    m[2, 1] = Math::sin(Math::atan(tilt))
-    m[2, 2] = Math::cos(Math::atan(tilt))
-    m[3, 3] = 1
-    transformation = OpenStudio::Transformation.new(m)
-    vertices = transformation * vertices
-
-    # Rotate about the z axis
-    azimuth_rad = UnitConversions.convert(azimuth, 'deg', 'rad')
-    rad180 = UnitConversions.convert(180, 'deg', 'rad')
-    m = OpenStudio::Matrix.new(4, 4, 0)
-    m[0, 0] = Math::cos(rad180 - azimuth_rad)
-    m[1, 1] = Math::cos(rad180 - azimuth_rad)
-    m[0, 1] = -Math::sin(rad180 - azimuth_rad)
-    m[1, 0] = Math::sin(rad180 - azimuth_rad)
-    m[2, 2] = 1
-    m[3, 3] = 1
-    transformation = OpenStudio::Transformation.new(m)
-    vertices = transformation * vertices
-
-    # Shift up by z
-    new_vertices = OpenStudio::Point3dVector.new
-    vertices.each do |vertex|
-      new_vertices << OpenStudio::Point3d.new(vertex.x, vertex.y, vertex.z + z)
-    end
-
-    return new_vertices
-  end
-
-  def self.add_ceiling_polygon(x, y, z)
-    return OpenStudio::reverse(add_floor_polygon(x, y, z))
-  end
-
   def self.add_num_occupants(model, runner, spaces)
     # Occupants
     num_occ = @hpxml.building_occupancy.number_of_residents
     return if num_occ <= 0
 
-    Geometry.process_occupants(model, num_occ, @cfa, spaces[HPXML::LocationLivingSpace], @schedules_file)
+    Geometry.apply_occupants(model, num_occ, @cfa, spaces[HPXML::LocationLivingSpace], @schedules_file)
   end
 
   def self.get_default_azimuths()
+    def self.sanitize_azimuth(azimuth)
+      # Ensure 0 <= orientation < 360
+      while azimuth < 0
+        azimuth += 360
+      end
+      while azimuth >= 360
+        azimuth -= 360
+      end
+      return azimuth
+    end
+
     # Returns a list of four azimuths (facing each direction). Determined based
     # on the primary azimuth, as defined by the azimuth with the largest surface
     # area, plus azimuths that are offset by 90/180/270 degrees. Used for
@@ -896,20 +586,9 @@ class OSModel
             sanitize_azimuth(primary_azimuth + 270)].sort
   end
 
-  def self.sanitize_azimuth(azimuth)
-    # Ensure 0 <= orientation < 360
-    while azimuth < 0
-      azimuth += 360
-    end
-    while azimuth >= 360
-      azimuth -= 360
-    end
-    return azimuth
-  end
-
   def self.create_or_get_space(model, spaces, spacetype)
     if spaces[spacetype].nil?
-      create_space_and_zone(model, spaces, spacetype)
+      Geometry.create_space_and_zone(model, spaces, spacetype)
     end
     return spaces[spacetype]
   end
@@ -936,7 +615,8 @@ class OSModel
         tilt = roof.pitch / 12.0
         z_origin = @walls_top + 0.5 * Math.sin(Math.atan(tilt)) * width
 
-        surface = OpenStudio::Model::Surface.new(add_roof_polygon(length, width, z_origin, azimuth, tilt), model)
+        vertices = Geometry.create_roof_vertices(length, width, z_origin, azimuth, tilt)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
         surfaces << surface
         surface.additionalProperties.setFeature('Length', length)
         surface.additionalProperties.setFeature('Width', width)
@@ -1038,7 +718,8 @@ class OSModel
         length = (wall.net_area / height) / azimuths.size
         z_origin = @foundation_top
 
-        surface = OpenStudio::Model::Surface.new(add_wall_polygon(length, height, z_origin, azimuth), model)
+        vertices = Geometry.create_wall_vertices(length, height, z_origin, azimuth)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
         surfaces << surface
         surface.additionalProperties.setFeature('Length', length)
         surface.additionalProperties.setFeature('Azimuth', azimuth)
@@ -1106,7 +787,8 @@ class OSModel
         length = (rim_joist.area / height) / azimuths.size
         z_origin = @foundation_top
 
-        surface = OpenStudio::Model::Surface.new(add_wall_polygon(length, height, z_origin, azimuth), model)
+        vertices = Geometry.create_wall_vertices(length, height, z_origin, azimuth)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
         surfaces << surface
         surface.additionalProperties.setFeature('Length', length)
         surface.additionalProperties.setFeature('Azimuth', azimuth)
@@ -1174,10 +856,12 @@ class OSModel
       end
 
       if frame_floor.is_ceiling
-        surface = OpenStudio::Model::Surface.new(add_ceiling_polygon(length, width, z_origin), model)
+        vertices = Geometry.create_ceiling_vertices(length, width, z_origin, @default_azimuths)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
         surface.additionalProperties.setFeature('SurfaceType', 'Ceiling')
       else
-        surface = OpenStudio::Model::Surface.new(add_floor_polygon(length, width, z_origin), model)
+        vertices = Geometry.create_floor_vertices(length, width, z_origin, @default_azimuths)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
         surface.additionalProperties.setFeature('SurfaceType', 'Floor')
       end
       surface.additionalProperties.setFeature('Tilt', 0.0)
@@ -1369,7 +1053,8 @@ class OSModel
           azimuth = foundation_wall.azimuth
         end
 
-        surface = OpenStudio::Model::Surface.new(add_wall_polygon(length, ag_height, z_origin, azimuth), model)
+        vertices = Geometry.create_wall_vertices(length, ag_height, z_origin, azimuth)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
         surface.additionalProperties.setFeature('Length', length)
         surface.additionalProperties.setFeature('Azimuth', azimuth)
         surface.additionalProperties.setFeature('Tilt', 90.0)
@@ -1434,7 +1119,8 @@ class OSModel
       subsurface_area = 0
     end
 
-    surface = OpenStudio::Model::Surface.new(add_wall_polygon(length, height, z_origin, azimuth, [0] * 4, subsurface_area), model)
+    vertices = Geometry.create_wall_vertices(length, height, z_origin, azimuth, subsurface_area: subsurface_area)
+    surface = OpenStudio::Model::Surface.new(vertices, model)
     surface.additionalProperties.setFeature('Length', length)
     surface.additionalProperties.setFeature('Azimuth', azimuth)
     surface.additionalProperties.setFeature('Tilt', 90.0)
@@ -1503,7 +1189,8 @@ class OSModel
     slab_length = slab_tot_perim / 4.0 + Math.sqrt(sqrt_term) / 4.0
     slab_width = slab_tot_perim / 4.0 - Math.sqrt(sqrt_term) / 4.0
 
-    surface = OpenStudio::Model::Surface.new(add_floor_polygon(slab_length, slab_width, z_origin), model)
+    vertices = Geometry.create_floor_vertices(slab_length, slab_width, z_origin, @default_azimuths)
+    surface = OpenStudio::Model::Surface.new(vertices, model)
     surface.setName(slab.id)
     surface.setSurfaceType('Floor')
     surface.setOutsideBoundaryCondition('Foundation')
@@ -1578,7 +1265,8 @@ class OSModel
     z_origin = @foundation_top + 8.0 * (@ncfl_ag - 1)
 
     # Add floor surface
-    floor_surface = OpenStudio::Model::Surface.new(add_floor_polygon(-floor_width, -floor_length, z_origin), model)
+    vertices = Geometry.create_floor_vertices(floor_length, floor_width, z_origin, @default_azimuths)
+    floor_surface = OpenStudio::Model::Surface.new(vertices, model)
 
     floor_surface.setSunExposure('NoSun')
     floor_surface.setWindExposure('NoWind')
@@ -1590,7 +1278,8 @@ class OSModel
     floor_surface.additionalProperties.setFeature('Tilt', 0.0)
 
     # Add ceiling surface
-    ceiling_surface = OpenStudio::Model::Surface.new(add_ceiling_polygon(-floor_width, -floor_length, z_origin), model)
+    vertices = Geometry.create_ceiling_vertices(floor_length, floor_width, z_origin, @default_azimuths)
+    ceiling_surface = OpenStudio::Model::Surface.new(vertices, model)
 
     ceiling_surface.setSunExposure('NoSun')
     ceiling_surface.setWindExposure('NoWind')
@@ -1635,27 +1324,6 @@ class OSModel
   end
 
   def self.add_neighbors(runner, model, length)
-    z_origin = 0 # shading surface always starts at grade
-
-    shading_surfaces = []
-    @hpxml.neighbor_buildings.each do |neighbor_building|
-      height = neighbor_building.height.nil? ? @walls_top : neighbor_building.height
-
-      shading_surface = OpenStudio::Model::ShadingSurface.new(add_wall_polygon(length, height, z_origin, neighbor_building.azimuth), model)
-      shading_surface.additionalProperties.setFeature('Azimuth', neighbor_building.azimuth)
-      shading_surface.additionalProperties.setFeature('Distance', neighbor_building.distance)
-      shading_surface.setName("Neighbor azimuth #{neighbor_building.azimuth} distance #{neighbor_building.distance}")
-
-      shading_surfaces << shading_surface
-    end
-
-    unless shading_surfaces.empty?
-      shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-      shading_surface_group.setName(Constants.ObjectNameNeighbors)
-      shading_surfaces.each do |shading_surface|
-        shading_surface.setShadingSurfaceGroup(shading_surface_group)
-      end
-    end
   end
 
   def self.add_shading_schedule(runner, model, weather)
@@ -1680,9 +1348,10 @@ class OSModel
 
     shading_group = nil
     shading_schedules = {}
+    shading_ems = { sensors: {}, program: nil }
 
     surfaces = []
-    @hpxml.windows.each do |window|
+    @hpxml.windows.each_with_index do |window, i|
       window_height = 4.0 # ft, default
 
       overhang_depth = nil
@@ -1693,16 +1362,16 @@ class OSModel
         window_height = overhang_distance_to_bottom - overhang_distance_to_top
       end
 
-      window_width = window.area / window_height
+      window_length = window.area / window_height
       z_origin = @foundation_top
 
       if window.is_exterior
 
         # Create parent surface slightly bigger than window
-        surface = OpenStudio::Model::Surface.new(add_wall_polygon(window_width, window_height, z_origin,
-                                                                  window.azimuth, [0, 0.001, 0.001, 0.001]), model)
+        vertices = Geometry.create_wall_vertices(window_length, window_height, z_origin, window.azimuth, add_buffer: true)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
 
-        surface.additionalProperties.setFeature('Length', window_width)
+        surface.additionalProperties.setFeature('Length', window_length)
         surface.additionalProperties.setFeature('Azimuth', window.azimuth)
         surface.additionalProperties.setFeature('Tilt', 90.0)
         surface.additionalProperties.setFeature('SurfaceType', 'Window')
@@ -1710,8 +1379,8 @@ class OSModel
         surface.setSurfaceType('Wall')
         set_surface_interior(model, spaces, surface, window.wall)
 
-        sub_surface = OpenStudio::Model::SubSurface.new(add_wall_polygon(window_width, window_height, z_origin,
-                                                                         window.azimuth, [-0.001, 0, 0.001, 0]), model)
+        vertices = Geometry.create_wall_vertices(window_length, window_height, z_origin, window.azimuth)
+        sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
         sub_surface.setName(window.id)
         sub_surface.setSurface(surface)
         sub_surface.setSubSurfaceType('FixedWindow')
@@ -1728,18 +1397,19 @@ class OSModel
         Constructions.apply_window(runner, model, sub_surface, 'WindowConstruction', window.ufactor, window.shgc)
 
         # Apply interior/exterior shading (as needed)
-        shading_polygon = add_wall_polygon(window_width, window_height, z_origin, window.azimuth, [0, 0, 0, 0])
-        shading_group = apply_shading(model, window, shading_polygon, surface, sub_surface, shading_group, shading_schedules, Constants.ObjectNameWindowShade)
+        shading_vertices = Geometry.create_wall_vertices(window_length, window_height, z_origin, window.azimuth)
+        shading_group = Constructions.apply_window_skylight_shading(model, window, i, shading_vertices, surface, sub_surface, shading_group,
+                                                                    shading_schedules, shading_ems, Constants.ObjectNameWindowShade, @cooling_season)
       else
         # Window is on an interior surface, which E+ does not allow. Model
         # as a door instead so that we can get the appropriate conduction
         # heat transfer; there is no solar gains anyway.
 
         # Create parent surface slightly bigger than window
-        surface = OpenStudio::Model::Surface.new(add_wall_polygon(window_width, window_height, z_origin,
-                                                                  window.azimuth, [0, 0.001, 0.001, 0.001]), model)
+        vertices = Geometry.create_wall_vertices(window_length, window_height, z_origin, window.azimuth, add_buffer: true)
+        surface = OpenStudio::Model::Surface.new(vertices, model)
 
-        surface.additionalProperties.setFeature('Length', window_width)
+        surface.additionalProperties.setFeature('Length', window_length)
         surface.additionalProperties.setFeature('Azimuth', window.azimuth)
         surface.additionalProperties.setFeature('Tilt', 90.0)
         surface.additionalProperties.setFeature('SurfaceType', 'Door')
@@ -1747,8 +1417,8 @@ class OSModel
         surface.setSurfaceType('Wall')
         set_surface_interior(model, spaces, surface, window.wall)
 
-        sub_surface = OpenStudio::Model::SubSurface.new(add_wall_polygon(window_width, window_height, z_origin,
-                                                                         window.azimuth, [0, 0, 0, 0]), model)
+        vertices = Geometry.create_wall_vertices(window_length, window_height, z_origin, window.azimuth)
+        sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
         sub_surface.setName(window.id)
         sub_surface.setSurface(surface)
         sub_surface.setSubSurfaceType('Door')
@@ -1771,17 +1441,17 @@ class OSModel
 
     shading_group = nil
     shading_schedules = {}
+    shading_ems = { sensors: {}, program: nil }
 
-    @hpxml.skylights.each do |skylight|
+    @hpxml.skylights.each_with_index do |skylight, i|
       tilt = skylight.roof.pitch / 12.0
       width = Math::sqrt(skylight.area)
       length = skylight.area / width
       z_origin = @walls_top + 0.5 * Math.sin(Math.atan(tilt)) * width
 
       # Create parent surface slightly bigger than skylight
-      surface = OpenStudio::Model::Surface.new(add_roof_polygon(length + 0.001, width + 0.001, z_origin,
-                                                                skylight.azimuth, tilt), model)
-
+      vertices = Geometry.create_roof_vertices(length, width, z_origin, skylight.azimuth, tilt, add_buffer: true)
+      surface = OpenStudio::Model::Surface.new(vertices, model)
       surface.additionalProperties.setFeature('Length', length)
       surface.additionalProperties.setFeature('Width', width)
       surface.additionalProperties.setFeature('Azimuth', skylight.azimuth)
@@ -1793,8 +1463,8 @@ class OSModel
       surface.setOutsideBoundaryCondition('Outdoors') # cannot be adiabatic because subsurfaces won't be created
       surfaces << surface
 
-      sub_surface = OpenStudio::Model::SubSurface.new(add_roof_polygon(length, width, z_origin,
-                                                                       skylight.azimuth, tilt), model)
+      vertices = Geometry.create_roof_vertices(length, width, z_origin, skylight.azimuth, tilt)
+      sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
       sub_surface.setName(skylight.id)
       sub_surface.setSurface(surface)
       sub_surface.setSubSurfaceType('Skylight')
@@ -1803,62 +1473,26 @@ class OSModel
       Constructions.apply_skylight(runner, model, sub_surface, 'SkylightConstruction', skylight.ufactor, skylight.shgc)
 
       # Apply interior/exterior shading (as needed)
-      shading_polygon = add_roof_polygon(length, width, z_origin, skylight.azimuth, tilt)
-      shading_group = apply_shading(model, skylight, shading_polygon, surface, sub_surface, shading_group, shading_schedules, Constants.ObjectNameSkylightShade)
+      shading_vertices = Geometry.create_roof_vertices(length, width, z_origin, skylight.azimuth, tilt)
+      shading_group = Constructions.apply_window_skylight_shading(model, skylight, i, shading_vertices, surface, sub_surface, shading_group,
+                                                                  shading_schedules, shading_ems, Constants.ObjectNameSkylightShade, @cooling_season)
     end
 
     apply_adiabatic_construction(runner, model, surfaces, 'roof')
-  end
-
-  def self.apply_shading(model, window_or_skylight, shading_polygon, parent_surface, sub_surface, shading_group, shading_schedules, name)
-    sf_summer = window_or_skylight.interior_shading_factor_summer * window_or_skylight.exterior_shading_factor_summer
-    sf_winter = window_or_skylight.interior_shading_factor_winter * window_or_skylight.exterior_shading_factor_winter
-    if (sf_summer < 1.0) || (sf_winter < 1.0)
-      # Apply shading
-      # We use a ShadingSurface instead of a Shade so that we perfectly get the result we want.
-      # The latter object is complex and it is essentially impossible to achieve the target reduction in transmitted
-      # solar (due to, e.g., re-reflectance, absorptance, angle modifiers, effects on convection, etc.).
-
-      # Shading surface is used to reduce beam solar and sky diffuse solar
-      shading_surface = OpenStudio::Model::ShadingSurface.new(shading_polygon, model)
-      shading_surface.setName("#{window_or_skylight.id} shading surface")
-      shading_surface.additionalProperties.setFeature('Azimuth', window_or_skylight.azimuth)
-      shading_surface.additionalProperties.setFeature('ParentSurface', parent_surface.name.to_s)
-
-      # Create transmittance schedule for heating/cooling seasons
-      trans_values = @cooling_season.map { |c| c == 1 ? sf_summer : sf_winter }
-      if shading_schedules[trans_values].nil?
-        trans_sch = MonthWeekdayWeekendSchedule.new(model, "trans schedule winter=#{sf_winter} summer=#{sf_summer}", Array.new(24, 1), Array.new(24, 1), trans_values, Constants.ScheduleTypeLimitsFraction, false)
-        shading_schedules[trans_values] = trans_sch
-      end
-      shading_surface.setTransmittanceSchedule(shading_schedules[trans_values].schedule)
-
-      # Adjustment to default view factor is used to reduce ground diffuse solar
-      avg_trans_value = trans_values.sum(0.0) / 12.0 # FUTURE: Create EnergyPlus actuator to adjust this
-      default_vf_to_ground = ((1.0 - Math::cos(parent_surface.tilt)) / 2.0).round(2)
-      sub_surface.setViewFactortoGround(default_vf_to_ground * avg_trans_value)
-
-      if shading_group.nil?
-        shading_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-        shading_group.setName(name)
-      end
-      shading_surface.setShadingSurfaceGroup(shading_group)
-    end
-    return shading_group
   end
 
   def self.add_doors(runner, model, spaces)
     surfaces = []
     @hpxml.doors.each do |door|
       door_height = 6.67 # ft
-      door_width = door.area / door_height
+      door_length = door.area / door_height
       z_origin = @foundation_top
 
       # Create parent surface slightly bigger than door
-      surface = OpenStudio::Model::Surface.new(add_wall_polygon(door_width, door_height, z_origin,
-                                                                door.azimuth, [0, 0.001, 0.001, 0.001]), model)
+      vertices = Geometry.create_wall_vertices(door_length, door_height, z_origin, door.azimuth, add_buffer: true)
+      surface = OpenStudio::Model::Surface.new(vertices, model)
 
-      surface.additionalProperties.setFeature('Length', door_width)
+      surface.additionalProperties.setFeature('Length', door_length)
       surface.additionalProperties.setFeature('Azimuth', door.azimuth)
       surface.additionalProperties.setFeature('Tilt', 90.0)
       surface.additionalProperties.setFeature('SurfaceType', 'Door')
@@ -1866,8 +1500,8 @@ class OSModel
       surface.setSurfaceType('Wall')
       set_surface_interior(model, spaces, surface, door.wall)
 
-      sub_surface = OpenStudio::Model::SubSurface.new(add_wall_polygon(door_width, door_height, z_origin,
-                                                                       door.azimuth, [0, 0, 0, 0]), model)
+      vertices = Geometry.create_wall_vertices(door_length, door_height, z_origin, door.azimuth)
+      sub_surface = OpenStudio::Model::SubSurface.new(vertices, model)
       sub_surface.setName(door.id)
       sub_surface.setSurface(surface)
       sub_surface.setSubSurfaceType('Door')
@@ -2456,31 +2090,71 @@ class OSModel
     return map_str.to_s
   end
 
-  def self.add_component_loads_output(runner, model, spaces)
+  def self.add_loads_output(runner, model, spaces, add_component_loads)
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
 
-    # Prevent certain objects (e.g., OtherEquipment) from being counted towards both, e.g., ducts and internal gains
-    objects_already_processed = []
+    liv_load_sensors, intgain_dehumidifier = add_total_loads_output(runner, model, living_zone)
+    return unless add_component_loads
 
-    # EMS Sensors: Global
+    add_component_loads_output(runner, model, living_zone, liv_load_sensors, intgain_dehumidifier)
+  end
 
+  def self.add_total_loads_output(runner, model, living_zone)
     liv_load_sensors = {}
-
     liv_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
     liv_load_sensors[:htg].setName('htg_load_liv')
-
     liv_load_sensors[:clg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
     liv_load_sensors[:clg].setName('clg_load_liv')
 
     tot_load_sensors = {}
-
     tot_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating:EnergyTransfer')
     tot_load_sensors[:htg].setName('htg_load_tot')
-
     tot_load_sensors[:clg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Cooling:EnergyTransfer')
     tot_load_sensors[:clg].setName('clg_load_tot')
 
-    load_adj_sensors = {} # Sensors used to adjust E+ EnergyTransfer meter, eg. dehumidifier as load in our program, but included in Heating:EnergyTransfer as HVAC equipment
+    # Need to adjusted E+ EnergyTransfer meters for dehumidifiers
+    intgain_dehumidifier = nil
+    model.getZoneHVACDehumidifierDXs.each do |e|
+      next unless e.thermalZone.get.name.to_s == living_zone.name.to_s
+
+      { 'Zone Dehumidifier Sensible Heating Energy' => 'ig_dehumidifier' }.each do |var, name|
+        intgain_dehumidifier = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
+        intgain_dehumidifier.setName(name)
+        intgain_dehumidifier.setKeyName(e.name.to_s)
+      end
+    end
+
+    # EMS program
+    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    program.setName(Constants.ObjectNameTotalLoadsProgram)
+    program.addLine('Set loads_htg_tot = 0')
+    program.addLine('Set loads_clg_tot = 0')
+    program.addLine("If #{liv_load_sensors[:htg].name} > 0")
+    s = "  Set loads_htg_tot = #{tot_load_sensors[:htg].name} - #{tot_load_sensors[:clg].name}"
+    if not intgain_dehumidifier.nil?
+      s += " - #{intgain_dehumidifier.name}"
+    end
+    program.addLine(s)
+    program.addLine("ElseIf #{liv_load_sensors[:clg].name} > 0")
+    s = "  Set loads_clg_tot = #{tot_load_sensors[:clg].name} - #{tot_load_sensors[:htg].name}"
+    if not intgain_dehumidifier.nil?
+      s += " + #{intgain_dehumidifier.name}"
+    end
+    program.addLine(s)
+    program.addLine('EndIf')
+
+    # EMS calling manager
+    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_calling_manager.setName("#{program.name} calling manager")
+    program_calling_manager.setCallingPoint('EndOfZoneTimestepAfterZoneReporting')
+    program_calling_manager.addProgram(program)
+
+    return liv_load_sensors, intgain_dehumidifier
+  end
+
+  def self.add_component_loads_output(runner, model, living_zone, liv_load_sensors, intgain_dehumidifier)
+    # Prevent certain objects (e.g., OtherEquipment) from being counted towards both, e.g., ducts and internal gains
+    objects_already_processed = []
 
     # EMS Sensors: Surfaces, SubSurfaces, InternalMass
 
@@ -2670,27 +2344,7 @@ class OSModel
       ducts_mix_loss_sensor.setKeyName(living_zone.name.to_s)
     end
 
-    # Return duct losses
-    model.getOtherEquipments.sort.each do |o|
-      next if objects_already_processed.include? o
-
-      is_duct_load = o.additionalProperties.getFeatureAsBoolean(Constants.IsDuctLoadForReport)
-      next unless is_duct_load.is_initialized
-
-      objects_already_processed << o
-      next unless is_duct_load.get
-
-      ducts_sensors << []
-      { 'Other Equipment Convective Heating Energy' => 'ducts_conv',
-        'Other Equipment Radiant Heating Energy' => 'ducts_rad' }.each do |var, name|
-        ducts_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
-        ducts_sensor.setName(name)
-        ducts_sensor.setKeyName(o.name.to_s)
-        ducts_sensors[-1] << ducts_sensor
-      end
-    end
-
-    # Supply duct losses
+    # Duct losses
     model.getOtherEquipments.sort.each do |o|
       next if objects_already_processed.include? o
 
@@ -2725,20 +2379,6 @@ class OSModel
         intgains_elec_equip_sensor.setName(name)
         intgains_elec_equip_sensor.setKeyName(o.name.to_s)
         intgains_sensors[-1] << intgains_elec_equip_sensor
-      end
-    end
-
-    model.getGasEquipments.sort.each do |o|
-      next unless o.space.get.thermalZone.get.name.to_s == living_zone.name.to_s
-      next if objects_already_processed.include? o
-
-      intgains_sensors << []
-      { 'Gas Equipment Convective Heating Energy' => 'ig_ge_conv',
-        'Gas Equipment Radiant Heating Energy' => 'ig_ge_rad' }.each do |var, name|
-        intgains_gas_equip_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
-        intgains_gas_equip_sensor.setName(name)
-        intgains_gas_equip_sensor.setKeyName(o.name.to_s)
-        intgains_sensors[-1] << intgains_gas_equip_sensor
       end
     end
 
@@ -2783,17 +2423,8 @@ class OSModel
       end
     end
 
-    model.getZoneHVACDehumidifierDXs.each do |e|
-      next unless e.thermalZone.get.name.to_s == living_zone.name.to_s
-
-      intgains_sensors << []
-      { 'Zone Dehumidifier Sensible Heating Energy' => 'ig_dehumidifier' }.each do |var, name|
-        intgain_dehumidifier = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
-        intgain_dehumidifier.setName(name)
-        intgain_dehumidifier.setKeyName(e.name.to_s)
-        load_adj_sensors[:dehumidifier] = intgain_dehumidifier
-        intgains_sensors[-1] << intgain_dehumidifier
-      end
+    if not intgain_dehumidifier.nil?
+      intgains_sensors[-1] << intgain_dehumidifier
     end
 
     intgains_dhw_sensors = {}
@@ -2915,38 +2546,11 @@ class OSModel
       end
     end
 
-    # EMS program: Total loads
-    program.addLine('Set loads_htg_tot = 0')
-    program.addLine('Set loads_clg_tot = 0')
-    program.addLine("If #{liv_load_sensors[:htg].name} > 0")
-    s = "  Set loads_htg_tot = #{tot_load_sensors[:htg].name} - #{tot_load_sensors[:clg].name}"
-    load_adj_sensors.each do |key, adj_sensor|
-      if ['dehumidifier'].include? key.to_s
-        s += " - #{adj_sensor.name}"
-      end
-    end
-    program.addLine(s)
-    program.addLine("ElseIf #{liv_load_sensors[:clg].name} > 0")
-    s = "  Set loads_clg_tot = #{tot_load_sensors[:clg].name} - #{tot_load_sensors[:htg].name}"
-    load_adj_sensors.each do |key, adj_sensor|
-      if ['dehumidifier'].include? key.to_s
-        s += " + #{adj_sensor.name}"
-      end
-    end
-    program.addLine(s)
-    program.addLine('EndIf')
-
     # EMS calling manager
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{program.name} calling manager")
     program_calling_manager.setCallingPoint('EndOfZoneTimestepAfterZoneReporting')
     program_calling_manager.addProgram(program)
-  end
-
-  def self.set_vacancy(runner, model)
-    return if @schedules_file.nil?
-
-    @schedules_file.set_vacancy(col_names: ScheduleGenerator.col_names)
   end
 
   def self.add_output_control_files(runner, model)

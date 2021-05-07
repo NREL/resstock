@@ -636,15 +636,15 @@ Each heating system (other than a heat pump) is entered as an ``/HPXML/Building/
   =================================  ========  ======  ===========  ========  =========  ===============================
   ``SystemIdentifier``               id                             Yes                  Unique identifier
   ``HeatingSystemType``              element           1 [#]_       Yes                  Type of heating system
-  ``FractionHeatLoadServed``         double    frac    0 - 1 [#]_   Yes                  Fraction of heating load served
   ``HeatingSystemFuel``              string            See [#]_     Yes                  Fuel type
   ``HeatingCapacity``                double    Btu/hr  >= 0         No        autosized  Input heating capacity
+  ``FractionHeatLoadServed``         double    frac    0 - 1 [#]_   Yes                  Fraction of heating load served
   =================================  ========  ======  ===========  ========  =========  ===============================
 
   .. [#] HeatingSystemType child element choices are ``ElectricResistance``, ``Furnace``, ``WallFurnace``, ``FloorFurnace``, ``Boiler``, ``Stove``, ``PortableHeater``, ``FixedHeater``, or ``Fireplace``.
-  .. [#] The sum of all ``FractionHeatLoadServed`` (across both HeatingSystems and HeatPumps) must be less than or equal to 1.
   .. [#] HeatingSystemFuel choices are  "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
          For ``ElectricResistance``, "electricity" is required.
+  .. [#] The sum of all ``FractionHeatLoadServed`` (across both HeatingSystems and HeatPumps) must be less than or equal to 1.
 
 Electric Resistance
 ~~~~~~~~~~~~~~~~~~~
@@ -671,8 +671,8 @@ If a furnace is specified, additional information is entered in ``HeatingSystem`
   ``extension/AirflowDefectRatio``                 double  frac   > -1         No        0.0        Deviation between design/installed airflows [#]_
   ===============================================  ======  =====  ===========  ========  =========  ================================================
 
-  .. [#] HVACDistribution type must be AirDistribution or DSE.
-  .. [#] If FanPowerWattsPerCFM not provided, defaulted to 0.5 W/cfm if AFUE <= 0.9, else 0.375 W/cfm.
+  .. [#] HVACDistribution type must be AirDistribution (type: "regular velocity" or "gravity") or DSE.
+  .. [#] If FanPowerWattsPerCFM not provided, defaulted to 0 W/cfm if gravity distribution system, else 0.5 W/cfm if AFUE <= 0.9, else 0.375 W/cfm.
   .. [#] If there is a cooling system attached to the DistributionSystem, the heating and cooling systems cannot have different values for FanPowerWattsPerCFM.
   .. [#] AirflowDefectRatio is defined as (InstalledAirflow - DesignAirflow) / DesignAirflow; a value of zero means no airflow defect.
          See ANSI/RESNET/ACCA 310-2020 Standard for Grading the Installation of HVAC Systems for more information.
@@ -702,26 +702,42 @@ If a boiler is specified, additional information is entered in ``HeatingSystem``
   ``IsSharedSystem``                                                          boolean                        No        false     Whether it serves multiple dwelling units
   ``DistributionSystem``                                                      idref             See [#]_     Yes                 ID of attached distribution system
   ``AnnualHeatingEfficiency[Units="AFUE"]/Value``                             double    frac    0 - 1        Yes                 Rated efficiency
-  ``ElectricAuxiliaryEnergy``                                                 double    kWh/yr  >= 0         No [#]_   See [#]_  Electric auxiliary energy
   ==========================================================================  ========  ======  ===========  ========  ========  =========================================
 
   .. [#] For in-unit boilers, HVACDistribution type must be HydronicDistribution (type: "radiator", "baseboard", "radiant floor", "radiant ceiling", or "water loop") or DSE.
          For shared boilers, HVACDistribution type must be HydronicDistribution (type: "radiator", "baseboard", "radiant floor", "radiant ceiling", or "water loop") or AirDistribution (type: "fan coil").
          If the shared boiler has "water loop" distribution, a :ref:`hvac_heatpump_wlhp` must also be specified.
-  .. [#] | For shared boilers, ElectricAuxiliaryEnergy can alternatively be calculated as follows per `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_:
-         | EAE = (SP / N_dweq + aux_in) * HLH
-         | where
-         | SP = Shared pump power [W] provided as ``extension/SharedLoopWatts``,
-         | N_dweq = Number of units served by the shared system provided as ``NumberofUnitsServed``,
-         | aux_in = In-unit fan coil power [W] provided as ``extension/FanCoilWatts``,
-         | HLH = Annual heating load hours.
-  .. [#] If ElectricAuxiliaryEnergy not provided (nor calculated for shared boilers), defaults as follows per `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
 
-         - **Oil boiler**: 330
-         - **Gas boiler (in-unit)**: 170
-         - **Gas boiler (shared, w/ baseboard)**: 220
-         - **Gas boiler (shared, w/ water loop heat pump)**: 265
-         - **Gas boiler (shared, w/ fan coil)**: 438
+If an in-unit boiler if specified, additional information is entered in ``HeatingSystem``.
+
+  ===========================  ========  ======  ===========  ========  ========  =========================
+  Element                      Type      Units   Constraints  Required  Default   Notes
+  ===========================  ========  ======  ===========  ========  ========  =========================
+  ``ElectricAuxiliaryEnergy``  double    kWh/yr  >= 0         No        See [#]_  Electric auxiliary energy
+  ===========================  ========  ======  ===========  ========  ========  =========================
+
+  .. [#] If ElectricAuxiliaryEnergy not provided, defaults as follows:
+
+         - **Oil boiler**: 330 kWh/yr
+         - **Gas boiler**: 170 kWh/yr
+
+If instead a shared boiler is specified, additional information is entered in ``HeatingSystem``.
+
+  ============================================================  ========  ===========  ===========  ========  ========  =========================
+  Element                                                       Type      Units        Constraints  Required  Default   Notes
+  ============================================================  ========  ===========  ===========  ========  ========  =========================
+  ``NumberofUnitsServed``                                       integer                > 1          Yes                 Number of dwelling units served
+  ``ElectricAuxiliaryEnergy`` or ``extension/SharedLoopWatts``  double    kWh/yr or W  >= 0         No        See [#]_  Electric auxiliary energy or shared loop power
+  ``ElectricAuxiliaryEnergy`` or ``extension/FanCoilWatts``     double    kWh/yr or W  >= 0         No [#]_             Electric auxiliary energy or fan coil power
+  ============================================================  ========  ===========  ===========  ========  ========  =========================
+
+  .. [#] If ElectricAuxiliaryEnergy nor SharedLoopWatts provided, defaults as follows:
+  
+         - **Shared boiler w/ baseboard**: 220 kWh/yr
+         - **Shared boiler w/ water loop heat pump**: 265 kWh/yr
+         - **Shared boiler w/ fan coil**: 438 kWh/yr
+
+  .. [#] FanCoilWatts only used if boiler connected to fan coil and SharedLoopWatts provided.
 
 Stove
 ~~~~~
@@ -797,7 +813,7 @@ If a central air conditioner is specified, additional information is entered in 
   ``extension/ChargeDefectRatio``                  double    frac    > -1         No        0.0        Deviation between design/installed charges [#]_
   ===============================================  ========  ======  ===========  ========  =========  ================================================
 
-  .. [#] HVACDistribution type must be AirDistribution or DSE.
+  .. [#] HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
   .. [#] CompressorType choices are "single stage", "two stage", or "variable speed".
   .. [#] If CompressorType not provided, defaults to "single stage" if SEER <= 15, else "two stage" if SEER <= 21, else "variable speed".
   .. [#] If FanPowerWattsPerCFM not provided, defaults to using attached furnace W/cfm if available, else 0.5 W/cfm if SEER <= 13.5, else 0.375 W/cfm.
@@ -832,7 +848,7 @@ If an evaporative cooler is specified, additional information is entered in ``Co
   ``CoolingCapacity``                double    Btu/hr  >= 0         No        autosized  Cooling capacity
   =================================  ========  ======  ===========  ========  =========  ==================================
 
-  .. [#] If provided, HVACDistribution type must be AirDistribution or DSE.
+  .. [#] If provided, HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
 
 Mini-Split
 ~~~~~~~~~~
@@ -849,7 +865,7 @@ If a mini-split is specified, additional information is entered in ``CoolingSyst
   ``extension/ChargeDefectRatio``                  double    frac    > -1         No        0.0        Deviation between design/installed charges [#]_
   ===============================================  ========  ======  ===========  ========  =========  ===============================================
 
-  .. [#] If provided, HVACDistribution type must be AirDistribution or DSE.
+  .. [#] If provided, HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
   .. [#] ChargeDefectRatio is defined as (InstalledCharge - DesignCharge) / DesignCharge; a value of zero means no refrigerant charge defect.
          See ANSI/RESNET/ACCA 310-2020 Standard for Grading the Installation of HVAC Systems for more information.
 
@@ -886,7 +902,7 @@ If a chiller is specified, additional information is entered in ``CoolingSystem`
 
   .. [#] HVACDistribution type must be HydronicDistribution (type: "radiator", "baseboard", "radiant floor", "radiant ceiling", or "water loop") or AirDistribution (type: "fan coil").
          If the chiller has "water loop" distribution, a :ref:`hvac_heatpump_wlhp` must also be specified.
-  .. [#] FanCoilWatts only required if chiller connected to a fan coil.
+  .. [#] FanCoilWatts only required if chiller connected to fan coil.
   
 .. note::
 
@@ -971,7 +987,7 @@ If an air-to-air heat pump is specified, additional information is entered in ``
   ``extension/ChargeDefectRatio``                  double    frac    > -1         No        0.0        Deviation between design/installed charges [#]_
   ===============================================  ========  ======  ===========  ========  =========  ================================================
 
-  .. [#] HVACDistribution type must be AirDistribution or DSE.
+  .. [#] HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
   .. [#] CompressorType choices are "single stage", "two stage", or "variable speed".
   .. [#] If CompressorType not provided, defaults to "single stage" if SEER <= 15, else "two stage" if SEER <= 21, else "variable speed".
   .. [#] The sum of all ``FractionHeatLoadServed`` (across both HeatingSystems and HeatPumps) must be less than or equal to 1.
@@ -1002,7 +1018,7 @@ If a mini-split heat pump is specified, additional information is entered in ``H
   ``extension/ChargeDefectRatio``                  double    frac    > -1         No        0.0        Deviation between design/installed charges [#]_
   ===============================================  ========  ======  ===========  ========  =========  ==============================================
 
-  .. [#] If provided, HVACDistribution type must be AirDistribution or DSE.
+  .. [#] If provided, HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
   .. [#] The sum of all ``FractionHeatLoadServed`` (across both HeatingSystems and HeatPumps) must be less than or equal to 1.
   .. [#] The sum of all ``FractionCoolLoadServed`` (across both CoolingSystems and HeatPumps) must be less than or equal to 1.
   .. [#] ChargeDefectRatio is defined as (InstalledCharge - DesignCharge) / DesignCharge; a value of zero means no refrigerant charge defect.
@@ -1028,7 +1044,7 @@ If a ground-to-air heat pump is specified, additional information is entered in 
   ===============================================  ========  ======  ===========  ========  =========  ==============================================
   Element                                          Type      Units   Constraints  Required  Default    Notes
   ===============================================  ========  ======  ===========  ========  =========  ==============================================
-  ``IsSharedSystem``                               boolean                        No        false      Whether it serves multiple dwelling units [#]_
+  ``IsSharedSystem``                               boolean                        No        false      Whether it has a shared hydronic circulation loop [#]_
   ``DistributionSystem``                           idref             See [#]_     Yes                  ID of attached distribution system
   ``HeatingCapacity``                              double    Btu/hr  >= 0         No        autosized  Heating capacity (excluding any backup heating)
   ``CoolingCapacity``                              double    Btu/hr  >= 0         No        autosized  Cooling capacity
@@ -1046,7 +1062,7 @@ If a ground-to-air heat pump is specified, additional information is entered in 
   ===============================================  ========  ======  ===========  ========  =========  ==============================================
 
   .. [#] IsSharedSystem should be true if the SFA/MF building has multiple ground source heat pumps connected to a shared hydronic circulation loop.
-  .. [#] HVACDistribution type must be AirDistribution or DSE.
+  .. [#] HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
   .. [#] The sum of all ``FractionHeatLoadServed`` (across both HeatingSystems and HeatPumps) must be less than or equal to 1.
   .. [#] The sum of all ``FractionCoolLoadServed`` (across both CoolingSystems and HeatPumps) must be less than or equal to 1.
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
@@ -1079,7 +1095,7 @@ If a water-loop-to-air heat pump is specified, additional information is entered
   ``AnnualHeatingEfficiency[Units="COP"]/Value``   double    W/W     > 0          See [#]_             Rated heating efficiency
   ===============================================  ========  ======  ===========  ========  =========  ==============================================
 
-  .. [#] HVACDistribution type must be AirDistribution or DSE.
+  .. [#] HVACDistribution type must be AirDistribution (type: "regular velocity") or DSE.
   .. [#] CoolingCapacity required if there is a shared chiller or cooling tower with water loop distribution.
   .. [#] AnnualCoolingEfficiency required if there is a shared chiller or cooling tower with water loop distribution.
   .. [#] AnnualHeatingEfficiency required if there is a shared boiler with water loop distribution.
@@ -1166,7 +1182,7 @@ Each separate HVAC distribution system is entered as a ``/HPXML/Building/Buildin
   ==============================  =======  =======  ===========  ========  =========  =============================
 
   .. [#] DistributionSystemType child element choices are ``AirDistribution``, ``HydronicDistribution``, or ``Other=DSE``.
-  .. [#] ConditionedFloorAreaServed is required for AirDistribution type.
+  .. [#] ConditionedFloorAreaServed required only when DistributionSystemType is AirDistribution and ``AirDistribution/Ducts`` are present.
 
 .. note::
   
@@ -1184,17 +1200,18 @@ To define an air distribution system, additional information is entered in ``HVA
   =============================================  =======  =======  ===========  ========  =========  ==========================
   Element                                        Type     Units    Constraints  Required  Default    Notes
   =============================================  =======  =======  ===========  ========  =========  ==========================
-  ``AirDistributionType``                        string            See [#]_     See [#]_             Type of air distribution
-  ``DuctLeakageMeasurement[DuctType="supply"]``  element           1            Yes                  Supply duct leakage value
-  ``DuctLeakageMeasurement[DuctType="return"]``  element           1            Yes                  Return duct leakage value
+  ``AirDistributionType``                        string            See [#]_     Yes                  Type of air distribution
+  ``DuctLeakageMeasurement[DuctType="supply"]``  element           1            See [#]_             Supply duct leakage value
+  ``DuctLeakageMeasurement[DuctType="return"]``  element           1            See [#]_             Return duct leakage value
   ``Ducts``                                      element           >= 0         No                   Supply/return ducts [#]_
   ``NumberofReturnRegisters``                    integer           >= 0         No        See [#]_   Number of return registers
   =============================================  =======  =======  ===========  ========  =========  ==========================
   
-  .. [#] AirDistributionType choices are "gravity", "high velocity", "regular velocity", or "fan coil".
-  .. [#] AirDistributionType only required if the distribution system is for shared boilers/chillers with fan coils, in which case value must be "fan coil".
+  .. [#] AirDistributionType choices are "regular velocity", "gravity", or "fan coil" and are further restricted based on attached HVAC system type (e.g., only "regular velocity" or "gravity" for a furnace, only "fan coil" for a shared boiler, etc.).
+  .. [#] Supply duct leakage required if AirDistributionType is "regular velocity" or "gravity" and optional if AirDistributionType is "fan coil".
+  .. [#] Return duct leakage required if AirDistributionType is "regular velocity" or "gravity" and optional if AirDistributionType is "fan coil".
   .. [#] Provide a Ducts element for each supply duct and each return duct.
-  .. [#] If NumberofReturnRegisters not provided, defaults to one return register per conditioned floor per `ASHRAE Standard 152 <https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet>`_, rounded up to the nearest integer if needed.
+  .. [#] If NumberofReturnRegisters not provided and ``AirDistribution/Ducts`` are present, defaults to one return register per conditioned floor per `ASHRAE Standard 152 <https://www.energy.gov/eere/buildings/downloads/ashrae-standard-152-spreadsheet>`_, rounded up to the nearest integer if needed.
 
 Additional information is entered in each ``DuctLeakageMeasurement``.
 
@@ -1795,7 +1812,7 @@ If not entered, the simulation will not include generators.
   ``NumberofBedroomsServed``  integer           > 1          See [#]_           Number of bedrooms served
   ==========================  =======  =======  ===========  ========  =======  ============================================
 
-  .. [#] FuelType choices are "natural gas" or "propane".
+  .. [#] FuelType choices are "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "anthracite coal", "wood", or "wood pellets".
   .. [#] AnnualOutputkWh must also be < AnnualConsumptionkBtu*3.412 (i.e., the generator must consume more energy than it produces).
   .. [#] NumberofBedroomsServed only required if IsSharedSystem is true, in which case it must be > NumberofBedrooms.
          Annual consumption and annual production will be apportioned to the dwelling unit using its number of bedrooms divided by the total number of bedrooms served by the generator.
@@ -1871,9 +1888,9 @@ If not entered, the simulation will not include a clothes dryer.
   ``Location``                                  string           See [#]_     No        living space  Location
   ``FuelType``                                  string           See [#]_     Yes                     Fuel type
   ``CombinedEnergyFactor`` or ``EnergyFactor``  double   lb/kWh  > 0          No        See [#]_      EnergyGuide label efficiency [#]_
+  ``Vented``                                    boolean                       No        true          Whether dryer is vented
+  ``VentedFlowRate``                            double   cfm     >= 0         No        100 [#]_      Exhust flow rate during operation
   ``extension/UsageMultiplier``                 double           >= 0         No        1.0           Multiplier on energy use
-  ``extension/IsVented``                        boolean                       No        true          Whether dryer is vented
-  ``extension/VentedFlowRate``                  double   cfm     >= 0         See [#]_  100 [#]_      Exhust flow rate during operation
   ============================================  =======  ======  ===========  ========  ============  ==============================================
 
   .. [#] For example, a clothes dryer in a shared laundry room of a MF building.
@@ -1884,7 +1901,6 @@ If not entered, the simulation will not include a clothes dryer.
          CombinedEnergyFactor = 3.01.
   .. [#] If EnergyFactor (EF) provided instead of CombinedEnergyFactor (CEF), it will be converted using the following equation based on the `Interpretation on ANSI/RESNET/ICC 301-2014 Clothes Dryer CEF <https://www.resnet.us/wp-content/uploads/No.-301-2014-10-Section-4.2.2.5.2.8-Clothes-Dryer-CEF-Rating.pdf>`_:
          CEF = EF / 1.15.
-  .. [#] VentedFlowRate only required if IsVented is true.
   .. [#] VentedFlowRate default based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_.
 
 Clothes dryer energy use is calculated per the Energy Rating Rated Home in `ANSI/RESNET/ICC 301-2019 Addendum A <https://www.resnet.us/wp-content/uploads/ANSI_RESNET_ICC-301-2019-Addendum-A-2019_7.16.20-1.pdf>`_.
@@ -2417,28 +2433,28 @@ HPXML Locations
 
 The various locations used in an HPXML file are defined as follows:
 
-  ==============================  ===========================================  =======================================  =============
-  Value                           Description                                  Temperature                              Building Type
-  ==============================  ===========================================  =======================================  =============
-  outside                         Ambient environment                          Weather data                             Any
-  ground                                                                       EnergyPlus calculation                   Any
-  living space                    Above-grade conditioned floor area           EnergyPlus calculation                   Any
-  attic - vented                                                               EnergyPlus calculation                   Any
-  attic - unvented                                                             EnergyPlus calculation                   Any
-  basement - conditioned          Below-grade conditioned floor area           EnergyPlus calculation                   Any
-  basement - unconditioned                                                     EnergyPlus calculation                   Any
-  crawlspace - vented                                                          EnergyPlus calculation                   Any
-  crawlspace - unvented                                                        EnergyPlus calculation                   Any
-  garage                          Single-family garage (not shared parking)    EnergyPlus calculation                   Any
-  other housing unit              E.g., conditioned adjacent unit or corridor  Same as living space                     SFA/MF only
-  other heated space              E.g., shared laundry/equipment space         Avg of living space/outside; min of 68F  SFA/MF only
-  other multifamily buffer space  E.g., enclosed unconditioned stairwell       Avg of living space/outside; min of 50F  SFA/MF only
-  other non-freezing space        E.g., shared parking garage ceiling          Floats with outside; minimum of 40F      SFA/MF only
-  other exterior                  Water heater outside                         Weather data                             Any
-  exterior wall                   Ducts in exterior wall                       Avg of living space/outside              Any
-  under slab                      Ducts under slab (ground)                    EnergyPlus calculation                   Any
-  roof deck                       Ducts on roof deck (outside)                 Weather data                             Any
-  ==============================  ===========================================  =======================================  =============
+  ==============================  =======================================================  =======================================  =============
+  Value                           Description                                              Temperature                              Building Type
+  ==============================  =======================================================  =======================================  =============
+  outside                         Ambient environment                                      Weather data                             Any
+  ground                                                                                   EnergyPlus calculation                   Any
+  living space                    Above-grade conditioned floor area                       EnergyPlus calculation                   Any
+  attic - vented                                                                           EnergyPlus calculation                   Any
+  attic - unvented                                                                         EnergyPlus calculation                   Any
+  basement - conditioned          Below-grade conditioned floor area                       EnergyPlus calculation                   Any
+  basement - unconditioned                                                                 EnergyPlus calculation                   Any
+  crawlspace - vented                                                                      EnergyPlus calculation                   Any
+  crawlspace - unvented                                                                    EnergyPlus calculation                   Any
+  garage                          Single-family garage (not shared parking)                EnergyPlus calculation                   Any
+  other housing unit              E.g., conditioned adjacent unit or conditioned corridor  Same as living space                     SFA/MF only
+  other heated space              E.g., shared laundry/equipment space                     Avg of living space/outside; min of 68F  SFA/MF only
+  other multifamily buffer space  E.g., enclosed unconditioned stairwell                   Avg of living space/outside; min of 50F  SFA/MF only
+  other non-freezing space        E.g., shared parking garage ceiling                      Floats with outside; minimum of 40F      SFA/MF only
+  other exterior                  Water heater outside                                     Weather data                             Any
+  exterior wall                   Ducts in exterior wall                                   Avg of living space/outside              Any
+  under slab                      Ducts under slab (ground)                                EnergyPlus calculation                   Any
+  roof deck                       Ducts on roof deck (outside)                             Weather data                             Any
+  ==============================  =======================================================  =======================================  =============
 
 Validating & Debugging Errors
 -----------------------------

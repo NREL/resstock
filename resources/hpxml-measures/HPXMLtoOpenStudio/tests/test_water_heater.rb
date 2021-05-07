@@ -3,7 +3,6 @@
 require_relative '../resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
-require 'minitest/autorun'
 require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
@@ -1095,43 +1094,27 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
 
     # Get HPXML values
     water_heating_system = hpxml.water_heating_systems[0]
-    shared_water_heating_system = hpxml.water_heating_systems[1]
 
     # Expected value
-    tank_volumes = [UnitConversions.convert(water_heating_system.tank_volume * 0.9, 'gal', 'm^3'),
-                    UnitConversions.convert(shared_water_heating_system.tank_volume * 0.9, 'gal', 'm^3')] # convert to actual volume
-    caps = [UnitConversions.convert(water_heating_system.heating_capacity / 1000.0, 'kBtu/hr', 'W'),
-            UnitConversions.convert(shared_water_heating_system.heating_capacity / 1000.0, 'kBtu/hr', 'W')]
-    fuels = [EPlus.fuel_type(water_heating_system.fuel_type),
-             EPlus.fuel_type(shared_water_heating_system.fuel_type)]
-    uas = [UnitConversions.convert(1.335, 'Btu/(hr*F)', 'W/K'),
-           UnitConversions.convert(1.335 / shared_water_heating_system.number_of_units_served, 'Btu/(hr*F)', 'W/K')]
-    t_sets = [UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1,
-              UnitConversions.convert(shared_water_heating_system.temperature, 'F', 'C') + 1] # setpoint + 1/2 deadband
-    ther_effs = [1.0, 1.0]
-    locs = [water_heating_system.location,
-            shared_water_heating_system.location]
+    tank_volume = UnitConversions.convert(water_heating_system.tank_volume * 0.95, 'gal', 'm^3') # convert to actual volume
+    cap = UnitConversions.convert(water_heating_system.heating_capacity / 1000.0, 'kBtu/hr', 'W')
+    fuel = EPlus.fuel_type(water_heating_system.fuel_type)
+    ua = UnitConversions.convert(7.88, 'Btu/(hr*F)', 'W/K') / water_heating_system.number_of_units_served
+    t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
+    ther_eff = 0.773
+    loc = water_heating_system.location
 
     # Check water heater
-    assert_equal(2, model.getWaterHeaterMixeds.size)
-    wh = model.getWaterHeaterMixeds.sort[0]
-    assert_equal(fuels[0], wh.heaterFuelType)
-    assert_equal(locs[0], wh.ambientTemperatureThermalZone.get.name.get)
-    assert_in_epsilon(tank_volumes[0], wh.tankVolume.get, 0.001)
-    assert_in_epsilon(caps[0], wh.heaterMaximumCapacity.get, 0.001)
-    assert_in_epsilon(uas[0], wh.onCycleLossCoefficienttoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(uas[0], wh.offCycleLossCoefficienttoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(t_sets[0], wh.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, 0.001)
-    assert_in_epsilon(ther_effs[0], wh.heaterThermalEfficiency.get, 0.001)
-    wh = model.getWaterHeaterMixeds.sort[1]
-    assert_equal(fuels[1], wh.heaterFuelType)
-    assert_equal('Schedule', wh.ambientTemperatureIndicator)
-    assert_in_epsilon(tank_volumes[1], wh.tankVolume.get, 0.001)
-    assert_in_epsilon(caps[1], wh.heaterMaximumCapacity.get, 0.001)
-    assert_in_epsilon(uas[1], wh.onCycleLossCoefficienttoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(uas[1], wh.offCycleLossCoefficienttoAmbientTemperature.get, 0.001)
-    assert_in_epsilon(t_sets[1], wh.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, 0.001)
-    assert_in_epsilon(ther_effs[1], wh.heaterThermalEfficiency.get, 0.001)
+    assert_equal(1, model.getWaterHeaterMixeds.size)
+    wh = model.getWaterHeaterMixeds[0]
+    assert_equal(fuel, wh.heaterFuelType)
+    assert_equal(loc, wh.ambientTemperatureThermalZone.get.name.get)
+    assert_in_epsilon(tank_volume, wh.tankVolume.get, 0.001)
+    assert_in_epsilon(cap, wh.heaterMaximumCapacity.get, 0.001)
+    assert_in_epsilon(ua, wh.onCycleLossCoefficienttoAmbientTemperature.get, 0.001)
+    assert_in_epsilon(ua, wh.offCycleLossCoefficienttoAmbientTemperature.get, 0.001)
+    assert_in_epsilon(t_set, wh.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, 0.001)
+    assert_in_epsilon(ther_eff, wh.heaterThermalEfficiency.get, 0.001)
   end
 
   def _test_measure(args_hash)
