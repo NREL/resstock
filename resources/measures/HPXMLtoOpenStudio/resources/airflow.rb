@@ -1383,7 +1383,7 @@ class Airflow
 
     # Add a new sensor here for the outage schedule (otg_availability_schedule)
     otg_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
-    otg_sensor.setName("#{obj_name_infil.name} outage s")
+    otg_sensor.setName("#{obj_name_natvent.name} outage s")
     otg_sensor.setKeyName(otg_sensor_name.to_s)
 
     nvavail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
