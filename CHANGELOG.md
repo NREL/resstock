@@ -1,7 +1,6 @@
 ## ResStock v2.5.0 (pending)
 
 Features
-
 - Model multifamily and single-family attached buildings as individual dwelling units ([#439](https://github.com/NREL/resstock/pull/439))
 - Reduce vacant unit heating setpoints to 55F ([#541](https://github.com/NREL/resstock/pull/541))
 - Introduce a CEC Building Climate Zone tag for samples in California ([#548](https://github.com/NREL/resstock/pull/548))
@@ -12,6 +11,7 @@ Features
 - Use Schedule:File with well pump / vehicle plug loads, as well as gas grill / fireplace / lighting fuel loads. This enables the optional vacancy period to apply to these end uses ([#566](https://github.com/NREL/resstock/pull/556))
 - Update example project yaml files to use buildstockbatch input schema version 0.3 ([#583](https://github.com/NREL/resstock/pull/583))
 - Update default daylight saving start and end dates to March 12 and November 5, respectively ([#585](https://github.com/NREL/resstock/pull/585))
+- Remove 3 story limit for multi-family buildings, and instead use RECS data to all for building up to 21 stories ([#558](https://github.com/NREL/resstock/pull/558))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
