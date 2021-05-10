@@ -39,7 +39,7 @@ class SetResidentialEPWFileTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { "SiteGroundTemperatureDeep" => 1, "RunPeriodControlDaylightSavingTime" => 1, "SiteWaterMainsTemperature" => 1, "WeatherFile" => 1, "ClimateZones" => 1, "Site" => 1 }
-    expected_values = { "StartDate" => "Apr-07", "EndDate" => "Oct-26", "HotWaterAnnualTemp" => 10.88, "HotWaterMaxDiffTemp" => 23.15 }
+    expected_values = { "StartDate" => "Mar-12", "EndDate" => "Nov-05", "HotWaterAnnualTemp" => 10.88, "HotWaterMaxDiffTemp" => 23.15 }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5)
     args_hash = {}
     args_hash["dst_start_date"] = "April 8"
