@@ -3145,7 +3145,7 @@ class HVAC
             if cooling_system.modulating || cooling_system.ihp_grid_ac || cooling_system.ihp_ice_storage || cooling_system.ihp_pcm_storage
               grid_signal_schedule = grid_signal_schedules_file.create_schedule_file(col_name: model.getWeatherFile.stateProvinceRegion)
               clg_coil.setGridSignalSchedule(grid_signal_schedule)
-              clg_coil.setLowerBoundToApplyGridResponsiveControl(10.0)
+              clg_coil.setLowerBoundToApplyGridResponsiveControl(0.1)
               clg_coil.setUpperBoundToApplyGridResponsiveControl(1000.0)
               clg_coil.setMaxSpeedLevelDuringGridResponsiveControl(2)
             end
@@ -3229,7 +3229,7 @@ class HVAC
             if heating_system.dual_source
               grid_signal_schedule = grid_signal_schedules_file.create_schedule_file(col_name: model.getWeatherFile.stateProvinceRegion)
               htg_coil.setGridSignalSchedule(grid_signal_schedule)
-              htg_coil.setLowerBoundToApplyGridResponsiveControl(10.0)
+              htg_coil.setLowerBoundToApplyGridResponsiveControl(0.1)
               htg_coil.setUpperBoundToApplyGridResponsiveControl(1000.0)
               htg_coil.setMaxSpeedLevelDuringGridResponsiveControl(2)
             end
