@@ -61,6 +61,10 @@ class Constants
     return 'ethylene-glycol'
   end
 
+  def self.GridSignalRegions
+    return ['CO', 'AZ'] # FIXME
+  end
+
   def self.IsDuctLoadForReport
     return __method__.to_s
   end

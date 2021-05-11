@@ -521,7 +521,11 @@ class Airflow
     if system.nil? # Evaporative cooler supply fan directly on air loop
       supply_fan = air_loop.supplyFan.get
     else
-      supply_fan = system.supplyFan.get
+      if system.to_AirLoopHVACUnitarySystem.is_initialized
+        supply_fan = system.supplyFan.get
+      elsif system.to_AirLoopHVACUnitaryHeatPumpAirToAir.is_initialized
+        supply_fan = system.supplyAirFan
+      end
     end
 
     @fan_rtf_var[air_loop] = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{air_loop.name} Fan RTF".gsub(' ', '_'))
