@@ -12,14 +12,6 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     assert_includes(result.errors.map { |x| x.logMessage }, "Starting model is not empty.")
   end
 
-  def test_error_num_units
-    args_hash = {}
-    args_hash["num_floors"] = 3
-    args_hash["num_units"] = 10
-    result = _test_error(nil, args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, "The number of units must be divisible by the number of floors.")
-  end
-
   def test_argument_error_crawl_height_invalid
     args_hash = {}
     args_hash["foundation_type"] = "crawlspace"
@@ -274,6 +266,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_floors"] = 3
     args_hash["num_units"] = 6
     args_hash["level"] = "Top"
+    args_hash["horz_location"] = "None"
     args_hash["corridor_position"] = "Double-Loaded Interior"
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8, "ExternalFile" => 1, "ScheduleFile" => 1 }
@@ -303,6 +296,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_units"] = 6
     args_hash["level"] = "Middle"
     args_hash["corridor_position"] = "Double-Loaded Interior"
+    args_hash["horz_location"] = "None"
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 1, "ShadingSurface" => 2, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 7 }
@@ -331,6 +325,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_units"] = 6
     args_hash["level"] = "Bottom"
     args_hash["corridor_position"] = "Double-Loaded Interior"
+    args_hash["horz_location"] = "None"
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 1, "ShadingSurface" => 2, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 5 }
@@ -451,7 +446,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_units"] = 6
     args_hash["level"] = "Top"
     args_hash["corridor_position"] = "Double-Loaded Interior"
-    args_hash["horz_location"] = "Left" # reverts to none
+    args_hash["horz_location"] = "None"
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 8, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 5 }
@@ -496,10 +491,10 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_units"] = 6
     args_hash["level"] = "Middle"
     args_hash["corridor_position"] = "Double-Loaded Interior"
-    args_hash["horz_location"] = "Left" # reverts to none
+    args_hash["horz_location"] = "Left" # Forces single front corridor
     expected_num_del_objects = {}
-    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 1, "ShadingSurface" => 2, "ExternalFile" => 1, "ScheduleFile" => 1 }
-    expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 7 }
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 6, "ThermalZone" => 1, "Space" => 1, "SpaceType" => 1, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 3, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 3 }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
@@ -541,7 +536,7 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     args_hash["num_units"] = 6
     args_hash["level"] = "Bottom"
     args_hash["corridor_position"] = "Double-Loaded Interior"
-    args_hash["horz_location"] = "Left" # reverts to none
+    args_hash["horz_location"] = "None"
     expected_num_del_objects = {}
     expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 12, "ThermalZone" => 2, "Space" => 2, "SpaceType" => 2, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 1, "ShadingSurface" => 2, "ExternalFile" => 1, "ScheduleFile" => 1 }
     expected_values = { "FinishedFloorArea" => 900 * 1, "BuildingHeight" => 8, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 3.39, "EavesDepth" => 2, "NumAdiabaticSurfaces" => 5 }
@@ -761,11 +756,9 @@ class CreateResidentialMultifamilyGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
-  #-
-
   def test_argument_error_invalid_none_horizontal
     args_hash = {}
-    args_hash["num_floors"] = 3
+    args_hash["num_floors"] = 2
     args_hash["num_units"] = 6
     args_hash["horz_location"] = "None"
     args_hash["corridor_position"] = "None"
