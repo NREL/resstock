@@ -308,16 +308,24 @@ class HVAC
         # Grid AC
         if heat_pump.ihp_grid_ac
           grid_clg_coil = create_dx_cooling_coil(model, obj_name, heat_pump, grid_signal_schedules_file)
+          hvac_map[heat_pump.id] << grid_clg_coil
         end
 
         # Storage
         if heat_pump.ihp_ice_storage || heat_pump.ihp_pcm_storage
           chiller_coil = chiller_coil(model, obj_name)
+          # hvac_map[heat_pump.id] << chiller_coil
+
           supp_chiller_coil = supp_chiller_coil(model, obj_name)
+          # hvac_map[heat_pump.id] << supp_chiller_coil
+
           storage = thermal_storage(model, heat_pump.ihp_ice_storage, heat_pump.ihp_pcm_storage, obj_name)
+          # hvac_map[heat_pump.id] << storage
 
           chw_loop = OpenStudio::Model::PlantLoop.new(model)
           pri_chw_pump = OpenStudio::Model::HeaderedPumpsConstantSpeed.new(model)
+          hvac_map[heat_pump.id] << pri_chw_pump
+
           pri_chw_pump.addToNode(chw_loop.supplyInletNode)
           chw_loop.addDemandBranchForComponent(supp_chiller_coil)
 
@@ -343,8 +351,16 @@ class HVAC
         end
       end
 
+      # Integrated Heat Pump
+      if coil_system
+        coil_system = create_coil_system_ihp(model, clg_coil, htg_coil, grid_clg_coil, chiller_coil, supp_chiller_coil, storage)
+        htg_coil = coil_system
+        clg_coil = coil_system
+        # hvac_map[heat_pump.id] << coil_system
+      end
+
       # Unitary System
-      air_loop_unitary = create_air_loop_unitary_hp(model, obj_name, fan, htg_coil, clg_coil, htg_supp_coil, htg_cfm, clg_cfm, hp_ap.supp_max_temp, coil_system, grid_clg_coil, chiller_coil, supp_chiller_coil, storage)
+      air_loop_unitary = create_air_loop_unitary_hp(model, obj_name, fan, htg_coil, clg_coil, htg_supp_coil, htg_cfm, clg_cfm, hp_ap.supp_max_temp, grid_clg_coil, chiller_coil, supp_chiller_coil, storage)
       hvac_map[heat_pump.id] << air_loop_unitary
     end
 
@@ -1852,14 +1868,7 @@ class HVAC
     return air_loop_unitary
   end
 
-  def self.create_air_loop_unitary_hp(model, obj_name, fan, htg_coil, clg_coil, htg_supp_coil, htg_cfm, clg_cfm, supp_max_temp, coil_system, grid_clg_coil, chiller_coil, supp_chiller_coil, storage)
-    # Integrated Heat Pump
-    if coil_system
-      coil_system = create_coil_system_ihp(model, clg_coil, htg_coil, grid_clg_coil, chiller_coil, supp_chiller_coil, storage)
-      htg_coil = coil_system
-      clg_coil = coil_system
-    end
-
+  def self.create_air_loop_unitary_hp(model, obj_name, fan, htg_coil, clg_coil, htg_supp_coil, htg_cfm, clg_cfm, supp_max_temp, grid_clg_coil, chiller_coil, supp_chiller_coil, storage)
     # Unitary Heat Pump Air-To-Air
     air_loop_unitary_hp = OpenStudio::Model::AirLoopHVACUnitaryHeatPumpAirToAir.new(model, model.alwaysOnDiscreteSchedule, fan, htg_coil, clg_coil, htg_supp_coil)
     air_loop_unitary_hp.setName(obj_name + ' unitary heat pump air to air')
@@ -3130,9 +3139,9 @@ class HVAC
         elsif clg_ap.demand_flexibility
           if clg_coil.nil?
             clg_coil = OpenStudio::Model::CoilCoolingDXVariableSpeed.new(model, plf_fplr_curve)
-            if cooling_system.modulating || cooling_system.dual_source
+            if cooling_system.modulating || cooling_system.dual_source || cooling_system.ihp_grid_ac
               clg_coil.setNominalSpeedLevel(4) # FIXME
-            else # ihp
+            else # ihp storage
               clg_coil.setNominalSpeedLevel(3) # FIXME: failure if this is 4
             end
             clg_coil.setGrossRatedTotalCoolingCapacityAtSelectedNominalSpeedLevel(UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')) # FIXME
@@ -3145,7 +3154,7 @@ class HVAC
             if cooling_system.modulating || cooling_system.ihp_grid_ac || cooling_system.ihp_ice_storage || cooling_system.ihp_pcm_storage
               grid_signal_schedule = grid_signal_schedules_file.create_schedule_file(col_name: model.getWeatherFile.stateProvinceRegion)
               clg_coil.setGridSignalSchedule(grid_signal_schedule)
-              clg_coil.setLowerBoundToApplyGridResponsiveControl(0.1)
+              clg_coil.setLowerBoundToApplyGridResponsiveControl(0.15)
               clg_coil.setUpperBoundToApplyGridResponsiveControl(1000.0)
               clg_coil.setMaxSpeedLevelDuringGridResponsiveControl(2)
             end
@@ -3229,7 +3238,7 @@ class HVAC
             if heating_system.dual_source
               grid_signal_schedule = grid_signal_schedules_file.create_schedule_file(col_name: model.getWeatherFile.stateProvinceRegion)
               htg_coil.setGridSignalSchedule(grid_signal_schedule)
-              htg_coil.setLowerBoundToApplyGridResponsiveControl(0.1)
+              htg_coil.setLowerBoundToApplyGridResponsiveControl(0.15)
               htg_coil.setUpperBoundToApplyGridResponsiveControl(1000.0)
               htg_coil.setMaxSpeedLevelDuringGridResponsiveControl(2)
             end
