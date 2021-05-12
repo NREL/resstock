@@ -111,6 +111,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
+    arg.setDisplayName('Add annual component loads output')
+    arg.setDescription('If true, output the annual component loads')
+    args << arg
+
     return args
   end
 
@@ -234,6 +239,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = File.expand_path('../existing.xml')
     measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
     measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'] if args['debug'].is_initialized
+    measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'] if args['add_component_loads'].is_initialized
 
     # Get software program used and version
     measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
