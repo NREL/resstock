@@ -792,12 +792,33 @@ class HPXMLDefaults
         end
       end
 
-      next unless not hvac_control.cooling_setup_temp.nil?
-
-      if hvac_control.cooling_setup_start_hour.nil?
-        hvac_control.cooling_setup_start_hour = 9 # 9 am
-        hvac_control.cooling_setup_start_hour_isdefaulted = true
+      if not hvac_control.cooling_setup_temp.nil?
+        if hvac_control.cooling_setup_start_hour.nil?
+          hvac_control.cooling_setup_start_hour = 9 # 9 am
+          hvac_control.cooling_setup_start_hour_isdefaulted = true
+        end
       end
+
+      if hvac_control.seasons_heating_begin_month.nil? || hvac_control.seasons_heating_begin_day.nil? || hvac_control.seasons_heating_end_month.nil? || hvac_control.seasons_heating_end_day.nil?
+        hvac_control.seasons_heating_begin_month = 1
+        hvac_control.seasons_heating_begin_day = 1
+        hvac_control.seasons_heating_end_month = 12
+        hvac_control.seasons_heating_end_day = 31
+        hvac_control.seasons_heating_begin_month_isdefaulted = true
+        hvac_control.seasons_heating_begin_day_isdefaulted = true
+        hvac_control.seasons_heating_end_month_isdefaulted = true
+        hvac_control.seasons_heating_end_day_isdefaulted = true
+      end
+
+      next unless hvac_control.seasons_cooling_begin_month.nil? || hvac_control.seasons_cooling_begin_day.nil? || hvac_control.seasons_cooling_end_month.nil? || hvac_control.seasons_cooling_end_day.nil?
+      hvac_control.seasons_cooling_begin_month = 1
+      hvac_control.seasons_cooling_begin_day = 1
+      hvac_control.seasons_cooling_end_month = 12
+      hvac_control.seasons_cooling_end_day = 31
+      hvac_control.seasons_cooling_begin_month_isdefaulted = true
+      hvac_control.seasons_cooling_begin_day_isdefaulted = true
+      hvac_control.seasons_cooling_end_month_isdefaulted = true
+      hvac_control.seasons_cooling_end_day_isdefaulted = true
     end
   end
 
@@ -849,6 +870,21 @@ class HPXMLDefaults
           end
           duct.duct_surface_area_isdefaulted = true
           duct.duct_location_isdefaulted = true
+        end
+      end
+
+      # Also update FractionDuctArea for informational purposes
+      supply_ducts = hvac_distribution.ducts.select { |duct| duct.duct_type == HPXML::DuctTypeSupply }
+      return_ducts = hvac_distribution.ducts.select { |duct| duct.duct_type == HPXML::DuctTypeReturn }
+      total_supply_area = supply_ducts.map { |d| d.duct_surface_area }.sum
+      total_return_area = return_ducts.map { |d| d.duct_surface_area }.sum
+      (supply_ducts + return_ducts).each do |duct|
+        if duct.duct_type == HPXML::DuctTypeSupply
+          duct.duct_fraction_area = (duct.duct_surface_area / total_supply_area).round(3)
+          duct.duct_fraction_area_isdefaulted = true
+        elsif duct.duct_type == HPXML::DuctTypeReturn
+          duct.duct_fraction_area = (duct.duct_surface_area / total_return_area).round(3)
+          duct.duct_fraction_area_isdefaulted = true
         end
       end
     end

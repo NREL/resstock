@@ -11,10 +11,6 @@ class Constants
     return 32.174 # gravity (ft/s2)
   end
 
-  def self.MonthNumDays
-    return [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  end
-
   def self.small
     return 1e-9
   end

@@ -265,8 +265,7 @@ class Lighting
     stdDevCons2 = 2.36567663279954
 
     monthly_kwh_per_day = []
-    year_description = model.getYearDescription
-    days_m = Constants.MonthNumDays
+    days_m = Schedule.get_num_days_per_month(nil) # Intentionally excluding leap year designation
     wtd_avg_monthly_kwh_per_day = 0
     for monthNum in 1..12
       month = monthNum - 1

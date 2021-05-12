@@ -749,16 +749,32 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-programmable-thermostat.xml')
     hpxml.hvac_controls[0].heating_setback_start_hour = 12
     hpxml.hvac_controls[0].cooling_setup_start_hour = 12
+    hpxml.hvac_controls[0].seasons_heating_begin_month = 1
+    hpxml.hvac_controls[0].seasons_heating_begin_day = 1
+    hpxml.hvac_controls[0].seasons_heating_end_month = 6
+    hpxml.hvac_controls[0].seasons_heating_end_day = 30
+    hpxml.hvac_controls[0].seasons_cooling_begin_month = 7
+    hpxml.hvac_controls[0].seasons_cooling_begin_day = 1
+    hpxml.hvac_controls[0].seasons_cooling_end_month = 12
+    hpxml.hvac_controls[0].seasons_cooling_end_day = 31
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_hvac_control_values(hpxml_default, 12, 12)
+    _test_default_hvac_control_values(hpxml_default, 12, 12, 1, 1, 6, 30, 7, 1, 12, 31)
 
     # Test defaults
     hpxml.hvac_controls[0].heating_setback_start_hour = nil
     hpxml.hvac_controls[0].cooling_setup_start_hour = nil
+    hpxml.hvac_controls[0].seasons_heating_begin_month = nil
+    hpxml.hvac_controls[0].seasons_heating_begin_day = nil
+    hpxml.hvac_controls[0].seasons_heating_end_month = nil
+    hpxml.hvac_controls[0].seasons_heating_end_day = nil
+    hpxml.hvac_controls[0].seasons_cooling_begin_month = nil
+    hpxml.hvac_controls[0].seasons_cooling_begin_day = nil
+    hpxml.hvac_controls[0].seasons_cooling_end_month = nil
+    hpxml.hvac_controls[0].seasons_cooling_end_day = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_hvac_control_values(hpxml_default, 23, 9)
+    _test_default_hvac_control_values(hpxml_default, 23, 9, 1, 1, 12, 31, 1, 1, 12, 31)
   end
 
   def test_hvac_distribution
@@ -770,8 +786,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['attic - unvented']
     expected_supply_areas = [150.0]
     expected_return_areas = [50.0]
+    expected_area_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
-    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
+                              expected_area_fracs, expected_n_return_registers)
 
     # Test defaults w/ conditioned basement
     hpxml.hvac_distributions[0].number_of_return_registers = nil
@@ -787,8 +805,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['basement - conditioned']
     expected_supply_areas = [729.0]
     expected_return_areas = [270.0]
+    expected_area_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
-    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
+                              expected_area_fracs, expected_n_return_registers)
 
     # Test defaults w/ multiple foundations
     hpxml = _create_hpxml('base-foundation-multiple.xml')
@@ -804,8 +824,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['basement - unconditioned']
     expected_supply_areas = [364.5]
     expected_return_areas = [67.5]
+    expected_area_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
-    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
+                              expected_area_fracs, expected_n_return_registers)
 
     # Test defaults w/ foundation exposed to ambient
     hpxml = _create_hpxml('base-foundation-ambient.xml')
@@ -821,8 +843,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['attic - unvented']
     expected_supply_areas = [364.5]
     expected_return_areas = [67.5]
+    expected_area_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
-    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
+                              expected_area_fracs, expected_n_return_registers)
 
     # Test defaults w/ building/unit adjacent to other housing unit
     hpxml = _create_hpxml('base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml')
@@ -838,8 +862,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['living space']
     expected_supply_areas = [243.0]
     expected_return_areas = [45.0]
+    expected_area_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
-    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
+                              expected_area_fracs, expected_n_return_registers)
 
     # Test defaults w/ 2-story building
     hpxml = _create_hpxml('base-enclosure-2stories.xml')
@@ -855,8 +881,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['basement - conditioned', 'living space']
     expected_supply_areas = [820.13, 273.38]
     expected_return_areas = [455.63, 151.88]
+    expected_area_fracs = [0.75, 0.25]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
-    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
+                              expected_area_fracs, expected_n_return_registers)
 
     # Test defaults w/ 1-story building & multiple HVAC systems
     hpxml = _create_hpxml('base-hvac-multiple.xml')
@@ -872,8 +900,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
     expected_supply_areas = [36.45, 36.45] * hpxml_default.hvac_distributions.size
     expected_return_areas = [13.5, 13.5] * hpxml_default.hvac_distributions.size
+    expected_area_fracs = [0.5, 0.5] * hpxml_default.hvac_distributions.size
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
-    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
+                              expected_area_fracs, expected_n_return_registers)
 
     # Test defaults w/ 2-story building & multiple HVAC systems
     hpxml = _create_hpxml('base-hvac-multiple.xml')
@@ -890,8 +920,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['basement - conditioned', 'basement - conditioned', 'living space', 'living space'] * hpxml_default.hvac_distributions.size
     expected_supply_areas = [27.34, 27.34, 9.11, 9.11] * hpxml_default.hvac_distributions.size
     expected_return_areas = [10.13, 10.13, 3.38, 3.38] * hpxml_default.hvac_distributions.size
+    expected_area_fracs = [0.375, 0.375, 0.125, 0.125] * hpxml_default.hvac_distributions.size
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
-    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas, expected_n_return_registers)
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
+                              expected_area_fracs, expected_n_return_registers)
   end
 
   def test_mech_ventilation_fans
@@ -2251,14 +2283,23 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_hvac_control_values(hpxml, htg_setback_start_hr, clg_setup_start_hr)
+  def _test_default_hvac_control_values(hpxml, htg_setback_start_hr, clg_setup_start_hr, htg_season_begin_month, htg_season_begin_day, htg_season_end_month, htg_season_end_day, clg_season_begin_month, clg_season_begin_day, clg_season_end_month, clg_season_end_day)
     hvac_control = hpxml.hvac_controls[0]
 
     assert_equal(htg_setback_start_hr, hvac_control.heating_setback_start_hour)
     assert_equal(clg_setup_start_hr, hvac_control.cooling_setup_start_hour)
+    assert_equal(htg_season_begin_month, hvac_control.seasons_heating_begin_month)
+    assert_equal(htg_season_begin_day, hvac_control.seasons_heating_begin_day)
+    assert_equal(htg_season_end_month, hvac_control.seasons_heating_end_month)
+    assert_equal(htg_season_end_day, hvac_control.seasons_heating_end_day)
+    assert_equal(clg_season_begin_month, hvac_control.seasons_cooling_begin_month)
+    assert_equal(clg_season_begin_day, hvac_control.seasons_cooling_begin_day)
+    assert_equal(clg_season_end_month, hvac_control.seasons_cooling_end_month)
+    assert_equal(clg_season_end_day, hvac_control.seasons_cooling_end_day)
   end
 
-  def _test_default_duct_values(hpxml, supply_locations, return_locations, supply_areas, return_areas, n_return_registers)
+  def _test_default_duct_values(hpxml, supply_locations, return_locations, supply_areas, return_areas,
+                                area_fracs, n_return_registers)
     supply_duct_idx = 0
     return_duct_idx = 0
     hpxml.hvac_distributions.each do |hvac_distribution|
@@ -2269,10 +2310,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
         if duct.duct_type == HPXML::DuctTypeSupply
           assert_equal(supply_locations[supply_duct_idx], duct.duct_location)
           assert_in_epsilon(supply_areas[supply_duct_idx], duct.duct_surface_area, 0.01)
+          assert_in_epsilon(area_fracs[supply_duct_idx], duct.duct_fraction_area, 0.01)
           supply_duct_idx += 1
         elsif duct.duct_type == HPXML::DuctTypeReturn
           assert_equal(return_locations[return_duct_idx], duct.duct_location)
           assert_in_epsilon(return_areas[return_duct_idx], duct.duct_surface_area, 0.01)
+          assert_in_epsilon(area_fracs[return_duct_idx], duct.duct_fraction_area, 0.01)
           return_duct_idx += 1
         end
       end
