@@ -2385,7 +2385,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                'OpenStudio::Model::CoilCoolingDXVariableSpeed' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
                'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
                'OpenStudio::Model::EvaporativeCoolerDirectResearchSpecial' => ["Evaporative Cooler #{fuel} Energy"],
-               # 'OpenStudio::Model::CoilChillerAirSourceVariableSpeed' => ["Cooling Coil #{fuel} Energy"], FIXME: this is listed in the mtd
+               'OpenStudio::Model::CoilChillerAirSourceVariableSpeed' => ["Cooling Coil #{fuel} Energy"],
                'OpenStudio::Model::ThermalStorageIceDetailed' => ["Ice Thermal Storage Ancillary #{fuel} Energy"],
                'OpenStudio::Model::HeaderedPumpsConstantSpeed' => ["Pump #{fuel} Energy"] }
     end
