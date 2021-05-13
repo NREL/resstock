@@ -248,6 +248,7 @@ class HPXMLTest < MiniTest::Test
                                                             'Expected FractionHeatLoadServed to sum to <= 1, but calculated sum is 1.1.'],
                             'hvac-inconsistent-fan-powers.xml' => ["Fan powers for heating system 'HeatingSystem' and cooling system 'CoolingSystem' are attached to a single distribution system and therefore must be the same."],
                             'hvac-invalid-distribution-system-type.xml' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
+                            'hvac-seasons-less-than-a-year.xml' => ['HeatingSeason and CoolingSeason, when combined, must span the entire year.'],
                             'hvac-shared-negative-seer-eq.xml' => ["Negative SEER equivalent calculated for cooling system 'CoolingSystem', double check inputs."],
                             'invalid-assembly-effective-rvalue.xml' => ['Expected AssemblyEffectiveRValue to be greater than 0 [context: /HPXML/Building/BuildingDetails/Enclosure/Walls/Wall/Insulation, id: "WallInsulation"]'],
                             'invalid-datatype-boolean.xml' => ["Cannot convert 'FOOBAR' to boolean for Roof/RadiantBarrier."],

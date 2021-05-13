@@ -310,14 +310,12 @@ class WeatherProcess
     @data.MonthlyAvgDailyHighDrybulbs = []
     @data.MonthlyAvgDailyLowDrybulbs = []
 
-    year_description = @model.getYearDescription
-    days_m = Constants.NumDaysInMonths(year_description.isLeapYear)
-
     first_day = 0
     for month in 1..12
-      ndays = days_m[month - 1] # Number of days in current month
+      month_num_days = Schedule.get_num_days_per_month(@model)
+      ndays = month_num_days[month - 1] # Number of days in current month
       if month > 1
-        first_day += days_m[month - 2] # Number of days in previous month
+        first_day += month_num_days[month - 2] # Number of days in previous month
       end
       avg_high = daily_high_dbs[first_day, ndays].sum(0.0) / ndays.to_f
       avg_low = daily_low_dbs[first_day, ndays].sum(0.0) / ndays.to_f

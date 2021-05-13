@@ -1291,6 +1291,54 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('76')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_heating_begin_month', false)
+    arg.setDisplayName('Heating Season: Begin Month')
+    arg.setUnits('#')
+    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the heating season.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_heating_begin_day_of_month', false)
+    arg.setDisplayName('Heating Season: Begin Day of Month')
+    arg.setUnits('#')
+    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the heating season.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_heating_end_month', false)
+    arg.setDisplayName('Heating Season: End Month')
+    arg.setUnits('#')
+    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the heating season.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_heating_end_day_of_month', false)
+    arg.setDisplayName('Heating Season: End Day of Month')
+    arg.setUnits('#')
+    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the heating season.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_cooling_begin_month', false)
+    arg.setDisplayName('Cooling Season: Begin Month')
+    arg.setUnits('#')
+    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the cooling season.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_cooling_begin_day_of_month', false)
+    arg.setDisplayName('Cooling Season: Begin Day of Month')
+    arg.setUnits('#')
+    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the cooling season.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_cooling_end_month', false)
+    arg.setDisplayName('Cooling Season: End Month')
+    arg.setUnits('#')
+    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the cooling season.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_cooling_end_day_of_month', false)
+    arg.setDisplayName('Cooling Season: End Day of Month')
+    arg.setUnits('#')
+    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the cooling season.')
+    args << arg
+
     duct_leakage_units_choices = OpenStudio::StringVector.new
     duct_leakage_units_choices << HPXML::UnitsCFM25
     duct_leakage_units_choices << HPXML::UnitsPercent
@@ -3045,6 +3093,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type]) && args[:heating_system_type].include?('Shared')
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and heating_system_type=#{args[:heating_system_type]}" if error
 
+    # heating season incomplete
+    error = [args[:season_heating_begin_month].is_initialized, args[:season_heating_begin_day_of_month].is_initialized, args[:season_heating_end_month].is_initialized, args[:season_heating_end_day_of_month].is_initialized].uniq.size == 2
+    errors << "season_heating_begin_month=#{args[:season_heating_begin_month].is_initialized} and season_heating_begin_day_of_month=#{args[:season_heating_begin_day_of_month].is_initialized} and season_heating_end_month=#{args[:season_heating_end_month].is_initialized} and seasons_heating_end_day_of_month=#{args[:season_heating_end_day_of_month].is_initialized}" if error
+
+    # cooling season incomplete
+    error = [args[:season_cooling_begin_month].is_initialized, args[:season_cooling_begin_day_of_month].is_initialized, args[:season_cooling_end_month].is_initialized, args[:season_cooling_end_day_of_month].is_initialized].uniq.size == 2
+    errors << "season_cooling_begin_month=#{args[:season_cooling_begin_month].is_initialized} and season_cooling_begin_day_of_month=#{args[:season_cooling_begin_day_of_month].is_initialized} and season_cooling_end_month=#{args[:season_cooling_end_month].is_initialized} and season_cooling_end_day_of_month=#{args[:season_cooling_end_day_of_month].is_initialized}" if error
+
     return warnings, errors
   end
 
@@ -4317,6 +4373,32 @@ class HPXMLFile
                             weekday_cooling_setpoints: weekday_cooling_setpoints,
                             weekend_cooling_setpoints: weekend_cooling_setpoints,
                             ceiling_fan_cooling_setpoint_temp_offset: ceiling_fan_cooling_setpoint_temp_offset)
+
+    if args[:season_heating_begin_month].is_initialized
+      hpxml.hvac_controls[0].seasons_heating_begin_month = args[:season_heating_begin_month].get
+    end
+    if args[:season_heating_begin_day_of_month].is_initialized
+      hpxml.hvac_controls[0].seasons_heating_begin_day = args[:season_heating_begin_day_of_month].get
+    end
+    if args[:season_heating_end_month].is_initialized
+      hpxml.hvac_controls[0].seasons_heating_end_month = args[:season_heating_end_month].get
+    end
+    if args[:season_heating_end_day_of_month].is_initialized
+      hpxml.hvac_controls[0].seasons_heating_end_day = args[:season_heating_end_day_of_month].get
+    end
+
+    if args[:season_cooling_begin_month].is_initialized
+      hpxml.hvac_controls[0].seasons_cooling_begin_month = args[:season_cooling_begin_month].get
+    end
+    if args[:season_cooling_begin_day_of_month].is_initialized
+      hpxml.hvac_controls[0].seasons_cooling_begin_day = args[:season_cooling_begin_day_of_month].get
+    end
+    if args[:season_cooling_end_month].is_initialized
+      hpxml.hvac_controls[0].seasons_cooling_end_month = args[:season_cooling_end_month].get
+    end
+    if args[:season_cooling_end_day_of_month].is_initialized
+      hpxml.hvac_controls[0].seasons_cooling_end_day = args[:season_cooling_end_day_of_month].get
+    end
   end
 
   def self.set_ventilation_fans(hpxml, runner, args)

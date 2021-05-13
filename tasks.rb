@@ -193,7 +193,7 @@ def create_osws
     'base-hvac-ground-to-air-heat-pump.osw' => 'base.osw',
     'base-hvac-ground-to-air-heat-pump-cooling-only.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
     'base-hvac-ground-to-air-heat-pump-heating-only.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
-    # 'base-hvac-ideal-air.osw' => 'base.osw',
+    'base-hvac-seasons.osw' => 'base.osw',
     'base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
     'base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
     'base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
@@ -420,7 +420,9 @@ def create_osws
     'invalid_files/foundation-wall-insulation-greater-than-height.osw' => 'base-foundation-vented-crawlspace.osw',
     'invalid_files/conditioned-attic-with-one-floor-above-grade.osw' => 'base.osw',
     'invalid_files/zero-number-of-bedrooms.osw' => 'base.osw',
-    'invalid_files/single-family-detached-with-shared-system.osw' => 'base.osw'
+    'invalid_files/single-family-detached-with-shared-system.osw' => 'base.osw',
+    'invalid_files/hvac-seasons-incomplete-heating-season.osw' => 'base.osw',
+    'invalid_files/hvac-seasons-incomplete-cooling-season.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -1578,6 +1580,15 @@ def get_values(osw_file, step)
   elsif ['base-hvac-ground-to-air-heat-pump-heating-only.osw'].include? osw_file
     step.setArgument('heat_pump_cooling_capacity', '0.0')
     step.setArgument('heat_pump_fraction_cool_load_served', 0)
+  elsif ['base-hvac-seasons.osw'].include? osw_file
+    step.setArgument('season_heating_begin_month', 11)
+    step.setArgument('season_heating_begin_day_of_month', 1)
+    step.setArgument('season_heating_end_month', 6)
+    step.setArgument('season_heating_end_day_of_month', 30)
+    step.setArgument('season_cooling_begin_month', 6)
+    step.setArgument('season_cooling_begin_day_of_month', 1)
+    step.setArgument('season_cooling_end_month', 10)
+    step.setArgument('season_cooling_end_day_of_month', 31)
   elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_airflow_defect_ratio', 0.0)
     step.setArgument('cooling_system_airflow_defect_ratio', 0.0)
@@ -2430,6 +2441,12 @@ def get_values(osw_file, step)
     step.setArgument('geometry_num_bedrooms', 0)
   elsif ['invalid_files/single-family-detached-with-shared-system.osw'].include? osw_file
     step.setArgument('heating_system_type', "Shared #{HPXML::HVACTypeBoiler} w/ Baseboard")
+  elsif ['invalid_files/hvac-seasons-incomplete-heating-season.osw'].include? osw_file
+    step.setArgument('season_heating_begin_month', 11)
+    step.setArgument('season_heating_end_month', 6)
+  elsif ['invalid_files/hvac-seasons-incomplete-cooling-season.osw'].include? osw_file
+    step.setArgument('season_cooling_begin_day_of_month', 1)
+    step.setArgument('season_cooling_end_day_of_month', 31)
   end
   return step
 end
@@ -2441,6 +2458,7 @@ def create_hpxmls
   require_relative 'HPXMLtoOpenStudio/resources/hpxml'
   require_relative 'HPXMLtoOpenStudio/resources/location'
   require_relative 'HPXMLtoOpenStudio/resources/misc_loads'
+  require_relative 'HPXMLtoOpenStudio/resources/schedules'
   require_relative 'HPXMLtoOpenStudio/resources/waterheater'
   require_relative 'HPXMLtoOpenStudio/resources/xmlhelper'
 
@@ -2520,6 +2538,7 @@ def create_hpxmls
     'invalid_files/hvac-dse-multiple-attached-heating.xml' => 'base-hvac-dse.xml',
     'invalid_files/hvac-frac-load-served.xml' => 'base-hvac-multiple.xml',
     'invalid_files/hvac-inconsistent-fan-powers.xml' => 'base.xml',
+    'invalid_files/hvac-seasons-less-than-a-year.xml' => 'base.xml',
     'invalid_files/hvac-shared-negative-seer-eq.xml' => 'base-bldgtype-multifamily-shared-chiller-only-baseboard.xml',
     'invalid_files/generator-number-of-bedrooms-served.xml' => 'base-bldgtype-multifamily-shared-generator.xml',
     'invalid_files/generator-output-greater-than-consumption.xml' => 'base-misc-generators.xml',
@@ -2800,6 +2819,7 @@ def create_hpxmls
     'base-hvac-ground-to-air-heat-pump.xml' => 'base.xml',
     'base-hvac-ground-to-air-heat-pump-cooling-only.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
     'base-hvac-ground-to-air-heat-pump-heating-only.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
+    'base-hvac-seasons.xml' => 'base.xml',
     'base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
     'base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
     'base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
@@ -5958,6 +5978,15 @@ def set_hpxml_hvac_control(hpxml_file, hpxml)
                             control_type: HPXML::HVACControlTypeManual,
                             heating_setpoint_temp: 68,
                             cooling_setpoint_temp: 78)
+  elsif ['base-hvac-seasons.xml'].include? hpxml_file
+    hpxml.hvac_controls[0].seasons_heating_begin_month = 11
+    hpxml.hvac_controls[0].seasons_heating_begin_day = 1
+    hpxml.hvac_controls[0].seasons_heating_end_month = 6
+    hpxml.hvac_controls[0].seasons_heating_end_day = 30
+    hpxml.hvac_controls[0].seasons_cooling_begin_month = 6
+    hpxml.hvac_controls[0].seasons_cooling_begin_day = 1
+    hpxml.hvac_controls[0].seasons_cooling_end_month = 10
+    hpxml.hvac_controls[0].seasons_cooling_end_day = 31
   elsif ['base-hvac-none.xml'].include? hpxml_file
     hpxml.hvac_controls.clear
   elsif ['base-hvac-programmable-thermostat.xml'].include? hpxml_file
@@ -5981,6 +6010,15 @@ def set_hpxml_hvac_control(hpxml_file, hpxml)
     hpxml.hvac_controls[0].cooling_setpoint_temp = 80
   elsif ['base-lighting-ceiling-fans.xml'].include? hpxml_file
     hpxml.hvac_controls[0].ceiling_fan_cooling_setpoint_temp_offset = 0.5
+  elsif ['invalid_files/hvac-seasons-less-than-a-year.xml'].include? hpxml_file
+    hpxml.hvac_controls[0].seasons_heating_begin_month = 10
+    hpxml.hvac_controls[0].seasons_heating_begin_day = 1
+    hpxml.hvac_controls[0].seasons_heating_end_month = 5
+    hpxml.hvac_controls[0].seasons_heating_end_day = 31
+    hpxml.hvac_controls[0].seasons_cooling_begin_month = 7
+    hpxml.hvac_controls[0].seasons_cooling_begin_day = 1
+    hpxml.hvac_controls[0].seasons_cooling_end_month = 9
+    hpxml.hvac_controls[0].seasons_cooling_end_day = 30
   end
 end
 

@@ -451,7 +451,7 @@
 							<xs:documentation>Portable room dehumidifiers are typically used to dehumidify a single room or space and can be easily moved to where they are needed. Whole-home dehumidifiers are typically installed to use your home’s air ducts to dehumidify one or more rooms and are often permanent. Some dehumifiers can operate in both configurations by means of a ducting kit.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element minOccurs="0" name="Location" type="AdjacentTo"/>
+					<xs:element minOccurs="0" name="Location" type="InteriorAdjacentTo"/>
 					<xs:element minOccurs="0" name="Efficiency" type="HPXMLDouble">
 						<xs:annotation>
 							<xs:documentation>[L/kWh] DEPRECATED. This will be removed in v4.0. Use EnergyFactor or IntegratedEnergyFactor instead.</xs:documentation>
@@ -701,7 +701,12 @@
 									</xs:element>
 									<xs:element minOccurs="0" name="AttachedToRoof" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToWall" type="LocalReference" maxOccurs="unbounded"/>
-									<xs:element minOccurs="0" name="AttachedToFrameFloor" type="LocalReference" maxOccurs="unbounded"/>
+									<xs:element minOccurs="0" name="AttachedToFrameFloor" type="LocalReference" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>DEPRECATION WARNING: AttachedToFrameFloor will be deprecated in the future. Use AttachedToCeiling instead.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="AttachedToCeiling" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
 											<xs:sequence>
@@ -789,7 +794,12 @@
 									<xs:element minOccurs="0" name="AttachedToRoof" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToWall" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToFoundationWall" type="LocalReference" maxOccurs="unbounded"/>
-									<xs:element minOccurs="0" name="AttachedToFrameFloor" type="LocalReference" maxOccurs="unbounded"/>
+									<xs:element minOccurs="0" name="AttachedToFrameFloor" type="LocalReference" maxOccurs="unbounded">
+										<xs:annotation>
+											<xs:documentation>DEPRECATION WARNING: AttachedToFrameFloor will be deprecated in the future. Use AttachedToCeiling instead.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="AttachedToCeiling" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToSlab" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
@@ -819,7 +829,7 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
 									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
 										<xs:annotation>
 											<xs:documentation>[sq.ft.] Surface area of the roof itself</xs:documentation>
@@ -863,8 +873,8 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element minOccurs="0" name="ExteriorAdjacentTo" type="AdjacentTo"/>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
+									<xs:element minOccurs="0" name="ExteriorAdjacentTo" type="ExteriorAdjacentTo"/>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
 									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
 										<xs:annotation>
 											<xs:documentation>[sq.ft.]</xs:documentation>
@@ -915,8 +925,8 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"> </xs:element>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
+									<xs:element name="ExteriorAdjacentTo" type="ExteriorAdjacentTo" minOccurs="0"> </xs:element>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
 									<xs:element minOccurs="0" name="AtticWallType" type="AtticWallType"/>
 									<xs:element name="WallType" type="WallType" minOccurs="0"> </xs:element>
 									<xs:element minOccurs="0" name="Thickness" type="LengthMeasurement">
@@ -971,8 +981,8 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"> </xs:element>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
+									<xs:element name="ExteriorAdjacentTo" type="ExteriorAdjacentTo" minOccurs="0"> </xs:element>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
 									<xs:element minOccurs="0" name="Type" type="FoundationWallType"/>
 									<xs:element minOccurs="0" name="Length" type="LengthMeasurement">
 										<xs:annotation>
@@ -1031,20 +1041,52 @@
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
 			</xs:element>
+			<xs:element minOccurs="0" name="Ceilings">
+				<xs:annotation>
+					<xs:documentation>Use Ceilings for horizontal surfaces above living space (e.g., sufaces between living space and attic).</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Ceiling" maxOccurs="unbounded" minOccurs="1">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:group ref="SystemInfo"/>
+									<xs:element minOccurs="0" ref="AttachedToSpace"/>
+									<xs:element name="ExteriorAdjacentTo" type="ExteriorAdjacentTo" minOccurs="0"> </xs:element>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
+									<xs:element minOccurs="0" name="CeilingJoists" type="StudProperties"/>
+									<xs:element minOccurs="0" name="CeilingTrusses" type="StudProperties"/>
+									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
+										<xs:annotation>
+											<xs:documentation>[sq.ft.]</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" maxOccurs="1" name="Insulation" type="InsulationInfo"> </xs:element>
+									<xs:element minOccurs="0" ref="extension"/>
+								</xs:sequence>
+								<xs:attribute name="dataSource" type="DataSource"/>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+					<xs:attribute name="dataSource" type="DataSource"/>
+				</xs:complexType>
+			</xs:element>
 			<xs:element minOccurs="0" name="FrameFloors">
+				<xs:annotation>
+					<xs:documentation>Use FrameFloors for horizontal surfaces below living space (e.g., sufaces between living space and crawlspace/basement/ambient foundations).</xs:documentation>
+				</xs:annotation>
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="FrameFloor" maxOccurs="unbounded" minOccurs="1">
 							<xs:annotation>
-								<xs:documentation>Use the FrameFloor element for all floors/ceilings. For example, living space ceilings/attic floors, floors above foundations, floors under bonus
-									rooms, cantilevered floors, etc. Interior partition surfaces should not be described using the FrameFloor element.</xs:documentation>
+								<xs:documentation>Interior partition surfaces should not be described using the FrameFloor element.</xs:documentation>
 							</xs:annotation>
 							<xs:complexType>
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"> </xs:element>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
+									<xs:element name="ExteriorAdjacentTo" type="ExteriorAdjacentTo" minOccurs="0"> </xs:element>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
 									<xs:element minOccurs="0" name="FloorJoists" type="StudProperties"/>
 									<xs:element minOccurs="0" name="FloorTrusses" type="StudProperties"/>
 									<xs:element minOccurs="0" name="FloorCovering" type="FloorCovering"/>
@@ -1074,7 +1116,7 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
 									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
 										<xs:annotation>
 											<xs:documentation>[sq.ft.] Area of the slab</xs:documentation>
@@ -1139,6 +1181,7 @@
 							<xs:complexType>
 								<xs:sequence>
 									<xs:group ref="WindowInfo"/>
+									<xs:element minOccurs="0" name="WindowType" type="WindowType"/>
 									<xs:element minOccurs="0" name="WindowtoWallRatio" type="Fraction"/>
 									<xs:element minOccurs="0" name="AttachedToWall" type="LocalReference"/>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
@@ -1450,6 +1493,9 @@
 															to.</xs:documentation>
 													</xs:annotation>
 												</xs:element>
+												<xs:element minOccurs="0" name="PreconditioningHeatingSystem" type="HeatingSystemInfoType"/>
+												<xs:element minOccurs="0" name="PreconditioningCoolingSystem" type="CoolingSystemInfoType"/>
+												<xs:element minOccurs="0" name="PreconditioningHeatPump" type="HeatPumpInfoType"/>
 												<xs:element minOccurs="0" ref="extension"/>
 											</xs:sequence>
 											<xs:attribute name="dataSource" type="DataSource"/>
@@ -4904,6 +4950,7 @@
 				<xs:complexType>
 					<xs:sequence>
 						<xs:group ref="SystemInfo"/>
+						<xs:element minOccurs="0" name="GlazingMaterial" type="GlazingMaterial"/>
 						<xs:element minOccurs="0" name="GlassType" type="GlassType"/>
 						<xs:element minOccurs="0" name="FrameType" type="WindowFrameType"/>
 						<xs:element minOccurs="0" name="Operable" type="HPXMLBoolean">
@@ -5245,6 +5292,7 @@
 								<xs:documentation>Please specify stud spacing and framing factor in the appropriate places as well.</xs:documentation>
 							</xs:annotation>
 						</xs:element>
+						<xs:element minOccurs="0" name="FramingType" type="FramingType"/>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
@@ -5409,6 +5457,8 @@
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="HVACSystemsServed" type="LocalReference" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element maxOccurs="1" minOccurs="0" name="HeatingSeason" type="Season"/>
+			<xs:element maxOccurs="1" minOccurs="0" name="CoolingSeason" type="Season"/>
 			<xs:element ref="extension" minOccurs="0"/>
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>

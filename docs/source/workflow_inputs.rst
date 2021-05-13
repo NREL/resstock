@@ -1132,7 +1132,11 @@ To define simple thermostat setpoints, additional information is entered in ``HV
   =============================  ========  =======  ===========  ========  =========  ============================
   ``SetpointTempHeatingSeason``  double    F                     Yes                  Heating setpoint temperature
   ``SetpointTempCoolingSeason``  double    F                     Yes                  Cooling setpoint temperature
+  ``HeatingSeason``              element                         No                   Heating season        
+  ``CoolingSeason``              element                         No                   Cooling season
   =============================  ========  =======  ===========  ========  =========  ============================
+
+If heating and cooling seasons are not provided, they both default to year-round.
 
 If there is a heating temperature setback, additional information is entered in ``HVACControl``.
 
@@ -1153,6 +1157,19 @@ If there is a cooling temperature setup, additional information is entered in ``
   ``TotalSetupHoursperWeekCooling``      integer   hrs/week  > 0          Yes                  Hours/week of cooling temperature setup
   ``extension/SetupStartHourCooling``    integer             0 - 23       No        9 (9am)    Daily setup start hour
   =====================================  ========  ========  ===========  ========  =========  =========================================
+
+If a heating and/or cooling season is defined, additional information is entered in ``HVACControl/HeatingSeason`` and/or ``HVACControl/CoolingSeason``.
+
+  ======================================  ========  =====  =================  ========  =============================  ===========
+  Element                                 Type      Units  Constraints        Required  Default                        Description
+  ======================================  ========  =====  =================  ========  =============================  ===========
+  ``BeginMonth`                           integer          1 - 12             Yes                                      Begin month
+  ``BeginDayOfMonth``                     integer          1 - 31             Yes                                      Begin day
+  ``EndMonth``                            integer          1 - 12             Yes                                      End month
+  ``EndDayOfMonth``                       integer          1 - 31             Yes                                      End day
+  ======================================  ========  =====  =================  ========  =============================  ===========
+
+Heating and cooling seasons, when combined, must span the entire year.
 
 Detailed Inputs
 ~~~~~~~~~~~~~~~
