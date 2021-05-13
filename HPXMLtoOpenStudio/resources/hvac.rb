@@ -262,7 +262,6 @@ class HVAC
 
     # Fan
     num_speeds = hp_ap.num_speeds
-
     htg_cfm = heat_pump.heating_airflow_cfm
     clg_cfm = heat_pump.cooling_airflow_cfm
     fan_cfm = hp_ap.cool_fan_speed_ratios.max * [htg_cfm, clg_cfm].max
@@ -3111,9 +3110,8 @@ class HVAC
         elsif clg_ap.demand_flexibility
           if clg_coil.nil?
             clg_coil = OpenStudio::Model::CoilCoolingDXVariableSpeed.new(model, plf_fplr_curve)
-            if cooling_system.modulating || cooling_system.dual_source || cooling_system.ihp_grid_ac
-              clg_coil.setNominalSpeedLevel(4) # FIXME
-            else # ihp storage
+            clg_coil.setNominalSpeedLevel(4) # FIXME
+            if cooling_system.ihp_ice_storage || cooling_system.ihp_pcm_storage
               clg_coil.setNominalSpeedLevel(3) # FIXME: failure if this is 4
             end
             clg_coil.setGrossRatedTotalCoolingCapacityAtSelectedNominalSpeedLevel(UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')) # FIXME
@@ -4470,12 +4468,8 @@ class HVAC
     hvac_ap = hvac_system.additional_properties
 
     hvac_ap.demand_flexibility = false
-    if hvac_system.is_a?(HPXML::HeatingSystem) || hvac_system.is_a?(HPXML::CoolingSystem)
-      if hvac_system.modulating || hvac_system.dual_source
-        hvac_ap.demand_flexibility = true
-      end
-    elsif hvac_system.is_a?(HPXML::HeatPump)
-      if hvac_system.modulating || hvac_system.dual_source || hvac_system.ihp_grid_ac || hvac_system.ihp_ice_storage || hvac_system.ihp_pcm_storage
+    if hvac_system.is_a?(HPXML::HeatPump)
+      if hvac_system.flex || hvac_system.modulating || hvac_system.dual_source || hvac_system.ihp_grid_ac || hvac_system.ihp_ice_storage || hvac_system.ihp_pcm_storage
         hvac_ap.demand_flexibility = true
       end
     end

@@ -1220,6 +1220,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility', false)
+    arg.setDisplayName('Heat Pump: Demand Flexibility')
+    arg.setDescription('Use AirLoopHVACUnitaryHeatPumpAirToAir with VariableSpeed coils.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility_modulating', false)
     arg.setDisplayName('Heat Pump: Demand Flexibility Modulating')
     arg.setDescription('')
@@ -4127,6 +4132,10 @@ class HPXMLFile
       fraction_heat_load_served = 1.0 - args[:heating_system_fraction_heat_load_served_2]
     end
 
+    if args[:heat_pump_demand_flexibility].is_initialized
+      flex = true
+    end
+
     if args[:heat_pump_demand_flexibility_modulating].is_initialized
       modulating = true
     end
@@ -4168,6 +4177,7 @@ class HPXMLFile
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio,
+                         flex: flex,
                          modulating: modulating,
                          dual_source: dual_source,
                          ihp_grid_ac: ihp_grid_ac,
