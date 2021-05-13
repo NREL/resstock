@@ -13,7 +13,9 @@ elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXML
 else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
+require File.join(resources_path, 'location')
 require File.join(resources_path, 'meta_measure')
+require File.join(resources_path, 'weather')
 
 require_relative 'resources/constants'
 
@@ -107,6 +109,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('use_auto_heating_season', true)
+    arg.setDisplayName('Use Auto Heating Season')
+    arg.setDescription('Specifies whether to automatically define the heating season based on the weather file.')
+    arg.setDefaultValue(false)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekday_temp', true)
     arg.setDisplayName('Cooling Setpoint: Weekday Temperature')
     arg.setDescription('Specify the weekday cooling setpoint temperature.')
@@ -145,6 +153,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Cooling Setpoint: Weekend Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.')
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('use_auto_cooling_season', true)
+    arg.setDisplayName('Use Auto Cooling Season')
+    arg.setDescription('Specifies whether to automatically define the cooling season based on the weather file.')
+    arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_has_flue_or_chimney', true)
@@ -338,6 +352,29 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['setpoint_cooling_weekday'] = weekday_cooling_setpoints.join(', ')
     args['setpoint_cooling_weekend'] = weekend_cooling_setpoints.join(', ')
 
+    # Seasons
+    if args['use_auto_heating_season'] || args['use_auto_cooling_season']
+      epw_path, cache_path = process_weather(args['weather_station_epw_filepath'], runner, model, '../in.xml')
+      weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
+      heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+    end
+
+    if args['use_auto_heating_season']
+      season_heating_begin_month, season_heating_begin_day_of_month, season_heating_end_month, season_heating_end_day_of_month = get_begin_and_end_dates_from_monthly_array(model, heating_months)
+      args['season_heating_begin_month'] = season_heating_begin_month
+      args['season_heating_begin_day_of_month'] = season_heating_begin_day_of_month
+      args['season_heating_end_month'] = season_heating_end_month
+      args['season_heating_end_day_of_month'] = season_heating_end_day_of_month
+    end
+
+    if args['use_auto_cooling_season']
+      season_cooling_begin_month, season_cooling_begin_day_of_month, season_cooling_end_month, season_cooling_end_day_of_month = get_begin_and_end_dates_from_monthly_array(model, cooling_months)
+      args['season_cooling_begin_month'] = season_cooling_begin_month
+      args['season_cooling_begin_day_of_month'] = season_cooling_begin_day_of_month
+      args['season_cooling_end_month'] = season_cooling_end_month
+      args['season_cooling_end_day_of_month'] = season_cooling_end_day_of_month
+    end
+
     # Flue or Chimney
     args['geometry_has_flue_or_chimney'] = Constants.Auto
     if (args['heating_system_has_flue_or_chimney'] == 'false') &&
@@ -396,6 +433,60 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       schedule[i] += offset_magnitude * direction
     end
     return schedule
+  end
+
+  def process_weather(weather_station_epw_filepath, runner, model, hpxml_path)
+    epw_path = weather_station_epw_filepath
+
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist?(epw_path)
+      fail "'#{epw_path}' could not be found."
+    end
+
+    cache_path = epw_path.gsub('.epw', '-cache.csv')
+    if not File.exist?(cache_path)
+      # Process weather file to create cache .csv
+      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
+      epw_file = OpenStudio::EpwFile.new(epw_path)
+      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+      weather = WeatherProcess.new(model, runner)
+      begin
+        File.open(cache_path, 'wb') do |file|
+          weather.dump_to_csv(file)
+        end
+      rescue SystemCallError
+        runner.registerWarning("#{cache_path} could not be written, skipping.")
+      end
+    end
+
+    return epw_path, cache_path
+  end
+
+  def get_begin_and_end_dates_from_monthly_array(model, months)
+    if months.include? 0
+      if months[0] == 1 && months[11] == 1 # Wrap around year
+        begin_month = 12 - months.reverse.index(0) + 1
+        end_month = months.index(0)
+      else
+        begin_month = months.index(1) + 1
+        end_month = 12 - months.reverse.index(1)
+      end
+    end
+    get_num_days_per_month = Schedule.get_num_days_per_month(model)
+    begin_day = 1
+    end_day = get_num_days_per_month[end_month - 1]
+    return begin_month, begin_day, end_month, end_day
   end
 end
 

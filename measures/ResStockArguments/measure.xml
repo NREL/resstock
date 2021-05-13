@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>13974fc9-453e-47d7-9ed3-441c1af50e50</version_id>
-  <version_modified>20210413T181220Z</version_modified>
+  <version_id>b6eeea92-b1e1-43b2-9e74-50917eeff509</version_id>
+  <version_modified>20210513T172248Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -2150,6 +2150,78 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
+      <name>season_heating_begin_month</name>
+      <display_name>Heating Season: Begin Month</display_name>
+      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the heating season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_heating_begin_day_of_month</name>
+      <display_name>Heating Season: Begin Day of Month</display_name>
+      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the heating season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_heating_end_month</name>
+      <display_name>Heating Season: End Month</display_name>
+      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the heating season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_heating_end_day_of_month</name>
+      <display_name>Heating Season: End Day of Month</display_name>
+      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the heating season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_cooling_begin_month</name>
+      <display_name>Cooling Season: Begin Month</display_name>
+      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the cooling season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_cooling_begin_day_of_month</name>
+      <display_name>Cooling Season: Begin Day of Month</display_name>
+      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the cooling season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_cooling_end_month</name>
+      <display_name>Cooling Season: End Month</display_name>
+      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the cooling season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_cooling_end_day_of_month</name>
+      <display_name>Cooling Season: End Day of Month</display_name>
+      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the cooling season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>ducts_supply_leakage_units</name>
       <display_name>Ducts: Supply Leakage Units</display_name>
       <description>The leakage units of the supply ducts.</description>
@@ -2406,7 +2478,7 @@
     <argument>
       <name>ducts_number_of_return_registers</name>
       <display_name>Ducts: Number of Return Registers</display_name>
-      <description>The number of return registers of the ducts.</description>
+      <description>The number of return registers of the ducts. Ignored for ducted evaporative cooler.</description>
       <type>String</type>
       <units>#</units>
       <required>true</required>
@@ -5415,6 +5487,25 @@
       <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
     </argument>
     <argument>
+      <name>use_auto_heating_season</name>
+      <display_name>Use Auto Heating Season</display_name>
+      <description>Specifies whether to automatically define the heating season based on the weather file.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>setpoint_cooling_weekday_temp</name>
       <display_name>Cooling Setpoint: Weekday Temperature</display_name>
       <description>Specify the weekday cooling setpoint temperature.</description>
@@ -5471,6 +5562,25 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
+    </argument>
+    <argument>
+      <name>use_auto_cooling_season</name>
+      <display_name>Use Auto Cooling Season</display_name>
+      <description>Specifies whether to automatically define the cooling season based on the weather file.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>heating_system_has_flue_or_chimney</name>
@@ -5592,7 +5702,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>720CA50C</checksum>
+      <checksum>93208CE2</checksum>
     </file>
   </files>
 </measure>
