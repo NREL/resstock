@@ -6,6 +6,7 @@ __New Features__
 - **Breaking change**: Replaces ClothesDryer `extension/IsVented` and `extension/VentedFlowRate` with `Vented` and `VentedFlowRate`.
 - Allows additional fuel types for generators.
 - Adds an `--ep-input-format` argument to run_simulation.rb to choose epJSON as the EnergyPlus input file format instead of IDF.
+- Allows `HeatingSeason` & `CoolingSeason` to be specified for defining heating and cooling equipment availability.
 
 __Bugfixes__
 - Improves ground reflectance when there is shading of windows/skylights.
