@@ -170,6 +170,7 @@ def create_osws
     'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
@@ -1473,6 +1474,8 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_backup_fuel', HPXML::FuelTypeNaturalGas)
     step.setArgument('heat_pump_backup_heating_efficiency', 0.95)
     step.setArgument('heat_pump_backup_heating_switchover_temp', 25)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', true)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.osw'].include? osw_file
     step.setArgument('heat_pump_demand_flexibility_modulating', true)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.osw'].include? osw_file
@@ -2794,6 +2797,7 @@ def create_hpxmls
     'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml',
@@ -5967,6 +5971,8 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
     hpxml.heat_pumps[0].heating_capacity = nil
     hpxml.heat_pumps[0].heating_capacity_17F = nil
     hpxml.heat_pumps[0].backup_heating_capacity = nil
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = true
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.xml'].include? hpxml_file
     hpxml.heat_pumps[0].modulating = true
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.xml'].include? hpxml_file
