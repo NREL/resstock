@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 def generate_example_osws(data_hash, include_args, osw_filename, simplify = true)
   # This function will generate OpenStudio OSWs
   # with all the measures in it, in the order specified in /resources/measure-info.json
