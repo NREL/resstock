@@ -170,7 +170,7 @@ def create_osws
     'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
-    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
@@ -2596,7 +2596,6 @@ def create_hpxmls
     'invalid_files/multiple-shared-heating-systems.xml' => 'base-bldgtype-multifamily-shared-boiler-only-baseboard.xml',
     'invalid_files/net-area-negative-roof.xml' => 'base-enclosure-skylights.xml',
     'invalid_files/net-area-negative-wall.xml' => 'base.xml',
-    'invalid_files/num-bedrooms-exceeds-limit.xml' => 'base.xml',
     'invalid_files/orphaned-hvac-distribution.xml' => 'base-hvac-furnace-gas-room-ac.xml',
     'invalid_files/refrigerator-location.xml' => 'base.xml',
     'invalid_files/repeated-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
@@ -3027,7 +3026,17 @@ def create_hpxmls
         building_element = XMLHelper.get_element(hpxml_element, 'Building')
         for i in 2..3
           new_building_element = Marshal.load(Marshal.dump(building_element))
-          XMLHelper.add_attribute(XMLHelper.get_element(new_building_element, 'BuildingID'), 'id', "MyBuilding#{i}")
+
+          # Make all IDs unique so the HPXML is valid
+          new_building_element.each_node do |node|
+            next unless node.is_a?(Oga::XML::Element)
+
+            id = XMLHelper.get_attribute_value(node, 'id')
+            next if id.nil?
+
+            XMLHelper.add_attribute(node, 'id', "#{id}_#{i}")
+          end
+
           hpxml_element.children << new_building_element
         end
         XMLHelper.write_file(hpxml_doc, hpxml_path)
@@ -3237,8 +3246,6 @@ def set_hpxml_building_construction(hpxml_file, hpxml)
     hpxml.building_construction.conditioned_floor_area = 1348.8
   elsif ['invalid_files/enclosure-floor-area-exceeds-cfa2.xml'].include? hpxml_file
     hpxml.building_construction.conditioned_floor_area = 898.8
-  elsif ['invalid_files/num-bedrooms-exceeds-limit.xml'].include? hpxml_file
-    hpxml.building_construction.number_of_bedrooms = 40
   elsif ['invalid_files/invalid-facility-type-equipment.xml',
          'invalid_files/invalid-facility-type-surfaces.xml'].include? hpxml_file
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFD
