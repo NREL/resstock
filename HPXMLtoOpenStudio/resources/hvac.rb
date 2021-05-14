@@ -296,7 +296,7 @@ class HVAC
 
         # Storage
         if heat_pump.ihp_ice_storage || heat_pump.ihp_pcm_storage
-          chiller_coil = chiller_coil(model, obj_name)
+          chiller_coil = chiller_coil(model, obj_name, grid_signal_schedules_file)
           hvac_map[heat_pump.id] << chiller_coil
 
           supp_chiller_coil = supp_chiller_coil(model, obj_name)
@@ -359,7 +359,7 @@ class HVAC
     apply_installation_quality(model, heat_pump, heat_pump, air_loop_unitary, htg_coil, clg_coil, control_zone)
   end
 
-  def self.chiller_coil(model, obj_name)
+  def self.chiller_coil(model, obj_name, grid_signal_schedules_file)
     chiller_coil = OpenStudio::Model::CoilChillerAirSourceVariableSpeed.new(model)
     chiller_coil.setName(obj_name + ' chiller coil')
     chiller_coil.setRatedEvaporatorInletWaterTemperature(-1.1)
@@ -367,6 +367,10 @@ class HVAC
     chiller_coil.setFractionofEvaporatorPumpHeattoWater(0.1)
     chiller_coil.setCrankcaseHeaterCapacity(100.0)
     chiller_coil.setMaximumAmbientTemperatureforCrankcaseHeaterOperation(5.0)
+    grid_signal_schedule = grid_signal_schedules_file.create_schedule_file(col_name: model.getWeatherFile.stateProvinceRegion)
+    chiller_coil.setGridSignalSchedule(grid_signal_schedule)
+    chiller_coil.setLowerBoundToApplyGridResponsiveControl(0.1)
+    chiller_coil.setUpperBoundToApplyGridResponsiveControl(1000.0)
     chiller_coil.setMaxSpeedLevelDuringGridResponsiveControl(0)
     chiller_coil_speed_1 = OpenStudio::Model::CoilChillerAirSourceVariableSpeedSpeedData.new(model)
     chiller_coil.addSpeed(chiller_coil_speed_1)
@@ -3112,7 +3116,7 @@ class HVAC
             clg_coil = OpenStudio::Model::CoilCoolingDXVariableSpeed.new(model, plf_fplr_curve)
             clg_coil.setNominalSpeedLevel(4) # FIXME
             if cooling_system.ihp_ice_storage || cooling_system.ihp_pcm_storage
-              clg_coil.setNominalSpeedLevel(3) # FIXME: failure if this is 4
+              clg_coil.setNominalSpeedLevel(3) # FIXME: sim failure if this is 4 for some reason
             end
             clg_coil.setGrossRatedTotalCoolingCapacityAtSelectedNominalSpeedLevel(UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')) # FIXME
             clg_coil.setRatedAirFlowRateAtSelectedNominalSpeedLevel(calc_rated_airflow(cooling_system.cooling_capacity, clg_ap.cool_rated_cfm_per_ton[i], 1.0)) # FIXME
