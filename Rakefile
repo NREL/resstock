@@ -489,6 +489,7 @@ end
 
 def check_parameter_file_format(tsvpath, n_deps, name)
   # required_headers = ['sampling_probability'] # FIXME: require this once these tsv files become official
+  required_headers = []
 
   # For each line in file
   i = 1
