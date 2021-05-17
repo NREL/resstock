@@ -429,9 +429,7 @@ class RunOSWs
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
-    simulation_start = Time.now
     system(command)
-    sim_time = (Time.now - simulation_start).round(1)
     out_osw = File.join(parent_dir, 'out.osw')
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
@@ -443,7 +441,6 @@ class RunOSWs
     if rows.keys.include? 'SimulationOutputReport'
       result = get_simulation_output_report(result, rows)
     end
-    result['simulation_time'] = sim_time
     return out_osw, result
   end
 
