@@ -10,29 +10,30 @@ require 'json'
 
 desc 'Perform tasks related to unit tests'
 namespace :test do
-  # desc 'Run unit tests for all projects/measures'
-  # Rake::TestTask.new('unit_tests') do |t|
-    # t.libs << 'test'
+  desc 'Run unit tests for all projects/measures'
+  Rake::TestTask.new('unit_tests') do |t|
+    t.libs << 'test'
     # t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['test/test_measures_osw.rb']
-    # t.warning = false
-    # t.verbose = true
-  # end
+    t.test_files = Dir['test/test_measures_osw.rb']
+    t.warning = false
+    t.verbose = true
+  end
 
-  # desc 'Run regression tests for all example osws'
-  # Rake::TestTask.new('regression_tests') do |t|
-    # t.libs << 'test'
-    # t.test_files = Dir['workflows/tests/*.rb']
-    # t.warning = false
-    # t.verbose = true
-  # end
+  desc 'Run regression tests for all example osws'
+  Rake::TestTask.new('regression_tests') do |t|
+    t.libs << 'test'
+    t.test_files = Dir['workflows/tests/*.rb']
+    t.warning = false
+    t.verbose = true
+  end
 
-  # desc 'Regenerate test osms from osws'
-  # Rake::TestTask.new('regenerate_osms') do |t|
-    # t.libs << 'test'
-    # t.test_files = Dir['test/osw_files/tests/*.rb']
-    # t.warning = false
-    # t.verbose = true
-  # end
+  desc 'Regenerate test osms from osws'
+  Rake::TestTask.new('regenerate_osms') do |t|
+    t.libs << 'test'
+    t.test_files = Dir['test/osw_files/tests/*.rb']
+    t.warning = false
+    t.verbose = true
+  end
 
   desc 'Test creating measure osws'
   Rake::TestTask.new('measures_osw') do |t|
