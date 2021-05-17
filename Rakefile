@@ -488,7 +488,7 @@ def check_for_illegal_chars(name, name_type)
 end
 
 def check_parameter_file_format(tsvpath, n_deps, name)
-  required_headers = ['sampling_probability']
+  # required_headers = ['sampling_probability'] # FIXME: require this once these tsv files become official
 
   # For each line in file
   i = 1
