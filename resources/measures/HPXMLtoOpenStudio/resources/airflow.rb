@@ -773,7 +773,7 @@ class Airflow
 
       end
 
-      wind_coef = f_w * UnitConversions.convert(outside_air_density / 1.5, "lbm/ft^3", "inH2O/mph^2")**n_i # inH2O^n/mph^2n
+      wind_coef = f_w * UnitConversions.convert(outside_air_density / 2.0, "lbm/ft^3", "inH2O/mph^2")**n_i # inH2O^n/mph^2n
       unit_living.ACH = Airflow.get_infiltration_ACH_from_SLA(unit_living.SLA, num_floors, weather)
 
       # Convert living space ACH to cfm:
