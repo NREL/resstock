@@ -95,6 +95,20 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
   end
 
+  def test_slab_three_quarter_garage_protrusion
+    num_finished_spaces = 1
+    args_hash = {}
+    args_hash["total_ffa"] = 633
+    args_hash["num_floors"] = 1
+    args_hash["garage_width"] = 12
+    args_hash["garage_depth"] = 24
+    args_hash["garage_protrusion"] = 0.75
+    expected_num_del_objects = {}
+    expected_num_new_objects = { "BuildingUnit" => 1, "Surface" => 26, "ThermalZone" => 3, "Space" => 4, "SpaceType" => 4, "PeopleDefinition" => num_finished_spaces, "People" => num_finished_spaces, "ScheduleRuleset" => 1, "ShadingSurfaceGroup" => 2, "ShadingSurface" => 12, "ExternalFile" => 1, "ScheduleFile" => 1 }
+    expected_values = { "FinishedFloorArea" => 633, "GarageAtticHeight" => 4, "GarageFloorArea" => 12 * 24, "UnfinishedAtticHeight" => 5.69, "UnfinishedAtticFloorArea" => 633 + 12 * 24, "BuildingHeight" => 8 + 5.69, "Beds" => 3.0, "Baths" => 2.0, "NumOccupants" => 2.64, "EavesDepth" => 2 }
+    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__)
+  end
+
   def test_fbasement
     num_finished_spaces = 3
     args_hash = {}
