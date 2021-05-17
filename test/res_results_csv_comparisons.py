@@ -186,7 +186,7 @@ class res_results_csv_comparisons:
         self.feature_df = self.feature_df[~feature_central]
 
         for col in self.base_df.columns.tolist():
-            if ('simulation_output_report' not in col) and ('upgrade_costs' not in col):
+            if ('simulation_output_report' not in col) and ('upgrade_costs' not in col) and ('load_components_report' not in col):
                 continue
             self.base_df = self.base_df.rename(columns={col: col.split('.')[1]})
 
@@ -318,7 +318,7 @@ class res_results_csv_comparisons:
         btype_col = 'build_existing_model.geometry_building_type_recs'
         
         ## Scatter Plots - 1:1 Electricity and Geometry
-        cols_dict = {'electricity': [], 'natural gas': [], 'geometry':[]}
+        cols_dict = {'electricity': [], 'natural gas': [], 'geometry': [], 'component_load': []}
         for col in self.saved_fields:
             if 'electricity' in col:
                 cols_dict['electricity'].append(col)
@@ -326,7 +326,9 @@ class res_results_csv_comparisons:
                 cols_dict['natural gas'].append(col)
             elif '_ft' in col:
                 cols_dict['geometry'].append(col)
-              
+            elif 'component_load' in col:
+                cols_dict['component_load'].append(col)
+
         for category, end_uses in cols_dict.items():
             fig = make_subplots(rows=len(end_uses), cols=3, subplot_titles=model_types*len(end_uses), row_titles=[f'<b>{f}</b>' for f in end_uses], vertical_spacing = 0.015)
             row = 0
@@ -481,6 +483,13 @@ class res_results_csv_comparisons:
                                 '% diff':'n/a'},
                                 index=['simulation_count'])
         deltas = pd.concat([sims_df, deltas])
+
+        # Move component loads to bottom of df
+        comp_rows = []
+        for row in deltas.index:
+            if 'component_load' in row:
+                comp_rows.append(row)
+        deltas = deltas.loc[~deltas.index.isin(comp_rows)].append(deltas.loc[comp_rows])
 
         if self.out_dir:
             output_path = os.path.join(self.out_dir, 'comparisons', 'deltas.csv')
