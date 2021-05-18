@@ -81,8 +81,8 @@ def apply_child_measures(measures_dir, measures, runner, model, workflow_json = 
       measure_time = (Time.now - measure_start).round(1)
       parent_measure = parent_measure_runner.keys[0]
       parent_runner = parent_measure_runner[parent_measure]
-      time_str = "time_#{measure_subdir}"
-      parent_runner.registerValue(time_str, measure_time)
+      # time_str = "time_#{measure_subdir}"
+      # parent_runner.registerValue(time_str, measure_time)
     end
   end
 
