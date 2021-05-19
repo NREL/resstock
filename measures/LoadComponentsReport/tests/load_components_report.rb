@@ -20,6 +20,7 @@ require File.join(resources_path, 'waterheater')
 
 class LoadComponentsReportTest < MiniTest::Test
   def test_sfd
+    skip
     measure = LoadComponentsReport.new
     args_hash = {}
     expected_values = {}

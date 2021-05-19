@@ -13,7 +13,8 @@ namespace :test do
   desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('unit_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['test/test_measures_osw.rb']
+    # t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['test/test_measures_osw.rb']
+    t.test_files = Dir['test/test_measures_osw.rb']
     t.warning = false
     t.verbose = true
   end
@@ -488,6 +489,9 @@ def check_for_illegal_chars(name, name_type)
 end
 
 def check_parameter_file_format(tsvpath, n_deps, name)
+  # required_headers = ['sampling_probability'] # FIXME: require this once these tsv files become official
+  required_headers = []
+
   # For each line in file
   i = 1
   File.read(tsvpath, mode: "rb").each_line do |line|
@@ -496,8 +500,15 @@ def check_parameter_file_format(tsvpath, n_deps, name)
 
     # Check endline character
     if line.include? "\r\n"
+      # Ensure children.py was run
+      if i == 1
+        required_headers.each do |required_header|
+          unless line.include? required_header
+            raise "ERROR: Could not find '#{required_header}' column in '#{name}'."
+          end
+        end
       # Do not perform other checks if the line is the header
-      if i > 1
+      elsif i > 1
         # Check float format
         # Remove endline character and split the string into array
         line = line.split("\r\n")[0].split("\t")
