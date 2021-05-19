@@ -439,6 +439,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     horizontal_location_choices = OpenStudio::StringVector.new
+    horizontal_location_choices << 'None'
     horizontal_location_choices << 'Left'
     horizontal_location_choices << 'Middle'
     horizontal_location_choices << 'Right'

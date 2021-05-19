@@ -1984,7 +1984,7 @@ class Geometry
     num_units_per_floor_actual = num_units_per_floor
     above_ground_floors = num_floors
 
-    if (num_floors > 1) && (level != 'Bottom') && (foundation_height != 0.0)
+    if (num_floors > 1) && (level != 'Bottom') && (foundation_height > 0.0)
       runner.registerWarning('Unit is not on the bottom floor, setting foundation height to 0.')
       foundation_height = 0.0
     end
@@ -1993,9 +1993,18 @@ class Geometry
       level = 'Bottom'
     end
 
-    if (num_units_per_floor % 2 == 0) && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
+    if (num_floors <= 2) && (level == 'Middle')
+      runner.registerError("Building is #{num_floors} stories and does not have middle units")
+      return false
+    end
+
+    if (num_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
       unit_depth = 2
-      unit_width = num_units_per_floor / 2
+      unit_width = num_units_per_floor / 2.0
+      has_rear_units = true
+    elsif (num_units_per_floor == 2) && (horz_location == 'None') # double-loaded corridor for 2 units/story
+      unit_depth = 2
+      unit_width = 1.0
       has_rear_units = true
     else
       unit_depth = 1
@@ -2008,12 +2017,8 @@ class Geometry
       runner.registerError('Starting model is not empty.')
       return false
     end
-    if foundation_type.downcase.include?('crawlspace') && ((foundation_height < 1.5) || (foundation_height > 5.0))
+    if foundation_type.downcase.include?('crawlspace') && ((foundation_height < 1.5) || (foundation_height > 5.0)) && level == 'Bottom'
       runner.registerError('The crawlspace height can be set between 1.5 and 5 ft.')
-      return false
-    end
-    if num_units % num_floors != 0
-      runner.registerError("The number of units (#{num_units}) must be divisible by the number of floors (#{num_floors}).")
       return false
     end
     if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
@@ -2038,16 +2043,20 @@ class Geometry
       runner.registerWarning('Specified a balcony, but there is no inset.')
       balcony_depth = 0
     end
-    if (unit_width == 1) && (horz_location != 'None')
-      runner.registerWarning("No #{horz_location} location exists, setting horizontal location to 'None'")
+    if (unit_width < 2) && (horz_location != 'None')
+      runner.registerWarning("No #{horz_location} location exists, setting horz_location to 'None'")
       horz_location = 'None'
+    end
+    if (unit_width >= 2) && (horz_location == 'None')
+      runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
+      return false
     end
     if (unit_width > 1) && (horz_location == 'None')
       runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
       return false
     end
-    if (unit_width < 3) && (horz_location == 'Middle')
-      runner.registerError('No middle horizontal location exists.')
+    if (unit_width <= 2) && (horz_location == 'Middle')
+      runner.registerError('Invalid horizontal location entered, no middle location exists.')
       return false
     end
 
