@@ -8,8 +8,8 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = 'project_national'
-    @num_samples_baseline = 100
+    @project_dir_baseline = 'project_testing'
+    @num_samples_baseline = 1
 
     @project_dir_upgrades = 'project_testing'
     @num_samples_upgrades = 10

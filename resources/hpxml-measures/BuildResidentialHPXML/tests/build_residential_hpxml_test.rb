@@ -194,8 +194,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     }
 
     hpxml_objs = {
-      'Rakefile' => HPXML.new(hpxml_path: hpxml_path['Rakefile']),
-      'BuildResidentialHPXML' => HPXML.new(hpxml_path: hpxml_path['BuildResidentialHPXML'])
+      'BuildResidentialHPXML' => HPXML.new(hpxml_path: hpxml_path['BuildResidentialHPXML']),
+      'Rakefile' => HPXML.new(hpxml_path: hpxml_path['Rakefile'])
     }
 
     hpxml_objs.each do |version, hpxml|
@@ -273,9 +273,17 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         heating_system.fan_watts_per_cfm = nil # Detailed input not offered
         heating_system.shared_loop_watts = nil # Always defaulted
         heating_system.fan_coil_watts = nil # Always defaulted
+        unless hpxml_objs['Rakefile'].heating_systems[0].year_installed.nil?
+          heating_system.heating_efficiency_afue = nil
+          heating_system.year_installed = nil
+        end
       end
       hpxml.cooling_systems.each do |cooling_system|
         cooling_system.fan_watts_per_cfm = nil # Detailed input not offered
+        unless hpxml_objs['Rakefile'].cooling_systems[0].year_installed.nil?
+          cooling_system.cooling_efficiency_seer = nil
+          cooling_system.year_installed = nil
+        end
       end
       hpxml.heat_pumps.each do |heat_pump|
         heat_pump.fan_watts_per_cfm = nil # Detailed input not offered
@@ -305,6 +313,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.water_heating_systems.each do |wh|
         wh.performance_adjustment = nil # Detailed input not exposed
         wh.heating_capacity = nil # Detailed input not exposed
+        unless hpxml_objs['Rakefile'].water_heating_systems[0].year_installed.nil?
+          wh.energy_factor = nil
+          wh.year_installed = nil
+        end
       end
       if hpxml.refrigerators.length > 0
         (2..hpxml.refrigerators.length).to_a.reverse.each do |i|

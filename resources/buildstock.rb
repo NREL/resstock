@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 require 'csv'
 require "#{File.dirname(__FILE__)}/meta_measure"
 
@@ -449,9 +451,9 @@ class RunOSWs
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
-    workflow_start = Time.now
+    # workflow_start = Time.now
     system(command)
-    workflow_time = (Time.now - workflow_start).round(1)
+    # workflow_time = (Time.now - workflow_start).round(1)
     finished_job = File.join(parent_dir, 'run/finished.job')
 
     result = {}
@@ -472,19 +474,19 @@ class RunOSWs
     result = get_measure_results(rows, result, 'ApplyUpgrade')
     result = get_measure_results(rows, result, 'SimulationOutputReport')
     result = get_measure_results(rows, result, 'UpgradeCosts')
-    result['workflow.time'] = workflow_time
+    # result['workflow.time'] = workflow_time
     return finished_job, result
   end
 
   def self.get_measure_results(rows, result, measure)
     if rows.keys.include?(measure)
-      if measure == 'ApplyUpgrade'
-        rows[measure].keys.each do |key|
-          unless key.include?('time_')
-            rows[measure].delete(key)
-          end
-        end
-      end
+      # if measure == 'ApplyUpgrade'
+      # rows[measure].keys.each do |key|
+      # unless key.include?('time_')
+      # rows[measure].delete(key)
+      # end
+      # end
+      # end
       result = result.merge(rows[measure])
       result.delete('applicable')
     end

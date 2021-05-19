@@ -4,17 +4,18 @@ on:
   push:
     branches: [ master, develop ]
   pull_request:
-    types: [ synchronize, opened, labeled ]
+    types: [ synchronize, opened ]
   workflow_dispatch:
 
 jobs:
   build:
-    if: "!(contains(github.event.head_commit.message, '[ci skip]'))"
     runs-on: ubuntu-latest
     container:
       image: docker://nrel/openstudio:flex
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Install gems
         run: |
@@ -36,6 +37,10 @@ jobs:
         run: |
           rake regression:workflow_tests
 
+      - name: Run integration tests for sampled datapoints
+        run: |
+          rake integration:workflow_tests
+
       - name: Upload regression results
         uses: actions/upload-artifact@v2
         with:
@@ -43,83 +48,86 @@ jobs:
             workflows/results
           name: examples
 
-  integration-tests:
-    if: contains(github.event.pull_request.labels.*.name, 'Ready for Testing')
-    runs-on: ubuntu-latest
-    needs: build
-    container:
-      image: docker://nrel/openstudio:flex
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install gems
-        run: |
-          rm -f Gemfile.lock && bundle install
-
-      - name: Run integration tests for sampled datapoints
-        run: |
-          rake integration:workflow_tests
-
       - name: Upload integration results
         uses: actions/upload-artifact@v2
         with:
           path: |
             test/test_samples_osw/baseline
-            test/test_samples_osw/upgrades
-          name: samples
+          name: results
 
-  tests-results:
+  compare-results:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: integration-tests
+    needs: build
     steps:
-      - name: Checkout for PR
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }} # Checkout the PR branch instead of the merge commit
+          ref: ${{ github.event.pull_request.base.sha }}
 
-      - uses: actions/setup-python@v2
+      - name: Store base integration results
+        uses: actions/upload-artifact@v2
         with:
-          python-version: '3.8.x'
+          path: test/test_samples_osw/base_results
+          name: base_results
 
-      - name: Setup git branch and python deps
-        shell: bash
-        run: |
-          branch_name="${{ github.head_ref }}"
-          echo "Checking out branch: $branch_name"
-          git checkout -b $branch_name || git checkout $branch_name
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
-          pip install numpy
-          pip install pandas
-          pip install seaborn
-          pip install matplotlib
-          pip install plotly
-          pip install kaleido
-
-      - name: Download integration results
+      - name: Download base results
         uses: actions/download-artifact@v2
         with:
           path: |
-            samples
-          name: samples
+            base_results
+          name: base_results
 
-      - name: Make integration comparisons
-        shell: bash
+      - name: Download feature results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            results
+          name: results
+
+      - name: Compare results
         run: |
-          cp samples/baseline/results/results.csv test/test_samples_osw/results/project_national_feature.csv
-          python test/res_results_csv_comparisons.py test/test_samples_osw/results/project_national_develop.csv test/test_samples_osw/results/project_national_feature.csv
+          cp -r base_results/results*.csv test/test_samples_osw/base_results
+          mkdir test/test_samples_osw/results
+          cp -r results/results* test/test_samples_osw/results
+          ruby test/compare.rb
 
-      - name: Commit latest results and comparisons
+      - name: Store comparisons
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/comparisons
+          name: comparisons
+
+  update-results:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Download feature results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            results
+          name: results
+
+      - name: Commit latest results
         shell: bash        
         run: |
-          git status
-          git add test/test_samples_osw/results/project_national_feature.csv
-          git add test/test_samples_osw/results/comparisons
+          branch_name="${{ github.head_ref }}"
+          git pull origin $branch_name
+          cp -r results/results* test/test_samples_osw/base_results
+          git add test/test_samples_osw/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
             git config --global user.name "GitHub Action"
-            git commit -m "Figure comparisons."
-            branch_name="${{ github.head_ref }}"
+            git commit -m "Latest results."
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
