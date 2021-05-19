@@ -1459,11 +1459,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(110)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_hours_in_operation', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('mech_vent_hours_in_operation', true)
     arg.setDisplayName('Mechanical Ventilation: Hours In Operation')
     arg.setDescription('The hours in operation of the mechanical ventilation.')
     arg.setUnits('hrs/day')
-    arg.setDefaultValue(24)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_recovery_efficiency_type', mech_vent_recovery_efficiency_type_choices, true)
@@ -1486,11 +1486,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.72)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_fan_power', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('mech_vent_fan_power', true)
     arg.setDisplayName('Mechanical Ventilation: Fan Power')
     arg.setDescription('The fan power of the mechanical ventilation.')
     arg.setUnits('W')
-    arg.setDefaultValue(30)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('mech_vent_num_units_served', true)
@@ -4446,16 +4446,24 @@ class HPXMLFile
         end
       end
 
+      if args[:mech_vent_hours_in_operation] != Constants.Auto
+        hours_in_operation = args[:mech_vent_hours_in_operation]
+      end
+
+      if args[:mech_vent_fan_power] != Constants.Auto
+        fan_power = args[:mech_vent_fan_power]
+      end
+
       hpxml.ventilation_fans.add(id: 'MechanicalVentilation',
                                  fan_type: args[:mech_vent_fan_type],
                                  rated_flow_rate: args[:mech_vent_flow_rate],
-                                 hours_in_operation: args[:mech_vent_hours_in_operation],
+                                 hours_in_operation: hours_in_operation,
                                  used_for_whole_building_ventilation: true,
                                  total_recovery_efficiency: total_recovery_efficiency,
                                  total_recovery_efficiency_adjusted: total_recovery_efficiency_adjusted,
                                  sensible_recovery_efficiency: sensible_recovery_efficiency,
                                  sensible_recovery_efficiency_adjusted: sensible_recovery_efficiency_adjusted,
-                                 fan_power: args[:mech_vent_fan_power],
+                                 fan_power: fan_power,
                                  distribution_system_idref: distribution_system_idref,
                                  is_shared_system: is_shared_system,
                                  in_unit_flow_rate: in_unit_flow_rate,
@@ -4487,16 +4495,24 @@ class HPXMLFile
         end
       end
 
+      if args[:mech_vent_hours_in_operation_2] != Constants.Auto
+        hours_in_operation = args[:mech_vent_hours_in_operation_2]
+      end
+
+      if args[:mech_vent_fan_power_2] != Constants.Auto
+        fan_power = args[:mech_vent_fan_power_2]
+      end
+
       hpxml.ventilation_fans.add(id: 'SecondMechanicalVentilation',
                                  fan_type: args[:mech_vent_fan_type_2],
                                  rated_flow_rate: args[:mech_vent_flow_rate_2],
-                                 hours_in_operation: args[:mech_vent_hours_in_operation_2],
+                                 hours_in_operation: hours_in_operation,
                                  used_for_whole_building_ventilation: true,
                                  total_recovery_efficiency: total_recovery_efficiency,
                                  total_recovery_efficiency_adjusted: total_recovery_efficiency_adjusted,
                                  sensible_recovery_efficiency: sensible_recovery_efficiency,
                                  sensible_recovery_efficiency_adjusted: sensible_recovery_efficiency_adjusted,
-                                 fan_power: args[:mech_vent_fan_power_2])
+                                 fan_power: fan_power)
     end
 
     if (args[:kitchen_fans_quantity] == Constants.Auto) || (args[:kitchen_fans_quantity].to_i > 0)

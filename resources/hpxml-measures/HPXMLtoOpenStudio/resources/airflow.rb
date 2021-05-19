@@ -2,7 +2,7 @@
 
 class Airflow
   def self.apply(model, runner, weather, spaces, hpxml, cfa, nbeds,
-                 ncfl_ag, duct_systems, nv_clg_ssn_sensor, hvac_map, eri_version,
+                 ncfl_ag, duct_systems, clg_ssn_sensor, hvac_map, eri_version,
                  frac_windows_operable, apply_ashrae140_assumptions, schedules_file)
 
     # Global variables
@@ -106,10 +106,10 @@ class Airflow
       vented_crawl = foundation
     end
 
-    apply_natural_ventilation_and_whole_house_fan(model, weather, hpxml.site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
+    apply_natural_ventilation_and_whole_house_fan(model, weather, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor)
     apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
-                                            vented_attic, vented_crawl, hvac_map, schedules_file)
+                                            vented_attic, vented_crawl, hvac_map, clg_ssn_sensor, schedules_file)
   end
 
   def self.get_default_fraction_of_windows_operable()
@@ -1495,6 +1495,8 @@ class Airflow
     # Calculate mass flow rate based on outdoor air density
     # Address load with flow-weighted combined effectiveness
     infil_program.addLine("Set Fan_MFR = #{q_var} * OASupRho")
+    infil_program.addLine('Set ZoneInEnth = OASupInEnth')
+    infil_program.addLine('Set ZoneInTemp = OASupInTemp')
     if not vent_mech_erv_hrv_tot.empty?
       # ERV/HRV EMS load model
       # E+ ERV model is using standard density for MFR calculation, caused discrepancy with other system types.
@@ -1511,14 +1513,12 @@ class Airflow
       infil_program.addLine('Set ERVTotalHeatTrans = Fan_MFR * (ERVSupOutEnth - OASupInEnth)')
       infil_program.addLine('Set ERVLatHeatTrans = ERVTotalHeatTrans - ERVSensHeatTrans')
       # ERV/HRV Load calculation
-      infil_program.addLine('Set FanTotalToLv = Fan_MFR * (ERVSupOutEnth - ZoneAirEnth)')
-      infil_program.addLine('Set FanSensToLv = Fan_MFR * ZoneCp * (ERVSupOutTemp - ZoneTemp)')
-      infil_program.addLine('Set FanLatToLv = FanTotalToLv - FanSensToLv')
-    else
-      infil_program.addLine('Set FanTotalToLv = Fan_MFR * (OASupInEnth - ZoneAirEnth)')
-      infil_program.addLine('Set FanSensToLv = Fan_MFR * ZoneCp * (OASupInTemp - ZoneTemp)')
-      infil_program.addLine('Set FanLatToLv = FanTotalToLv - FanSensToLv')
+      infil_program.addLine('Set ZoneInEnth = ERVSupOutEnth')
+      infil_program.addLine('Set ZoneInTemp = ERVSupOutTemp')
     end
+    infil_program.addLine('Set FanTotalToLv = Fan_MFR * (ZoneInEnth - ZoneAirEnth)')
+    infil_program.addLine('Set FanSensToLv = Fan_MFR * ZoneCp * (ZoneInTemp - ZoneTemp)')
+    infil_program.addLine('Set FanLatToLv = FanTotalToLv - FanSensToLv')
 
     # Actuator,
     # If preconditioned, handle actuators later in calculate_precond_loads
@@ -1528,11 +1528,23 @@ class Airflow
     end
   end
 
-  def self.calculate_precond_loads(model, infil_program, vent_mech_preheat, vent_mech_precool, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, hvac_map)
+  def self.calculate_precond_loads(model, infil_program, vent_mech_preheat, vent_mech_precool, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, hvac_map, clg_ssn_sensor)
     # Preconditioning
     # Assume introducing no sensible loads to zone if preconditioned
+    if not vent_mech_preheat.empty?
+      htg_stp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Thermostat Heating Setpoint Temperature')
+      htg_stp_sensor.setName("#{Constants.ObjectNameAirflow} htg stp s")
+      htg_stp_sensor.setKeyName(@living_zone.name.to_s)
+      infil_program.addLine("Set HtgStp = #{htg_stp_sensor.name}") # heating thermostat setpoint
+    end
+    if not vent_mech_precool.empty?
+      clg_stp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Thermostat Cooling Setpoint Temperature')
+      clg_stp_sensor.setName("#{Constants.ObjectNameAirflow} clg stp s")
+      clg_stp_sensor.setKeyName(@living_zone.name.to_s)
+      infil_program.addLine("Set ClgStp = #{clg_stp_sensor.name}") # cooling thermostat setpoint
+    end
     vent_mech_preheat.each_with_index do |f_preheat, i|
-      infil_program.addLine('If OASupInTemp < ZoneTemp')
+      infil_program.addLine("If (OASupInTemp < HtgStp) && (#{clg_ssn_sensor.name} < 1)")
       htg_energy_actuator = create_other_equipment_object_and_actuator(model: model, name: "shared mech vent preheating energy #{i}", space: @living_space, frac_lat: 0.0, frac_lost: 1.0, hpxml_fuel_type: f_preheat.preheating_fuel, end_use: Constants.ObjectNameMechanicalVentilationPreconditioning)
       hvac_map["#{f_preheat.id}_preheat"] = [htg_energy_actuator.actuatedComponent.get]
       infil_program.addLine("  Set Qpreheat = #{UnitConversions.convert(f_preheat.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)}")
@@ -1543,16 +1555,21 @@ class Airflow
       end
       calculate_fan_loads(model, infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qpreheat', true)
 
-      infil_program.addLine("  Set PreHeatingEnergy = (-FanSensToLv) * #{f_preheat.preheating_fraction_load_served}")
-      infil_program.addLine("  Set #{fan_sens_load_actuator.name} = #{fan_sens_load_actuator.name}  + PreHeatingEnergy")
-      infil_program.addLine("  Set #{fan_lat_load_actuator.name} = #{fan_lat_load_actuator.name} - FanLatToLv")
-      infil_program.addLine("  Set #{htg_energy_actuator.name} = PreHeatingEnergy / #{f_preheat.preheating_efficiency_cop}")
+      infil_program.addLine('  If ZoneInTemp < HtgStp')
+      infil_program.addLine('    Set FanSensToSpt = Fan_MFR * ZoneCp * (ZoneInTemp - HtgStp)')
+      infil_program.addLine("    Set PreHeatingWatt = (-FanSensToSpt) * #{f_preheat.preheating_fraction_load_served}")
+      infil_program.addLine("    Set #{fan_sens_load_actuator.name} = #{fan_sens_load_actuator.name} + PreHeatingWatt")
+      infil_program.addLine("    Set #{fan_lat_load_actuator.name} = #{fan_lat_load_actuator.name} - FanLatToLv") # Fixme:Does this assumption still apply?
+      infil_program.addLine('  Else')
+      infil_program.addLine('    Set PreHeatingWatt = 0.0')
+      infil_program.addLine('  EndIf')
       infil_program.addLine('Else')
-      infil_program.addLine("  Set #{htg_energy_actuator.name} = 0.0")
+      infil_program.addLine('  Set PreHeatingWatt = 0.0')
       infil_program.addLine('EndIf')
+      infil_program.addLine("Set #{htg_energy_actuator.name} = PreHeatingWatt / #{f_preheat.preheating_efficiency_cop}")
     end
     vent_mech_precool.each_with_index do |f_precool, i|
-      infil_program.addLine('If OASupInTemp > ZoneTemp')
+      infil_program.addLine("If (OASupInTemp > ClgStp) && (#{clg_ssn_sensor.name} > 0)")
       clg_energy_actuator = create_other_equipment_object_and_actuator(model: model, name: "shared mech vent precooling energy #{i}", space: @living_space, frac_lat: 0.0, frac_lost: 1.0, hpxml_fuel_type: f_precool.precooling_fuel, end_use: Constants.ObjectNameMechanicalVentilationPreconditioning)
       hvac_map["#{f_precool.id}_precool"] = [clg_energy_actuator.actuatedComponent.get]
       infil_program.addLine("  Set Qprecool = #{UnitConversions.convert(f_precool.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)}")
@@ -1563,18 +1580,23 @@ class Airflow
       end
       calculate_fan_loads(model, infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qprecool', true)
 
-      infil_program.addLine("  Set PreCoolingEnergy = FanSensToLv * #{f_precool.precooling_fraction_load_served}")
-      infil_program.addLine("  Set #{fan_sens_load_actuator.name} = #{fan_sens_load_actuator.name}  - PreCoolingEnergy")
-      infil_program.addLine("  Set #{fan_lat_load_actuator.name} = #{fan_lat_load_actuator.name} - FanLatToLv")
-      infil_program.addLine("  Set #{clg_energy_actuator.name} = PreCoolingEnergy / #{f_precool.precooling_efficiency_cop}")
+      infil_program.addLine('  If ZoneInTemp > ClgStp')
+      infil_program.addLine('    Set FanSensToSpt = Fan_MFR * ZoneCp * (ZoneInTemp - ClgStp)')
+      infil_program.addLine("    Set PreCoolingWatt = FanSensToSpt * #{f_precool.precooling_fraction_load_served}")
+      infil_program.addLine("    Set #{fan_sens_load_actuator.name} = #{fan_sens_load_actuator.name}  - PreCoolingWatt")
+      infil_program.addLine("    Set #{fan_lat_load_actuator.name} = #{fan_lat_load_actuator.name} - FanLatToLv") # Fixme:Does this assumption still apply?
+      infil_program.addLine('  Else')
+      infil_program.addLine('    Set PreCoolingWatt = 0.0')
+      infil_program.addLine('  EndIf')
       infil_program.addLine('Else')
-      infil_program.addLine("  Set #{clg_energy_actuator.name} = 0.0")
+      infil_program.addLine('  Set PreCoolingWatt = 0.0')
       infil_program.addLine('EndIf')
+      infil_program.addLine("Set #{clg_energy_actuator.name} = PreCoolingWatt / #{f_precool.precooling_efficiency_cop}")
     end
   end
 
   def self.apply_infiltration_and_mechanical_ventilation(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                         range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map)
+                                                         range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map, clg_ssn_sensor)
     # Categorize fans into different types
     vent_mech_preheat = vent_fans_mech.select { |vent_mech| (not vent_mech.preheating_efficiency_cop.nil?) }
     vent_mech_precool = vent_fans_mech.select { |vent_mech| (not vent_mech.precooling_efficiency_cop.nil?) }
@@ -1649,7 +1671,7 @@ class Airflow
     calculate_fan_loads(model, infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qload')
 
     # Address preconditioning
-    calculate_precond_loads(model, infil_program, vent_mech_preheat, vent_mech_precool, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, hvac_map)
+    calculate_precond_loads(model, infil_program, vent_mech_preheat, vent_mech_precool, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, hvac_map, clg_ssn_sensor)
 
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{infil_program.name} calling manager")
@@ -1658,7 +1680,7 @@ class Airflow
   end
 
   def self.apply_infiltration_and_ventilation_fans(model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                   has_flue_chimney, air_infils, vented_attic, vented_crawl, hvac_map, schedules_file)
+                                                   has_flue_chimney, air_infils, vented_attic, vented_crawl, hvac_map, clg_ssn_sensor, schedules_file)
     # Get living space infiltration
     living_ach50 = nil
     living_const_ach = nil
@@ -1696,7 +1718,7 @@ class Airflow
 
     # Get mechanical ventilation
     apply_infiltration_and_mechanical_ventilation(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                  range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map)
+                                                  range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map, clg_ssn_sensor)
   end
 
   def self.apply_infiltration_to_living(site, living_ach50, living_const_ach, infil_program, weather, has_flue_chimney)

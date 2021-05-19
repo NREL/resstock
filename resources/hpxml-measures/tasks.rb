@@ -645,19 +645,19 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_fraction_heat_load_served_2', 0.25)
     step.setArgument('mech_vent_fan_type', 'none')
     step.setArgument('mech_vent_flow_rate', 110)
-    step.setArgument('mech_vent_hours_in_operation', 24)
+    step.setArgument('mech_vent_hours_in_operation', '24')
     step.setArgument('mech_vent_recovery_efficiency_type', 'Unadjusted')
     step.setArgument('mech_vent_total_recovery_efficiency', 0.48)
     step.setArgument('mech_vent_sensible_recovery_efficiency', 0.72)
-    step.setArgument('mech_vent_fan_power', 30)
+    step.setArgument('mech_vent_fan_power', '30')
     step.setArgument('mech_vent_num_units_served', 1)
     step.setArgument('mech_vent_fan_type_2', 'none')
     step.setArgument('mech_vent_flow_rate_2', 110)
-    step.setArgument('mech_vent_hours_in_operation_2', 24)
+    step.setArgument('mech_vent_hours_in_operation_2', '24')
     step.setArgument('mech_vent_recovery_efficiency_type_2', 'Unadjusted')
     step.setArgument('mech_vent_total_recovery_efficiency_2', 0.48)
     step.setArgument('mech_vent_sensible_recovery_efficiency_2', 0.72)
-    step.setArgument('mech_vent_fan_power_2', 30)
+    step.setArgument('mech_vent_fan_power_2', '30')
     step.setArgument('kitchen_fans_quantity', '0')
     step.setArgument('bathroom_fans_quantity', '0')
     step.setArgument('whole_house_fan_present', false)
@@ -945,12 +945,12 @@ def get_values(osw_file, step)
   elsif ['base-bldgtype-multifamily-shared-mechvent.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeSupply)
     step.setArgument('mech_vent_flow_rate', 800)
-    step.setArgument('mech_vent_fan_power', 240)
+    step.setArgument('mech_vent_fan_power', '240')
     step.setArgument('mech_vent_num_units_served', 10)
     step.setArgument('shared_mech_vent_frac_recirculation', 0.5)
     step.setArgument('mech_vent_fan_type_2', HPXML::MechVentTypeExhaust)
     step.setArgument('mech_vent_flow_rate_2', 72)
-    step.setArgument('mech_vent_fan_power_2', 26)
+    step.setArgument('mech_vent_fan_power_2', '26')
   elsif ['base-bldgtype-multifamily-shared-mechvent-preconditioning.osw'].include? osw_file
     step.setArgument('shared_mech_vent_preheating_fuel', HPXML::FuelTypeNaturalGas)
     step.setArgument('shared_mech_vent_preheating_efficiency', 0.92)
@@ -1416,7 +1416,7 @@ def get_values(osw_file, step)
   elsif ['base-hvac-boiler-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 0.98)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-boiler-gas-central-ac-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
@@ -1524,7 +1524,7 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_heating_efficiency', 1.0)
   elsif ['base-hvac-furnace-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 0.98)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-furnace-gas-central-ac-2-speed.osw'].include? osw_file
     step.setArgument('cooling_system_cooling_efficiency', 18.0)
@@ -1708,7 +1708,7 @@ def get_values(osw_file, step)
   elsif ['base-hvac-wall-furnace-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeWallFurnace)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 0.98)
     step.setArgument('cooling_system_type', 'none')
   end
 
@@ -1758,7 +1758,7 @@ def get_values(osw_file, step)
   # Mechanical Ventilation
   if ['base-mechvent-balanced.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeBalanced)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-bath-kitchen-fans.osw'].include? osw_file
     step.setArgument('kitchen_fans_quantity', '1')
     step.setArgument('kitchen_fans_flow_rate', '100.0')
@@ -1773,34 +1773,34 @@ def get_values(osw_file, step)
   elsif ['base-mechvent-cfis.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeCFIS)
     step.setArgument('mech_vent_flow_rate', 330)
-    step.setArgument('mech_vent_hours_in_operation', 8)
-    step.setArgument('mech_vent_fan_power', 300)
+    step.setArgument('mech_vent_hours_in_operation', '8')
+    step.setArgument('mech_vent_fan_power', '300')
   elsif ['base-mechvent-cfis-evap-cooler-only-ducted.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeCFIS)
     step.setArgument('mech_vent_flow_rate', 330)
-    step.setArgument('mech_vent_hours_in_operation', 8)
-    step.setArgument('mech_vent_fan_power', 300)
+    step.setArgument('mech_vent_hours_in_operation', '8')
+    step.setArgument('mech_vent_fan_power', '300')
   elsif ['base-mechvent-erv.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeERV)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-erv-atre-asre.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeERV)
     step.setArgument('mech_vent_recovery_efficiency_type', 'Adjusted')
     step.setArgument('mech_vent_total_recovery_efficiency', 0.526)
     step.setArgument('mech_vent_sensible_recovery_efficiency', 0.79)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-exhaust.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeExhaust)
   elsif ['base-mechvent-exhaust-rated-flow-rate.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeExhaust)
   elsif ['base-mechvent-hrv.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeHRV)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-hrv-asre.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeHRV)
     step.setArgument('mech_vent_recovery_efficiency_type', 'Adjusted')
     step.setArgument('mech_vent_sensible_recovery_efficiency', 0.79)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-supply.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeSupply)
   elsif ['base-mechvent-whole-house-fan.osw'].include? osw_file
@@ -1827,6 +1827,9 @@ def get_values(osw_file, step)
     step.removeArgument('window_interior_shading_summer')
     step.removeArgument('cooling_system_cooling_compressor_type')
     step.removeArgument('cooling_system_cooling_sensible_heat_fraction')
+    step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeExhaust)
+    step.setArgument('mech_vent_hours_in_operation', Constants.Auto)
+    step.setArgument('mech_vent_fan_power', Constants.Auto)
     step.setArgument('ducts_supply_location', Constants.Auto)
     step.setArgument('ducts_return_location', Constants.Auto)
     step.setArgument('ducts_supply_surface_area', Constants.Auto)
@@ -2578,7 +2581,6 @@ def create_hpxmls
     'invalid_files/multiple-shared-heating-systems.xml' => 'base-bldgtype-multifamily-shared-boiler-only-baseboard.xml',
     'invalid_files/net-area-negative-roof.xml' => 'base-enclosure-skylights.xml',
     'invalid_files/net-area-negative-wall.xml' => 'base.xml',
-    'invalid_files/num-bedrooms-exceeds-limit.xml' => 'base.xml',
     'invalid_files/orphaned-hvac-distribution.xml' => 'base-hvac-furnace-gas-room-ac.xml',
     'invalid_files/refrigerator-location.xml' => 'base.xml',
     'invalid_files/repeated-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
@@ -3003,7 +3005,17 @@ def create_hpxmls
         building_element = XMLHelper.get_element(hpxml_element, 'Building')
         for i in 2..3
           new_building_element = Marshal.load(Marshal.dump(building_element))
-          XMLHelper.add_attribute(XMLHelper.get_element(new_building_element, 'BuildingID'), 'id', "MyBuilding#{i}")
+
+          # Make all IDs unique so the HPXML is valid
+          new_building_element.each_node do |node|
+            next unless node.is_a?(Oga::XML::Element)
+
+            id = XMLHelper.get_attribute_value(node, 'id')
+            next if id.nil?
+
+            XMLHelper.add_attribute(node, 'id', "#{id}_#{i}")
+          end
+
           hpxml_element.children << new_building_element
         end
         XMLHelper.write_file(hpxml_doc, hpxml_path)
@@ -3213,8 +3225,6 @@ def set_hpxml_building_construction(hpxml_file, hpxml)
     hpxml.building_construction.conditioned_floor_area = 1348.8
   elsif ['invalid_files/enclosure-floor-area-exceeds-cfa2.xml'].include? hpxml_file
     hpxml.building_construction.conditioned_floor_area = 898.8
-  elsif ['invalid_files/num-bedrooms-exceeds-limit.xml'].include? hpxml_file
-    hpxml.building_construction.number_of_bedrooms = 40
   elsif ['invalid_files/invalid-facility-type-equipment.xml',
          'invalid_files/invalid-facility-type-surfaces.xml'].include? hpxml_file
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFD
@@ -5355,7 +5365,7 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
   elsif ['base-hvac-boiler-elec-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeBoiler
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
-    hpxml.heating_systems[0].heating_efficiency_afue = 1.0
+    hpxml.heating_systems[0].heating_efficiency_afue = 0.98
   elsif ['base-hvac-boiler-gas-central-ac-1-speed.xml',
          'base-hvac-boiler-gas-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeBoiler
@@ -5380,7 +5390,7 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].heating_efficiency_percent = 1
   elsif ['base-hvac-furnace-elec-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
-    hpxml.heating_systems[0].heating_efficiency_afue = 1
+    hpxml.heating_systems[0].heating_efficiency_afue = 0.98
   elsif ['base-hvac-furnace-oil-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeOil
   elsif ['base-hvac-furnace-propane-only.xml'].include? hpxml_file
@@ -5492,7 +5502,7 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].distribution_system_idref = nil
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeWallFurnace
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
-    hpxml.heating_systems[0].heating_efficiency_afue = 1.0
+    hpxml.heating_systems[0].heating_efficiency_afue = 0.98
     hpxml.heating_systems[0].fan_watts = 0.0
   elsif ['base-hvac-furnace-x3-dse.xml'].include? hpxml_file
     hpxml.heating_systems << hpxml.heating_systems[0].dup
@@ -5575,6 +5585,9 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].heating_capacity = 48000
   elsif hpxml_file.include?('base-hvac-autosize') && (not hpxml.heating_systems.nil?) && (hpxml.heating_systems.size > 0)
     hpxml.heating_systems[0].heating_capacity = nil
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.heating_systems[0].heating_efficiency_afue = nil
+    hpxml.heating_systems[0].year_installed = 2009
   end
 end
 
@@ -5707,6 +5720,8 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.cooling_systems[0].cooling_shr = nil
     hpxml.cooling_systems[0].compressor_type = nil
+    hpxml.cooling_systems[0].cooling_efficiency_seer = nil
+    hpxml.cooling_systems[0].year_installed = 2009
   elsif ['base-bldgtype-multifamily-shared-chiller-only-baseboard.xml',
          'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.xml',
          'base-bldgtype-multifamily-shared-chiller-only-water-loop-heat-pump.xml',
@@ -6472,6 +6487,10 @@ def set_hpxml_ventilation_fans(hpxml_file, hpxml)
                                start_hour: 7,
                                used_for_local_ventilation: true)
   elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.ventilation_fans.add(id: 'MechanicalVentilation',
+                               fan_type: HPXML::MechVentTypeExhaust,
+                               tested_flow_rate: 110,
+                               used_for_whole_building_ventilation: true)
     hpxml.ventilation_fans.add(id: 'KitchenRangeFan',
                                fan_location: HPXML::LocationKitchen,
                                used_for_local_ventilation: true)
@@ -6888,6 +6907,8 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
     hpxml.water_heating_systems[0].heating_capacity = nil
     hpxml.water_heating_systems[0].tank_volume = nil
     hpxml.water_heating_systems[0].recovery_efficiency = nil
+    hpxml.water_heating_systems[0].energy_factor = nil
+    hpxml.water_heating_systems[0].year_installed = 2009
   elsif ['base-bldgtype-multifamily-shared-water-heater.xml',
          'base-bldgtype-multifamily-shared-laundry-room.xml'].include? hpxml_file
     hpxml.water_heating_systems.clear
