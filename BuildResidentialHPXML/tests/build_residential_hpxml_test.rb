@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -133,7 +135,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'foundation-wall-insulation-greater-than-height.osw' => 'foundation_wall_insulation_distance_to_bottom=6.0 and geometry_foundation_height=4.0',
       'conditioned-attic-with-one-floor-above-grade.osw' => 'geometry_num_floors_above_grade=1 and geometry_attic_type=ConditionedAttic',
       'zero-number-of-bedrooms.osw' => 'geometry_num_bedrooms=0',
-      'single-family-detached-with-shared-system.osw' => 'geometry_unit_type=single-family detached and heating_system_type=Shared Boiler w/ Baseboard'
+      'single-family-detached-with-shared-system.osw' => 'geometry_unit_type=single-family detached and heating_system_type=Shared Boiler w/ Baseboard',
+      'hvac-seasons-incomplete-heating-season.osw' => 'season_heating_begin_month=true and season_heating_begin_day_of_month=false and season_heating_end_month=true and seasons_heating_end_day_of_month=false',
+      'hvac-seasons-incomplete-cooling-season.osw' => 'season_cooling_begin_month=false and season_cooling_begin_day_of_month=true and season_cooling_end_month=false and season_cooling_end_day_of_month=true'
     }
 
     measures = {}
