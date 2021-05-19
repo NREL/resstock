@@ -1729,4 +1729,28 @@ class Waterheater
     end
     return solar_fraction.to_f
   end
+
+  def self.get_default_water_heater_efficiency_by_year_installed(year, fuel_type)
+    fuel_primary_id = { EPlus::FuelTypeElectricity => 'electric',
+                        EPlus::FuelTypeNaturalGas => 'natural_gas',
+                        EPlus::FuelTypeOil => 'fuel_oil',
+                        EPlus::FuelTypeCoal => 'fuel_oil', # assumption
+                        EPlus::FuelTypeWoodCord => 'fuel_oil', # assumption
+                        EPlus::FuelTypeWoodPellets => 'fuel_oil', # assumption
+                        EPlus::FuelTypePropane => 'lpg' }[EPlus.fuel_type(fuel_type)]
+
+    value = nil
+    lookup_year = 0
+    CSV.foreach(File.join(File.dirname(__FILE__), 'lu_water_heater_efficiency.csv'), headers: true) do |row|
+      next unless row['fuel_primary_id'] == fuel_primary_id
+
+      row_year = Integer(row['year'])
+      if (row_year - year).abs <= (lookup_year - year).abs
+        lookup_year = row_year
+        value = Float(row['value'])
+      end
+    end
+
+    return value
+  end
 end

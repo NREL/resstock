@@ -4211,4 +4211,44 @@ class HVAC
 
     return { rh_setpoint: rh_setpoint, ief: ief }
   end
+
+  def self.get_default_hvac_efficiency_by_year_installed(year, hvac_type, fuel_type, units)
+    if [HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace].include? hvac_type
+      # For wall/floor furnaces, map other fuel types to natural gas because the lookup table only provides efficiencies for natural gas.
+      fuel_type = HPXML::FuelTypeNaturalGas
+    end
+
+    type_id = { HPXML::HVACTypeCentralAirConditioner => 'split_dx',
+                HPXML::HVACTypeRoomAirConditioner => 'packaged_dx',
+                HPXML::HVACTypeHeatPumpAirToAir => 'heat_pump',
+                HPXML::HVACTypeFurnace => 'central_furnace',
+                HPXML::HVACTypeWallFurnace => 'wall_furnace',
+                HPXML::HVACTypeFloorFurnace => 'wall_furnace', # floor furnaces mapped to wall furnaces
+                HPXML::HVACTypeBoiler => 'boiler' }[hvac_type]
+
+    fuel_primary_id = { EPlus::FuelTypeElectricity => 'electric',
+                        EPlus::FuelTypeNaturalGas => 'natural_gas',
+                        EPlus::FuelTypeOil => 'fuel_oil',
+                        EPlus::FuelTypeCoal => 'fuel_oil', # assumption
+                        EPlus::FuelTypeWoodCord => 'fuel_oil', # assumption
+                        EPlus::FuelTypeWoodPellets => 'fuel_oil', # assumption
+                        EPlus::FuelTypePropane => 'lpg' }[EPlus.fuel_type(fuel_type)]
+
+    metric_id = units.downcase
+    value = nil
+    lookup_year = 0
+    CSV.foreach(File.join(File.dirname(__FILE__), 'lu_hvac_equipment_efficiency.csv'), headers: true) do |row|
+      next unless row['type_id'] == type_id
+      next unless row['fuel_primary_id'] == fuel_primary_id
+      next unless row['metric_id'] == metric_id
+
+      row_year = Integer(row['year'])
+      if (row_year - year).abs <= (lookup_year - year).abs
+        lookup_year = row_year
+        value = Float(row['value'])
+      end
+    end
+
+    return value
+  end
 end

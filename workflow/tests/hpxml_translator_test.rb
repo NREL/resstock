@@ -34,6 +34,7 @@ class HPXMLTest < MiniTest::Test
     all_results = {}
     all_sizing_results = {}
     Parallel.map(xmls, in_threads: Parallel.processor_count) do |xml|
+      _test_schema_validation(xml)
       xml_name = File.basename(xml)
       all_results[xml_name], all_sizing_results[xml_name] = _run_xml(xml, Parallel.worker_number)
     end
@@ -85,6 +86,7 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? osm_path)
     hpxml_defaults_path = File.join(File.dirname(xml), 'run', 'in.xml')
     assert(File.exist? hpxml_defaults_path)
+    _test_schema_validation(hpxml_defaults_path)
   end
 
   def test_run_simulation_epjson_input
@@ -307,7 +309,6 @@ class HPXMLTest < MiniTest::Test
                             'multiple-shared-heating-systems.xml' => ['More than one shared heating system found.'],
                             'net-area-negative-wall.xml' => ["Calculated a negative net surface area for surface 'Wall'."],
                             'net-area-negative-roof.xml' => ["Calculated a negative net surface area for surface 'Roof'."],
-                            'num-bedrooms-exceeds-limit.xml' => ['Expected NumberofBedrooms to be less than or equal to (ConditionedFloorArea-120)/70 [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]'],
                             'orphaned-hvac-distribution.xml' => ["Distribution system 'HVACDistribution' found but no HVAC system attached to it."],
                             'refrigerator-location.xml' => ['A location is specified as "garage" but no surfaces were found adjacent to this space type.'],
                             'refrigerators-multiple-primary.xml' => ['More than one refrigerator designated as the primary.'],
@@ -518,6 +519,17 @@ class HPXMLTest < MiniTest::Test
     end
 
     return results
+  end
+
+  def _test_schema_validation(xml)
+    # TODO: Remove this when schema validation is included with CLI calls
+    schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'HPXMLtoOpenStudio', 'resources'))
+    hpxml_doc = XMLHelper.parse_file(xml)
+    errors = XMLHelper.validate(hpxml_doc.to_xml, File.join(schemas_dir, 'HPXML.xsd'), nil)
+    if errors.size > 0
+      puts "#{xml}: #{errors}"
+    end
+    assert_equal(0, errors.size)
   end
 
   def _verify_outputs(rundir, hpxml_path, results, hpxml)
