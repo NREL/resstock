@@ -4478,4 +4478,15 @@ class HVAC
       end
     end
   end
+
+  def self.set_demand_flexibility(hvac_system)
+    hvac_ap = hvac_system.additional_properties
+
+    hvac_ap.demand_flexibility = false
+    if hvac_system.is_a?(HPXML::HeatPump)
+      if hvac_system.flex || hvac_system.modulating || hvac_system.dual_source || hvac_system.ihp_grid_ac || hvac_system.ihp_ice_storage || hvac_system.ihp_pcm_storage
+        hvac_ap.demand_flexibility = true
+      end
+    end
+  end
 end
