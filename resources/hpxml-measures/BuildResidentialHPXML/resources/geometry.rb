@@ -21,6 +21,12 @@ class Geometry
     return azimuth
   end
 
+  def self.get_orientation_direction(orientation_angle)
+    orientation_map = {0.0 => "north", 90.0 => "east", 180.0 => "south", 270.0 => "west"}
+    
+    return orientation_map[orientation_angle]
+  end
+
   def self.add_rim_joist(model, polygon, space, rim_joist_height, z)
     if rim_joist_height > 0
       # make polygons

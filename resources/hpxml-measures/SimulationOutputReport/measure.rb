@@ -959,7 +959,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @peak_loads.each do |load_type, peak_load|
       results_out << ["#{peak_load.name} (#{peak_load.annual_units})", peak_load.annual_output.round(2)]
     end
-    if @component_loads.values.map { |load| load.annual_output }.sum > 0 # Skip if component loads not calculated
+    if @component_loads.values.map { |load| load.annual_output }.sum != 0 # Skip if component loads not calculated
       results_out << [line_break]
       @component_loads.each do |load_type, load|
         results_out << ["#{load.name} (#{load.annual_units})", load.annual_output.round(2)]
