@@ -12,7 +12,7 @@ class IntegrationWorkflowTest < MiniTest::Test
     @num_samples_baseline = 10
 
     @project_dir_upgrades = 'project_testing'
-    @num_samples_upgrades = 10
+    @num_samples_upgrades = 1
 
     @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
