@@ -232,12 +232,19 @@ class WallConstructions
     # Define materials
     mat_cmu = Material.new(name = "WallCMU", thick_in = thick_in, mat_base = BaseMaterial.Concrete, k_in = conductivity, rho = density)
 
-    # If no exterior finish, set absorptivity of framing == absorptivity of cmu
-    if not mat_ext_finish.nil? and mat_ext_finish.name == "None"
-      tAbs_frame, sAbs_frame, vAbs_frame = mat_cmu.tAbs, mat_cmu.sAbs, mat_cmu.vAbs
+    # If no exterior finish, use pre-existing material absorptance values for framing + CMU/Brick
+    if not mat_ext_finish.nil? and mat_ext_finish.name.include? "None"
+      if mat_ext_finish.name == "None, CMU"
+        ext_mat = Material.ExtFinishFiberCementMedDark
+      elsif mat_ext_finish.name == "None, Brick"
+        ext_mat = Material.ExtFinishBrickMedDark
+      end
+      tAbs_frame, sAbs_frame, vAbs_frame = ext_mat.tAbs, ext_mat.sAbs, ext_mat.vAbs
+      mat_cmu.tAbs, mat_cmu.sAbs, mat_cmu.vAbs = ext_mat.tAbs, ext_mat.sAbs, ext_mat.vAbs
     else
       tAbs_frame, sAbs_frame, vAbs_frame = nil, nil, nil
     end
+
     mat_framing = Material.new(name = "Framing", thick_in = thick_in, mat_base = BaseMaterial.Wood, k_in = nil, rho = nil, cp = nil, tAbs = tAbs_frame, sAbs = sAbs_frame, vAbs = vAbs_frame)
 
     mat_furring = nil
@@ -273,7 +280,7 @@ class WallConstructions
     constr = Construction.new(constr_name, path_fracs)
     if not mat_ext_finish.nil?
       constr.add_layer(Material.AirFilmOutside)
-      if mat_ext_finish.name != "None"
+      if not mat_ext_finish.name.include? "None"
         constr.add_layer(mat_ext_finish)
       end
     else # interior wall
@@ -826,7 +833,8 @@ class WallConstructions
     mats << Material.ExtFinishVinylMedDark
     mats << Material.ExtFinishFiberCementLight
     mats << Material.ExtFinishFiberCementMedDark
-    mats << Material.ExtFinishNone
+    mats << Material.ExtFinishNoneCMU
+    mats << Material.ExtFinishNoneBrick
     return mats
   end
 
