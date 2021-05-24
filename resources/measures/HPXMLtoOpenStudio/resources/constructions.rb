@@ -233,6 +233,7 @@ class WallConstructions
     mat_cmu = Material.new(name = "WallCMU", thick_in = thick_in, mat_base = BaseMaterial.Concrete, k_in = conductivity, rho = density)
 
     # If no exterior finish, use pre-existing material absorptance values for framing + CMU/Brick
+    tAbs_frame, sAbs_frame, vAbs_frame = nil, nil, nil
     if not mat_ext_finish.nil? and mat_ext_finish.name.include? "None"
       if mat_ext_finish.name == "None, CMU"
         ext_mat = Material.ExtFinishFiberCementMedDark
@@ -241,11 +242,8 @@ class WallConstructions
       end
       tAbs_frame, sAbs_frame, vAbs_frame = ext_mat.tAbs, ext_mat.sAbs, ext_mat.vAbs
       mat_cmu.tAbs, mat_cmu.sAbs, mat_cmu.vAbs = ext_mat.tAbs, ext_mat.sAbs, ext_mat.vAbs
-    else
-      tAbs_frame, sAbs_frame, vAbs_frame = nil, nil, nil
     end
-
-    mat_framing = Material.new(name = "Framing", thick_in = thick_in, mat_base = BaseMaterial.Wood, k_in = nil, rho = nil, cp = nil, tAbs = tAbs_frame, sAbs = sAbs_frame, vAbs = vAbs_frame)
+    mat_framing = Material.new(name = nil, thick_in = thick_in, mat_base = BaseMaterial.Wood, k_in = nil, rho = nil, cp = nil)
 
     mat_furring = nil
     mat_furring_cavity = nil
@@ -2247,36 +2245,6 @@ class Construction
     return r_overall
   end
 
-  def assembly_tAbs(runner)
-    # Calculate overall R-value for assembly
-    if not validated?(runner)
-      return nil
-    end
-
-    tAbs, sAbs, vAbs = [0] * 3
-    @path_fracs.each_with_index do |path_frac, path_num|
-      # For each parallel path, sum series:
-      @layers_materials.each do |layer_materials|
-        if layer_materials.size == 1
-          # One material for this layer
-          next if layer_materials[0].name == Constants.AirFilm
-
-          tAbs += path_frac * layer_materials[0].tAbs if not layer_materials[0].tAbs.nil?
-          sAbs += path_frac * layer_materials[0].sAbs if not layer_materials[0].sAbs.nil?
-          vAbs += path_frac * layer_materials[0].tAbs if not layer_materials[0].vAbs.nil?
-          break # only use the exterior material
-        else
-          tAbs += path_frac * layer_materials[path_num].tAbs if not layer_materials[path_num].tAbs.nil?
-          sAbs += path_frac * layer_materials[path_num].sAbs if not layer_materials[path_num].sAbs.nil?
-          vAbs += path_frac * layer_materials[path_num].vAbs if not layer_materials[path_num].vAbs.nil?
-          break # only use the exterior material
-        end
-      end
-    end
-
-    return tAbs, sAbs, vAbs
-  end
-
   # Creates constructions as needed and assigns to surfaces.
   # Leave name as nil if the materials (e.g., exterior finish) apply to multiple constructions.
   def create_and_assign_constructions(surfaces, runner, model)
@@ -2330,11 +2298,8 @@ class Construction
 
     mat = Material.new(name)
     curr_layer_materials = @layers_materials[curr_layer_num]
-
     r_overall = assembly_rvalue(runner)
-    tAbs, sAbs, vAbs = assembly_tAbs(runner)
-    mat.tAbs, mat.sAbs, mat.vAbs = tAbs, sAbs, vAbs
-
+    
     # Calculate individual R-values for each layer
     sum_r_all_layers = 0
     sum_r_parallel_layers = 0
