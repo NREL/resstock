@@ -831,6 +831,8 @@ class WallConstructions
     mats << Material.ExtFinishVinylMedDark
     mats << Material.ExtFinishFiberCementLight
     mats << Material.ExtFinishFiberCementMedDark
+    mats << Material.ExtFinishShingleAsbestos
+    mats << Material.ExtFinishShingleComposition
     mats << Material.ExtFinishNoneCMU
     mats << Material.ExtFinishNoneBrick
     return mats

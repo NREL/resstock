@@ -214,6 +214,14 @@ class Material
     return self.new(name = "Fiber-Cement, Medium/Dark", thick_in = 0.375, mat_base = nil, k_in = 1.79, rho = 21.7, cp = 0.24, tAbs = 0.9, sAbs = 0.75, vAbs = 0.75)
   end
 
+  def self.ExtFinishShingleAsbestos
+    return self.RoofMaterial("Asbestos Shingles", 0.91, 0.85)
+  end
+
+  def self.ExtFinishShingleComposition
+    return self.RoofMaterial("Composition Shingles", 0.91, 0.85)
+  end
+
   def self.ExtFinishNoneCMU
     return self.new(name = "None, CMU", thick_in = nil, mat_base = nil, k_in = nil, rho = nil, cp = nil, tAbs = nil, sAbs = nil, vAbs = nil)
   end
