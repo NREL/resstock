@@ -1420,7 +1420,7 @@ class Airflow
     nv_program.addLine("Set MRH = #{nat_vent.max_oa_rh}")
     nv_program.addLine("Set temp1 = (#{nvavail_sensor.name}*NVA)")
     nv_program.addLine("Set SGNV = temp1*((((Cs*dT)+(Cw*(#{vwind_sensor.name}^2)))^0.5)/1000)")
-    nv_program.addLine("If (#{otg_sensor.name} > 0) && (#{tin_sensor.name} > #{tout_sensor.name}) && (#{tin_sensor.name} > #{nvsp_sensor.name})")
+    nv_program.addLine("If ((#{otg_sensor.name} > 0) && (#{tin_sensor.name} > #{tout_sensor.name}) && (#{tin_sensor.name} > #{nvsp_sensor.name})) || ((#{otg_sensor.name} > 0) && (#{tin_sensor.name} > #{tout_sensor.name}))")
     nv_program.addLine("  Set SGNV = NVA * ((((Cs*dT)+(Cw*(#{vwind_sensor.name}^2)))^0.5)/1000)") # Recalculate airflow regardless of availability sensor if it's an outage
     nv_program.addLine("  Set #{natvent_flow_actuator.name} = @Min SGNV MNV")
     nv_program.addLine("ElseIf (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name})")
