@@ -188,6 +188,8 @@ class ProcessConstructionsWallsCMU < OpenStudio::Measure::ModelMeasure
     if mat_ext_finish.name.include? "None"
       unins_ext_finish = WallConstructions.get_exterior_finish_material("Vinyl, Light")
       osb_thick_in = 0.5
+    else
+      unins_ext_finish = mat_ext_finish
     end
 
     if not WallConstructions.apply_uninsulated(runner, model, walls_by_type,
