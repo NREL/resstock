@@ -2301,7 +2301,7 @@ class Construction
     mat = Material.new(name)
     curr_layer_materials = @layers_materials[curr_layer_num]
     r_overall = assembly_rvalue(runner)
-    
+
     # Calculate individual R-values for each layer
     sum_r_all_layers = 0
     sum_r_parallel_layers = 0

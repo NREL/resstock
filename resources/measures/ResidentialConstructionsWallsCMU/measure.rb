@@ -148,7 +148,7 @@ class ProcessConstructionsWallsCMU < OpenStudio::Measure::ModelMeasure
     osb_thick_in = runner.getDoubleArgumentValue("osb_thick_in", user_arguments)
     rigid_r = runner.getDoubleArgumentValue("rigid_r", user_arguments)
     mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue("exterior_finish", user_arguments))
-    
+
     if mat_ext_finish.name.include? "None"
       osb_thick_in = 0.0
     end
