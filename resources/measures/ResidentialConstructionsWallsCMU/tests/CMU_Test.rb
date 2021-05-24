@@ -130,9 +130,9 @@ class ProcessConstructionsWallsCMUTest < MiniTest::Test
     args_hash["furring_spacing"] = 24
     args_hash["exterior_finish"] = "Asbestos Shingles"
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 7, "Construction" => 5, "InternalMass" => 4, "InternalMassDefinition" => 4 }
-    ext_finish_r = 0
-    osb_r = 0
+    expected_num_new_objects = { "Material" => 6, "Construction" => 5, "InternalMass" => 4, "InternalMassDefinition" => 4 }
+    ext_finish_r = 0.0094488 / 0.162714
+    osb_r = 0.0127 / 0.1154577
     drywall_r = 0.0127 / 0.1602906
     cmu_r = 0.1524 / 0.562061786498589
     furring_r = 0.0254 / 0.13578938501631
