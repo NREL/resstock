@@ -3155,13 +3155,13 @@ class HPXMLFile
     set_air_infiltration_measurements(hpxml, runner, args)
 
     set_roofs(hpxml, runner, model, args)
-    set_attics(hpxml, runner, model, args)
-    set_slabs(hpxml, runner, model, args)
-    set_foundations(hpxml, runner, model, args)
     set_rim_joists(hpxml, runner, model, args)
     set_walls(hpxml, runner, model, args)
     set_foundation_walls(hpxml, runner, model, args)
     set_frame_floors(hpxml, runner, model, args)
+    set_attics(hpxml, runner, model, args)
+    set_slabs(hpxml, runner, model, args)
+    set_foundations(hpxml, runner, model, args)
     set_windows(hpxml, runner, model, args)
     set_skylights(hpxml, runner, model, args)
     set_doors(hpxml, runner, model, args)
@@ -3466,32 +3466,58 @@ class HPXMLFile
   def self.set_attics(hpxml, runner, model, args)
     return if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
 
-    # FIXME: iterate through all surfaces adjacent to attic (not just roofs)
-    roof_ids = []
-    hpxml.roofs.each do |roof|
-      roof_ids << roof.id
+    surf_ids = {"roofs"=> {"surfaces"=> hpxml.roofs, "ids"=> []},
+                "walls"=> {"surfaces"=> hpxml.walls, "ids"=> []},
+                "frame_floors"=> {"surfaces"=> hpxml.frame_floors, "ids"=> []}}
+
+    surf_ids.each do |surf_type, surf_hash|
+      surf_hash["surfaces"].each do |surface|
+        next if not surface.interior_adjacent_to.include?('attic') and not surface.exterior_adjacent_to.include?('attic')
+        surf_hash["ids"] << surface.id
+      end
     end
+
     if args[:geometry_roof_type] == 'flat'
       hpxml.attics.add(id: HPXML::AtticTypeFlatRoof,
                        attic_type: HPXML::AtticTypeFlatRoof)
     else
       hpxml.attics.add(id: args[:geometry_attic_type],
                        attic_type: args[:geometry_attic_type],
-                       attached_to_roof_idrefs: roof_ids)
+                       attached_to_roof_idrefs: surf_ids["roofs"]["ids"],
+                       attached_to_wall_idrefs: surf_ids["walls"]["ids"],
+                       attached_to_frame_floor_idrefs: surf_ids["frame_floors"]["ids"])
     end
   end
 
   def self.set_foundations(hpxml, runner, model, args)
     return if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
 
-    slab_ids = []
-    hpxml.slabs.each do |slab|
-      slab_ids << slab.id
+    surf_ids = {"slabs"=> {"surfaces"=> hpxml.slabs, "ids"=> []},
+                "frame_floors"=> {"surfaces"=> hpxml.frame_floors, "ids"=> []},
+                "foundation_walls"=> {"surfaces"=> hpxml.foundation_walls, "ids"=> []},
+                "walls"=> {"surfaces"=> hpxml.walls, "ids"=> []},
+                "rim_joists"=> {"surfaces"=> hpxml.rim_joists, "ids"=> []},}
+ 
+    foundation_locations = [HPXML::LocationBasementConditioned, HPXML::LocationBasementUnconditioned, 
+                            HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented]
+                     
+    surf_ids.each do |surf_type, surf_hash|
+      surf_hash["surfaces"].each do |surface|
+        next if not foundation_locations.include? surface.interior_adjacent_to and
+                not foundation_locations.include? surface.exterior_adjacent_to and
+                surf_type != "slabs" and
+                surf_type != "foundation_walls"
+        surf_hash["ids"] << surface.id
+      end
     end
 
     hpxml.foundations.add(id: args[:geometry_foundation_type],
                           foundation_type: args[:geometry_foundation_type],
-                          attached_to_slab_idrefs: slab_ids)
+                          attached_to_slab_idrefs: surf_ids["slabs"]["ids"],
+                          attached_to_frame_floor_idrefs: surf_ids["frame_floors"]["ids"],
+                          attached_to_foundation_wall_idrefs: surf_ids["foundation_walls"]["ids"],
+                          attached_to_wall_idrefs: surf_ids["walls"]["ids"],
+                          attached_to_rim_joist_idrefs: surf_ids["rim_joists"]["ids"])
   end
 
   def self.set_roofs(hpxml, runner, model, args)
