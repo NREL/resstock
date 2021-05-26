@@ -249,6 +249,11 @@ class ProcessConstructionsWallsGeneric < OpenStudio::Measure::ModelMeasure
     rigid_r = runner.getDoubleArgumentValue("rigid_r", user_arguments)
     mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue("exterior_finish", user_arguments))
 
+    if mat_ext_finish.name.include?("None")
+      runner.registerError("Generic wall type cannot have a 'None' exterior finish")
+      return false
+    end
+
     if thick_in2.empty? then thick_in2 = nil else thick_in2 = thick_in2.get end
     if thick_in3.empty? then thick_in3 = nil else thick_in3 = thick_in3.get end
     if thick_in4.empty? then thick_in4 = nil else thick_in4 = thick_in4.get end
