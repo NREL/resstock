@@ -2276,8 +2276,8 @@ class Construction
     if path_frac_tot == 0
       return nil, nil, nil
     else
-      
-      return tAbs/path_frac_tot, sAbs/path_frac_tot, vAbs/path_frac_tot
+
+      return tAbs / path_frac_tot, sAbs / path_frac_tot, vAbs / path_frac_tot
     end
   end
 
@@ -2337,7 +2337,7 @@ class Construction
     r_overall = assembly_rvalue(runner)
     tAbs, sAbs, vAbs = assembly_absorptance(runner)
     mat.tAbs, mat.sAbs, mat.vAbs = tAbs, sAbs, vAbs
-    
+
     # Calculate individual R-values for each layer
     sum_r_all_layers = 0
     sum_r_parallel_layers = 0
