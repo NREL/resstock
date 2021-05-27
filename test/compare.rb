@@ -40,6 +40,26 @@ files.each do |file|
     results[key]['cols'] = results[key]['rows'][0][1..-1] # exclude index column
   end
 
+  # map columns
+  cwd = Dir.getwd
+  rows = CSV.read(File.join(Dir.getwd, 'test/column_mapping.csv'))
+  col_map = {}
+  rows[1..-1].each do |row|
+    if row[1]
+      dev_row = row[1].split(',')
+      dev_row = dev_row.map{ |x| x.split('.')[1]}
+      dev_row.each do |field|
+        col_map[field] = row[0]
+      end
+    end
+  end
+
+  results[feature]['cols'].each do |col|
+    if col.include? 'build_existing_model'
+      col_map[col.split('.')[1]] = col
+    end
+  end
+
   # get data
   results.keys.each do |key|
     results[key]['rows'][1..-1].each do |row|
@@ -47,27 +67,54 @@ files.each do |file|
       results[key][hpxml] = {}
       row[1..-1].each_with_index do |field, i|
         col = results[key]['cols'][i]
-
         if field.nil?
           vals = [''] # string
         elsif field.include?(',')
           begin
             vals = field.split(',').map { |x| Float(x) } # float
+            if col.split('_')[-1] == 'kwh'
+              vals[0] *= 3412.14/1000000 # to mbtu
+            elsif col.split('_')[-1] == 'therm'
+              vals[0] *= 0.1  # to mbtu
+            end
           rescue ArgumentError
             vals = [field] # string
           end
         else
           begin
             vals = [Float(field)] # float
+            if col.split('_')[-1] == 'kwh'
+              vals[0] *= 3412.14/1000000 # to mbtu
+            elsif col.split('_')[-1] == 'therm'
+              vals[0] *= 0.1  # to mbtu
+            end
           rescue ArgumentError
             vals = [field] # string
           end
         end
 
-        results[key][hpxml][col] = vals
+        # Map base cols to feature
+        if not col_map[col].nil?
+          col = col_map[col]
+        end
+
+        # Aggregate columns
+        if results[key][hpxml][col]
+          results[key][hpxml][col] += vals
+        else
+          results[key][hpxml][col] = vals
+        end
+
       end
     end
   end
+
+  results[base]['cols'].each_with_index do |col, i|
+    if not col_map[col].nil?
+      results[base]['cols'][i] = col_map[col]
+    end
+  end
+
 
   # get hpxml union
   base_hpxmls = results[base]['rows'].transpose[0][1..-1]
@@ -78,6 +125,7 @@ files.each do |file|
   base_cols = results[base]['cols']
   feature_cols = results[feature]['cols']
   cols = base_cols | feature_cols
+  cols = cols.sort
 
   # create comparison table
   rows = [[results[base]['rows'][0][0]] + cols] # index column + union of all other columns
@@ -101,6 +149,12 @@ files.each do |file|
         begin
           # float comparisons
           m = []
+          
+          # sum multiple cols
+          if base_field[0].is_a? Numeric
+            base_field = [base_field.sum]
+          end
+         
           base_field.zip(feature_field).each do |b, f|
             m << (f - b).round(1)
           end
