@@ -20,7 +20,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
     weather_dir = create_weather_folder(parent_dir, project_dir)
 
-    Dir["#{parent_dir}/workflow.osw"].each do |osw|
+    Dir["#{parent_dir}/workflow-baseline.osw"].each do |osw|
       measures_osw_dir = nil
       measures_upgrade_osw_dir = nil
 
@@ -40,7 +40,6 @@ class TestResStockMeasuresOSW < MiniTest::Test
         puts "\nBuilding ID: #{building_id} ...\n"
 
         change_building_id(osw, building_id)
-        RunOSWs.add_simulation_output_report(osw)
         out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
         result['OSW'] = "#{building_id}.osw"
         all_results << result
