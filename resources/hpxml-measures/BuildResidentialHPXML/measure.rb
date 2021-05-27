@@ -3102,6 +3102,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = [args[:season_cooling_begin_month].is_initialized, args[:season_cooling_begin_day_of_month].is_initialized, args[:season_cooling_end_month].is_initialized, args[:season_cooling_end_day_of_month].is_initialized].uniq.size == 2
     errors << "season_cooling_begin_month=#{args[:season_cooling_begin_month].is_initialized} and season_cooling_begin_day_of_month=#{args[:season_cooling_begin_day_of_month].is_initialized} and season_cooling_end_month=#{args[:season_cooling_end_month].is_initialized} and season_cooling_end_day_of_month=#{args[:season_cooling_end_day_of_month].is_initialized}" if error
 
+    # vacancy period incomplete
+    error = [args[:schedules_vacancy_begin_month].is_initialized, args[:schedules_vacancy_begin_day_of_month].is_initialized, args[:schedules_vacancy_end_month].is_initialized, args[:schedules_vacancy_end_day_of_month].is_initialized].uniq.size == 2
+    errors << "schedules_vacancy_begin_month=#{args[:schedules_vacancy_begin_month].is_initialized} and schedules_vacancy_begin_day_of_month=#{args[:schedules_vacancy_begin_day_of_month].is_initialized} and schedules_vacancy_end_month=#{args[:schedules_vacancy_end_month].is_initialized} and schedules_vacancy_end_day_of_month=#{args[:schedules_vacancy_end_day_of_month].is_initialized}" if error
+
+    # vacancy period invalid
+    if args[:schedules_vacancy_begin_month].is_initialized && args[:schedules_vacancy_begin_day_of_month].is_initialized && args[:schedules_vacancy_end_month].is_initialized && args[:schedules_vacancy_end_day_of_month].is_initialized
+      HPXML::check_dates('Vacancy Period', args[:schedules_vacancy_begin_month].get, args[:schedules_vacancy_begin_day_of_month].get, args[:schedules_vacancy_end_month].get, args[:schedules_vacancy_end_day_of_month].get).each do |error|
+        errors << error
+      end
+    end
+
     return warnings, errors
   end
 
