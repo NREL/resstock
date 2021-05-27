@@ -475,6 +475,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_mini_split_air_conditioner_values(hpxml_default, 0.73, 0.18, 0, 0, nil)
+
+    # Test defaults w/ ductless
+    hpxml.cooling_systems[0].distribution_system.delete
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_mini_split_air_conditioner_values(hpxml_default, 0.73, 0.07, 0, 0, nil)
   end
 
   def test_elec_resistance
@@ -766,6 +772,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_mini_split_heat_pump_values(hpxml_default, 0.73, 0.18, 0, 0, nil, nil, nil, nil)
+
+    # Test defaults w/ ductless
+    hpxml.heat_pumps[0].distribution_system.delete
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_mini_split_heat_pump_values(hpxml_default, 0.73, 0.07, 0, 0, nil, nil, nil, nil)
   end
 
   def test_ground_source_heat_pumps
