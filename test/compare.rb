@@ -72,7 +72,11 @@ files.each do |file|
           begin
             vals = field.split(',').map { |x| Float(x) } # float
             if col.split('_')[-1] == 'kwh'
-              vals[0] *= 3412.14 / 1000000 # to mbtu
+              if col == 'electricity_heating_supplemental_kwh'
+                vals[0] *= 3412.14/1000 # to kbtu
+              else
+                vals[0] *= 3412.14 / 1000000 # to mbtu
+              end
             elsif col.split('_')[-1] == 'therm'
               vals[0] *= 0.1 # to mbtu
             end
@@ -83,7 +87,11 @@ files.each do |file|
           begin
             vals = [Float(field)] # float
             if col.split('_')[-1] == 'kwh'
-              vals[0] *= 3412.14 / 1000000 # to mbtu
+              if col == 'electricity_heating_supplemental_kwh'
+                vals[0] *= 3412.14/1000 # to kbtu
+              else
+                vals[0] *= 3412.14 / 1000000 # to mbtu
+              end
             elsif col.split('_')[-1] == 'therm'
               vals[0] *= 0.1 # to mbtu
             end
