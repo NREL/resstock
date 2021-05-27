@@ -194,20 +194,16 @@ def create_osws
     'base-hvac-ground-to-air-heat-pump-cooling-only.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
     'base-hvac-ground-to-air-heat-pump-heating-only.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
     'base-hvac-seasons.osw' => 'base.osw',
-    'base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    'base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    'base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    # 'base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.osw' => 'base-hvac-air-to-air-heat-pump-1-speed.osw',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.osw' => 'base-hvac-furnace-gas-central-ac-2-speed.osw',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.osw' => 'base-hvac-furnace-gas-central-ac-var-speed.osw',
-    'base-hvac-install-quality-all-furnace-gas-only.osw' => 'base-hvac-furnace-gas-only.osw',
-    'base-hvac-install-quality-all-ground-to-air-heat-pump.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
-    'base-hvac-install-quality-all-mini-split-heat-pump-ducted.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
-    'base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
+    'base-hvac-install-quality-air-to-air-heat-pump-1-speed.osw' => 'base-hvac-air-to-air-heat-pump-1-speed.osw',
+    'base-hvac-install-quality-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
+    'base-hvac-install-quality-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-install-quality-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
+    'base-hvac-install-quality-furnace-gas-central-ac-2-speed.osw' => 'base-hvac-furnace-gas-central-ac-2-speed.osw',
+    'base-hvac-install-quality-furnace-gas-central-ac-var-speed.osw' => 'base-hvac-furnace-gas-central-ac-var-speed.osw',
+    'base-hvac-install-quality-furnace-gas-only.osw' => 'base-hvac-furnace-gas-only.osw',
+    'base-hvac-install-quality-ground-to-air-heat-pump.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
+    'base-hvac-install-quality-mini-split-heat-pump-ducted.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
+    'base-hvac-install-quality-mini-split-air-conditioner-only-ducted.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
     'base-hvac-mini-split-air-conditioner-only-ducted.osw' => 'base.osw',
     'base-hvac-mini-split-air-conditioner-only-ductless.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
     'base-hvac-mini-split-heat-pump-ducted.osw' => 'base.osw',
@@ -221,6 +217,7 @@ def create_osws
     'base-hvac-programmable-thermostat-detailed.osw' => 'base.osw',
     'base-hvac-room-ac-only.osw' => 'base.osw',
     'base-hvac-room-ac-only-33percent.osw' => 'base.osw',
+    # 'base-hvac-room-ac-only-ceer.osw' => 'base-hvac-room-ac-only.osw',
     'base-hvac-setpoints.osw' => 'base.osw',
     'base-hvac-stove-oil-only.osw' => 'base.osw',
     'base-hvac-stove-wood-pellets-only.osw' => 'base.osw',
@@ -422,7 +419,9 @@ def create_osws
     'invalid_files/zero-number-of-bedrooms.osw' => 'base.osw',
     'invalid_files/single-family-detached-with-shared-system.osw' => 'base.osw',
     'invalid_files/hvac-seasons-incomplete-heating-season.osw' => 'base.osw',
-    'invalid_files/hvac-seasons-incomplete-cooling-season.osw' => 'base.osw'
+    'invalid_files/hvac-seasons-incomplete-cooling-season.osw' => 'base.osw',
+    'invalid_files/schedules-vacancy-incomplete.osw' => 'base.osw',
+    'invalid_files/schedules-vacancy-invalid.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -1589,45 +1588,36 @@ def get_values(osw_file, step)
     step.setArgument('season_cooling_begin_day_of_month', 1)
     step.setArgument('season_cooling_end_month', 10)
     step.setArgument('season_cooling_end_day_of_month', 31)
-  elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.osw'].include? osw_file
-    step.setArgument('heating_system_airflow_defect_ratio', 0.0)
-    step.setArgument('cooling_system_airflow_defect_ratio', 0.0)
-    step.setArgument('cooling_system_charge_defect_ratio', 0.0)
-  elsif ['base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.osw'].include? osw_file
-    step.setArgument('heating_system_airflow_defect_ratio', -0.25)
-    step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.osw'].include? osw_file
-    step.setArgument('cooling_system_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-air-to-air-heat-pump-1-speed.osw'].include? osw_file
     step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
     step.setArgument('heat_pump_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-air-to-air-heat-pump-2-speed.osw'].include? osw_file
     step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
     step.setArgument('heat_pump_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-air-to-air-heat-pump-var-speed.osw'].include? osw_file
     step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
     step.setArgument('heat_pump_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-furnace-gas-central-ac-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-furnace-gas-central-ac-2-speed.osw'].include? osw_file
     step.setArgument('heating_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-furnace-gas-central-ac-var-speed.osw'].include? osw_file
     step.setArgument('heating_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-furnace-gas-only.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-furnace-gas-only.osw'].include? osw_file
     step.setArgument('heating_system_airflow_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-ground-to-air-heat-pump.osw'].include? osw_file
-    step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
-    step.setArgument('heat_pump_charge_defect_ratio', 0.0)
-  elsif ['base-hvac-install-quality-all-mini-split-heat-pump-ducted.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-ground-to-air-heat-pump.osw'].include? osw_file
     step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
     step.setArgument('heat_pump_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-mini-split-heat-pump-ducted.osw'].include? osw_file
+    step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
+    step.setArgument('heat_pump_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-mini-split-air-conditioner-only-ducted.osw'].include? osw_file
     step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_charge_defect_ratio', -0.25)
   elsif ['base-hvac-mini-split-heat-pump-ducted.osw'].include? osw_file
@@ -1997,9 +1987,9 @@ def get_values(osw_file, step)
   if ['base-schedules-stochastic.osw'].include? osw_file
     step.setArgument('schedules_type', 'stochastic')
   elsif ['base-schedules-stochastic-vacant.osw'].include? osw_file
-    step.setArgument('schedules_vacancy_begin_month', 1)
+    step.setArgument('schedules_vacancy_begin_month', 12)
     step.setArgument('schedules_vacancy_begin_day_of_month', 1)
-    step.setArgument('schedules_vacancy_end_month', 12)
+    step.setArgument('schedules_vacancy_end_month', 1)
     step.setArgument('schedules_vacancy_end_day_of_month', 31)
   elsif ['base-schedules-user-specified.osw'].include? osw_file
     step.setArgument('schedules_type', 'user-specified')
@@ -2450,6 +2440,14 @@ def get_values(osw_file, step)
   elsif ['invalid_files/hvac-seasons-incomplete-cooling-season.osw'].include? osw_file
     step.setArgument('season_cooling_begin_day_of_month', 1)
     step.setArgument('season_cooling_end_day_of_month', 31)
+  elsif ['invalid_files/schedules-vacancy-incomplete.osw'].include? osw_file
+    step.setArgument('schedules_vacancy_begin_month', 1)
+    step.setArgument('schedules_vacancy_end_month', 2)
+  elsif ['invalid_files/schedules-vacancy-invalid.osw'].include? osw_file
+    step.setArgument('schedules_vacancy_begin_month', 1)
+    step.setArgument('schedules_vacancy_begin_day_of_month', 1)
+    step.setArgument('schedules_vacancy_end_month', 4)
+    step.setArgument('schedules_vacancy_end_day_of_month', 31)
   end
   return step
 end
@@ -2550,6 +2548,7 @@ def create_hpxmls
     'invalid_files/invalid-datatype-float.xml' => 'base.xml',
     'invalid_files/invalid-datatype-integer.xml' => 'base.xml',
     'invalid_files/invalid-daylight-saving.xml' => 'base-simcontrol-daylight-saving-custom.xml',
+    'invalid_files/invalid-distribution-cfa-served.xml' => 'base.xml',
     'invalid_files/invalid-epw-filepath.xml' => 'base.xml',
     'invalid_files/invalid-facility-type-equipment.xml' => 'base-bldgtype-multifamily-shared-laundry-room.xml',
     'invalid_files/invalid-facility-type-surfaces.xml' => 'base.xml',
@@ -2570,6 +2569,7 @@ def create_hpxmls
     'invalid_files/invalid-timestep.xml' => 'base.xml',
     'invalid_files/invalid-window-height.xml' => 'base-enclosure-overhangs.xml',
     'invalid_files/lighting-fractions.xml' => 'base.xml',
+    'invalid_files/missing-duct-location.xml' => 'base-hvac-multiple.xml',
     'invalid_files/missing-elements.xml' => 'base.xml',
     'invalid_files/multifamily-reference-appliance.xml' => 'base.xml',
     'invalid_files/multifamily-reference-duct.xml' => 'base.xml',
@@ -2583,6 +2583,8 @@ def create_hpxmls
     'invalid_files/net-area-negative-wall.xml' => 'base.xml',
     'invalid_files/orphaned-hvac-distribution.xml' => 'base-hvac-furnace-gas-room-ac.xml',
     'invalid_files/refrigerator-location.xml' => 'base.xml',
+    'invalid_files/refrigerators-multiple-primary.xml' => 'base.xml',
+    'invalid_files/refrigerators-no-primary.xml' => 'base.xml',
     'invalid_files/repeated-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
     'invalid_files/repeated-relatedhvac-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
     'invalid_files/solar-fraction-one.xml' => 'base-dhw-solar-fraction.xml',
@@ -2599,10 +2601,6 @@ def create_hpxmls
     'invalid_files/unattached-window.xml' => 'base.xml',
     'invalid_files/water-heater-location.xml' => 'base.xml',
     'invalid_files/water-heater-location-other.xml' => 'base.xml',
-    'invalid_files/missing-duct-location.xml' => 'base-hvac-multiple.xml',
-    'invalid_files/invalid-distribution-cfa-served.xml' => 'base.xml',
-    'invalid_files/refrigerators-multiple-primary.xml' => 'base.xml',
-    'invalid_files/refrigerators-no-primary.xml' => 'base.xml',
     'base-appliances-coal.xml' => 'base.xml',
     'base-appliances-dehumidifier.xml' => 'base-location-dallas-tx.xml',
     'base-appliances-dehumidifier-ief-portable.xml' => 'base-appliances-dehumidifier.xml',
@@ -2822,20 +2820,16 @@ def create_hpxmls
     'base-hvac-ground-to-air-heat-pump-cooling-only.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
     'base-hvac-ground-to-air-heat-pump-heating-only.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
     'base-hvac-seasons.xml' => 'base.xml',
-    'base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.xml' => 'base-hvac-furnace-gas-central-ac-2-speed.xml',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.xml' => 'base-hvac-furnace-gas-central-ac-var-speed.xml',
-    'base-hvac-install-quality-all-furnace-gas-only.xml' => 'base-hvac-furnace-gas-only.xml',
-    'base-hvac-install-quality-all-ground-to-air-heat-pump.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
-    'base-hvac-install-quality-all-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
-    'base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
+    'base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
+    'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-install-quality-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
+    'base-hvac-install-quality-furnace-gas-central-ac-2-speed.xml' => 'base-hvac-furnace-gas-central-ac-2-speed.xml',
+    'base-hvac-install-quality-furnace-gas-central-ac-var-speed.xml' => 'base-hvac-furnace-gas-central-ac-var-speed.xml',
+    'base-hvac-install-quality-furnace-gas-only.xml' => 'base-hvac-furnace-gas-only.xml',
+    'base-hvac-install-quality-ground-to-air-heat-pump.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
+    'base-hvac-install-quality-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
+    'base-hvac-install-quality-mini-split-air-conditioner-only-ducted.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-mini-split-air-conditioner-only-ducted.xml' => 'base.xml',
     'base-hvac-mini-split-air-conditioner-only-ductless.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-mini-split-heat-pump-ducted.xml' => 'base.xml',
@@ -2849,6 +2843,7 @@ def create_hpxmls
     'base-hvac-programmable-thermostat-detailed.xml' => 'base.xml',
     'base-hvac-room-ac-only.xml' => 'base.xml',
     'base-hvac-room-ac-only-33percent.xml' => 'base-hvac-room-ac-only.xml',
+    'base-hvac-room-ac-only-ceer.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-setpoints.xml' => 'base.xml',
     'base-hvac-stove-oil-only.xml' => 'base.xml',
     'base-hvac-stove-wood-pellets-only.xml' => 'base.xml',
@@ -5549,16 +5544,10 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].fan_coil_watts = nil
     hpxml.heating_systems[0].shared_loop_watts = nil
     hpxml.heating_systems[0].electric_auxiliary_energy = 500.0
-  elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.heating_systems[0].airflow_defect_ratio = 0.0
-  elsif ['base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.heating_systems[0].airflow_defect_ratio = -0.25
-  elsif ['base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.heating_systems[0].fan_watts_per_cfm = 0.365
-  elsif ['base-hvac-install-quality-all-furnace-gas-only.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
+  elsif ['base-hvac-install-quality-furnace-gas-only.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-1-speed.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-2-speed.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
     hpxml.heating_systems[0].fan_watts_per_cfm = 0.365
     hpxml.heating_systems[0].airflow_defect_ratio = -0.25
   elsif ['invalid_files/multiple-shared-heating-systems.xml'].include? hpxml_file
@@ -5661,6 +5650,9 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
   elsif ['base-hvac-room-ac-only-33percent.xml'].include? hpxml_file
     hpxml.cooling_systems[0].fraction_cool_load_served = 0.33
     hpxml.cooling_systems[0].cooling_capacity /= 3.0
+  elsif ['base-hvac-room-ac-only-ceer.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].cooling_efficiency_eer = nil
+    hpxml.cooling_systems[0].cooling_efficiency_ceer = 8.4
   elsif ['base-hvac-evap-cooler-only-ducted.xml',
          'base-hvac-evap-cooler-furnace-gas.xml',
          'base-hvac-evap-cooler-only.xml'].include? hpxml_file
@@ -5701,19 +5693,10 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     hpxml.cooling_systems[0].fan_watts_per_cfm = 0.55
   elsif ['base-hvac-undersized.xml'].include? hpxml_file
     hpxml.cooling_systems[0].cooling_capacity /= 10.0
-  elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].airflow_defect_ratio = 0.0
-    hpxml.cooling_systems[0].charge_defect_ratio = 0.0
-  elsif ['base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].airflow_defect_ratio = -0.25
-  elsif ['base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].charge_defect_ratio = -0.25
-  elsif ['base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].fan_watts_per_cfm = 0.365
-  elsif ['base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
+  elsif ['base-hvac-install-quality-mini-split-air-conditioner-only-ducted.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-1-speed.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-2-speed.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
     hpxml.cooling_systems[0].charge_defect_ratio = -0.25
     hpxml.cooling_systems[0].fan_watts_per_cfm = 0.365
     hpxml.cooling_systems[0].airflow_defect_ratio = -0.25
@@ -5868,7 +5851,7 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
          'base-hvac-ground-to-air-heat-pump-cooling-only.xml',
          'base-hvac-mini-split-heat-pump-ducted-cooling-only.xml'].include? hpxml_file
     hpxml.heat_pumps[0].heating_capacity = 0
-    if not ['base-hvac-ground-to-air-heat-pump-cooling-only.xml'].include? hpxml_file
+    if hpxml_file != 'base-hvac-ground-to-air-heat-pump-cooling-only.xml'
       hpxml.heat_pumps[0].heating_capacity_17F = 0
     end
     hpxml.heat_pumps[0].fraction_heat_load_served = 0
@@ -5962,18 +5945,14 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml'].include? hpxml_file
     hpxml.heat_pumps[0].backup_heating_fuel = HPXML::FuelTypeElectricity
     hpxml.heat_pumps[0].backup_heating_efficiency_afue = 1.0
-  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.xml',
-         'base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.xml',
-         'base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.xml',
-         'base-hvac-install-quality-all-mini-split-heat-pump-ducted.xml',
-         'base-hvac-install-quality-all-ground-to-air-heat-pump.xml'].include? hpxml_file
+  elsif ['base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml',
+         'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml',
+         'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml',
+         'base-hvac-install-quality-mini-split-heat-pump-ducted.xml',
+         'base-hvac-install-quality-ground-to-air-heat-pump.xml'].include? hpxml_file
     hpxml.heat_pumps[0].airflow_defect_ratio = -0.25
     hpxml.heat_pumps[0].fan_watts_per_cfm = 0.365
-    if hpxml_file != 'base-hvac-install-quality-all-ground-to-air-heat-pump.xml'
-      hpxml.heat_pumps[0].charge_defect_ratio = -0.25
-    else
-      hpxml.heat_pumps[0].charge_defect_ratio = 0.0
-    end
+    hpxml.heat_pumps[0].charge_defect_ratio = -0.25
   elsif hpxml_file.include?('base-hvac-autosize') && (not hpxml.heat_pumps.nil?) && (hpxml.heat_pumps.size > 0)
     hpxml.heat_pumps[0].cooling_capacity = nil
     hpxml.heat_pumps[0].heating_capacity = nil
@@ -8097,9 +8076,22 @@ if ARGV[0].to_sym == :update_measures
   system(command)
 
   # Update measures XMLs
-  command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.dirname(__FILE__)}'"
   puts 'Updating measure.xmls...'
-  system(command, [:out, :err] => File::NULL)
+  Dir['**/measure.xml'].each do |measure_xml|
+    measure_dir = File.dirname(measure_xml)
+    command = "#{OpenStudio.getOpenStudioCLI} measure -u '#{measure_dir}'"
+    system(command, [:out, :err] => File::NULL)
+
+    # Check for error
+    xml_doc = XMLHelper.parse_file(measure_xml)
+    err_val = XMLHelper.get_value(xml_doc, '/measure/error', :string)
+    if err_val.nil?
+      err_val = XMLHelper.get_value(xml_doc, '/error', :string)
+    end
+    if not err_val.nil?
+      fail "#{measure_xml}: #{err_val}"
+    end
+  end
 
   puts 'Done.'
 end
