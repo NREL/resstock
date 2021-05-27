@@ -184,4 +184,72 @@ files.each do |file|
       csv << row
     end
   end
+
+  # write aggregated results
+  agg_cols = []
+  agg_cols = rows[0].select{ |x| ['simulation_output_report', 'upgrade_costs'].include? x.split('.')[0]}
+  rows = [['enduse', 'base', 'feature', 'diff', 'percent diff']]
+
+  agg_cols.each do |col|
+    row_sum = [0, 0]
+    base_field, feature_field = nil, nil
+
+    # aggregate all osws
+    hpxmls.sort.each do |hpxml|
+      base_field = results[base][hpxml][col]
+      feature_field = results[feature][hpxml][col]
+
+      if base_field.nil? # has feature value but not base
+        row_sum[0] = 'N/A'
+      end
+      if feature_field.nil? # has base value but not feature
+        row_sum[1] = 'N/A'
+      end
+
+      # sum values
+      if not base_field.nil? and base_field[0].is_a? Numeric
+        row_sum[0] += base_field[0]
+      else
+        row_sum[0] = 'N/A'
+      end
+      if not feature_field.nil? and feature_field[0].is_a? Numeric
+        row_sum[1] += feature_field[0]
+      else
+        row_sum[1] = 'N/A'
+      end
+    end
+
+    # calculate absolute and percent diffs
+    if not base_field.nil? and not feature_field.nil?
+      if base_field[0].is_a? Numeric and feature_field[0].is_a? Numeric
+        diff = (row_sum[0] - row_sum[1]).round(2)
+        row_sum = row_sum.map{ |x| x.round(2)}
+        if row_sum[0] != 0 
+          percent = (100*diff/row_sum[0]).round(2)
+        else
+          percent = 'N/A'
+        end
+      else
+        diff = 'N/A'
+        percent = 'N/A'
+      end
+    else
+      diff = 'N/A'
+      percent = 'N/A'
+    end
+
+    if row_sum[0] != 'N/A' or row_sum[1] != 'N/A'
+      row = [col.split('.')[1]] + row_sum 
+      row << diff
+      row << percent
+      rows << row
+    end
+  end
+
+  # export aggregate comparision table
+  CSV.open(File.join(dir, 'aggregate_results.csv'), 'wb') do |csv|
+    rows.each do |row|
+      csv << row
+    end
+  end
 end
