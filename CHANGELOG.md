@@ -13,6 +13,7 @@ Features
 - Update default daylight saving start and end dates to March 12 and November 5, respectively ([#585](https://github.com/NREL/resstock/pull/585))
 - Remove 3 story limit for multi-family buildings, and instead use RECS data to allow for buildings up to 21 stories ([#558](https://github.com/NREL/resstock/pull/558))
 - Add a sampling probability column in the housing characteristics to define the probability a given column will be sampled ([#584](https://github.com/NREL/resstock/pull/584))
+- Add ReEDS balancing areas as a spatial field ([#591](https://github.com/NREL/resstock/pull/591))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
@@ -23,6 +24,7 @@ Fixes
 - Reduce stochastic schedule generation runtime by over 50% ([#571](https://github.com/NREL/resstock/pull/571), [#577](https://github.com/NREL/resstock/pull/577))
 - Fixes the problem that `Heating Type=Void` is showing up in buildstock samples ([#568](https://github.com/NREL/resstock/pull/568))
 - Set AZ counties to NA daylight saving times instead of some AR counties ([#585](https://github.com/NREL/resstock/pull/585)) 
+- Housing characteristics fixes based on new testing for HPXML ([#592](https://github.com/NREL/resstock/pull/592))
 
 ## ResStock v2.4.0
 
