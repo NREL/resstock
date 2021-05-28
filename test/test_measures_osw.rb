@@ -65,7 +65,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
       end
     end
 
-    Dir["#{parent_dir}/workflow.osw"].each do |osw|
+    Dir["#{parent_dir}/workflow-baseline.osw"].each do |osw|
       change_building_id(osw, 1)
     end
 
