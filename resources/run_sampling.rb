@@ -230,8 +230,7 @@ class RunSampling
     end
 
     # Sort array in descending order
-    prob_dist.sort!
-    prob_dist.reverse!
+    prob_dist = prob_dist.sort_by { |k,v| v }.reverse.to_h
 
     if num_samples == 1
       return { prob_dist[0][0] => 1 } # Simply return 1 sample for max item
