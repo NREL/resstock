@@ -163,7 +163,7 @@ files.each do |file|
           base_field.zip(feature_field).each do |b, f|
             m << (f - b).round(1)
           end
-        rescue NoMethodError
+        rescue *[NoMethodError, TypeError]
           # string comparisons
           m = []
           base_field.zip(feature_field).each do |b, f|
