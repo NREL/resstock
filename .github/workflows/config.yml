@@ -21,6 +21,11 @@ jobs:
         run: |
           rm -f Gemfile.lock && bundle install
 
+      - name: Show environment
+        run: |
+          bundle -v
+          ruby -v
+
       - name: Apply rubocop
         run: |
           rubocop --format simple --only Layout --debug
