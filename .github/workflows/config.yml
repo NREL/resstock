@@ -21,10 +21,6 @@ jobs:
         run: |
           rm -f Gemfile.lock && bundle install
 
-      - name: Apply rubocop
-        run: |
-          rubocop --format simple --only Layout --debug
-
       - name: Update all measures
         run: |
           rake update_measures
