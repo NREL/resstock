@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ master, develop ]
   pull_request:
     types: [ synchronize, opened ]
   workflow_dispatch:
@@ -31,7 +31,7 @@ jobs:
 
       - name: Regenerate test osms
         run: |
-          #rake test:regenerate_osms
+          rake test:regenerate_osms
 
       - name: Run all unit tests
         run: |
@@ -39,7 +39,7 @@ jobs:
 
       - name: Run all regression tests
         run: |
-          #rake test:regression_tests
+          rake test:regression_tests
 
       - name: Store example osws
         uses: actions/upload-artifact@v2

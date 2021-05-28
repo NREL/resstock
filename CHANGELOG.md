@@ -24,6 +24,7 @@ Fixes
 - Reduce stochastic schedule generation runtime by over 50% ([#571](https://github.com/NREL/resstock/pull/571), [#577](https://github.com/NREL/resstock/pull/577))
 - Fixes the problem that `Heating Type=Void` is showing up in buildstock samples ([#568](https://github.com/NREL/resstock/pull/568))
 - Set AZ counties to NA daylight saving times instead of some AR counties ([#585](https://github.com/NREL/resstock/pull/585)) 
+- Housing characteristics fixes based on more samples in testing ([#592](https://github.com/NREL/resstock/pull/592))
 
 ## ResStock v2.4.0
 
