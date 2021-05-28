@@ -73,7 +73,7 @@ files.each do |file|
             vals = field.split(',').map { |x| Float(x) } # float
             if col.split('_')[-1] == 'kwh'
               if col == 'electricity_heating_supplemental_kwh'
-                vals[0] *= 3412.14/1000 # to kbtu
+                vals[0] *= 3412.14 / 1000 # to kbtu
               else
                 vals[0] *= 3412.14 / 1000000 # to mbtu
               end
@@ -88,7 +88,7 @@ files.each do |file|
             vals = [Float(field)] # float
             if col.split('_')[-1] == 'kwh'
               if col == 'electricity_heating_supplemental_kwh'
-                vals[0] *= 3412.14/1000 # to kbtu
+                vals[0] *= 3412.14 / 1000 # to kbtu
               else
                 vals[0] *= 3412.14 / 1000000 # to mbtu
               end
@@ -192,7 +192,7 @@ files.each do |file|
 
   # write aggregated results
   agg_cols = []
-  agg_cols = rows[0].select{ |x| ['simulation_output_report', 'upgrade_costs'].include? x.split('.')[0]}
+  agg_cols = rows[0].select { |x| ['simulation_output_report', 'upgrade_costs'].include? x.split('.')[0] }
   rows = [['enduse', 'base', 'feature', 'diff', 'percent diff']]
 
   agg_cols.each do |col|
@@ -212,12 +212,12 @@ files.each do |file|
       end
 
       # sum values
-      if not base_field.nil? and base_field[0].is_a? Numeric
+      if (not base_field.nil?) && base_field[0].is_a?(Numeric)
         row_sum[0] += base_field[0]
       else
         row_sum[0] = 'N/A'
       end
-      if not feature_field.nil? and feature_field[0].is_a? Numeric
+      if (not feature_field.nil?) && feature_field[0].is_a?(Numeric)
         row_sum[1] += feature_field[0]
       else
         row_sum[1] = 'N/A'
@@ -225,12 +225,12 @@ files.each do |file|
     end
 
     # calculate absolute and percent diffs
-    if not base_field.nil? and not feature_field.nil?
-      if base_field[0].is_a? Numeric and feature_field[0].is_a? Numeric
+    if (not base_field.nil?) && (not feature_field.nil?)
+      if base_field[0].is_a?(Numeric) && feature_field[0].is_a?(Numeric)
         diff = (row_sum[0] - row_sum[1]).round(2)
-        row_sum = row_sum.map{ |x| x.round(2)}
-        if row_sum[0] != 0 
-          percent = (100*diff/row_sum[0]).round(2)
+        row_sum = row_sum.map { |x| x.round(2) }
+        if row_sum[0] != 0
+          percent = (100 * diff / row_sum[0]).round(2)
         else
           percent = 'N/A'
         end
@@ -243,12 +243,11 @@ files.each do |file|
       percent = 'N/A'
     end
 
-    if row_sum[0] != 'N/A' or row_sum[1] != 'N/A'
-      row = [col.split('.')[1]] + row_sum 
-      row << diff
-      row << percent
-      rows << row
-    end
+    next unless (row_sum[0] != 'N/A') || (row_sum[1] != 'N/A')
+    row = [col.split('.')[1]] + row_sum
+    row << diff
+    row << percent
+    rows << row
   end
 
   # export aggregate comparision table

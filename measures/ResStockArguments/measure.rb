@@ -47,9 +47,24 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
     measure.arguments(model).each do |arg|
       next if Constants.excludes.include? arg.name
+      next if arg.name == 'geometry_cfa'
 
       args << arg
     end
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_cfa_bin', true)
+    arg.setDisplayName('Geometry: Conditioned Floor Area Bin')
+    arg.setDescription("E.g., '2000-2499'")
+    arg.setDefaultValue('2000-2499')
+    args << arg
+
+    # Adds a geometry_cfa argument similar to the BuildResidentialHPXML measure, but with "auto" allowed
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_cfa', true)
+    arg.setDisplayName('Geometry: Conditioned Floor Area')
+    arg.setDescription("E.g., '2000' or '#{Constants.Auto}'")
+    arg.setUnits('sqft')
+    arg.setDefaultValue('2000')
+    args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_usage_multiplier_2', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
@@ -247,6 +262,46 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
+
+    # Conditioned floor area
+    if args['geometry_cfa'] == Constants.Auto
+      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 328,
+               ['0-499', HPXML::ResidentialTypeSFA] => 317,
+               ['0-499', HPXML::ResidentialTypeApartment] => 333,
+               ['500-749', HPXML::ResidentialTypeSFD] => 633,
+               ['500-749', HPXML::ResidentialTypeSFA] => 617,
+               ['500-749', HPXML::ResidentialTypeApartment] => 617,
+               ['750-999', HPXML::ResidentialTypeSFD] => 885,
+               ['750-999', HPXML::ResidentialTypeSFA] => 866,
+               ['750-999', HPXML::ResidentialTypeApartment] => 853,
+               ['1000-1499', HPXML::ResidentialTypeSFD] => 1220,
+               ['1000-1499', HPXML::ResidentialTypeSFA] => 1202,
+               ['1000-1499', HPXML::ResidentialTypeApartment] => 1138,
+               ['1500-1999', HPXML::ResidentialTypeSFD] => 1690,
+               ['1500-1999', HPXML::ResidentialTypeSFA] => 1675,
+               ['1500-1999', HPXML::ResidentialTypeApartment] => 1623,
+               ['2000-2499', HPXML::ResidentialTypeSFD] => 2176,
+               ['2000-2499', HPXML::ResidentialTypeSFA] => 2152,
+               ['2000-2499', HPXML::ResidentialTypeApartment] => 2115,
+               ['2500-2999', HPXML::ResidentialTypeSFD] => 2663,
+               ['2500-2999', HPXML::ResidentialTypeSFA] => 2631,
+               ['2500-2999', HPXML::ResidentialTypeApartment] => 2590,
+               ['3000-3999', HPXML::ResidentialTypeSFD] => 3301,
+               ['3000-3999', HPXML::ResidentialTypeSFA] => 3241,
+               ['3000-3999', HPXML::ResidentialTypeApartment] => 3138,
+               ['4000+', HPXML::ResidentialTypeSFD] => 8194,
+               ['4000+', HPXML::ResidentialTypeSFA] => 13414,
+               ['4000+', HPXML::ResidentialTypeApartment] => 12291 }
+      cfa = cfas[[args['geometry_cfa_bin'], args['geometry_unit_type']]]
+      if cfa.nil?
+        puts 'HEEELLLLLOOOO'
+        runner.registerError("Could not look up conditioned floor area for '#{args['geometry_cfa_bin']}' and 'args['geometry_unit_type']'.")
+        return false
+      end
+      args['geometry_cfa'] = Float(cfa)
+    else
+      args['geometry_cfa'] = Float(args['geometry_cfa'])
+    end
 
     # Num Occupants
     if args['geometry_num_occupants'] == Constants.Auto

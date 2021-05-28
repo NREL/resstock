@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require_relative 'minitest_helper'
@@ -101,8 +103,8 @@ class TestResStockMeasuresOSW < MiniTest::Test
   end
 
   def create_weather_folder(parent_dir, project_dir)
-    src = File.join(parent_dir, "..", "..", "resources", "measures", "HPXMLtoOpenStudio", "weather", project_dir)
-    des = File.join(parent_dir, "..", "..", "weather")
+    src = File.join(parent_dir, '..', '..', 'resources', 'measures', 'HPXMLtoOpenStudio', 'weather', project_dir)
+    des = File.join(parent_dir, '..', '..', 'weather')
     FileUtils.cp_r(src, des)
 
     return des
