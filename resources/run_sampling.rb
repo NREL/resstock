@@ -232,7 +232,9 @@ class RunSampling
     end
 
     # Sort array in descending order
-    prob_dist = prob_dist.sort_by { |k,v| v }.reverse.to_h
+    # Using stable sort algorithm from https://groups.google.com/g/comp.lang.ruby/c/JcDGbaFHifI/m/2gKpc9FQbCoJ
+    n = 0
+    prob_dist = prob_dist.sort_by { |x| n += 1; [x[1], n] }.reverse
 
     if num_samples == 1
       return { prob_dist[0][0] => 1 } # Simply return 1 sample for max item
