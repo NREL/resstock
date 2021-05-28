@@ -21,6 +21,11 @@ jobs:
         run: |
           rm -f Gemfile.lock && bundle install
 
+      - name: Show environment
+        run: |
+          bundle -v
+          ruby -v
+
       - name: Run integrity checks for all projects
         run: |
           #rake unit_tests:project_integrity_checks
