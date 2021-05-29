@@ -1,12 +1,12 @@
 require 'openstudio'
-if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../../resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../../resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../../resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
 
 require_relative '../../../test/minitest_helper'
@@ -24,14 +24,14 @@ class LoadComponentsReportTest < MiniTest::Test
     args_hash = {}
     expected_values = {}
     error_threshold = 0.10 # percent error threshold (< 0.10 %)
-    weather_file = "USA_CO_Denver.Intl.AP.725650_TMY3.epw"
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_values, __method__, weather_file, "8760.csv", 55, error_threshold)
+    weather_file = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY_Appl_PV.osm', args_hash, expected_values, __method__, weather_file, '8760.csv', 55, error_threshold)
   end
 
   private
 
   def model_in_path_default(osm_file_or_model)
-    return File.absolute_path(File.join(File.dirname(__FILE__), "../../../test/osm_files", osm_file_or_model))
+    return File.absolute_path(File.join(File.dirname(__FILE__), '../../../test/osm_files', osm_file_or_model))
   end
 
   def epw_path_default(epw_name)
@@ -66,7 +66,7 @@ class LoadComponentsReportTest < MiniTest::Test
   # create test files if they do not exist when the test first runs
   def setup_test(osm_file_or_model, test_name, idf_output_requests, epw_path, sch_path, model_in_path)
     # convert output requests to OSM for testing, OS App and PAT will add these to the E+ Idf
-    workspace = OpenStudio::Workspace.new("Draft".to_StrictnessLevel, "EnergyPlus".to_IddFileType)
+    workspace = OpenStudio::Workspace.new('Draft'.to_StrictnessLevel, 'EnergyPlus'.to_IddFileType)
     workspace.addObjects(idf_output_requests)
     rt = OpenStudio::EnergyPlus::ReverseTranslator.new
     request_model = rt.translateWorkspace(workspace)
@@ -78,7 +78,7 @@ class LoadComponentsReportTest < MiniTest::Test
     model.addObjects(request_model.objects)
     model.save(model_out_path(osm_file_or_model, test_name), true)
 
-    osw_path = File.join(test_dir(test_name), "in.osw")
+    osw_path = File.join(test_dir(test_name), 'in.osw')
     osw_path = File.absolute_path(osw_path)
 
     workflow = OpenStudio::WorkflowJSON.new
@@ -165,15 +165,14 @@ class LoadComponentsReportTest < MiniTest::Test
     end
 
     result.stepValues.each do |step_value|
-      if step_value.name == 'heating_demand_error_percent' or step_value.name == 'cooling_demand_error_percent'
-        if (step_value.valueAsDouble).abs > error_threshold
-          assert_operator((step_value.valueAsDouble).abs, :<=, error_threshold, "#{step_value.name} is greater than threshold of #{error_threshold}%")
-        end
+      next unless (step_value.name == 'heating_demand_error_percent') || (step_value.name == 'cooling_demand_error_percent')
+      if step_value.valueAsDouble.abs > error_threshold
+        assert_operator(step_value.valueAsDouble.abs, :<=, error_threshold, "#{step_value.name} is greater than threshold of #{error_threshold}%")
       end
     end
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
     assert(result.info.size > 0)
 
     return model
