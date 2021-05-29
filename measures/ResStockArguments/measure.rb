@@ -47,6 +47,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
     measure.arguments(model).each do |arg|
       next if Constants.excludes.include? arg.name
+
+      # Exclude the geometry_cfa arg from BuildResHPXML in lieu of the one below.
+      # We can't add it to Constants.excludes because a geometry_cfa value will still
+      # need to be passed to the BuildResHPXML measure.
       next if arg.name == 'geometry_cfa'
 
       args << arg
@@ -58,7 +62,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('2000-2499')
     args << arg
 
-    # Adds a geometry_cfa argument similar to the BuildResidentialHPXML measure, but with "auto" allowed
+    # Adds a geometry_cfa argument similar to the BuildResidentialHPXML measure, but as a string with "auto" allowed
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_cfa', true)
     arg.setDisplayName('Geometry: Conditioned Floor Area')
     arg.setDescription("E.g., '2000' or '#{Constants.Auto}'")
@@ -294,7 +298,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
                ['4000+', HPXML::ResidentialTypeApartment] => 12291 }
       cfa = cfas[[args['geometry_cfa_bin'], args['geometry_unit_type']]]
       if cfa.nil?
-        puts 'HEEELLLLLOOOO'
         runner.registerError("Could not look up conditioned floor area for '#{args['geometry_cfa_bin']}' and 'args['geometry_unit_type']'.")
         return false
       end
