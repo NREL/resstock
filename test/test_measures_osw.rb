@@ -7,7 +7,7 @@ require 'minitest/autorun'
 
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
-    project_dir = 'project_testing'
+    project_dir = 'project_national'
     num_samples = 10
 
     all_results = []
@@ -15,8 +15,9 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     buildstock_csv = create_buildstock_csv(project_dir, num_samples)
     lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
-    weather_dir = create_weather_folder(parent_dir, project_dir)
+    weather_dir = create_weather_folder(parent_dir, 'project_testing')
 
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     Dir["#{parent_dir}/workflow.osw"].each do |osw|
       measures_osw_dir = nil
       measures_upgrade_osw_dir = nil
@@ -34,6 +35,9 @@ class TestResStockMeasuresOSW < MiniTest::Test
       end
 
       (1..num_samples).to_a.each do |building_id|
+        bldg_data = get_data_for_sample(File.join(lib_dir, 'housing_characteristics/buildstock.csv'), building_id, runner)
+        next unless counties.include? bldg_data['County']
+
         puts "\nBuilding ID: #{building_id} ...\n"
 
         change_building_id(osw, building_id)
@@ -116,5 +120,16 @@ class TestResStockMeasuresOSW < MiniTest::Test
     File.open(osw, 'w') do |f|
       f.write(JSON.pretty_generate(json))
     end
+  end
+
+  def counties
+    return [
+      'AZ, Maricopa County',
+      'CA, Los Angeles County',
+      'GA, Fulton County',
+      'IL, Cook County',
+      'TX, Harris County',
+      'WA, King County'
+    ]
   end
 end
