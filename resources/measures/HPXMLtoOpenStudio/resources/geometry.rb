@@ -1,6 +1,6 @@
-require_relative "constants"
-require_relative "unit_conversions"
-require_relative "util"
+require_relative 'constants'
+require_relative 'unit_conversions'
+require_relative 'util'
 
 class Geometry
   def self.has_rear_units(model, runner, units)
@@ -8,8 +8,8 @@ class Geometry
       unit.spaces.each do |space|
         facades = []
         space.surfaces.each do |surface|
-          next if surface.surfaceType.downcase != "wall"
-          next if surface.outsideBoundaryCondition.downcase != "outdoors"
+          next if surface.surfaceType.downcase != 'wall'
+          next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
           facade = Geometry.get_facade_for_surface(surface)
           unless facades.include? facade
@@ -18,8 +18,8 @@ class Geometry
         end
         next if facades.empty?
 
-        if facades.include? Constants.FacadeFront and facades.include? Constants.FacadeBack
-        elsif facades.include? Constants.FacadeLeft and facades.include? Constants.FacadeRight
+        if facades.include?(Constants.FacadeFront) && facades.include?(Constants.FacadeBack)
+        elsif facades.include?(Constants.FacadeLeft) && facades.include?(Constants.FacadeRight)
         else
           return true
         end
@@ -90,12 +90,12 @@ class Geometry
   def self.get_building_stories(spaces)
     space_min_zs = []
     spaces.each do |space|
-      next if not self.space_is_finished(space)
+      next if not space_is_finished(space)
 
       surfaces_min_zs = []
       space.surfaces.each do |surface|
-        zvalues = self.getSurfaceZValues([surface])
-        surfaces_min_zs << zvalues.min + UnitConversions.convert(space.zOrigin, "m", "ft")
+        zvalues = getSurfaceZValues([surface])
+        surfaces_min_zs << zvalues.min + UnitConversions.convert(space.zOrigin, 'm', 'ft')
       end
       space_min_zs << surfaces_min_zs.min
     end
@@ -105,13 +105,13 @@ class Geometry
   def self.get_above_grade_building_stories(spaces)
     space_min_zs = []
     spaces.each do |space|
-      next if not self.space_is_finished(space)
-      next if not self.space_is_above_grade(space)
+      next if not space_is_finished(space)
+      next if not space_is_above_grade(space)
 
       surfaces_min_zs = []
       space.surfaces.each do |surface|
-        zvalues = self.getSurfaceZValues([surface])
-        surfaces_min_zs << zvalues.min + UnitConversions.convert(space.zOrigin, "m", "ft")
+        zvalues = getSurfaceZValues([surface])
+        surfaces_min_zs << zvalues.min + UnitConversions.convert(space.zOrigin, 'm', 'ft')
       end
       space_min_zs << surfaces_min_zs.min
     end
@@ -122,7 +122,7 @@ class Geometry
     new_space = OpenStudio::Model::Space.new(model)
     spaces.each do |space|
       space.surfaces.each do |surface|
-        if surface.adjacentSurface.is_initialized and surface.surfaceType.downcase == "wall"
+        if surface.adjacentSurface.is_initialized && (surface.surfaceType.downcase == 'wall')
           surface.adjacentSurface.get.remove
           surface.remove
         else
@@ -145,15 +145,15 @@ class Geometry
   def self.get_building_units(model, runner = nil)
     if model.getSpaces.size == 0
       if !runner.nil?
-        runner.registerError("No building geometry has been defined.")
+        runner.registerError('No building geometry has been defined.')
       end
-      return nil
+      return
     end
 
     return_units = []
     model.getBuildingUnits.each do |unit|
       # Remove any units from list that have no associated spaces or are not residential
-      next if not (unit.spaces.size > 0 and unit.buildingUnitType == Constants.BuildingUnitTypeResidential)
+      next if not ((unit.spaces.size > 0) && (unit.buildingUnitType == Constants.BuildingUnitTypeResidential))
 
       return_units << unit
     end
@@ -161,7 +161,7 @@ class Geometry
     if return_units.size == 0
       # Assume SFD; create single building unit for entire model
       if !runner.nil?
-        runner.registerWarning("No building units defined; assuming single-family detached building.")
+        runner.registerWarning('No building units defined; assuming single-family detached building.')
       end
       unit = OpenStudio::Model::BuildingUnit.new(model)
       unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
@@ -177,7 +177,7 @@ class Geometry
     # Sort the building units
     unit_numbers = {}
     return_units.each do |unit|
-      unit_number = Float(unit.name.to_s.split(" ")[-1])
+      unit_number = Float(unit.name.to_s.split(' ')[-1])
       unit_numbers[unit] = unit_number
     end
 
@@ -194,9 +194,9 @@ class Geometry
     # Returns a list with #beds, #baths, a list of spaces, and the unit name
     nbeds = unit.additionalProperties.getFeatureAsInteger(Constants.BuildingUnitFeatureNumBedrooms)
     nbaths = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumBathrooms)
-    if not (nbeds.is_initialized or nbaths.is_initialized)
+    if not (nbeds.is_initialized || nbaths.is_initialized)
       if !runner.nil?
-        runner.registerError("Could not determine number of bedrooms or bathrooms.")
+        runner.registerError('Could not determine number of bedrooms or bathrooms.')
       end
       return [nil, nil]
     else
@@ -210,9 +210,9 @@ class Geometry
     noccupants = unit.additionalProperties.getFeatureAsDouble(Constants.BuildingUnitFeatureNumOccupants)
     if not noccupants.is_initialized
       if !runner.nil?
-        runner.registerError("Could not determine number of occupants.")
+        runner.registerError('Could not determine number of occupants.')
       end
-      return nil
+      return
     else
       noccupants = noccupants.get.to_f
     end
@@ -254,28 +254,28 @@ class Geometry
   def self.get_floor_area_from_spaces(spaces, runner = nil)
     floor_area = 0
     spaces.each do |space|
-      floor_area += UnitConversions.convert(space.floorArea, "m^2", "ft^2")
+      floor_area += UnitConversions.convert(space.floorArea, 'm^2', 'ft^2')
     end
-    if floor_area == 0 and not runner.nil?
-      runner.registerError("Could not find any floor area.")
-      return nil
+    if (floor_area == 0) && (not runner.nil?)
+      runner.registerError('Could not find any floor area.')
+      return
     end
     return floor_area
   end
 
   def self.get_zone_volume(zone, runner = nil)
-    if zone.isVolumeAutocalculated or not zone.volume.is_initialized
+    if zone.isVolumeAutocalculated || (not zone.volume.is_initialized)
       # Calculate volume from spaces
       volume = 0
       zone.spaces.each do |space|
-        volume += UnitConversions.convert(space.volume, "m^3", "ft^3")
+        volume += UnitConversions.convert(space.volume, 'm^3', 'ft^3')
       end
     else
-      volume = UnitConversions.convert(zone.volume.get, "m^3", "ft^3")
+      volume = UnitConversions.convert(zone.volume.get, 'm^3', 'ft^3')
     end
-    if volume <= 0 and not runner.nil?
-      runner.registerError("Could not find any volume.")
-      return nil
+    if (volume <= 0) && (not runner.nil?)
+      runner.registerError('Could not find any volume.')
+      return
     end
     return volume
   end
@@ -283,17 +283,17 @@ class Geometry
   def self.get_finished_floor_area_from_spaces(spaces, runner = nil, apply_mult = false)
     floor_area = 0
     spaces.each do |space|
-      next if not self.space_is_finished(space)
+      next if not space_is_finished(space)
 
       mult = 1.0
       if apply_mult
         mult = space.multiplier.to_f
       end
-      floor_area += UnitConversions.convert(space.floorArea * mult, "m^2", "ft^2")
+      floor_area += UnitConversions.convert(space.floorArea * mult, 'm^2', 'ft^2')
     end
-    if floor_area == 0 and not runner.nil?
-      runner.registerError("Could not find any finished floor area.")
-      return nil
+    if (floor_area == 0) && (not runner.nil?)
+      runner.registerError('Could not find any finished floor area.')
+      return
     end
     return floor_area
   end
@@ -301,13 +301,13 @@ class Geometry
   def self.get_above_grade_finished_floor_area_from_spaces(spaces, runner = nil)
     floor_area = 0
     spaces.each do |space|
-      next if not (self.space_is_finished(space) and self.space_is_above_grade(space))
+      next if not (space_is_finished(space) && space_is_above_grade(space))
 
-      floor_area += UnitConversions.convert(space.floorArea, "m^2", "ft^2")
+      floor_area += UnitConversions.convert(space.floorArea, 'm^2', 'ft^2')
     end
-    if floor_area == 0 and not runner.nil?
-      runner.registerError("Could not find any above-grade finished floor area.")
-      return nil
+    if (floor_area == 0) && (not runner.nil?)
+      runner.registerError('Could not find any above-grade finished floor area.')
+      return
     end
     return floor_area
   end
@@ -315,13 +315,13 @@ class Geometry
   def self.get_above_grade_finished_volume(model, runner = nil)
     volume = 0
     model.getThermalZones.each do |zone|
-      next if not (self.zone_is_finished(zone) and self.zone_is_above_grade(zone))
+      next if not (zone_is_finished(zone) && zone_is_above_grade(zone))
 
-      volume += self.get_zone_volume(zone, runner)
+      volume += get_zone_volume(zone, runner)
     end
-    if volume == 0 and not runner.nil?
-      runner.registerError("Could not find any above-grade finished volume.")
-      return nil
+    if (volume == 0) && (not runner.nil?)
+      runner.registerError('Could not find any above-grade finished volume.')
+      return
     end
     return volume
   end
@@ -329,13 +329,13 @@ class Geometry
   def self.get_above_grade_finished_volume_from_spaces(spaces, runner = nil)
     volume = 0
     get_thermal_zones_from_spaces(spaces).each do |zone|
-      next if not (self.zone_is_finished(zone) and self.zone_is_above_grade(zone))
+      next if not (zone_is_finished(zone) && zone_is_above_grade(zone))
 
-      volume += self.get_zone_volume(zone, runner)
+      volume += get_zone_volume(zone, runner)
     end
-    if volume == 0 and not runner.nil?
-      runner.registerError("Could not find any above-grade finished volume.")
-      return nil
+    if (volume == 0) && (not runner.nil?)
+      runner.registerError('Could not find any above-grade finished volume.')
+      return
     end
     return volume
   end
@@ -345,9 +345,9 @@ class Geometry
     spaces.each do |space|
       space.surfaces.each do |surface|
         surface.subSurfaces.each do |subsurface|
-          next if subsurface.subSurfaceType.downcase != "fixedwindow"
+          next if subsurface.subSurfaceType.downcase != 'fixedwindow'
 
-          window_area += UnitConversions.convert(subsurface.grossArea, "m^2", "ft^2")
+          window_area += UnitConversions.convert(subsurface.grossArea, 'm^2', 'ft^2')
         end
       end
     end
@@ -363,16 +363,16 @@ class Geometry
     minzs = []
     maxzs = []
     spaces.each do |space|
-      zvalues = self.getSurfaceZValues(space.surfaces)
-      minzs << zvalues.min + UnitConversions.convert(space.zOrigin, "m", "ft")
-      maxzs << zvalues.max + UnitConversions.convert(space.zOrigin, "m", "ft")
+      zvalues = getSurfaceZValues(space.surfaces)
+      minzs << zvalues.min + UnitConversions.convert(space.zOrigin, 'm', 'ft')
+      maxzs << zvalues.max + UnitConversions.convert(space.zOrigin, 'm', 'ft')
     end
     return maxzs.max - minzs.min
   end
 
   # Calculates the surface height as the max z coordinate minus the min z coordinate
   def self.surface_height(surface)
-    zvalues = self.getSurfaceZValues([surface])
+    zvalues = getSurfaceZValues([surface])
     minz = zvalues.min
     maxz = zvalues.max
     return maxz - minz
@@ -380,7 +380,7 @@ class Geometry
 
   def self.zone_is_finished(zone)
     zone.spaces.each do |space|
-      unless self.space_is_finished(space)
+      unless space_is_finished(space)
         return false
       end
     end
@@ -390,7 +390,7 @@ class Geometry
   def self.zone_is_above_grade(zone)
     spaces_are_above_grade = []
     zone.spaces.each do |space|
-      spaces_are_above_grade << self.space_is_above_grade(space)
+      spaces_are_above_grade << space_is_above_grade(space)
     end
     if spaces_are_above_grade.all?
       return true
@@ -401,18 +401,18 @@ class Geometry
 
   # Returns true if all spaces in zone are either fully or partially below grade
   def self.zone_is_below_grade(zone)
-    return !self.zone_is_above_grade(zone)
+    return !zone_is_above_grade(zone)
   end
 
   def self.get_finished_above_and_below_grade_zones(thermal_zones)
     finished_living_zones = []
     finished_basement_zones = []
     thermal_zones.each do |thermal_zone|
-      next unless self.zone_is_finished(thermal_zone)
+      next unless zone_is_finished(thermal_zone)
 
-      if self.zone_is_above_grade(thermal_zone)
+      if zone_is_above_grade(thermal_zone)
         finished_living_zones << thermal_zone
-      elsif self.zone_is_below_grade(thermal_zone)
+      elsif zone_is_below_grade(thermal_zone)
         finished_basement_zones << thermal_zone
       end
     end
@@ -440,14 +440,14 @@ class Geometry
   end
 
   def self.space_is_unfinished(space)
-    return !self.space_is_finished(space)
+    return !space_is_finished(space)
   end
 
   def self.space_is_finished(space)
     unless space.isPlenum
       if space.spaceType.is_initialized
         if space.spaceType.get.standardsSpaceType.is_initialized
-          return self.is_living_space_type(space.spaceType.get.standardsSpaceType.get)
+          return is_living_space_type(space.spaceType.get.standardsSpaceType.get)
         end
       end
     end
@@ -465,13 +465,13 @@ class Geometry
 
   # Returns true if space is fully above grade
   def self.space_is_above_grade(space)
-    return !self.space_is_below_grade(space)
+    return !space_is_below_grade(space)
   end
 
   # Returns true if space is either fully or partially below grade
   def self.space_is_below_grade(space)
     space.surfaces.each do |surface|
-      next if surface.surfaceType.downcase != "wall"
+      next if surface.surfaceType.downcase != 'wall'
 
       z_vertex = []
       surface.vertices.each do |vertex|
@@ -480,7 +480,7 @@ class Geometry
       if z_vertex.min < -1e-9
         return true
       end
-      if surface.outsideBoundaryCondition.downcase == "foundation"
+      if surface.outsideBoundaryCondition.downcase == 'foundation'
         return true
       end
     end
@@ -489,8 +489,8 @@ class Geometry
 
   def self.space_has_roof(space)
     space.surfaces.each do |surface|
-      next if surface.surfaceType.downcase != "roofceiling"
-      next if surface.outsideBoundaryCondition.downcase != "outdoors"
+      next if surface.surfaceType.downcase != 'roofceiling'
+      next if surface.outsideBoundaryCondition.downcase != 'outdoors'
       next if surface.tilt == 0
 
       return true
@@ -500,12 +500,12 @@ class Geometry
 
   def self.space_below_is_finished(space)
     space.surfaces.each do |surface|
-      next if surface.surfaceType.downcase != "floor"
+      next if surface.surfaceType.downcase != 'floor'
       next if not surface.adjacentSurface.is_initialized
       next if not surface.adjacentSurface.get.space.is_initialized
 
       adjacent_space = surface.adjacentSurface.get.space.get
-      next if not self.space_is_finished(adjacent_space)
+      next if not space_is_finished(adjacent_space)
 
       return true
     end
@@ -523,11 +523,11 @@ class Geometry
   end
 
   def self.get_space_from_location(unit, location, location_hierarchy)
-    spaces = unit.spaces + self.get_unit_adjacent_common_spaces(unit)
+    spaces = unit.spaces + get_unit_adjacent_common_spaces(unit)
     if location == Constants.Auto
       location_hierarchy.each do |space_type|
         spaces.each do |space|
-          next if not self.space_is_of_type(space, space_type)
+          next if not space_is_of_type(space, space_type)
 
           return space
         end
@@ -541,7 +541,7 @@ class Geometry
         return space
       end
     end
-    return nil
+    return
   end
 
   # Return an array of x values for surfaces passed in. The values will be relative to the parent origin. This was intended for spaces.
@@ -549,7 +549,7 @@ class Geometry
     xValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        xValueArray << UnitConversions.convert(vertex.x, "m", "ft")
+        xValueArray << UnitConversions.convert(vertex.x, 'm', 'ft')
       end
     end
     return xValueArray
@@ -560,7 +560,7 @@ class Geometry
     yValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        yValueArray << UnitConversions.convert(vertex.y, "m", "ft")
+        yValueArray << UnitConversions.convert(vertex.y, 'm', 'ft')
       end
     end
     return yValueArray
@@ -571,7 +571,7 @@ class Geometry
     zValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        zValueArray << UnitConversions.convert(vertex.z, "m", "ft")
+        zValueArray << UnitConversions.convert(vertex.z, 'm', 'ft')
       end
     end
     return zValueArray
@@ -579,27 +579,27 @@ class Geometry
 
   def self.get_space_floor_z(space)
     space.surfaces.each do |surface|
-      next unless surface.surfaceType.downcase == "floor"
+      next unless surface.surfaceType.downcase == 'floor'
 
-      return self.getSurfaceZValues([surface])[0]
+      return getSurfaceZValues([surface])[0]
     end
   end
 
   def self.get_z_origin_for_zone(zone)
     z_origins = []
     zone.spaces.each do |space|
-      z_origins << UnitConversions.convert(space.zOrigin, "m", "ft")
+      z_origins << UnitConversions.convert(space.zOrigin, 'm', 'ft')
     end
     return z_origins.min
   end
 
   # Takes in a list of spaces and returns the average space height
   def self.spaces_avg_height(spaces)
-    return nil if spaces.size == 0
+    return if spaces.size == 0
 
     sum_height = 0
     spaces.each do |space|
-      sum_height += self.space_height(space)
+      sum_height += space_height(space)
     end
     return sum_height / spaces.size
   end
@@ -608,7 +608,7 @@ class Geometry
   def self.calculate_total_area_from_surfaces(surfaces)
     total_area = 0
     surfaces.each do |surface|
-      total_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+      total_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
     end
     return total_area
   end
@@ -618,10 +618,10 @@ class Geometry
     wall_area = 0
     spaces.each do |space|
       space.surfaces.each do |surface|
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase == "foundation"
+        next if surface.surfaceType.downcase != 'wall'
+        next if surface.outsideBoundaryCondition.downcase == 'foundation'
 
-        wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
     end
     return wall_area.round(5)
@@ -631,12 +631,12 @@ class Geometry
     wall_area = 0
     spaces.each do |space|
       space.surfaces.each do |surface|
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
-        next if surface.outsideBoundaryCondition.downcase == "foundation"
-        next unless self.space_is_finished(surface.space.get)
+        next if surface.surfaceType.downcase != 'wall'
+        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
+        next if surface.outsideBoundaryCondition.downcase == 'foundation'
+        next unless space_is_finished(surface.space.get)
 
-        wall_area += UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
+        wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
     end
     return wall_area.round(5)
@@ -645,20 +645,20 @@ class Geometry
   def self.get_roof_pitch(surfaces)
     tilts = []
     surfaces.each do |surface|
-      next if surface.surfaceType.downcase != "roofceiling"
-      next if surface.outsideBoundaryCondition.downcase != "outdoors" and surface.outsideBoundaryCondition.downcase != "adiabatic"
+      next if surface.surfaceType.downcase != 'roofceiling'
+      next if (surface.outsideBoundaryCondition.downcase != 'outdoors') && (surface.outsideBoundaryCondition.downcase != 'adiabatic')
 
       tilts << surface.tilt
     end
-    return UnitConversions.convert(tilts.max, "rad", "deg")
+    return UnitConversions.convert(tilts.max, 'rad', 'deg')
   end
 
   # Checks if the surface is between finished space and outside
   def self.is_exterior_surface(surface)
-    if surface.outsideBoundaryCondition.downcase != "outdoors" or not surface.space.is_initialized
+    if (surface.outsideBoundaryCondition.downcase != 'outdoors') || (not surface.space.is_initialized)
       return false
     end
-    if not self.space_is_finished(surface.space.get)
+    if not space_is_finished(surface.space.get)
       return false
     end
 
@@ -667,7 +667,7 @@ class Geometry
 
   # Checks if the surface is between finished and unfinished space
   def self.is_interzonal_surface(surface)
-    if surface.outsideBoundaryCondition.downcase != "surface" or not surface.space.is_initialized or not surface.adjacentSurface.is_initialized
+    if (surface.outsideBoundaryCondition.downcase != 'surface') || (not surface.space.is_initialized) || (not surface.adjacentSurface.is_initialized)
       return false
     end
 
@@ -675,7 +675,7 @@ class Geometry
     if not adjacent_surface.space.is_initialized
       return false
     end
-    if self.space_is_finished(surface.space.get) == self.space_is_finished(adjacent_surface.space.get)
+    if space_is_finished(surface.space.get) == space_is_finished(adjacent_surface.space.get)
       return false
     end
 
@@ -702,7 +702,7 @@ class Geometry
     # Get ground edges
     if not has_foundation_walls
       # Use edges from floor surface
-      ground_edges = self.get_edges_for_surfaces(ground_floor_surfaces, false)
+      ground_edges = get_edges_for_surfaces(ground_floor_surfaces, false)
     else
       # Use top edges from foundation walls instead
       surfaces = []
@@ -712,34 +712,34 @@ class Geometry
         foundation_space = ground_floor_surface.space.get
         wall_surfaces = []
         foundation_space.surfaces.each do |surface|
-          next if not surface.surfaceType.downcase == "wall"
+          next if not surface.surfaceType.downcase == 'wall'
           next if surface.adjacentSurface.is_initialized
 
           wall_surfaces << surface
         end
-        self.get_walls_connected_to_floor(wall_surfaces, ground_floor_surface).each do |surface|
+        get_walls_connected_to_floor(wall_surfaces, ground_floor_surface).each do |surface|
           next if surfaces.include? surface
 
           surfaces << surface
         end
       end
-      ground_edges = self.get_edges_for_surfaces(surfaces, true)
+      ground_edges = get_edges_for_surfaces(surfaces, true)
     end
     # Get bottom edges of exterior walls (building footprint)
     surfaces = []
     model.getSurfaces.each do |surface|
-      next if not surface.surfaceType.downcase == "wall"
-      next if surface.outsideBoundaryCondition.downcase != "outdoors"
+      next if not surface.surfaceType.downcase == 'wall'
+      next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
       surfaces << surface
     end
-    model_edges = self.get_edges_for_surfaces(surfaces, false)
+    model_edges = get_edges_for_surfaces(surfaces, false)
 
     # compare edges for overlap
     ground_edges.each do |e1|
       model_edges.each do |e2|
-        next if not self.is_point_between(e2[0], e1[0], e1[1])
-        next if not self.is_point_between(e2[1], e1[0], e1[1])
+        next if not is_point_between(e2[0], e1[0], e1[1])
+        next if not is_point_between(e2[1], e1[0], e1[1])
 
         point_one = OpenStudio::Point3d.new(e2[0][0], e2[0][1], e2[0][2])
         point_two = OpenStudio::Point3d.new(e2[1][0], e2[1][1], e2[1][2])
@@ -748,24 +748,24 @@ class Geometry
       end
     end
 
-    return UnitConversions.convert(perimeter, "m", "ft")
+    return UnitConversions.convert(perimeter, 'm', 'ft')
   end
 
   def self.is_point_between(p, v1, v2)
     # Checks if point p is between points v1 and v2
     is_between = false
     tol = 0.001
-    if (p[2] - v1[2]).abs <= tol and (p[2] - v2[2]).abs <= tol # equal z
-      if (p[0] - v1[0]).abs <= tol and (p[0] - v2[0]).abs <= tol # equal x; vertical
-        if p[1] >= v1[1] - tol and p[1] <= v2[1] + tol
+    if ((p[2] - v1[2]).abs <= tol) && ((p[2] - v2[2]).abs <= tol) # equal z
+      if ((p[0] - v1[0]).abs <= tol) && ((p[0] - v2[0]).abs <= tol) # equal x; vertical
+        if (p[1] >= v1[1] - tol) && (p[1] <= v2[1] + tol)
           is_between = true
-        elsif p[1] <= v1[1] + tol and p[1] >= v2[1] - tol
+        elsif (p[1] <= v1[1] + tol) && (p[1] >= v2[1] - tol)
           is_between = true
         end
-      elsif (p[1] - v1[1]).abs <= tol and (p[1] - v2[1]).abs <= tol # equal y; horizontal
-        if p[0] >= v1[0] - tol and p[0] <= v2[0] + tol
+      elsif ((p[1] - v1[1]).abs <= tol) && ((p[1] - v2[1]).abs <= tol) # equal y; horizontal
+        if (p[0] >= v1[0] - tol) && (p[0] <= v2[0] + tol)
           is_between = true
-        elsif p[0] <= v1[0] + tol and p[0] >= v2[0] - tol
+        elsif (p[0] <= v1[0] + tol) && (p[0] >= v2[0] - tol)
           is_between = true
         end
       end
@@ -777,8 +777,8 @@ class Geometry
     top_z = -99999
     bottom_z = 99999
     surfaces.each do |surface|
-      top_z = [self.getSurfaceZValues([surface]).max, top_z].max
-      bottom_z = [self.getSurfaceZValues([surface]).min, bottom_z].min
+      top_z = [getSurfaceZValues([surface]).max, top_z].max
+      bottom_z = [getSurfaceZValues([surface]).min, bottom_z].min
     end
     edges = []
     edge_counter = 0
@@ -793,7 +793,7 @@ class Geometry
       vertex_hash = {}
       vertex_counter = 0
       surface.vertices.each do |vertex|
-        next if (UnitConversions.convert(vertex.z, "m", "ft") - matchz).abs > 0.0001 # ensure we only process bottom/top edge of wall surfaces
+        next if (UnitConversions.convert(vertex.z, 'm', 'ft') - matchz).abs > 0.0001 # ensure we only process bottom/top edge of wall surfaces
 
         vertex_counter += 1
         vertex_hash[vertex_counter] = [vertex.x + surface.space.get.xOrigin,
@@ -806,9 +806,9 @@ class Geometry
         edge_counter += 1
         counter += 1
         if vertex_hash.size != counter
-          edges << [v, vertex_hash[counter + 1], self.get_facade_for_surface(surface)]
+          edges << [v, vertex_hash[counter + 1], get_facade_for_surface(surface)]
         elsif vertex_hash.size > 2 # different code for wrap around vertex (if > 2 vertices)
-          edges << [v, vertex_hash[1], self.get_facade_for_surface(surface)]
+          edges << [v, vertex_hash[1], get_facade_for_surface(surface)]
         end
       end
     end
@@ -842,10 +842,9 @@ class Geometry
         floor_vertices.each_with_index do |fv1, fidx|
           fv2 = floor_vertices[fidx - 1]
           # Wall within floor edge?
-          if self.is_point_between([wv1.x, wv1.y, wv1.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z]) and self.is_point_between([wv2.x, wv2.y, wv2.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z])
-            if not adjacent_wall_surfaces.include? wall_surface
-              adjacent_wall_surfaces << wall_surface
-            end
+          next unless is_point_between([wv1.x, wv1.y, wv1.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z]) && is_point_between([wv2.x, wv2.y, wv2.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z])
+          if not adjacent_wall_surfaces.include? wall_surface
+            adjacent_wall_surfaces << wall_surface
           end
         end
       end
@@ -855,46 +854,46 @@ class Geometry
   end
 
   def self.is_living(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeLiving)
+    return space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeLiving)
   end
 
   def self.is_pier_beam(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypePierBeam)
+    return space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypePierBeam)
   end
 
   def self.is_crawl(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeCrawl)
+    return space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeCrawl)
   end
 
   def self.is_finished_basement(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeFinishedBasement)
+    return space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeFinishedBasement)
   end
 
   def self.is_unfinished_basement(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeUnfinishedBasement)
+    return space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeUnfinishedBasement)
   end
 
   def self.is_unfinished_attic(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeUnfinishedAttic)
+    return space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeUnfinishedAttic)
   end
 
   def self.is_garage(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeGarage)
+    return space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeGarage)
   end
 
   def self.is_corridor(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeCorridor)
+    return space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeCorridor)
   end
 
   def self.is_bedroom(space_or_zone)
-    return self.space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeBedroom)
+    return space_or_zone_is_of_type(space_or_zone, Constants.SpaceTypeBedroom)
   end
 
   def self.space_or_zone_is_of_type(space_or_zone, space_type)
     if space_or_zone.is_a? OpenStudio::Model::Space
-      return self.space_is_of_type(space_or_zone, space_type)
+      return space_is_of_type(space_or_zone, space_type)
     elsif space_or_zone.is_a? OpenStudio::Model::ThermalZone
-      return self.zone_is_of_type(space_or_zone, space_type)
+      return zone_is_of_type(space_or_zone, space_type)
     end
   end
 
@@ -913,7 +912,7 @@ class Geometry
     # if any spaces in zone are space_type
     result = false
     zone.spaces.each do |space|
-      next unless self.space_is_of_type(space, space_type)
+      next unless space_is_of_type(space, space_type)
 
       result = true
     end
@@ -922,22 +921,22 @@ class Geometry
 
   def self.is_basement(space_or_zone)
     if space_or_zone.is_a? OpenStudio::Model::Space
-      return self.space_is_below_grade(space_or_zone)
+      return space_is_below_grade(space_or_zone)
     elsif space_or_zone.is_a? OpenStudio::Model::ThermalZone
-      return self.zone_is_below_grade(space_or_zone)
+      return zone_is_below_grade(space_or_zone)
     end
   end
 
   def self.is_attic(space_or_zone)
     if space_or_zone.is_a? OpenStudio::Model::Space
       space_or_zone.surfaces.each do |surface|
-        next unless surface.surfaceType.downcase.to_s == "roofceiling"
-        unless surface.outsideBoundaryCondition.downcase.to_s == "outdoors"
+        next unless surface.surfaceType.downcase.to_s == 'roofceiling'
+        unless surface.outsideBoundaryCondition.downcase.to_s == 'outdoors'
           return false
         end
       end
       space_or_zone.surfaces.each do |surface|
-        next unless surface.surfaceType.downcase.to_s == "floor"
+        next unless surface.surfaceType.downcase.to_s == 'floor'
 
         surface.vertices.each do |vertex|
           unless vertex.z + space_or_zone.zOrigin > 0 # not an attic if it isn't above grade
@@ -948,13 +947,13 @@ class Geometry
     elsif space_or_zone.is_a? OpenStudio::Model::ThermalZone
       space_or_zone.spaces.each do |space|
         space.surfaces.each do |surface|
-          next unless surface.surfaceType.downcase.to_s == "roofceiling"
-          if not surface.outsideBoundaryCondition.downcase.to_s == "outdoors"
+          next unless surface.surfaceType.downcase.to_s == 'roofceiling'
+          if not surface.outsideBoundaryCondition.downcase.to_s == 'outdoors'
             return false
           end
         end
         space.surfaces.each do |surface|
-          next unless surface.surfaceType.downcase.to_s == "floor"
+          next unless surface.surfaceType.downcase.to_s == 'floor'
 
           surface.vertices.each do |vertex|
             unless vertex.z + space.zOrigin > 0 # not an attic if it isn't above grade
@@ -967,13 +966,13 @@ class Geometry
   end
 
   def self.is_foundation(space_or_zone)
-    return true if self.is_pier_beam(space_or_zone) or self.is_crawl(space_or_zone) or self.is_finished_basement(space_or_zone) or self.is_unfinished_basement(space_or_zone)
+    return true if is_pier_beam(space_or_zone) || is_crawl(space_or_zone) || is_finished_basement(space_or_zone) || is_unfinished_basement(space_or_zone)
   end
 
   def self.get_crawl_spaces(spaces)
     crawl_spaces = []
     spaces.each do |space|
-      next if not self.is_crawl(space)
+      next if not is_crawl(space)
 
       crawl_spaces << space
     end
@@ -983,7 +982,7 @@ class Geometry
   def self.get_pier_beam_spaces(spaces)
     pb_spaces = []
     spaces.each do |space|
-      next if not self.is_pier_beam(space)
+      next if not is_pier_beam(space)
 
       pb_spaces << space
     end
@@ -993,7 +992,7 @@ class Geometry
   def self.get_finished_spaces(spaces)
     finished_spaces = []
     spaces.each do |space|
-      next if self.space_is_unfinished(space)
+      next if space_is_unfinished(space)
 
       finished_spaces << space
     end
@@ -1003,7 +1002,7 @@ class Geometry
   def self.get_bedroom_spaces(spaces)
     bedroom_spaces = []
     spaces.each do |space|
-      next if not self.is_bedroom(space)
+      next if not is_bedroom(space)
     end
     return bedroom_spaces
   end
@@ -1011,7 +1010,7 @@ class Geometry
   def self.get_finished_basement_spaces(spaces)
     finished_basement_spaces = []
     spaces.each do |space|
-      next if not self.is_finished_basement(space)
+      next if not is_finished_basement(space)
 
       finished_basement_spaces << space
     end
@@ -1021,7 +1020,7 @@ class Geometry
   def self.get_unfinished_basement_spaces(spaces)
     unfinished_basement_spaces = []
     spaces.each do |space|
-      next if not self.is_unfinished_basement(space)
+      next if not is_unfinished_basement(space)
 
       unfinished_basement_spaces << space
     end
@@ -1031,7 +1030,7 @@ class Geometry
   def self.get_unfinished_attic_spaces(spaces)
     unfinished_attic_spaces = []
     spaces.each do |space|
-      next if not self.is_unfinished_attic(space)
+      next if not is_unfinished_attic(space)
 
       unfinished_attic_spaces << space
     end
@@ -1041,7 +1040,7 @@ class Geometry
   def self.get_garage_spaces(spaces)
     garage_spaces = []
     spaces.each do |space|
-      next if not self.is_garage(space)
+      next if not is_garage(space)
 
       garage_spaces << space
     end
@@ -1052,24 +1051,24 @@ class Geometry
     tol = 0.001
     n = surface.outwardNormal
     facade = nil
-    if (n.z).abs < tol
-      if (n.x).abs < tol and (n.y + 1).abs < tol
+    if n.z.abs < tol
+      if (n.x.abs < tol) && ((n.y + 1).abs < tol)
         facade = Constants.FacadeFront
-      elsif (n.x - 1).abs < tol and (n.y).abs < tol
+      elsif ((n.x - 1).abs < tol) && (n.y.abs < tol)
         facade = Constants.FacadeRight
-      elsif (n.x).abs < tol and (n.y - 1).abs < tol
+      elsif (n.x.abs < tol) && ((n.y - 1).abs < tol)
         facade = Constants.FacadeBack
-      elsif (n.x + 1).abs < tol and (n.y).abs < tol
+      elsif ((n.x + 1).abs < tol) && (n.y.abs < tol)
         facade = Constants.FacadeLeft
       end
     else
-      if (n.x).abs < tol and n.y < 0
+      if (n.x.abs < tol) && (n.y < 0)
         facade = Constants.FacadeFront
-      elsif n.x > 0 and (n.y).abs < tol
+      elsif (n.x > 0) && (n.y.abs < tol)
         facade = Constants.FacadeRight
-      elsif (n.x).abs < tol and n.y > 0
+      elsif (n.x.abs < tol) && (n.y > 0)
         facade = Constants.FacadeBack
-      elsif n.x < 0 and (n.y).abs < tol
+      elsif (n.x < 0) && (n.y.abs < tol)
         facade = Constants.FacadeLeft
       end
     end
@@ -1077,8 +1076,8 @@ class Geometry
   end
 
   def self.get_surface_length(surface)
-    xvalues = self.getSurfaceXValues([surface])
-    yvalues = self.getSurfaceYValues([surface])
+    xvalues = getSurfaceXValues([surface])
+    yvalues = getSurfaceYValues([surface])
     xrange = xvalues.max - xvalues.min
     yrange = yvalues.max - yvalues.min
     if xrange > yrange
@@ -1089,13 +1088,13 @@ class Geometry
   end
 
   def self.get_surface_height(surface)
-    zvalues = self.getSurfaceZValues([surface])
+    zvalues = getSurfaceZValues([surface])
     zrange = zvalues.max - zvalues.min
     return zrange
   end
 
   def self.is_gable_wall(surface)
-    if (surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors")
+    if ((surface.surfaceType.downcase != 'wall') || (surface.outsideBoundaryCondition.downcase != 'outdoors'))
       return false
     end
     if surface.vertices.size != 3
@@ -1106,7 +1105,7 @@ class Geometry
     end
 
     space = surface.space.get
-    if not self.space_has_roof(space)
+    if not space_has_roof(space)
       return false
     end
 
@@ -1114,18 +1113,18 @@ class Geometry
   end
 
   def self.is_rectangular_wall(surface)
-    if (surface.surfaceType.downcase != "wall" or surface.outsideBoundaryCondition.downcase != "outdoors")
+    if ((surface.surfaceType.downcase != 'wall') || (surface.outsideBoundaryCondition.downcase != 'outdoors'))
       return false
     end
     if surface.vertices.size != 4
       return false
     end
 
-    xvalues = self.getSurfaceXValues([surface])
-    yvalues = self.getSurfaceYValues([surface])
-    zvalues = self.getSurfaceZValues([surface])
-    if not ((xvalues.uniq.size == 1 and yvalues.uniq.size == 2) or
-            (xvalues.uniq.size == 2 and yvalues.uniq.size == 1))
+    xvalues = getSurfaceXValues([surface])
+    yvalues = getSurfaceYValues([surface])
+    zvalues = getSurfaceZValues([surface])
+    if not (((xvalues.uniq.size == 1) && (yvalues.uniq.size == 2)) ||
+            ((xvalues.uniq.size == 2) && (yvalues.uniq.size == 1)))
       return false
     end
     if not zvalues.uniq.size == 2
@@ -1139,7 +1138,7 @@ class Geometry
     # House surfaces
     house_points = []
     model.getSurfaces.each do |surface|
-      next unless surface.surfaceType.downcase == "wall"
+      next unless surface.surfaceType.downcase == 'wall'
 
       surface.vertices.each do |vertex|
         house_points << OpenStudio::Point3d.new(vertex)
@@ -1149,7 +1148,7 @@ class Geometry
     # Neighbor surfaces
     neighbor_points = {}
     model.getShadingSurfaces.each do |shading_surface|
-      next unless shading_surface.name.to_s.downcase.include? "neighbor"
+      next unless shading_surface.name.to_s.downcase.include? 'neighbor'
 
       xs, ys = [], []
       shading_surface.vertices.each do |vertex|
@@ -1181,7 +1180,7 @@ class Geometry
       return 0
     end
 
-    return UnitConversions.convert(neighbor_offsets.min, "m", "ft")
+    return UnitConversions.convert(neighbor_offsets.min, 'm', 'ft')
   end
 
   def self.get_spaces_above_grade_exterior_walls(spaces)
@@ -1192,8 +1191,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if above_grade_exterior_walls.include?(surface)
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
+        next if surface.surfaceType.downcase != 'wall'
+        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
         above_grade_exterior_walls << surface
       end
@@ -1209,8 +1208,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if above_grade_exterior_floors.include?(surface)
-        next if surface.surfaceType.downcase != "floor"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
+        next if surface.surfaceType.downcase != 'floor'
+        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
         above_grade_exterior_floors << surface
       end
@@ -1226,8 +1225,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if above_grade_ground_floors.include?(surface)
-        next if surface.surfaceType.downcase != "floor"
-        next if surface.outsideBoundaryCondition.downcase != "foundation"
+        next if surface.surfaceType.downcase != 'floor'
+        next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
         above_grade_ground_floors << surface
       end
@@ -1243,8 +1242,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if above_grade_exterior_roofs.include?(surface)
-        next if surface.surfaceType.downcase != "roofceiling"
-        next if surface.outsideBoundaryCondition.downcase != "outdoors"
+        next if surface.surfaceType.downcase != 'roofceiling'
+        next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
         above_grade_exterior_roofs << surface
       end
@@ -1257,8 +1256,8 @@ class Geometry
     spaces.each do |space|
       space.surfaces.each do |surface|
         next if interzonal_walls.include?(surface)
-        next if surface.surfaceType.downcase != "wall"
-        next if not self.is_interzonal_surface(surface)
+        next if surface.surfaceType.downcase != 'wall'
+        next if not is_interzonal_surface(surface)
 
         interzonal_walls << surface
       end
@@ -1271,8 +1270,8 @@ class Geometry
     spaces.each do |space|
       space.surfaces.each do |surface|
         next if interzonal_floors.include?(surface)
-        next if surface.surfaceType.downcase != "floor" and surface.surfaceType.downcase != "roofceiling"
-        next if not self.is_interzonal_surface(surface)
+        next if (surface.surfaceType.downcase != 'floor') && (surface.surfaceType.downcase != 'roofceiling')
+        next if not is_interzonal_surface(surface)
 
         interzonal_floors << surface
       end
@@ -1288,8 +1287,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if below_grade_exterior_walls.include?(surface)
-        next if surface.surfaceType.downcase != "wall"
-        next if surface.outsideBoundaryCondition.downcase != "foundation"
+        next if surface.surfaceType.downcase != 'wall'
+        next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
         below_grade_exterior_walls << surface
       end
@@ -1305,8 +1304,8 @@ class Geometry
 
       space.surfaces.each do |surface|
         next if below_grade_exterior_floors.include?(surface)
-        next if surface.surfaceType.downcase != "floor"
-        next if surface.outsideBoundaryCondition.downcase != "foundation"
+        next if surface.surfaceType.downcase != 'floor'
+        next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
         below_grade_exterior_floors << surface
       end
@@ -1317,11 +1316,11 @@ class Geometry
   def self.process_overhangs(model, runner, depth, offset, facade_bools_hash)
     # Error checking
     if depth < 0
-      runner.registerError("Overhang depth must be greater than or equal to 0.")
+      runner.registerError('Overhang depth must be greater than or equal to 0.')
       return false
     end
     if offset < 0
-      runner.registerError("Overhang offset must be greater than or equal to 0.")
+      runner.registerError('Overhang offset must be greater than or equal to 0.')
       return false
     end
     # if width_extension < 0
@@ -1329,7 +1328,7 @@ class Geometry
     # return false
     # end
 
-    sub_surfaces = self.get_window_sub_surfaces(model)
+    sub_surfaces = get_window_sub_surfaces(model)
 
     # Remove existing overhangs
     num_removed = 0
@@ -1357,7 +1356,7 @@ class Geometry
 
     num_added = 0
     sub_surfaces.each do |sub_surface|
-      facade = self.get_facade_for_surface(sub_surface)
+      facade = get_facade_for_surface(sub_surface)
       next if facade.nil?
       next if !facade_bools_hash["#{facade} Facade"]
 
@@ -1381,7 +1380,7 @@ class Geometry
   def self.get_window_sub_surfaces(model)
     sub_surfaces = []
     model.getSubSurfaces.each do |sub_surface|
-      next unless sub_surface.subSurfaceType.downcase.include? "window"
+      next unless sub_surface.subSurfaceType.downcase.include? 'window'
       next if (90 - sub_surface.tilt * 180 / Math::PI).abs > 0.01 # not a vertical subsurface
 
       sub_surfaces << sub_surface
@@ -1392,43 +1391,43 @@ class Geometry
   def self.process_beds_and_baths(model, runner, num_br, num_ba)
     # Error checking
     if not num_br.all? { |x| MathTools.valid_float?(x) }
-      runner.registerError("Number of bedrooms must be a numerical value.")
+      runner.registerError('Number of bedrooms must be a numerical value.')
       return false
     else
       num_br = num_br.map(&:to_f)
     end
     if not num_ba.all? { |x| MathTools.valid_float?(x) }
-      runner.registerError("Number of bathrooms must be a numerical value.")
+      runner.registerError('Number of bathrooms must be a numerical value.')
       return false
     else
       num_ba = num_ba.map(&:to_f)
     end
-    if num_br.any? { |x| x < 0 or x % 1 != 0 }
-      runner.registerError("Number of bedrooms must be a non-negative integer.")
+    if num_br.any? { |x| (x < 0) || (x % 1 != 0) }
+      runner.registerError('Number of bedrooms must be a non-negative integer.')
       return false
     end
-    if num_ba.any? { |x| x <= 0 or x % 0.25 != 0 }
-      runner.registerError("Number of bathrooms must be a positive multiple of 0.25.")
+    if num_ba.any? { |x| (x <= 0) || (x % 0.25 != 0) }
+      runner.registerError('Number of bathrooms must be a positive multiple of 0.25.')
       return false
     end
-    if num_br.length > 1 and num_ba.length > 1 and num_br.length != num_ba.length
-      runner.registerError("Number of bedroom elements specified inconsistent with number of bathroom elements specified.")
+    if (num_br.length > 1) && (num_ba.length > 1) && (num_br.length != num_ba.length)
+      runner.registerError('Number of bedroom elements specified inconsistent with number of bathroom elements specified.')
       return false
     end
 
     # Get building units
-    units = self.get_building_units(model, runner)
+    units = get_building_units(model, runner)
     if units.nil?
       return false
     end
 
     # error checking
-    if num_br.length > 1 and num_br.length != units.size
-      runner.registerError("Number of bedroom elements specified inconsistent with number of multifamily units defined in the model.")
+    if (num_br.length > 1) && (num_br.length != units.size)
+      runner.registerError('Number of bedroom elements specified inconsistent with number of multifamily units defined in the model.')
       return false
     end
-    if num_ba.length > 1 and num_ba.length != units.size
-      runner.registerError("Number of bathroom elements specified inconsistent with number of multifamily units defined in the model.")
+    if (num_ba.length > 1) && (num_ba.length != units.size)
+      runner.registerError('Number of bathroom elements specified inconsistent with number of multifamily units defined in the model.')
       return false
     end
 
@@ -1464,43 +1463,43 @@ class Geometry
   end
 
   def self.process_occupants(model, runner, num_occ, occ_gain, sens_frac, lat_frac, schedules_file)
-    num_occ = num_occ.split(",").map(&:strip)
+    num_occ = num_occ.split(',').map(&:strip)
     # Error checking
     if occ_gain < 0
-      runner.registerError("Internal gains cannot be negative.")
+      runner.registerError('Internal gains cannot be negative.')
       return false
     end
 
-    if sens_frac < 0 or sens_frac > 1
-      runner.registerError("Sensible fraction must be greater than or equal to 0 and less than or equal to 1.")
+    if (sens_frac < 0) || (sens_frac > 1)
+      runner.registerError('Sensible fraction must be greater than or equal to 0 and less than or equal to 1.')
       return false
     end
-    if lat_frac < 0 or lat_frac > 1
-      runner.registerError("Latent fraction must be greater than or equal to 0 and less than or equal to 1.")
+    if (lat_frac < 0) || (lat_frac > 1)
+      runner.registerError('Latent fraction must be greater than or equal to 0 and less than or equal to 1.')
       return false
     end
     if lat_frac + sens_frac > 1
-      runner.registerError("Sum of sensible and latent fractions must be less than or equal to 1.")
+      runner.registerError('Sum of sensible and latent fractions must be less than or equal to 1.')
       return false
     end
 
     # Get building units
-    units = self.get_building_units(model, runner)
+    units = get_building_units(model, runner)
     if units.nil?
       return false
     end
 
     # Error checking
-    if num_occ.length > 1 and num_occ.length != units.size
-      runner.registerError("Number of occupant elements specified inconsistent with number of multifamily units defined in the model.")
+    if (num_occ.length > 1) && (num_occ.length != units.size)
+      runner.registerError('Number of occupant elements specified inconsistent with number of multifamily units defined in the model.')
       return false
     end
 
-    if units.size > 1 and num_occ.length == 1
+    if (units.size > 1) && (num_occ.length == 1)
       num_occ = Array.new(units.size, num_occ[0])
     end
 
-    activity_per_person = UnitConversions.convert(occ_gain, "Btu/hr", "W")
+    activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
 
     # Hard-coded convective, radiative, latent, and lost fractions
     occ_lat = lat_frac
@@ -1517,14 +1516,14 @@ class Geometry
       unit_occ = num_occ[unit_index]
 
       if unit_occ != Constants.Auto
-        if not MathTools.valid_float?(unit_occ) or unit_occ.to_f < 0
+        if (not MathTools.valid_float?(unit_occ)) || (unit_occ.to_f < 0)
           runner.registerError("Number of Occupants must be either '#{Constants.Auto}' or a number greater than or equal to 0.")
           return false
         end
       end
 
       # Get number of beds
-      nbeds, nbaths = self.get_unit_beds_baths(model, unit, runner)
+      nbeds, nbaths = get_unit_beds_baths(model, unit, runner)
       if nbeds.nil?
         return false
       end
@@ -1545,12 +1544,12 @@ class Geometry
       unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumOccupants, unit_occ)
 
       # Get spaces
-      bedroom_ffa_spaces = self.get_bedroom_spaces(unit.spaces)
-      non_bedroom_ffa_spaces = self.get_finished_spaces(unit.spaces) - bedroom_ffa_spaces
+      bedroom_ffa_spaces = get_bedroom_spaces(unit.spaces)
+      non_bedroom_ffa_spaces = get_finished_spaces(unit.spaces) - bedroom_ffa_spaces
 
       # Get FFA
-      non_bedroom_ffa = self.get_finished_floor_area_from_spaces(non_bedroom_ffa_spaces, runner)
-      bedroom_ffa = self.get_finished_floor_area_from_spaces(bedroom_ffa_spaces)
+      non_bedroom_ffa = get_finished_floor_area_from_spaces(non_bedroom_ffa_spaces, runner)
+      bedroom_ffa = get_finished_floor_area_from_spaces(bedroom_ffa_spaces)
       bedroom_ffa = 0 if bedroom_ffa.nil?
       ffa = non_bedroom_ffa + bedroom_ffa
 
@@ -1591,44 +1590,42 @@ class Geometry
           end
         end
 
-        space_num_occ = unit_occ * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
+        space_num_occ = unit_occ * UnitConversions.convert(space.floorArea, 'm^2', 'ft^2') / ffa
 
-        if space_num_occ > 0
+        next unless space_num_occ > 0
 
-          if people_sch.nil?
-            people_sch = schedules_file.create_schedule_file(col_name: "occupants")
-          end
-
-          if activity_sch.nil?
-            # Create schedule
-            activity_sch = OpenStudio::Model::ScheduleRuleset.new(model, activity_per_person)
-          end
-
-          # Add people definition for the occ
-          occ_def = OpenStudio::Model::PeopleDefinition.new(model)
-          occ = OpenStudio::Model::People.new(occ_def)
-          occ.setName(space_obj_name)
-          occ.setSpace(space)
-          occ_def.setName(space_obj_name)
-          occ_def.setNumberOfPeopleCalculationMethod("People", 1)
-          occ_def.setNumberofPeople(space_num_occ)
-          occ_def.setFractionRadiant(occ_rad)
-          occ_def.setSensibleHeatFraction(occ_sens)
-          occ_def.setMeanRadiantTemperatureCalculationType("ZoneAveraged")
-          occ_def.setCarbonDioxideGenerationRate(0)
-          occ_def.setEnableASHRAE55ComfortWarnings(false)
-          occ.setActivityLevelSchedule(activity_sch)
-          occ.setNumberofPeopleSchedule(people_sch)
-
-          total_num_occ += space_num_occ
-
-          runner.registerInfo("#{unit.name.to_s} has been assigned #{space_num_occ.round(2)} occupant(s) for space '#{space.name}'.")
-
+        if people_sch.nil?
+          people_sch = schedules_file.create_schedule_file(col_name: 'occupants')
         end
+
+        if activity_sch.nil?
+          # Create schedule
+          activity_sch = OpenStudio::Model::ScheduleRuleset.new(model, activity_per_person)
+        end
+
+        # Add people definition for the occ
+        occ_def = OpenStudio::Model::PeopleDefinition.new(model)
+        occ = OpenStudio::Model::People.new(occ_def)
+        occ.setName(space_obj_name)
+        occ.setSpace(space)
+        occ_def.setName(space_obj_name)
+        occ_def.setNumberOfPeopleCalculationMethod('People', 1)
+        occ_def.setNumberofPeople(space_num_occ)
+        occ_def.setFractionRadiant(occ_rad)
+        occ_def.setSensibleHeatFraction(occ_sens)
+        occ_def.setMeanRadiantTemperatureCalculationType('ZoneAveraged')
+        occ_def.setCarbonDioxideGenerationRate(0)
+        occ_def.setEnableASHRAE55ComfortWarnings(false)
+        occ.setActivityLevelSchedule(activity_sch)
+        occ.setNumberofPeopleSchedule(people_sch)
+
+        total_num_occ += space_num_occ
+
+        runner.registerInfo("#{unit.name.to_s} has been assigned #{space_num_occ.round(2)} occupant(s) for space '#{space.name}'.")
       end
     end
 
-    schedules_file.set_vacancy(col_name: "occupants")
+    schedules_file.set_vacancy(col_name: 'occupants')
 
     runner.registerInfo("The building has been assigned #{total_num_occ.round(2)} occupant(s) across #{units.size} unit(s).")
     return true
@@ -1653,7 +1650,7 @@ class Geometry
   def self.process_eaves(model, runner, eaves_depth, roof_structure)
     # Error checking
     if eaves_depth < 0
-      runner.registerError("Eaves depth must be greater than or equal to 0.")
+      runner.registerError('Eaves depth must be greater than or equal to 0.')
       return false
     end
 
@@ -1667,7 +1664,7 @@ class Geometry
         num_removed += 1
         next unless existing_eaves_depth.nil?
 
-        existing_eaves_depth = self.get_existing_eaves_depth(shading_surface)
+        existing_eaves_depth = get_existing_eaves_depth(shading_surface)
       end
       shading_surface_group.remove
     end
@@ -1676,7 +1673,7 @@ class Geometry
     end
 
     # No eaves to add? Exit here.
-    if eaves_depth == 0 and
+    if (eaves_depth == 0) &&
        runner.registerInfo("No #{Constants.ObjectNameEaves} were added.")
       return true
     end
@@ -1690,18 +1687,18 @@ class Geometry
     shading_surface_group.setName(Constants.ObjectNameEaves)
 
     model.getSurfaces.each do |roof_surface|
-      next unless roof_surface.surfaceType.downcase == "roofceiling"
-      next unless roof_surface.outsideBoundaryCondition.downcase == "outdoors"
+      next unless roof_surface.surfaceType.downcase == 'roofceiling'
+      next unless roof_surface.outsideBoundaryCondition.downcase == 'outdoors'
 
       if roof_structure == Constants.RoofStructureTrussCantilever
-        l, w, h = self.get_surface_dimensions(roof_surface)
+        l, w, h = get_surface_dimensions(roof_surface)
         if get_building_type(model) == Constants.BuildingTypeSingleFamilyAttached
           lift = (h / w) * eaves_depth
         else
           lift = (h / [l, w].min) * eaves_depth
         end
 
-        m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+        m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
         m[2, 3] = lift
         transformation = OpenStudio::Transformation.new(m)
         new_vertices = transformation * roof_surface.vertices
@@ -1722,25 +1719,25 @@ class Geometry
 
           dir_vector = OpenStudio::Vector3d.new(vertex_1.x - vertex_dir.x, vertex_1.y - vertex_dir.y, vertex_1.z - vertex_dir.z) # works if angles are right angles
 
-          if (dir_vector.dot(OpenStudio::Vector3d.new(vertex_1.x - vertex_2.x, vertex_1.y - vertex_2.y, vertex_1.z - vertex_2.z))).abs > 0.0001 # ensure perpendicular
+          if dir_vector.dot(OpenStudio::Vector3d.new(vertex_1.x - vertex_2.x, vertex_1.y - vertex_2.y, vertex_1.z - vertex_2.z)).abs > 0.0001 # ensure perpendicular
             dir_vector = OpenStudio::Vector3d.new(0, vertex_1.y - vertex_dir.y, vertex_1.z - vertex_dir.z)
           end
 
-          if (dir_vector.dot(OpenStudio::Vector3d.new(vertex_1.x - vertex_2.x, vertex_1.y - vertex_2.y, vertex_1.z - vertex_2.z))).abs > 0.0001 # ensure perpendicular
+          if dir_vector.dot(OpenStudio::Vector3d.new(vertex_1.x - vertex_2.x, vertex_1.y - vertex_2.y, vertex_1.z - vertex_2.z)).abs > 0.0001 # ensure perpendicular
             dir_vector = OpenStudio::Vector3d.new(vertex_1.x - vertex_dir.x, 0, vertex_1.z - vertex_dir.z)
           end
 
-          if (dir_vector.dot(OpenStudio::Vector3d.new(vertex_1.x - vertex_2.x, vertex_1.y - vertex_2.y, vertex_1.z - vertex_2.z))).abs > 0.0001 # ensure perpendicular
+          if dir_vector.dot(OpenStudio::Vector3d.new(vertex_1.x - vertex_2.x, vertex_1.y - vertex_2.y, vertex_1.z - vertex_2.z)).abs > 0.0001 # ensure perpendicular
             dir_vector = OpenStudio::Vector3d.new(0, vertex_1.y - vertex_dir.y, vertex_1.z - vertex_dir.z)
           end
 
-          if (dir_vector.dot(OpenStudio::Vector3d.new(vertex_1.x - vertex_2.x, vertex_1.y - vertex_2.y, vertex_1.z - vertex_2.z))).abs > 0.0001 # ensure perpendicular
+          if dir_vector.dot(OpenStudio::Vector3d.new(vertex_1.x - vertex_2.x, vertex_1.y - vertex_2.y, vertex_1.z - vertex_2.z)).abs > 0.0001 # ensure perpendicular
             dir_vector = OpenStudio::Vector3d.new(vertex_1.x - vertex_dir_backup.x, vertex_1.y - vertex_dir_backup.y, vertex_1.z - vertex_dir_backup.z)
           end
 
           dir_vector_n = OpenStudio::Vector3d.new(dir_vector.x / dir_vector.length, dir_vector.y / dir_vector.length, dir_vector.z / dir_vector.length) # normalize
 
-          l, w, h = self.get_surface_dimensions(roof_surface)
+          l, w, h = get_surface_dimensions(roof_surface)
           tilt = Math.atan(h / [l, w].min)
 
           z = eaves_depth / Math.cos(tilt)
@@ -1750,7 +1747,7 @@ class Geometry
             scale = z / eaves_depth
           end
 
-          m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+          m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
           m[0, 3] = dir_vector_n.x * eaves_depth * scale
           m[1, 3] = dir_vector_n.y * eaves_depth * scale
           m[2, 3] = dir_vector_n.z * eaves_depth * scale
@@ -1773,7 +1770,7 @@ class Geometry
             new_vertices = transformation * new_vertices
           end
 
-          m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+          m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
           m[2, 3] = roof_surface.space.get.zOrigin
           new_vertices = OpenStudio::Transformation.new(m) * new_vertices
 
@@ -1806,7 +1803,7 @@ class Geometry
           end
         end
 
-        l, w, h = self.get_surface_dimensions(roof_surface)
+        l, w, h = get_surface_dimensions(roof_surface)
         tilt = Math.atan(h / [l, w].min)
 
         z = eaves_depth / Math.cos(tilt)
@@ -1824,7 +1821,7 @@ class Geometry
 
         dir_vector_n = OpenStudio::Vector3d.new(dir_vector.x / dir_vector.length, dir_vector.y / dir_vector.length, dir_vector.z / dir_vector.length) # normalize
 
-        m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+        m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
         m[0, 3] = dir_vector_n.x * eaves_depth * scale
         m[1, 3] = dir_vector_n.y * eaves_depth * scale
         m[2, 3] = dir_vector_n.z * eaves_depth * scale
@@ -1843,7 +1840,7 @@ class Geometry
           new_vertices = transformation * new_vertices
         end
 
-        m = self.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
+        m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
         m[2, 3] = roof_surface.space.get.zOrigin
         new_vertices = OpenStudio::Transformation.new(m) * new_vertices
 
@@ -1865,8 +1862,8 @@ class Geometry
       end
 
       model.getSurfaces.each do |roof_surface|
-        next unless roof_surface.surfaceType.downcase == "roofceiling"
-        next unless roof_surface.outsideBoundaryCondition.downcase == "outdoors" or roof_surface.outsideBoundaryCondition.downcase == "adiabatic"
+        next unless roof_surface.surfaceType.downcase == 'roofceiling'
+        next unless (roof_surface.outsideBoundaryCondition.downcase == 'outdoors') || (roof_surface.outsideBoundaryCondition.downcase == 'adiabatic')
 
         roof_surface_vertices = []
         roof_surface.vertices.reverse.each do |vertex|
@@ -1874,7 +1871,7 @@ class Geometry
         end
 
         polygon = OpenStudio::subtract(roof_surface_vertices, [new_shading_vertices], 0.001)[0]
-        if not polygon.nil? and (OpenStudio::getArea(roof_surface_vertices).get - OpenStudio::getArea(polygon).get > 0.001)
+        if (not polygon.nil?) && (OpenStudio::getArea(roof_surface_vertices).get - OpenStudio::getArea(polygon).get > 0.001)
           shading_surfaces_to_remove << shading_surface
         end
       end
@@ -1912,14 +1909,14 @@ class Geometry
 
   def self.process_neighbors(model, runner, left_neighbor_offset, right_neighbor_offset, back_neighbor_offset, front_neighbor_offset)
     # Error checking
-    if left_neighbor_offset < 0 or right_neighbor_offset < 0 or back_neighbor_offset < 0 or front_neighbor_offset < 0
-      runner.registerError("Neighbor offsets must be greater than or equal to 0.")
+    if (left_neighbor_offset < 0) || (right_neighbor_offset < 0) || (back_neighbor_offset < 0) || (front_neighbor_offset < 0)
+      runner.registerError('Neighbor offsets must be greater than or equal to 0.')
       return false
     end
 
     surfaces = model.getSurfaces
     if surfaces.size == 0
-      runner.registerInfo("No surfaces found to copy for neighboring buildings.")
+      runner.registerInfo('No surfaces found to copy for neighboring buildings.')
       return true
     end
 
@@ -1948,7 +1945,7 @@ class Geometry
     greatest_y = -9e99
     greatest_z = -9e99
     surfaces.each do |surface|
-      next unless surface.surfaceType.downcase == "wall"
+      next unless surface.surfaceType.downcase == 'wall'
 
       space = surface.space.get
       surface.vertices.each do |vertex|
@@ -1972,9 +1969,9 @@ class Geometry
 
     # Neighbors for multifamily buildings
     if get_building_type(model) == Constants.BuildingTypeMultifamily
-      num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger("num_floors").get
-      level = model.getBuilding.additionalProperties.getFeatureAsString("level").get
-      has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean("has_rear_units").get
+      num_floors = model.getBuilding.additionalProperties.getFeatureAsInteger('num_floors').get
+      level = model.getBuilding.additionalProperties.getFeatureAsString('level').get
+      has_rear_units = model.getBuilding.additionalProperties.getFeatureAsBoolean('has_rear_units').get
 
       model_spaces = model.getSpaces
       spaces = []
@@ -1983,8 +1980,8 @@ class Geometry
 
         spaces << space
       end
-      unit_height = UnitConversions.convert(Geometry.get_height_of_spaces(spaces), "ft", "m")
-      floor_mults = { "Bottom" => num_floors - 1, "Middle" => (num_floors / 2).floor, "Top" => 0 }
+      unit_height = UnitConversions.convert(Geometry.get_height_of_spaces(spaces), 'ft', 'm')
+      floor_mults = { 'Bottom' => num_floors - 1, 'Middle' => (num_floors / 2).floor, 'Top' => 0 }
       greatest_z += unit_height * floor_mults[level]
 
       unit_length = greatest_y - least_y
@@ -2043,8 +2040,8 @@ class Geometry
   end
 
   def self.process_orientation(model, runner, orientation)
-    if orientation > 360 or orientation < 0
-      runner.registerError("Invalid orientation entered.")
+    if (orientation > 360) || (orientation < 0)
+      runner.registerError('Invalid orientation entered.')
       return false
     end
 

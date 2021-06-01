@@ -8,7 +8,7 @@ require 'minitest/autorun'
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
     project_dir = 'project_testing'
-    num_samples = 1
+    num_samples = 10
 
     all_results = []
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_measures_osw'))
@@ -99,8 +99,8 @@ class TestResStockMeasuresOSW < MiniTest::Test
   end
 
   def create_weather_folder(parent_dir, project_dir)
-    src = File.join(parent_dir, "..", "..", "resources", "measures", "HPXMLtoOpenStudio", "weather", project_dir)
-    des = File.join(parent_dir, "..", "..", "weather")
+    src = File.join(parent_dir, '..', '..', 'resources', 'measures', 'HPXMLtoOpenStudio', 'weather', project_dir)
+    des = File.join(parent_dir, '..', '..', 'weather')
     FileUtils.cp_r(src, des)
 
     return des

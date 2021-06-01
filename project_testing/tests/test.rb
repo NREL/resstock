@@ -1,6 +1,6 @@
 require_relative '../../test/minitest_helper'
 require 'minitest/autorun'
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), "..", "..")
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', '..')
 load 'Rakefile'
 require 'json'
 

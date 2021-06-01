@@ -1,6 +1,6 @@
 require_relative '../../minitest_helper'
 require 'minitest/autorun'
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), "..", "..", "..")
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', '..', '..')
 load 'Rakefile'
 
 class TestRegenerateTestOSMs < MiniTest::Test

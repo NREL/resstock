@@ -7,7 +7,7 @@ require 'minitest/autorun'
 class WorkflowTest < MiniTest::Test
   def test_examples_osw
     all_results = []
-    parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), ".."))
+    parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
 
     create_lib_folder(parent_dir)
     Dir["#{parent_dir}/*.osw"].each do |osw|
