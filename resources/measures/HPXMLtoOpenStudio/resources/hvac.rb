@@ -2054,7 +2054,7 @@ class HVAC
           clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(capacity, 'Btu/hr', 'W')) # Used by HVACSizing measure
         end
         clg_coil.setRatedSensibleHeatRatio(shr)
-        clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(UnitConversions.convert(eer, 'Btu/hr', 'W')))
+        clg_coil.setRatedCOP(UnitConversions.convert(calc_ceer_from_eer(eer), 'Btu/hr', 'W'))
         clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(773.3))
         clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(0.9))
         clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
@@ -2087,6 +2087,11 @@ class HVAC
     end # control_zone
 
     return true
+  end
+
+  def self.calc_ceer_from_eer(eer)
+    # Reference: http://documents.dps.ny.gov/public/Common/ViewDoc.aspx?DocRefId=%7BB6A57FC0-6376-4401-92BD-D66EC1930DCF%7D
+    return eer / 1.01
   end
 
   def self.apply_furnace(model, unit, runner, fuel_type, afue,
