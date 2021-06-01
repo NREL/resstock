@@ -462,6 +462,12 @@ class RunOSWs
   end
 
   def self.get_simulation_output_report(result, rows)
+    rows['SimulationOutputReport'].each do |k, v|
+      begin
+        rows['SimulationOutputReport'][k] = v.round(1)
+      rescue NoMethodError
+      end
+    end
     result = result.merge(rows['SimulationOutputReport'])
     result.delete('applicable')
     result.delete('upgrade_name')
