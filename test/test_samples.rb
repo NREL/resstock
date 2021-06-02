@@ -8,7 +8,7 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 30 }
+    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 1 }
     @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
     @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
@@ -26,50 +26,56 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def test_baseline
+    scenario_dir = File.join(@top_dir, 'baseline')
+    Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
+
+    all_results = []
     @project_dir_baseline.each do |project_dir, num_samples|
-      results_csv = samples_osw('baseline', project_dir, num_samples)
+      samples_osw(scenario_dir, project_dir, num_samples, all_results)
+    end
 
-      rows = CSV.read(results_csv)
+    results_dir = File.join(scenario_dir, 'results')
+    RunOSWs._rm_path(results_dir)
+    results_csv = RunOSWs.write_summary_results(results_dir, all_results)
+    puts "\nWrote: #{results_csv}\n\n"
 
-      if project_dir == 'project_testing'
-        assert_equal(num_samples, rows.length - 1)
-      end
+    rows = CSV.read(results_csv)
 
-      cols = rows.transpose
-      cols.each do |col|
-        next if col[0] != 'completed_status'
+    cols = rows.transpose
+    cols.each do |col|
+      next if col[0] != 'completed_status'
 
-        assert(col[1..-1].all? { |x| x == 'Success' })
-      end
+      assert(col[1..-1].all? { |x| x == 'Success' })
     end
   end
 
   def test_upgrades
+    scenario_dir = File.join(@top_dir, 'upgrades')
+    Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
+    
+    all_results = []
     @project_dir_upgrades.each do |project_dir, num_samples|
-      results_csv = samples_osw('upgrades', project_dir, num_samples)
+      samples_osw(scenario_dir, project_dir, num_samples, all_results)
+    end
 
-      rows = CSV.read(results_csv)
+    results_dir = File.join(scenario_dir, 'results')
+    RunOSWs._rm_path(results_dir)
+    results_csv = RunOSWs.write_summary_results(results_dir, all_results)
+    puts "\nWrote: #{results_csv}\n\n"
 
-      if project_dir == 'project_testing'
-        num_upgrades = Dir["#{@top_dir}/workflow-upgrades*.osw"].length
-        assert_equal(num_samples * num_upgrades, rows.length - 1)
-      end
+    rows = CSV.read(results_csv)
 
-      cols = rows.transpose
-      cols.each do |col|
-        next if col[0] != 'completed_status'
+    cols = rows.transpose
+    cols.each do |col|
+      next if col[0] != 'completed_status'
 
-        assert(col[1..-1].all? { |x| x != 'Fail' })
-      end
+      assert(col[1..-1].all? { |x| x != 'Fail' })
     end
   end
 
   private
 
-  def samples_osw(scenario, project_dir, num_samples)
-    scenario_dir = File.join(@top_dir, scenario)
-    Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
-
+  def samples_osw(scenario_dir, project_dir, num_samples, all_results)
     parent_dir = File.join(scenario_dir, project_dir)
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
@@ -77,9 +83,8 @@ class IntegrationWorkflowTest < MiniTest::Test
     create_lib_folder(project_dir)
 
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    all_results = []
     Dir["#{@top_dir}/workflow*.osw"].each do |osw|
-      next unless osw.include?(scenario)
+      next unless osw.include?(File.basename(scenario_dir))
 
       osw_basename = File.basename(osw)
       puts "\nWorkflow: #{osw_basename} ...\n"
@@ -99,6 +104,7 @@ class IntegrationWorkflowTest < MiniTest::Test
         change_building_id(osw, building_id)
         finished_job, result = RunOSWs.run_and_check(osw, @top_dir)
         result['OSW'] = "#{building_id}.osw"
+        result['PROJECT'] = project_dir
         all_results << result
 
         result = check_finished_job(result, finished_job)
@@ -125,13 +131,6 @@ class IntegrationWorkflowTest < MiniTest::Test
     Dir["#{@top_dir}/workflow*.osw"].each do |osw|
       change_building_id(osw, 1)
     end
-
-    results_dir = File.join(parent_dir, 'results')
-    RunOSWs._rm_path(results_dir)
-    csv_out = RunOSWs.write_summary_results(results_dir, all_results)
-    puts "\nWrote: #{csv_out}\n\n"
-
-    return csv_out
   end
 
   def create_buildstock_csv(project_dir, num_samples)
