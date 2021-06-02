@@ -46,7 +46,7 @@ jobs:
       - name: Store measures osws
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_measures_osw/project_national_results
+          path: test/test_samples_osw/project_national_results
           name: results
 
       - name: Store schedules
@@ -67,7 +67,7 @@ jobs:
       - name: Store base measures osws
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_measures_osw/base_results
+          path: test/test_samples_osw/base_results
           name: base_results
 
       - uses: actions/checkout@v2
@@ -90,15 +90,15 @@ jobs:
 
       - name: Compare results
         run: |
-          cp -r base_results/results*.csv test/test_measures_osw/base_results
-          mkdir test/test_measures_osw/results
-          cp -r results/results* test/test_measures_osw/results
+          cp -r base_results/results*.csv test/test_samples_osw/base_results
+          mkdir test/test_samples_osw/results
+          cp -r results/results* test/test_samples_osw/results
           ruby test/compare.rb
 
       - name: Store comparisons
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_measures_osw/comparisons
+          path: test/test_samples_osw/comparisons
           name: comparisons
 
   update-results:
@@ -121,8 +121,8 @@ jobs:
         run: |
           branch_name="${{ github.head_ref }}"
           git pull origin $branch_name
-          cp -r results/results* test/test_measures_osw/base_results
-          git add test/test_measures_osw/base_results
+          cp -r results/results* test/test_samples_osw/base_results
+          git add test/test_samples_osw/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
