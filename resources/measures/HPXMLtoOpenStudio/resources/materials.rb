@@ -25,17 +25,11 @@ class Material
       end
       @rho = mat_base.rho
       @cp = mat_base.cp
-      @tAbs = mat_base.tAbs
-      @sAbs = mat_base.sAbs
-      @vAbs = mat_base.vAbs
     else
       @k_in = nil
       @k = nil
       @rho = nil
       @cp = nil
-      @tAbs = nil
-      @sAbs = nil
-      @vAbs = nil
     end
 
     # Override the base material if both are included
@@ -49,15 +43,9 @@ class Material
     if not cp.nil?
       @cp = cp # Btu/lb*F
     end
-    if not tAbs.nil?
-      @tAbs = tAbs
-    end
-    if not sAbs.nil?
-      @sAbs = sAbs
-    end
-    if not vAbs.nil?
-      @vAbs = vAbs
-    end
+    @tAbs = tAbs
+    @sAbs = sAbs
+    @vAbs = vAbs
 
     # Calculate R-value
     if not rvalue.nil?
@@ -384,16 +372,13 @@ class Material
 end
 
 class BaseMaterial
-  def initialize(rho, cp, k_in, tAbs = nil, sAbs = nil, vAbs = nil)
+  def initialize(rho, cp, k_in, tAbs = nil)
     @rho = rho
     @cp = cp
     @k_in = k_in
-    @tAbs = tAbs
-    @sAbs = sAbs
-    @vAbs = vAbs
   end
 
-  attr_accessor :rho, :cp, :k_in, :tAbs, :sAbs, :vAbs
+  attr_accessor :rho, :cp, :k_in
 
   def self.Gypsum
     return self.new(rho = 50.0, cp = 0.2, k_in = 1.1112)
@@ -404,7 +389,7 @@ class BaseMaterial
   end
 
   def self.Concrete
-    return self.new(rho = 140.0, cp = 0.2, k_in = 12.5, tAbs = 0.9, sAbs = 0.75, vAbs = 0.75)
+    return self.new(rho = 140.0, cp = 0.2, k_in = 12.5)
   end
 
   def self.Gypcrete
