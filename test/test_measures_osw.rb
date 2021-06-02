@@ -18,7 +18,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
       weather_dir = create_weather_folder(parent_dir, 'project_testing')
 
       runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-      Dir["#{parent_dir}/workflow.osw"].each do |osw|
+      Dir["#{parent_dir}/workflow-baseline.osw"].each do |osw|
         measures_osw_dir = nil
         measures_upgrade_osw_dir = nil
 
@@ -67,7 +67,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
         end # building_id
       end # osw
 
-      Dir["#{parent_dir}/workflow.osw"].each do |osw|
+      Dir["#{parent_dir}/workflow-baseline.osw"].each do |osw|
         change_building_id(osw, 1)
       end
 
