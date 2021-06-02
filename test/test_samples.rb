@@ -11,7 +11,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     weather_dir = create_weather_folder(parent_dir, 'project_testing')
 
     all_results = []
-    [['project_testing', 10], ['project_national', 30]].each do |scenario|
+    [['project_testing', 11], ['project_national', 30]].each do |scenario|
       project_dir, num_samples = scenario
 
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
