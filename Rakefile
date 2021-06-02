@@ -84,11 +84,8 @@ def regenerate_osms
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     success = apply_measures(File.expand_path('../measures/', __FILE__), measures, runner, model)
     success2 = apply_measures(File.expand_path('../resources/measures', __FILE__), resources_measures, runner, model)
-    if runner.result.errors.size > 0
-      runner.result.errors.each do |error|
-        puts error.logMessage
-      end
-      fail
+    runner.result.errors.each do |error|
+      puts error.logMessage
     end
     if !success || !success2 || runner.result.errors.size > 0
       fail "Measures not successfully applied for #{osw}."
