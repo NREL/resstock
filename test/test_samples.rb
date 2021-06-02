@@ -43,8 +43,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
           change_building_id(osw, building_id)
           RunOSWs.add_simulation_output_report(osw)
           out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
-          result['OSW'] = "#{building_id}.osw"
-          result['PROJECT'] = project_dir
+          result['OSW'] = "#{project_dir}-#{building_id}.osw"
           all_results << result
 
           # Check workflow was successful
