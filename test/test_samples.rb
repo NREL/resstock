@@ -6,12 +6,12 @@ require_relative '../resources/buildstock'
 require 'minitest/autorun'
 
 class TestResStockMeasuresOSW < MiniTest::Test
-  def test_measures_osw
-    parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_measures_osw'))
+  def test_samples_osw
+    parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
     weather_dir = create_weather_folder(parent_dir, 'project_testing')
 
     all_results = []
-    [['project_testing', 1], ['project_national', 1]].each do |scenario|
+    [['project_testing', 10], ['project_national', 30]].each do |scenario|
       project_dir, num_samples = scenario
 
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
@@ -88,7 +88,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
   private
 
   def create_buildstock_csv(project_dir, num_samples)
-    outfile = File.join('..', 'test', 'test_measures_osw', 'buildstock.csv')
+    outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
     r = RunSampling.new
     r.run(project_dir, num_samples, outfile)
 
