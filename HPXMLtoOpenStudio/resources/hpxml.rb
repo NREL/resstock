@@ -230,6 +230,7 @@ class HPXML < Object
   SidingTypeAluminum = 'aluminum siding'
   SidingTypeBrick = 'brick veneer'
   SidingTypeFiberCement = 'fiber cement siding'
+  SidingTypeNone = 'none'
   SidingTypeStucco = 'stucco'
   SidingTypeVinyl = 'vinyl siding'
   SidingTypeWood = 'wood siding'
