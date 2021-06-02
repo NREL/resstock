@@ -8,11 +8,8 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = 'project_testing'
-    @num_samples_baseline = 10
-
-    @project_dir_upgrades = 'project_testing'
-    @num_samples_upgrades = 1
+    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 30 }
+    @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
     @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
@@ -29,55 +26,54 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def test_baseline
-    results_csv = samples_osw('baseline', @project_dir_baseline, @num_samples_baseline)
+    @project_dir_baseline.each do |project_dir, num_samples|
+      results_csv = samples_osw('baseline', project_dir, num_samples)
 
-    rows = CSV.read(results_csv)
+      rows = CSV.read(results_csv)
 
-    assert_equal(@num_samples_baseline, rows.length - 1)
+      assert_equal(num_samples, rows.length - 1)
 
-    cols = rows.transpose
-    cols.each do |col|
-      next if col[0] != 'completed_status'
+      cols = rows.transpose
+      cols.each do |col|
+        next if col[0] != 'completed_status'
 
-      assert(col[1..-1].all? { |x| x == 'Success' })
+        assert(col[1..-1].all? { |x| x == 'Success' })
+      end
     end
   end
 
   def test_upgrades
-    results_csv = samples_osw('upgrades', @project_dir_upgrades, @num_samples_upgrades)
+    @project_dir_upgrades.each do |project_dir, num_samples|
+      results_csv = samples_osw('upgrades', project_dir, num_samples)
 
-    rows = CSV.read(results_csv)
+      rows = CSV.read(results_csv)
 
-    num_upgrades = Dir["#{@top_dir}/workflow-upgrades*.osw"].length
-    assert_equal(@num_samples_upgrades * num_upgrades, rows.length - 1)
+      num_upgrades = Dir["#{@top_dir}/workflow-upgrades*.osw"].length
+      assert_equal(num_samples * num_upgrades, rows.length - 1)
 
-    cols = rows.transpose
-    cols.each do |col|
-      next if col[0] != 'completed_status'
+      cols = rows.transpose
+      cols.each do |col|
+        next if col[0] != 'completed_status'
 
-      assert(col[1..-1].all? { |x| x != 'Fail' })
+        assert(col[1..-1].all? { |x| x != 'Fail' })
+      end
     end
   end
 
   private
 
   def samples_osw(scenario, project_dir, num_samples)
-    if project_dir == 'project_national'
-      parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
-      if Dir["#{parent_dir}/weather/*.epw"].size < 10
-        cli_path = OpenStudio.getOpenStudioCLI
-        command = "cd #{parent_dir} && \"#{cli_path}\" tasks.rb download_weather"
-        system(command)
-      end
-    end
+    scenario_dir = File.join(@top_dir, scenario)
+    Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
 
-    all_results = []
-    parent_dir = File.join(@top_dir, scenario)
+    parent_dir = File.join(scenario_dir, project_dir)
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
     create_buildstock_csv(project_dir, num_samples)
     create_lib_folder(project_dir)
 
+    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+    all_results = []
     Dir["#{@top_dir}/workflow*.osw"].each do |osw|
       next unless osw.include?(scenario)
 
@@ -91,6 +87,9 @@ class IntegrationWorkflowTest < MiniTest::Test
       Dir.mkdir(xml_dir) unless File.exist?(xml_dir)
 
       (1..num_samples).to_a.each do |building_id|
+        bldg_data = get_data_for_sample(File.join(@lib_dir, 'housing_characteristics/buildstock.csv'), building_id, runner)
+        next unless counties.include? bldg_data['County']
+
         puts "\n\tBuilding Unit ID: #{building_id} ...\n"
 
         change_building_id(osw, building_id)
@@ -165,5 +164,16 @@ class IntegrationWorkflowTest < MiniTest::Test
     end
 
     return result
+  end
+
+  def counties
+    return [
+      'AZ, Maricopa County',
+      'CA, Los Angeles County',
+      'GA, Fulton County',
+      'IL, Cook County',
+      'TX, Harris County',
+      'WA, King County'
+    ]
   end
 end
