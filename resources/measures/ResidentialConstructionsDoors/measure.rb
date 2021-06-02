@@ -7,20 +7,20 @@
 # see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "util")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "constructions")
+require File.join(resources_path, 'util')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'constructions')
 
 # start the measure
 class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Door Construction"
+    return 'Set Residential Door Construction'
   end
 
   def description
@@ -28,7 +28,7 @@ class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "Calculates material layer properties of constructions for exterior door sub-surfaces. Any existing constructions for these sub-surfaces will be removed."
+    return 'Calculates material layer properties of constructions for exterior door sub-surfaces. Any existing constructions for these sub-surfaces will be removed.'
   end
 
   # define the arguments that the user will input
@@ -36,10 +36,10 @@ class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make a string argument for door u-factor
-    ufactor = OpenStudio::Measure::OSArgument::makeDoubleArgument("ufactor", true)
-    ufactor.setDisplayName("U-Factor")
-    ufactor.setUnits("Btu/hr-ft^2-R")
-    ufactor.setDescription("The heat transfer coefficient of the doors adjacent to finished space.")
+    ufactor = OpenStudio::Measure::OSArgument::makeDoubleArgument('ufactor', true)
+    ufactor.setDisplayName('U-Factor')
+    ufactor.setUnits('Btu/hr-ft^2-R')
+    ufactor.setDescription('The heat transfer coefficient of the doors adjacent to finished space.')
     ufactor.setDefaultValue(0.2)
     args << ufactor
 
@@ -55,12 +55,12 @@ class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    ufactor = runner.getDoubleArgumentValue("ufactor", user_arguments)
+    ufactor = runner.getDoubleArgumentValue('ufactor', user_arguments)
 
     finished_subsurfaces = []
     unfinished_subsurfaces = []
     model.getSubSurfaces.each do |subsurface|
-      next unless subsurface.subSurfaceType.downcase.include? "door"
+      next unless subsurface.subSurfaceType.downcase.include? 'door'
 
       if Geometry.space_is_finished(subsurface.surface.get.space.get)
         finished_subsurfaces << subsurface
@@ -72,13 +72,13 @@ class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
     # Apply constructions
     if not SubsurfaceConstructions.apply_door(runner, model,
                                               finished_subsurfaces,
-                                              "Door", ufactor)
+                                              'Door', ufactor)
       return false
     end
 
     if not SubsurfaceConstructions.apply_door(runner, model,
                                               unfinished_subsurfaces,
-                                              "UninsDoor", 0.2)
+                                              'UninsDoor', 0.2)
       return false
     end
 

@@ -1,6 +1,6 @@
-require_relative "psychrometrics"
-require_relative "constants"
-require_relative "unit_conversions"
+require_relative 'psychrometrics'
+require_relative 'constants'
+require_relative 'unit_conversions'
 
 class WeatherHeader
   def initialize
@@ -49,7 +49,7 @@ class WeatherProcess
     @epw_file = OpenStudio::EpwFile.new(@epw_path, true)
 
     cached = get_cached_weather(@model)
-    return if cached or @error
+    return if cached || @error
 
     process_epw
 
@@ -62,31 +62,31 @@ class WeatherProcess
 
   def add_design_days_for_autosizing
     heating_design_day = OpenStudio::Model::DesignDay.new(@model)
-    heating_design_day.setName("Ann Htg 99% Condns DB")
-    heating_design_day.setMaximumDryBulbTemperature(UnitConversions.convert(@design.HeatingDrybulb, "F", "C"))
-    heating_design_day.setHumidityIndicatingConditionsAtMaximumDryBulb(UnitConversions.convert(@design.HeatingDrybulb, "F", "C"))
-    heating_design_day.setBarometricPressure(UnitConversions.convert(Psychrometrics.Pstd_fZ(@header.Altitude), "psi", "pa"))
+    heating_design_day.setName('Ann Htg 99% Condns DB')
+    heating_design_day.setMaximumDryBulbTemperature(UnitConversions.convert(@design.HeatingDrybulb, 'F', 'C'))
+    heating_design_day.setHumidityIndicatingConditionsAtMaximumDryBulb(UnitConversions.convert(@design.HeatingDrybulb, 'F', 'C'))
+    heating_design_day.setBarometricPressure(UnitConversions.convert(Psychrometrics.Pstd_fZ(@header.Altitude), 'psi', 'pa'))
     heating_design_day.setWindSpeed(@design.HeatingWindspeed)
     heating_design_day.setDayOfMonth(21)
     heating_design_day.setMonth(1)
-    heating_design_day.setDayType("WinterDesignDay")
-    heating_design_day.setHumidityIndicatingType("Wetbulb")
-    heating_design_day.setDryBulbTemperatureRangeModifierType("DefaultMultipliers")
-    heating_design_day.setSolarModelIndicator("ASHRAEClearSky")
+    heating_design_day.setDayType('WinterDesignDay')
+    heating_design_day.setHumidityIndicatingType('Wetbulb')
+    heating_design_day.setDryBulbTemperatureRangeModifierType('DefaultMultipliers')
+    heating_design_day.setSolarModelIndicator('ASHRAEClearSky')
 
     cooling_design_day = OpenStudio::Model::DesignDay.new(@model)
-    cooling_design_day.setName("Ann Clg 1% Condns DB=>MWB")
-    cooling_design_day.setMaximumDryBulbTemperature(UnitConversions.convert(@design.CoolingDrybulb, "F", "C"))
-    cooling_design_day.setDailyDryBulbTemperatureRange(UnitConversions.convert(@design.DailyTemperatureRange, "R", "K"))
-    cooling_design_day.setHumidityIndicatingConditionsAtMaximumDryBulb(UnitConversions.convert(@design.CoolingWetbulb, "F", "C"))
-    cooling_design_day.setBarometricPressure(UnitConversions.convert(Psychrometrics.Pstd_fZ(@header.Altitude), "psi", "pa"))
+    cooling_design_day.setName('Ann Clg 1% Condns DB=>MWB')
+    cooling_design_day.setMaximumDryBulbTemperature(UnitConversions.convert(@design.CoolingDrybulb, 'F', 'C'))
+    cooling_design_day.setDailyDryBulbTemperatureRange(UnitConversions.convert(@design.DailyTemperatureRange, 'R', 'K'))
+    cooling_design_day.setHumidityIndicatingConditionsAtMaximumDryBulb(UnitConversions.convert(@design.CoolingWetbulb, 'F', 'C'))
+    cooling_design_day.setBarometricPressure(UnitConversions.convert(Psychrometrics.Pstd_fZ(@header.Altitude), 'psi', 'pa'))
     cooling_design_day.setWindSpeed(@design.CoolingWindspeed)
     cooling_design_day.setDayOfMonth(21)
     cooling_design_day.setMonth(7)
-    cooling_design_day.setDayType("SummerDesignDay")
-    cooling_design_day.setHumidityIndicatingType("Wetbulb")
-    cooling_design_day.setDryBulbTemperatureRangeModifierType("DefaultMultipliers")
-    cooling_design_day.setSolarModelIndicator("ASHRAEClearSky")
+    cooling_design_day.setDayType('SummerDesignDay')
+    cooling_design_day.setHumidityIndicatingType('Wetbulb')
+    cooling_design_day.setDryBulbTemperatureRangeModifierType('DefaultMultipliers')
+    cooling_design_day.setSolarModelIndicator('ASHRAEClearSky')
   end
 
   def get_days_for_month(month, is_leap_year)
@@ -114,7 +114,7 @@ class WeatherProcess
     timestamps = []
     dst_timestamps = []
     utc_timestamps = []
-    if start_actual_year.is_initialized and end_actual_year.is_initialized
+    if start_actual_year.is_initialized && end_actual_year.is_initialized
       start_actual_year = start_actual_year.get
       end_actual_year = end_actual_year.get
       is_leap_year = { true => 1, false => 0 }[@model.getYearDescription.isLeapYear]
@@ -123,7 +123,7 @@ class WeatherProcess
       start_time = Time.utc(start_actual_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth, 0, 1)
       end_time = Time.utc(end_actual_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
 
-      if reporting_frequency == "Timestep"
+      if reporting_frequency == 'Timestep'
         tstep = @model.getTimestep.numberOfTimestepsPerHour
 
         unless run_period_control_daylight_saving_time.nil?
@@ -138,24 +138,24 @@ class WeatherProcess
               (0..23).to_a.each do |hour|
                 (0..60 - (60 / tstep)).step(60 / tstep).to_a.each do |minute|
                   ts = Time.utc(year, month, day, hour, minute)
-                  next if ts < start_time or ts > end_time
+                  next if (ts < start_time) || (ts > end_time)
 
-                  timestamps << ts.strftime("%Y/%m/%d %H:%M:00")
-                  utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
+                  timestamps << ts.strftime('%Y/%m/%d %H:%M:00')
+                  utc_timestamps << (ts - utc_offset_sec).strftime('%Y/%m/%d %H:%M:00')
                   next if run_period_control_daylight_saving_time.nil?
 
-                  if ts >= dst_start_ts and ts < dst_end_ts
+                  if (ts >= dst_start_ts) && (ts < dst_end_ts)
                     dst_ts = ts + 60 * 60 # 1 hr shift forward
-                    dst_timestamps << dst_ts.strftime("%Y/%m/%d %H:%M:00")
+                    dst_timestamps << dst_ts.strftime('%Y/%m/%d %H:%M:00')
                   else
-                    dst_timestamps << ts.strftime("%Y/%m/%d %H:%M:00")
+                    dst_timestamps << ts.strftime('%Y/%m/%d %H:%M:00')
                   end
                 end
               end
             end
           end
         end
-      elsif reporting_frequency == "Hourly"
+      elsif reporting_frequency == 'Hourly'
         unless run_period_control_daylight_saving_time.nil?
           dst_start_ts = Time.utc(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth, dst_start_time.hours)
           dst_end_ts = Time.utc(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth, dst_end_time.hours)
@@ -168,24 +168,24 @@ class WeatherProcess
               (1..24).to_a.each do |hour|
                 ts = Time.utc(year, month, day, hour)
 
-                next if ts < start_time or ts > end_time
+                next if (ts < start_time) || (ts > end_time)
 
-                timestamps << ts.strftime("%Y/%m/%d %H:00:00")
-                utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
+                timestamps << ts.strftime('%Y/%m/%d %H:00:00')
+                utc_timestamps << (ts - utc_offset_sec).strftime('%Y/%m/%d %H:%M:00')
 
                 next if run_period_control_daylight_saving_time.nil?
 
-                if ts >= dst_start_ts and ts < dst_end_ts
+                if (ts >= dst_start_ts) && (ts < dst_end_ts)
                   dst_ts = ts + 60 * 60 # 1 hr shift forward
-                  dst_timestamps << dst_ts.strftime("%Y/%m/%d %H:00:00")
+                  dst_timestamps << dst_ts.strftime('%Y/%m/%d %H:00:00')
                 else
-                  dst_timestamps << ts.strftime("%Y/%m/%d %H:00:00")
+                  dst_timestamps << ts.strftime('%Y/%m/%d %H:00:00')
                 end
               end
             end
           end
         end
-      elsif reporting_frequency == "Daily"
+      elsif reporting_frequency == 'Daily'
         unless run_period_control_daylight_saving_time.nil?
           dst_start_ts = Time.utc(dst_start_date.year, dst_start_date.monthOfYear.value, dst_start_date.dayOfMonth)
           dst_end_ts = Time.utc(dst_end_date.year, dst_end_date.monthOfYear.value, dst_end_date.dayOfMonth)
@@ -196,22 +196,22 @@ class WeatherProcess
             days = get_days_for_month(month, is_leap_year)
             days.to_a.each do |day|
               ts = Time.utc(year, month, day)
-              next if ts < start_time or ts > end_time
+              next if (ts < start_time) || (ts > end_time)
 
-              timestamps << ts.strftime("%Y/%m/%d 00:00:00")
-              utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
+              timestamps << ts.strftime('%Y/%m/%d 00:00:00')
+              utc_timestamps << (ts - utc_offset_sec).strftime('%Y/%m/%d %H:%M:00')
               next if run_period_control_daylight_saving_time.nil?
 
-              if ts >= dst_start_ts and ts < dst_end_ts
+              if (ts >= dst_start_ts) && (ts < dst_end_ts)
                 dst_ts = ts + 60 * 60 # 1 hr shift forward
-                dst_timestamps << dst_ts.strftime("%Y/%m/%d 00:00:00")
+                dst_timestamps << dst_ts.strftime('%Y/%m/%d 00:00:00')
               else
-                dst_timestamps << ts.strftime("%Y/%m/%d 00:00:00")
+                dst_timestamps << ts.strftime('%Y/%m/%d 00:00:00')
               end
             end
           end
         end
-      elsif reporting_frequency == "Monthly"
+      elsif reporting_frequency == 'Monthly'
         unless run_period_control_daylight_saving_time.nil?
           dst_start_ts = Time.utc(dst_start_date.year, dst_start_date.monthOfYear.value)
           dst_end_ts = Time.utc(dst_end_date.year, dst_end_date.monthOfYear.value)
@@ -220,35 +220,35 @@ class WeatherProcess
         (start_actual_year..end_actual_year + 1).to_a.each do |year|
           (1..12).to_a.each do |month|
             ts = Time.utc(year, month)
-            next if ts < start_time or ts > end_time
+            next if (ts < start_time) || (ts > end_time)
 
-            timestamps << ts.strftime("%Y/%m/01 00:00:00")
-            utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
+            timestamps << ts.strftime('%Y/%m/01 00:00:00')
+            utc_timestamps << (ts - utc_offset_sec).strftime('%Y/%m/%d %H:%M:00')
             next if run_period_control_daylight_saving_time.nil?
 
-            if ts >= dst_start_ts and ts < dst_end_ts
+            if (ts >= dst_start_ts) && (ts < dst_end_ts)
               dst_ts = ts + 60 * 60 # 1 hr shift forward
-              dst_timestamps << dst_ts.strftime("%Y/%m/01 00:00:00")
+              dst_timestamps << dst_ts.strftime('%Y/%m/01 00:00:00')
             else
-              dst_timestamps << ts.strftime("%Y/%m/01 00:00:00")
+              dst_timestamps << ts.strftime('%Y/%m/01 00:00:00')
             end
           end
         end
-      elsif reporting_frequency == "Runperiod"
+      elsif reporting_frequency == 'Runperiod'
         unless run_period_control_daylight_saving_time.nil?
           dst_start_ts = Time.utc(dst_start_date.year)
           dst_end_ts = Time.utc(dst_end_date.year)
         end
 
         ts = Time.utc(end_actual_year + 1)
-        timestamps << ts.strftime("%Y/01/01 00:00:00")
-        utc_timestamps << (ts - utc_offset_sec).strftime("%Y/%m/%d %H:%M:00")
+        timestamps << ts.strftime('%Y/01/01 00:00:00')
+        utc_timestamps << (ts - utc_offset_sec).strftime('%Y/%m/%d %H:%M:00')
         unless run_period_control_daylight_saving_time.nil?
-          if ts >= dst_start_ts and ts < dst_end_ts
+          if (ts >= dst_start_ts) && (ts < dst_end_ts)
             dst_ts = ts + 60 * 60 # 1 hr shift forward
-            dst_timestamps << dst_ts.strftime("%Y/01/01 00:00:00")
+            dst_timestamps << dst_ts.strftime('%Y/01/01 00:00:00')
           else
-            dst_timestamps << ts.strftime("%Y/01/01 00:00:00")
+            dst_timestamps << ts.strftime('%Y/01/01 00:00:00')
           end
         end
       end
@@ -289,7 +289,7 @@ class WeatherProcess
       # array
       elsif ['MonthlyAvgDrybulbs', 'GroundMonthlyTemps',
              'MonthlyAvgDailyHighDrybulbs', 'MonthlyAvgDailyLowDrybulbs'].include? k
-        wf_ap.setFeature("EPWData#{k}", @data.send(k).join(","))
+        wf_ap.setFeature("EPWData#{k}", @data.send(k).join(','))
       else
         @runner.registerError("Weather data key #{k} not handled.")
         @error = true
@@ -325,16 +325,16 @@ class WeatherProcess
       if wf.path.is_initialized
         epw_path = wf.path.get.to_s
       else
-        epw_path = wf.url.to_s.sub("file:///", "").sub("file://", "").sub("file:", "")
+        epw_path = wf.url.to_s.sub('file:///', '').sub('file://', '').sub('file:', '')
       end
-      if not File.exists? epw_path
+      if not File.exist? epw_path
         epw_path = File.absolute_path(File.join(File.dirname(__FILE__), epw_path))
       end
       return epw_path
     end
 
-    runner.registerError("Model has not been assigned a weather file.")
-    return nil
+    runner.registerError('Model has not been assigned a weather file.')
+    return
   end
 
   def get_cached_weather(model)
@@ -345,16 +345,16 @@ class WeatherProcess
       k = k.to_s
       # string
       if ['City', 'State', 'Country', 'DataSource', 'Station'].include? k
-        @header.send(k + "=", wf_ap.getFeatureAsString("EPWHeader#{k}"))
+        @header.send(k + '=', wf_ap.getFeatureAsString("EPWHeader#{k}"))
         return false if !@header.send(k).is_initialized
 
-        @header.send(k + "=", @header.send(k).get)
+        @header.send(k + '=', @header.send(k).get)
       # double
       elsif ['Latitude', 'Longitude', 'Timezone', 'Altitude', 'LocalPressure', 'RecordsPerHour'].include? k
-        @header.send(k + "=", wf_ap.getFeatureAsDouble("EPWHeader#{k}"))
+        @header.send(k + '=', wf_ap.getFeatureAsDouble("EPWHeader#{k}"))
         return false if !@header.send(k).is_initialized
 
-        @header.send(k + "=", @header.send(k).get)
+        @header.send(k + '=', @header.send(k).get)
       else
         @runner.registerError("Weather header key #{k} not handled.")
         @error = true
@@ -368,17 +368,17 @@ class WeatherProcess
       # double
       if ['AnnualAvgDrybulb', 'AnnualMinDrybulb', 'AnnualMaxDrybulb', 'CDD50F', 'CDD65F',
           'HDD50F', 'HDD65F', 'AnnualAvgWindspeed', 'WSF'].include? k
-        @data.send(k + "=", wf_ap.getFeatureAsDouble("EPWData#{k}"))
+        @data.send(k + '=', wf_ap.getFeatureAsDouble("EPWData#{k}"))
         return false if !@data.send(k).is_initialized
 
-        @data.send(k + "=", @data.send(k).get)
+        @data.send(k + '=', @data.send(k).get)
       # array
       elsif ['MonthlyAvgDrybulbs', 'GroundMonthlyTemps',
              'MonthlyAvgDailyHighDrybulbs', 'MonthlyAvgDailyLowDrybulbs'].include? k
-        @data.send(k + "=", wf_ap.getFeatureAsString("EPWData#{k}"))
+        @data.send(k + '=', wf_ap.getFeatureAsString("EPWData#{k}"))
         return false if !@data.send(k).is_initialized
 
-        @data.send(k + "=", @data.send(k).get.split(",").map(&:to_f))
+        @data.send(k + '=', @data.send(k).get.split(',').map(&:to_f))
       else
         @runner.registerError("Weather data key #{k} not handled.")
         @error = true
@@ -390,10 +390,10 @@ class WeatherProcess
     WeatherDesign::ATTRS.each do |k|
       k = k.to_s
       # double
-      @design.send(k + "=", wf_ap.getFeatureAsDouble("EPWDesign#{k}"))
+      @design.send(k + '=', wf_ap.getFeatureAsDouble("EPWDesign#{k}"))
       return false if !@design.send(k).is_initialized
 
-      @design.send(k + "=", @design.send(k).get)
+      @design.send(k + '=', @design.send(k).get)
     end
 
     return true
@@ -409,7 +409,7 @@ class WeatherProcess
     @header.Latitude = @epw_file.latitude
     @header.Longitude = @epw_file.longitude
     @header.Timezone = @epw_file.timeZone
-    @header.Altitude = UnitConversions.convert(@epw_file.elevation, "m", "ft")
+    @header.Altitude = UnitConversions.convert(@epw_file.elevation, 'm', 'ft')
     @header.LocalPressure = Math::exp(-0.0000368 * @header.Altitude) # atm
     @header.RecordsPerHour = @epw_file.recordsPerHour
 
@@ -469,26 +469,24 @@ class WeatherProcess
 
       rowdata << rowdict
 
-      if (rownum + 1) % (24 * @header.RecordsPerHour) == 0
+      next unless (rownum + 1) % (24 * @header.RecordsPerHour) == 0
 
-        db = []
-        maxdb = rowdata[rowdata.length - (24 * @header.RecordsPerHour)]['db']
-        mindb = rowdata[rowdata.length - (24 * @header.RecordsPerHour)]['db']
-        rowdata[rowdata.length - (24 * @header.RecordsPerHour)..-1].each do |x|
-          if x['db'] > maxdb
-            maxdb = x['db']
-          end
-          if x['db'] < mindb
-            mindb = x['db']
-          end
-          db << x['db']
+      db = []
+      maxdb = rowdata[rowdata.length - (24 * @header.RecordsPerHour)]['db']
+      mindb = rowdata[rowdata.length - (24 * @header.RecordsPerHour)]['db']
+      rowdata[rowdata.length - (24 * @header.RecordsPerHour)..-1].each do |x|
+        if x['db'] > maxdb
+          maxdb = x['db']
         end
-
-        dailydbs << db.inject { |sum, n| sum + n } / (24.0 * @header.RecordsPerHour)
-        dailyhighdbs << maxdb
-        dailylowdbs << mindb
-
+        if x['db'] < mindb
+          mindb = x['db']
+        end
+        db << x['db']
       end
+
+      dailydbs << db.inject { |sum, n| sum + n } / (24.0 * @header.RecordsPerHour)
+      dailyhighdbs << maxdb
+      dailylowdbs << mindb
     end
 
     year_description = @model.getYearDescription
@@ -503,7 +501,7 @@ class WeatherProcess
     @data.WSF = get_ashrae_622_wsf
 
     if not epwHasDesignData
-      @runner.registerWarning("No design condition info found; calculating design conditions from EPW weather data.")
+      @runner.registerWarning('No design condition info found; calculating design conditions from EPW weather data.')
       calc_design_info(rowdata)
       @design.DailyTemperatureRange = @data.MonthlyAvgDailyHighDrybulbs[7] - @data.MonthlyAvgDailyLowDrybulbs[7]
     end
@@ -526,11 +524,11 @@ class WeatherProcess
       db << x['db']
     end
 
-    @data.AnnualAvgDrybulb = UnitConversions.convert(db.inject { |sum, n| sum + n } / db.length, "C", "F")
+    @data.AnnualAvgDrybulb = UnitConversions.convert(db.inject { |sum, n| sum + n } / db.length, 'C', 'F')
 
     # Peak temperatures:
-    @data.AnnualMinDrybulb = UnitConversions.convert(mindict['db'], "C", "F")
-    @data.AnnualMaxDrybulb = UnitConversions.convert(maxdict['db'], "C", "F")
+    @data.AnnualMinDrybulb = UnitConversions.convert(mindict['db'], 'C', 'F')
+    @data.AnnualMaxDrybulb = UnitConversions.convert(maxdict['db'], 'C', 'F')
   end
 
   def calc_monthly_drybulbs(hd)
@@ -545,7 +543,7 @@ class WeatherProcess
       end
       month_dbtotal = y.inject { |sum, n| sum + n }
       month_hours = y.length
-      @data.MonthlyAvgDrybulbs << UnitConversions.convert(month_dbtotal / month_hours, "C", "F")
+      @data.MonthlyAvgDrybulbs << UnitConversions.convert(month_dbtotal / month_hours, 'C', 'F')
     end
   end
 
@@ -569,7 +567,7 @@ class WeatherProcess
 
   def calc_degree_days(daily_dbs, base_temp_f, is_heating)
     # Calculates and returns degree days from a base temperature for either heating or cooling
-    base_temp_c = UnitConversions.convert(base_temp_f, "F", "C")
+    base_temp_c = UnitConversions.convert(base_temp_f, 'F', 'C')
 
     deg_days = []
     if is_heating
@@ -606,8 +604,8 @@ class WeatherProcess
       end
       avg_high = daily_high_dbs[first_day, ndays].inject { |sum, n| sum + n } / ndays.to_f
       avg_low = daily_low_dbs[first_day, ndays].inject { |sum, n| sum + n } / ndays.to_f
-      @data.MonthlyAvgDailyHighDrybulbs << UnitConversions.convert(avg_high, "C", "F")
-      @data.MonthlyAvgDailyLowDrybulbs << UnitConversions.convert(avg_low, "C", "F")
+      @data.MonthlyAvgDailyHighDrybulbs << UnitConversions.convert(avg_high, 'C', 'F')
+      @data.MonthlyAvgDailyLowDrybulbs << UnitConversions.convert(avg_low, 'C', 'F')
     end
   end
 
@@ -643,8 +641,8 @@ class WeatherProcess
     # Sets the WSF value.
 
     ashrae_csv = File.join(File.dirname(__FILE__), 'ASHRAE622WSF.csv')
-    if not File.exists?(ashrae_csv)
-      return nil
+    if not File.exist?(ashrae_csv)
+      return
     end
 
     ashrae_csvlines = []
@@ -685,14 +683,14 @@ class WeatherProcess
     if epw_design_conditions.length > 0
       epwHasDesignData = true
       epw_design_conditions = epw_design_conditions[0]
-      @design.HeatingDrybulb = UnitConversions.convert(epw_design_conditions.heatingDryBulb99, "C", "F")
+      @design.HeatingDrybulb = UnitConversions.convert(epw_design_conditions.heatingDryBulb99, 'C', 'F')
       @design.HeatingWindspeed = epw_design_conditions.heatingColdestMonthWindSpeed1 # TODO: This field is consistent with BEopt, but should be heatingMeanCoincidentWindSpeed99pt6 instead?
-      @design.CoolingDrybulb = UnitConversions.convert(epw_design_conditions.coolingDryBulb1, "C", "F")
-      @design.CoolingWetbulb = UnitConversions.convert(epw_design_conditions.coolingMeanCoincidentWetBulb1, "C", "F")
+      @design.CoolingDrybulb = UnitConversions.convert(epw_design_conditions.coolingDryBulb1, 'C', 'F')
+      @design.CoolingWetbulb = UnitConversions.convert(epw_design_conditions.coolingMeanCoincidentWetBulb1, 'C', 'F')
       @design.CoolingWindspeed = epw_design_conditions.coolingMeanCoincidentWindSpeed0pt4
-      @design.DailyTemperatureRange = UnitConversions.convert(epw_design_conditions.coolingDryBulbRange, "K", "R")
-      @design.DehumidDrybulb = UnitConversions.convert(epw_design_conditions.coolingDehumidificationMeanCoincidentDryBulb2, "C", "F")
-      dehum02per_dp = UnitConversions.convert(epw_design_conditions.coolingDehumidificationDewPoint2, "C", "F")
+      @design.DailyTemperatureRange = UnitConversions.convert(epw_design_conditions.coolingDryBulbRange, 'K', 'R')
+      @design.DehumidDrybulb = UnitConversions.convert(epw_design_conditions.coolingDehumidificationMeanCoincidentDryBulb2, 'C', 'F')
+      dehum02per_dp = UnitConversions.convert(epw_design_conditions.coolingDehumidificationDewPoint2, 'C', 'F')
       std_press = Psychrometrics.Pstd_fZ(@header.Altitude)
       @design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press)
       @design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(dehum02per_dp, dehum02per_dp, std_press)
@@ -722,18 +720,18 @@ class WeatherProcess
     cool_windspeed = []
     cool_wetbulb = []
     for i in 0..(annual_hd_sorted_by_db.size - 1)
-      if (annual_hd_sorted_by_db[i]['db'] > cool01per_db - 0.5) and (annual_hd_sorted_by_db[i]['db'] < cool01per_db + 0.5)
-        cool_windspeed << annual_hd_sorted_by_db[i]['ws']
-        wb = Psychrometrics.Twb_fT_R_P(UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], "C", "F"), annual_hd_sorted_by_db[i]['rh'], std_press)
-        cool_wetbulb << wb
-      end
+      next unless (annual_hd_sorted_by_db[i]['db'] > cool01per_db - 0.5) && (annual_hd_sorted_by_db[i]['db'] < cool01per_db + 0.5)
+
+      cool_windspeed << annual_hd_sorted_by_db[i]['ws']
+      wb = Psychrometrics.Twb_fT_R_P(UnitConversions.convert(annual_hd_sorted_by_db[i]['db'], 'C', 'F'), annual_hd_sorted_by_db[i]['rh'], std_press)
+      cool_wetbulb << wb
     end
     cool_design_wb = cool_wetbulb.inject { |sum, n| sum + n } / cool_wetbulb.size
 
     # Mean coincident values for heating
     heat_windspeed = []
     for i in 0..(annual_hd_sorted_by_db.size - 1)
-      if (annual_hd_sorted_by_db[i]['db'] > heat99per_db - 0.5) and (annual_hd_sorted_by_db[i]['db'] < heat99per_db + 0.5)
+      if (annual_hd_sorted_by_db[i]['db'] > heat99per_db - 0.5) && (annual_hd_sorted_by_db[i]['db'] < heat99per_db + 0.5)
         heat_windspeed << annual_hd_sorted_by_db[i]['ws']
       end
     end
@@ -741,22 +739,22 @@ class WeatherProcess
     # Mean coincident values for dehumidification
     dehum_drybulb = []
     for i in 0..(annual_hd_sorted_by_dp.size - 1)
-      if (annual_hd_sorted_by_dp[i]['dp'] > dehum02per_dp - 0.5) and (annual_hd_sorted_by_dp[i]['dp'] < dehum02per_dp + 0.5)
+      if (annual_hd_sorted_by_dp[i]['dp'] > dehum02per_dp - 0.5) && (annual_hd_sorted_by_dp[i]['dp'] < dehum02per_dp + 0.5)
         dehum_drybulb << annual_hd_sorted_by_dp[i]['db']
       end
     end
     dehum_design_db = dehum_drybulb.inject { |sum, n| sum + n } / dehum_drybulb.size
 
-    @design.CoolingDrybulb = UnitConversions.convert(cool01per_db, "C", "F")
+    @design.CoolingDrybulb = UnitConversions.convert(cool01per_db, 'C', 'F')
     @design.CoolingWetbulb = cool_design_wb
     @design.CoolingHumidityRatio = Psychrometrics.w_fT_Twb_P(design.CoolingDrybulb, design.CoolingWetbulb, std_press)
     @design.CoolingWindspeed = cool_windspeed.inject { |sum, n| sum + n } / cool_windspeed.size
 
-    @design.HeatingDrybulb = UnitConversions.convert(heat99per_db, "C", "F")
+    @design.HeatingDrybulb = UnitConversions.convert(heat99per_db, 'C', 'F')
     @design.HeatingWindspeed = heat_windspeed.inject { |sum, n| sum + n } / heat_windspeed.size
 
-    @design.DehumidDrybulb = UnitConversions.convert(dehum_design_db, "C", "F")
-    @design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(UnitConversions.convert(dehum02per_dp, "C", "F"), UnitConversions.convert(dehum02per_dp, "C", "F"), std_press)
+    @design.DehumidDrybulb = UnitConversions.convert(dehum_design_db, 'C', 'F')
+    @design.DehumidHumidityRatio = Psychrometrics.w_fT_Twb_P(UnitConversions.convert(dehum02per_dp, 'C', 'F'), UnitConversions.convert(dehum02per_dp, 'C', 'F'), std_press)
   end
 
   def calc_ground_temperatures
@@ -765,7 +763,7 @@ class WeatherProcess
     amon = [15.0, 46.0, 74.0, 95.0, 135.0, 166.0, 196.0, 227.0, 258.0, 288.0, 319.0, 349.0]
     po = 0.6
     dif = 0.025
-    p = UnitConversions.convert(1.0, "yr", "hr")
+    p = UnitConversions.convert(1.0, 'yr', 'hr')
 
     beta = Math::sqrt(Math::PI / (p * dif)) * 10.0
     x = Math::exp(-beta)
@@ -781,7 +779,7 @@ class WeatherProcess
     @data.GroundMonthlyTemps = []
     (0..11).to_a.each do |i|
       theta = amon[i] * 24.0
-      @data.GroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, "R", "F")
+      @data.GroundMonthlyTemps << UnitConversions.convert(data.AnnualAvgDrybulb - bo * Math::cos(2.0 * Math::PI / p * theta - po - phi) * gm + 460.0, 'R', 'F')
     end
   end
 
