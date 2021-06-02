@@ -267,18 +267,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     return true
   end
-
-  def get_data_for_sample(buildstock_csv, building_id, runner)
-    CSV.foreach(buildstock_csv, headers: true) do |sample|
-      next if sample['Building'].to_i != building_id
-
-      return sample
-    end
-    # If we got this far, couldn't find the sample #
-    msg = "Could not find row for #{building_id.to_s} in #{File.basename(buildstock_csv).to_s}."
-    runner.registerError(msg)
-    fail msg
-  end
 end
 
 # register the measure to be used by the application
