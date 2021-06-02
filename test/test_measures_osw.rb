@@ -9,7 +9,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
   def test_measures_osw
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_measures_osw'))
 
-    [['project_testing', 10], ['project_national', 30]].each do |scenario|
+    [['project_testing', 1], ['project_national', 30]].each do |scenario|
       project_dir, num_samples = scenario
 
       all_results = []
