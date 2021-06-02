@@ -2430,7 +2430,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return { 'OpenStudio::Model::WaterHeaterMixed' => ["Water Heater #{fuel} Energy", "Water Heater Off Cycle Parasitic #{fuel} Energy", "Water Heater On Cycle Parasitic #{fuel} Energy"],
                'OpenStudio::Model::WaterHeaterStratified' => ["Water Heater #{fuel} Energy", "Water Heater Off Cycle Parasitic #{fuel} Energy", "Water Heater On Cycle Parasitic #{fuel} Energy"],
                'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => ["Cooling Coil Water Heating #{fuel} Energy"],
-               'OpenStudio::Model::FanOnOff' => ["Fan #{fuel} Energy"] }
+               'OpenStudio::Model::FanOnOff' => ["Fan #{fuel} Energy"] } # TOOD: Update if this changes to FanSystemModel per https://github.com/NREL/OpenStudio/issues/4334
     end
 
     def self.WaterHeatingLoad

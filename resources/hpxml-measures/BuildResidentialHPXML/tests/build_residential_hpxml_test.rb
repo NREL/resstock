@@ -389,6 +389,15 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       end
       hpxml.collapse_enclosure_surfaces()
 
+      # Round values
+      (hpxml.roofs + hpxml.rim_joists + hpxml.walls + hpxml.foundation_walls + hpxml.frame_floors + hpxml.slabs).each do |surface|
+        next if surface.area.nil?
+        surface.area = surface.area.round
+      end
+      hpxml.slabs.each do |slab|
+        slab.exposed_perimeter = slab.exposed_perimeter.round
+      end
+
       # Replace IDs/IDREFs with blank strings
       HPXML::HPXML_ATTRS.each do |attr|
         hpxml_obj = hpxml.send(attr)
@@ -414,8 +423,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       measure_path = File.join(File.dirname(__FILE__), 'test_measure.xml')
       XMLHelper.write_file(measure_doc, measure_path)
       flunk "ERROR: HPXML files don't match. Wrote #{rakefile_path} and #{measure_path} for inspection."
-    else
-      pass
     end
   end
 
