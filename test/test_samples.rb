@@ -31,7 +31,9 @@ class IntegrationWorkflowTest < MiniTest::Test
 
       rows = CSV.read(results_csv)
 
-      assert_equal(num_samples, rows.length - 1)
+      if project_dir == 'project_testing'
+        assert_equal(num_samples, rows.length - 1)
+      end
 
       cols = rows.transpose
       cols.each do |col|
@@ -48,8 +50,10 @@ class IntegrationWorkflowTest < MiniTest::Test
 
       rows = CSV.read(results_csv)
 
-      num_upgrades = Dir["#{@top_dir}/workflow-upgrades*.osw"].length
-      assert_equal(num_samples * num_upgrades, rows.length - 1)
+      if project_dir == 'project_testing'
+        num_upgrades = Dir["#{@top_dir}/workflow-upgrades*.osw"].length
+        assert_equal(num_samples * num_upgrades, rows.length - 1)
+      end
 
       cols = rows.transpose
       cols.each do |col|
