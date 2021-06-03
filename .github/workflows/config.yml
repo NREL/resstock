@@ -21,21 +21,26 @@ jobs:
         run: |
           rm -f Gemfile.lock && bundle install
 
+      - name: Show environment
+        run: |
+          bundle -v
+          ruby -v
+
       - name: Run integrity checks for all projects
         run: |
-          #rake unit_tests:project_integrity_checks
+          rake unit_tests:project_integrity_checks
 
       - name: Run all integrity check unit tests
         run: |
-          #rake unit_tests:integrity_check_tests
+          rake unit_tests:integrity_check_tests
 
       - name: Run all measure tests
         run: |
-          #rake unit_tests:measure_tests
+          rake unit_tests:measure_tests
 
       - name: Run regression tests for all example osws
         run: |
-          #rake regression:workflow_tests
+          rake regression:workflow_tests
 
       - name: Run integration tests for sampled datapoints
         run: |
@@ -44,15 +49,13 @@ jobs:
       - name: Upload regression results
         uses: actions/upload-artifact@v2
         with:
-          path: |
-            workflows/results
+          path: workflows/results
           name: examples
 
       - name: Upload integration results
         uses: actions/upload-artifact@v2
         with:
-          path: |
-            test/test_samples_osw/baseline/results
+          path: test/test_samples_osw/baseline/results
           name: results
 
   compare-results:
@@ -67,7 +70,7 @@ jobs:
       - name: Store base integration results
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_measures_osw/base_results
+          path: test/test_samples_osw/base_results
           name: base_results
 
       - uses: actions/checkout@v2
