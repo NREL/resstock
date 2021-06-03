@@ -162,11 +162,9 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def check_finished_job(result, finished_job)
-    begin
-      assert(File.exist?(finished_job))
+    result['completed_status'] = 'Fail'
+    if File.exist?(finished_job)
       result['completed_status'] = 'Success'
-    rescue
-      result['completed_status'] = 'Fail'
     end
 
     return result
