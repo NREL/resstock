@@ -13,7 +13,7 @@ namespace :test do
   desc 'Run unit tests for all projects/measures'
   Rake::TestTask.new('unit_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['test/test_measures_osw.rb']
+    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['test/test_samples.rb']
     t.warning = false
     t.verbose = true
   end
@@ -83,7 +83,13 @@ def regenerate_osms
     model = OpenStudio::Model::Model.new
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     success = apply_measures(File.expand_path('../measures/', __FILE__), measures, runner, model)
-    success = apply_measures(File.expand_path('../resources/measures', __FILE__), resources_measures, runner, model)
+    success2 = apply_measures(File.expand_path('../resources/measures', __FILE__), resources_measures, runner, model)
+    runner.result.errors.each do |error|
+      puts error.logMessage
+    end
+    if !success || !success2 || runner.result.errors.size > 0
+      fail "Measures not successfully applied for #{osw}."
+    end
 
     osm = File.expand_path('../test/osw_files/in.osm', __FILE__)
     File.open(osm, 'w') { |f| f << model.to_s }

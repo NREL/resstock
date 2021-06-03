@@ -6,16 +6,16 @@ require_relative '../resources/buildstock'
 require 'minitest/autorun'
 
 class TestResStockMeasuresOSW < MiniTest::Test
-  def test_measures_osw
-    parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_measures_osw'))
+  def test_samples_osw
+    parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
+    weather_dir = create_weather_folder(parent_dir, 'project_testing')
 
-    [['project_testing', 1], ['project_national', 30]].each do |scenario|
+    all_results = []
+    [['project_testing', 10], ['project_national', 30]].each do |scenario|
       project_dir, num_samples = scenario
 
-      all_results = []
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
       lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
-      weather_dir = create_weather_folder(parent_dir, 'project_testing')
 
       runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
       Dir["#{parent_dir}/workflow-baseline.osw"].each do |osw|
@@ -43,7 +43,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
           change_building_id(osw, building_id)
           RunOSWs.add_simulation_output_report(osw)
           out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
-          result['OSW'] = "#{building_id}.osw"
+          result['OSW'] = "#{project_dir}-#{building_id}.osw"
           all_results << result
 
           # Check workflow was successful
@@ -72,21 +72,22 @@ class TestResStockMeasuresOSW < MiniTest::Test
       end
 
       FileUtils.rm_rf(lib_dir) if File.exist?(lib_dir)
-      FileUtils.rm_rf(weather_dir) if File.exist?(weather_dir)
-      FileUtils.rm_rf(File.join(parent_dir, 'run'))
-      FileUtils.rm_rf(File.join(parent_dir, 'reports'))
       FileUtils.mv(File.join(parent_dir, 'buildstock.csv'), File.join(parent_dir, "#{project_dir}_buildstock.csv"))
-
-      results_dir = File.join(parent_dir, "#{project_dir}_results")
-      RunOSWs._rm_path(results_dir)
-      RunOSWs.write_summary_results(results_dir, all_results)
     end # scenario
+
+    FileUtils.rm_rf(weather_dir) if File.exist?(weather_dir)
+    FileUtils.rm_rf(File.join(parent_dir, 'run'))
+    FileUtils.rm_rf(File.join(parent_dir, 'reports'))
+
+    results_dir = File.join(parent_dir, 'results')
+    RunOSWs._rm_path(results_dir)
+    RunOSWs.write_summary_results(results_dir, all_results)
   end
 
   private
 
   def create_buildstock_csv(project_dir, num_samples)
-    outfile = File.join('..', 'test', 'test_measures_osw', 'buildstock.csv')
+    outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
     r = RunSampling.new
     r.run(project_dir, num_samples, outfile)
 
