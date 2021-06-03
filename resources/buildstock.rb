@@ -9,7 +9,7 @@ class TsvFile
     @filename = File.basename(full_path)
     @runner = runner
     @rows, @option_cols, @dependency_cols, @dependency_options, @full_header, @header = get_file_data()
-    @rows_keys_s = construct_rows_keys_s()
+    @rows_keys_s, @rows_keys_s_tally = construct_rows_keys_s()
   end
 
   attr_accessor :dependency_cols, :dependency_options, :rows, :option_cols, :header, :filename, :rows_keys_s
@@ -86,7 +86,7 @@ class TsvFile
       end
       rows_keys_s << hash_to_string(row_key_values).downcase
     end
-    return rows_keys_s
+    return rows_keys_s, rows_keys_s.tally
   end
 
   def get_option_name_from_sample_number(sample_value, dependency_values)
@@ -102,18 +102,18 @@ class TsvFile
     key_s = hash_to_string(dependency_values)
     key_s_downcase = key_s.downcase
 
-    num_matches = @rows_keys_s.count(key_s_downcase)
-    if num_matches > 1
-      if key_s.size > 0
-        register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
-      else
-        register_error("Multiple rows found in #{@filename.to_s}.", @runner)
-      end
-    elsif num_matches == 0
+    num_matches = @rows_keys_s_tally[key_s_downcase]
+    if num_matches.nil?
       if key_s.size > 0
         register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{key_s.to_s}.", @runner)
       else
         register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
+      end
+    elsif num_matches > 1
+      if key_s.size > 0
+        register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
+      else
+        register_error("Multiple rows found in #{@filename.to_s}.", @runner)
       end
     end
 
@@ -131,15 +131,15 @@ class TsvFile
         register_error("Field '#{row[option_col].to_s}' in #{@filename.to_s} must be numeric.", @runner)
       end
       rowvals[option_name] = row[option_col].to_f
-    end
 
-    # Check positivity of the probability values
-    if rowvals.values.min < 0
-      register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+      # Check positivity of the probability values
+      if rowvals[option_name] < 0
+        register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+      end
     end
 
     # Sum of values within 2% of 100%?
-    sum_rowvals = rowvals.values.reduce(:+)
+    sum_rowvals = rowvals.values.sum()
     if (sum_rowvals < 0.98) || (sum_rowvals > 1.02)
       register_error("Values in #{@filename.to_s} incorrectly sum to #{sum_rowvals.to_s}.", @runner)
     end
@@ -153,9 +153,10 @@ class TsvFile
 
     # Find appropriate value
     rowsum = 0
+    n_options = @option_cols.size
     @option_cols.each_with_index do |(option_name, option_col), index|
       rowsum += rowvals[option_name]
-      next unless (rowsum >= sample_value) || ((index == @option_cols.size - 1) && (rowsum + 0.00001 >= sample_value))
+      next unless (rowsum >= sample_value) || ((index == n_options - 1) && (rowsum + 0.00001 >= sample_value))
       matched_option_name = option_name
       matched_row_num = rownum
       break
