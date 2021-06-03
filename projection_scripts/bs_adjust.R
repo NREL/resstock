@@ -329,11 +329,12 @@ bs_base[bs_base$Geometry.Floor.Area=="4000+",]$or<-9
 windows(10,6.3)
 ggplot(bs_base, aes(x = reorder(Geometry.Floor.Area,or), y = count/120000))+
   geom_col(aes(fill = `House Type`), width = 0.75) + theme_bw() +
-  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 1A. Baseline") + 
+  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (ft^2)",subtitle = "Scenario: 1A. Baseline") + 
   scale_y_continuous(labels=scales::percent_format(accuracy = 1),limits=c(0,0.25)) + 
   theme(axis.text=element_text(size=11),
         axis.title=element_text(size=12,face = "bold"),
-        plot.title = element_text(size = 14, face = "bold")) + scale_fill_brewer(palette="Dark2") 
+        plot.title = element_text(size = 14, face = "bold")) + scale_fill_brewer(palette="Dark2") # + 
+  # scale_x_discrete(labels=c("0-499" = "0-46.3", "500-749" = "46.4-69.6", "750-999" = "69.7-92.8","1000-1499"="92.9-139.2","1500-1999"="139.3-185.7"))
 # RFA
 bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="500-749",]$or<-2
 bs_baseRFA[bs_baseRFA$Geometry.Floor.Area=="750-999",]$or<-3
@@ -387,8 +388,8 @@ bs_hiMFRFA[bs_hiMFRFA$Geometry.Floor.Area=="4000+",]$or<-9
 windows(8.6,6.3)
 ggplot(bs_hiMFRFA, aes(x = reorder(Geometry.Floor.Area,or), y = count/120000))+
   geom_col(aes(fill = `House Type`), width = 0.75) + theme_bw() +
-  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario: 3B.High Multifamily, Reduced Floor Area") + 
+  labs(title = "New Housing by Type and Floor Area, 2020-2060",y="Percentage of homes",x="Floor Area Bin (sqft)",subtitle = "Scenario 6. High Multifamily, Reduced Floor Area") + 
   scale_y_continuous(labels=scales::percent_format(accuracy = 1),limits=c(0,0.25)) + 
-  theme(axis.text=element_text(size=11),
+  theme(axis.text=element_text(size=11), legend.text = element_text(size=11),
         axis.title=element_text(size=12,face = "bold"),
         plot.title = element_text(size = 14, face = "bold")) + scale_fill_brewer(palette="Dark2") 
