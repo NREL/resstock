@@ -8,22 +8,22 @@ require 'optparse'
 require_relative '../resources/buildstock'
 
 class RunSampling
-  def run(project_dir_name, num_samples, outfile, housing_characteristics_dir = "housing_characteristics", lookup_file = nil)
+  def run(project_dir_name, num_samples, outfile, housing_characteristics_dir = 'housing_characteristics', lookup_file = nil)
     resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
     characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', housing_characteristics_dir)) # Should have been uploaded per 'Additional Analysis Files' in PAT
-    if not File.exists?(characteristics_dir)
+    if not File.exist?(characteristics_dir)
       characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', project_dir_name, housing_characteristics_dir)) # Being run locally?
     end
 
     if lookup_file.nil?
-      lookup_file = File.join(resources_dir, "options_lookup.tsv")
+      lookup_file = File.join(resources_dir, 'options_lookup.tsv')
     end
 
     params = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
 
     tsvfiles = {}
     params.each do |param|
-      tsvpath = File.join(characteristics_dir, param + ".tsv")
+      tsvpath = File.join(characteristics_dir, param + '.tsv')
       next if not File.exist?(tsvpath) # Not every parameter used by every mode
 
       tsvfile = TsvFile.new(tsvpath, nil)
@@ -31,7 +31,7 @@ class RunSampling
     end
     params = tsvfiles.keys
     if params.size == 0
-      register_error("No parameters found, aborting...", nil)
+      register_error('No parameters found, aborting...', nil)
     end
 
     params = update_parameter_dependencies(params, tsvfiles)
@@ -103,13 +103,13 @@ class RunSampling
           end
           # Ensure correct number of buildings were processed
           if bldgs_processed != num_samples
-            register_error("Sampling algorithm unexpectedly failed.", nil)
+            register_error('Sampling algorithm unexpectedly failed.', nil)
           end
         end
 
         # Ensure no missing values
         if results_data_param.include?(nil)
-          register_error("Sampling algorithm unexpectedly failed.", nil)
+          register_error('Sampling algorithm unexpectedly failed.', nil)
         end
 
         # Add results for this parameter
@@ -173,7 +173,7 @@ class RunSampling
 
   def binary_search(arr, value)
     # Implementation of binary search
-    if arr.nil? or arr.size == 0
+    if arr.nil? || (arr.size == 0)
       return 0
     end
 
@@ -230,7 +230,9 @@ class RunSampling
     end
 
     # Sort array in descending order
-    prob_dist.sort! { |a, b| b[1] <=> a[1] }
+    # Using stable sort algorithm from https://groups.google.com/g/comp.lang.ruby/c/JcDGbaFHifI/m/2gKpc9FQbCoJ
+    n = 0
+    prob_dist = prob_dist.sort_by { |x| n += 1; [x[1], n] }.reverse
 
     if num_samples == 1
       return { prob_dist[0][0] => 1 } # Simply return 1 sample for max item
@@ -276,7 +278,7 @@ class RunSampling
     return_samples.delete_if { |k, v| v == 0 }
 
     if return_samples.values.reduce(:+) != num_samples
-      register_error("Sampling algorithm unexpectedly failed.", nil)
+      register_error('Sampling algorithm unexpectedly failed.', nil)
     end
 
     return return_samples
@@ -333,7 +335,7 @@ if __FILE__ == $PROGRAM_NAME
     end
   end.parse!
 
-  if not options[:project] or not options[:numdps] or not options[:outfile]
+  if (not options[:project]) || (not options[:numdps]) || (not options[:outfile])
     fail "ERROR: All 3 arguments are required. Call #{File.basename(__FILE__)} -h for usage."
   end
 

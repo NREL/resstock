@@ -44,10 +44,9 @@ module OsLib_ReportingHeatGainLoss
     ann_env_pd = nil
     sqlFile.availableEnvPeriods.each do |env_pd|
       env_type = sqlFile.environmentType(env_pd)
-      if env_type.is_initialized
-        if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
-          ann_env_pd = env_pd
-        end
+      next unless env_type.is_initialized
+      if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
+        ann_env_pd = env_pd
       end
     end
 
@@ -191,32 +190,32 @@ module OsLib_ReportingHeatGainLoss
 
     # loop through tables to get annual information
     source_tables.each do |table|
-      title = table[:title].gsub(" (kBtu)", "")
+      title = table[:title].gsub(' (kBtu)', '')
 
       # use subtotal rows for surfaces, total row for everything else
-      if title == "Surface Average Face Conduction Heat Gain"
+      if title == 'Surface Average Face Conduction Heat Gain'
 
         # exterior walls subtotal
         display_value = table[:data][table[:data].size - 4].last
-        sub_total_title = "Exterior Wall Surfaces Heat Gain"
+        sub_total_title = 'Exterior Wall Surfaces Heat Gain'
         summary_table_01[:data] << [sub_total_title, display_value]
-        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(",", "").to_f, color: component_color[sub_total_title])
+        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(',', '').to_f, color: component_color[sub_total_title])
 
         # exterior roofs subtotal
         display_value = table[:data][table[:data].size - 3].last
-        sub_total_title = "Roof Surfaces Heat Gain"
+        sub_total_title = 'Roof Surfaces Heat Gain'
         summary_table_01[:data] << [sub_total_title, display_value]
-        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(",", "").to_f, color: component_color[sub_total_title])
+        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(',', '').to_f, color: component_color[sub_total_title])
 
         # ground subtotal
         display_value = table[:data][table[:data].size - 2].last
-        sub_total_title = "Ground Exposed Surfaces Heat Gain"
+        sub_total_title = 'Ground Exposed Surfaces Heat Gain'
         summary_table_01[:data] << [sub_total_title, display_value]
-        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(",", "").to_f, color: component_color[sub_total_title])
+        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(',', '').to_f, color: component_color[sub_total_title])
       else
         display_value = table[:data].last.last
         summary_table_01[:data] << [title, display_value]
-        summary_table_01[:chart] << JSON.generate(label: title, value: display_value.to_s.gsub(",", "").to_f, color: component_color[title])
+        summary_table_01[:chart] << JSON.generate(label: title, value: display_value.to_s.gsub(',', '').to_f, color: component_color[title])
       end
     end
 
@@ -225,7 +224,7 @@ module OsLib_ReportingHeatGainLoss
 
     # create monthly table
     summary_table_02 = {}
-    summary_table_02[:title] = "Heat Gains Monthly Breakdown (kBtu)"
+    summary_table_02[:title] = 'Heat Gains Monthly Breakdown (kBtu)'
     summary_table_02[:header] = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     summary_table_02[:units] = []
     summary_table_02[:data] = []
@@ -238,30 +237,30 @@ module OsLib_ReportingHeatGainLoss
 
     # loop through tables to get annual information
     source_tables.each do |table|
-      title = table[:title].gsub(" (kBtu)", "")
-      if title == "Surface Average Face Conduction Heat Gain"
+      title = table[:title].gsub(' (kBtu)', '')
+      if title == 'Surface Average Face Conduction Heat Gain'
 
         # exterior walls subtotal
         row_data = []
-        sub_title = "Exterior Wall Surfaces Heat Gain"
+        sub_title = 'Exterior Wall Surfaces Heat Gain'
         target_row = table[:data][table[:data].size - 4]
         row_data << sub_title
         target_row.each_with_index do |value, i|
-          ""
+          ''
           next if i < 3
           next if i == target_row.size - 1 # don't want to include annual total
 
           row_data << value
           # update chart
           month = summary_table_02[:header][i - 2] # shifted over because of extra columns
-          clean_value = value.to_s.gsub(",", "").to_f
+          clean_value = value.to_s.gsub(',', '').to_f
           summary_table_02[:chart] << JSON.generate(label: sub_title, label_x: month, value: clean_value, color: component_color[sub_title])
         end
         summary_table_02[:data] << row_data
 
         # exterior roofs subtotal
         row_data = []
-        sub_title = "Roof Surfaces Heat Gain"
+        sub_title = 'Roof Surfaces Heat Gain'
         target_row = table[:data][table[:data].size - 3]
         row_data << sub_title
         target_row.each_with_index do |value, i|
@@ -271,14 +270,14 @@ module OsLib_ReportingHeatGainLoss
           row_data << value
           # update chart
           month = summary_table_02[:header][i - 2] # shifted over because of extra columns
-          clean_value = value.to_s.gsub(",", "").to_f
+          clean_value = value.to_s.gsub(',', '').to_f
           summary_table_02[:chart] << JSON.generate(label: sub_title, label_x: month, value: clean_value, color: component_color[sub_title])
         end
         summary_table_02[:data] << row_data
 
         # ground subtotal
         row_data = []
-        sub_title = "Ground Exposed Surfaces Heat Gain"
+        sub_title = 'Ground Exposed Surfaces Heat Gain'
         target_row = table[:data][table[:data].size - 2]
         row_data << sub_title
         target_row.each_with_index do |value, i|
@@ -288,7 +287,7 @@ module OsLib_ReportingHeatGainLoss
           row_data << value
           # update chart
           month = summary_table_02[:header][i - 2] # shifted over because of extra columns
-          clean_value = value.to_s.gsub(",", "").to_f
+          clean_value = value.to_s.gsub(',', '').to_f
           summary_table_02[:chart] << JSON.generate(label: sub_title, label_x: month, value: clean_value, color: component_color[sub_title])
         end
         summary_table_02[:data] << row_data
@@ -299,15 +298,15 @@ module OsLib_ReportingHeatGainLoss
         last_row = table[:data].last
         row_data << title
         last_row.each_with_index do |value, i|
-          next if value == "Monthly Totals"
-          next if value == ""
+          next if value == 'Monthly Totals'
+          next if value == ''
           next if i == last_row.size - 1 # don't want to include annual total
 
           row_data << value
 
           # update chart
           month = summary_table_02[:header][i]
-          clean_value = value.to_s.gsub(",", "").to_f
+          clean_value = value.to_s.gsub(',', '').to_f
           summary_table_02[:chart] << JSON.generate(label: title, label_x: month, value: clean_value, color: component_color[title])
         end
         summary_table_02[:data] << row_data
@@ -434,32 +433,32 @@ module OsLib_ReportingHeatGainLoss
 
     # loop through tables to get annual information
     source_tables.each do |table|
-      title = table[:title].gsub(" (kBtu)", "")
+      title = table[:title].gsub(' (kBtu)', '')
 
       # use subtotal rows for surfaces, total row for everything else
-      if title == "Surface Average Face Conduction Heat Loss"
+      if title == 'Surface Average Face Conduction Heat Loss'
 
         # exterior walls subtotal
         display_value = table[:data][table[:data].size - 4].last
-        sub_total_title = "Exterior Wall Surfaces Heat Loss"
+        sub_total_title = 'Exterior Wall Surfaces Heat Loss'
         summary_table_01[:data] << [sub_total_title, display_value]
-        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(",", "").to_f, color: component_color[sub_total_title])
+        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(',', '').to_f, color: component_color[sub_total_title])
 
         # exterior roofs subtotal
         display_value = table[:data][table[:data].size - 3].last
-        sub_total_title = "Roof Surfaces Heat Loss"
+        sub_total_title = 'Roof Surfaces Heat Loss'
         summary_table_01[:data] << [sub_total_title, display_value]
-        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(",", "").to_f, color: component_color[sub_total_title])
+        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(',', '').to_f, color: component_color[sub_total_title])
 
         # ground subtotal
         display_value = table[:data][table[:data].size - 2].last
-        sub_total_title = "Ground Exposed Surfaces Heat Loss"
+        sub_total_title = 'Ground Exposed Surfaces Heat Loss'
         summary_table_01[:data] << [sub_total_title, display_value]
-        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(",", "").to_f, color: component_color[sub_total_title])
+        summary_table_01[:chart] << JSON.generate(label: sub_total_title, value: display_value.to_s.gsub(',', '').to_f, color: component_color[sub_total_title])
       else
         display_value = table[:data].last.last
         summary_table_01[:data] << [title, display_value]
-        summary_table_01[:chart] << JSON.generate(label: title, value: display_value.to_s.gsub(",", "").to_f, color: component_color[title])
+        summary_table_01[:chart] << JSON.generate(label: title, value: display_value.to_s.gsub(',', '').to_f, color: component_color[title])
       end
     end
 
@@ -468,7 +467,7 @@ module OsLib_ReportingHeatGainLoss
 
     # create monthly table
     summary_table_02 = {}
-    summary_table_02[:title] = "Heat Loss Monthly Breakdown (kBtu)"
+    summary_table_02[:title] = 'Heat Loss Monthly Breakdown (kBtu)'
     summary_table_02[:header] = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     summary_table_02[:units] = []
     summary_table_02[:data] = []
@@ -481,12 +480,12 @@ module OsLib_ReportingHeatGainLoss
 
     # loop through tables to get annual information
     source_tables.each do |table|
-      title = table[:title].gsub(" (kBtu)", "")
-      if title == "Surface Average Face Conduction Heat Loss"
+      title = table[:title].gsub(' (kBtu)', '')
+      if title == 'Surface Average Face Conduction Heat Loss'
 
         # exterior walls subtotal
         row_data = []
-        sub_title = "Exterior Wall Surfaces Heat Loss"
+        sub_title = 'Exterior Wall Surfaces Heat Loss'
         target_row = table[:data][table[:data].size - 4]
         row_data << sub_title
         target_row.each_with_index do |value, i|
@@ -496,14 +495,14 @@ module OsLib_ReportingHeatGainLoss
           row_data << value
           # update chart
           month = summary_table_02[:header][i - 2] # shifted over because of extra columns
-          clean_value = value.to_s.gsub(",", "").to_f
+          clean_value = value.to_s.gsub(',', '').to_f
           summary_table_02[:chart] << JSON.generate(label: sub_title, label_x: month, value: clean_value, color: component_color[sub_title])
         end
         summary_table_02[:data] << row_data
 
         # exterior roofs subtotal
         row_data = []
-        sub_title = "Roof Surfaces Heat Loss"
+        sub_title = 'Roof Surfaces Heat Loss'
         target_row = table[:data][table[:data].size - 3]
         row_data << sub_title
         target_row.each_with_index do |value, i|
@@ -513,14 +512,14 @@ module OsLib_ReportingHeatGainLoss
           row_data << value
           # update chart
           month = summary_table_02[:header][i - 2] # shifted over because of extra columns
-          clean_value = value.to_s.gsub(",", "").to_f
+          clean_value = value.to_s.gsub(',', '').to_f
           summary_table_02[:chart] << JSON.generate(label: sub_title, label_x: month, value: clean_value, color: component_color[sub_title])
         end
         summary_table_02[:data] << row_data
 
         # ground subtotal
         row_data = []
-        sub_title = "Ground Exposed Surfaces Heat Loss"
+        sub_title = 'Ground Exposed Surfaces Heat Loss'
         target_row = table[:data][table[:data].size - 2]
         row_data << sub_title
         target_row.each_with_index do |value, i|
@@ -530,7 +529,7 @@ module OsLib_ReportingHeatGainLoss
           row_data << value
           # update chart
           month = summary_table_02[:header][i - 2] # shifted over because of extra columns
-          clean_value = value.to_s.gsub(",", "").to_f
+          clean_value = value.to_s.gsub(',', '').to_f
           summary_table_02[:chart] << JSON.generate(label: sub_title, label_x: month, value: clean_value, color: component_color[sub_title])
         end
         summary_table_02[:data] << row_data
@@ -541,15 +540,15 @@ module OsLib_ReportingHeatGainLoss
         last_row = table[:data].last
         row_data << title
         last_row.each_with_index do |value, i|
-          next if value == "Monthly Totals"
-          next if value == ""
+          next if value == 'Monthly Totals'
+          next if value == ''
           next if i == last_row.size - 1 # don't want to include annual total
 
           row_data << value
 
           # update chart
           month = summary_table_02[:header][i]
-          clean_value = value.to_s.gsub(",", "").to_f
+          clean_value = value.to_s.gsub(',', '').to_f
           summary_table_02[:chart] << JSON.generate(label: title, label_x: month, value: clean_value, color: component_color[title])
         end
         summary_table_02[:data] << row_data
@@ -580,7 +579,7 @@ module OsLib_ReportingHeatGainLoss
     if ann_env_pd
       # loop through keys for variable
       keys = sqlFile.availableKeyValues(ann_env_pd, frequency, var)
-      monthly_totals = ["Monthly Totals", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      monthly_totals = ['Monthly Totals', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
       keys.each do |key|
         total = 0.0
         var_value_monthly = [key]
@@ -636,7 +635,7 @@ module OsLib_ReportingHeatGainLoss
     # add table totals
     monthly_totals_neat = []
     monthly_totals.each do |total|
-      if total == "Monthly Totals"
+      if total == 'Monthly Totals'
         monthly_totals_neat << total
       else
         monthly_totals_neat << OpenStudio::toNeatString(total, 1, true)
@@ -666,8 +665,8 @@ module OsLib_ReportingHeatGainLoss
 
     monthly_totals = {}
     model.getSurfaces.sort.each do |surface|
-      next if surface.outsideBoundaryCondition == "Surface"
-      next if surface.outsideBoundaryCondition == "Adiabatic"
+      next if surface.outsideBoundaryCondition == 'Surface'
+      next if surface.outsideBoundaryCondition == 'Adiabatic'
 
       key = surface.name.to_s
       row_data = []
@@ -718,13 +717,13 @@ module OsLib_ReportingHeatGainLoss
             end
 
             # add sub-totals
-            if surface.outsideBoundaryCondition == "Outdoors" && surface.surfaceType == "Wall"
+            if surface.outsideBoundaryCondition == 'Outdoors' && surface.surfaceType == 'Wall'
               if monthly_totals[month].has_key?(:ext_wall)
                 monthly_totals[month][:ext_wall] += monthly_value_ip
               else
                 monthly_totals[month][:ext_wall] = monthly_value_ip
               end
-            elsif surface.outsideBoundaryCondition == "Outdoors" && surface.surfaceType == "RoofCeiling"
+            elsif surface.outsideBoundaryCondition == 'Outdoors' && surface.surfaceType == 'RoofCeiling'
               if monthly_totals[month].has_key?(:ext_roof)
                 monthly_totals[month][:ext_roof] += monthly_value_ip
               else
@@ -789,10 +788,10 @@ module OsLib_ReportingHeatGainLoss
     row_data_total << OpenStudio::toNeatString(row_data_total_annual, 1, true)
 
     # register values
-    runner.registerValue("ext_wall_heat_gain", row_data_sub_ext_wall.last.gsub(",", "").to_f, 'kBtu')
-    runner.registerValue("ext_roof_heat_gain", row_data_sub_ext_roof.last.gsub(",", "").to_f, 'kBtu')
-    runner.registerValue("ground_heat_gain", row_data_sub_ground.last.gsub(",", "").to_f, 'kBtu')
-    runner.registerValue("surface_heat_gain", row_data_total.last.gsub(",", "").to_f, 'kBtu')
+    runner.registerValue('ext_wall_heat_gain', row_data_sub_ext_wall.last.gsub(',', '').to_f, 'kBtu')
+    runner.registerValue('ext_roof_heat_gain', row_data_sub_ext_roof.last.gsub(',', '').to_f, 'kBtu')
+    runner.registerValue('ground_heat_gain', row_data_sub_ground.last.gsub(',', '').to_f, 'kBtu')
+    runner.registerValue('surface_heat_gain', row_data_total.last.gsub(',', '').to_f, 'kBtu')
 
     # add rows
     monthly_surface_heat_gains_table[:data] << row_data_sub_ext_wall
@@ -820,8 +819,8 @@ module OsLib_ReportingHeatGainLoss
 
     monthly_totals = {}
     model.getSurfaces.sort.each do |surface|
-      next if surface.outsideBoundaryCondition == "Surface"
-      next if surface.outsideBoundaryCondition == "Adiabatic"
+      next if surface.outsideBoundaryCondition == 'Surface'
+      next if surface.outsideBoundaryCondition == 'Adiabatic'
 
       key = surface.name.to_s
       row_data = []
@@ -874,13 +873,13 @@ module OsLib_ReportingHeatGainLoss
             end
 
             # add sub-totals
-            if surface.outsideBoundaryCondition == "Outdoors" && surface.surfaceType == "Wall"
+            if surface.outsideBoundaryCondition == 'Outdoors' && surface.surfaceType == 'Wall'
               if monthly_totals[month].has_key?(:ext_wall)
                 monthly_totals[month][:ext_wall] += monthly_value_ip
               else
                 monthly_totals[month][:ext_wall] = monthly_value_ip
               end
-            elsif surface.outsideBoundaryCondition == "Outdoors" && surface.surfaceType == "RoofCeiling"
+            elsif surface.outsideBoundaryCondition == 'Outdoors' && surface.surfaceType == 'RoofCeiling'
               if monthly_totals[month].has_key?(:ext_roof)
                 monthly_totals[month][:ext_roof] += monthly_value_ip
               else
@@ -945,10 +944,10 @@ module OsLib_ReportingHeatGainLoss
     row_data_total << OpenStudio::toNeatString(row_data_total_annual, 1, true)
 
     # register values
-    runner.registerValue("ext_wall_heat_loss", row_data_sub_ext_wall.last.gsub(",", "").to_f, 'kBtu')
-    runner.registerValue("ext_roof_heat_loss", row_data_sub_ext_roof.last.gsub(",", "").to_f, 'kBtu')
-    runner.registerValue("ground_heat_loss", row_data_sub_ground.last.gsub(",", "").to_f, 'kBtu')
-    runner.registerValue("surface_heat_loss", row_data_total.last.gsub(",", "").to_f, 'kBtu')
+    runner.registerValue('ext_wall_heat_loss', row_data_sub_ext_wall.last.gsub(',', '').to_f, 'kBtu')
+    runner.registerValue('ext_roof_heat_loss', row_data_sub_ext_roof.last.gsub(',', '').to_f, 'kBtu')
+    runner.registerValue('ground_heat_loss', row_data_sub_ground.last.gsub(',', '').to_f, 'kBtu')
+    runner.registerValue('surface_heat_loss', row_data_total.last.gsub(',', '').to_f, 'kBtu')
 
     # add rows
     monthly_surface_heat_losses_table[:data] << row_data_sub_ext_wall

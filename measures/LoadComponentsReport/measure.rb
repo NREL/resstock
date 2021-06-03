@@ -1,15 +1,15 @@
 require 'openstudio'
-if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
 
-require File.join(resources_path, "geometry")
+require File.join(resources_path, 'geometry')
 
 require "#{File.dirname(__FILE__)}/resources/os_lib_heat_transfer"
 require "#{File.dirname(__FILE__)}/resources/os_lib_reporting_envelope_and_internal_loads_breakdown"
@@ -20,11 +20,11 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
   # the display name in PAT comes from the name field in measure.xml
   def name
     # Measure name should be the title case of the class name.
-    return "Load Components Report"
+    return 'Load Components Report'
   end
 
   def description
-    return "Output load components from ResStock outputs."
+    return 'Output load components from ResStock outputs.'
   end
 
   # define the arguments that the user will input
@@ -43,12 +43,12 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError("Cannot find last model.")
+      runner.registerError('Cannot find last model.')
       return false
     end
     model = model.get
 
-    output_meters = OutputMeters.new(model, runner, "Timestep", include_enduse_subcategories = true)
+    output_meters = OutputMeters.new(model, runner, 'Timestep', include_enduse_subcategories = true)
     results = output_meters.create_custom_building_unit_meters
 
     # heat transfer outputs
@@ -57,20 +57,20 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # supply outputs
-    results << OpenStudio::IdfObject.load("Output:Variable,,Zone Air System Sensible Heating Energy,RunPeriod;").get
-    results << OpenStudio::IdfObject.load("Output:Variable,,Zone Air System Sensible Cooling Energy,RunPeriod;").get
+    results << OpenStudio::IdfObject.load('Output:Variable,,Zone Air System Sensible Heating Energy,RunPeriod;').get
+    results << OpenStudio::IdfObject.load('Output:Variable,,Zone Air System Sensible Cooling Energy,RunPeriod;').get
 
     return results
   end
 
   def demand_outputs
     demands = []
-    gains = ["conv", "infiltration", "people", "equipment", "other_equipment", "solar_windows", "cond_windows", "cond_doors", "ventilation", "lighting"]
-    supplies = ["heating", "cooling"]
-    surfaces = ["walls", "fwalls", "roof", "floor", "ground", "ceiling", "other"]
+    gains = ['conv', 'infiltration', 'people', 'equipment', 'other_equipment', 'solar_windows', 'cond_windows', 'cond_doors', 'ventilation', 'lighting']
+    supplies = ['heating', 'cooling']
+    surfaces = ['walls', 'fwalls', 'roof', 'floor', 'ground', 'ceiling', 'other']
     gains.each do |gain|
       supplies.each do |supply|
-        if gain == "conv"
+        if gain == 'conv'
           surfaces.each do |surface|
             demands << "#{gain}_#{surface}_#{supply}"
           end
@@ -83,24 +83,24 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def supply_outputs
-    return ["heating_supply",
-            "cooling_supply"]
+    return ['heating_supply',
+            'cooling_supply']
   end
 
   def load_outputs
     loads = []
-    load_categories = ["lighting",
-                       "electricity_water_systems",
-                       "natural_gas_water_systems",
-                       "fuel_oil_water_systems",
-                       "propane_water_systems",
-                       "electricity_refrigerator",
-                       "electricity_clothes_washer",
-                       "electricity_clothes_dryer",
-                       "natural_gas_clothes_dryer",
-                       "propane_clothes_dryer",
-                       "electricity_dishwasher",
-                       "electricity_extra_refrigerator"]
+    load_categories = ['lighting',
+                       'electricity_water_systems',
+                       'natural_gas_water_systems',
+                       'fuel_oil_water_systems',
+                       'propane_water_systems',
+                       'electricity_refrigerator',
+                       'electricity_clothes_washer',
+                       'electricity_clothes_dryer',
+                       'natural_gas_clothes_dryer',
+                       'propane_clothes_dryer',
+                       'electricity_dishwasher',
+                       'electricity_extra_refrigerator']
     load_categories.each do |load|
       loads << "#{load}_energy"
     end
@@ -112,16 +112,16 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     output_names += demand_outputs
     output_names += supply_outputs
     output_names += load_outputs
-    output_names += ["internal_gains_gain_error"]
-    output_names += ["internal_gains_loss_error"]
-    output_names += ["outdoor_air_gains_gain_error"]
-    output_names += ["outdoor_air_gains_loss_error"]
-    output_names += ["surface_convection_gain_error"]
-    output_names += ["surface_convection_loss_error"]
-    output_names += ["total_energy_balance_gain_error"]
-    output_names += ["total_energy_balance_loss_error"]
-    output_names += ["heating_demand_error"]
-    output_names += ["cooling_demand_error"]
+    output_names += ['internal_gains_gain_error']
+    output_names += ['internal_gains_loss_error']
+    output_names += ['outdoor_air_gains_gain_error']
+    output_names += ['outdoor_air_gains_loss_error']
+    output_names += ['surface_convection_gain_error']
+    output_names += ['surface_convection_loss_error']
+    output_names += ['total_energy_balance_gain_error']
+    output_names += ['total_energy_balance_loss_error']
+    output_names += ['heating_demand_error']
+    output_names += ['cooling_demand_error']
 
     result = OpenStudio::Measure::OSOutputVector.new
     output_names.each do |output|
@@ -150,10 +150,9 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     @ann_env_pd = nil
     sqlFile.availableEnvPeriods.each do |env_pd|
       env_type = sqlFile.environmentType(env_pd)
-      if env_type.is_initialized
-        if env_type.get == OpenStudio::EnvironmentType.new("WeatherRunPeriod")
-          @ann_env_pd = env_pd
-        end
+      next unless env_type.is_initialized
+      if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
+        @ann_env_pd = env_pd
       end
     end
     if @ann_env_pd == false
@@ -165,20 +164,20 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     env_period_ix = sqlFile.execAndReturnFirstInt(env_period_ix_query).get
 
     # Load buildstock_file
-    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
-    buildstock_file = File.join(resources_dir, "buildstock.rb")
-    if File.exists? buildstock_file
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'resources')) # Should have been uploaded per 'Other Library Files' in analysis spreadsheet
+    buildstock_file = File.join(resources_dir, 'buildstock.rb')
+    if File.exist? buildstock_file
       require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
     else
-      resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/"))
-      buildstock_file = File.join(resources_dir, "buildstock.rb")
+      resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/'))
+      buildstock_file = File.join(resources_dir, 'buildstock.rb')
       require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
     end
 
-    total_site_units = "MBtu"
-    elec_site_units = "kWh"
-    gas_site_units = "therm"
-    other_fuel_site_units = "MBtu"
+    total_site_units = 'MBtu'
+    elec_site_units = 'kWh'
+    gas_site_units = 'therm'
+    other_fuel_site_units = 'MBtu'
 
     # Get building units
     units = Geometry.get_building_units(model, runner)
@@ -187,7 +186,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # LOAD ENERGY
-    output_meters = OutputMeters.new(model, runner, "RunPeriod", include_enduse_subcategories = true)
+    output_meters = OutputMeters.new(model, runner, 'RunPeriod', include_enduse_subcategories = true)
 
     electricity = output_meters.electricity(sqlFile, @ann_env_pd)
     natural_gas = output_meters.natural_gas(sqlFile, @ann_env_pd)
@@ -198,20 +197,20 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
 
     # Lighting
     lighting_energy = electricity.interior_lighting[0] + electricity.exterior_lighting[0]
-    report_sim_output(runner, "lighting_energy", lighting_energy, elec_site_units, total_site_units)
+    report_sim_output(runner, 'lighting_energy', lighting_energy, elec_site_units, total_site_units)
 
     # Water Systems
     electricity_water_systems = electricity.water_systems[0]
-    report_sim_output(runner, "electricity_water_systems_energy", electricity_water_systems, elec_site_units, total_site_units)
+    report_sim_output(runner, 'electricity_water_systems_energy', electricity_water_systems, elec_site_units, total_site_units)
 
     natural_gas_water_systems = natural_gas.water_systems[0]
-    report_sim_output(runner, "natural_gas_water_systems_energy", natural_gas_water_systems, gas_site_units, total_site_units)
+    report_sim_output(runner, 'natural_gas_water_systems_energy', natural_gas_water_systems, gas_site_units, total_site_units)
 
     fuel_oil_water_systems = fuel_oil.water_systems[0]
-    report_sim_output(runner, "fuel_oil_water_systems_energy", fuel_oil_water_systems, other_fuel_site_units, total_site_units)
+    report_sim_output(runner, 'fuel_oil_water_systems_energy', fuel_oil_water_systems, other_fuel_site_units, total_site_units)
 
     propane_water_systems = propane.water_systems[0]
-    report_sim_output(runner, "propane_water_systems_energy", propane_water_systems, other_fuel_site_units, total_site_units)
+    report_sim_output(runner, 'propane_water_systems_energy', propane_water_systems, other_fuel_site_units, total_site_units)
 
     # Appliances
     electricityRefrigerator = 0.0
@@ -230,13 +229,13 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     electricityDishwasher = electricity.dishwasher[0]
     electricityExtraRefrigerator = electricity.extra_refrigerator[0]
 
-    report_sim_output(runner, "electricity_refrigerator_energy", electricityRefrigerator, "GJ", total_site_units)
-    report_sim_output(runner, "electricity_clothes_washer_energy", electricityClothesWasher, "GJ", total_site_units)
-    report_sim_output(runner, "electricity_clothes_dryer_energy", electricityClothesDryer, "GJ", total_site_units)
-    report_sim_output(runner, "natural_gas_clothes_dryer_energy", naturalGasClothesDryer, "GJ", total_site_units)
-    report_sim_output(runner, "propane_clothes_dryer_energy", propaneClothesDryer, "GJ", total_site_units)
-    report_sim_output(runner, "electricity_dishwasher_energy", electricityDishwasher, "GJ", total_site_units)
-    report_sim_output(runner, "electricity_extra_refrigerator_energy", electricityExtraRefrigerator, "GJ", total_site_units)
+    report_sim_output(runner, 'electricity_refrigerator_energy', electricityRefrigerator, 'GJ', total_site_units)
+    report_sim_output(runner, 'electricity_clothes_washer_energy', electricityClothesWasher, 'GJ', total_site_units)
+    report_sim_output(runner, 'electricity_clothes_dryer_energy', electricityClothesDryer, 'GJ', total_site_units)
+    report_sim_output(runner, 'natural_gas_clothes_dryer_energy', naturalGasClothesDryer, 'GJ', total_site_units)
+    report_sim_output(runner, 'propane_clothes_dryer_energy', propaneClothesDryer, 'GJ', total_site_units)
+    report_sim_output(runner, 'electricity_dishwasher_energy', electricityDishwasher, 'GJ', total_site_units)
+    report_sim_output(runner, 'electricity_extra_refrigerator_energy', electricityExtraRefrigerator, 'GJ', total_site_units)
 
     # DEMAND ENERGY
     # Set the frequency for analysis.
@@ -326,38 +325,38 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    report_sim_output(runner, "conv_windows_heating", heating_demand['windows convection'], "J", total_site_units)
-    report_sim_output(runner, "solar_windows_heating", heating_demand['windows solar'], "J", total_site_units)
-    report_sim_output(runner, "conv_doors_heating", heating_demand['doors convection'], "J", total_site_units)
-    report_sim_output(runner, "conv_walls_heating", heating_demand['wall'], "J", total_site_units)
-    report_sim_output(runner, "conv_ceiling_heating", heating_demand['ceiling'], "J", total_site_units)
-    report_sim_output(runner, "conv_roof_heating", heating_demand['roof'], "J", total_site_units)
-    report_sim_output(runner, "conv_fwalls_heating", heating_demand['foundation wall'], "J", total_site_units)
-    report_sim_output(runner, "conv_ground_heating", heating_demand['ground'], "J", total_site_units)
-    report_sim_output(runner, "conv_floor_heating", heating_demand['floor'], "J", total_site_units)
-    report_sim_output(runner, "infiltration_heating", heating_demand['infiltration'], "J", total_site_units)
-    report_sim_output(runner, "people_heating", heating_demand['people gain'], "J", total_site_units)
-    report_sim_output(runner, "equipment_heating", heating_demand['equipment gain'], "J", total_site_units)
-    report_sim_output(runner, "other_equipment_heating", heating_demand['other equipment gain'], "J", total_site_units)
-    report_sim_output(runner, "lighting_heating", heating_demand['lighting gain'], "J", total_site_units)
-    report_sim_output(runner, "ventilation_heating", heating_demand['ventilation'], "J", total_site_units)
-    report_sim_output(runner, "conv_other_heating", heating_demand['other gain'], "J", total_site_units)
-    report_sim_output(runner, "conv_windows_cooling", cooling_demand['windows convection'], "J", total_site_units)
-    report_sim_output(runner, "solar_windows_cooling", cooling_demand['windows solar'], "J", total_site_units)
-    report_sim_output(runner, "conv_doors_cooling", cooling_demand['doors convection'], "J", total_site_units)
-    report_sim_output(runner, "conv_walls_cooling", cooling_demand['wall'], "J", total_site_units)
-    report_sim_output(runner, "conv_ceiling_cooling", cooling_demand['ceiling'], "J", total_site_units)
-    report_sim_output(runner, "conv_roof_cooling", cooling_demand['roof'], "J", total_site_units)
-    report_sim_output(runner, "conv_fwalls_cooling", cooling_demand['foundation wall'], "J", total_site_units)
-    report_sim_output(runner, "conv_ground_cooling", cooling_demand['ground'], "J", total_site_units)
-    report_sim_output(runner, "conv_floor_cooling", cooling_demand['floor'], "J", total_site_units)
-    report_sim_output(runner, "infiltration_cooling", cooling_demand['infiltration'], "J", total_site_units)
-    report_sim_output(runner, "people_cooling", cooling_demand['people gain'], "J", total_site_units)
-    report_sim_output(runner, "equipment_cooling", cooling_demand['equipment gain'], "J", total_site_units)
-    report_sim_output(runner, "other_equipment_cooling", cooling_demand['other equipment gain'], "J", total_site_units)
-    report_sim_output(runner, "lighting_cooling", cooling_demand['lighting gain'], "J", total_site_units)
-    report_sim_output(runner, "ventilation_cooling", cooling_demand['ventilation'], "J", total_site_units)
-    report_sim_output(runner, "conv_other_cooling", cooling_demand['other gain'], "J", total_site_units)
+    report_sim_output(runner, 'conv_windows_heating', heating_demand['windows convection'], 'J', total_site_units)
+    report_sim_output(runner, 'solar_windows_heating', heating_demand['windows solar'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_doors_heating', heating_demand['doors convection'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_walls_heating', heating_demand['wall'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_ceiling_heating', heating_demand['ceiling'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_roof_heating', heating_demand['roof'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_fwalls_heating', heating_demand['foundation wall'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_ground_heating', heating_demand['ground'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_floor_heating', heating_demand['floor'], 'J', total_site_units)
+    report_sim_output(runner, 'infiltration_heating', heating_demand['infiltration'], 'J', total_site_units)
+    report_sim_output(runner, 'people_heating', heating_demand['people gain'], 'J', total_site_units)
+    report_sim_output(runner, 'equipment_heating', heating_demand['equipment gain'], 'J', total_site_units)
+    report_sim_output(runner, 'other_equipment_heating', heating_demand['other equipment gain'], 'J', total_site_units)
+    report_sim_output(runner, 'lighting_heating', heating_demand['lighting gain'], 'J', total_site_units)
+    report_sim_output(runner, 'ventilation_heating', heating_demand['ventilation'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_other_heating', heating_demand['other gain'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_windows_cooling', cooling_demand['windows convection'], 'J', total_site_units)
+    report_sim_output(runner, 'solar_windows_cooling', cooling_demand['windows solar'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_doors_cooling', cooling_demand['doors convection'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_walls_cooling', cooling_demand['wall'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_ceiling_cooling', cooling_demand['ceiling'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_roof_cooling', cooling_demand['roof'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_fwalls_cooling', cooling_demand['foundation wall'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_ground_cooling', cooling_demand['ground'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_floor_cooling', cooling_demand['floor'], 'J', total_site_units)
+    report_sim_output(runner, 'infiltration_cooling', cooling_demand['infiltration'], 'J', total_site_units)
+    report_sim_output(runner, 'people_cooling', cooling_demand['people gain'], 'J', total_site_units)
+    report_sim_output(runner, 'equipment_cooling', cooling_demand['equipment gain'], 'J', total_site_units)
+    report_sim_output(runner, 'other_equipment_cooling', cooling_demand['other equipment gain'], 'J', total_site_units)
+    report_sim_output(runner, 'lighting_cooling', cooling_demand['lighting gain'], 'J', total_site_units)
+    report_sim_output(runner, 'ventilation_cooling', cooling_demand['ventilation'], 'J', total_site_units)
+    report_sim_output(runner, 'conv_other_cooling', cooling_demand['other gain'], 'J', total_site_units)
 
     hd = heating_demand['wall']
     hd += heating_demand['foundation wall']
@@ -391,17 +390,17 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     cd += cooling_demand['windows convection']
     cd += cooling_demand['doors convection']
     cd += cooling_demand['other gain']
-    report_sim_output(runner, "heating_demand", hd, "J", total_site_units)
-    report_sim_output(runner, "cooling_demand", cd, "J", total_site_units)
+    report_sim_output(runner, 'heating_demand', hd, 'J', total_site_units)
+    report_sim_output(runner, 'cooling_demand', cd, 'J', total_site_units)
 
-    report_sim_output(runner, "internal_gains_gain_error", internal_gains_gain_error, "", "")
-    report_sim_output(runner, "internal_gains_loss_error", internal_gains_loss_error, "", "")
-    report_sim_output(runner, "outdoor_air_gains_gain_error", outdoor_air_gains_gain_error, "", "")
-    report_sim_output(runner, "outdoor_air_gains_loss_error", outdoor_air_gains_loss_error, "", "")
-    report_sim_output(runner, "surface_convection_gain_error", surface_convection_gain_error, "", "")
-    report_sim_output(runner, "surface_convection_loss_error", surface_convection_loss_error, "", "")
-    report_sim_output(runner, "total_energy_balance_gain_error", total_energy_balance_gain_error, "", "")
-    report_sim_output(runner, "total_energy_balance_loss_error", total_energy_balance_loss_error, "", "")
+    report_sim_output(runner, 'internal_gains_gain_error', internal_gains_gain_error, '', '')
+    report_sim_output(runner, 'internal_gains_loss_error', internal_gains_loss_error, '', '')
+    report_sim_output(runner, 'outdoor_air_gains_gain_error', outdoor_air_gains_gain_error, '', '')
+    report_sim_output(runner, 'outdoor_air_gains_loss_error', outdoor_air_gains_loss_error, '', '')
+    report_sim_output(runner, 'surface_convection_gain_error', surface_convection_gain_error, '', '')
+    report_sim_output(runner, 'surface_convection_loss_error', surface_convection_loss_error, '', '')
+    report_sim_output(runner, 'total_energy_balance_gain_error', total_energy_balance_gain_error, '', '')
+    report_sim_output(runner, 'total_energy_balance_loss_error', total_energy_balance_loss_error, '', '')
 
     # heat_transfer_vectors['Calc Surface Convection'] = total_surface_convection
     # heat_transfer_vectors['True Surface Convection']
@@ -413,26 +412,26 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     heatingSupply = supply_energy.heating[0]
     coolingSupply = supply_energy.cooling[0]
 
-    report_sim_output(runner, "heating_supply", heatingSupply, "GJ", total_site_units)
-    report_sim_output(runner, "cooling_supply", coolingSupply, "GJ", total_site_units)
+    report_sim_output(runner, 'heating_supply', heatingSupply, 'GJ', total_site_units)
+    report_sim_output(runner, 'cooling_supply', coolingSupply, 'GJ', total_site_units)
 
     # SUPPLY / DEMAND ERROR
-    hd = UnitConversions.convert(hd, "J", total_site_units)
-    cd = UnitConversions.convert(cd, "J", total_site_units)
-    hs = UnitConversions.convert(heatingSupply, "GJ", total_site_units)
-    cs = UnitConversions.convert(coolingSupply, "GJ", total_site_units)
-    report_sim_output(runner, "heating_demand_error", hs - hd, "", "")
-    report_sim_output(runner, "cooling_demand_error", cs - cd, "", "")
+    hd = UnitConversions.convert(hd, 'J', total_site_units)
+    cd = UnitConversions.convert(cd, 'J', total_site_units)
+    hs = UnitConversions.convert(heatingSupply, 'GJ', total_site_units)
+    cs = UnitConversions.convert(coolingSupply, 'GJ', total_site_units)
+    report_sim_output(runner, 'heating_demand_error', hs - hd, '', '')
+    report_sim_output(runner, 'cooling_demand_error', cs - cd, '', '')
 
     if hs != 0
-      report_sim_output(runner, "heating_demand_error_percent", 100 * (hs - hd) / hs, "", "")
+      report_sim_output(runner, 'heating_demand_error_percent', 100 * (hs - hd) / hs, '', '')
     else
-      report_sim_output(runner, "heating_demand_error_percent", 0, "", "")
+      report_sim_output(runner, 'heating_demand_error_percent', 0, '', '')
     end
     if cs != 0
-      report_sim_output(runner, "cooling_demand_error_percent", 100 * (cs - cd) / cs, "", "")
+      report_sim_output(runner, 'cooling_demand_error_percent', 100 * (cs - cd) / cs, '', '')
     else
-      report_sim_output(runner, "cooling_demand_error_percent", 0, "", "")
+      report_sim_output(runner, 'cooling_demand_error_percent', 0, '', '')
     end
 
     # close the sql file
@@ -442,8 +441,8 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
   end # end the run method
 
   def report_sim_output(runner, name, total_val, os_units, desired_units, percent_of_val = 1.0)
-    total_val = total_val * percent_of_val
-    if os_units.nil? or desired_units.nil? or os_units == desired_units
+    total_val *= percent_of_val
+    if os_units.nil? || desired_units.nil? || (os_units == desired_units)
       valInUnits = total_val
     else
       valInUnits = UnitConversions.convert(total_val, os_units, desired_units)

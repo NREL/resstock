@@ -231,10 +231,9 @@ module OsLib_HeatTransfer
     ann_env_pd = nil
     sql.availableEnvPeriods.each do |env_pd|
       env_type = sql.environmentType(env_pd)
-      if env_type.is_initialized
-        if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
-          ann_env_pd = env_pd
-        end
+      next unless env_type.is_initialized
+      if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
+        ann_env_pd = env_pd
       end
     end
 
@@ -290,7 +289,7 @@ module OsLib_HeatTransfer
         vals = OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, output, wh_name, num_ts, joules)
         vect = -1.0 * Vector.elements(vals) # reverse vector sign for loss variables before summing
         factor = 1.0
-        if wh.heaterFuelType != "Electricity"
+        if wh.heaterFuelType != 'Electricity'
           factor = 0.64
         end
         vect *= factor # TODO: https://github.com/NREL/OpenStudio-HPXML/blob/d47ce825d58a87295b66fa4580f944230d0d6295/resources/waterheater.rb#L1067
@@ -463,7 +462,7 @@ module OsLib_HeatTransfer
 
         # Add to total for this internal mass
         vect = -1.0 * Vector.elements(ht_transfer_vals) # reverse sign of vector
-        heat_transfer_vectors["Zone Other Convection Heat Transfer Energy"] += vect
+        heat_transfer_vectors['Zone Other Convection Heat Transfer Energy'] += vect
         total_surface_convection += vect
       end
     end
@@ -478,7 +477,7 @@ module OsLib_HeatTransfer
 
         # Add to total for this internal mass
         vect = -1.0 * Vector.elements(ht_transfer_vals) # reverse sign of vector
-        heat_transfer_vectors["Zone Other Convection Heat Transfer Energy"] += vect
+        heat_transfer_vectors['Zone Other Convection Heat Transfer Energy'] += vect
         total_surface_convection += vect
       end
     end
@@ -504,9 +503,9 @@ module OsLib_HeatTransfer
                          'Ceiling'
                        end
 
-        surface_temp = Vector.elements(OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, "Surface Inside Face Temperature", surface.name.get, num_ts, celsius))
-        conv_coeff = Vector.elements(OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, "Surface Inside Face Convection Heat Transfer Coefficient", surface.name.get, num_ts, "W/m2-K"))
-        zone_temp = Vector.elements(OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, "Zone Mean Air Temperature", zone_name, num_ts, celsius))
+        surface_temp = Vector.elements(OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, 'Surface Inside Face Temperature', surface.name.get, num_ts, celsius))
+        conv_coeff = Vector.elements(OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, 'Surface Inside Face Convection Heat Transfer Coefficient', surface.name.get, num_ts, 'W/m2-K'))
+        zone_temp = Vector.elements(OsLib_SqlFile.get_timeseries_array(runner, sql, ann_env_pd, freq, 'Zone Mean Air Temperature', zone_name, num_ts, celsius))
 
         deltaT = surface_temp - zone_temp
         est_conv = Vector.elements(conv_coeff.zip(deltaT).map { |h, t| surface.netArea * sec_per_step * h * t })
