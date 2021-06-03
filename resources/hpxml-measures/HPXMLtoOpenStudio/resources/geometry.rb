@@ -445,7 +445,7 @@ class Geometry
     zValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        zValueArray << UnitConversions.convert(vertex.z, 'm', 'ft').round(5)
+        zValueArray << UnitConversions.convert(vertex.z, 'm', 'ft')
       end
     end
     return zValueArray

@@ -754,11 +754,7 @@ class OSModel
       inside_film = Material.AirFilmVertical
       if wall.is_exterior
         outside_film = Material.AirFilmOutside
-        if wall.siding == HPXML::SidingTypeNone
-          mat_ext_finish = nil
-        else
-          mat_ext_finish = Material.ExteriorFinishMaterial(wall.siding, wall.emittance, wall.solar_absorptance)
-        end
+        mat_ext_finish = Material.ExteriorFinishMaterial(wall.siding, wall.emittance, wall.solar_absorptance)
       else
         outside_film = Material.AirFilmVertical
         mat_ext_finish = nil
@@ -823,11 +819,7 @@ class OSModel
       inside_film = Material.AirFilmVertical
       if rim_joist.is_exterior
         outside_film = Material.AirFilmOutside
-        if rim_joist.siding == HPXML::SidingTypeNone
-          mat_ext_finish = nil
-        else
-          mat_ext_finish = Material.ExteriorFinishMaterial(rim_joist.siding, rim_joist.emittance, rim_joist.solar_absorptance)
-        end
+        mat_ext_finish = Material.ExteriorFinishMaterial(rim_joist.siding, rim_joist.emittance, rim_joist.solar_absorptance)
       else
         outside_film = Material.AirFilmVertical
         mat_ext_finish = nil

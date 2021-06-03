@@ -49,10 +49,10 @@ class XMLHelper
   # Deletes the child element with element_name. Returns the deleted element.
   def self.delete_element(parent, element_name)
     element = nil
-    while !parent.at_xpath(element_name).nil?
+    begin
       last_element = element
       element = parent.at_xpath(element_name).remove
-    end
+    end while !parent.at_xpath(element_name).nil?
     return last_element
   end
 

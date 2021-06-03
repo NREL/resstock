@@ -493,14 +493,14 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     # Base
     hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base.xml')))
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas
-    assert_in_delta(5216, exterior_area, 1.0)
-    assert_in_delta(5216, total_area, 1.0)
+    assert_equal(5216, exterior_area)
+    assert_equal(5216, total_area)
 
     # Test adjacent garage
     hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-enclosure-garage.xml')))
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas
-    assert_in_delta(4976, exterior_area, 1.0)
-    assert_in_delta(5216, total_area, 1.0)
+    assert_equal(4976, exterior_area)
+    assert_equal(5216, total_area)
 
     # Test unvented attic/crawlspace within infiltration volume
     hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unvented-crawlspace.xml')))
@@ -511,8 +511,8 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
       foundation.within_infiltration_volume = true
     end
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas
-    assert_in_delta(5066, exterior_area, 1.0)
-    assert_in_delta(5066, total_area, 1.0)
+    assert_equal(5066, exterior_area)
+    assert_equal(5066, total_area)
 
     # Test unvented attic/crawlspace not within infiltration volume
     hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unvented-crawlspace.xml')))
@@ -523,14 +523,14 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
       foundation.within_infiltration_volume = false
     end
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas
-    assert_in_delta(3900, exterior_area, 1.0)
-    assert_in_delta(3900, total_area, 1.0)
+    assert_equal(3900, exterior_area)
+    assert_equal(3900, total_area)
 
     # Test multifamily
     hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily.xml')))
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas
-    assert_in_delta(686, exterior_area, 1.0)
-    assert_in_delta(2780, total_area, 1.0)
+    assert_equal(686, exterior_area)
+    assert_equal(2780, total_area)
   end
 
   def test_infiltration_assumed_height
