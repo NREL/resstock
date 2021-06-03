@@ -1,3 +1,5 @@
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 # Performs sampling technique and generates CSV file with parameter options for each building.
 
 # The file has to follow general Ruby conventions.

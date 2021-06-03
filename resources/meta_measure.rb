@@ -1,3 +1,5 @@
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 # Helper methods related to having a meta-measure
 
 def get_measures(workflow_json, include_only = nil)

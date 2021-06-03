@@ -72,6 +72,9 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
 
     central_boiler_system_type = runner.getStringArgumentValue('central_boiler_system_type', user_arguments)
     central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue('central_boiler_fuel_type', user_arguments))
+    if central_boiler_fuel_type == 'Propane'
+      central_boiler_fuel_type = 'PropaneGas' # OS-Standards is still using the old string
+    end
     model.getBuilding.additionalProperties.setFeature('has_hvac_flue', runner.getBoolArgumentValue('has_hvac_flue', user_arguments))
 
     std = Standard.build('90.1-2013')
