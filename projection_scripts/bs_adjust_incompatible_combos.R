@@ -16,7 +16,8 @@ rm_dot2<-function(df) {
 filenames<-list.files("../scen_bscsv_sim")
 filenames<-filenames[-c(grep("fails",filenames))]
 
-for (k in 11:length(filenames)) { print(k)
+# for (k in 11:length(filenames)) { print(k)
+for (k in 13:20) { print(k) # all the ER files
 fn<-paste("../scen_bscsv_sim/",filenames[k],sep = "")
 bs<-read.csv(fn)
 

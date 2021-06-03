@@ -19,6 +19,9 @@ rs_RR<-rs_2020_2060
 load("../Intermediate_results/RenAdvanced.RData")
 rs_AR<-rs_2020_2060
 rm(rs_2020_2060)
+load("../Intermediate_results/RenExtElec.RData")
+rs_ER<-rs_2020_2060
+rm(rs_2020_2060)
 
 rs_RR_2025<-rm_dot2(rs_RR[rs_RR$Year==2025,1:114])
 rs_RR_2030<-rm_dot2(rs_RR[rs_RR$Year==2030,1:114])
@@ -38,6 +41,19 @@ rs_AR_2050<-rm_dot2(rs_AR[rs_AR$Year==2050,1:114])
 rs_AR_2055<-rm_dot2(rs_AR[rs_AR$Year==2055,1:114])
 rs_AR_2060<-rm_dot2(rs_AR[rs_AR$Year==2060,1:114])
 
+rs_ER_2025<-rm_dot2(rs_ER[rs_ER$Year==2025,1:114])
+rs_ER_2030<-rm_dot2(rs_ER[rs_ER$Year==2030,1:114])
+rs_ER_2035<-rm_dot2(rs_ER[rs_ER$Year==2035,1:114])
+rs_ER_2040<-rm_dot2(rs_ER[rs_ER$Year==2040,1:114])
+rs_ER_2045<-rm_dot2(rs_ER[rs_ER$Year==2045,1:114])
+rs_ER_2050<-rm_dot2(rs_ER[rs_ER$Year==2050,1:114])
+rs_ER_2055<-rm_dot2(rs_ER[rs_ER$Year==2055,1:114])
+rs_ER_2060<-rm_dot2(rs_ER[rs_ER$Year==2060,1:114])
+
+rs_ER_sample<-rs_ER_2025[1:10,]
+rs_TX<-rs_ER_2025[rs_ER_2025$County=="TX, Nolan County",]
+rs_ER_sample<-rbind(rs_ER_sample,rs_TX)
+
 
 write.csv(rs_RR_2025,file='../scen_bscsv_sim/bs_RR_2025.csv', row.names = FALSE)
 write.csv(rs_RR_2030,file='../scen_bscsv_sim/bs_RR_2030.csv', row.names = FALSE)
@@ -56,6 +72,17 @@ write.csv(rs_AR_2045,file='../scen_bscsv_sim/bs_AR_2045.csv', row.names = FALSE)
 write.csv(rs_AR_2050,file='../scen_bscsv_sim/bs_AR_2050.csv', row.names = FALSE)
 write.csv(rs_AR_2055,file='../scen_bscsv_sim/bs_AR_2055.csv', row.names = FALSE)
 write.csv(rs_AR_2060,file='../scen_bscsv_sim/bs_AR_2060.csv', row.names = FALSE)
+
+write.csv(rs_ER_2025,file='../scen_bscsv_sim/bs_ER_2025.csv', row.names = FALSE)
+write.csv(rs_ER_2030,file='../scen_bscsv_sim/bs_ER_2030.csv', row.names = FALSE)
+write.csv(rs_ER_2035,file='../scen_bscsv_sim/bs_ER_2035.csv', row.names = FALSE)
+write.csv(rs_ER_2040,file='../scen_bscsv_sim/bs_ER_2040.csv', row.names = FALSE)
+write.csv(rs_ER_2045,file='../scen_bscsv_sim/bs_ER_2045.csv', row.names = FALSE)
+write.csv(rs_ER_2050,file='../scen_bscsv_sim/bs_ER_2050.csv', row.names = FALSE)
+write.csv(rs_ER_2055,file='../scen_bscsv_sim/bs_ER_2055.csv', row.names = FALSE)
+write.csv(rs_ER_2060,file='../scen_bscsv_sim/bs_ER_2060.csv', row.names = FALSE)
+
+write.csv(rs_ER_sample,file='../scen_bscsv_sim/bs_ER_sample.csv', row.names = FALSE)
 
 # load("../Intermediate_results/agg_bscsv.RData")
 # 
