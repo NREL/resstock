@@ -97,7 +97,7 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
       pump = supply_component.to_PumpVariableSpeed.get
       pump.setName('Central pump')
 
-      pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+      pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
       pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
       pump_sensor.setKeyName(pump.name.to_s)
 

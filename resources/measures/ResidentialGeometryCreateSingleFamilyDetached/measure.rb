@@ -741,7 +741,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
         n_points = []
         s_points = []
         surface.vertices.each do |vertex|
-          if vertex.y.abs < Constants.small
+          if vertex.y.abs < 0.0001
             n_points << vertex
           elsif vertex.y < 0
             s_points << vertex

@@ -121,7 +121,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
         pump = supply_component.to_PumpVariableSpeed.get
         pump.setName('Central htg pump')
 
-        htg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+        htg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
         htg_pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
         htg_pump_sensor.setKeyName(pump.name.to_s)
 
@@ -150,7 +150,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       pump = supply_component.to_PumpVariableSpeed.get
       pump.setName('Central clg pump')
 
-      clg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+      clg_pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
       clg_pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
       clg_pump_sensor.setKeyName(pump.name.to_s)
 

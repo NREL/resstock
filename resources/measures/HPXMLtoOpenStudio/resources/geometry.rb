@@ -384,6 +384,7 @@ class Geometry
         return false
       end
     end
+    return true
   end
 
   # Returns true if all spaces in zone are fully above grade
@@ -477,7 +478,7 @@ class Geometry
       surface.vertices.each do |vertex|
         z_vertex << vertex.z
       end
-      if z_vertex.min < -1e-9
+      if z_vertex.min < -0.0001
         return true
       end
       if surface.outsideBoundaryCondition.downcase == 'foundation'
@@ -549,7 +550,7 @@ class Geometry
     xValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        xValueArray << UnitConversions.convert(vertex.x, 'm', 'ft')
+        xValueArray << UnitConversions.convert(vertex.x, 'm', 'ft').round(5)
       end
     end
     return xValueArray
@@ -560,7 +561,7 @@ class Geometry
     yValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        yValueArray << UnitConversions.convert(vertex.y, 'm', 'ft')
+        yValueArray << UnitConversions.convert(vertex.y, 'm', 'ft').round(5)
       end
     end
     return yValueArray
@@ -571,7 +572,7 @@ class Geometry
     zValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        zValueArray << UnitConversions.convert(vertex.z, 'm', 'ft')
+        zValueArray << UnitConversions.convert(vertex.z, 'm', 'ft').round(5)
       end
     end
     return zValueArray
@@ -963,10 +964,14 @@ class Geometry
         end
       end
     end
+    return true
   end
 
   def self.is_foundation(space_or_zone)
-    return true if is_pier_beam(space_or_zone) || is_crawl(space_or_zone) || is_finished_basement(space_or_zone) || is_unfinished_basement(space_or_zone)
+    if is_pier_beam(space_or_zone) || is_crawl(space_or_zone) || is_finished_basement(space_or_zone) || is_unfinished_basement(space_or_zone)
+      return true
+    end
+    return false
   end
 
   def self.get_crawl_spaces(spaces)
@@ -1600,7 +1605,9 @@ class Geometry
 
         if activity_sch.nil?
           # Create schedule
-          activity_sch = OpenStudio::Model::ScheduleRuleset.new(model, activity_per_person)
+          activity_sch = OpenStudio::Model::ScheduleConstant.new(model)
+          activity_sch.setValue(activity_per_person)
+          activity_sch.setName(Constants.ObjectNameOccupants + ' activity schedule')
         end
 
         # Add people definition for the occ
