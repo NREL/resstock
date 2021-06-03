@@ -19,10 +19,10 @@ class IntegrationWorkflowTest < MiniTest::Test
 
   def after_teardown
     FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
-    FileUtils.rm_rf(File.join(@top_dir, 'run'))
-    FileUtils.rm_rf(File.join(@top_dir, 'reports'))
-    FileUtils.rm_rf(File.join(@top_dir, 'generated_files'))
-    FileUtils.rm(File.join(@top_dir, 'buildstock.csv'))
+    FileUtils.rm_rf(File.join(@top_dir, 'run')) if File.exist?(File.join(@top_dir, 'run'))
+    FileUtils.rm_rf(File.join(@top_dir, 'reports')) if File.exist?(File.join(@top_dir, 'reports'))
+    FileUtils.rm_rf(File.join(@top_dir, 'generated_files')) if File.exist?(File.join(@top_dir, 'generated_files'))
+    FileUtils.rm(File.join(@top_dir, 'buildstock.csv')) if File.exist?(File.join(@top_dir, 'buildstock.csv'))
   end
 
   def test_baseline
@@ -31,6 +31,8 @@ class IntegrationWorkflowTest < MiniTest::Test
 
     all_results = []
     @project_dir_baseline.each do |project_dir, num_samples|
+      next unless num_samples > 0
+
       samples_osw(scenario_dir, project_dir, num_samples, all_results)
     end
 
@@ -52,9 +54,11 @@ class IntegrationWorkflowTest < MiniTest::Test
   def test_upgrades
     scenario_dir = File.join(@top_dir, 'upgrades')
     Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
-    
+
     all_results = []
     @project_dir_upgrades.each do |project_dir, num_samples|
+      next unless num_samples > 0
+
       samples_osw(scenario_dir, project_dir, num_samples, all_results)
     end
 
