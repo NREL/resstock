@@ -904,19 +904,13 @@ class Geometry
 
     # Split any surfaces that have doors so that we can ignore them when adding windows
     facades.each do |facade|
-      surfaces_to_add = []
       wall_surfaces[facade].each do |surface|
         next if surface.subSurfaces.size == 0
 
         new_surfaces = surface.splitSurfaceForSubSurfaces
         new_surfaces.each do |new_surface|
-          next if new_surface.subSurfaces.size > 0
-
-          surfaces_to_add << new_surface
+          wall_surfaces[facade] << new_surface
         end
-      end
-      surfaces_to_add.each do |surface_to_add|
-        wall_surfaces[facade] << surface_to_add
       end
     end
 
@@ -939,7 +933,6 @@ class Geometry
         if not surface_avail_area.include? surface
           surface_avail_area[surface] = 0
         end
-        next if surface.subSurfaces.size > 0
 
         area = get_wall_area_for_windows(surface, min_wall_height_for_window, min_window_width, runner)
         surface_avail_area[surface] += area
@@ -968,69 +961,124 @@ class Geometry
       else
         target_facade_areas[facade] += window_areas[facade]
       end
+    end
 
-      next if target_facade_areas[facade] == 0
-
-      if target_facade_areas[facade] < min_single_window_area
-        # If the total window area for the facade is less than the minimum window area,
-        # set all of the window area to the surface with the greatest available wall area on any facade
-        surface = surface_avail_area.max_by { |k, v| v }[0]
-        next if get_facade_for_surface(surface) == facade
-        next if surface_avail_area[surface] == facade_avail_area[facade]
-
-        surface_window_area[surface] += target_facade_areas[facade]
-
-        new_facade = get_facade_for_surface(surface)
-        area_moved = target_facade_areas[facade]
-        target_facade_areas[facade] = 0
-        target_facade_areas[new_facade] = surface_window_area[surface]
-
-        runner.registerWarning("The #{facade} facade window area (#{area_moved.round(2)} ft2) is less than the minimum window area allowed (#{min_single_window_area.round(2)} ft2), and has been added to the #{new_facade} facade.")
-        next
-      end
-
+    facades.each do |facade|
       # Initial guess for wall of this facade
+      next if facade_avail_area[facade] == 0
+
       wall_surfaces[facade].each do |surface|
         surface_window_area[surface] += surface_avail_area[surface] / facade_avail_area[facade] * target_facade_areas[facade]
       end
 
       # If window area for a surface is less than the minimum window area,
       # set the window area to zero and proportionally redistribute to the
-      # other surfaces.
-      wall_surfaces[facade].each_with_index do |surface, surface_num|
-        next if surface_window_area[surface] >= min_single_window_area
+      # other surfaces on that facade and unit.
 
-        removed_window_area = surface_window_area[surface]
-        surface_window_area[surface] = 0
+      # Check wall surface areas (by unit/space)
+      model.getBuildingUnits.each do |unit|
+        wall_surfaces[facade].each_with_index do |surface, surface_num|
+          next if surface_window_area[surface] == 0
+          next unless unit.spaces.include? surface.space.get # surface belongs to this unit
+          next unless surface_window_area[surface] < min_single_window_area
 
-        # Future surfaces are those that have not yet been compared to min_single_window_area
-        future_surfaces_area = 0
-        wall_surfaces[facade].each_with_index do |future_surface, future_surface_num|
-          next if future_surface_num <= surface_num
+          # Future surfaces are those that have not yet been compared to min_single_window_area
+          future_surfaces_area = 0
+          wall_surfaces[facade].each_with_index do |future_surface, future_surface_num|
+            next if future_surface_num <= surface_num
+            next unless unit.spaces.include? future_surface.space.get
 
-          future_surfaces_area += surface_avail_area[future_surface]
-        end
-        next if future_surfaces_area == 0
+            future_surfaces_area += surface_avail_area[future_surface]
+          end
+          next if future_surfaces_area == 0
 
-        wall_surfaces[facade].each_with_index do |future_surface, future_surface_num|
-          next if future_surface_num <= surface_num
+          removed_window_area = surface_window_area[surface]
+          surface_window_area[surface] = 0
 
-          surface_window_area[future_surface] += removed_window_area * surface_window_area[future_surface] / future_surfaces_area
+          wall_surfaces[facade].each_with_index do |future_surface, future_surface_num|
+            next if future_surface_num <= surface_num
+            next unless unit.spaces.include? future_surface.space.get
+
+            surface_window_area[future_surface] += removed_window_area * surface_avail_area[future_surface] / future_surfaces_area
+          end
         end
       end
+    end
 
-      # Because the above process is calculated based on the order of surfaces, it's possible
-      # that we have less area for this facade than we should. If so, redistribute proportionally
-      # to all surfaces that have window area.
-      sum_window_area = 0
-      wall_surfaces[facade].each do |surface|
-        sum_window_area += surface_window_area[surface]
+    # Calculate facade areas for each unit
+    unit_facade_areas = {}
+    unit_wall_surfaces = {}
+    model.getBuildingUnits.each do |unit|
+      unit_facade_areas[unit] = {}
+      unit_wall_surfaces[unit] = {}
+      facades.each do |facade|
+        unit_facade_areas[unit][facade] = 0
+        unit_wall_surfaces[unit][facade] = []
+        wall_surfaces[facade].each do |surface|
+          next unless unit.spaces.include? surface.space.get
+
+          unit_facade_areas[unit][facade] += surface_window_area[surface]
+          unit_wall_surfaces[unit][facade] << surface
+        end
       end
-      next if sum_window_area == 0
-      next if target_facade_areas[facade] < sum_window_area # for cases where window area was added from different facade
+    end
 
-      wall_surfaces[facade].each do |surface|
-        surface_window_area[surface] += surface_window_area[surface] / sum_window_area * (target_facade_areas[facade] - sum_window_area)
+    # if the sum of the window areas on the facade are < minimum, move to different facade
+    facades.each do |facade|
+      model.getBuildingUnits.each do |unit|
+        next if unit_facade_areas[unit][facade] == 0
+        next unless unit_facade_areas[unit][facade] < min_single_window_area
+
+        new_facade = unit_facade_areas[unit].max_by { |k, v| v }[0] # move to facade with largest window area
+        next if new_facade == facade # can't move to same facade
+        next if unit_facade_areas[unit][new_facade] <= unit_facade_areas[unit][facade] # only move to facade with >= window area
+
+        area_moved = unit_facade_areas[unit][facade]
+        unit_facade_areas[unit][facade] = 0
+        wall_surfaces[facade].each do |surface|
+          next unless unit.spaces.include? surface.space.get # surface is in this unit
+
+          surface_window_area[surface] = 0
+        end
+
+        unit_facade_areas[unit][new_facade] += area_moved
+        sum_window_area = 0
+        wall_surfaces[new_facade].each do |surface|
+          next unless unit.spaces.include? surface.space.get # surface is in this unit
+
+          sum_window_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
+        end
+
+        wall_surfaces[new_facade].each do |surface|
+          next unless unit.spaces.include? surface.space.get # surface is in this unit
+
+          split_window_area = area_moved * UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2') / sum_window_area
+          surface_window_area[surface] += split_window_area
+        end
+
+        runner.registerWarning("The #{facade} facade window area (#{area_moved.round(2)} ft2) is less than the minimum window area allowed (#{min_single_window_area.round(2)} ft2), and has been added to the #{new_facade} facade.")
+      end
+    end
+
+    facades.each do |facade|
+      model.getBuildingUnits.each do |unit|
+        # Because the above process is calculated based on the order of surfaces, it's possible
+        # that we have less area for this facade than we should. If so, redistribute proportionally
+        # to all surfaces that have window area.
+        sum_window_area = 0
+        wall_surfaces[facade].each do |surface|
+          next unless unit.spaces.include? surface.space.get
+
+          sum_window_area += surface_window_area[surface]
+        end
+        next if sum_window_area == 0
+        next if unit_facade_areas[unit][facade] < sum_window_area # for cases where window area was added from different facade
+
+        wall_surfaces[facade].each do |surface|
+          next unless unit.spaces.include? surface.space.get
+
+          surface_window_area[surface] += surface_window_area[surface] / sum_window_area * (unit_facade_areas[unit][facade] - sum_window_area)
+        end
       end
     end
 
@@ -1131,6 +1179,11 @@ class Geometry
   end
 
   def self.get_wall_area_for_windows(surface, min_wall_height_for_window, min_window_width, runner)
+    # Skip surfaces with doors
+    if surface.subSurfaces.size > 0
+      return 0.0
+    end
+
     # Only allow on gable and rectangular walls
     if not (is_rectangular_wall(surface) || is_gable_wall(surface))
       return 0.0
@@ -1984,7 +2037,7 @@ class Geometry
     num_units_per_floor_actual = num_units_per_floor
     above_ground_floors = num_floors
 
-    if (num_floors > 1) && (level != 'Bottom') && (foundation_height != 0.0)
+    if (num_floors > 1) && (level != 'Bottom') && (foundation_height > 0.0)
       runner.registerWarning('Unit is not on the bottom floor, setting foundation height to 0.')
       foundation_height = 0.0
     end
@@ -1993,9 +2046,18 @@ class Geometry
       level = 'Bottom'
     end
 
-    if (num_units_per_floor % 2 == 0) && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
+    if (num_floors <= 2) && (level == 'Middle')
+      runner.registerError("Building is #{num_floors} stories and does not have middle units")
+      return false
+    end
+
+    if (num_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
       unit_depth = 2
-      unit_width = num_units_per_floor / 2
+      unit_width = num_units_per_floor / 2.0
+      has_rear_units = true
+    elsif (num_units_per_floor == 2) && (horz_location == 'None') # double-loaded corridor for 2 units/story
+      unit_depth = 2
+      unit_width = 1.0
       has_rear_units = true
     else
       unit_depth = 1
@@ -2008,12 +2070,8 @@ class Geometry
       runner.registerError('Starting model is not empty.')
       return false
     end
-    if foundation_type.downcase.include?('crawlspace') && ((foundation_height < 1.5) || (foundation_height > 5.0))
+    if foundation_type.downcase.include?('crawlspace') && ((foundation_height < 1.5) || (foundation_height > 5.0)) && level == 'Bottom'
       runner.registerError('The crawlspace height can be set between 1.5 and 5 ft.')
-      return false
-    end
-    if num_units % num_floors != 0
-      runner.registerError("The number of units (#{num_units}) must be divisible by the number of floors (#{num_floors}).")
       return false
     end
     if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
@@ -2038,16 +2096,20 @@ class Geometry
       runner.registerWarning('Specified a balcony, but there is no inset.')
       balcony_depth = 0
     end
-    if (unit_width == 1) && (horz_location != 'None')
-      runner.registerWarning("No #{horz_location} location exists, setting horizontal location to 'None'")
+    if (unit_width < 2) && (horz_location != 'None')
+      runner.registerWarning("No #{horz_location} location exists, setting horz_location to 'None'")
       horz_location = 'None'
+    end
+    if (unit_width >= 2) && (horz_location == 'None')
+      runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
+      return false
     end
     if (unit_width > 1) && (horz_location == 'None')
       runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
       return false
     end
-    if (unit_width < 3) && (horz_location == 'Middle')
-      runner.registerError('No middle horizontal location exists.')
+    if (unit_width <= 2) && (horz_location == 'Middle')
+      runner.registerError('Invalid horizontal location entered, no middle location exists.')
       return false
     end
 
@@ -2609,7 +2671,7 @@ class Geometry
     xValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        xValueArray << UnitConversions.convert(vertex.x, 'm', 'ft')
+        xValueArray << UnitConversions.convert(vertex.x, 'm', 'ft').round(5)
       end
     end
     return xValueArray
@@ -2620,7 +2682,7 @@ class Geometry
     yValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        yValueArray << UnitConversions.convert(vertex.y, 'm', 'ft')
+        yValueArray << UnitConversions.convert(vertex.y, 'm', 'ft').round(5)
       end
     end
     return yValueArray

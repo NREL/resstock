@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>b6eeea92-b1e1-43b2-9e74-50917eeff509</version_id>
-  <version_modified>20210513T172248Z</version_modified>
+  <version_id>38e059ac-b054-48a8-896b-07d199937db8</version_id>
+  <version_modified>20210529T003943Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -248,16 +248,6 @@
           <display_name>apartment unit</display_name>
         </choice>
       </choices>
-    </argument>
-    <argument>
-      <name>geometry_cfa</name>
-      <display_name>Geometry: Conditioned Floor Area</display_name>
-      <description>The total floor area of the conditioned space (including any conditioned basement floor area).</description>
-      <type>Double</type>
-      <units>ft^2</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>2000</default_value>
     </argument>
     <argument>
       <name>geometry_num_floors_above_grade</name>
@@ -674,6 +664,10 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
       <choices>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
         <choice>
           <value>Left</value>
           <display_name>Left</display_name>
@@ -2538,11 +2532,11 @@
       <name>mech_vent_hours_in_operation</name>
       <display_name>Mechanical Ventilation: Hours In Operation</display_name>
       <description>The hours in operation of the mechanical ventilation.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>hrs/day</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>24</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>mech_vent_recovery_efficiency_type</name>
@@ -2587,11 +2581,11 @@
       <name>mech_vent_fan_power</name>
       <display_name>Mechanical Ventilation: Fan Power</display_name>
       <description>The fan power of the mechanical ventilation.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>W</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>30</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>mech_vent_num_units_served</name>
@@ -5402,6 +5396,25 @@
       <default_value>1</default_value>
     </argument>
     <argument>
+      <name>geometry_cfa_bin</name>
+      <display_name>Geometry: Conditioned Floor Area Bin</display_name>
+      <description>E.g., '2000-2499'</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2000-2499</default_value>
+    </argument>
+    <argument>
+      <name>geometry_cfa</name>
+      <display_name>Geometry: Conditioned Floor Area</display_name>
+      <description>E.g., '2000' or 'auto'</description>
+      <type>String</type>
+      <units>sqft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2000</default_value>
+    </argument>
+    <argument>
       <name>plug_loads_other_usage_multiplier_2</name>
       <display_name>Plug Loads: Other Usage Multiplier 2</display_name>
       <description>Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.</description>
@@ -5702,7 +5715,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>93208CE2</checksum>
+      <checksum>40BE0CF4</checksum>
     </file>
   </files>
 </measure>

@@ -439,6 +439,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     horizontal_location_choices = OpenStudio::StringVector.new
+    horizontal_location_choices << 'None'
     horizontal_location_choices << 'Left'
     horizontal_location_choices << 'Middle'
     horizontal_location_choices << 'Right'
@@ -3131,6 +3132,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = [args[:season_cooling_begin_month].is_initialized, args[:season_cooling_begin_day_of_month].is_initialized, args[:season_cooling_end_month].is_initialized, args[:season_cooling_end_day_of_month].is_initialized].uniq.size == 2
     errors << "season_cooling_begin_month=#{args[:season_cooling_begin_month].is_initialized} and season_cooling_begin_day_of_month=#{args[:season_cooling_begin_day_of_month].is_initialized} and season_cooling_end_month=#{args[:season_cooling_end_month].is_initialized} and season_cooling_end_day_of_month=#{args[:season_cooling_end_day_of_month].is_initialized}" if error
 
+    # vacancy period incomplete
+    error = [args[:schedules_vacancy_begin_month].is_initialized, args[:schedules_vacancy_begin_day_of_month].is_initialized, args[:schedules_vacancy_end_month].is_initialized, args[:schedules_vacancy_end_day_of_month].is_initialized].uniq.size == 2
+    errors << "schedules_vacancy_begin_month=#{args[:schedules_vacancy_begin_month].is_initialized} and schedules_vacancy_begin_day_of_month=#{args[:schedules_vacancy_begin_day_of_month].is_initialized} and schedules_vacancy_end_month=#{args[:schedules_vacancy_end_month].is_initialized} and schedules_vacancy_end_day_of_month=#{args[:schedules_vacancy_end_day_of_month].is_initialized}" if error
+
+    # vacancy period invalid
+    if args[:schedules_vacancy_begin_month].is_initialized && args[:schedules_vacancy_begin_day_of_month].is_initialized && args[:schedules_vacancy_end_month].is_initialized && args[:schedules_vacancy_end_day_of_month].is_initialized
+      HPXML::check_dates('Vacancy Period', args[:schedules_vacancy_begin_month].get, args[:schedules_vacancy_begin_day_of_month].get, args[:schedules_vacancy_end_month].get, args[:schedules_vacancy_end_day_of_month].get).each do |error|
+        errors << error
+      end
+    end
+
     return warnings, errors
   end
 
@@ -3258,10 +3270,10 @@ class HPXMLFile
     end
     return false if not success
 
-    success = Geometry.create_windows_and_skylights(runner: runner, model: model, **args)
+    success = Geometry.create_doors(runner: runner, model: model, **args)
     return false if not success
 
-    success = Geometry.create_doors(runner: runner, model: model, **args)
+    success = Geometry.create_windows_and_skylights(runner: runner, model: model, **args)
     return false if not success
 
     return true
@@ -3538,7 +3550,7 @@ class HPXMLFile
       hpxml.roofs.add(id: valid_attr(surface.name),
                       interior_adjacent_to: get_adjacent_to(surface),
                       azimuth: azimuth,
-                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                       roof_type: roof_type,
                       roof_color: roof_color,
                       pitch: args[:geometry_roof_pitch],
@@ -3688,7 +3700,7 @@ class HPXMLFile
                       siding: siding,
                       color: color,
                       solar_absorptance: solar_absorptance,
-                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                       emittance: emittance)
 
       is_uncond_attic_roof_insulated = false
@@ -3760,7 +3772,7 @@ class HPXMLFile
                                  exterior_adjacent_to: exterior_adjacent_to,
                                  interior_adjacent_to: interior_adjacent_to,
                                  height: args[:geometry_foundation_height],
-                                 area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                                 area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                                  thickness: thickness,
                                  depth_below_grade: args[:geometry_foundation_height] - args[:geometry_foundation_height_above_grade],
                                  insulation_assembly_r_value: insulation_assembly_r_value,
@@ -3808,7 +3820,7 @@ class HPXMLFile
       hpxml.frame_floors.add(id: valid_attr(surface.name),
                              exterior_adjacent_to: exterior_adjacent_to,
                              interior_adjacent_to: interior_adjacent_to,
-                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                              other_space_above_or_below: other_space_above_or_below)
 
       if hpxml.frame_floors[-1].is_thermal_boundary
@@ -3835,7 +3847,7 @@ class HPXMLFile
       if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned, HPXML::LocationBasementConditioned].include? interior_adjacent_to
         has_foundation_walls = true
       end
-      exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_foundation_walls).round
+      exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_foundation_walls).round(1)
       next if exposed_perimeter == 0 # this could be, e.g., the foundation floor of an interior corridor
 
       if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned, HPXML::LocationBasementConditioned].include? interior_adjacent_to
@@ -3870,7 +3882,7 @@ class HPXMLFile
 
       hpxml.slabs.add(id: valid_attr(surface.name),
                       interior_adjacent_to: interior_adjacent_to,
-                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                       thickness: thickness,
                       exposed_perimeter: exposed_perimeter,
                       perimeter_insulation_depth: args[:slab_perimeter_depth],
@@ -3895,19 +3907,19 @@ class HPXMLFile
         if (sub_surface_facade == Constants.FacadeFront) && ((args[:overhangs_front_depth] > 0) || args[:overhangs_front_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_front_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_front_distance_to_top_of_window]
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         elsif (sub_surface_facade == Constants.FacadeBack) && ((args[:overhangs_back_depth] > 0) || args[:overhangs_back_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_back_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_back_distance_to_top_of_window]
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         elsif (sub_surface_facade == Constants.FacadeLeft) && ((args[:overhangs_left_depth] > 0) || args[:overhangs_left_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_left_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_left_distance_to_top_of_window]
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         elsif (sub_surface_facade == Constants.FacadeRight) && ((args[:overhangs_right_depth] > 0) || args[:overhangs_right_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_right_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_right_distance_to_top_of_window]
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         elsif args[:geometry_eaves_depth] > 0
           # Get max z coordinate of eaves
           eaves_z = args[:geometry_wall_height] * args[:geometry_num_floors_above_grade] + args[:geometry_rim_joist_height]
@@ -3923,7 +3935,7 @@ class HPXMLFile
 
           overhangs_depth = args[:geometry_eaves_depth]
           overhangs_distance_to_top_of_window = eaves_z - sub_surface_z # difference between max z coordinates of eaves and this window
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         end
 
         azimuth = get_azimuth_from_facade(sub_surface_facade, args)

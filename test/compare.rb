@@ -40,6 +40,25 @@ files.each do |file|
     results[key]['cols'] = results[key]['rows'][0][1..-1] # exclude index column
   end
 
+  # map columns
+  cwd = Dir.getwd
+  rows = CSV.read(File.join(Dir.getwd, 'test/column_mapping.csv'))
+  col_map = {}
+  rows[1..-1].each do |row|
+    next unless row[1]
+    dev_row = row[1].split(',')
+    dev_row = dev_row.map { |x| x.split('.')[1] }
+    dev_row.each do |field|
+      col_map[field] = row[0]
+    end
+  end
+
+  results[feature]['cols'].each do |col|
+    if col.include? 'build_existing_model'
+      col_map[col.split('.')[1]] = col
+    end
+  end
+
   # get data
   results.keys.each do |key|
     results[key]['rows'][1..-1].each do |row|
@@ -47,25 +66,58 @@ files.each do |file|
       results[key][hpxml] = {}
       row[1..-1].each_with_index do |field, i|
         col = results[key]['cols'][i]
-
         if field.nil?
           vals = [''] # string
         elsif field.include?(',')
           begin
             vals = field.split(',').map { |x| Float(x) } # float
+            if col.split('_')[-1] == 'kwh'
+              if col == 'electricity_heating_supplemental_kwh'
+                vals[0] *= 3412.14 / 1000 # to kbtu
+              else
+                vals[0] *= 3412.14 / 1000000 # to mbtu
+              end
+            elsif col.split('_')[-1] == 'therm'
+              vals[0] *= 0.1 # to mbtu
+            end
           rescue ArgumentError
             vals = [field] # string
           end
         else
           begin
             vals = [Float(field)] # float
+            if col.split('_')[-1] == 'kwh'
+              if col == 'electricity_heating_supplemental_kwh'
+                vals[0] *= 3412.14 / 1000 # to kbtu
+              else
+                vals[0] *= 3412.14 / 1000000 # to mbtu
+              end
+            elsif col.split('_')[-1] == 'therm'
+              vals[0] *= 0.1 # to mbtu
+            end
           rescue ArgumentError
             vals = [field] # string
           end
         end
 
-        results[key][hpxml][col] = vals
+        # Map base cols to feature
+        if not col_map[col].nil?
+          col = col_map[col]
+        end
+
+        # Aggregate columns
+        if results[key][hpxml][col]
+          results[key][hpxml][col] += vals
+        else
+          results[key][hpxml][col] = vals
+        end
       end
+    end
+  end
+
+  results[base]['cols'].each_with_index do |col, i|
+    if not col_map[col].nil?
+      results[base]['cols'][i] = col_map[col]
     end
   end
 
@@ -78,6 +130,7 @@ files.each do |file|
   base_cols = results[base]['cols']
   feature_cols = results[feature]['cols']
   cols = base_cols | feature_cols
+  cols = cols.sort
 
   # create comparison table
   rows = [[results[base]['rows'][0][0]] + cols] # index column + union of all other columns
@@ -101,10 +154,16 @@ files.each do |file|
         begin
           # float comparisons
           m = []
+
+          # sum multiple cols
+          if base_field[0].is_a? Numeric
+            base_field = [base_field.sum]
+          end
+
           base_field.zip(feature_field).each do |b, f|
             m << (f - b).round(1)
           end
-        rescue NoMethodError
+        rescue *[NoMethodError, TypeError]
           # string comparisons
           m = []
           base_field.zip(feature_field).each do |b, f|
@@ -126,6 +185,73 @@ files.each do |file|
 
   # export comparison table
   CSV.open(File.join(dir, file), 'wb') do |csv|
+    rows.each do |row|
+      csv << row
+    end
+  end
+
+  # write aggregated results
+  agg_cols = []
+  agg_cols = rows[0].select { |x| ['simulation_output_report', 'upgrade_costs'].include? x.split('.')[0] }
+  rows = [['enduse', 'base', 'feature', 'diff', 'percent diff']]
+
+  agg_cols.each do |col|
+    row_sum = [0, 0]
+    base_field, feature_field = nil, nil
+
+    # aggregate all osws
+    hpxmls.sort.each do |hpxml|
+      base_field = results[base][hpxml][col]
+      feature_field = results[feature][hpxml][col]
+
+      if base_field.nil? # has feature value but not base
+        row_sum[0] = 'N/A'
+      end
+      if feature_field.nil? # has base value but not feature
+        row_sum[1] = 'N/A'
+      end
+
+      # sum values
+      if (not base_field.nil?) && base_field[0].is_a?(Numeric)
+        row_sum[0] += base_field[0]
+      else
+        row_sum[0] = 'N/A'
+      end
+      if (not feature_field.nil?) && feature_field[0].is_a?(Numeric)
+        row_sum[1] += feature_field[0]
+      else
+        row_sum[1] = 'N/A'
+      end
+    end
+
+    # calculate absolute and percent diffs
+    if (not base_field.nil?) && (not feature_field.nil?)
+      if base_field[0].is_a?(Numeric) && feature_field[0].is_a?(Numeric)
+        diff = (row_sum[0] - row_sum[1]).round(2)
+        row_sum = row_sum.map { |x| x.round(2) }
+        if row_sum[0] != 0
+          percent = (100 * diff / row_sum[0]).round(2)
+        else
+          percent = 'N/A'
+        end
+      else
+        diff = 'N/A'
+        percent = 'N/A'
+      end
+    else
+      diff = 'N/A'
+      percent = 'N/A'
+    end
+
+    next unless (row_sum[0] != 'N/A') || (row_sum[1] != 'N/A')
+    row = [col.split('.')[1]] + row_sum
+    row << diff
+    row << percent
+    rows << row
+  end
+
+  # export aggregate comparision table
+  CSV.open(File.join(dir, 'aggregate_results.csv'), 'wb') do |csv|
     rows.each do |row|
       csv << row
     end
