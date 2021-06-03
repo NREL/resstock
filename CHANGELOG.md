@@ -14,6 +14,7 @@ Features
 - Remove 3 story limit for multi-family buildings, and instead use RECS data to allow for buildings up to 21 stories ([#558](https://github.com/NREL/resstock/pull/558))
 - Add a sampling probability column in the housing characteristics to define the probability a given column will be sampled ([#584](https://github.com/NREL/resstock/pull/584))
 - Add ReEDS balancing areas as a spatial field ([#591](https://github.com/NREL/resstock/pull/591))
+- Changes heat pump defrost control from OnDemand to Timed ([#605](https://github.com/NREL/resstock/pull/605))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
