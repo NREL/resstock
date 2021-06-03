@@ -1,3 +1,5 @@
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 require_relative 'minitest_helper'
 require 'minitest/autorun'
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..')

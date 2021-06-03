@@ -1,3 +1,5 @@
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
