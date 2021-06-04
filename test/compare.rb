@@ -40,16 +40,26 @@ files.each do |file|
     results[key]['cols'] = results[key]['rows'][0][1..-1] # exclude index column
   end
 
-  # map columns
+  # write column mapping
   cwd = Dir.getwd
   rows = CSV.read(File.join(Dir.getwd, 'test/column_mapping.csv'))
   col_map = {}
+  feature_cols = []
   rows[1..-1].each do |row|
     next unless row[1]
     dev_row = row[1].split(',')
     dev_row = dev_row.map { |x| x.split('.')[1] }
     dev_row.each do |field|
-      col_map[field] = row[0]
+      col_map[field] = row[0].split(',')[0]
+    end
+    feature_cols << row[0]
+  end
+
+  # use first column name for multiple feature cols
+  feature_map = {}
+  feature_cols.each do |col|
+    col.split(',').each do |col_s|
+      feature_map[col_s] = col.split(',')[0]
     end
   end
 
@@ -100,9 +110,12 @@ files.each do |file|
           end
         end
 
-        # Map base cols to feature
+        # Map base and feature cols
         if not col_map[col].nil?
           col = col_map[col]
+        end
+        if key == feature and not feature_map[col].nil?
+          col = feature_map[col]
         end
 
         # Aggregate columns
@@ -115,9 +128,15 @@ files.each do |file|
     end
   end
 
+  # update 'cols' with mapped column names
   results[base]['cols'].each_with_index do |col, i|
     if not col_map[col].nil?
       results[base]['cols'][i] = col_map[col]
+    end
+  end
+  results[feature]['cols'].each_with_index do |col, i|
+    if not feature_map[col].nil?
+      results[feature]['cols'][i] = feature_map[col]
     end
   end
 
@@ -158,6 +177,9 @@ files.each do |file|
           # sum multiple cols
           if base_field[0].is_a? Numeric
             base_field = [base_field.sum]
+          end
+          if feature_field[0].is_a? Numeric
+            feature_field = [feature_field.sum]
           end
 
           base_field.zip(feature_field).each do |b, f|
@@ -212,13 +234,13 @@ files.each do |file|
       end
 
       # sum values
-      if (not base_field.nil?) && base_field[0].is_a?(Numeric)
-        row_sum[0] += base_field[0]
+      if not base_field.nil? and base_field[0].is_a? Numeric
+        row_sum[0] += base_field.sum
       else
         row_sum[0] = 'N/A'
       end
-      if (not feature_field.nil?) && feature_field[0].is_a?(Numeric)
-        row_sum[1] += feature_field[0]
+      if not feature_field.nil? and feature_field[0].is_a? Numeric
+        row_sum[1] += feature_field.sum
       else
         row_sum[1] = 'N/A'
       end
