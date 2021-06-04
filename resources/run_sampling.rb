@@ -138,9 +138,6 @@ class RunSampling
     data = data.transpose
 
     bldgs_hash = {}
-    # dep_hashes.each do |dep_hash|
-    #  bldgs_hash[dep_hash] = data.find_each_index(dep_hash.values)
-    # end
     data[1..-1].each_with_index do |bldg, idx|
       bldgs_hash[bldg] = [] if bldgs_hash[bldg].nil?
       bldgs_hash[bldg] << idx + 1
