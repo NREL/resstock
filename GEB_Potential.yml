@@ -106,12 +106,6 @@ upgrades:
       - option: Heating Setpoint Apply Offset|TRUE
         apply_logic:
           - Heating Setpoint Has Offset|No
-      # - option: Cooling Setpoint Apply Offset|FALSE ##default
-      #   apply_logic:
-      #     - Cooling Setpoint Has Offset|Yes
-      # - option: Heating Setpoint Apply Offset|FALSE ##default
-      #   apply_logic:
-      #     - Heating Setpoint Has Offset|Yes
                  
       ## Night setback, cooling
       - option: Setback|Night - Cooling #+4
@@ -322,7 +316,6 @@ upgrades:
             - Lighting|60% CFL
             - Lighting|100% CFL
             - Lighting|20% LED
-            - Lighting|100% LED, Low Efficacy
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -445,27 +438,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
       #Best electronics
-      - option: Plug Loads|25%
-        apply_logic:
-            - Plug Loads|50%
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
-      - option: Plug Loads|50%
-        apply_logic:
-            - Plug Loads|100%
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
-      - option: Plug Loads|100%
-        apply_logic:
-            - Plug Loads|200%
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Plug Load Shed|25%
 
   ##up6 - package 1f - Best CAC Homes, best CAC, smart thermostat and envelope (1st) ####
   - upgrade_name: Package 1f EE CAC with smart thermostat and envelope
@@ -1347,41 +1320,41 @@ upgrades:
           - not: Heating Setpoint|78F
           - not: Heating Setpoint|80F 
       - option: ThermoDR|San Diego
-        apply_logic: City|San Diego
+        apply_logic: Location City|San Diego
       - option: ThermoDR|Tampa
-        apply_logic: City|Tampa
+        apply_logic: Location City|Tampa
       - option: ThermoDR|Tucson
-        apply_logic: City|Tucson
+        apply_logic: Location City|Tucson
       - option: ThermoDR|Albuquerque
-        apply_logic: City|Albuquerque
+        apply_logic: Location City|Albuquerque
       - option: ThermoDR|Atlanta_1
-        apply_logic: City|Atlanta_1
+        apply_logic: Location City|Atlanta_1
       - option: ThermoDR|Atlanta_2
-        apply_logic: City|Atlanta_2
+        apply_logic: Location City|Atlanta_2
       - option: ThermoDR|Seattle
-        apply_logic: City|Seattle
+        apply_logic: Location City|Seattle
       - option: ThermoDR|Great Falls
-        apply_logic: City|Great Falls
+        apply_logic: Location City|Great Falls
       - option: ThermoDR|Denver
-        apply_logic: City|Denver
+        apply_logic: Location City|Denver
       - option: ThermoDR|Buffalo_1
-        apply_logic: City|Buffalo_1
+        apply_logic: Location City|Buffalo_1
       - option: ThermoDR|Buffalo_2
-        apply_logic: City|Buffalo_2
+        apply_logic: Location City|Buffalo_2
       - option: ThermoDR|New York_1
-        apply_logic: City|New York_1
+        apply_logic: Location City|New York_1
       - option: ThermoDR|New York_2
-        apply_logic: City|New York_2
+        apply_logic: Location City|New York_2
       - option: ThermoDR|Port Angeles
-        apply_logic: City|Port Angeles
+        apply_logic: Location City|Port Angeles
       - option: ThermoDR|Midland
-        apply_logic: City|Midland
+        apply_logic: Location City|Midland
       - option: ThermoDR|International Falls
-        apply_logic: City|International Falls
+        apply_logic: Location City|International Falls
       - option: ThermoDR|Rochester_1
-        apply_logic: City|Rochester_1
+        apply_logic: Location City|Rochester_1
       - option: ThermoDR|Rochester_2
-        apply_logic: City|Rochester_2
+        apply_logic: Location City|Rochester_2
 
   ##up13 - package 3a - CAC upgrade with pre heating/cooling, smart thermostat, envelope
   - upgrade_name: Package 3a Pre-heating/cooling, smart thermostat, and envelope for CAC upgrades
@@ -2002,17 +1975,14 @@ upgrades:
   - upgrade_name: package 3d appliance EE+DR
     options: 
       #Best LEDs
-      - option: Lighting|100% LED, High Efficacy
+      - option: Lighting|100% LED
         apply_logic:
           or:
             - Lighting|100% Incandescent
             - Lighting|60% CFL Hardwired, 34% CFL Plugin
             - Lighting|60% CFL
             - Lighting|100% CFL
-            - Lighting|100% LED
             - Lighting|20% LED
-            - Lighting|100% LED
-            - Lighting|100% LED, Low Efficacy
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -2135,28 +2105,10 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
+
       #Best electronics
-      - option: Plug Loads|25%
-        apply_logic:
-            - Plug Loads|50%
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
-      - option: Plug Loads|50%
-        apply_logic:
-            - Plug Loads|100%
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
-      - option: Plug Loads|100%
-        apply_logic:
-            - Plug Loads|200%
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
+      - option: Plug Load Shed|25%
+
       # Appliance DR measures
       - option: Appliance DR Apply|TRUE
       # Water heater DR
