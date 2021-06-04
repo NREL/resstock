@@ -14,6 +14,7 @@ Features
 - Remove 3 story limit for multi-family buildings, and instead use RECS data to allow for buildings up to 21 stories ([#558](https://github.com/NREL/resstock/pull/558))
 - Add a sampling probability column in the housing characteristics to define the probability a given column will be sampled ([#584](https://github.com/NREL/resstock/pull/584))
 - Add ReEDS balancing areas as a spatial field ([#591](https://github.com/NREL/resstock/pull/591))
+- Speed up sampling algorithm by multiple orders of magnitude for large numbers of samples ([#606](https://github.com/NREL/resstock/pull/606))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
