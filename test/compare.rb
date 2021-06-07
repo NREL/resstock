@@ -215,61 +215,76 @@ files.each do |file|
   # write aggregated results
   agg_cols = []
   agg_cols = rows[0].select { |x| ['simulation_output_report', 'upgrade_costs'].include? x.split('.')[0] }
-  rows = [['enduse', 'base', 'feature', 'diff', 'percent diff']]
+  rows = [['enduse', 'building type', 'base', 'feature', 'diff', 'percent diff']]
+  btypes = ['SFD', 'SFA', 'MF']
+  btype_hash = {'Single-Family Detached' => 'SFD',
+            'Mobile Home' => 'SFD',
+            'Single-Family Attached' => 'SFA',
+            'Multi-Family with 5+ Units' => 'MF',
+            'Multi-Family with 2 - 4 Units' => 'MF'}
 
   agg_cols.each do |col|
-    row_sum = [0, 0]
+    row_sum = {'SFD' => [0, 0], 'SFA' => [0,0], 'MF' => [0,0]}
     base_field, feature_field = nil, nil
 
     # aggregate all osws
     hpxmls.sort.each do |hpxml|
+      btype = btype_hash[results[base][hpxml]['build_existing_model.geometry_building_type_recs'][0]]
       base_field = results[base][hpxml][col]
       feature_field = results[feature][hpxml][col]
 
       if base_field.nil? # has feature value but not base
-        row_sum[0] = 'N/A'
+        row_sum[btype][0] = 'N/A'
       end
       if feature_field.nil? # has base value but not feature
-        row_sum[1] = 'N/A'
+        row_sum[btype][1] = 'N/A'
       end
 
       # sum values
       if not base_field.nil? and base_field[0].is_a? Numeric
-        row_sum[0] += base_field.sum
+        row_sum[btype][0] += base_field.sum
       else
-        row_sum[0] = 'N/A'
+        row_sum[btype][0] = 'N/A'
       end
       if not feature_field.nil? and feature_field[0].is_a? Numeric
-        row_sum[1] += feature_field.sum
+        row_sum[btype][1] += feature_field.sum
       else
-        row_sum[1] = 'N/A'
+        row_sum[btype][1] = 'N/A'
       end
     end
 
     # calculate absolute and percent diffs
-    if (not base_field.nil?) && (not feature_field.nil?)
-      if base_field[0].is_a?(Numeric) && feature_field[0].is_a?(Numeric)
-        diff = (row_sum[0] - row_sum[1]).round(2)
-        row_sum = row_sum.map { |x| x.round(2) }
-        if row_sum[0] != 0
-          percent = (100 * diff / row_sum[0]).round(2)
+    diff = {}
+    percent = {}
+    btypes.each do |btype|
+      if (not base_field.nil?) && (not feature_field.nil?)
+        if base_field[0].is_a?(Numeric) && feature_field[0].is_a?(Numeric)
+          diff[btype] = (row_sum[btype][0] - row_sum[btype][1]).round(2)
+          row_sum[btype] = row_sum[btype].map { |x| x.round(2) }
+          if row_sum[btype][0] != 0
+            percent[btype] = (100 * diff[btype] / row_sum[btype][0]).round(2)
+          else
+            percent[btype] = 'N/A'
+          end
         else
-          percent = 'N/A'
+          diff[btype] = 'N/A'
+          percent[btype] = 'N/A'
         end
       else
-        diff = 'N/A'
-        percent = 'N/A'
+        diff[btype] = 'N/A'
+        percent[btype] = 'N/A'
       end
-    else
-      diff = 'N/A'
-      percent = 'N/A'
     end
 
-    next unless (row_sum[0] != 'N/A') || (row_sum[1] != 'N/A')
-    row = [col.split('.')[1]] + row_sum
-    row << diff
-    row << percent
-    rows << row
+    btypes.each do |btype|
+      next unless (row_sum[btype][0] != 'N/A') || (row_sum[btype][1] != 'N/A')
+      row = [col.split('.')[1]]
+      row << btype
+      row += row_sum[btype]
+      row << diff[btype]
+      row << percent[btype]
+      rows << row
+    end
   end
 
   # export aggregate comparision table
