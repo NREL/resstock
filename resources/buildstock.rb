@@ -11,10 +11,10 @@ class TsvFile
     @filename = File.basename(full_path)
     @runner = runner
     @rows, @option_cols, @dependency_cols, @dependency_options, @full_header, @header = get_file_data()
-    @rows_keys_s = construct_rows_keys_s()
+    @rows_keys_s = cache_data()
   end
 
-  attr_accessor :dependency_cols, :dependency_options, :rows, :option_cols, :header, :filename, :rows_keys_s
+  attr_accessor :dependency_cols, :dependency_options, :rows, :option_cols, :header, :filename, :rows_keys_s, :full_path
 
   def get_file_data()
     option_key = 'Option='
@@ -76,17 +76,28 @@ class TsvFile
     return rows, option_cols, dependency_cols, dependency_options, full_header, header
   end
 
-  def construct_rows_keys_s
+  def cache_data
     # Caches data for faster tsv lookups
-    rows_keys_s = []
+    rows_keys_s = {}
     @rows.each_with_index do |row, rownum|
       next if row[0].start_with? "\#"
 
       row_key_values = {}
       @dependency_cols.each do |dep, dep_col|
-        row_key_values[dep] = row[@dependency_cols[dep]].downcase
+        row_key_values[dep] = row[@dependency_cols[dep]]
       end
-      rows_keys_s << hash_to_string(row_key_values).downcase
+      key_s = hash_to_string(row_key_values)
+      key_s_downcase = key_s.downcase
+
+      if not rows_keys_s[key_s_downcase].nil?
+        if key_s.size > 0
+          register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
+        else
+          register_error("Multiple rows found in #{@filename.to_s}.", @runner)
+        end
+      end
+
+      rows_keys_s[key_s_downcase] = rownum
     end
     return rows_keys_s
   end
@@ -104,14 +115,8 @@ class TsvFile
     key_s = hash_to_string(dependency_values)
     key_s_downcase = key_s.downcase
 
-    num_matches = @rows_keys_s.count(key_s_downcase)
-    if num_matches > 1
-      if key_s.size > 0
-        register_error("Multiple rows found in #{@filename} with dependencies: #{key_s}.", @runner)
-      else
-        register_error("Multiple rows found in #{@filename}.", @runner)
-      end
-    elsif num_matches == 0
+    rownum = @rows_keys_s[key_s_downcase]
+    if rownum.nil?
       if key_s.size > 0
         register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value} with dependencies: #{key_s}.", @runner)
       else
@@ -119,25 +124,19 @@ class TsvFile
       end
     end
 
-    rownum = @rows_keys_s.index(key_s_downcase)
-    row = @rows[rownum]
-
-    if row[0].start_with? "\#"
-      rownum += 1
-      row = @rows[rownum]
-    end
     # Convert data to numeric row values
     rowvals = {}
+    row = @rows[rownum]
     @option_cols.each do |option_name, option_col|
       if not row[option_col].is_number?
         register_error("Field '#{row[option_col]}' in #{@filename} must be numeric.", @runner)
       end
       rowvals[option_name] = row[option_col].to_f
-    end
 
-    # Check positivity of the probability values
-    if rowvals.values.min < 0
-      register_error("Probability value in #{@filename} is less than zero.", @runner)
+      # Check positivity of the probability values
+      if rowvals[option_name] < 0
+        register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+      end
     end
 
     # Sum of values within 2% of 100%?
@@ -155,9 +154,10 @@ class TsvFile
 
     # Find appropriate value
     rowsum = 0
+    n_options = @option_cols.size
     @option_cols.each_with_index do |(option_name, option_col), index|
       rowsum += rowvals[option_name]
-      next unless (rowsum >= sample_value) || ((index == @option_cols.size - 1) && (rowsum + 0.00001 >= sample_value))
+      next unless (rowsum >= sample_value) || ((index == n_options - 1) && (rowsum + 0.00001 >= sample_value))
       matched_option_name = option_name
       matched_row_num = rownum
       break
@@ -167,10 +167,10 @@ class TsvFile
   end
 end
 
-def get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir = nil)
+def get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir = nil)
   # Obtain full list of parameters and their order
   params = []
-  CSV.foreach(lookup_file, { col_sep: "\t" }) do |row|
+  lookup_csv_data.each do |row|
     next if row.size < 2
     next if row[0].nil? || (row[0].downcase == 'parameter name') || row[1].nil?
     next if params.include?(row[0])
@@ -186,9 +186,9 @@ def get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_
   return params
 end
 
-def get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
+def get_options_for_parameter_from_options_lookup_tsv(lookup_csv_data, parameter_name)
   options = []
-  CSV.foreach(lookup_file, { col_sep: "\t" }) do |row|
+  lookup_csv_data.each do |row|
     next if row.size < 2
     next if row[0].nil? || (row[0].downcase == 'parameter name') || row[1].nil?
     next if row[0].downcase != parameter_name.downcase
@@ -282,7 +282,7 @@ def get_value_from_runner(runner, key_lookup, error_if_missing = true)
   end
 end
 
-def get_measure_args_from_option_names(lookup_file, option_names, parameter_name, runner = nil)
+def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file, runner = nil)
   found_options = {}
   options_measure_args = {}
   option_names.each do |option_name|
@@ -291,7 +291,7 @@ def get_measure_args_from_option_names(lookup_file, option_names, parameter_name
   end
   current_option = nil
 
-  CSV.foreach(lookup_file, { col_sep: "\t" }) do |row|
+  lookup_csv_data.each do |row|
     next if row.size < 2
 
     # Found option row?
