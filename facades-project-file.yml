@@ -25,65 +25,97 @@ baseline:
   n_buildings_represented: 133172057  # Total number of residential dwelling units in contiguous United States, including unoccupied units, resulting from a census tract level query of ACS 5-yr 2016 (i.e. 2012-2016), using this script: https://github.com/NREL/resstock-estimation/blob/master/sources/spatial/tsv_maker.py.
 
 upgrades:
-  #upgrade 1 -  move all houses to 100% high-efficacy LEDs
-  - upgrade_name: LEDs for All #note there is no high efficacy option in develop currently
+  - upgrade_name: Working list of all upgrades
     options:
-    - option: Lighting|100% LED
-      apply_logic:
-        or:
-          - Lighting|100% Incandescent
-          - Lighting|60% CFL Hardwired, 34% CFL Plugin
-          - Lighting|60% CFL
-          - Lighting|100% CFL
-          - Lighting|20% LED
-          - Lighting|100% LED, Low Efficacy
-      costs:
-        - value: 0
-          multiplier: Fixed (1)
-      lifetime: 999
-  #upgrade 2 - Advanced appliances (fridge, w/d, dw)
-  - upgrade_name: Advanced ref, w/d, dw
-    options:
-    - option: Refrigerator|EF 21.9
-      apply_logic: 
-        or:
-          - Refrigerator|EF 19.9
-          - Refrigerator|EF 17.6
-          - Refrigerator|EF 15.9
-          - Refrigerator|EF 10.5
-          - Refrigerator|EF 10.2
-          - Refrigerator|EF 6.7
-      costs:
-        - value: 0
-          multiplier: Fixed (1)
-      lifetime: 17.4
-    - option: Dishwasher|199 Rated kWh, 80% Usage
-      apply_logic: 
-        or:
-          - Dishwasher|318 Rated kWh, 80% Usage
-          - Dishwasher|290 Rated kWh, 80% Usage
-      costs:
-        - value: 1000
-          multiplier: Fixed (1)
-      lifetime: 11
-    - option: Dishwasher|199 Rated kWh, 100% Usage
-      apply_logic: 
-        or:
-          - Dishwasher|318 Rated kWh, 100% Usage
-          - Dishwasher|290 Rated kWh, 100% Usage
-      costs:
-        - value: 1000
-          multiplier: Fixed (1)
-      lifetime: 11
-    - option: Dishwasher|199 Rated kWh, 120% Usage
-      apply_logic: 
-        or:
-          - Dishwasher|318 Rated kWh, 120% Usage
-          - Dishwasher|290 Rated kWh, 120% Usage
-      costs:
-        - value: 0
-          multiplier: Fixed (1)
-      lifetime: 11
+      - &decrease_ACH50_19% #for 1" or 2" polyiso without window upgrade
+      - &decrease_ACH50_30% #for low-E storms on single paane without insulation upgrade
+      - &decrease_ACH50_10% #for low-E storms on double pane without insulation upgrade
+      - &decrease_ACH50_19%_and_30% # for polyiso, + low-E storms on single pane
+      - &decrease_ACH50_19%_and_10% # for polyiso, + low-E storms on double pane
+      - &polyiso_1inch
+        #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
+        option: Insulation Wall| #add R-6.5 to all wall types. Will need to edit options lookup
+        apply_logic:
+          and:
+            - not:
+              - Insulation Wall|Wood Stud, R-19
+              - Insulation Wall|CMU, 6-in Hollow, R-19
+              - Vintage|1990s
+              - Vintage|2000s
+              - Vintage|2010s
+        costs:
+          - value: 1.4
+            multiplier: #exterior wall area
+        lifetime: 999 #should be unimportant because we are doing all the econ stuff with postprocessing?
+      - &polyiso_2inch
+        #1" polyiso continuous insulation, R-13, 19% whole home reduction in ACH50, $1.90 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
+        option: Insulation Wall| #add R-13 to all wall types. Will need to edit options lookup
+        apply_logic:
+          and:
+            - not:
+              - Insulation Wall|Wood Stud, R-19
+              - Insulation Wall|CMU, 6-in Hollow, R-19
+              - Vintage|1990s
+              - Vintage|2000s
+              - Vintage|2010s
+        costs:
+          - value: 1.9
+            multiplier: #exterior wall area
+        lifetime: 999 #should be unimportant because we are doing all the econ stuff with postprocessing?
+      - &siding_upgrade #not including costs for these
+        option: siding|Fiber-cement, light #update when actual option names are available
+        apply_logic:
+          or:
+            - siding|aluminum, light
+            - siding|fiber-cement, light
+            - siding|wood, medium-dark
+        option: siding|stucco, light
+        apply_logic:
+          or:
+            - siding|brick, light
+            - siding|brick, medium-dark
+            - siding|concrete
+            - siding|concrete, block
+            - siding|stucco, light
+        option: siding|vinyl, light
+        apply_logic:
+          or:
+            - siding|shingle, asbestos
+            - siding|shingle, composition
+            - siding|vinyl, light
+      - &low-e_storms
+        option: Windows| #create appropriate options
+        apply_logic: 
+          or: # apply to all single pane, all double pane with aluminum frame, and single pane with clear storm windows
+            - Windows|Clear, Single, Metal
+            - Windows|Clear, Single, Non-metal
+            - Windows|Clear, Double, Metal, Air
+            - Windows| #whatever we come up with to represent single pane with clear storm
+        costs:
+          - value: 23
+            multiplier: #sq ft window area
+      - &triple_window
+        option: Windows|Low-E, Triple, Non-metal, Air, L-Gain #do we want the high gain, low gain, or contingent?
+        apply_logic:
+          or:
+            - Windows|Clear, Single, Metal
+            - Windows|Clear, Single, Non-metal
+            - Windows|Clear, Double, Metal, Air
+            - Windows| #whatever we come up with to represent single pane with clear storm
+        costs:
+          - value: 62
+            multiplier: #sq ft window area
+      - &low-e_storms_w_low_SHGC_and_shading
+        option: Windows| #create appropriate option
+        apply_logic:
+          or:
+            - Windows|Clear, Single, Metal
+            - Windows|Clear, Single, Non-metal
+            - Windows|Clear, Double, Metal, Air
+            - Windows| #whatever we come up with to represent single pane with clear storm
+        costs:
+          - value: 25 #23 for low-e, 2 for shgc, ? for shading
+            multiplier: #sq ft window area
 
 eagle:
   n_jobs: 8
