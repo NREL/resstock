@@ -19,7 +19,8 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   last_size = -1
 
   parameter_names = []
-  get_parameters_ordered_from_options_lookup_tsv(lookup_file).each do |parameter_name|
+  lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+  get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data).each do |parameter_name|
     tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
@@ -122,7 +123,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
       # Check for all options defined in options_lookup.tsv
       starting = Time.now
-      get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
+      get_measure_args_from_option_names(lookup_csv_data, tsvfile.option_cols.keys, parameter_name, lookup_file)
       ending = Time.now
       puts "  Checking all options in options_lookup.tsv: \t#{ending - starting} seconds\n\n"
     end
@@ -154,7 +155,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   # Cache {parameter => {option => {measure => {arg => value}}}}
   parameters_options_measure_args = {}
   parameters_options.each do |parameter_name, option_names|
-    parameters_options_measure_args[parameter_name] = get_measure_args_from_option_names(lookup_file, option_names, parameter_name)
+    parameters_options_measure_args[parameter_name] = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file)
   end
 
   # Check that measure arguments aren't getting overwritten
@@ -219,15 +220,16 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   model = OpenStudio::Model::Model.new
 
   # Gather all options/arguments
-  parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
+  lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+  parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data)
   parameter_names.each do |parameter_name|
     check_for_illegal_chars(parameter_name, 'parameter')
 
     tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
-    option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
-    options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
+    option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_csv_data, parameter_name)
+    options_measure_args = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file, nil)
     option_names.each do |option_name|
       check_for_illegal_chars(option_name, 'option')
 
