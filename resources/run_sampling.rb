@@ -19,7 +19,9 @@ class RunSampling
       lookup_file = File.join(resources_dir, 'options_lookup.tsv')
     end
 
-    params = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
+    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+
+    params = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data)
 
     tsvfiles = {}
     params.each do |param|
@@ -90,12 +92,12 @@ class RunSampling
           dep_hashes = get_combination_hashes(tsvfiles, param_deps)
           bldgs_processed = 0
           if not bldgs_hash.keys.include?(param_deps)
-            bldgs_hash[param_deps] = get_bldgs_by_dependency_values(results_data, dep_hashes, num_samples, results_data_cols)
+            bldgs_hash[param_deps] = get_bldgs_by_dependency_values(results_data, dep_hashes, results_data_cols)
           end
           dep_hashes.each do |dep_hash|
             # Determine buildings this combo applies to
-            bldgs = bldgs_hash[param_deps][dep_hash]
-            next if bldgs.size == 0
+            bldgs = bldgs_hash[param_deps][dep_hash.values]
+            next if bldgs.nil?
 
             sample_results = sample_probability_distribution(dep_hash, tsvfile, bldgs.size)
             random_seed = distribute_samples(random_seed, results_data_param, sample_results, bldgs)
@@ -126,30 +128,19 @@ class RunSampling
     return results_data
   end
 
-  def get_bldgs_by_dependency_values(results_data, dep_hashes, num_samples, results_data_cols)
+  def get_bldgs_by_dependency_values(results_data, dep_hashes, results_data_cols)
     # Returns a hash with key:dep_hash, value:Array[bldgs]
 
-    # Initialize
-    bldgs_hash = {}
-    dep_hashes.each do |dep_hash|
-      bldgs_hash[dep_hash] = []
+    data = []
+    dep_hashes[0].each do |dep_name, dep_val|
+      data << results_data[results_data_cols[dep_name]]
     end
+    data = data.transpose
 
-    # For each building, assign to appropriate dep_hash
-    for bldg_num in 1..num_samples
-      dep_hashes.each do |dep_hash|
-        match = true
-        dep_hash.each do |dep_name, dep_value|
-          next if results_data[results_data_cols[dep_name]][bldg_num] == dep_value
-
-          match = false
-          break
-        end
-        if match
-          bldgs_hash[dep_hash] << bldg_num
-          break
-        end
-      end
+    bldgs_hash = {}
+    data[1..-1].each_with_index do |bldg, idx|
+      bldgs_hash[bldg] = [] if bldgs_hash[bldg].nil?
+      bldgs_hash[bldg] << idx + 1
     end
 
     return bldgs_hash
@@ -161,8 +152,9 @@ class RunSampling
       return tsvfile.rows[0]
     end
 
-    key_s_downcase = hash_to_string(dep_hash).downcase
-    rownum = tsvfile.rows_keys_s.index(key_s_downcase)
+    key_s = hash_to_string(dep_hash)
+    key_s_downcase = key_s.downcase
+    rownum = tsvfile.rows_keys_s[key_s_downcase]
 
     if rownum.nil?
       register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash.to_s}.", nil)
