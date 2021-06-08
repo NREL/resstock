@@ -1256,24 +1256,6 @@ class HPXML < Object
       attic = XMLHelper.add_element(attics, 'Attic')
       sys_id = XMLHelper.add_element(attic, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
-      if not @attached_to_roof_idrefs.nil?
-        @attached_to_roof_idrefs.each do |roof|
-          roof_attached = XMLHelper.add_element(attic, 'AttachedToRoof')
-          XMLHelper.add_attribute(roof_attached, 'idref', roof)
-        end
-      end
-      if not @attached_to_wall_idrefs.nil?
-        @attached_to_wall_idrefs.each do |wall|
-          wall_attached = XMLHelper.add_element(attic, 'AttachedToWall')
-          XMLHelper.add_attribute(wall_attached, 'idref', wall)
-        end
-      end 
-      if not @attached_to_frame_floor_idrefs.nil?
-        @attached_to_frame_floor_idrefs.each do |floor|
-          floor_attached = XMLHelper.add_element(attic, 'AttachedToFrameFloor')
-          XMLHelper.add_attribute(floor_attached, 'idref', floor)
-        end
-      end 
       if not @attic_type.nil?
         attic_type_el = XMLHelper.add_element(attic, 'AtticType')
         if @attic_type == AtticTypeUnvented
@@ -1301,6 +1283,24 @@ class HPXML < Object
         end
       end
       XMLHelper.add_element(attic, 'WithinInfiltrationVolume', within_infiltration_volume, :boolean) unless @within_infiltration_volume.nil?
+      if not @attached_to_roof_idrefs.nil?
+        @attached_to_roof_idrefs.each do |roof|
+          roof_attached = XMLHelper.add_element(attic, 'AttachedToRoof')
+          XMLHelper.add_attribute(roof_attached, 'idref', roof)
+        end
+      end
+      if not @attached_to_wall_idrefs.nil?
+        @attached_to_wall_idrefs.each do |wall|
+          wall_attached = XMLHelper.add_element(attic, 'AttachedToWall')
+          XMLHelper.add_attribute(wall_attached, 'idref', wall)
+        end
+      end 
+      if not @attached_to_frame_floor_idrefs.nil?
+        @attached_to_frame_floor_idrefs.each do |floor|
+          floor_attached = XMLHelper.add_element(attic, 'AttachedToFrameFloor')
+          XMLHelper.add_attribute(floor_attached, 'idref', floor)
+        end
+      end 
     end
 
     def from_oga(attic)

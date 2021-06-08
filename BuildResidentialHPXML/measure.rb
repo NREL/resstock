@@ -3422,6 +3422,7 @@ class HPXMLFile
     hpxml.building_construction.average_ceiling_height = args[:geometry_wall_height]
     hpxml.building_construction.residential_facility_type = args[:geometry_unit_type]
     if args[:vintage].is_initialized
+      args[:vintage] = args[:vintage].get
       hpxml.building_construction.year_built = args[:vintage].gsub(/[^0-9]/, '') # strip non-numeric
     end
     if args[:geometry_has_flue_or_chimney] != Constants.Auto
