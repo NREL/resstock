@@ -479,6 +479,12 @@ class RunOSWs
   end
 
   def self.get_load_components_report(result, rows)
+    rows['LoadComponentsReport'].each do |k, v|
+      begin
+        rows['LoadComponentsReport'][k] = v.round(1)
+      rescue NoMethodError
+      end
+    end
     result = result.merge(rows['LoadComponentsReport'])
     result.delete('applicable')
     return result
