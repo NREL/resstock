@@ -25,7 +25,7 @@ def value_counts(df, file):
     w = csv.writer(f)
     w.writerows(value_counts)
 
-df = pd.read_csv('reources/base_buildstock.csv')
+df = pd.read_csv('resources/base_buildstock.csv')
 file = os.path.join(dir, 'base_samples.csv')
 value_counts(df, file)
 
