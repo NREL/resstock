@@ -159,19 +159,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # FIXME: Hack to run the correct ResStock geometry and attic measure
+    # FIXME: Hack to run the correct ResStock geometry and measure
     if ['Single-Family Detached', 'Mobile Home'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
       measures.delete('ResidentialGeometryCreateMultifamily')
-      measures.delete('ResidentialConstructionsFinishedRoof')
     elsif ['Single-Family Attached'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyDetached')
       measures.delete('ResidentialGeometryCreateMultifamily')
-      measures.delete('ResidentialConstructionsFinishedRoof')
     elsif ['Multi-Family with 2 - 4 Units', 'Multi-Family with 5+ Units'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyDetached')
       measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
-      measures.delete('ResidentialConstructionsUnfinishedAttic')
     end
 
     # FIXME: Hack to run the correct ResStock foundation construction measure
