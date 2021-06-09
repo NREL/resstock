@@ -28,10 +28,10 @@ upgrades:
   - upgrade_name: Working list of all upgrades
     options:
       - &decrease_ACH50_19% #for 1" or 2" polyiso without window upgrade
-      - &decrease_ACH50_30% #for low-E storms on single paane without insulation upgrade
+      - &decrease_ACH50_30% #for low-E storms on single pane without insulation upgrade
       - &decrease_ACH50_10% #for low-E storms on double pane without insulation upgrade
       - &decrease_ACH50_19%_and_30% # for polyiso, + low-E storms on single pane
-      - &decrease_ACH50_19%_and_10% # for polyiso, + low-E storms on double pane
+      - &decrease_ACH50_19%_and_10%_for_10ACH50 # for polyiso, + low-E storms on double pane
       - &polyiso_1inch
         #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
         option: Insulation Wall| #add R-6.5 to all wall types. Will need to edit options lookup
@@ -85,7 +85,7 @@ upgrades:
             - siding|vinyl, light
       - &low-e_storms
         option: Windows| #create appropriate options
-        apply_logic: 
+        apply_logic: &windows_apply_logic
           or: # apply to all single pane, all double pane with aluminum frame, and single pane with clear storm windows
             - Windows|Clear, Single, Metal
             - Windows|Clear, Single, Non-metal
@@ -96,23 +96,13 @@ upgrades:
             multiplier: #sq ft window area
       - &triple_window
         option: Windows|Low-E, Triple, Non-metal, Air, L-Gain #do we want the high gain, low gain, or contingent?
-        apply_logic:
-          or:
-            - Windows|Clear, Single, Metal
-            - Windows|Clear, Single, Non-metal
-            - Windows|Clear, Double, Metal, Air
-            - Windows| #whatever we come up with to represent single pane with clear storm
+        apply_logic: *windows_apply_logic
         costs:
           - value: 62
             multiplier: #sq ft window area
       - &low-e_storms_w_low_SHGC_and_shading
         option: Windows| #create appropriate option
-        apply_logic:
-          or:
-            - Windows|Clear, Single, Metal
-            - Windows|Clear, Single, Non-metal
-            - Windows|Clear, Double, Metal, Air
-            - Windows| #whatever we come up with to represent single pane with clear storm
+        apply_logic: *windows_apply_logic
         costs:
           - value: 25 #23 for low-e, 2 for shgc, ? for shading
             multiplier: #sq ft window area
