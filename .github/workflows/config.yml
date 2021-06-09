@@ -24,23 +24,23 @@ jobs:
 
       - name: Install gems
         run: |
-          #rm -f Gemfile.lock && bundle install
+          rm -f Gemfile.lock && bundle install
 
       - name: Update all measures
         run: |
-          #rake update_measures
+          rake update_measures
 
       - name: Regenerate test osms
         run: |
-          #rake test:regenerate_osms
+          rake test:regenerate_osms
 
       - name: Run all unit tests
         run: |
-          #rake test:unit_tests
+          rake test:unit_tests
 
       - name: Run all regression tests
         run: |
-          #rake test:regression_tests
+          rake test:regression_tests
 
       - name: Store example osws
         uses: actions/upload-artifact@v2
