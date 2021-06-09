@@ -122,6 +122,7 @@ jobs:
       - name: Compare samples and results
         run: |
           cp -r base_samples/buildstock*.csv resources/base_buildstock.csv
+          pip install pandas
           python test/compare.py
           
           cp -r base_results/results*.csv test/test_samples_osw/base_results
