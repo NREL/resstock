@@ -27,11 +27,6 @@ baseline:
 upgrades:
   - upgrade_name: Working list of all upgrades
     options:
-      - &decrease_ACH50_19% #for 1" or 2" polyiso without window upgrade
-      - &decrease_ACH50_30% #for low-E storms on single pane without insulation upgrade
-      - &decrease_ACH50_10% #for low-E storms on double pane without insulation upgrade
-      - &decrease_ACH50_19%_and_30% # for polyiso, + low-E storms on single pane
-      - &decrease_ACH50_19%_and_10%_for_10ACH50 # for polyiso, + low-E storms on double pane
       - &polyiso_1inch
         #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
         option: Insulation Wall| #add R-6.5 to all wall types. Will need to edit options lookup
@@ -45,7 +40,7 @@ upgrades:
               - Vintage|2010s
         costs:
           - value: 1.4
-            multiplier: #exterior wall area
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2) # do I need to worry about conditioned vs not?
         lifetime: 999 #should be unimportant because we are doing all the econ stuff with postprocessing?
       - &polyiso_2inch
         #1" polyiso continuous insulation, R-13, 19% whole home reduction in ACH50, $1.90 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
@@ -60,7 +55,7 @@ upgrades:
               - Vintage|2010s
         costs:
           - value: 1.9
-            multiplier: #exterior wall area
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
         lifetime: 999 #should be unimportant because we are doing all the econ stuff with postprocessing?
       - &siding_upgrade #not including costs for these
         option: siding|Fiber-cement, light #update when actual option names are available
@@ -93,20 +88,785 @@ upgrades:
             - Windows| #whatever we come up with to represent single pane with clear storm
         costs:
           - value: 23
-            multiplier: #sq ft window area
+            multiplier: Window Area (ft^2) #sq ft window area
       - &triple_window
         option: Windows|Low-E, Triple, Non-metal, Air, L-Gain #do we want the high gain, low gain, or contingent?
         apply_logic: *windows_apply_logic
         costs:
           - value: 62
-            multiplier: #sq ft window area
+            multiplier: Window Area (ft^2)
       - &low-e_storms_w_low_SHGC_and_shading
         option: Windows| #create appropriate option
         apply_logic: *windows_apply_logic
         costs:
           - value: 25 #23 for low-e, 2 for shgc, ? for shading
-            multiplier: #sq ft window area
+            multiplier: Window Area (ft^2)
+      #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
+      - &decrease_ACH50_19%_from_1
+        option: Infiltration|0.81 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_2
+        option: Infiltration|1.62 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_3
+        option: Infiltration|2.43 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_4
+        option: Infiltration|3.24 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_5
+        option: Infiltration|4.05 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_6
+        option: Infiltration|4.86 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_7
+        option: Infiltration|5.67 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_8
+        option: Infiltration|6.58 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_10
+        option: Infiltration|8.1 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_15
+        option: Infiltration|12.15 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_20
+        option: Infiltration|16.2 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_25
+        option: Infiltration|20.25 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_30
+        option: Infiltration|24.3 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_40
+        option: Infiltration|32.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_from_50
+        option: Infiltration|40.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #30% ACH50 reduction for low-E storms on single pane without insulation upgrade
+      - &decrease_ACH50_30%_from_1
+        option: Infiltration|0.7 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_2
+        option: Infiltration|1.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_3
+        option: Infiltration|2.1 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_4
+        option: Infiltration|2.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_5
+        option: Infiltration|3.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_6
+        option: Infiltration|4.86 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_7
+        option: Infiltration|5.6 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_8
+        option: Infiltration|5.6 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_10
+        option: Infiltration|7 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_15
+        option: Infiltration|10.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_20
+        option: Infiltration|14 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_25
+        option: Infiltration|17.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_30
+        option: Infiltration|21 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_40
+        option: Infiltration|28 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_30%_from_50
+        option: Infiltration|35 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      #10% ACH50 reduction for low-E storms on double pane without insulation upgrade
+      - &decrease_ACH50_10%_from_1
+        option: Infiltration|0.9 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_2
+        option: Infiltration|1.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_3
+        option: Infiltration|2.7 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_4
+        option: Infiltration|3.6 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_5
+        option: Infiltration|4.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_6
+        option: Infiltration|5.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_7
+        option: Infiltration|6.3 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_8
+        option: Infiltration|7.2 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_10
+        option: Infiltration|9 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_15
+        option: Infiltration|13.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_20
+        option: Infiltration|18 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_25
+        option: Infiltration|22.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_30
+        option: Infiltration|27 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_40
+        option: Infiltration|36 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_10%_from_50
+        option: Infiltration|45 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # 19% and 30% ACH50 reductions for polyiso, + low-E storms on single pane
+      - &decrease_ACH50_19%_and_30%_from_1
+        option: Infiltration|0.567 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_2
+        option: Infiltration|1.134 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_3
+        option: Infiltration|1.701 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_4
+        option: Infiltration|2.268 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_5
+        option: Infiltration|2.835 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_6
+        option: Infiltration|3.402 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_7
+        option: Infiltration|3.969 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_8
+        option: Infiltration|4.536 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_10
+        option: Infiltration|5.67 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_15
+        option: Infiltration|8.505 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_20
+        option: Infiltration|11.34 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_25
+        option: Infiltration|14.175 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_30
+        option: Infiltration|17.01 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_40
+        option: Infiltration|22.68 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_30%_from_50
+        option: Infiltration|28.35 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      # 19% and 10% ACH50 reductions for polyiso, + low-E storms on double pane
+      - &decrease_ACH50_19%_and_10%_from_1
+        option: Infiltration|0.729 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_2
+        option: Infiltration|1.458 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_3
+        option: Infiltration|2.187 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_4
+        option: Infiltration|2.916 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_5
+        option: Infiltration|3.645 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_6
+        option: Infiltration|4.374 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_7
+        option: Infiltration|5.103 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_8
+        option: Infiltration|5.832 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_10
+        option: Infiltration|7.29 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_15
+        option: Infiltration|10.935 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_20
+        option: Infiltration|14.58 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_25
+        option: Infiltration|18.225 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_30
+        option: Infiltration|21.87 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_40
+        option: Infiltration|29.16 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &decrease_ACH50_19%_and_10%_from_50
+        option: Infiltration|36.45 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
 
+#placeholders below
+      #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
+      - &decrease_ACH50_19%_from_1
+      - &decrease_ACH50_19%_from_2
+      - &decrease_ACH50_19%_from_3
+      - &decrease_ACH50_19%_from_4
+      - &decrease_ACH50_19%_from_5
+      - &decrease_ACH50_19%_from_6
+      - &decrease_ACH50_19%_from_7
+      - &decrease_ACH50_19%_from_8
+      - &decrease_ACH50_19%_from_10
+      - &decrease_ACH50_19%_from_15
+      - &decrease_ACH50_19%_from_20
+      - &decrease_ACH50_19%_from_25
+      - &decrease_ACH50_19%_from_30
+      - &decrease_ACH50_19%_from_40
+      - &decrease_ACH50_19%_from_50
+      #30% ACH50 reduction for low-E storms on single paane without insulation upgrade
+      - &decrease_ACH50_30%_from_1
+      - &decrease_ACH50_30%_from_2
+      - &decrease_ACH50_30%_from_3
+      - &decrease_ACH50_30%_from_4
+      - &decrease_ACH50_30%_from_5
+      - &decrease_ACH50_30%_from_6
+      - &decrease_ACH50_30%_from_7
+      - &decrease_ACH50_30%_from_8
+      - &decrease_ACH50_30%_from_10
+      - &decrease_ACH50_30%_from_15
+      - &decrease_ACH50_30%_from_10
+      - &decrease_ACH50_30%_from_15
+      - &decrease_ACH50_30%_from_20
+      - &decrease_ACH50_30%_from_25
+      - &decrease_ACH50_30%_from_30
+      - &decrease_ACH50_30%_from_40
+      - &decrease_ACH50_30%_from_50
+      #10% ACH50 reduction for low-E storms on double pane without insulation upgrade
+      - &decrease_ACH50_10%_from_1
+      - &decrease_ACH50_10%_from_2
+      - &decrease_ACH50_10%_from_3
+      - &decrease_ACH50_10%_from_4
+      - &decrease_ACH50_10%_from_5
+      - &decrease_ACH50_10%_from_6
+      - &decrease_ACH50_10%_from_7
+      - &decrease_ACH50_10%_from_8
+      - &decrease_ACH50_10%_from_10
+      - &decrease_ACH50_10%_from_15
+      - &decrease_ACH50_10%_from_20
+      - &decrease_ACH50_10%_from_25
+      - &decrease_ACH50_10%_from_30
+      - &decrease_ACH50_10%_from_40
+      - &decrease_ACH50_10%_from_50
+      # 19% and 30% ACH50 reductions for polyiso, + low-E storms on single pane
+      - &decrease_ACH50_19%_and_30%_from_1
+      - &decrease_ACH50_19%_and_30%_from_2
+      - &decrease_ACH50_19%_and_30%_from_3
+      - &decrease_ACH50_19%_and_30%_from_4
+      - &decrease_ACH50_19%_and_30%_from_5
+      - &decrease_ACH50_19%_and_30%_from_6
+      - &decrease_ACH50_19%_and_30%_from_7
+      - &decrease_ACH50_19%_and_30%_from_8
+      - &decrease_ACH50_19%_and_30%_from_10
+      - &decrease_ACH50_19%_and_30%_from_15
+      - &decrease_ACH50_19%_and_30%_from_20
+      - &decrease_ACH50_19%_and_30%_from_25
+      - &decrease_ACH50_19%_and_30%_from_30
+      - &decrease_ACH50_19%_and_30%_from_35
+      - &decrease_ACH50_19%_and_30%_from_40
+      - &decrease_ACH50_19%_and_30%_from_50
+      # 19% and 10% ACH50 reductions for polyiso, + low-E storms on double pane
+      - &decrease_ACH50_19%_and_10%_from_1
+      - &decrease_ACH50_19%_and_10%_from_2
+      - &decrease_ACH50_19%_and_10%_from_3
+      - &decrease_ACH50_19%_and_10%_from_4
+      - &decrease_ACH50_19%_and_10%_from_5
+      - &decrease_ACH50_19%_and_10%_from_6
+      - &decrease_ACH50_19%_and_10%_from_7
+      - &decrease_ACH50_19%_and_10%_from_8
+      - &decrease_ACH50_19%_and_10%_from_10
+      - &decrease_ACH50_19%_and_10%_from_15
+      - &decrease_ACH50_19%_and_10%_from_20
+      - &decrease_ACH50_19%_and_10%_from_25
+      - &decrease_ACH50_19%_and_10%_from_30
+      - &decrease_ACH50_19%_and_10%_from_35
+      - &decrease_ACH50_19%_and_10%_from_40
+      - &decrease_ACH50_19%_and_10%_from_50
 eagle:
   n_jobs: 8
   minutes_per_sim: 30
