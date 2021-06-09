@@ -21,7 +21,7 @@ reporting_measures:
 
 timeseries_csv_export:
   output_variables:
-    Zone Mean Air Temperature, Zone Air Relative Humidity, Zone Thermal Comfort Pierce Model Standard Effective Temperature
+    Site Outdoor Air Drybulb Temperature, Zone Mean Air Temperature, Zone Air Relative Humidity, Zone Thermal Comfort Pierce Model Standard Effective Temperature
   reporting_frequency: Hourly
   include_enduse_subcategories: true
 downselect:
@@ -41,6 +41,14 @@ eagle:
     n_workers: 1
 
 upgrades:
+  - upgrade_name: PHIUS cz 2
+    options:
+      - option: Infiltration|1 ACH50
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: Mechanical Ventilation|None
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Wall|Wood Stud, R-19, R-5 Sheathing
+      - option: Windows|Low-E, Triple, Non-metal, Air, L-Gain
   - upgrade_name: Air Leakage 25% reduction
     options:
       - option: Infiltration|18.5 ACH50

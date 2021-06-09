@@ -2,11 +2,11 @@ schema_version: 0.2
 stock_type: residential
 buildstock_directory: ../../resstock  # Relative to this file or absolute path to resstock repo
 project_directory: project_national  # Project, inside buildstock, to use for this run
-output_directory: /projects/resilience/houston_2017
+output_directory: /projects/resilience/test_houston_2017
 #weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: resilience_weather/houston_2017.zip  # Relative to this file or absolute path to zipped weather files
 baseline:
-  n_datapoints: 350000
+  n_datapoints: 500
   n_buildings_represented: 133172057
   sampling_algorithm: quota # The default resstock sampling algorithm - use precomputed if using the precomputed_sample option
   measures:
@@ -21,7 +21,7 @@ reporting_measures:
 
 timeseries_csv_export:
   output_variables:
-    Zone Mean Air Temperature, Zone Air Relative Humidity, Zone Thermal Comfort Pierce Model Standard Effective Temperature
+    Site Outdoor Air Drybulb Temperature, Zone Mean Air Temperature, Zone Air Relative Humidity, Zone Thermal Comfort Pierce Model Standard Effective Temperature
   reporting_frequency: Hourly
   include_enduse_subcategories: true
 downselect:
@@ -31,16 +31,24 @@ downselect:
     - Vacancy Status|Occupied
     - County|TX, Harris County
 eagle:
-  n_jobs: 8
+  n_jobs: 1
   minutes_per_sim: 3
   account: resilience
   sampling:
-    time: 240
+    time: 10
   postprocessing:
-    time: 60
+    time: 10
     n_workers: 1
 
 upgrades:
+  - upgrade_name: PHIUS cz 2
+    options:
+      - option: Infiltration|1 ACH50
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: Mechanical Ventilation|None
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Wall|Wood Stud, R-19, R-5 Sheathing
+      - option: Windows|Low-E, Triple, Non-metal, Air, L-Gain
   - upgrade_name: Air Leakage 25% reduction
     options:
       - option: Infiltration|18.5 ACH50
