@@ -5,7 +5,7 @@ require 'csv'
 base = 'base'
 feature = 'feature'
 folder = 'comparisons' # comparison csv files will be exported to this folder
-files = Dir[File.join(Dir.getwd, 'test/test_samples_osw/base_results/*.csv')].map { |x| File.basename(x) }
+files = Dir[File.join(Dir.getwd, 'test/test_samples_osw/base/results*.csv')].map { |x| File.basename(x) }
 
 dir = File.join(Dir.getwd, "test/test_samples_osw/#{folder}")
 unless Dir.exist?(dir)
@@ -18,7 +18,7 @@ files.each do |file|
   # load files
   results.keys.each do |key|
     if key == base
-      results[key]['file'] = "test/test_samples_osw/base_results/#{file}"
+      results[key]['file'] = "test/test_samples_osw/base/#{file}"
     elsif key == feature
       results[key]['file'] = "test/test_samples_osw/results/#{file}"
     end
@@ -114,7 +114,7 @@ files.each do |file|
         if not col_map[col].nil?
           col = col_map[col]
         end
-        if key == feature and not feature_map[col].nil?
+        if (key == feature) && (not feature_map[col].nil?)
           col = feature_map[col]
         end
 
@@ -217,14 +217,14 @@ files.each do |file|
   agg_cols = rows[0].select { |x| ['simulation_output_report', 'upgrade_costs'].include? x.split('.')[0] }
   rows = [['enduse', 'building type', 'base', 'feature', 'diff', 'percent diff']]
   btypes = ['SFD', 'SFA', 'MF']
-  btype_hash = {'Single-Family Detached' => 'SFD',
-            'Mobile Home' => 'SFD',
-            'Single-Family Attached' => 'SFA',
-            'Multi-Family with 5+ Units' => 'MF',
-            'Multi-Family with 2 - 4 Units' => 'MF'}
+  btype_hash = { 'Single-Family Detached' => 'SFD',
+                 'Mobile Home' => 'SFD',
+                 'Single-Family Attached' => 'SFA',
+                 'Multi-Family with 5+ Units' => 'MF',
+                 'Multi-Family with 2 - 4 Units' => 'MF' }
 
   agg_cols.each do |col|
-    row_sum = {'SFD' => [0, 0], 'SFA' => [0,0], 'MF' => [0,0]}
+    row_sum = { 'SFD' => [0, 0], 'SFA' => [0, 0], 'MF' => [0, 0] }
     base_field, feature_field = nil, nil
 
     # aggregate all osws
@@ -241,12 +241,12 @@ files.each do |file|
       end
 
       # sum values
-      if not base_field.nil? and base_field[0].is_a? Numeric
+      if (not base_field.nil?) && base_field[0].is_a?(Numeric)
         row_sum[btype][0] += base_field.sum
       else
         row_sum[btype][0] = 'N/A'
       end
-      if not feature_field.nil? and feature_field[0].is_a? Numeric
+      if (not feature_field.nil?) && feature_field[0].is_a?(Numeric)
         row_sum[btype][1] += feature_field.sum
       else
         row_sum[btype][1] = 'N/A'
