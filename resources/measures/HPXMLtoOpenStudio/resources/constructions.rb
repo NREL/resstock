@@ -232,13 +232,12 @@ class WallConstructions
     # Define materials
     mat_cmu = Material.new(name = "WallCMU", thick_in = thick_in, mat_base = BaseMaterial.Concrete, k_in = conductivity, rho = density)
 
-    # If no exterior finish, use pre-existing material absorptance values for framing + CMU/Brick
-    tAbs_frame, sAbs_frame, vAbs_frame = nil, nil, nil
+    # If no exterior finish, use exterior finish absorptance values for CMU/Brick
     if not mat_ext_finish.nil? and mat_ext_finish.name.include? "None"
-      tAbs_frame, sAbs_frame, vAbs_frame = mat_ext_finish.tAbs, mat_ext_finish.sAbs, mat_ext_finish.vAbs
       mat_cmu.tAbs, mat_cmu.sAbs, mat_cmu.vAbs = mat_ext_finish.tAbs, mat_ext_finish.sAbs, mat_ext_finish.vAbs
     end
-    mat_framing = Material.new(name = nil, thick_in = thick_in, mat_base = BaseMaterial.Wood, k_in = nil, rho = nil, cp = nil, tAbs = tAbs_frame, sAbs = sAbs_frame, vAbs = vAbs_frame)
+
+    mat_framing = Material.new(name = nil, thick_in = thick_in, mat_base = BaseMaterial.Wood, k_in = nil, rho = nil, cp = nil, tAbs = nil, sAbs = nil, vAbs = nil)
 
     mat_furring = nil
     mat_furring_cavity = nil
