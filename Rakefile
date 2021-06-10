@@ -318,7 +318,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
   # Test sampling
   r = RunSampling.new
-  output_file = r.run(project_dir_name, 1000, 'buildstock.csv', housing_characteristics_dir, lookup_file)
+  output_file = r.run(project_dir_name, 10000, '{}.csv'.format(project_dir_name), housing_characteristics_dir, lookup_file)
 
   # Cache {parameter => options}
   parameters_options = {}
@@ -370,7 +370,11 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   end
 
   if File.exist?(output_file)
-    File.delete(output_file) # Clean up
+    if project_dir_name == 'project_national'
+      File.mv(output_file, output_file.gsub(project_dir_name, 'buildstock'))
+    else
+      File.delete(output_file) # Clean up
+    end
   end
 
   # Unused TSVs?

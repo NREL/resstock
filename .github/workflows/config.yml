@@ -42,13 +42,19 @@ jobs:
         run: |
           rake test:regression_tests
 
-      - name: Store example osws
+      - name: Store feature samples
+        uses: actions/upload-artifact@v2
+        with:
+          path: resources/buildstock.csv
+          name: samples
+
+      - name: Store example results
         uses: actions/upload-artifact@v2
         with:
           path: workflows/results
           name: example_osws
 
-      - name: Store measures osws
+      - name: Store measures results
         uses: actions/upload-artifact@v2
         with:
           path: test/test_samples_osw/results
@@ -74,49 +80,29 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
-      - name: Run base sampling
-        run: |
-          ruby resources/run_sampling.rb -p project_national -n 100000 -o buildstock.csv
-
-      - name:
+      - name: Store base samples and results
         uses: actions/upload-artifact@v2
         with:
-          path: resources/buildstock.csv
-          name: base_samples
-
-      - name: Store base measures osws
-        uses: actions/upload-artifact@v2
-        with:
-          path: test/test_samples_osw/base_results
-          name: base_results
+          path: test/test_samples_osw/base
+          name: base
 
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Run feature sampling
-        run: |
-          ruby resources/run_sampling.rb -p project_national -n 100000 -o buildstock.csv
-
-      - name:
-        uses: actions/upload-artifact@v2
+      - name: Download base samples and results
+        uses: actions/download-artifact@v2
         with:
-          path: resources/buildstock.csv
+          path: |
+            base
+          name: base
+
+      - name: Download feature samples
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            samples
           name: samples
-
-      - name: Download base samples
-        uses: actions/download-artifact@v2
-        with:
-          path: |
-            base_samples
-          name: base_samples
-
-      - name: Download base results
-        uses: actions/download-artifact@v2
-        with:
-          path: |
-            base_results
-          name: base_results
 
       - name: Download feature results
         uses: actions/download-artifact@v2
@@ -127,11 +113,12 @@ jobs:
 
       - name: Compare samples and results
         run: |
-          cp -r base_samples/buildstock*.csv resources/base_buildstock.csv
+          cp -r base/buildstock*.csv resources/base_buildstock.csv
+          cp -r samples/buildstock*.csv resources/buildstock.csv
           pip install pandas
           python test/compare.py
           
-          cp -r base_results/results*.csv test/test_samples_osw/base_results
+          cp -r base/results*.csv test/test_samples_osw/base
           mkdir test/test_samples_osw/results
           cp -r results/results* test/test_samples_osw/results
           ruby test/compare.rb
@@ -162,8 +149,9 @@ jobs:
         run: |
           branch_name="${{ github.head_ref }}"
           git pull origin $branch_name
-          cp -r results/results* test/test_samples_osw/base_results
-          git add test/test_samples_osw/base_results
+          cp -r samples/buildstock*.csv test/test_samples/base
+          cp -r results/results*.csv test/test_samples_osw/base
+          git add test/test_samples_osw/base
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
