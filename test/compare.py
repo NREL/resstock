@@ -23,7 +23,7 @@ def value_counts(df, file):
       value_counts.append([value_count.name])
       value_counts.append(keys_to_values.keys())
       value_counts.append(keys_to_values.values())
-      value_counts.append('\n')
+      value_counts.append('')
 
     w = csv.writer(f)
     w.writerows(value_counts)
