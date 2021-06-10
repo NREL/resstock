@@ -436,7 +436,7 @@ class RunOSWs
     end
   end
 
-  def self.run_and_check(in_osw, parent_dir)
+  def self.run_and_check(in_osw, parent_dir, characteristics_or_output)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
@@ -446,11 +446,14 @@ class RunOSWs
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
     result = { 'OSW' => File.basename(in_osw) }
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
-    if rows.keys.include? 'BuildExistingModel'
-      result = get_build_existing_model(result, rows)
-    end
-    if rows.keys.include? 'SimulationOutputReport'
-      result = get_simulation_output_report(result, rows)
+    if characteristics_or_output == 'characteristics'
+      if rows.keys.include? 'BuildExistingModel'
+        result = get_build_existing_model(result, rows)
+      end
+    elsif characteristics_or_output == 'output'
+      if rows.keys.include? 'SimulationOutputReport'
+        result = get_simulation_output_report(result, rows)
+      end
     end
     return out_osw, result
   end
@@ -475,9 +478,11 @@ class RunOSWs
     return result
   end
 
-  def self.write_summary_results(results_dir, results)
-    Dir.mkdir(results_dir)
-    csv_out = File.join(results_dir, 'results.csv')
+  def self.write_summary_results(results_dir, filename, results)
+    if not File.exist?(results_dir)
+      Dir.mkdir(results_dir)
+    end
+    csv_out = File.join(results_dir, filename)
 
     column_headers = results[0].keys.sort
     CSV.open(csv_out, 'wb') do |csv|

@@ -10,7 +10,8 @@ class TestResStockMeasuresOSW < MiniTest::Test
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
     weather_dir = create_weather_folder(parent_dir, 'project_testing')
 
-    all_results = []
+    all_results_characteristics = []
+    all_results_output = []
     [['project_testing', 10], ['project_national', 30]].each do |scenario|
       project_dir, num_samples = scenario
 
@@ -42,9 +43,14 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
           change_building_id(osw, building_id)
           RunOSWs.add_simulation_output_report(osw)
-          out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
-          result['OSW'] = "#{project_dir}-#{building_id}.osw"
-          all_results << result
+
+          out_osw, result_characteristics = RunOSWs.run_and_check(osw, parent_dir, 'characteristics')
+          result_characteristics['OSW'] = "#{project_dir}-#{building_id}.osw"
+          all_results_characteristics << result_characteristics
+
+          out_osw, result_output = RunOSWs.run_and_check(osw, parent_dir, 'output')
+          result_output['OSW'] = "#{project_dir}-#{building_id}.osw"
+          all_results_output << result_output
 
           # Check workflow was successful
           assert(File.exist?(out_osw))
@@ -81,7 +87,8 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     results_dir = File.join(parent_dir, 'results')
     RunOSWs._rm_path(results_dir)
-    RunOSWs.write_summary_results(results_dir, all_results)
+    RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
+    RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
   end
 
   private
