@@ -28,6 +28,7 @@ Fixes
 - Set AZ counties to NA daylight saving times instead of some AR counties ([#585](https://github.com/NREL/resstock/pull/585)) 
 - Housing characteristics fixes based on more samples in testing ([#592](https://github.com/NREL/resstock/pull/592))
 - Fixes number of bathrooms for single-family attached and multi-family buildings ([#601](https://github.com/NREL/resstock/pull/601))
+- Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
 
 ## ResStock v2.4.0
 
