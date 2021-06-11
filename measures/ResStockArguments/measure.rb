@@ -472,6 +472,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       n_floors = Float(args['geometry_num_floors_above_grade'])
       aspect_ratio = Float(args['geometry_aspect_ratio'])
       horiz_location = args['geometry_horizontal_location'].to_s
+      corridor_position = args['geometry_corridor_position'].to_s
 
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
@@ -480,7 +481,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         n_units_per_floor = n_units
       end
 
-      if (n_units_per_floor >= 4) && (args['geometry_corridor_position'] != 'Single Exterior (Front)') # assume double-loaded corridor
+      if (n_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
         has_rear_units = true
       elsif (n_units_per_floor == 2) && (horiz_location == 'None') # double-loaded corridor for 2 units/story
         has_rear_units = true
