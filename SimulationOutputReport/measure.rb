@@ -114,21 +114,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     setup_outputs
 
-    all_outputs = []
-    all_outputs << @fuels
-    all_outputs << @end_uses
-    all_outputs << @loads
-    all_outputs << @unmet_loads
-    all_outputs << @peak_fuels
-    all_outputs << @peak_loads
-    all_outputs << @component_loads
-    all_outputs << @hot_water_uses
-
     output_names = []
-    all_outputs.each do |outputs|
-      outputs.each do |key, obj|
-        output_names << get_runner_output_name(obj)
-      end
+    @fuels.each do |fuel_type, fuel|
+      output_names << get_runner_output_name(fuel)
+    end
+    @end_uses.each do |key, end_use|
+      output_names << get_runner_output_name(end_use)
     end
 
     output_names.each do |output_name|
@@ -431,7 +422,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Write/report results
     write_annual_output_results(runner, outputs, output_format, annual_output_path)
-    report_sim_outputs(runner)
+    report_sim_outputs(outputs, runner)
     write_eri_output_results(outputs, eri_output_path)
     write_timeseries_output_results(runner, output_format,
                                     timeseries_output_path,
@@ -998,25 +989,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     runner.registerInfo("Wrote annual output results to #{annual_output_path}.")
   end
 
-  def report_sim_outputs(runner)
-    all_outputs = []
-    all_outputs << @fuels
-    all_outputs << @end_uses
-    all_outputs << @loads
-    all_outputs << @unmet_loads
-    all_outputs << @peak_fuels
-    all_outputs << @peak_loads
-    if @component_loads.values.map { |load| load.annual_output }.sum != 0 # Skip if component loads not calculated
-      all_outputs << @component_loads
+  def report_sim_outputs(outputs, runner)
+    @fuels.each do |fuel_type, fuel|
+      output_name = get_runner_output_name(fuel)
+      runner.registerValue(output_name, fuel.annual_output.round(2))
+      runner.registerInfo("Registering #{fuel.annual_output.round(2)} for #{output_name}.")
     end
-    all_outputs << @hot_water_uses
-
-    all_outputs.each do |outputs|
-      outputs.each do |key, obj|
-        output_name = get_runner_output_name(obj)
-        runner.registerValue(output_name, obj.annual_output.round(2))
-        runner.registerInfo("Registering #{obj.annual_output.round(2)} for #{output_name}.")
-      end
+    @end_uses.each do |key, end_use|
+      output_name = get_runner_output_name(end_use)
+      runner.registerValue(output_name, end_use.annual_output.round(2))
+      runner.registerInfo("Registering #{end_use.annual_output.round(2)} for #{output_name}.")
     end
   end
 
@@ -2381,6 +2363,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return { 'OpenStudio::Model::AirLoopHVACUnitarySystem' => ["Unitary System Heating Ancillary #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingDXSingleSpeed' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingDXMultiSpeed' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
+               'OpenStudio::Model::CoilHeatingDXVariableSpeed' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingElectric' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingGas' => ["Heating Coil #{fuel} Energy"],
                'OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit' => ["Heating Coil #{fuel} Energy", "Heating Coil Crankcase Heater #{fuel} Energy", "Heating Coil Defrost #{fuel} Energy"],
@@ -2402,8 +2385,12 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       fuel = EPlus::FuelTypeElectricity
       return { 'OpenStudio::Model::CoilCoolingDXSingleSpeed' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
                'OpenStudio::Model::CoilCoolingDXMultiSpeed' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
+               'OpenStudio::Model::CoilCoolingDXVariableSpeed' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
                'OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit' => ["Cooling Coil #{fuel} Energy", "Cooling Coil Crankcase Heater #{fuel} Energy"],
-               'OpenStudio::Model::EvaporativeCoolerDirectResearchSpecial' => ["Evaporative Cooler #{fuel} Energy"] }
+               'OpenStudio::Model::EvaporativeCoolerDirectResearchSpecial' => ["Evaporative Cooler #{fuel} Energy"],
+               'OpenStudio::Model::CoilChillerAirSourceVariableSpeed' => ["Cooling Coil #{fuel} Energy"],
+               'OpenStudio::Model::ThermalStorageIceDetailed' => ["Ice Thermal Storage Ancillary #{fuel} Energy"],
+               'OpenStudio::Model::HeaderedPumpsConstantSpeed' => ["Pump #{fuel} Energy"] }
     end
 
     def self.DehumidifierElectricity
@@ -2425,7 +2412,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return { 'OpenStudio::Model::WaterHeaterMixed' => ["Water Heater #{fuel} Energy", "Water Heater Off Cycle Parasitic #{fuel} Energy", "Water Heater On Cycle Parasitic #{fuel} Energy"],
                'OpenStudio::Model::WaterHeaterStratified' => ["Water Heater #{fuel} Energy", "Water Heater Off Cycle Parasitic #{fuel} Energy", "Water Heater On Cycle Parasitic #{fuel} Energy"],
                'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => ["Cooling Coil Water Heating #{fuel} Energy"],
-               'OpenStudio::Model::FanOnOff' => ["Fan #{fuel} Energy"] } # TOOD: Update if this changes to FanSystemModel per https://github.com/NREL/OpenStudio/issues/4334
+               'OpenStudio::Model::FanOnOff' => ["Fan #{fuel} Energy"] }
     end
 
     def self.WaterHeatingLoad

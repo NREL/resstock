@@ -137,9 +137,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'zero-number-of-bedrooms.osw' => 'geometry_num_bedrooms=0',
       'single-family-detached-with-shared-system.osw' => 'geometry_unit_type=single-family detached and heating_system_type=Shared Boiler w/ Baseboard',
       'hvac-seasons-incomplete-heating-season.osw' => 'season_heating_begin_month=true and season_heating_begin_day_of_month=false and season_heating_end_month=true and seasons_heating_end_day_of_month=false',
-      'hvac-seasons-incomplete-cooling-season.osw' => 'season_cooling_begin_month=false and season_cooling_begin_day_of_month=true and season_cooling_end_month=false and season_cooling_end_day_of_month=true',
-      'schedules-vacancy-incomplete.osw' => 'schedules_vacancy_begin_month=true and schedules_vacancy_begin_day_of_month=false and schedules_vacancy_end_month=true and schedules_vacancy_end_day_of_month=false',
-      'schedules-vacancy-invalid.osw' => 'Vacancy Period End Day of Month (31) must be one of: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30.'
+      'hvac-seasons-incomplete-cooling-season.osw' => 'season_cooling_begin_month=false and season_cooling_begin_day_of_month=true and season_cooling_end_month=false and season_cooling_end_day_of_month=true'
     }
 
     measures = {}
@@ -225,7 +223,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.foundations.clear
       hpxml.attics.clear
       hpxml.foundation_walls.each do |foundation_wall|
-        foundation_wall.interior_finish_type = nil
         next if foundation_wall.insulation_assembly_r_value.nil?
         foundation_wall.insulation_assembly_r_value = foundation_wall.insulation_assembly_r_value.round(2)
       end
@@ -243,23 +240,18 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         rim_joist.emittance = nil
         rim_joist.color = nil
       end
-      hpxml.frame_floors.each do |frame_floor|
-        frame_floor.interior_finish_type = nil
-      end
       hpxml.roofs.each do |roof|
         roof.azimuth = nil
         roof.radiant_barrier = nil
         roof.solar_absorptance = nil
         roof.emittance = nil
         roof.roof_color = nil
-        roof.interior_finish_type = nil
       end
       hpxml.walls.each do |wall|
         wall.azimuth = nil
         wall.solar_absorptance = nil
         wall.emittance = nil
         wall.color = nil
-        wall.interior_finish_type = nil
         next if wall.exterior_adjacent_to != HPXML::LocationOutside
         next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? wall.interior_adjacent_to
 
@@ -395,15 +387,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       end
       hpxml.collapse_enclosure_surfaces()
 
-      # Round values
-      (hpxml.roofs + hpxml.rim_joists + hpxml.walls + hpxml.foundation_walls + hpxml.frame_floors + hpxml.slabs).each do |surface|
-        next if surface.area.nil?
-        surface.area = surface.area.round
-      end
-      hpxml.slabs.each do |slab|
-        slab.exposed_perimeter = slab.exposed_perimeter.round
-      end
-
       # Replace IDs/IDREFs with blank strings
       HPXML::HPXML_ATTRS.each do |attr|
         hpxml_obj = hpxml.send(attr)
@@ -429,6 +412,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       measure_path = File.join(File.dirname(__FILE__), 'test_measure.xml')
       XMLHelper.write_file(measure_doc, measure_path)
       flunk "ERROR: HPXML files don't match. Wrote #{rakefile_path} and #{measure_path} for inspection."
+    else
+      pass
     end
   end
 

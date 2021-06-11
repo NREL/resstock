@@ -853,7 +853,7 @@ class Waterheater
 
   def self.setup_hpwh_fan(hpwh, obj_name_hpwh, airflow_rate)
     fan_power = 0.0462 # W/cfm, Based on 1st gen AO Smith HPWH, could be updated but pretty minor impact
-    fan = hpwh.fan.to_FanOnOff.get # TOOD: Update reporting measure if this changes to FanSystemModel per https://github.com/NREL/OpenStudio/issues/4334
+    fan = hpwh.fan.to_FanOnOff.get
     fan.setName("#{obj_name_hpwh} fan")
     fan.setFanEfficiency(65.0 / fan_power * UnitConversions.convert(1.0, 'ft^3/min', 'm^3/s'))
     fan.setPressureRise(65.0)

@@ -24,7 +24,6 @@ class HPXMLDefaults
     apply_rim_joists(hpxml)
     apply_walls(hpxml)
     apply_foundation_walls(hpxml)
-    apply_frame_floors(hpxml)
     apply_slabs(hpxml)
     apply_windows(hpxml)
     apply_skylights(hpxml)
@@ -301,19 +300,6 @@ class HPXMLDefaults
         roof.solar_absorptance = Constructions.get_default_roof_solar_absorptance(roof.roof_type, roof.roof_color)
         roof.solar_absorptance_isdefaulted = true
       end
-      if roof.interior_finish_type.nil?
-        if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? roof.interior_adjacent_to
-          roof.interior_finish_type = HPXML::InteriorFinishGypsumBoard
-        else
-          roof.interior_finish_type = HPXML::InteriorFinishNone
-        end
-        roof.interior_finish_type_isdefaulted = true
-      end
-      next unless roof.interior_finish_thickness.nil?
-      if roof.interior_finish_type != HPXML::InteriorFinishNone
-        roof.interior_finish_thickness = 0.5
-        roof.interior_finish_thickness_isdefaulted = true
-      end
     end
   end
 
@@ -341,35 +327,22 @@ class HPXMLDefaults
 
   def self.apply_walls(hpxml)
     hpxml.walls.each do |wall|
-      if wall.is_exterior
-        if wall.emittance.nil?
-          wall.emittance = 0.90
-          wall.emittance_isdefaulted = true
-        end
-        if wall.siding.nil?
-          wall.siding = HPXML::SidingTypeWood
-          wall.siding_isdefaulted = true
-        end
-        if wall.color.nil?
-          wall.color = Constructions.get_default_wall_color(wall.solar_absorptance)
-          wall.color_isdefaulted = true
-        elsif wall.solar_absorptance.nil?
-          wall.solar_absorptance = Constructions.get_default_wall_solar_absorptance(wall.color)
-          wall.solar_absorptance_isdefaulted = true
-        end
+      next unless wall.is_exterior
+
+      if wall.emittance.nil?
+        wall.emittance = 0.90
+        wall.emittance_isdefaulted = true
       end
-      if wall.interior_finish_type.nil?
-        if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? wall.interior_adjacent_to
-          wall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
-        else
-          wall.interior_finish_type = HPXML::InteriorFinishNone
-        end
-        wall.interior_finish_type_isdefaulted = true
+      if wall.siding.nil?
+        wall.siding = HPXML::SidingTypeWood
+        wall.siding_isdefaulted = true
       end
-      next unless wall.interior_finish_thickness.nil?
-      if wall.interior_finish_type != HPXML::InteriorFinishNone
-        wall.interior_finish_thickness = 0.5
-        wall.interior_finish_thickness_isdefaulted = true
+      if wall.color.nil?
+        wall.color = Constructions.get_default_wall_color(wall.solar_absorptance)
+        wall.color_isdefaulted = true
+      elsif wall.solar_absorptance.nil?
+        wall.solar_absorptance = Constructions.get_default_wall_solar_absorptance(wall.color)
+        wall.solar_absorptance_isdefaulted = true
       end
     end
   end
@@ -379,39 +352,6 @@ class HPXMLDefaults
       if foundation_wall.thickness.nil?
         foundation_wall.thickness = 8.0
         foundation_wall.thickness_isdefaulted = true
-      end
-      if foundation_wall.interior_finish_type.nil?
-        if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? foundation_wall.interior_adjacent_to
-          foundation_wall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
-        else
-          foundation_wall.interior_finish_type = HPXML::InteriorFinishNone
-        end
-        foundation_wall.interior_finish_type_isdefaulted = true
-      end
-      next unless foundation_wall.interior_finish_thickness.nil?
-      if foundation_wall.interior_finish_type != HPXML::InteriorFinishNone
-        foundation_wall.interior_finish_thickness = 0.5
-        foundation_wall.interior_finish_thickness_isdefaulted = true
-      end
-    end
-  end
-
-  def self.apply_frame_floors(hpxml)
-    hpxml.frame_floors.each do |frame_floor|
-      if frame_floor.interior_finish_type.nil?
-        if frame_floor.is_floor
-          frame_floor.interior_finish_type = HPXML::InteriorFinishNone
-        elsif [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? frame_floor.interior_adjacent_to
-          frame_floor.interior_finish_type = HPXML::InteriorFinishGypsumBoard
-        else
-          frame_floor.interior_finish_type = HPXML::InteriorFinishNone
-        end
-        frame_floor.interior_finish_type_isdefaulted = true
-      end
-      next unless frame_floor.interior_finish_thickness.nil?
-      if frame_floor.interior_finish_type != HPXML::InteriorFinishNone
-        frame_floor.interior_finish_thickness = 0.5
-        frame_floor.interior_finish_thickness_isdefaulted = true
       end
     end
   end
@@ -685,6 +625,14 @@ class HPXMLDefaults
     mini_split_ductless_watts_per_cfm = 0.07 # W/cfm
     mini_split_ducted_watts_per_cfm = 0.18 # W/cfm
     hpxml.heating_systems.each do |heating_system|
+      if heating_system.modulating.nil?
+        heating_system.modulating = false
+        heating_system.modulating_isdefaulted = true
+      end
+      if heating_system.dual_source.nil?
+        heating_system.dual_source = false
+        heating_system.dual_source_isdefaulted = true
+      end
       if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
         if heating_system.fan_watts_per_cfm.nil?
           if heating_system.distribution_system.air_type == HPXML::AirTypeGravity
@@ -713,6 +661,14 @@ class HPXMLDefaults
       end
     end
     hpxml.cooling_systems.each do |cooling_system|
+      if cooling_system.modulating.nil?
+        cooling_system.modulating = false
+        cooling_system.modulating_isdefaulted = true
+      end
+      if cooling_system.dual_source.nil?
+        cooling_system.dual_source = false
+        cooling_system.dual_source_isdefaulted = true
+      end
       next unless cooling_system.fan_watts_per_cfm.nil?
 
       if (not cooling_system.attached_heating_system.nil?) && (not cooling_system.attached_heating_system.fan_watts_per_cfm.nil?)
@@ -737,6 +693,26 @@ class HPXMLDefaults
       end
     end
     hpxml.heat_pumps.each do |heat_pump|
+      if heat_pump.modulating.nil?
+        heat_pump.modulating = false
+        heat_pump.modulating_isdefaulted = true
+      end
+      if heat_pump.dual_source.nil?
+        heat_pump.dual_source = false
+        heat_pump.dual_source_isdefaulted = true
+      end
+      if heat_pump.ihp_grid_ac.nil?
+        heat_pump.ihp_grid_ac = false
+        heat_pump.ihp_grid_ac_isdefaulted = true
+      end
+      if heat_pump.ihp_ice_storage.nil?
+        heat_pump.ihp_ice_storage = false
+        heat_pump.ihp_ice_storage_isdefaulted = true
+      end
+      if heat_pump.ihp_pcm_storage.nil?
+        heat_pump.ihp_pcm_storage = false
+        heat_pump.ihp_pcm_storage_isdefaulted = true
+      end
       next unless heat_pump.fan_watts_per_cfm.nil?
 
       if [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type
@@ -766,6 +742,7 @@ class HPXMLDefaults
     # Detailed HVAC performance
     hpxml.cooling_systems.each do |cooling_system|
       clg_ap = cooling_system.additional_properties
+      HVAC.set_demand_flexibility(cooling_system)
       if [HPXML::HVACTypeCentralAirConditioner].include? cooling_system.cooling_system_type
         # Note: We use HP cooling curve so that a central AC behaves the same.
         HVAC.set_num_speeds(cooling_system)
@@ -805,6 +782,7 @@ class HPXMLDefaults
     end
     hpxml.heating_systems.each do |heating_system|
       htg_ap = heating_system.additional_properties
+      HVAC.set_demand_flexibility(heating_system)
       next unless [HPXML::HVACTypeStove,
                    HPXML::HVACTypePortableHeater,
                    HPXML::HVACTypeFixedHeater,
@@ -815,6 +793,7 @@ class HPXMLDefaults
     end
     hpxml.heat_pumps.each do |heat_pump|
       hp_ap = heat_pump.additional_properties
+      HVAC.set_demand_flexibility(heat_pump)
       if [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type
         HVAC.set_num_speeds(heat_pump)
         HVAC.set_fan_power_rated(heat_pump)
