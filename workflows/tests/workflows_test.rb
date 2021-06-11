@@ -16,7 +16,7 @@ class WorkflowTest < MiniTest::Test
       puts "\nOSW: #{osw} ...\n"
 
       RunOSWs.add_simulation_output_report(osw)
-      out_osw, result = RunOSWs.run_and_check(osw, parent_dir, 'output')
+      out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
       all_results << result
 
       # Check workflow was successful
