@@ -436,26 +436,25 @@ class RunOSWs
     end
   end
 
-  def self.run_and_check(in_osw, parent_dir, characteristics_or_output)
+  def self.run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
+    command = "\"#{cli_path}\" run -w #{in_osw}"
+
     system(command)
     out_osw = File.join(parent_dir, 'out.osw')
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
-    result = { 'OSW' => File.basename(in_osw) }
+    result_characteristics = {}
+    result_output = {}
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
-    if characteristics_or_output == 'characteristics'
-      if rows.keys.include? 'BuildExistingModel'
-        result = get_build_existing_model(result, rows)
-      end
-    elsif characteristics_or_output == 'output'
-      if rows.keys.include? 'SimulationOutputReport'
-        result = get_simulation_output_report(result, rows)
-      end
+    if rows.keys.include? 'BuildExistingModel'
+      result_characteristics = get_build_existing_model(result_characteristics, rows)
     end
-    return out_osw, result
+    if rows.keys.include? 'SimulationOutputReport'
+      result_output = get_simulation_output_report(result_output, rows)
+    end
+    return out_osw, result_characteristics, result_output
   end
 
   def self.get_build_existing_model(result, rows)
