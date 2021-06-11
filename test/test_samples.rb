@@ -8,8 +8,8 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = { 'project_testing' => 0, 'project_national' => 100 }
-    @project_dir_upgrades = { 'project_testing' => 0, 'project_national' => 100 }
+    @project_dir_baseline = { 'project_testing' => 10, 'project_national' => 30 }
+    @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
     @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
