@@ -486,7 +486,7 @@ class RunOSWs
     column_headers = results[0].keys.sort
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
-      results.each do |result|
+      results.sort_by { |h| h['OSW'] }.each do |result|
         csv_row = []
         column_headers.each do |column_header|
           csv_row << result[column_header]
