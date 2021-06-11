@@ -1,25 +1,27 @@
 schema_version: 0.2
 stock_type: residential
-buildstock_directory: ../resstock  # Relative to this file or absolute path to resstock repo
+buildstock_directory: ../../resstock  # Relative to this file or absolute path to resstock repo
 project_directory: project_national  # Project, inside buildstock, to use for this run
-output_directory: /projects/resilience/minneapolis_1983
+output_directory: /projects/resilience/a_test_houston_2021
 #weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-weather_files_path: resilience_weather/msp_1983.zip  # Relative to this file or absolute path to zipped weather files
+weather_files_path: resilience_weather/houston_2021.zip  # Relative to this file or absolute path to zipped weather files
 baseline:
-  n_datapoints: 350000
+  n_datapoints: 500
   n_buildings_represented: 133172057
   sampling_algorithm: quota # The default resstock sampling algorithm - use precomputed if using the precomputed_sample option
   measures:
     - measure_dir_name: PowerOutage
       arguments:
-        otg_date: December 16
+        otg_date: February 13
         otg_hr: 0
-        otg_len: 240
+        otg_len: 288
+        comfort_model_1: Pierce
 reporting_measures:
   - ResilienceMetricsReport
 
 timeseries_csv_export:
-  output_variables: Zone Mean Air Temperature
+  output_variables:
+    Site Outdoor Air Drybulb Temperature, Zone Mean Air Temperature, Zone Air Relative Humidity, Zone Thermal Comfort Pierce Model Standard Effective Temperature
   reporting_frequency: Hourly
   include_enduse_subcategories: true
 downselect:
@@ -27,18 +29,26 @@ downselect:
   logic:
     - Geometry Building Type ACS|Single-Family Detached
     - Vacancy Status|Occupied
-    - County|MN, Hennepin County
+    - County|TX, Harris County
 eagle:
-  n_jobs: 8
+  n_jobs: 1
   minutes_per_sim: 3
   account: resilience
   sampling:
-    time: 240
+    time: 10
   postprocessing:
-    time: 60
+    time: 10
     n_workers: 1
 
 upgrades:
+  - upgrade_name: PHIUS cz 2
+    options:
+      - option: Infiltration|1 ACH50
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic: Mechanical Ventilation|None
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Wall|Wood Stud, R-19, R-5 Sheathing
+      - option: Windows|Low-E, Triple, Non-metal, Air, L-Gain
   - upgrade_name: Air Leakage 25% reduction
     options:
       - option: Infiltration|18.5 ACH50
@@ -164,6 +174,87 @@ upgrades:
         lifetime: 30
   - upgrade_name: Low-E Storm Window
     options:
+      - option: Windows|Low-E Storm on Single, Metal
+        apply_logic: Windows|1 Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: Windows|Low-E Storm on Double, Non-metal
+        apply_logic: Windows|2+ Pane
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+  - upgrade_name: All Upgrades
+    options:
+      - option: Infiltration|18.5 ACH50
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.488
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|15 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|11.25 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 0.9
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Infiltration|7.5 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.625
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      # removed all infiltration options that would require mechanical ventilation
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - option: Insulation Wall|Wood Stud, R-15
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated||Insulation Wall|Wood Stud, R-7
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
       - option: Windows|Low-E Storm on Single, Metal
         apply_logic: Windows|1 Pane
         costs:
