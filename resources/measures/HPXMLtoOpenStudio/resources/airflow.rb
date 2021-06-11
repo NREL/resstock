@@ -1379,7 +1379,7 @@ class Airflow
       end
     end
 
-    #Get minimum heating season setpoint
+    # Get minimum heating season setpoint
     thermostatsetpointdualsetpoint = unit_living.zone.thermostatSetpointDualSetpoint
     heatingSetpointWeekday = Array.new
     heatingSetpointWeekend = Array.new
@@ -1394,7 +1394,7 @@ class Airflow
       end
     end
 
-    #TODO: Min of weekday and weekend
+    # TODO: Min of weekday and weekend
     min_htg_sp_wkdy = heatingSetpointWeekday.min.min
     min_htg_sp_wknd = heatingSetpointWeekend.min.min
     min_htg_sp = [min_htg_sp_wkdy, min_htg_sp_wknd].min
