@@ -318,8 +318,6 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
   ``RoofType``                            string                          See [#]_           No         asphalt or fiberglass shingles  Roof type
   ``SolarAbsorptance`` or ``RoofColor``   double or string                0 - 1 or See [#]_  Yes        See [#]_                        Solar absorptance or color
   ``Emittance``                           double                          0 - 1              No         0.90                            Emittance
-  ``InteriorFinish/Type``                 string                          See [#]_           No         See [#]_                        Interior finish material
-  ``InteriorFinish/Thickness``            double            in            >= 0               No         0.5                             Interior finish thickness
   ``Pitch``                               integer           ?:12          >= 0               Yes                                        Pitch
   ``RadiantBarrier``                      boolean                                            No         false                           Presence of radiant barrier
   ``RadiantBarrierGrade``                 integer                         1 - 3              See [#]_                                   Radiant barrier installation grade
@@ -339,8 +337,6 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
          - **slate or tile shingles**: dark=0.90, medium dark=0.83, medium=0.75, light=0.60, reflective=0.30
          - **metal surfacing**: dark=0.90, medium dark=0.83, medium=0.75, light=0.60, reflective=0.30
 
-  .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
-  .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is living space, otherwise "none".
   .. [#] RadiantBarrierGrade only required if RadiantBarrier is provided.
   .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
 
@@ -398,8 +394,6 @@ Each wall that has no contact with the ground and bounds a space type is entered
   ``Siding``                              string                          See [#]_           No             wood siding  Siding material
   ``SolarAbsorptance`` or ``Color``       double or string                0 - 1 or See [#]_  Yes            See [#]_     Solar absorptance or color
   ``Emittance``                           double                          0 - 1              No             0.90         Emittance
-  ``InteriorFinish/Type``                 string                          See [#]_           No             See [#]_     Interior finish material
-  ``InteriorFinish/Thickness``            double            in            >= 0               No             0.5          Interior finish thickness
   ``Insulation/SystemIdentifier``         id                                                 Yes                         Unique identifier
   ``Insulation/AssemblyEffectiveRValue``  double            F-ft2-hr/Btu  > 0                Yes                         Assembly R-value [#]_
   ======================================  ================  ============  =================  =============  ===========  ====================================
@@ -420,8 +414,6 @@ Each wall that has no contact with the ground and bounds a space type is entered
          - **light**: 0.50
          - **reflective**: 0.30
 
-  .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
-  .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is living space or basement - conditioned, otherwise "none".
   .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
 
 HPXML Foundation Walls
@@ -442,8 +434,6 @@ Other walls (e.g., wood framed walls) that are connected to a below-grade space 
   ``Azimuth``                                                     integer   deg           0 - 359      No         See [#]_  Azimuth (clockwise from North)
   ``Thickness``                                                   double    inches        > 0          No         8.0       Thickness excluding interior framing
   ``DepthBelowGrade``                                             double    ft            0 - Height   Yes                  Depth below grade [#]_
-  ``InteriorFinish/Type``                                         string                  See [#]_     No         See [#]_  Interior finish material
-  ``InteriorFinish/Thickness``                                    double    in            >= 0         No         0.5       Interior finish thickness
   ``Insulation/SystemIdentifier``                                 id                                   Yes                  Unique identifier
   ``Insulation/Layer[InstallationType="continuous - interior"]``  element                 0 - 1        See [#]_             Interior insulation layer
   ``Insulation/Layer[InstallationType="continuous - exterior"]``  element                 0 - 1        See [#]_             Exterior insulation layer
@@ -460,8 +450,6 @@ Other walls (e.g., wood framed walls) that are connected to a below-grade space 
          For interior foundation walls, depth below grade is the vertical span of foundation wall in contact with the ground.
          For example, an interior foundation wall between an 8 ft conditioned basement and a 3 ft crawlspace has a height of 8 ft and a depth below grade of 5 ft.
          Alternatively, an interior foundation wall between an 8 ft conditioned basement and an 8 ft unconditioned basement has a height of 8 ft and a depth below grade of 0 ft.
-  .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
-  .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is basement - conditioned, otherwise "none".
   .. [#] Layer[InstallationType="continuous - interior"] only required if AssemblyEffectiveRValue is not provided.
   .. [#] Layer[InstallationType="continuous - exterior"] only required if AssemblyEffectiveRValue is not provided.
   .. [#] AssemblyEffectiveRValue only required if Layer elements are not provided.
@@ -483,25 +471,21 @@ HPXML Frame Floors
 
 Each horizontal floor/ceiling surface that is not in contact with the ground (Slab) nor adjacent to ambient conditions above (Roof) is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/FrameFloors/FrameFloor``.
 
-  ======================================  ========  ============  ===========  ========  ========  ============================
-  Element                                 Type      Units         Constraints  Required  Default   Notes
-  ======================================  ========  ============  ===========  ========  ========  ============================
-  ``SystemIdentifier``                    id                                   Yes                 Unique identifier
-  ``ExteriorAdjacentTo``                  string                  See [#]_     Yes                 Exterior adjacent space type
-  ``InteriorAdjacentTo``                  string                  See [#]_     Yes                 Interior adjacent space type
-  ``Area``                                double    ft2           > 0          Yes                 Gross area
-  ``InteriorFinish/Type``                 string                  See [#]_     No        See [#]_  Interior finish material
-  ``InteriorFinish/Thickness``            double    in            >= 0         No        0.5       Interior finish thickness
-  ``Insulation/SystemIdentifier``         id                                   Yes                 Unique identifier
-  ``Insulation/AssemblyEffectiveRValue``  double    F-ft2-hr/Btu  > 0          Yes                 Assembly R-value [#]_
-  ======================================  ========  ============  ===========  ========  ========  ============================
+  ======================================  ========  ============  ===========  ========  =======  ============================
+  Element                                 Type      Units         Constraints  Required  Default  Notes
+  ======================================  ========  ============  ===========  ========  =======  ============================
+  ``SystemIdentifier``                    id                                   Yes                Unique identifier
+  ``ExteriorAdjacentTo``                  string                  See [#]_     Yes                Exterior adjacent space type
+  ``InteriorAdjacentTo``                  string                  See [#]_     Yes                Interior adjacent space type
+  ``Area``                                double    ft2           > 0          Yes                Gross area
+  ``Insulation/SystemIdentifier``         id                                   Yes                Unique identifier
+  ``Insulation/AssemblyEffectiveRValue``  double    F-ft2-hr/Btu  > 0          Yes                Assembly R-value [#]_
+  ======================================  ========  ============  ===========  ========  =======  ============================
 
   .. [#] ExteriorAdjacentTo choices are "outside", "attic - vented", "attic - unvented", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "garage", "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space".
          See :ref:`hpxmllocations` for descriptions.
   .. [#] InteriorAdjacentTo choices are "living space", "attic - vented", "attic - unvented", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", or "garage".
          See :ref:`hpxmllocations` for descriptions.
-  .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
-  .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is living space and the surface is a ceiling, otherwise "none".
   .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
 
 For frame floors adjacent to "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space", additional information is entered in ``FrameFloor``.

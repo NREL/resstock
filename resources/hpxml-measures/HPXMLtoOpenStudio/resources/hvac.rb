@@ -296,6 +296,8 @@ class HVAC
         # Grid AC
         if heat_pump.ihp_grid_ac
           grid_clg_coil = create_dx_cooling_coil(model, obj_name, heat_pump, grid_signal_schedules_file)
+          grid_clg_coil.setLowerBoundToApplyGridResponsiveControl(1000.0)
+          grid_clg_coil.setMaxSpeedLevelDuringGridResponsiveControl(1)
           hvac_map[heat_pump.id] << grid_clg_coil
         end
 
@@ -3121,7 +3123,7 @@ class HVAC
             clg_coil = OpenStudio::Model::CoilCoolingDXVariableSpeed.new(model, plf_fplr_curve)
             clg_coil.setNominalSpeedLevel(4) # FIXME
             if cooling_system.ihp_ice_storage || cooling_system.ihp_pcm_storage
-              clg_coil.setNominalSpeedLevel(3) # FIXME: sim failure if this is 4 for some reason
+              clg_coil.setNominalSpeedLevel(2) # FIXME: sim failure if this is 4 for some reason
             end
             clg_coil.setGrossRatedTotalCoolingCapacityAtSelectedNominalSpeedLevel(UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')) # FIXME
             clg_coil.setRatedAirFlowRateAtSelectedNominalSpeedLevel(calc_rated_airflow(cooling_system.cooling_capacity, clg_ap.cool_rated_cfm_per_ton[i], 1.0)) # FIXME
@@ -3136,6 +3138,10 @@ class HVAC
               clg_coil.setLowerBoundToApplyGridResponsiveControl(0.15)
               clg_coil.setUpperBoundToApplyGridResponsiveControl(1000.0)
               clg_coil.setMaxSpeedLevelDuringGridResponsiveControl(2)
+              clg_coil.setLoadControlDuringGridResponsiveControl('Sensible')
+              if cooling_system.ihp_ice_storage || cooling_system.ihp_pcm_storage
+                clg_coil.setMaxSpeedLevelDuringGridResponsiveControl(0)
+              end
             end
           end
           speed = OpenStudio::Model::CoilCoolingDXVariableSpeedSpeedData.new(model, cap_ft_curve, cap_fff_curve, eir_ft_curve, eir_fff_curve)
@@ -3219,7 +3225,7 @@ class HVAC
               htg_coil.setGridSignalSchedule(grid_signal_schedule)
               htg_coil.setLowerBoundToApplyGridResponsiveControl(0.15)
               htg_coil.setUpperBoundToApplyGridResponsiveControl(1000.0)
-              htg_coil.setMaxSpeedLevelDuringGridResponsiveControl(2)
+              htg_coil.setMaxSpeedLevelDuringGridResponsiveControl(3)
             end
           end
           speed = OpenStudio::Model::CoilHeatingDXVariableSpeedSpeedData.new(model, cap_ft_curve, cap_fff_curve, eir_ft_curve, eir_fff_curve)

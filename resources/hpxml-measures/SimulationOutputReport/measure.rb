@@ -1000,11 +1000,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       runner.registerValue(output_name, end_use.annual_output.round(2))
       runner.registerInfo("Registering #{end_use.annual_output.round(2)} for #{output_name}.")
     end
-    @component_loads.each do |load_type, load|
-      output_name = get_runner_output_name(load)
-      runner.registerValue(output_name, load.annual_output.round(2))
-      runner.registerInfo("Registering #{load.annual_output.round(2)} for #{output_name}.")
-    end
   end
 
   def get_runner_output_name(obj)

@@ -223,7 +223,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.foundations.clear
       hpxml.attics.clear
       hpxml.foundation_walls.each do |foundation_wall|
-        foundation_wall.interior_finish_type = nil
         next if foundation_wall.insulation_assembly_r_value.nil?
         foundation_wall.insulation_assembly_r_value = foundation_wall.insulation_assembly_r_value.round(2)
       end
@@ -241,23 +240,18 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         rim_joist.emittance = nil
         rim_joist.color = nil
       end
-      hpxml.frame_floors.each do |frame_floor|
-        frame_floor.interior_finish_type = nil
-      end
       hpxml.roofs.each do |roof|
         roof.azimuth = nil
         roof.radiant_barrier = nil
         roof.solar_absorptance = nil
         roof.emittance = nil
         roof.roof_color = nil
-        roof.interior_finish_type = nil
       end
       hpxml.walls.each do |wall|
         wall.azimuth = nil
         wall.solar_absorptance = nil
         wall.emittance = nil
         wall.color = nil
-        wall.interior_finish_type = nil
         next if wall.exterior_adjacent_to != HPXML::LocationOutside
         next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? wall.interior_adjacent_to
 
