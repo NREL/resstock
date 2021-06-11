@@ -197,9 +197,12 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         cost_mult += frame_floor.area
       end
     elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
-      cost_mult += hpxml.building_construction.conditioned_floor_area
+      if hpxml.lighting.interior_usage_multiplier != 0
+        cost_mult += hpxml.building_construction.conditioned_floor_area
+      end
       hpxml.slabs.each do |slab|
         next unless [HPXML::LocationGarage].include?(slab.interior_adjacent_to)
+        next if hpxml.lighting.garage_usage_multiplier == 0
 
         cost_mult += slab.area
       end

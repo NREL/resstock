@@ -156,11 +156,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     check_file_exists(lookup_file, runner)
     check_file_exists(buildstock_csv, runner)
 
+    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+
     # Retrieve all data associated with sample number
     bldg_data = get_data_for_sample(buildstock_csv, args['building_id'], runner)
 
     # Retrieve order of parameters to run
-    parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir)
+    parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
 
     # Retrieve options that have been selected for this building_id
     parameters_ordered.each do |parameter_name|
@@ -196,7 +198,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     parameters_ordered.each do |parameter_name|
       option_name = bldg_data[parameter_name]
       print_option_assignment(parameter_name, option_name, runner)
-      options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
+      options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
       options_measure_args[option_name].each do |measure_subdir, args_hash|
         update_args_hash(measures, measure_subdir, args_hash, add_new = false)
       end
@@ -222,7 +224,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get the absolute paths relative to this meta measure in the run directory
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, 'existing.osw', true, { 'BuildExistingModel' => runner })
+    if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, nil, true, { 'BuildExistingModel' => runner })
       return false
     end
 
@@ -256,7 +258,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Get the schedules random seed
     measures['BuildResidentialHPXML'][0]['schedules_random_seed'] = args['building_id']
 
-    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, nil, true, { 'BuildExistingModel' => runner })
+    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'existing.osw', true, { 'BuildExistingModel' => runner })
       new_runner.result.errors.each do |error|
         runner.registerError(error.logMessage)
       end

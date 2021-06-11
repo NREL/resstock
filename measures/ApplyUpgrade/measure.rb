@@ -190,6 +190,11 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     hpxml_measures_dir = File.join(File.dirname(__FILE__), '../../resources/hpxml-measures')
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
 
+    # Check file/dir paths exist
+    check_file_exists(lookup_file, runner)
+
+    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
@@ -259,11 +264,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         end
         register_value(runner, 'option_%02d_lifetime_to_apply' % option_num, lifetime.to_s)
 
-        # Check file/dir paths exist
-        check_file_exists(lookup_file, runner)
-
         # Get measure name and arguments associated with the option
-        options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
+        options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
         options_measure_args[option_name].each do |measure_subdir, args_hash|
           system_upgrades = get_system_upgrades(system_upgrades, args_hash)
           update_args_hash(measures, measure_subdir, args_hash, add_new = false)
@@ -271,12 +273,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Add measure arguments from existing building if needed
-      parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir)
+      parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
       measures.keys.each do |measure_subdir|
         parameters.each do |parameter_name|
           existing_option_name = get_value_from_runner_past_results(runner, parameter_name, 'build_existing_model')
 
-          options_measure_args = get_measure_args_from_option_names(lookup_file, [existing_option_name], parameter_name, runner)
+          options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
           options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
             next if measure_subdir != measure_subdir2
 
@@ -301,7 +303,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Get the absolute paths relative to this meta measure in the run directory
       new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
-      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, 'upgraded.osw', true, { 'ApplyUpgrade' => runner })
+      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, nil, true, { 'ApplyUpgrade' => runner })
         return false
       end
 
@@ -379,7 +381,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Remove the existing generated_files folder alongside the run folder; if not, getExternalFile returns false for some reason
       FileUtils.rm_rf(File.expand_path('../../generated_files')) if File.exist?(File.expand_path('../../generated_files'))
 
-      if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, nil, true, { 'ApplyUpgrade' => runner })
+      if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'upgraded.osw', true, { 'ApplyUpgrade' => runner })
         new_runner.result.errors.each do |error|
           runner.registerError(error.logMessage)
         end

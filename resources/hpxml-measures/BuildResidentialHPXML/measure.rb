@@ -225,7 +225,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_orientation', true)
     arg.setDisplayName('Geometry: Orientation')
     arg.setUnits('degrees')
-    arg.setDescription("The unit's orientation is measured clockwise from due south when viewed from above (e.g., North=0, East=90, South=180, West=270).")
+    arg.setDescription("The unit's orientation is measured clockwise from north when viewed from above (e.g., North=0, East=90, South=180, West=270).")
     arg.setDefaultValue(180.0)
     args << arg
 
