@@ -187,7 +187,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
   if File.exist?(output_file)
     if project_dir_name == 'project_national'
-      File.mv(output_file, output_file.gsub(project_dir_name, 'buildstock'))
+      FileUtils.mv(output_file, output_file.gsub(project_dir_name, 'buildstock'))
     else
       File.delete(output_file) # Clean up
     end
