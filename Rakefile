@@ -318,7 +318,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
   # Test sampling
   r = RunSampling.new
-  output_file = r.run(project_dir_name, 10000, '{}.csv'.format(project_dir_name), housing_characteristics_dir, lookup_file)
+  output_file = r.run(project_dir_name, 10000, "#{project_dir_name}.csv", housing_characteristics_dir, lookup_file)
 
   # Cache {parameter => options}
   parameters_options = {}
