@@ -30,7 +30,7 @@ upgrades:
       - &polyiso_1inch
         #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
         option: Insulation Wall| #add R-6.5 to all wall types. Will need to edit options lookup
-        apply_logic:
+        apply_logic: &insulation_apply_logic
           and:
             - not:
               - Insulation Wall|Wood Stud, R-19
@@ -45,14 +45,7 @@ upgrades:
       - &polyiso_2inch
         #1" polyiso continuous insulation, R-13, 19% whole home reduction in ACH50, $1.90 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
         option: Insulation Wall| #add R-13 to all wall types. Will need to edit options lookup
-        apply_logic:
-          and:
-            - not:
-              - Insulation Wall|Wood Stud, R-19
-              - Insulation Wall|CMU, 6-in Hollow, R-19
-              - Vintage|1990s
-              - Vintage|2000s
-              - Vintage|2010s
+        apply_logic: *insulation_apply_logic
         costs:
           - value: 1.9
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
@@ -515,6 +508,8 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|1 ACH50
+            - *windows_apply_logic
+            - *insulation_apply_logic
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -524,6 +519,8 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|2 ACH50
+            - *windows_apply_logic
+            - *insulation_apply_logic
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -533,6 +530,8 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|3 ACH50
+            - *windows_apply_logic
+            - *insulation_apply_logic
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -542,6 +541,8 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|4 ACH50
+            - *windows_apply_logic
+            - *insulation_apply_logic
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -551,6 +552,8 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|5 ACH50
+            - *windows_apply_logic
+            - *insulation_apply_logic
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -560,6 +563,8 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|6 ACH50
+            - *windows_apply_logic
+            - *insulation_apply_logic
         costs:
           - value: 0
             multiplier: Fixed (1)
