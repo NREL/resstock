@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require 'openstudio'
+require 'parallel'
 
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../resources/run_sampling'
 require_relative '../resources/buildstock'
-require 'parallel'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
