@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+
 require 'openstudio'
 
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
@@ -50,7 +52,7 @@ class RegressionWorkflowTest < MiniTest::Test
 
     results_dir = File.join(@top_dir, 'results')
     RunOSWs._rm_path(results_dir)
-    csv_out = RunOSWs.write_summary_results(results_dir, all_results, 'feature.csv')
+    csv_out = RunOSWs.write_summary_results(results_dir, 'results.csv', all_results)
     puts "\nWrote: #{csv_out}\n\n"
   end
 
