@@ -483,7 +483,16 @@ class RunOSWs
     end
     csv_out = File.join(results_dir, filename)
 
-    column_headers = results[0].keys.sort
+    column_headers = []
+    results.each do |result|
+      result.keys.each do |col|
+        next if col == 'building_id'
+
+        column_headers << col unless column_headers.include?(col)
+      end
+    end
+    column_headers = column_headers.sort
+
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
       results.sort_by { |h| h['OSW'] }.each do |result|

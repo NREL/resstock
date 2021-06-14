@@ -13,7 +13,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     all_results_characteristics = []
     all_results_output = []
-    [['project_testing', 10], ['project_national', 30]].each do |scenario|
+    [['project_testing', 10], ['project_national', 50]].each do |scenario|
       project_dir, num_samples = scenario
 
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
