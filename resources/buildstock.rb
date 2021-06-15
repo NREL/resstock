@@ -439,20 +439,22 @@ class RunOSWs
   def self.run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
+    command = "\"#{cli_path}\" run -w #{in_osw}"
+
     system(command)
     out_osw = File.join(parent_dir, 'out.osw')
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
-    result = { 'OSW' => File.basename(in_osw) }
+    result_characteristics = {}
+    result_output = {}
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     if rows.keys.include? 'BuildExistingModel'
-      result = get_build_existing_model(result, rows)
+      result_characteristics = get_build_existing_model(result_characteristics, rows)
     end
     if rows.keys.include? 'SimulationOutputReport'
-      result = get_simulation_output_report(result, rows)
+      result_output = get_simulation_output_report(result_output, rows)
     end
-    return out_osw, result
+    return out_osw, result_characteristics, result_output
   end
 
   def self.get_build_existing_model(result, rows)
@@ -475,14 +477,25 @@ class RunOSWs
     return result
   end
 
-  def self.write_summary_results(results_dir, results)
-    Dir.mkdir(results_dir)
-    csv_out = File.join(results_dir, 'results.csv')
+  def self.write_summary_results(results_dir, filename, results)
+    if not File.exist?(results_dir)
+      Dir.mkdir(results_dir)
+    end
+    csv_out = File.join(results_dir, filename)
 
-    column_headers = results[0].keys.sort
+    column_headers = []
+    results.each do |result|
+      result.keys.each do |col|
+        next if col == 'building_id'
+
+        column_headers << col unless column_headers.include?(col)
+      end
+    end
+    column_headers = column_headers.sort
+
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
-      results.each do |result|
+      results.sort_by { |h| h['OSW'] }.each do |result|
         csv_row = []
         column_headers.each do |column_header|
           csv_row << result[column_header]
