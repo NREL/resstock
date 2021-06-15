@@ -15,6 +15,7 @@ __New Features__
 - Allows CEER (Combined Energy Efficiency Ratio) efficiency unit for room AC.
 - Allows "none" for wall/rim joist siding.
 - Allows interior finish inputs (e.g., 0.5" drywall) for walls, ceilings, and roofs.
+- For water heaters w/ UEF, allows `UsageBin` instead of `FirstHourRating` (or defaults if neither provided).
 - Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
 - Switches to the EnergyPlus Fan:SystemModel object for all HVAC systems.
 

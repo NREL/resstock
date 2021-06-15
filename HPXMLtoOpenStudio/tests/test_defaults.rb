@@ -1259,6 +1259,37 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_storage_water_heater_values(hpxml_default,
                                               [false, 15354.6, 50.0, 0.98, HPXML::LocationBasementConditioned, 125, 0.90],
                                               [false, 36000.0, 40.0, 0.746, HPXML::LocationBasementConditioned, 125, 0.55])
+
+    # Test inputs not overridden by defaults w/ UEF
+    hpxml = _create_hpxml('base-dhw-tank-gas-uef.xml')
+    hpxml.water_heating_systems.each do |wh|
+      wh.first_hour_rating = nil
+      wh.usage_bin = HPXML::WaterHeaterUsageBinVerySmall
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    assert_nil(hpxml_default.water_heating_systems[0].first_hour_rating)
+    assert_equal(HPXML::WaterHeaterUsageBinVerySmall, hpxml_default.water_heating_systems[0].usage_bin)
+
+    # Test defaults w/ UEF & FHR
+    hpxml.water_heating_systems.each do |wh|
+      wh.first_hour_rating = 40
+      wh.usage_bin = nil
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    assert_equal(40, hpxml_default.water_heating_systems[0].first_hour_rating)
+    assert_equal(HPXML::WaterHeaterUsageBinLow, hpxml_default.water_heating_systems[0].usage_bin)
+
+    # Test defaults w/ UEF & no FHR
+    hpxml.water_heating_systems.each do |wh|
+      wh.first_hour_rating = nil
+      wh.usage_bin = nil
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    assert_nil(hpxml_default.water_heating_systems[0].first_hour_rating)
+    assert_equal(HPXML::WaterHeaterUsageBinMedium, hpxml_default.water_heating_systems[0].usage_bin)
   end
 
   def test_tankless_water_heaters

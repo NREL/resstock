@@ -225,7 +225,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_orientation', true)
     arg.setDisplayName('Geometry: Orientation')
     arg.setUnits('degrees')
-    arg.setDescription("The unit's orientation is measured clockwise from north when viewed from above (e.g., North=0, East=90, South=180, West=270).")
+    arg.setDescription("The unit's orientation is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).")
     arg.setDefaultValue(180.0)
     args << arg
 
@@ -565,10 +565,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     roof_material_type_choices = OpenStudio::StringVector.new
     roof_material_type_choices << HPXML::RoofTypeAsphaltShingles
-    roof_material_type_choices << HPXML::RoofTypeConcrete
     roof_material_type_choices << HPXML::RoofTypeClayTile
     roof_material_type_choices << HPXML::RoofTypeMetal
-    roof_material_type_choices << HPXML::RoofTypePlasticRubber
     roof_material_type_choices << HPXML::RoofTypeWoodShingles
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_material_type', roof_material_type_choices, false)
@@ -1725,6 +1723,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     water_heater_efficiency_type_choices << 'EnergyFactor'
     water_heater_efficiency_type_choices << 'UniformEnergyFactor'
 
+    water_heater_usage_bin_choices = OpenStudio::StringVector.new
+    water_heater_usage_bin_choices << HPXML::WaterHeaterUsageBinVerySmall
+    water_heater_usage_bin_choices << HPXML::WaterHeaterUsageBinLow
+    water_heater_usage_bin_choices << HPXML::WaterHeaterUsageBinMedium
+    water_heater_usage_bin_choices << HPXML::WaterHeaterUsageBinHigh
+
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_type', water_heater_type_choices, true)
     arg.setDisplayName('Water Heater: Type')
     arg.setDescription("The type of water heater. Use 'none' if there is no water heater.")
@@ -1766,7 +1770,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Water Heater: First Hour Rating')
     arg.setDescription("Rated gallons of hot water supplied in an hour. Required if Efficiency Type is UniformEnergyFactor and Type is not #{HPXML::WaterHeaterTypeTankless}. Does not apply to space-heating boilers.")
     arg.setUnits('gal/hr')
-    arg.setDefaultValue(56.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_usage_bin', water_heater_usage_bin_choices, false)
+    arg.setDisplayName('Water Heater: Usage Bin')
+    arg.setDescription("The usage of the water heater. Required if Efficiency Type is UniformEnergyFactor and Type is not #{HPXML::WaterHeaterTypeTankless}. Does not apply to space-heating boilers.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_recovery_efficiency', true)
@@ -1945,7 +1953,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('solar_thermal_collector_azimuth', true)
     arg.setDisplayName('Solar Thermal: Collector Azimuth')
     arg.setUnits('degrees')
-    arg.setDescription('The collector azimuth of the solar thermal system.')
+    arg.setDescription('The collector azimuth of the solar thermal system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).')
     arg.setDefaultValue(180)
     args << arg
 
@@ -2024,7 +2032,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_array_azimuth_1', true)
     arg.setDisplayName('Photovoltaics 1: Array Azimuth')
     arg.setUnits('degrees')
-    arg.setDescription('Array azimuth of the PV system 1.')
+    arg.setDescription('Array azimuth of the PV system 1. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).')
     arg.setDefaultValue(180)
     args << arg
 
@@ -2082,7 +2090,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_array_azimuth_2', true)
     arg.setDisplayName('Photovoltaics 2: Array Azimuth')
     arg.setUnits('degrees')
-    arg.setDescription('Array azimuth of the PV system 2.')
+    arg.setDescription('Array azimuth of the PV system 2. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).')
     arg.setDefaultValue(180)
     args << arg
 
@@ -4645,7 +4653,8 @@ class HPXMLFile
       elsif args[:water_heater_efficiency_type] == 'UniformEnergyFactor'
         uniform_energy_factor = args[:water_heater_efficiency]
         if water_heater_type != HPXML::WaterHeaterTypeTankless
-          first_hour_rating = args[:water_heater_first_hour_rating]
+          first_hour_rating = args[:water_heater_first_hour_rating].get if args[:water_heater_first_hour_rating].is_initialized
+          usage_bin = args[:water_heater_usage_bin].get if args[:water_heater_usage_bin].is_initialized
         end
       end
     end
@@ -4705,6 +4714,7 @@ class HPXMLFile
                                     energy_factor: energy_factor,
                                     uniform_energy_factor: uniform_energy_factor,
                                     first_hour_rating: first_hour_rating,
+                                    usage_bin: usage_bin,
                                     recovery_efficiency: recovery_efficiency,
                                     related_hvac_idref: related_hvac_idref,
                                     standby_loss: standby_loss,
