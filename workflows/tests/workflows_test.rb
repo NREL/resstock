@@ -12,7 +12,6 @@ class WorkflowTest < MiniTest::Test
 
     create_lib_folder(parent_dir)
 
-    workflows = []
     Parallel.map(Dir["#{parent_dir}/example*.osw"], in_threads: Parallel.processor_count) do |workflow|
       worker_number = Parallel.worker_number
       puts "\nOSW: #{workflow}, Worker Number: #{worker_number} ...\n"
