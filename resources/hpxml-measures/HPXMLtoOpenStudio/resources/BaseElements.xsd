@@ -464,7 +464,7 @@
 							<xs:documentation>Portable room dehumidifiers are typically used to dehumidify a single room or space and can be easily moved to where they are needed. Whole-home dehumidifiers are typically installed to use your home’s air ducts to dehumidify one or more rooms and are often permanent. Some dehumifiers can operate in both configurations by means of a ducting kit.</xs:documentation>
 						</xs:annotation>
 					</xs:element>
-					<xs:element minOccurs="0" name="Location" type="InteriorAdjacentTo"/>
+					<xs:element minOccurs="0" name="Location" type="AdjacentTo"/>
 					<xs:element minOccurs="0" name="Efficiency" type="HPXMLDouble">
 						<xs:annotation>
 							<xs:documentation>[L/kWh] DEPRECATED. This will be removed in v4.0. Use EnergyFactor or IntegratedEnergyFactor instead.</xs:documentation>
@@ -808,7 +808,7 @@
 									<xs:element minOccurs="0" name="AttachedToWall" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToCeiling" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToFoundationWall" type="LocalReference" maxOccurs="unbounded"/>
-									<xs:element minOccurs="0" name="AttachedToFrameFloor" type="LocalReference" maxOccurs="unbounded"> </xs:element>
+									<xs:element minOccurs="0" name="AttachedToFrameFloor" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element minOccurs="0" name="AttachedToSlab" type="LocalReference" maxOccurs="unbounded"/>
 									<xs:element name="AnnualEnergyUse" minOccurs="0">
 										<xs:complexType>
@@ -838,7 +838,7 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
 									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
 										<xs:annotation>
 											<xs:documentation>[sq.ft.] Surface area of the roof itself</xs:documentation>
@@ -883,8 +883,8 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element minOccurs="0" name="ExteriorAdjacentTo" type="ExteriorAdjacentTo"/>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
+									<xs:element minOccurs="0" name="ExteriorAdjacentTo" type="AdjacentTo"/>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
 									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
 										<xs:annotation>
 											<xs:documentation>[sq.ft.]</xs:documentation>
@@ -935,8 +935,8 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element name="ExteriorAdjacentTo" type="ExteriorAdjacentTo" minOccurs="0"> </xs:element>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
+									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"> </xs:element>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
 									<xs:element minOccurs="0" name="AtticWallType" type="AtticWallType"/>
 									<xs:element name="WallType" type="WallType" minOccurs="0"> </xs:element>
 									<xs:element minOccurs="0" name="Thickness" type="LengthMeasurement">
@@ -992,8 +992,8 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element name="ExteriorAdjacentTo" type="ExteriorAdjacentTo" minOccurs="0"> </xs:element>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
+									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"> </xs:element>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
 									<xs:element minOccurs="0" name="Type" type="FoundationWallType"/>
 									<xs:element minOccurs="0" name="Length" type="LengthMeasurement">
 										<xs:annotation>
@@ -1064,8 +1064,8 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element name="ExteriorAdjacentTo" type="ExteriorAdjacentTo" minOccurs="0"> </xs:element>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
+									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"> </xs:element>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
 									<xs:element minOccurs="0" name="CeilingJoists" type="StudProperties"/>
 									<xs:element minOccurs="0" name="CeilingTrusses" type="StudProperties"/>
 									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
@@ -1098,8 +1098,8 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element name="ExteriorAdjacentTo" type="ExteriorAdjacentTo" minOccurs="0"> </xs:element>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
+									<xs:element name="ExteriorAdjacentTo" type="AdjacentTo" minOccurs="0"> </xs:element>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
 									<xs:element minOccurs="0" name="FloorJoists" type="StudProperties"/>
 									<xs:element minOccurs="0" name="FloorTrusses" type="StudProperties"/>
 									<xs:element minOccurs="0" name="FloorCovering" type="FloorCovering"/>
@@ -1130,7 +1130,7 @@
 								<xs:sequence>
 									<xs:group ref="SystemInfo"/>
 									<xs:element minOccurs="0" ref="AttachedToSpace"/>
-									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="InteriorAdjacentTo"/>
+									<xs:element minOccurs="0" name="InteriorAdjacentTo" type="AdjacentTo"/>
 									<xs:element minOccurs="0" name="Area" type="SurfaceArea">
 										<xs:annotation>
 											<xs:documentation>[sq.ft.] Area of the slab</xs:documentation>
@@ -1610,6 +1610,11 @@
 										<xs:annotation>
 											<xs:documentation>[gal per hour] An estimate of the maximum volume of hot water in gallons that a storage water heater can supply within an hour that begins
 												with the water heater fully heated.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="UsageBin" type="UsageBin">
+										<xs:annotation>
+											<xs:documentation>A water heater's usage bin is derived from its First Hour Rating (FHR) as part of the Uniform Energy Factor (UEF) testing procedures.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="GallonsPerMinute" type="Volume">
