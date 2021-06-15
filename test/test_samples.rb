@@ -9,7 +9,7 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = { 'project_testing' => 10, 'project_national' => 50 }
+    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 1 }
     @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
     @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
@@ -20,10 +20,6 @@ class IntegrationWorkflowTest < MiniTest::Test
 
   def after_teardown
     FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
-    FileUtils.rm_rf(File.join(@top_dir, 'run')) if File.exist?(File.join(@top_dir, 'run'))
-    FileUtils.rm_rf(File.join(@top_dir, 'reports')) if File.exist?(File.join(@top_dir, 'reports'))
-    FileUtils.rm_rf(File.join(@top_dir, 'generated_files')) if File.exist?(File.join(@top_dir, 'generated_files'))
-    FileUtils.rm(File.join(@top_dir, 'buildstock.csv')) if File.exist?(File.join(@top_dir, 'buildstock.csv'))
   end
 
   def test_baseline
@@ -41,8 +37,8 @@ class IntegrationWorkflowTest < MiniTest::Test
     results_dir = File.join(scenario_dir, 'results')
     RunOSWs._rm_path(results_dir)
     results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
-    puts "\nWrote: #{results_csv_characteristics}\n"
     results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
+    puts "\nWrote: #{results_csv_characteristics}\n"
     puts "\nWrote: #{results_csv_output}\n"
 
     [results_csv_characteristics, results_csv_output].each do |results_csv|
@@ -72,9 +68,9 @@ class IntegrationWorkflowTest < MiniTest::Test
     results_dir = File.join(scenario_dir, 'results')
     RunOSWs._rm_path(results_dir)
     results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
-    puts "\nWrote: #{results_csv_characteristics}\n\n"
     results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
-    puts "\nWrote: #{results_csv_output}\n\n"
+    puts "\nWrote: #{results_csv_characteristics}\n"
+    puts "\nWrote: #{results_csv_output}\n"
 
     [results_csv_characteristics, results_csv_output].each do |results_csv|
       rows = CSV.read(results_csv)
