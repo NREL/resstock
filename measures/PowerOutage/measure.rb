@@ -181,7 +181,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_end.month), otg_period_end.day, otg_period_end.year)
 
     model.getScheduleRulesets.each do |schedule_ruleset|
-      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling)
 
       otg_val = 0
       if otg_period_num_days <= 1 # occurs within one calendar day
