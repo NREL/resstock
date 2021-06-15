@@ -298,23 +298,13 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
 
     # set the outage on schedules that are generated
     schedules_file = SchedulesFile.new(runner: runner, model: model)
-    schedules = [
-      "cooking_range",
-      "plug_loads",
-      "lighting_interior",
-      "lighting_exterior",
-      "lighting_garage",
-      "lighting_exterior_holiday",
-      "clothes_washer",
-      "clothes_washer_power",
-      "clothes_dryer",
-      "dishwasher",
-      "dishwasher_power",
-      "baths",
-      "showers",
-      "sinks",
-      "ceiling_fan"
-    ]
+    schedules = []
+    ScheduleGenerator.col_names.each do |col_name, val|
+      next if col_name == 'occupants'
+
+      schedules << col_name unless val.nil?
+    end
+
     schedules_path = model.getBuilding.additionalProperties.getFeatureAsString("Schedules Path")
     schedules.each do |col_name|
       if schedules_path.is_initialized # this is not a test
