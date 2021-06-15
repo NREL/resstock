@@ -9,17 +9,17 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 1 }
+    @project_dir_baseline = { 'project_testing' => 10, 'project_national' => 50 }
     @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
-    @outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
     @lib_dir = File.join(@top_dir, '..', '..', 'lib')
     @resources_dir = File.join(@top_dir, '..', '..', 'resources')
+    @outfile = File.join('..', 'lib', 'housing_characteristics', 'buildstock.csv')
   end
 
   def after_teardown
-    FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
+    # FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
   end
 
   def test_baseline
@@ -90,8 +90,8 @@ class IntegrationWorkflowTest < MiniTest::Test
     parent_dir = File.join(scenario_dir, project_dir)
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
-    create_buildstock_csv(project_dir, num_samples)
     create_lib_folder(project_dir)
+    create_buildstock_csv(parent_dir, project_dir, num_samples)    
 
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     Dir["#{@top_dir}/workflow*.osw"].each do |workflow|
@@ -159,17 +159,17 @@ class IntegrationWorkflowTest < MiniTest::Test
     end
   end
 
-  def create_buildstock_csv(project_dir, num_samples)
-    r = RunSampling.new
-    r.run(project_dir, num_samples, @outfile)
-  end
-
   def create_lib_folder(project_dir)
-    housing_characteristics_dir = File.join(@top_dir, '..', '..', project_dir, 'housing_characteristics')
     Dir.mkdir(@lib_dir) unless File.exist?(@lib_dir)
     FileUtils.cp_r(@resources_dir, @lib_dir)
+    housing_characteristics_dir = File.join(@top_dir, '..', '..', project_dir, 'housing_characteristics')
     FileUtils.cp_r(housing_characteristics_dir, @lib_dir)
-    FileUtils.cp(File.join(@resources_dir, @outfile), File.join(@lib_dir, 'housing_characteristics'))
+  end
+
+  def create_buildstock_csv(parent_dir, project_dir, num_samples)
+    r = RunSampling.new
+    r.run(project_dir, num_samples, @outfile)
+    FileUtils.cp(File.join(@lib_dir, 'housing_characteristics', 'buildstock.csv'), parent_dir)
   end
 
   def change_building_id(osw, building_id)
