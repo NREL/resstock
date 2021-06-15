@@ -187,6 +187,10 @@ class Material
     return new(name = 'Stucco, Medium/Dark', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.75, vAbs = 0.75)
   end
 
+  def self.ExtFinishStuccoMedLight
+    return new(name = 'Stucco, Medium/Light', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.45, sAbs = 0.75, vAbs = 0.75)
+  end
+
   def self.ExtFinishBrickLight
     return new(name = 'Brick, Light', thick_in = 4.0, mat_base = BaseMaterial.Brick, k_in = nil, rho = nil, cp = nil, tAbs = 0.93, sAbs = 0.55, vAbs = 0.55)
   end

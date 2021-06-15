@@ -815,6 +815,7 @@ class WallConstructions
   def self.get_exterior_finish_materials
     mats = []
     mats << Material.ExtFinishStuccoMedDark
+    mats << Material.ExtFinishStuccoMedLight
     mats << Material.ExtFinishBrickLight
     mats << Material.ExtFinishBrickMedDark
     mats << Material.ExtFinishWoodLight
