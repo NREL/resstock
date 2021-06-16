@@ -98,7 +98,7 @@ def create_osws
     'base-dhw-tank-elec-uef.osw' => 'base.osw',
     'base-dhw-tank-gas.osw' => 'base.osw',
     'base-dhw-tank-gas-uef.osw' => 'base.osw',
-    'base-dhw-tank-gas-uef-fhr.osw' => 'base-dhw-tank-gas-uef.osw',
+    # 'base-dhw-tank-gas-uef-fhr.osw' => 'base-dhw-tank-gas-uef.osw',
     'base-dhw-tank-gas-outside.osw' => 'base-dhw-tank-gas.osw',
     'base-dhw-tank-heat-pump.osw' => 'base.osw',
     'base-dhw-tank-heat-pump-outside.osw' => 'base.osw',
@@ -1076,9 +1076,6 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_efficiency', 0.59)
     step.setArgument('water_heater_usage_bin', HPXML::WaterHeaterUsageBinMedium)
     step.setArgument('water_heater_recovery_efficiency', 0.75)
-  elsif ['base-dhw-tank-gas-uef-fhr.osw'].include? osw_file
-    step.removeArgument('water_heater_usage_bin')
-    step.setArgument('water_heater_first_hour_rating', 56)
   elsif ['base-dhw-tank-gas-outside.osw'].include? osw_file
     step.setArgument('water_heater_location', HPXML::LocationOtherExterior)
   elsif ['base-dhw-tank-heat-pump.osw'].include? osw_file
