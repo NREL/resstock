@@ -1766,12 +1766,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.67)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_first_hour_rating', false)
-    arg.setDisplayName('Water Heater: First Hour Rating')
-    arg.setDescription("Rated gallons of hot water supplied in an hour. Required if Efficiency Type is UniformEnergyFactor and Type is not #{HPXML::WaterHeaterTypeTankless}. Does not apply to space-heating boilers.")
-    arg.setUnits('gal/hr')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_usage_bin', water_heater_usage_bin_choices, false)
     arg.setDisplayName('Water Heater: Usage Bin')
     arg.setDescription("The usage of the water heater. Required if Efficiency Type is UniformEnergyFactor and Type is not #{HPXML::WaterHeaterTypeTankless}. Does not apply to space-heating boilers.")
@@ -4653,7 +4647,6 @@ class HPXMLFile
       elsif args[:water_heater_efficiency_type] == 'UniformEnergyFactor'
         uniform_energy_factor = args[:water_heater_efficiency]
         if water_heater_type != HPXML::WaterHeaterTypeTankless
-          first_hour_rating = args[:water_heater_first_hour_rating].get if args[:water_heater_first_hour_rating].is_initialized
           usage_bin = args[:water_heater_usage_bin].get if args[:water_heater_usage_bin].is_initialized
         end
       end
@@ -4713,7 +4706,6 @@ class HPXMLFile
                                     fraction_dhw_load_served: 1.0,
                                     energy_factor: energy_factor,
                                     uniform_energy_factor: uniform_energy_factor,
-                                    first_hour_rating: first_hour_rating,
                                     usage_bin: usage_bin,
                                     recovery_efficiency: recovery_efficiency,
                                     related_hvac_idref: related_hvac_idref,
