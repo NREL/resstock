@@ -9,10 +9,10 @@ class TsvFile
     @filename = File.basename(full_path)
     @runner = runner
     @rows, @option_cols, @dependency_cols, @dependency_options, @full_header, @header = get_file_data()
-    @rows_keys_s, @rows_keys_s_tally = construct_rows_keys_s()
+    @rows_keys_s = cache_data()
   end
 
-  attr_accessor :dependency_cols, :dependency_options, :rows, :option_cols, :header, :filename, :rows_keys_s
+  attr_accessor :dependency_cols, :dependency_options, :rows, :option_cols, :header, :filename, :rows_keys_s, :full_path
 
   def get_file_data()
     option_key = 'Option='
@@ -74,17 +74,28 @@ class TsvFile
     return rows, option_cols, dependency_cols, dependency_options, full_header, header
   end
 
-  def construct_rows_keys_s
+  def cache_data
     # Caches data for faster tsv lookups
-    rows_keys_s = []
+    rows_keys_s = {}
     @rows.each_with_index do |row, rownum|
       next if row[0].start_with? "\#"
 
       row_key_values = {}
       @dependency_cols.each do |dep, dep_col|
-        row_key_values[dep] = row[@dependency_cols[dep]].downcase
+        row_key_values[dep] = row[@dependency_cols[dep]]
       end
-      rows_keys_s << hash_to_string(row_key_values).downcase
+      key_s = hash_to_string(row_key_values)
+      key_s_downcase = key_s.downcase
+
+      if not rows_keys_s[key_s_downcase].nil?
+        if key_s.size > 0
+          register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
+        else
+          register_error("Multiple rows found in #{@filename.to_s}.", @runner)
+        end
+      end
+
+      rows_keys_s[key_s_downcase] = rownum
     end
     return rows_keys_s, rows_keys_s.tally
   end
@@ -102,14 +113,8 @@ class TsvFile
     key_s = hash_to_string(dependency_values)
     key_s_downcase = key_s.downcase
 
-    num_matches = @rows_keys_s_tally[key_s_downcase]
-    if num_matches.nil?
-      if key_s.size > 0
-        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{key_s.to_s}.", @runner)
-      else
-        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
-      end
-    elsif num_matches > 1
+    rownum = @rows_keys_s[key_s_downcase]
+    if rownum.nil?
       if key_s.size > 0
         register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
       else
@@ -117,15 +122,9 @@ class TsvFile
       end
     end
 
-    rownum = @rows_keys_s.index(key_s_downcase)
-    row = @rows[rownum]
-
-    if row[0].start_with? "\#"
-      rownum += 1
-      row = @rows[rownum]
-    end
     # Convert data to numeric row values
     rowvals = {}
+    row = @rows[rownum]
     @option_cols.each do |option_name, option_col|
       if not row[option_col].is_number?
         register_error("Field '#{row[option_col].to_s}' in #{@filename.to_s} must be numeric.", @runner)
@@ -166,10 +165,10 @@ class TsvFile
   end
 end
 
-def get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir = nil)
+def get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir = nil)
   # Obtain full list of parameters and their order
   params = []
-  CSV.foreach(lookup_file, { col_sep: "\t" }) do |row|
+  lookup_csv_data.each do |row|
     next if row.size < 2
     next if row[0].nil? || (row[0].downcase == 'parameter name') || row[1].nil?
     next if params.include?(row[0])
@@ -185,9 +184,9 @@ def get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_
   return params
 end
 
-def get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
+def get_options_for_parameter_from_options_lookup_tsv(lookup_csv_data, parameter_name)
   options = []
-  CSV.foreach(lookup_file, { col_sep: "\t" }) do |row|
+  lookup_csv_data.each do |row|
     next if row.size < 2
     next if row[0].nil? || (row[0].downcase == 'parameter name') || row[1].nil?
     next if row[0].downcase != parameter_name.downcase
@@ -281,7 +280,7 @@ def get_value_from_runner(runner, key_lookup, error_if_missing = true)
   end
 end
 
-def get_measure_args_from_option_names(lookup_file, option_names, parameter_name, runner = nil)
+def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file, runner = nil)
   found_options = {}
   options_measure_args = {}
   option_names.each do |option_name|
@@ -290,7 +289,7 @@ def get_measure_args_from_option_names(lookup_file, option_names, parameter_name
   end
   current_option = nil
 
-  CSV.foreach(lookup_file, { col_sep: "\t" }) do |row|
+  lookup_csv_data.each do |row|
     next if row.size < 2
 
     # Found option row?
@@ -442,20 +441,22 @@ class RunOSWs
   def self.run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
+    command = "\"#{cli_path}\" run -w #{in_osw}"
+
     system(command)
     out_osw = File.join(parent_dir, 'out.osw')
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
-    result = { 'OSW' => File.basename(in_osw) }
+    result_characteristics = {}
+    result_output = {}
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     if rows.keys.include? 'BuildExistingModel'
-      result = get_build_existing_model(result, rows)
+      result_characteristics = get_build_existing_model(result_characteristics, rows)
     end
     if rows.keys.include? 'SimulationOutputReport'
-      result = get_simulation_output_report(result, rows)
+      result_output = get_simulation_output_report(result_output, rows)
     end
-    return out_osw, result
+    return out_osw, result_characteristics, result_output
   end
 
   def self.get_build_existing_model(result, rows)
@@ -478,14 +479,25 @@ class RunOSWs
     return result
   end
 
-  def self.write_summary_results(results_dir, results)
-    Dir.mkdir(results_dir)
-    csv_out = File.join(results_dir, 'results.csv')
+  def self.write_summary_results(results_dir, filename, results)
+    if not File.exist?(results_dir)
+      Dir.mkdir(results_dir)
+    end
+    csv_out = File.join(results_dir, filename)
 
-    column_headers = results[0].keys.sort
+    column_headers = []
+    results.each do |result|
+      result.keys.each do |col|
+        next if col == 'building_id'
+
+        column_headers << col unless column_headers.include?(col)
+      end
+    end
+    column_headers = column_headers.sort
+
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
-      results.each do |result|
+      results.sort_by { |h| h['OSW'] }.each do |result|
         csv_row = []
         column_headers.each do |column_header|
           csv_row << result[column_header]

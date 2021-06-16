@@ -29,7 +29,7 @@ class WorkflowTest < MiniTest::Test
 
     results_dir = File.join(parent_dir, 'results')
     RunOSWs._rm_path(results_dir)
-    RunOSWs.write_summary_results(results_dir, all_results)
+    RunOSWs.write_summary_results(results_dir, 'results.csv', all_results)
   end
 
   private

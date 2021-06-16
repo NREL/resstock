@@ -193,17 +193,26 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   end
   check_file_exists(lookup_file, nil)
 
+  lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+
   # Perform various checks on each probability distribution file
   parameters_processed = []
-  tsvfiles = {}
   last_size = -1
 
   parameter_names = []
-  get_parameters_ordered_from_options_lookup_tsv(lookup_file).each do |parameter_name|
+  get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data).each do |parameter_name|
     tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
     parameter_names << parameter_name
+  end
+
+  # Create all TsvFile objects for all parameters
+  tsvfiles = {}
+  parameter_names.each do |parameter_name|
+    tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
+    check_file_exists(tsvpath, nil)
+    tsvfiles[parameter_name] = TsvFile.new(tsvpath, nil)
   end
 
   while parameters_processed.size != parameter_names.size
@@ -214,15 +223,14 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
       err = "ERROR: Unable to process these parameters: #{unprocessed_parameters.join(', ')}."
       deps = []
       unprocessed_parameters.each do |p|
-        tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{p}.tsv")
-        tsvfile = TsvFile.new(tsvpath, nil)
-        tsvfile.dependency_cols.keys.each do |d|
+        tsvfiles[p].dependency_cols.keys.each do |d|
           next if deps.include?(d)
 
           deps << d
         end
       end
       undefined_deps = deps - unprocessed_parameters - parameters_processed
+
       # Check if undefined deps exist but are undefined simply because they're not in options_lookup.tsv
       undefined_deps_exist = true
       undefined_deps.each do |undefined_dep|
@@ -245,10 +253,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
       # Already processed? Skip
       next if parameters_processed.include?(parameter_name)
 
-      tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
-      check_file_exists(tsvpath, nil)
-      tsvfile = TsvFile.new(tsvpath, nil)
-      tsvfiles[parameter_name] = tsvfile
+      tsvfile = tsvfiles[parameter_name]
 
       # Dependencies not yet processed? Skip until a subsequent pass
       skip = false
@@ -296,13 +301,13 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
       # Check file format to be consistent with specified guidelines
       starting = Time.now
-      check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
+      check_parameter_file_format(tsvfile.full_path, tsvfile.dependency_cols.length(), parameter_name)
       ending = Time.now
       puts "  Checking file format: \t\t\t#{ending - starting} seconds\n"
 
       # Check for all options defined in options_lookup.tsv
       starting = Time.now
-      get_measure_args_from_option_names(lookup_file, tsvfile.option_cols.keys, parameter_name)
+      get_measure_args_from_option_names(lookup_csv_data, tsvfile.option_cols.keys, parameter_name, lookup_file)
       ending = Time.now
       puts "  Checking all options in options_lookup.tsv: \t#{ending - starting} seconds\n\n"
     end
@@ -313,7 +318,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
   # Test sampling
   r = RunSampling.new
-  output_file = r.run(project_dir_name, 1000, 'buildstock.csv', housing_characteristics_dir, lookup_file)
+  output_file = r.run(project_dir_name, 10000, "#{project_dir_name}.csv", housing_characteristics_dir, lookup_file)
 
   # Cache {parameter => options}
   parameters_options = {}
@@ -334,7 +339,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   # Cache {parameter => {option => {measure => {arg => value}}}}
   parameters_options_measure_args = {}
   parameters_options.each do |parameter_name, option_names|
-    parameters_options_measure_args[parameter_name] = get_measure_args_from_option_names(lookup_file, option_names, parameter_name)
+    parameters_options_measure_args[parameter_name] = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file)
   end
 
   # Check that measure arguments aren't getting overwritten
@@ -365,7 +370,11 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   end
 
   if File.exist?(output_file)
-    File.delete(output_file) # Clean up
+    if project_dir_name == 'project_national'
+      FileUtils.mv(output_file, output_file.gsub(project_dir_name, 'buildstock'))
+    else
+      File.delete(output_file) # Clean up
+    end
   end
 
   # Unused TSVs?
@@ -394,20 +403,22 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   end
   check_file_exists(lookup_file, nil)
 
+  lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+
   # Integrity checks for option_lookup.tsv
   measures = {}
   model = OpenStudio::Model::Model.new
 
   # Gather all options/arguments
-  parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_file)
+  parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data)
   parameter_names.each do |parameter_name|
     check_for_illegal_chars(parameter_name, 'parameter')
 
     tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
 
-    option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_file, parameter_name)
-    options_measure_args = get_measure_args_from_option_names(lookup_file, option_names, parameter_name, nil)
+    option_names = get_options_for_parameter_from_options_lookup_tsv(lookup_csv_data, parameter_name)
+    options_measure_args = get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_name, lookup_file)
     option_names.each do |option_name|
       check_for_illegal_chars(option_name, 'option')
 
