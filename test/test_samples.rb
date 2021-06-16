@@ -19,7 +19,11 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def after_teardown
-    # FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
+    FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
+
+    Dir["#{@top_dir}/workflow*.osw"].each do |osw|
+      change_building_id(osw, 1)
+    end
   end
 
   def test_baseline
@@ -38,8 +42,6 @@ class IntegrationWorkflowTest < MiniTest::Test
     RunOSWs._rm_path(results_dir)
     results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
     results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
-    puts "\nWrote: #{results_csv_characteristics}\n"
-    puts "\nWrote: #{results_csv_output}\n"
 
     [results_csv_characteristics, results_csv_output].each do |results_csv|
       rows = CSV.read(results_csv)
@@ -69,8 +71,6 @@ class IntegrationWorkflowTest < MiniTest::Test
     RunOSWs._rm_path(results_dir)
     results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
     results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
-    puts "\nWrote: #{results_csv_characteristics}\n"
-    puts "\nWrote: #{results_csv_output}\n"
 
     [results_csv_characteristics, results_csv_output].each do |results_csv|
       rows = CSV.read(results_csv)
@@ -91,7 +91,7 @@ class IntegrationWorkflowTest < MiniTest::Test
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
     create_lib_folder(project_dir)
-    create_buildstock_csv(parent_dir, project_dir, num_samples)    
+    create_buildstock_csv(parent_dir, project_dir, num_samples)
 
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     Dir["#{@top_dir}/workflow*.osw"].each do |workflow|
@@ -141,21 +141,13 @@ class IntegrationWorkflowTest < MiniTest::Test
             from = File.join(@top_dir, worker_folder, 'run', "#{scen}.#{type}")
 
             dir = osw_dir
-            if type == 'xml'
-              dir = xml_dir
-            end
+            dir = xml_dir if type == 'xml'
             to = File.join(dir, "#{building_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
 
-            if File.exist?(from)
-              FileUtils.mv(from, to)
-            end
+            FileUtils.mv(from, to) if File.exist?(from)
           end
         end
       end
-    end
-
-    Dir["#{@top_dir}/workflow*.osw"].each do |osw|
-      change_building_id(osw, 1)
     end
   end
 

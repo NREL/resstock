@@ -523,6 +523,7 @@ class RunOSWs
       end
     end
 
+    puts "\nWrote: #{csv_out}\n"
     return csv_out
   end
 

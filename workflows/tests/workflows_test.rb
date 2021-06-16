@@ -11,12 +11,6 @@ require_relative '../../resources/buildstock'
 class RegressionWorkflowTest < MiniTest::Test
   def before_setup
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
-    @lib_dir = File.join(@top_dir, '..', 'lib')
-    @resources_dir = File.join(@top_dir, '..', 'resources')
-  end
-
-  def after_teardown
-    FileUtils.rm_rf(@lib_dir) if File.exist?(@lib_dir)
   end
 
   def test_examples_osw
@@ -25,8 +19,6 @@ class RegressionWorkflowTest < MiniTest::Test
     cli_path = OpenStudio.getOpenStudioCLI
     command = "cd #{@top_dir}/.. && \"#{cli_path}\" tasks.rb update_measures"
     system(command)
-
-    create_lib_folder
 
     Parallel.map(Dir["#{@top_dir}/example*.osw"], in_threads: Parallel.processor_count) do |workflow|
       worker_number = Parallel.worker_number
@@ -61,16 +53,10 @@ class RegressionWorkflowTest < MiniTest::Test
 
     results_dir = File.join(@top_dir, 'results')
     RunOSWs._rm_path(results_dir)
-    results_csv = RunOSWs.write_summary_results(results_dir, 'results.csv', all_results_output)
-    puts "\nWrote: #{results_csv}\n"
+    RunOSWs.write_summary_results(results_dir, 'results.csv', all_results_output)
   end
 
   private
-
-  def create_lib_folder
-    Dir.mkdir(@lib_dir) unless File.exist?(@lib_dir)
-    FileUtils.cp_r(@resources_dir, @lib_dir)
-  end
 
   def update_paths(osw)
     json = JSON.parse(File.read(osw), symbolize_names: true)
