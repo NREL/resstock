@@ -1,21 +1,21 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "waterheater")
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "unit_conversions")
+require File.join(resources_path, 'waterheater')
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'unit_conversions')
 
 # start the measure
 class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Tank Water Heater"
+    return 'Set Residential Tank Water Heater'
   end
 
   def description
@@ -40,17 +40,17 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     fuel_display_names << Constants.FuelTypeOil
     fuel_display_names << Constants.FuelTypePropane
     fuel_display_names << Constants.FuelTypeElectric
-    fuel_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("fuel_type", fuel_display_names, true)
-    fuel_type.setDisplayName("Fuel Type")
-    fuel_type.setDescription("Type of fuel used for water heating.")
+    fuel_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('fuel_type', fuel_display_names, true)
+    fuel_type.setDisplayName('Fuel Type')
+    fuel_type.setDescription('Type of fuel used for water heating.')
     fuel_type.setDefaultValue(Constants.FuelTypeGas)
     args << fuel_type
 
     # make an argument for the storage tank volume
-    tank_volume = osargument::makeStringArgument("tank_volume", true)
-    tank_volume.setDisplayName("Tank Volume")
+    tank_volume = osargument::makeStringArgument('tank_volume', true)
+    tank_volume.setDisplayName('Tank Volume')
     tank_volume.setDescription("Nominal volume of the of the water heater tank. Set to #{Constants.Auto} to have volume autosized.")
-    tank_volume.setUnits("gal")
+    tank_volume.setUnits('gal')
     tank_volume.setDefaultValue(Constants.Auto)
     args << tank_volume
 
@@ -99,48 +99,48 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     args << location
 
     # make an argument for capacity
-    capacity = osargument::makeStringArgument("capacity", true)
-    capacity.setDisplayName("Input Capacity")
+    capacity = osargument::makeStringArgument('capacity', true)
+    capacity.setDisplayName('Input Capacity')
     capacity.setDescription("The maximum energy input rating of the water heater. Set to #{Constants.Auto} to have this field autosized.")
-    capacity.setUnits("kBtu/hr")
-    capacity.setDefaultValue("40.0")
+    capacity.setUnits('kBtu/hr')
+    capacity.setDefaultValue('40.0')
     args << capacity
 
     # make an argument for the rated energy factor
-    energy_factor = osargument::makeStringArgument("energy_factor", true)
-    energy_factor.setDisplayName("Rated Energy Factor")
+    energy_factor = osargument::makeStringArgument('energy_factor', true)
+    energy_factor.setDisplayName('Rated Energy Factor')
     energy_factor.setDescription("Ratio of useful energy output from the water heater to the total amount of energy delivered from the water heater. Enter #{Constants.Auto} for a water heater that meets the minimum federal efficiency requirements.")
-    energy_factor.setDefaultValue("0.59")
+    energy_factor.setDefaultValue('0.59')
     args << energy_factor
 
     # make an argument for recovery_efficiency
-    recovery_efficiency = osargument::makeDoubleArgument("recovery_efficiency", true)
-    recovery_efficiency.setDisplayName("Recovery Efficiency")
-    recovery_efficiency.setDescription("Ratio of energy delivered to the water to the energy content of the fuel consumed by the water heater. Only used for non-electric water heaters.")
-    recovery_efficiency.setUnits("Frac")
+    recovery_efficiency = osargument::makeDoubleArgument('recovery_efficiency', true)
+    recovery_efficiency.setDisplayName('Recovery Efficiency')
+    recovery_efficiency.setDescription('Ratio of energy delivered to the water to the energy content of the fuel consumed by the water heater. Only used for non-electric water heaters.')
+    recovery_efficiency.setUnits('Frac')
     recovery_efficiency.setDefaultValue(0.76)
     args << recovery_efficiency
 
     # make an argument on cycle electricity consumption
-    offcyc_power = osargument::makeDoubleArgument("offcyc_power", true)
-    offcyc_power.setDisplayName("Parasitic Electric Power")
-    offcyc_power.setDescription("Off cycle electric power draw for controls, etc. Only used for non-electric water heaters.")
-    offcyc_power.setUnits("W")
+    offcyc_power = osargument::makeDoubleArgument('offcyc_power', true)
+    offcyc_power.setDisplayName('Parasitic Electric Power')
+    offcyc_power.setDescription('Off cycle electric power draw for controls, etc. Only used for non-electric water heaters.')
+    offcyc_power.setUnits('W')
     offcyc_power.setDefaultValue(0)
     args << offcyc_power
 
     # make an argument on cycle electricity consumption
-    oncyc_power = osargument::makeDoubleArgument("oncyc_power", true)
-    oncyc_power.setDisplayName("Forced Draft Fan Power")
-    oncyc_power.setDescription("On cycle electric power draw from the forced draft fan motor. Only used for non-electric water heaters.")
-    oncyc_power.setUnits("W")
+    oncyc_power = osargument::makeDoubleArgument('oncyc_power', true)
+    oncyc_power.setDisplayName('Forced Draft Fan Power')
+    oncyc_power.setDescription('On cycle electric power draw from the forced draft fan motor. Only used for non-electric water heaters.')
+    oncyc_power.setUnits('W')
     oncyc_power.setDefaultValue(0)
     args << oncyc_power
 
     # make a bool argument for open water heater flue
-    has_water_heater_flue = OpenStudio::Measure::OSArgument::makeBoolArgument("has_water_heater_flue", true)
-    has_water_heater_flue.setDisplayName("Air Leakage: Has Open Water Heater Flue")
-    has_water_heater_flue.setDescription("Specifies whether the building has an open flue associated with the water heater.")
+    has_water_heater_flue = OpenStudio::Measure::OSArgument::makeBoolArgument('has_water_heater_flue', true)
+    has_water_heater_flue.setDisplayName('Air Leakage: Has Open Water Heater Flue')
+    has_water_heater_flue.setDescription('Specifies whether the building has an open flue associated with the water heater.')
     has_water_heater_flue.setDefaultValue(false)
     args << has_water_heater_flue
 
@@ -190,7 +190,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
 
     # Check if mains temperature has been set
     if !model.getSite.siteWaterMainsTemperature.is_initialized
-      runner.registerError("Mains water temperature has not been set.")
+      runner.registerError('Mains water temperature has not been set.')
       return false
     end
 
@@ -254,7 +254,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
 
       # Get unit beds/baths
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-      if nbeds.nil? or nbaths.nil?
+      if nbeds.nil? || nbaths.nil?
         return false
       end
 
@@ -287,9 +287,9 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
       loopname = heater.plantLoop.get.name.get
 
       capacity_si = heater.getHeaterMaximumCapacity.get
-      capacity = UnitConversions.convert(capacity_si.value, "W", "kBtu/hr")
+      capacity = UnitConversions.convert(capacity_si.value, 'W', 'kBtu/hr')
       volume_si = heater.getTankVolume.get
-      volume = UnitConversions.convert(volume_si.value, "m^3", "gal")
+      volume = UnitConversions.convert(volume_si.value, 'm^3', 'gal')
       te = heater.getHeaterThermalEfficiency
 
       water_heaters << "Water heater '#{heatername}' added to plant loop '#{loopname}', with a capacity of #{capacity.round(1)} kBtu/hr" +
@@ -359,7 +359,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
   def calc_ef(ef, vol, fuel)
     # Calculate the energy factor as a function of the tank volume and fuel type
     if ef == Constants.Auto
-      if fuel == Constants.FuelTypePropane or fuel == Constants.FuelTypeGas
+      if (fuel == Constants.FuelTypePropane) || (fuel == Constants.FuelTypeGas)
         return 0.67 - (0.0019 * vol)
       elsif fuel == Constants.FuelTypeElectric
         return 0.97 - (0.00132 * vol)

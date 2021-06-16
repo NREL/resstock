@@ -3,19 +3,19 @@
 
 require 'json'
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "schedules")
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'schedules')
 
 # start the measure
 class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    return "Residential Geometry from FloorspaceJS"
+    return 'Residential Geometry from FloorspaceJS'
   end
 
   # human readable description
@@ -25,7 +25,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return "Currently this measure deletes the existing geometry and replaces it. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model."
+    return 'Currently this measure deletes the existing geometry and replaces it. Also, sets (or replaces) BuildingUnit objects that store the number of bedrooms and bathrooms associated with the model. Sets (or replaces) the People object for each finished space in the model.'
   end
 
   # define the arguments that the user will input
@@ -33,24 +33,24 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # path to the floorplan JSON file to load
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument("floorplan_path", true)
-    arg.setDisplayName("Floorplan Path")
-    arg.setDescription("Path to the floorplan JSON.")
-    arg.setDefaultValue(File.join(File.dirname(__FILE__), "tests", "SFD_Multizone.json"))
+    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('floorplan_path', true)
+    arg.setDisplayName('Floorplan Path')
+    arg.setDescription('Path to the floorplan JSON.')
+    arg.setDefaultValue(File.join(File.dirname(__FILE__), 'tests', 'SFD_Multizone.json'))
     args << arg
 
     # make a string argument for number of bedrooms
-    num_br = OpenStudio::Measure::OSArgument::makeStringArgument("num_bedrooms", false)
-    num_br.setDisplayName("Number of Bedrooms")
-    num_br.setDescription("Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.")
-    num_br.setDefaultValue("3")
+    num_br = OpenStudio::Measure::OSArgument::makeStringArgument('num_bedrooms', false)
+    num_br.setDisplayName('Number of Bedrooms')
+    num_br.setDescription('Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, mechanical ventilation rate, etc.')
+    num_br.setDefaultValue('3')
     args << num_br
 
     # make a string argument for number of bathrooms
-    num_ba = OpenStudio::Measure::OSArgument::makeStringArgument("num_bathrooms", false)
-    num_ba.setDisplayName("Number of Bathrooms")
-    num_ba.setDescription("Specify the number of bathrooms. Used to determine the hot water usage, etc.")
-    num_ba.setDefaultValue("2")
+    num_ba = OpenStudio::Measure::OSArgument::makeStringArgument('num_bathrooms', false)
+    num_ba.setDisplayName('Number of Bathrooms')
+    num_ba.setDescription('Specify the number of bathrooms. Used to determine the hot water usage, etc.')
+    num_ba.setDefaultValue('2')
     args << num_ba
 
     return args
@@ -66,17 +66,17 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    floorplan_path = runner.getStringArgumentValue("floorplan_path", user_arguments)
-    num_br = runner.getStringArgumentValue("num_bedrooms", user_arguments).split(",").map(&:strip)
-    num_ba = runner.getStringArgumentValue("num_bathrooms", user_arguments).split(",").map(&:strip)
+    floorplan_path = runner.getStringArgumentValue('floorplan_path', user_arguments)
+    num_br = runner.getStringArgumentValue('num_bedrooms', user_arguments).split(',').map(&:strip)
+    num_ba = runner.getStringArgumentValue('num_bathrooms', user_arguments).split(',').map(&:strip)
     num_occupants = Constants.Auto
-    if model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").is_initialized
-      num_occupants = "#{model.getBuilding.additionalProperties.getFeatureAsInteger("num_occupants").get}"
+    if model.getBuilding.additionalProperties.getFeatureAsInteger('num_occupants').is_initialized
+      num_occupants = "#{model.getBuilding.additionalProperties.getFeatureAsInteger('num_occupants').get}"
     end
 
     # check the floorplan_path for reasonableness
     if floorplan_path.empty?
-      runner.registerError("Empty floorplan path was entered.")
+      runner.registerError('Empty floorplan path was entered.')
       return false
     end
 
@@ -102,7 +102,7 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     new_model = rt.modelFromThreeJS(scene)
 
     unless new_model.is_initialized
-      runner.registerError("Cannot convert floorplan to model.")
+      runner.registerError('Cannot convert floorplan to model.')
       return false
     end
     new_model = new_model.get
@@ -129,17 +129,17 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     json = JSON.parse(json)
 
     # error checking
-    unless json["space_types"].length > 0
-      runner.registerError("No space types were created.")
+    unless json['space_types'].length > 0
+      runner.registerError('No space types were created.')
       return false
     end
 
     # set the space type standards fields based on what user wrote in the editor
-    json["space_types"].each do |st|
+    json['space_types'].each do |st|
       model.getSpaceTypes.each do |space_type|
-        next unless st["name"] == space_type.name.to_s
+        next unless st['name'] == space_type.name.to_s
 
-        space_type.setStandardsSpaceType(st["name"])
+        space_type.setStandardsSpaceType(st['name'])
       end
     end
 
@@ -161,11 +161,11 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
     # for any spaces with no assigned zone, create (unless another space of the same space type has an assigned zone) a thermal zone based on the space type
     model.getSpaceTypes.each do |space_type|
       space_type.spaces.each do |space|
-        unless space.thermalZone.is_initialized
-          thermal_zone = OpenStudio::Model::ThermalZone.new(model)
-          thermal_zone.setName(space.name.to_s)
-          space.setThermalZone(thermal_zone)
-        end
+        next if space.thermalZone.is_initialized
+
+        thermal_zone = OpenStudio::Model::ThermalZone.new(model)
+        thermal_zone.setName(space.name.to_s)
+        space.setThermalZone(thermal_zone)
       end
     end
 
@@ -199,17 +199,17 @@ class ResidentialGeometryFromFloorspaceJS < OpenStudio::Measure::ModelMeasure
 
       space.surfaces.each do |surface|
         if surface.adjacentSurface.is_initialized
-          surface.adjacentSurface.get.setOutsideBoundaryCondition("Adiabatic")
+          surface.adjacentSurface.get.setOutsideBoundaryCondition('Adiabatic')
         end
-        surface.setOutsideBoundaryCondition("Adiabatic")
+        surface.setOutsideBoundaryCondition('Adiabatic')
       end
     end
 
     model.getSurfaces.each do |surface|
-      next unless surface.outsideBoundaryCondition.downcase == "surface"
+      next unless surface.outsideBoundaryCondition.downcase == 'surface'
       next if surface.adjacentSurface.is_initialized
 
-      surface.setOutsideBoundaryCondition("Adiabatic")
+      surface.setOutsideBoundaryCondition('Adiabatic')
     end
 
     result = Geometry.process_beds_and_baths(model, runner, num_br, num_ba)

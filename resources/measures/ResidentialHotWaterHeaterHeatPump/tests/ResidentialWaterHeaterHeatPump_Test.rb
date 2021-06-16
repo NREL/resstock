@@ -52,7 +52,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
 
   def test_new_construction_40
     args_hash = {}
-    args_hash["storage_tank_volume"] = "40"
+    args_hash['storage_tank_volume'] = '40'
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 7, "ScheduleRuleset" => 7, "SetpointManagerScheduled" => 1 }
     expected_values = { "TankVolume" => 36, "Heater1Height" => 0.599, "Heater2Height" => 0.106, "TankU" => 1.35, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0712, "CondTop" => 0.458, "AirflowRate" => 0.0854, "Sensor1Height" => 0.669, "Sensor2Height" => 0.669, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235 }
@@ -73,15 +73,15 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
 
   def test_new_construction_80
     args_hash = {}
-    args_hash["storage_tank_volume"] = "80"
-    args_hash["max_temp"] = "110"
-    args_hash["cap"] = "0.979"
-    args_hash["cop"] = "2.4"
-    args_hash["shr"] = "0.98"
-    args_hash["airflow_rate"] = "480"
-    args_hash["fan_power"] = "0.178"
-    args_hash["parasitics"] = "8.5"
-    args_hash["tank_ua"] = "4.0"
+    args_hash['storage_tank_volume'] = '80'
+    args_hash['max_temp'] = '110'
+    args_hash['cap'] = '0.979'
+    args_hash['cop'] = '2.4'
+    args_hash['shr'] = '0.98'
+    args_hash['airflow_rate'] = '480'
+    args_hash['fan_power'] = '0.178'
+    args_hash['parasitics'] = '8.5'
+    args_hash['tank_ua'] = '4.0'
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 7, "EnergyManagementSystemActuator" => 5, "EnergyManagementSystemTrendVariable" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 7, "ScheduleRuleset" => 7, "SetpointManagerScheduled" => 1 }
     expected_values = { "TankVolume" => 72, "Heater1Height" => 1.131, "Heater2Height" => 0.333, "TankU" => 0.787, "OnCycle" => 8.5, "OffCycle" => 8.5, "CondBottom" => 0.01, "CondTop" => 0.865, "AirflowRate" => 0.226, "Sensor1Height" => 1.265, "Sensor2Height" => 0.466, "Cap" => 2349.6, "COP" => 2.4, "SHR" => 0.98, "WBTemp" => 13.08, "FanEff" => 0.172 }
@@ -153,15 +153,15 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
 
   def test_new_construction_66
     args_hash = {}
-    args_hash["storage_tank_volume"] = "66"
-    args_hash["max_temp"] = "110"
-    args_hash["cap"] = "0.979"
-    args_hash["cop"] = "2.4"
-    args_hash["shr"] = "0.98"
-    args_hash["airflow_rate"] = "480"
-    args_hash["fan_power"] = "0.178"
-    args_hash["parasitics"] = "8.5"
-    args_hash["tank_ua"] = "4.0"
+    args_hash['storage_tank_volume'] = '66'
+    args_hash['max_temp'] = '110'
+    args_hash['cap'] = '0.979'
+    args_hash['cop'] = '2.4'
+    args_hash['shr'] = '0.98'
+    args_hash['airflow_rate'] = '480'
+    args_hash['fan_power'] = '0.178'
+    args_hash['parasitics'] = '8.5'
+    args_hash['tank_ua'] = '4.0'
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 7, "EnergyManagementSystemActuator" => 5, "EnergyManagementSystemTrendVariable" => 1, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 7, "ScheduleRuleset" => 7, "SetpointManagerScheduled" => 1 }
     expected_values = { "TankVolume" => 59.4, "Heater1Height" => 0.945, "Heater2Height" => 0.278, "TankU" => 0.926, "OnCycle" => 8.5, "OffCycle" => 8.5, "CondBottom" => 0.01, "CondTop" => 0.723, "AirflowRate" => 0.226, "Sensor1Height" => 1.056, "Sensor2Height" => 0.389, "Cap" => 2349.6, "COP" => 2.4, "SHR" => 0.98, "WBTemp" => 13.08, "FanEff" => 0.172 }
@@ -190,7 +190,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
 
   def test_new_construction_50_living
     args_hash = {}
-    args_hash["location"] = Constants.SpaceTypeLiving
+    args_hash['location'] = Constants.SpaceTypeLiving
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterStratified" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "WaterHeaterHeatPumpWrappedCondenser" => 1, "CoilWaterHeatingAirToWaterHeatPumpWrapped" => 1, "FanOnOff" => 1, "OtherEquipment" => 2, "OtherEquipmentDefinition" => 2, "EnergyManagementSystemSensor" => 10, "EnergyManagementSystemActuator" => 7, "EnergyManagementSystemTrendVariable" => 3, "EnergyManagementSystemProgram" => 2, "EnergyManagementSystemProgramCallingManager" => 1, "ScheduleConstant" => 7, "ScheduleRuleset" => 7, "SetpointManagerScheduled" => 1 }
     expected_values = { "TankVolume" => 45, "Heater1Height" => 0.732, "Heater2Height" => 0.129, "TankU" => 1.13, "OnCycle" => 3, "OffCycle" => 3, "CondBottom" => 0.0870, "CondTop" => 0.560, "AirflowRate" => 0.0854, "Sensor1Height" => 0.818, "Sensor2Height" => 0.818, "Cap" => 1400, "COP" => 2.8, "SHR" => 0.88, "WBTemp" => 13.08, "FanEff" => 0.235 }
@@ -509,16 +509,16 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
 
   def test_argument_error_tank_volume_lt_0
     args_hash = {}
-    args_hash["storage_tank_volume"] = "-10"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Storage tank volume must be greater than 0.")
+    args_hash['storage_tank_volume'] = '-10'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Storage tank volume must be greater than 0.')
   end
 
   def test_argument_error_tank_volume_eq_0
     args_hash = {}
-    args_hash["storage_tank_volume"] = "0"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Storage tank volume must be greater than 0.")
+    args_hash['storage_tank_volume'] = '0'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Storage tank volume must be greater than 0.')
   end
 
   def test_argument_error_setpoint_lt_0
@@ -537,105 +537,105 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
 
   def test_argument_error_element_capacity_lt_0
     args_hash = {}
-    args_hash["element_capacity"] = "-10"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Element capacity must be greater than 0.")
+    args_hash['element_capacity'] = '-10'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Element capacity must be greater than 0.')
   end
 
   def test_argument_error_min_temp_gt_80
     args_hash = {}
-    args_hash["min_temp"] = "80"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Minimum temperature will prevent HPWH from running, double check inputs.")
+    args_hash['min_temp'] = '80'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Minimum temperature will prevent HPWH from running, double check inputs.')
   end
 
   def test_argument_error_max_temp_lt_0
     args_hash = {}
-    args_hash["max_temp"] = "0"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Maximum temperature will prevent HPWH from running, double check inputs.")
+    args_hash['max_temp'] = '0'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Maximum temperature will prevent HPWH from running, double check inputs.')
   end
 
   def test_argument_error_cap_lt_0
     args_hash = {}
-    args_hash["cap"] = "-1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Rated capacity must be greater than 0.")
+    args_hash['cap'] = '-1'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Rated capacity must be greater than 0.')
   end
 
   def test_argument_error_cop_lt_0
     args_hash = {}
-    args_hash["cop"] = "0"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Rated COP must be greater than 0.")
+    args_hash['cop'] = '0'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Rated COP must be greater than 0.')
   end
 
   def test_argument_error_shr_lt_0
     args_hash = {}
-    args_hash["shr"] = "-1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Rated sensible heat ratio must be between 0 and 1.")
+    args_hash['shr'] = '-1'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Rated sensible heat ratio must be between 0 and 1.')
   end
 
   def test_argument_error_gt_1
     args_hash = {}
-    args_hash["shr"] = "2"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Rated sensible heat ratio must be between 0 and 1.")
+    args_hash['shr'] = '2'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Rated sensible heat ratio must be between 0 and 1.')
   end
 
   def test_argument_error_fan_power_lt_0
     args_hash = {}
-    args_hash["fan_power"] = "-1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Fan power must be greater than 0.")
+    args_hash['fan_power'] = '-1'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Fan power must be greater than 0.')
   end
 
   def test_argument_error_parasitics_lt_0
     args_hash = {}
-    args_hash["parasitics"] = "-1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Parasitics must be greater than 0.")
+    args_hash['parasitics'] = '-1'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Parasitics must be greater than 0.')
   end
 
   def test_argument_error_tank_ua_lt_0
     args_hash = {}
-    args_hash["tank_ua"] = "-1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Tank UA must be greater than 0.")
+    args_hash['tank_ua'] = '-1'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Tank UA must be greater than 0.')
   end
 
   def test_argument_error_int_factor_lt_0
     args_hash = {}
-    args_hash["int_factor"] = "-1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Interaction factor must be between 0 and 1.")
+    args_hash['int_factor'] = '-1'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Interaction factor must be between 0 and 1.')
   end
 
   def test_argument_error_int_factor_gt_1
     args_hash = {}
-    args_hash["int_factor"] = "2"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Interaction factor must be between 0 and 1.")
+    args_hash['int_factor'] = '2'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Interaction factor must be between 0 and 1.')
   end
 
   def test_argument_error_temp_depress_gt_0
     args_hash = {}
-    args_hash["temp_depress"] = "-1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Temperature depression must be greater than 0.")
+    args_hash['temp_depress'] = '-1'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Temperature depression must be greater than 0.')
   end
 
   def test_error_missing_geometry
     args_hash = {}
     result = _test_error(nil, args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "No building geometry has been defined.")
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'No building geometry has been defined.')
   end
 
   def test_error_missing_mains_temp
     args_hash = {}
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Mains water temperature has not been set.")
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Mains water temperature has not been set.')
   end
 
   def test_single_family_attached_new_construction
@@ -688,7 +688,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
-    assert_equal("Fail", result.value.valueName)
+    assert_equal('Fail', result.value.valueName)
     assert(result.errors.size == 1)
 
     return result
@@ -732,7 +732,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
     assert_equal(num_infos, result.info.size)
     assert_equal(num_warnings, result.warnings.size)
     assert(result.finalCondition.is_initialized)
@@ -746,16 +746,16 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 
     # check we have the expected number of new/deleted objects
-    check_num_objects(all_new_objects, expected_num_new_objects, "added")
-    check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
+    check_num_objects(all_new_objects, expected_num_new_objects, 'added')
+    check_num_objects(all_del_objects, expected_num_del_objects, 'deleted')
 
     check_ems(model)
 
-    actual_values_wh = { "TankVolume" => 0, "Heater1Height" => 0, "Heater2Height" => 0, "TankU" => 0, "OnCycle" => 0, "OffCycle" => 0 }
-    actual_values_hpwh = { "CondBottom" => 0, "CondTop" => 0, "AirflowRate" => 0, "Sensor1Height" => 0, "Sensor2Height" => 0 }
-    actual_values_coil = { "Cap" => 0, "COP" => 0, "SHR" => 0, "WBTemp" => 0 }
-    actual_values_fan = { "FanEff" => 0 }
-    actual_values_storage = { "StorageTankSetpoint1" => 0, "StorageTankSetpoint2" => 0 }
+    actual_values_wh = { 'TankVolume' => 0, 'Heater1Height' => 0, 'Heater2Height' => 0, 'TankU' => 0, 'OnCycle' => 0, 'OffCycle' => 0 }
+    actual_values_hpwh = { 'CondBottom' => 0, 'CondTop' => 0, 'AirflowRate' => 0, 'Sensor1Height' => 0, 'Sensor2Height' => 0 }
+    actual_values_coil = { 'Cap' => 0, 'COP' => 0, 'SHR' => 0, 'WBTemp' => 0 }
+    actual_values_fan = { 'FanEff' => 0 }
+    actual_values_storage = { 'StorageTankSetpoint1' => 0, 'StorageTankSetpoint2' => 0 }
 
     num_new_whs = 0
     all_new_objects.each do |obj_type, new_objects|
@@ -763,37 +763,37 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
         next if not new_object.respond_to?("to_#{obj_type}")
 
         new_object = new_object.public_send("to_#{obj_type}").get
-        if obj_type == "WaterHeaterStratified"
-          actual_values_wh["TankVolume"] += UnitConversions.convert(new_object.tankVolume.get, "m^3", "gal")
-          actual_values_wh["Heater1Height"] += new_object.heater1Height
-          actual_values_wh["Heater2Height"] += new_object.heater2Height
-          actual_values_wh["TankU"] += new_object.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.to_f
-          actual_values_wh["OnCycle"] += new_object.onCycleParasiticFuelConsumptionRate
-          actual_values_wh["OffCycle"] += new_object.offCycleParasiticFuelConsumptionRate
+        if obj_type == 'WaterHeaterStratified'
+          actual_values_wh['TankVolume'] += UnitConversions.convert(new_object.tankVolume.get, 'm^3', 'gal')
+          actual_values_wh['Heater1Height'] += new_object.heater1Height
+          actual_values_wh['Heater2Height'] += new_object.heater2Height
+          actual_values_wh['TankU'] += new_object.uniformSkinLossCoefficientperUnitAreatoAmbientTemperature.to_f
+          actual_values_wh['OnCycle'] += new_object.onCycleParasiticFuelConsumptionRate
+          actual_values_wh['OffCycle'] += new_object.offCycleParasiticFuelConsumptionRate
           if new_object.supplyInletModelObject.is_initialized
             inlet_object = new_object.supplyInletModelObject.get.connectedObject(new_object.supplyInletModelObject.get.to_Node.get.inletPort).get
             if inlet_object.to_WaterHeaterStratified.is_initialized
               storage_tank = inlet_object.to_WaterHeaterStratified.get
               setpoint_schedule_one = storage_tank.heater1SetpointTemperatureSchedule.to_ScheduleConstant.get
               setpoint_schedule_two = storage_tank.heater2SetpointTemperatureSchedule.to_ScheduleConstant.get
-              actual_values_storage["StorageTankSetpoint1"] += UnitConversions.convert(setpoint_schedule_one.value + 2.89, "C", "F")
-              actual_values_storage["StorageTankSetpoint2"] += UnitConversions.convert(setpoint_schedule_two.value, "C", "F")
+              actual_values_storage['StorageTankSetpoint1'] += UnitConversions.convert(setpoint_schedule_one.value + 2.89, 'C', 'F')
+              actual_values_storage['StorageTankSetpoint2'] += UnitConversions.convert(setpoint_schedule_two.value, 'C', 'F')
             end
           end
           num_new_whs += 1
-        elsif obj_type == "WaterHeaterHeatPumpWrappedCondenser"
-          actual_values_hpwh["CondBottom"] += new_object.condenserBottomLocation
-          actual_values_hpwh["CondTop"] += new_object.condenserTopLocation
-          actual_values_hpwh["AirflowRate"] += new_object.evaporatorAirFlowRate.to_f
-          actual_values_hpwh["Sensor1Height"] += new_object.controlSensor1HeightInStratifiedTank.to_f
-          actual_values_hpwh["Sensor2Height"] += new_object.controlSensor2HeightInStratifiedTank.to_f
-        elsif obj_type == "CoilWaterHeatingAirToWaterHeatPumpWrapped"
-          actual_values_coil["Cap"] += new_object.ratedHeatingCapacity
-          actual_values_coil["COP"] += new_object.ratedCOP
-          actual_values_coil["SHR"] += new_object.ratedSensibleHeatRatio
-          actual_values_coil["WBTemp"] += new_object.ratedEvaporatorInletAirWetBulbTemperature
-        elsif obj_type == "FanOnOff"
-          actual_values_fan["FanEff"] += new_object.fanEfficiency
+        elsif obj_type == 'WaterHeaterHeatPumpWrappedCondenser'
+          actual_values_hpwh['CondBottom'] += new_object.condenserBottomLocation
+          actual_values_hpwh['CondTop'] += new_object.condenserTopLocation
+          actual_values_hpwh['AirflowRate'] += new_object.evaporatorAirFlowRate.to_f
+          actual_values_hpwh['Sensor1Height'] += new_object.controlSensor1HeightInStratifiedTank.to_f
+          actual_values_hpwh['Sensor2Height'] += new_object.controlSensor2HeightInStratifiedTank.to_f
+        elsif obj_type == 'CoilWaterHeatingAirToWaterHeatPumpWrapped'
+          actual_values_coil['Cap'] += new_object.ratedHeatingCapacity
+          actual_values_coil['COP'] += new_object.ratedCOP
+          actual_values_coil['SHR'] += new_object.ratedSensibleHeatRatio
+          actual_values_coil['WBTemp'] += new_object.ratedEvaporatorInletAirWetBulbTemperature
+        elsif obj_type == 'FanOnOff'
+          actual_values_fan['FanEff'] += new_object.fanEfficiency
           # elsif obj_type == "EnergyManagementSystemSensor"
           #
           # elsif obj_type == "EnergyManagementSystemActuator"
@@ -809,25 +809,25 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
       end
     end
 
-    assert_in_epsilon(expected_values["TankVolume"], actual_values_wh["TankVolume"], 0.01)
-    assert_in_epsilon(expected_values["Heater1Height"], actual_values_wh["Heater1Height"], 0.01)
-    assert_in_epsilon(expected_values["Heater2Height"], actual_values_wh["Heater2Height"], 0.01)
-    assert_in_epsilon(expected_values["TankU"], actual_values_wh["TankU"], 0.01)
-    assert_in_epsilon(expected_values["OnCycle"], actual_values_wh["OnCycle"], 0.01)
-    assert_in_epsilon(expected_values["OffCycle"], actual_values_wh["OffCycle"], 0.01)
-    assert_in_epsilon(expected_values["CondBottom"], actual_values_hpwh["CondBottom"], 0.01)
-    assert_in_epsilon(expected_values["CondTop"], actual_values_hpwh["CondTop"], 0.01)
-    assert_in_epsilon(expected_values["AirflowRate"], actual_values_hpwh["AirflowRate"], 0.01)
-    assert_in_epsilon(expected_values["Sensor1Height"], actual_values_hpwh["Sensor1Height"], 0.01)
-    assert_in_epsilon(expected_values["Sensor2Height"], actual_values_hpwh["Sensor2Height"], 0.01)
-    assert_in_epsilon(expected_values["Cap"], actual_values_coil["Cap"], 0.01)
-    assert_in_epsilon(expected_values["COP"], actual_values_coil["COP"], 0.01)
-    assert_in_epsilon(expected_values["SHR"], actual_values_coil["SHR"], 0.01)
-    assert_in_epsilon(expected_values["WBTemp"], actual_values_coil["WBTemp"], 0.01)
-    assert_in_epsilon(expected_values["FanEff"], actual_values_fan["FanEff"], 0.01)
-    if not expected_values["StorageTankSetpoint1"].nil? and not expected_values["StorageTankSetpoint2"].nil?
-      assert_in_epsilon(expected_values["StorageTankSetpoint1"], actual_values_storage["StorageTankSetpoint1"], 0.01)
-      assert_in_epsilon(expected_values["StorageTankSetpoint2"], actual_values_storage["StorageTankSetpoint2"], 0.01)
+    assert_in_epsilon(expected_values['TankVolume'], actual_values_wh['TankVolume'], 0.01)
+    assert_in_epsilon(expected_values['Heater1Height'], actual_values_wh['Heater1Height'], 0.01)
+    assert_in_epsilon(expected_values['Heater2Height'], actual_values_wh['Heater2Height'], 0.01)
+    assert_in_epsilon(expected_values['TankU'], actual_values_wh['TankU'], 0.01)
+    assert_in_epsilon(expected_values['OnCycle'], actual_values_wh['OnCycle'], 0.01)
+    assert_in_epsilon(expected_values['OffCycle'], actual_values_wh['OffCycle'], 0.01)
+    assert_in_epsilon(expected_values['CondBottom'], actual_values_hpwh['CondBottom'], 0.01)
+    assert_in_epsilon(expected_values['CondTop'], actual_values_hpwh['CondTop'], 0.01)
+    assert_in_epsilon(expected_values['AirflowRate'], actual_values_hpwh['AirflowRate'], 0.01)
+    assert_in_epsilon(expected_values['Sensor1Height'], actual_values_hpwh['Sensor1Height'], 0.01)
+    assert_in_epsilon(expected_values['Sensor2Height'], actual_values_hpwh['Sensor2Height'], 0.01)
+    assert_in_epsilon(expected_values['Cap'], actual_values_coil['Cap'], 0.01)
+    assert_in_epsilon(expected_values['COP'], actual_values_coil['COP'], 0.01)
+    assert_in_epsilon(expected_values['SHR'], actual_values_coil['SHR'], 0.01)
+    assert_in_epsilon(expected_values['WBTemp'], actual_values_coil['WBTemp'], 0.01)
+    assert_in_epsilon(expected_values['FanEff'], actual_values_fan['FanEff'], 0.01)
+    if (not expected_values['StorageTankSetpoint1'].nil?) && (not expected_values['StorageTankSetpoint2'].nil?)
+      assert_in_epsilon(expected_values['StorageTankSetpoint1'], actual_values_storage['StorageTankSetpoint1'], 0.01)
+      assert_in_epsilon(expected_values['StorageTankSetpoint2'], actual_values_storage['StorageTankSetpoint2'], 0.01)
     end
 
     return model

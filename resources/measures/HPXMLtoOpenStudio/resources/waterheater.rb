@@ -1,11 +1,11 @@
 # Add classes or functions here than can be used across a variety of our python classes and modules.
-require_relative "constants"
-require_relative "util"
-require_relative "weather"
-require_relative "geometry"
-require_relative "schedules"
-require_relative "unit_conversions"
-require_relative "psychrometrics"
+require_relative 'constants'
+require_relative 'util'
+require_relative 'weather'
+require_relative 'geometry'
+require_relative 'schedules'
+require_relative 'unit_conversions'
+require_relative 'psychrometrics'
 
 class Waterheater
   def self.apply_tank(model, unit, runner, loop, space, fuel_type, cap, vol, ef,
@@ -13,22 +13,22 @@ class Waterheater
 
     # Validate inputs
     if vol <= 0
-      runner.registerError("Storage tank volume must be greater than 0.")
+      runner.registerError('Storage tank volume must be greater than 0.')
       return false
     end
-    if ef >= 1 or ef <= 0
-      runner.registerError("Rated energy factor must be greater than 0 and less than 1.")
+    if (ef >= 1) || (ef <= 0)
+      runner.registerError('Rated energy factor must be greater than 0 and less than 1.')
       return false
     end
     if (set_type == Constants.WaterHeaterSetpointTypeConstant) and (t_set < 0 or t_set > 212)
-      runner.registerError("Water heater temperature setpoint must not be less than 0F or greater than 212F.")
+      runner.registerError('Water heater temperature setpoint must not be less than 0F or greater than 212F.')
       return false
     end
     if (set_type == Constants.WaterHeaterSetpointTypeConstant) and (t_set < 110 or t_set > 140)
       runner.registerWarning("Water heater temperature setpoint is outside of recommended range (110F - 140F).")
     end
     if cap <= 0
-      runner.registerError("Nominal capacity must be greater than 0.")
+      runner.registerError('Nominal capacity must be greater than 0.')
       return false
     end
     if fuel_type == Constants.FuelTypeElectric
@@ -36,29 +36,29 @@ class Waterheater
       oncycle_p = 0
       offcycle_p = 0
     else
-      if re < 0 or re > 1
-        runner.registerError("Recovery efficiency must be at least 0 and at most 1.")
+      if (re < 0) || (re > 1)
+        runner.registerError('Recovery efficiency must be at least 0 and at most 1.')
         return false
       end
       if oncycle_p < 0
-        runner.registerError("Forced draft fan power must be greater than 0.")
+        runner.registerError('Forced draft fan power must be greater than 0.')
         return false
       end
       if offcycle_p < 0
-        runner.registerError("Parasitic electricity power must be greater than 0.")
+        runner.registerError('Parasitic electricity power must be greater than 0.')
         return false
       end
     end
 
     # Get unit beds/baths
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-    if nbeds.nil? or nbaths.nil?
+    if nbeds.nil? || nbaths.nil?
       return false
     end
 
     if loop.nil?
-      runner.registerInfo("A new plant loop for DHW will be added to the model")
-      runner.registerInitialCondition("No water heater model currently exists")
+      runner.registerInfo('A new plant loop for DHW will be added to the model')
+      runner.registerInitialCondition('No water heater model currently exists')
       loop = create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, Constants.WaterHeaterTypeTank)
     end
 
@@ -98,23 +98,23 @@ class Waterheater
                           cd, set_type, t_set, sch_file, oncycle_p, offcycle_p, ec_adj)
 
     # Validate inputs
-    if ef > 1 or ef <= 0
-      runner.registerError("Rated energy factor must be greater than 0 and less than or equal to 1.")
+    if (ef > 1) || (ef <= 0)
+      runner.registerError('Rated energy factor must be greater than 0 and less than or equal to 1.')
       return false
     end
-    if t_set < 0 or t_set > 212
-      runner.registerError("Water heater temperature setpoint must not be less than 0F or greater than 212F.")
+    if (t_set < 0) || (t_set > 212)
+      runner.registerError('Water heater temperature setpoint must not be less than 0F or greater than 212F.')
       return false
     end
     if t_set < 110 or t_set > 140
       runner.registerWarning("Water heater temperature setpoint is outside of recommended range (110F - 140F).")
     end
     if cap <= 0
-      runner.registerError("Nominal capacity must be greater than 0.")
+      runner.registerError('Nominal capacity must be greater than 0.')
       return false
     end
-    if cd < 0 or cd > 1
-      runner.registerError("Cycling derate must be at least 0 and at most 1.")
+    if (cd < 0) || (cd > 1)
+      runner.registerError('Cycling derate must be at least 0 and at most 1.')
       return false
     end
     if fuel_type == Constants.FuelTypeElectric
@@ -122,25 +122,25 @@ class Waterheater
       offcycle_p = 0
     else
       if oncycle_p < 0
-        runner.registerError("Forced draft fan power must be greater than 0.")
+        runner.registerError('Forced draft fan power must be greater than 0.')
         return false
       end
       if offcycle_p < 0
-        runner.registerError("Parasitic electricity power must be greater than 0.")
+        runner.registerError('Parasitic electricity power must be greater than 0.')
         return false
       end
     end
 
     # Get unit beds/baths
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-    if nbeds.nil? or nbaths.nil?
+    if nbeds.nil? || nbaths.nil?
       return false
     end
 
     if loop.nil?
-      runner.registerInfo("A new plant loop for DHW will be added to the model")
-      runner.registerInitialCondition("No water heater model currently exists")
-      loop = create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, Constants.WaterHeaterTypeTankless)
+      runner.registerInfo('A new plant loop for DHW will be added to the model')
+      runner.registerInitialCondition('No water heater model currently exists')
+      loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, Constants.WaterHeaterTypeTankless)
     end
 
     if loop.components(OpenStudio::Model::PumpVariableSpeed::iddObjectType).empty?
@@ -175,86 +175,86 @@ class Waterheater
                           sp_schedule_file, op_mode_schedule_file,
                           min_temp, max_temp, cap, cop, shr, airflow_rate, fan_power,
                           parasitics, tank_ua, int_factor, temp_depress,
-                          ducting = "none", unit_index = 0)
+                          ducting = 'none', unit_index = 0)
 
     # Validate inputs
     if vol <= 0.0
-      runner.registerError("Storage tank volume must be greater than 0.")
+      runner.registerError('Storage tank volume must be greater than 0.')
       return false
     end
-    if (sp_type == Constants.WaterHeaterSetpointTypeConstant) and (t_set < 0 or t_set > 212)
-      runner.registerError("Water heater temperature setpoint must not be less than 0F or greater than 212F.")
+    if (sp_type == Constants.WaterHeaterSetpointTypeConstant) && (t_set < 0 or t_set > 212)
+      runner.registerError('Water heater temperature setpoint must not be less than 0F or greater than 212F.')
       return false
     end
     if (sp_type == Constants.WaterHeaterSetpointTypeConstant) and (t_set < 110 or t_set > 140)
       runner.registerWarning("Water heater temperature setpoint is outside of recommended range (110F - 140F).")
     end
     if e_cap < 0.0
-      runner.registerError("Element capacity must be greater than 0.")
+      runner.registerError('Element capacity must be greater than 0.')
       return false
     end
     if min_temp >= 80.0
-      runner.registerError("Minimum temperature will prevent HPWH from running, double check inputs.")
+      runner.registerError('Minimum temperature will prevent HPWH from running, double check inputs.')
       return false
     end
     if max_temp <= 0.0
-      runner.registerError("Maximum temperature will prevent HPWH from running, double check inputs.")
+      runner.registerError('Maximum temperature will prevent HPWH from running, double check inputs.')
       return false
     end
     if cap <= 0.0
-      runner.registerError("Rated capacity must be greater than 0.")
+      runner.registerError('Rated capacity must be greater than 0.')
       return false
     end
     if cop <= 0.0
-      runner.registerError("Rated COP must be greater than 0.")
+      runner.registerError('Rated COP must be greater than 0.')
       return false
     end
-    if shr < 0.0 or shr > 1.0
-      runner.registerError("Rated sensible heat ratio must be between 0 and 1.")
+    if (shr < 0.0) || (shr > 1.0)
+      runner.registerError('Rated sensible heat ratio must be between 0 and 1.')
       return false
     end
     if airflow_rate <= 0.0
-      runner.registerError("Airflow rate must be greater than 0.")
+      runner.registerError('Airflow rate must be greater than 0.')
       return false
     end
     if fan_power <= 0.0
-      runner.registerError("Fan power must be greater than 0.")
+      runner.registerError('Fan power must be greater than 0.')
       return false
     end
     if parasitics < 0.0
-      runner.registerError("Parasitics must be greater than 0.")
+      runner.registerError('Parasitics must be greater than 0.')
       return false
     end
     if tank_ua <= 0.0
-      runner.registerError("Tank UA must be greater than 0.")
+      runner.registerError('Tank UA must be greater than 0.')
       return false
     end
-    if int_factor < 0.0 or int_factor > 1.0
-      runner.registerError("Interaction factor must be between 0 and 1.")
+    if (int_factor < 0.0) || (int_factor > 1.0)
+      runner.registerError('Interaction factor must be between 0 and 1.')
       return false
     end
     if temp_depress < 0.0
-      runner.registerError("Temperature depression must be greater than 0.")
+      runner.registerError('Temperature depression must be greater than 0.')
       return false
     end
 
     # Get unit beds/baths
     nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-    if nbeds.nil? or nbaths.nil?
+    if nbeds.nil? || nbaths.nil?
       return false
     end
 
-    obj_name_hpwh = Constants.ObjectNameWaterHeater(unit.name.to_s.gsub("unit ", "")).gsub("|", "_")
+    obj_name_hpwh = Constants.ObjectNameWaterHeater(unit.name.to_s.gsub('unit ', '')).gsub('|', '_')
 
     alt = weather.header.Altitude
     water_heater_tz = space.thermalZone.get
 
     if loop.nil?
-      runner.registerInfo("A new plant loop for DHW will be added to the model")
-      runner.registerInitialCondition("There is no existing water heater")
-      loop = create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, Constants.WaterHeaterTypeHeatPump)
+      runner.registerInfo('A new plant loop for DHW will be added to the model')
+      runner.registerInitialCondition('There is no existing water heater')
+      loop = Waterheater.create_new_loop(model, Constants.PlantLoopDomesticWater(unit.name.to_s), t_set, Constants.WaterHeaterTypeHeatPump)
     else
-      runner.registerInitialCondition("An existing water heater was found in the model. This water heater will be removed and replace with a heat pump water heater")
+      runner.registerInitialCondition('An existing water heater was found in the model. This water heater will be removed and replace with a heat pump water heater')
     end
 
     if loop.components(OpenStudio::Model::PumpVariableSpeed::iddObjectType).empty?
@@ -281,9 +281,9 @@ class Waterheater
     h_tank = 0.0188 * vol + 0.0935 # Linear relationship that gets GE height at 50 gal and AO Smith height at 80 gal
     v_actual = 0.9 * vol
     pi = Math::PI
-    r_tank = (UnitConversions.convert(v_actual, "gal", "m^3") / (pi * h_tank))**0.5
+    r_tank = (UnitConversions.convert(v_actual, 'gal', 'm^3') / (pi * h_tank))**0.5
     a_tank = 2 * pi * r_tank * (r_tank + h_tank)
-    u_tank = (5.678 * tank_ua) / UnitConversions.convert(a_tank, "m^2", "ft^2")
+    u_tank = (5.678 * tank_ua) / UnitConversions.convert(a_tank, 'm^2', 'ft^2')
 
     if control_logic == 'GE'
       h_UE = 0.708333 * h_tank # in the 4th node of the tank (counting from top)
@@ -303,8 +303,8 @@ class Waterheater
     # Calculate an altitude adjusted rated evaporator wetbulb temperature
     rated_ewb_F = 56.4
     rated_edb_F = 67.5
-    rated_ewb = UnitConversions.convert(rated_ewb_F, "F", "C")
-    rated_edb = UnitConversions.convert(rated_edb_F, "F", "C")
+    rated_ewb = UnitConversions.convert(rated_ewb_F, 'F', 'C')
+    rated_edb = UnitConversions.convert(rated_edb_F, 'F', 'C')
     w_rated = Psychrometrics.w_fT_Twb_P(rated_edb_F, rated_ewb_F, 14.7)
     dp_rated = Psychrometrics.Tdp_fP_w(14.7, w_rated)
     p_atm = Psychrometrics.Pstd_fZ(alt)
@@ -320,7 +320,7 @@ class Waterheater
     hpwh_rhamb.setName("#{obj_name_hpwh} RHamb act")
     hpwh_rhamb.setValue(0.5)
 
-    if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
+    if (ducting == Constants.VentTypeSupply) || (ducting == Constants.VentTypeBalanced)
       hpwh_tamb2 = OpenStudio::Model::ScheduleConstant.new(model)
       hpwh_tamb2.setName("#{obj_name_hpwh} Tamb act2")
       hpwh_tamb2.setValue(23)
@@ -411,19 +411,19 @@ class Waterheater
     end
     hpwh.setCondenserBottomLocation(h_condbot)
     hpwh.setCondenserTopLocation(h_condtop)
-    hpwh.setEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate, "ft^3/min", "m^3/s"))
-    hpwh.setInletAirConfiguration("Schedule")
+    hpwh.setEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
+    hpwh.setInletAirConfiguration('Schedule')
     hpwh.setInletAirTemperatureSchedule(hpwh_tamb)
     hpwh.setInletAirHumiditySchedule(hpwh_rhamb)
-    hpwh.setMinimumInletAirTemperatureforCompressorOperation(UnitConversions.convert(min_temp, "F", "C"))
-    hpwh.setMaximumInletAirTemperatureforCompressorOperation(UnitConversions.convert(max_temp, "F", "C"))
-    hpwh.setCompressorLocation("Schedule")
+    hpwh.setMinimumInletAirTemperatureforCompressorOperation(UnitConversions.convert(min_temp, 'F', 'C'))
+    hpwh.setMaximumInletAirTemperatureforCompressorOperation(UnitConversions.convert(max_temp, 'F', 'C'))
+    hpwh.setCompressorLocation('Schedule')
     hpwh.setCompressorAmbientTemperatureSchedule(hpwh_tamb)
-    hpwh.setFanPlacement("DrawThrough")
+    hpwh.setFanPlacement('DrawThrough')
     hpwh.setOnCycleParasiticElectricLoad(0)
     hpwh.setOffCycleParasiticElectricLoad(0)
-    hpwh.setParasiticHeatRejectionLocation("Outdoors")
-    hpwh.setTankElementControlLogic("MutuallyExclusive")
+    hpwh.setParasiticHeatRejectionLocation('Outdoors')
+    hpwh.setTankElementControlLogic('MutuallyExclusive')
     if control_logic == 'GE'
       hpwh.setControlSensor1HeightInStratifiedTank(h_hpctrl)
       hpwh.setControlSensor1Weight(1)
@@ -436,7 +436,7 @@ class Waterheater
 
     # Curves
     hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
-    hpwh_cap.setName("HPWH-Cap-fT")
+    hpwh_cap.setName('HPWH-Cap-fT')
     hpwh_cap.setCoefficient1Constant(0.563)
     hpwh_cap.setCoefficient2x(0.0437)
     hpwh_cap.setCoefficient3xPOW2(0.000039)
@@ -449,7 +449,7 @@ class Waterheater
     hpwh_cap.setMaximumValueofy(100)
 
     hpwh_cop = OpenStudio::Model::CurveBiquadratic.new(model)
-    hpwh_cop.setName("HPWH-COP-fT")
+    hpwh_cop.setName('HPWH-COP-fT')
     hpwh_cop.setCoefficient1Constant(1.1332)
     hpwh_cop.setCoefficient2x(0.063)
     hpwh_cop.setCoefficient3xPOW2(-0.0000979)
@@ -464,15 +464,15 @@ class Waterheater
     # Coil:WaterHeating:AirToWaterHeatPump:Wrapped
     coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
     coil.setName("#{obj_name_hpwh} coil")
-    coil.setRatedHeatingCapacity(UnitConversions.convert(cap, "kW", "W") * cop)
+    coil.setRatedHeatingCapacity(UnitConversions.convert(cap, 'kW', 'W') * cop)
     coil.setRatedCOP(cop)
     coil.setRatedSensibleHeatRatio(shr)
     coil.setRatedEvaporatorInletAirDryBulbTemperature(rated_edb)
-    coil.setRatedEvaporatorInletAirWetBulbTemperature(UnitConversions.convert(twb_adj, "F", "C"))
+    coil.setRatedEvaporatorInletAirWetBulbTemperature(UnitConversions.convert(twb_adj, 'F', 'C'))
     coil.setRatedCondenserWaterTemperature(48.89)
-    coil.setRatedEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate, "ft^3/min", "m^3/s"))
+    coil.setRatedEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
     coil.setEvaporatorFanPowerIncludedinRatedCOP(true)
-    coil.setEvaporatorAirTemperatureTypeforCurveObjects("WetBulbTemperature")
+    coil.setEvaporatorAirTemperatureTypeforCurveObjects('WetBulbTemperature')
     coil.setHeatingCapacityFunctionofTemperatureCurve(hpwh_cap)
     coil.setHeatingCOPFunctionofTemperatureCurve(hpwh_cop)
     coil.setMaximumAmbientTemperatureforCrankcaseHeaterOperation(0)
@@ -480,13 +480,13 @@ class Waterheater
     # WaterHeater:Stratified
     tank = hpwh.tank.to_WaterHeaterStratified.get
     tank.setName("#{obj_name_hpwh} tank")
-    tank.setEndUseSubcategory("Domestic Hot Water")
-    tank.setTankVolume(UnitConversions.convert(v_actual, "gal", "m^3"))
+    tank.setEndUseSubcategory('Domestic Hot Water')
+    tank.setTankVolume(UnitConversions.convert(v_actual, 'gal', 'm^3'))
     tank.setTankHeight(h_tank)
     tank.setMaximumTemperatureLimit(90)
-    tank.setHeaterPriorityControl("MasterSlave")
+    tank.setHeaterPriorityControl('MasterSlave')
     tank.setHeater1SetpointTemperatureSchedule(hpwh_top_element_sp) # Overwritten later by EMS
-    tank.setHeater1Capacity(UnitConversions.convert(e_cap, "kW", "W"))
+    tank.setHeater1Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
     tank.setHeater1Height(h_UE)
     if control_logic == 'GE'
       tank.setHeater1DeadbandTemperatureDifference(25)
@@ -494,22 +494,22 @@ class Waterheater
       tank.setHeater1DeadbandTemperatureDifference(18.5)
     end
     tank.setHeater2SetpointTemperatureSchedule(hpwh_bottom_element_sp)
-    tank.setHeater2Capacity(UnitConversions.convert(e_cap, "kW", "W"))
+    tank.setHeater2Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
     tank.setHeater2Height(h_LE)
     if control_logic == 'GE'
       tank.setHeater2DeadbandTemperatureDifference(30)
     else
       tank.setHeater2DeadbandTemperatureDifference(3.89)
     end
-    tank.setHeaterFuelType("Electricity")
+    tank.setHeaterFuelType('Electricity')
     tank.setHeaterThermalEfficiency(1)
     tank.setOffCycleParasiticFuelConsumptionRate(parasitics)
-    tank.setOffCycleParasiticFuelType("Electricity")
+    tank.setOffCycleParasiticFuelType('Electricity')
     tank.setOnCycleParasiticFuelConsumptionRate(parasitics)
-    tank.setOnCycleParasiticFuelType("Electricity")
-    tank.setAmbientTemperatureIndicator("Schedule")
+    tank.setOnCycleParasiticFuelType('Electricity')
+    tank.setAmbientTemperatureIndicator('Schedule')
     tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(u_tank)
-    if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
+    if (ducting == Constants.VentTypeSupply) || (ducting == Constants.VentTypeBalanced)
       tank.setAmbientTemperatureSchedule(hpwh_tamb2)
     else
       tank.setAmbientTemperatureSchedule(hpwh_tamb)
@@ -528,9 +528,9 @@ class Waterheater
     tank.setNode10AdditionalLossCoefficient(0)
     tank.setNode11AdditionalLossCoefficient(0)
     tank.setNode12AdditionalLossCoefficient(0)
-    tank.setUseSideDesignFlowRate((UnitConversions.convert(v_actual, "gal", "m^3")) / 60.1) # 60.1 (seconds) ensures that the autosizing doesn't draw the whole tank volume in one minute
+    tank.setUseSideDesignFlowRate(UnitConversions.convert(v_actual, 'gal', 'm^3') / 60.1) # 60.1 (seconds) ensures that the autosizing doesn't draw the whole tank volume in one minute
     tank.setSourceSideDesignFlowRate(0)
-    tank.setSourceSideFlowControlMode("")
+    tank.setSourceSideFlowControlMode('')
     tank.setSourceSideInletHeight(0)
     tank.setSourceSideOutletHeight(0)
 
@@ -548,17 +548,17 @@ class Waterheater
       fan.setFanEfficiency(23 / fan_power * UnitConversions.convert(1, "ft^3/min", "m^3/s"))
       fan.setPressureRise(23)
     else
-      fan.setFanEfficiency(65 / fan_power * UnitConversions.convert(1, "ft^3/min", "m^3/s"))
+      fan.setFanEfficiency(65 / fan_power * UnitConversions.convert(1, 'ft^3/min', 'm^3/s'))
       fan.setPressureRise(65)
     end
-    fan.setMaximumFlowRate(UnitConversions.convert(airflow_rate, "ft^3/min", "m^3/s"))
+    fan.setMaximumFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
     fan.setMotorEfficiency(1.0)
     fan.setMotorInAirstreamFraction(1.0)
-    fan.setEndUseSubcategory("Domestic Hot Water")
+    fan.setEndUseSubcategory('Domestic Hot Water')
 
     # Add in EMS program for HPWH interaction with the living space & ambient air temperature depression
-    if int_factor != 1 and ducting != "none"
-      runner.registerWarning("Interaction factor must be 1 when ducting a HPWH. The input interaction factor value will be ignored and a value of 1 will be used instead.")
+    if (int_factor != 1) && (ducting != 'none')
+      runner.registerWarning('Interaction factor must be 1 when ducting a HPWH. The input interaction factor value will be ignored and a value of 1 will be used instead.')
       int_factor = 1
     end
 
@@ -586,13 +586,13 @@ class Waterheater
     hpwh_lat.setSchedule(model.alwaysOnDiscreteSchedule)
 
     # If ducted to outside, get outdoor air T & RH and add a separate actuator for the space temperature for tank losses
-    if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
+    if (ducting == Constants.VentTypeSupply) || (ducting == Constants.VentTypeBalanced)
 
-      tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Outdoor Air Drybulb Temperature")
+      tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Outdoor Air Drybulb Temperature')
       tout_sensor.setName("#{obj_name_hpwh} Tout")
       tout_sensor.setKeyName(unit.living_zone.name.to_s)
 
-      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Outdoor Air Relative Humidity")
+      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Outdoor Air Relative Humidity')
       sensor.setName("#{obj_name_hpwh} RHout")
       sensor.setKeyName(unit.living_zone.name.to_s)
 
@@ -600,73 +600,73 @@ class Waterheater
       hpwh_tamb2.setName("#{obj_name_hpwh} Tamb act2")
       hpwh_tamb2.setValue(23)
 
-      tamb_act2_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_tamb2, "Schedule:Constant", "Schedule Value")
+      tamb_act2_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_tamb2, 'Schedule:Constant', 'Schedule Value')
       tamb_act2_actuator.setName("#{obj_name_hpwh} Tamb act2")
 
     end
 
     # EMS Sensors: Space Temperature & RH, HP sens and latent loads, tank losses, fan power
-    amb_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Mean Air Temperature")
+    amb_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mean Air Temperature')
     amb_temp_sensor.setName("#{obj_name_hpwh} amb temp")
     amb_temp_sensor.setKeyName(water_heater_tz.name.to_s)
 
-    amb_rh_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Air Relative Humidity")
+    amb_rh_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Air Relative Humidity')
     amb_rh_sensor.setName("#{obj_name_hpwh} amb rh")
     amb_rh_sensor.setKeyName(water_heater_tz.name.to_s)
 
-    tl_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater Heat Loss Rate")
+    tl_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Heat Loss Rate')
     tl_sensor.setName("#{obj_name_hpwh} tl")
     tl_sensor.setKeyName("#{obj_name_hpwh} tank")
 
-    sens_cool_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling Coil Sensible Cooling Rate")
+    sens_cool_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Cooling Coil Sensible Cooling Rate')
     sens_cool_sensor.setName("#{obj_name_hpwh} sens cool")
     sens_cool_sensor.setKeyName("#{obj_name_hpwh} coil")
 
-    lat_cool_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling Coil Latent Cooling Rate")
+    lat_cool_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Cooling Coil Latent Cooling Rate')
     lat_cool_sensor.setName("#{obj_name_hpwh} lat cool")
     lat_cool_sensor.setKeyName("#{obj_name_hpwh} coil")
 
-    fan_power_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Fan Electric Power")
+    fan_power_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Fan Electric Power')
     fan_power_sensor.setName("#{obj_name_hpwh} fan pwr")
     fan_power_sensor.setKeyName("#{obj_name_hpwh} fan")
 
     # EMS Actuators: Inlet T & RH, sensible and latent gains to the space
-    tamb_act_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_tamb, "Schedule:Constant", "Schedule Value")
+    tamb_act_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_tamb, 'Schedule:Constant', 'Schedule Value')
     tamb_act_actuator.setName("#{obj_name_hpwh} Tamb act")
 
-    rhamb_act_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_rhamb, "Schedule:Constant", "Schedule Value")
+    rhamb_act_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_rhamb, 'Schedule:Constant', 'Schedule Value')
     rhamb_act_actuator.setName("#{obj_name_hpwh} RHamb act")
 
-    sens_act_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_sens, "OtherEquipment", "Power Level")
+    sens_act_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_sens, 'OtherEquipment', 'Power Level')
     sens_act_actuator.setName("#{hpwh_sens.name} act")
 
-    lat_act_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_lat, "OtherEquipment", "Power Level")
+    lat_act_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_lat, 'OtherEquipment', 'Power Level')
     lat_act_actuator.setName("#{hpwh_lat.name} act")
 
-    on_off_trend_var = OpenStudio::Model::EnergyManagementSystemTrendVariable.new(model, "#{obj_name_hpwh} sens cool".gsub(" ", "_"))
+    on_off_trend_var = OpenStudio::Model::EnergyManagementSystemTrendVariable.new(model, "#{obj_name_hpwh} sens cool".gsub(' ', '_'))
     on_off_trend_var.setName("#{obj_name_hpwh} on off")
     on_off_trend_var.setNumberOfTimestepsToBeLogged(2)
 
     # Additioanl sensors if supply or exhaust to calculate the load on the space from the HPWH
-    if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeExhaust
+    if (ducting == Constants.VentTypeSupply) || (ducting == Constants.VentTypeExhaust)
 
-      amb_w_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Zone Mean Air Humidity Ratio")
+      amb_w_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mean Air Humidity Ratio')
       amb_w_sensor.setName("#{obj_name_hpwh} amb w")
       amb_w_sensor.setKeyName(water_heater_tz)
 
-      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "System Node Pressure")
+      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'System Node Pressure')
       sensor.setName("#{obj_name_hpwh} amb p")
       sensor.setKeyName(water_heater_tz)
 
-      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "System Node Temperature")
+      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'System Node Temperature')
       sensor.setName("#{obj_name_hpwh} tair out")
       sensor.setKeyName(water_heater_tz)
 
-      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "System Node Humidity Ratio")
+      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'System Node Humidity Ratio')
       sensor.setName("#{obj_name_hpwh} wair out")
       sensor.setKeyName(water_heater_tz)
 
-      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "System Node Current Density Volume Flow Rate")
+      sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'System Node Current Density Volume Flow Rate')
       sensor.setName("#{obj_name_hpwh} v air")
 
     end
@@ -676,45 +676,45 @@ class Waterheater
     # EMS Program for ducting
     hpwh_ducting_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     hpwh_ducting_program.setName("#{obj_name_hpwh} InletAir")
-    if not (Geometry.is_finished_basement(water_heater_tz) or Geometry.is_living(water_heater_tz)) and temp_depress_c > 0
-      runner.registerWarning("Confined space HPWH installations are typically used to represent installations in locations like a utility closet. Utility closets installations are typically only done in conditioned spaces.")
+    if (not (Geometry.is_finished_basement(water_heater_tz) || Geometry.is_living(water_heater_tz))) && (temp_depress_c > 0)
+      runner.registerWarning('Confined space HPWH installations are typically used to represent installations in locations like a utility closet. Utility closets installations are typically only done in conditioned spaces.')
     end
-    if temp_depress_c > 0 and ducting == "none"
+    if (temp_depress_c > 0) && (ducting == 'none')
       hpwh_ducting_program.addLine("Set HPWH_last_#{unit_index} = (@TrendValue #{on_off_trend_var.name} 1)")
       hpwh_ducting_program.addLine("Set HPWH_now_#{unit_index} = #{on_off_trend_var.name}")
-      hpwh_ducting_program.addLine("Set num = (@Ln 2)")
+      hpwh_ducting_program.addLine('Set num = (@Ln 2)')
       hpwh_ducting_program.addLine("If (HPWH_last_#{unit_index} == 0) && (HPWH_now_#{unit_index}<>0)") # HPWH just turned on
       hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = 0")
       hpwh_ducting_program.addLine("Set exp = -(HPWHOn_#{unit_index} / 9.4) * num")
-      hpwh_ducting_program.addLine("Set exponent = (@Exp exp)")
+      hpwh_ducting_program.addLine('Set exponent = (@Exp exp)')
       hpwh_ducting_program.addLine("Set T_dep = (#{temp_depress_c} * exponent) - #{temp_depress_c}")
       hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = HPWHOn_#{unit_index} + #{timestep_minutes}")
       hpwh_ducting_program.addLine("ElseIf (HPWH_last_#{unit_index} <> 0) && (HPWH_now_#{unit_index}<>0)") # HPWH has been running for more than 1 timestep
       hpwh_ducting_program.addLine("Set exp = -(HPWHOn_#{unit_index} / 9.4) * num")
-      hpwh_ducting_program.addLine("Set exponent = (@Exp exp)")
+      hpwh_ducting_program.addLine('Set exponent = (@Exp exp)')
       hpwh_ducting_program.addLine("Set T_dep = (#{temp_depress_c} * exponent) - #{temp_depress_c}")
       hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = HPWHOn_#{unit_index} + #{timestep_minutes}")
-      hpwh_ducting_program.addLine("Else")
-      hpwh_ducting_program.addLine("If (Hour == 0) && (DayOfYear == 1)")
+      hpwh_ducting_program.addLine('Else')
+      hpwh_ducting_program.addLine('If (Hour == 0) && (DayOfYear == 1)')
       hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = 0") # Assume HPWH starts off for initial conditions
-      hpwh_ducting_program.addLine("EndIF")
+      hpwh_ducting_program.addLine('EndIF')
       hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = HPWHOn_#{unit_index} - #{timestep_minutes}")
       hpwh_ducting_program.addLine("If HPWHOn_#{unit_index} < 0")
       hpwh_ducting_program.addLine("Set HPWHOn_#{unit_index} = 0")
-      hpwh_ducting_program.addLine("EndIf")
+      hpwh_ducting_program.addLine('EndIf')
       hpwh_ducting_program.addLine("Set exp = -(HPWHOn_#{unit_index} / 9.4) * num")
-      hpwh_ducting_program.addLine("Set exponent = (@Exp exp)")
+      hpwh_ducting_program.addLine('Set exponent = (@Exp exp)')
       hpwh_ducting_program.addLine("Set T_dep = (#{temp_depress_c} * exponent) - #{temp_depress_c}")
-      hpwh_ducting_program.addLine("EndIf")
+      hpwh_ducting_program.addLine('EndIf')
       hpwh_ducting_program.addLine("Set T_hpwh_inlet_#{unit_index} = #{amb_temp_sensor.name} + T_dep")
     else
-      if ducting == Constants.VentTypeBalanced or ducting == Constants.VentTypeSupply
+      if (ducting == Constants.VentTypeBalanced) || (ducting == Constants.VentTypeSupply)
         hpwh_ducting_program.addLine("Set T_hpwh_inlet_#{unit_index} = HPWH_out_temp_#{unit_index}")
       else
         hpwh_ducting_program.addLine("Set T_hpwh_inlet_#{unit_index} = #{amb_temp_sensor.name}")
       end
     end
-    if ducting == "none"
+    if ducting == 'none'
       hpwh_ducting_program.addLine("Set #{tamb_act_actuator.name} = T_hpwh_inlet_#{unit_index}")
       hpwh_ducting_program.addLine("Set #{rhamb_act_actuator.name} = #{amb_rh_sensor.name}/100")
       hpwh_ducting_program.addLine("Set temp1=(#{tl_sensor.name}*#{int_factor})+#{fan_power_sensor.name}*#{int_factor}")
@@ -749,7 +749,7 @@ class Waterheater
       hpwh_ducting_program.addLine("Set #{lat_act_actuator.name} = HPWH_lat_gain_#{unit_index}")
     end
 
-    leschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_bottom_element_sp, "Schedule:Constant", "Schedule Value")
+    leschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_bottom_element_sp, 'Schedule:Constant', 'Schedule Value')
     leschedoverride_actuator.setName("#{obj_name_hpwh} LESchedOverride")
 
     # EMS for the HPWH control logic
@@ -784,40 +784,40 @@ class Waterheater
     if control_logic == 'AOSmith'
       hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
       hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
-      if ducting == Constants.VentTypeSupply or ducting == Constants.VentTypeBalanced
-        hpwh_ctrl_program.addLine("If (HPWH_out_temp_#{unit_index} < #{UnitConversions.convert(min_temp, "F", "C")}) || (HPWH_out_temp_#{unit_index} > #{UnitConversions.convert(max_temp, "F", "C")})")
+      if (ducting == Constants.VentTypeSupply) || (ducting == Constants.VentTypeBalanced)
+        hpwh_ctrl_program.addLine("If (HPWH_out_temp_#{unit_index} < #{UnitConversions.convert(min_temp, 'F', 'C')}) || (HPWH_out_temp_#{unit_index} > #{UnitConversions.convert(max_temp, 'F', 'C')})")
       else
-        hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, "F", "C").round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, "F", "C").round(2)})")
+        hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, 'F', 'C').round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, 'F', 'C').round(2)})")
       end
       hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{t_set_sensor.name}")
       hpwh_ctrl_program.addLine("Else")
       hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
-      hpwh_ctrl_program.addLine("EndIf")
+      hpwh_ctrl_program.addLine('EndIf')
 
     else # control_logic == 'GE'
-      t_ctrl_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater Temperature Node 3")
+      t_ctrl_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Temperature Node 3')
       t_ctrl_sensor.setName("#{obj_name_hpwh} T ctrl")
       t_ctrl_sensor.setKeyName("#{obj_name_hpwh} tank")
 
-      le_p_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater Heater 2 Heating Energy")
+      le_p_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Heater 2 Heating Energy')
       le_p_sensor.setName("#{obj_name_hpwh} LE P")
       le_p_sensor.setKeyName("#{obj_name_hpwh} tank")
 
-      ue_p_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater Heater 1 Heating Energy")
+      ue_p_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Heater 1 Heating Energy')
       ue_p_sensor.setName("#{obj_name_hpwh} UE P")
       ue_p_sensor.setKeyName("#{obj_name_hpwh} tank")
 
       if sp_type == Constants.WaterHeaterSetpointTypeConstant
-        hpschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hp_setpoint, "Schedule:Constant", "Schedule Value")
+        hpschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hp_setpoint, 'Schedule:Constant', 'Schedule Value')
       elsif sp_type == Constants.WaterHeaterSetpointTypeScheduled
-        hpschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hp_control_sched, "Schedule:Constant", "Schedule Value")
+        hpschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hp_control_sched, 'Schedule:Constant', 'Schedule Value')
       end
       hpschedoverride_actuator.setName("#{obj_name_hpwh} HPSchedOverride")
 
       if sp_type == Constants.WaterHeaterSetpointTypeConstant
-        ueschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_top_element_sp, "Schedule:Constant", "Schedule Value")
+        ueschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_top_element_sp, 'Schedule:Constant', 'Schedule Value')
       elsif sp_type == Constants.WaterHeaterSetpointTypeScheduled
-        ueschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_top_element_sp, "Schedule:Compact", "Schedule Value")
+        ueschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_top_element_sp, 'Schedule:Compact', 'Schedule Value')
       end
       ueschedoverride_actuator.setName("#{obj_name_hpwh} UESchedOverride")
 
@@ -922,7 +922,7 @@ class Waterheater
     # ProgramCallingManagers
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{obj_name_hpwh} ProgramManager")
-    program_calling_manager.setCallingPoint("InsideHVACSystemIterationLoop")
+    program_calling_manager.setCallingPoint('InsideHVACSystemIterationLoop')
     program_calling_manager.addProgram(hpwh_ctrl_program)
     program_calling_manager.addProgram(hpwh_ducting_program)
 
@@ -947,7 +947,7 @@ class Waterheater
       # Remove existing hot water objects
       objects_to_remove = []
       pl.supplyComponents.each do |wh|
-        next if !wh.to_WaterHeaterMixed.is_initialized and !wh.to_WaterHeaterStratified.is_initialized
+        next if !wh.to_WaterHeaterMixed.is_initialized && !wh.to_WaterHeaterStratified.is_initialized
 
         if wh.to_WaterHeaterMixed.is_initialized
           objects_to_remove << wh
@@ -1088,21 +1088,21 @@ class Waterheater
 
       else
         if num_beds == 1
-          input_power = UnitConversions.convert(2.5, "kW", "kBtu/hr")
+          input_power = UnitConversions.convert(2.5, 'kW', 'kBtu/hr')
         elsif num_beds == 2
           if num_baths <= 1.5
-            input_power = UnitConversions.convert(3.5, "kW", "kBtu/hr")
+            input_power = UnitConversions.convert(3.5, 'kW', 'kBtu/hr')
           else
-            input_power = UnitConversions.convert(4.5, "kW", "kBtu/hr")
+            input_power = UnitConversions.convert(4.5, 'kW', 'kBtu/hr')
           end
         elsif num_beds == 3
           if num_baths <= 1.5
-            input_power = UnitConversions.convert(4.5, "kW", "kBtu/hr")
+            input_power = UnitConversions.convert(4.5, 'kW', 'kBtu/hr')
           else
-            input_power = UnitConversions.convert(5.5, "kW", "kBtu/hr")
+            input_power = UnitConversions.convert(5.5, 'kW', 'kBtu/hr')
           end
         else
-          input_power = UnitConversions.convert(5.5, "kW", "kBtu/hr")
+          input_power = UnitConversions.convert(5.5, 'kW', 'kBtu/hr')
         end
         return input_power
       end
@@ -1137,21 +1137,21 @@ class Waterheater
       return input_power
     else
       if num_beds == 1
-        input_power = UnitConversions.convert(2.5, "kW", "kBtu/hr")
+        input_power = UnitConversions.convert(2.5, 'kW', 'kBtu/hr')
       elsif num_beds == 2
         if num_baths <= 1.5
-          input_power = UnitConversions.convert(3.5, "kW", "kBtu/hr")
+          input_power = UnitConversions.convert(3.5, 'kW', 'kBtu/hr')
         else
-          input_power = UnitConversions.convert(4.5, "kW", "kBtu/hr")
+          input_power = UnitConversions.convert(4.5, 'kW', 'kBtu/hr')
         end
       elsif num_beds == 3
         if num_baths <= 1.5
-          input_power = UnitConversions.convert(4.5, "kW", "kBtu/hr")
+          input_power = UnitConversions.convert(4.5, 'kW', 'kBtu/hr')
         else
-          input_power = UnitConversions.convert(5.5, "kW", "kBtu/hr")
+          input_power = UnitConversions.convert(5.5, 'kW', 'kBtu/hr')
         end
       else
-        input_power = UnitConversions.convert(5.5, "kW", "kBtu/hr")
+        input_power = UnitConversions.convert(5.5, 'kW', 'kBtu/hr')
       end
       return input_power
     end
@@ -1174,11 +1174,11 @@ class Waterheater
         return uef
       end
     end
-    return nil
+    return
   end
 
   def self.get_default_hot_water_temperature(eri_version)
-    if eri_version.include? "A"
+    if eri_version.include? 'A'
       return 125.0
     end
 
@@ -1205,7 +1205,7 @@ class Waterheater
         end
       end
     end
-    return nil
+    return
   end
 
   def self.get_plant_loop_from_string(model, runner, plantloop_s, unit)
@@ -1223,8 +1223,8 @@ class Waterheater
       return plant_loop
     end
 
-    runner.registerWarning("Could not find plant loop.")
-    return nil
+    runner.registerWarning('Could not find plant loop.')
+    return
   end
 
   def self.deadband(wh_type)
@@ -1272,7 +1272,7 @@ class Waterheater
       surface_area = 2 * pi * (diameter / 12)**2 / 4 + pi * (diameter / 12) * (height / 12) # sqft
 
       if fuel != Constants.FuelTypeElectric
-        ua = (re / ef - 1) / ((t - t_env) * (24 / q_load - 1 / (1000 * (pow) * ef))) # Btu/hr-F
+        ua = (re / ef - 1) / ((t - t_env) * (24 / q_load - 1 / (1000 * pow * ef))) # Btu/hr-F
         eta_c = (re + ua * (t - t_env) / (1000 * pow))
       else # is Electric
         ua = q_load * (1 / ef - 1) / ((t - t_env) * 24)
@@ -1295,7 +1295,7 @@ class Waterheater
     pump.setCoefficient2ofthePartLoadPerformanceCurve(1)
     pump.setCoefficient3ofthePartLoadPerformanceCurve(0)
     pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
-    pump.setPumpControlType("Intermittent")
+    pump.setPumpControlType('Intermittent')
     return pump
   end
 
@@ -1539,8 +1539,8 @@ class Waterheater
     # Create a new plant loop for the water heater
     loop = OpenStudio::Model::PlantLoop.new(model)
     loop.setName(name)
-    loop.sizingPlant.setDesignLoopExitTemperature(UnitConversions.convert(t_set, "F", "C"))
-    loop.sizingPlant.setLoopDesignTemperatureDifference(UnitConversions.convert(10, "R", "K"))
+    loop.sizingPlant.setDesignLoopExitTemperature(UnitConversions.convert(t_set, 'F', 'C'))
+    loop.sizingPlant.setLoopDesignTemperatureDifference(UnitConversions.convert(10, 'R', 'K'))
     loop.setPlantLoopVolume(0.003) # ~1 gal
     loop.setMaximumLoopFlowRate(0.01) # This size represents the physical limitations to flow due to losses in the piping system. For BEopt we assume that the pipes are always adequately sized
 
@@ -1572,16 +1572,16 @@ class Waterheater
         return waterHeater
       end
     end
-    runner.registerError("No water heater found; add a residential water heater first.")
-    return nil
+    runner.registerError('No water heater found; add a residential water heater first.')
+    return
   end
 
   def self.get_water_heater_setpoint(model, plant_loop, runner)
     waterHeater = get_water_heater(model, plant_loop, runner)
     if waterHeater.is_a? OpenStudio::Model::WaterHeaterMixed
       if waterHeater.setpointTemperatureSchedule.nil?
-        runner.registerError("Water heater found without a setpoint temperature schedule.")
-        return nil
+        runner.registerError('Water heater found without a setpoint temperature schedule.')
+        return
       end
       if waterHeater.setpointTemperatureSchedule.get.to_ScheduleConstant.is_initialized
         return UnitConversions.convert(waterHeater.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, "C", "F")
@@ -1590,8 +1590,8 @@ class Waterheater
       end
     elsif waterHeater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
       if waterHeater.compressorSetpointTemperatureSchedule.nil?
-        runner.registerError("Heat pump water heater found without a setpoint temperature schedule.")
-        return nil
+        runner.registerError('Heat pump water heater found without a setpoint temperature schedule.')
+        return
       end
       return UnitConversions.convert(waterHeater.compressorSetpointTemperatureSchedule.to_ScheduleConstant.get.value, "C", "F")
     elsif waterHeater.is_a? OpenStudio::Model::WaterHeaterStratified
@@ -1613,24 +1613,24 @@ class Waterheater
         end
       end
     end
-    return nil
+    return
   end
 
   def self.get_water_heater_setpoint_schedule(model, plant_loop, runner)
     waterHeater = get_water_heater(model, plant_loop, runner)
     if waterHeater.is_a? OpenStudio::Model::WaterHeaterMixed
       if waterHeater.setpointTemperatureSchedule.nil?
-        runner.registerError("Water heater found without a setpoint temperature schedule.")
-        return nil
+        runner.registerError('Water heater found without a setpoint temperature schedule.')
+        return
       end
       return waterHeater.setpointTemperatureSchedule.get
     elsif waterHeater.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
       if waterHeater.compressorSetpointTemperatureSchedule.nil?
-        runner.registerError("Heat pump water heater found without a setpoint temperature schedule.")
-        return nil
+        runner.registerError('Heat pump water heater found without a setpoint temperature schedule.')
+        return
       end
       return waterHeater.compressorSetpointTemperatureSchedule
     end
-    return nil
+    return
   end
 end

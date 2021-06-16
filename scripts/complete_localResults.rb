@@ -53,31 +53,30 @@ def retrieve_dp_data(local_results_dir, server_api, interval = 5, analysis_id = 
   report_at = interval
   timestep = Time.now
   dps.each_with_index do |dp, count|
-    unless exclusion_list.include? dp[:_id]
+    next if exclusion_list.include? dp[:_id]
 
-      # Download datapoint; in case of failure document and continue
-      ok, f = server_api.download_datapoint dp[:_id], local_results_dir
-      if ok
-        dest = File.join local_results_dir, dp[:_id]
-        if unzip
-          unzip_archive f, dest
-          File.delete(File.join(local_results_dir, 'data_point.zip'))
-        else
-          Dir.mkdir dest
-          FileUtils.mv File.join(local_results_dir, 'data_point.zip'), dest
-        end
+    # Download datapoint; in case of failure document and continue
+    ok, f = server_api.download_datapoint dp[:_id], local_results_dir
+    if ok
+      dest = File.join local_results_dir, dp[:_id]
+      if unzip
+        unzip_archive f, dest
+        File.delete(File.join(local_results_dir, 'data_point.zip'))
       else
-        puts "ERROR: Failed to download data point #{dp[:_id]}"
-        dps_error_count += 1
+        Dir.mkdir dest
+        FileUtils.mv File.join(local_results_dir, 'data_point.zip'), dest
       end
-
-      # Report out progress
-      if count.to_f * 100 / dps.length >= report_at
-        puts "INFO: Completed #{report_at}%; #{(Time.now - timestep).round}s"
-        report_at += interval
-        timestep = Time.now
-      end
+    else
+      puts "ERROR: Failed to download data point #{dp[:_id]}"
+      dps_error_count += 1
     end
+
+    # Report out progress
+    next unless count.to_f * 100 / dps.length >= report_at
+
+    puts "INFO: Completed #{report_at}%; #{(Time.now - timestep).round}s"
+    report_at += interval
+    timestep = Time.now
   end
 
   dps_error_count
@@ -122,7 +121,7 @@ end
 optparse.parse!
 
 # Check inputs for basic compliance criteria
-unless Dir.exists?(options[:project_dir])
+unless Dir.exist?(options[:project_dir])
   fail "ERROR: Could not find #{options[:project_dir]}"
 end
 unless Dir.entries(options[:project_dir]).include? 'pat.json'
@@ -131,7 +130,7 @@ end
 
 # Create the localResults directory should it not exist
 local_results_dir = File.join(options[:project_dir], 'localResults')
-unless Dir.exists? local_results_dir
+unless Dir.exist? local_results_dir
   Dir.mkdir local_results_dir
 end
 

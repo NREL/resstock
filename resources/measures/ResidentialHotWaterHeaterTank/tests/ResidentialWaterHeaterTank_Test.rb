@@ -8,58 +8,58 @@ require 'fileutils'
 class ResidentialHotWaterHeaterTankTest < MiniTest::Test
   def test_new_construction_standard_gas
     args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_premium_gas
     args_hash = {}
-    args_hash["energy_factor"] = "0.67"
-    args_hash["recovery_efficiency"] = 0.78
-    args_hash["capacity"] = "34"
-    args_hash["oncyc_power"] = 165
-    args_hash["offcyc_power"] = 1
-    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash['energy_factor'] = '0.67'
+    args_hash['recovery_efficiency'] = 0.78
+    args_hash['capacity'] = '34'
+    args_hash['oncyc_power'] = 165
+    args_hash['offcyc_power'] = 1
+    args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 9.97, "ThermalEfficiency" => 0.789, "TankUA" => 4.503, "Setpoint" => 125, "OnCycle" => 165, "OffCycle" => 1, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.91 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 9.97, 'ThermalEfficiency' => 0.789, 'TankUA' => 4.503, 'Setpoint' => 125, 'OnCycle' => 165, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.91 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_auto_ef_and_capacity_gas
     args_hash = {}
-    args_hash["energy_factor"] = Constants.Auto
-    args_hash["capacity"] = Constants.Auto
-    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash['energy_factor'] = Constants.Auto
+    args_hash['capacity'] = Constants.Auto
+    args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 10.55, "ThermalEfficiency" => 0.774, "TankUA" => 7.706, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 10.55, 'ThermalEfficiency' => 0.774, 'TankUA' => 7.706, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_elec
     args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeElectric
-    args_hash["energy_factor"] = "0.92"
-    args_hash["capacity"] = "15.35"
+    args_hash['fuel_type'] = Constants.FuelTypeElectric
+    args_hash['energy_factor'] = '0.92'
+    args_hash['capacity'] = '15.35'
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 50, "InputCapacity" => 4.5, "ThermalEfficiency" => 1.0, "TankUA" => 2.21, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 4.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 2.21, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_premium_elec
     args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeElectric
-    args_hash["energy_factor"] = "0.95"
-    args_hash["capacity"] = "18.77"
+    args_hash['fuel_type'] = Constants.FuelTypeElectric
+    args_hash['energy_factor'] = '0.95'
+    args_hash['capacity'] = '18.77'
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 1.34, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 1.34, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_elec_stratified
@@ -103,116 +103,116 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
 
   def test_new_construction_standard_auto_ef_and_capacity_elec
     args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeElectric
-    args_hash["energy_factor"] = Constants.Auto
-    args_hash["capacity"] = Constants.Auto
+    args_hash['fuel_type'] = Constants.FuelTypeElectric
+    args_hash['energy_factor'] = Constants.Auto
+    args_hash['capacity'] = Constants.Auto
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 50, "InputCapacity" => 5.5, "ThermalEfficiency" => 1.0, "TankUA" => 2.69, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeElectric, "SkinLossFrac" => 1.0 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 2.69, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_oil
     args_hash = {}
-    args_hash["capacity"] = "90.0"
-    args_hash["energy_factor"] = "0.62"
-    args_hash["recovery_efficiency"] = 0.78
-    args_hash["fuel_type"] = Constants.FuelTypeOil
+    args_hash['capacity'] = '90.0'
+    args_hash['energy_factor'] = '0.62'
+    args_hash['recovery_efficiency'] = 0.78
+    args_hash['fuel_type'] = Constants.FuelTypeOil
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 26.38, "ThermalEfficiency" => 0.785, "TankUA" => 6.753, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeOil, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 26.38, 'ThermalEfficiency' => 0.785, 'TankUA' => 6.753, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeOil, 'SkinLossFrac' => 0.64 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_premium_oil
     args_hash = {}
-    args_hash["capacity"] = "104"
-    args_hash["energy_factor"] = "0.68"
-    args_hash["recovery_efficiency"] = 0.9
-    args_hash["oncyc_power"] = 165
-    args_hash["offcyc_power"] = 1
-    args_hash["fuel_type"] = Constants.FuelTypeOil
+    args_hash['capacity'] = '104'
+    args_hash['energy_factor'] = '0.68'
+    args_hash['recovery_efficiency'] = 0.9
+    args_hash['oncyc_power'] = 165
+    args_hash['offcyc_power'] = 1
+    args_hash['fuel_type'] = Constants.FuelTypeOil
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 30.48, "ThermalEfficiency" => 0.905, "TankUA" => 8.410, "Setpoint" => 125, "OnCycle" => 165, "OffCycle" => 1, "FuelType" => Constants.FuelTypeOil, "SkinLossFrac" => 0.91 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 30.48, 'ThermalEfficiency' => 0.905, 'TankUA' => 8.410, 'Setpoint' => 125, 'OnCycle' => 165, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypeOil, 'SkinLossFrac' => 0.91 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_auto_ef_and_capacity_oil
     args_hash = {}
-    args_hash["capacity"] = Constants.Auto
-    args_hash["energy_factor"] = Constants.Auto
-    args_hash["recovery_efficiency"] = 0.78
-    args_hash["fuel_type"] = Constants.FuelTypeOil
+    args_hash['capacity'] = Constants.Auto
+    args_hash['energy_factor'] = Constants.Auto
+    args_hash['recovery_efficiency'] = 0.78
+    args_hash['fuel_type'] = Constants.FuelTypeOil
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 10.55, "ThermalEfficiency" => 0.807, "TankUA" => 14.465, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeOil, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 10.55, 'ThermalEfficiency' => 0.807, 'TankUA' => 14.465, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeOil, 'SkinLossFrac' => 0.64 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_propane
     args_hash = {}
-    args_hash["capacity"] = "47"
-    args_hash["fuel_type"] = Constants.FuelTypePropane
+    args_hash['capacity'] = '47'
+    args_hash['fuel_type'] = Constants.FuelTypePropane
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 13.78, "ThermalEfficiency" => 0.771, "TankUA" => 7.790, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypePropane, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 13.78, 'ThermalEfficiency' => 0.771, 'TankUA' => 7.790, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypePropane, 'SkinLossFrac' => 0.64 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_premium_propane
     args_hash = {}
-    args_hash["capacity"] = "47"
-    args_hash["energy_factor"] = "0.67"
-    args_hash["recovery_efficiency"] = 0.78
-    args_hash["oncyc_power"] = 140
-    args_hash["offcyc_power"] = 1
-    args_hash["fuel_type"] = Constants.FuelTypePropane
+    args_hash['capacity'] = '47'
+    args_hash['energy_factor'] = '0.67'
+    args_hash['recovery_efficiency'] = 0.78
+    args_hash['oncyc_power'] = 140
+    args_hash['offcyc_power'] = 1
+    args_hash['fuel_type'] = Constants.FuelTypePropane
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 13.78, "ThermalEfficiency" => 0.786, "TankUA" => 4.404, "Setpoint" => 125, "OnCycle" => 140, "OffCycle" => 1, "FuelType" => Constants.FuelTypePropane, "SkinLossFrac" => 0.91 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 13.78, 'ThermalEfficiency' => 0.786, 'TankUA' => 4.404, 'Setpoint' => 125, 'OnCycle' => 140, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypePropane, 'SkinLossFrac' => 0.91 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_auto_ef_and_capacity_propane
     args_hash = {}
-    args_hash["capacity"] = Constants.Auto
-    args_hash["energy_factor"] = Constants.Auto
-    args_hash["fuel_type"] = Constants.FuelTypePropane
+    args_hash['capacity'] = Constants.Auto
+    args_hash['energy_factor'] = Constants.Auto
+    args_hash['fuel_type'] = Constants.FuelTypePropane
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 10.55, "ThermalEfficiency" => 0.774, "TankUA" => 7.706, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypePropane, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 10.55, 'ThermalEfficiency' => 0.774, 'TankUA' => 7.706, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypePropane, 'SkinLossFrac' => 0.64 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_living_gas
     args_hash = {}
-    args_hash["location"] = Constants.SpaceTypeLiving
-    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash['location'] = Constants.SpaceTypeLiving
+    args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_setpoint_130_gas
     args_hash = {}
-    args_hash["setpoint_temp"] = 130
-    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash['setpoint_temp'] = 130
+    args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 130, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 130, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_new_construction_standard_volume_30_gas
     args_hash = {}
-    args_hash["tank_volume"] = "30"
-    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash['tank_volume'] = '30'
+    args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
-    expected_values = { "TankVolume" => 30, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
-    _test_measure("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
+    expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
+    expected_values = { 'TankVolume' => 30, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
   def test_retrofit_replace_stratified_tank_gas_with_stratified_tank_electric
@@ -376,7 +376,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
 
   def test_retrofit_replace
     args_hash = {}
-    args_hash["fuel_type"] = Constants.FuelTypeGas
+    args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
     expected_num_new_objects = { "WaterHeaterMixed" => 1, "PlantLoop" => 1, "PumpVariableSpeed" => 1, "ScheduleConstant" => 2 }
     expected_values = { "TankVolume" => 40, "InputCapacity" => 11.72, "ThermalEfficiency" => 0.773, "TankUA" => 7.88, "Setpoint" => 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => 0.64 }
@@ -496,23 +496,23 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
 
   def test_argument_error_tank_volume_invalid_str
     args_hash = {}
-    args_hash["tank_volume"] = "test"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Storage tank volume must be greater than 0.")
+    args_hash['tank_volume'] = 'test'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Storage tank volume must be greater than 0.')
   end
 
   def test_argument_error_tank_volume_lt_0
     args_hash = {}
-    args_hash["tank_volume"] = "-10"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Storage tank volume must be greater than 0.")
+    args_hash['tank_volume'] = '-10'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Storage tank volume must be greater than 0.')
   end
 
   def test_argument_error_tank_volume_eq_0
     args_hash = {}
-    args_hash["tank_volume"] = "0"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Storage tank volume must be greater than 0.")
+    args_hash['tank_volume'] = '0'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Storage tank volume must be greater than 0.')
   end
 
   def test_argument_error_setpoint_lt_0
@@ -559,119 +559,119 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
 
   def test_argument_error_capacity_invalid_str
     args_hash = {}
-    args_hash["capacity"] = "test"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Nominal capacity must be greater than 0.")
+    args_hash['capacity'] = 'test'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Nominal capacity must be greater than 0.')
   end
 
   def test_argument_error_capacity_lt_0
     args_hash = {}
-    args_hash["capacity"] = "-10"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Nominal capacity must be greater than 0.")
+    args_hash['capacity'] = '-10'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Nominal capacity must be greater than 0.')
   end
 
   def test_argument_error_capacity_eq_0
     args_hash = {}
-    args_hash["capacity"] = "0"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Nominal capacity must be greater than 0.")
+    args_hash['capacity'] = '0'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Nominal capacity must be greater than 0.')
   end
 
   def test_argument_error_re_lt_0
     args_hash = {}
-    args_hash["recovery_efficiency"] = -1
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Recovery efficiency must be at least 0 and at most 1.")
+    args_hash['recovery_efficiency'] = -1
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Recovery efficiency must be at least 0 and at most 1.')
   end
 
   def test_argument_error_re_gt_1
     args_hash = {}
-    args_hash["recovery_efficiency"] = 1.1
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Recovery efficiency must be at least 0 and at most 1.")
+    args_hash['recovery_efficiency'] = 1.1
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Recovery efficiency must be at least 0 and at most 1.')
   end
 
   def test_argument_error_ef_invalid_str
     args_hash = {}
-    args_hash["energy_factor"] = "test"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Rated energy factor must be greater than 0 and less than 1.")
+    args_hash['energy_factor'] = 'test'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Rated energy factor must be greater than 0 and less than 1.')
   end
 
   def test_argument_error_ef_lt_0
     args_hash = {}
-    args_hash["energy_factor"] = "-10"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Rated energy factor must be greater than 0 and less than 1.")
+    args_hash['energy_factor'] = '-10'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Rated energy factor must be greater than 0 and less than 1.')
   end
 
   def test_argument_error_ef_eq_0
     args_hash = {}
-    args_hash["energy_factor"] = "0"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Rated energy factor must be greater than 0 and less than 1.")
+    args_hash['energy_factor'] = '0'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Rated energy factor must be greater than 0 and less than 1.')
   end
 
   def test_argument_error_ef_gt_1
     args_hash = {}
-    args_hash["energy_factor"] = "1.1"
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Rated energy factor must be greater than 0 and less than 1.")
+    args_hash['energy_factor'] = '1.1'
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Rated energy factor must be greater than 0 and less than 1.')
   end
 
   def test_argument_error_oncycle_lt_0
     args_hash = {}
-    args_hash["oncyc_power"] = -1
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Forced draft fan power must be greater than 0.")
+    args_hash['oncyc_power'] = -1
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Forced draft fan power must be greater than 0.')
   end
 
   def test_argument_error_offcycle_lt_0
     args_hash = {}
-    args_hash["offcyc_power"] = -1
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Parasitic electricity power must be greater than 0.")
+    args_hash['offcyc_power'] = -1
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Parasitic electricity power must be greater than 0.')
   end
 
   def test_error_missing_geometry
     args_hash = {}
     result = _test_error(nil, args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "No building geometry has been defined.")
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'No building geometry has been defined.')
   end
 
   def test_error_missing_mains_temp
     args_hash = {}
-    result = _test_error("SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm", args_hash)
-    assert_equal(result.errors.map { |x| x.logMessage }[0], "Mains water temperature has not been set.")
+    result = _test_error('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], 'Mains water temperature has not been set.')
   end
 
   def test_single_family_attached_new_construction
     num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => num_units, "PlantLoop" => num_units, "PumpVariableSpeed" => num_units, "ScheduleConstant" => 2 * num_units }
-    expected_values = { "TankVolume" => num_units * 40, "InputCapacity" => num_units * 11.72, "ThermalEfficiency" => num_units * 0.773, "TankUA" => num_units * 7.88, "Setpoint" => num_units * 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => num_units * 0.64 }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { 'WaterHeaterMixed' => num_units, 'PlantLoop' => num_units, 'PumpVariableSpeed' => num_units, 'ScheduleConstant' => 2 * num_units }
+    expected_values = { 'TankVolume' => num_units * 40, 'InputCapacity' => num_units * 11.72, 'ThermalEfficiency' => num_units * 0.773, 'TankUA' => num_units * 7.88, 'Setpoint' => num_units * 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => num_units * 0.64 }
+    _test_measure('SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
 
   def test_single_family_attached_new_construction_living_zone
     num_units = 1
     args_hash = {}
-    args_hash["location"] = Constants.SpaceTypeLiving
+    args_hash['location'] = Constants.SpaceTypeLiving
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => num_units, "PlantLoop" => num_units, "PumpVariableSpeed" => num_units, "ScheduleConstant" => 2 * num_units }
-    expected_values = { "TankVolume" => num_units * 40, "InputCapacity" => num_units * 11.72, "ThermalEfficiency" => num_units * 0.773, "TankUA" => num_units * 7.88, "Setpoint" => num_units * 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => num_units * 0.64 }
-    _test_measure("SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { 'WaterHeaterMixed' => num_units, 'PlantLoop' => num_units, 'PumpVariableSpeed' => num_units, 'ScheduleConstant' => 2 * num_units }
+    expected_values = { 'TankVolume' => num_units * 40, 'InputCapacity' => num_units * 11.72, 'ThermalEfficiency' => num_units * 0.773, 'TankUA' => num_units * 7.88, 'Setpoint' => num_units * 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => num_units * 0.64 }
+    _test_measure('SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
 
   def test_multifamily_new_construction
     num_units = 1
     args_hash = {}
     expected_num_del_objects = {}
-    expected_num_new_objects = { "WaterHeaterMixed" => num_units, "PlantLoop" => num_units, "PumpVariableSpeed" => num_units, "ScheduleConstant" => 2 * num_units }
-    expected_values = { "TankVolume" => num_units * 40, "InputCapacity" => num_units * 11.72, "ThermalEfficiency" => num_units * 0.773, "TankUA" => num_units * 7.88, "Setpoint" => num_units * 125, "OnCycle" => 0, "OffCycle" => 0, "FuelType" => Constants.FuelTypeGas, "SkinLossFrac" => num_units * 0.64 }
-    _test_measure("MF_8units_1story_SL_3Beds_2Baths_Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
+    expected_num_new_objects = { 'WaterHeaterMixed' => num_units, 'PlantLoop' => num_units, 'PumpVariableSpeed' => num_units, 'ScheduleConstant' => 2 * num_units }
+    expected_values = { 'TankVolume' => num_units * 40, 'InputCapacity' => num_units * 11.72, 'ThermalEfficiency' => num_units * 0.773, 'TankUA' => num_units * 7.88, 'Setpoint' => num_units * 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => num_units * 0.64 }
+    _test_measure('MF_8units_1story_SL_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
 
   private
@@ -706,7 +706,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Fail'
 
     # assert that it didn't run
-    assert_equal("Fail", result.value.valueName)
+    assert_equal('Fail', result.value.valueName)
     assert(result.errors.size == 1)
 
     return result
@@ -750,7 +750,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
     assert_equal(num_infos, result.info.size)
     assert_equal(num_warnings, result.warnings.size)
     assert(result.finalCondition.is_initialized)
@@ -759,15 +759,15 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     final_objects = get_objects(model)
 
     # get new and deleted objects
-    obj_type_exclusions = ["ConnectorMixer", "ConnectorSplitter", "Node", "SetpointManagerScheduled", "ScheduleDay", "PipeAdiabatic", "ScheduleTypeLimits", "SizingPlant", "AvailabilityManagerAssignmentList"]
+    obj_type_exclusions = ['ConnectorMixer', 'ConnectorSplitter', 'Node', 'SetpointManagerScheduled', 'ScheduleDay', 'PipeAdiabatic', 'ScheduleTypeLimits', 'SizingPlant', 'AvailabilityManagerAssignmentList']
     all_new_objects = get_object_additions(initial_objects, final_objects, obj_type_exclusions)
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 
     # check we have the expected number of new/deleted objects
-    check_num_objects(all_new_objects, expected_num_new_objects, "added")
-    check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
+    check_num_objects(all_new_objects, expected_num_new_objects, 'added')
+    check_num_objects(all_del_objects, expected_num_del_objects, 'deleted')
 
-    actual_values = { "TankVolume" => 0, "InputCapacity" => 0, "ThermalEfficiency" => 0, "TankUA1" => 0, "TankUA2" => 0, "Setpoint" => 0, "OnCycle" => 0, "OffCycle" => 0, "SkinLossFrac" => 0, "StorageTankSetpoint1" => 0, "StorageTankSetpoint2" => 0 }
+    actual_values = { 'TankVolume' => 0, 'InputCapacity' => 0, 'ThermalEfficiency' => 0, 'TankUA1' => 0, 'TankUA2' => 0, 'Setpoint' => 0, 'OnCycle' => 0, 'OffCycle' => 0, 'SkinLossFrac' => 0, 'StorageTankSetpoint1' => 0, 'StorageTankSetpoint2' => 0 }
     all_new_objects.each do |obj_type, new_objects|
       new_objects.each do |new_object|
         next if not new_object.respond_to?("to_#{obj_type}")
