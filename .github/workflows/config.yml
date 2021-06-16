@@ -46,7 +46,7 @@ jobs:
         run: |
           rake integration:workflow_tests
 
-      - name: Store feature samples
+      - name: Upload feature samples
         uses: actions/upload-artifact@v2
         with:
           path: resources/buildstock.csv
@@ -78,7 +78,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
-      - name: Store base samples and results
+      - name: Upload base samples and results
         uses: actions/upload-artifact@v2
         with:
           path: test/test_samples_osw/base
@@ -121,7 +121,7 @@ jobs:
           cp -r results/results* test/test_samples_osw/results
           ruby test/compare.rb
 
-      - name: Store comparisons
+      - name: Upload comparisons
         uses: actions/upload-artifact@v2
         with:
           path: test/test_samples_osw/comparisons
@@ -135,6 +135,13 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Download feature samples
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            samples
+          name: samples
+
       - name: Download feature results
         uses: actions/download-artifact@v2
         with:
@@ -147,9 +154,9 @@ jobs:
         run: |
           branch_name="${{ github.head_ref }}"
           git pull origin $branch_name
-          cp -r samples/buildstock*.csv test/test_samples/base
+          cp -r samples/buildstock*.csv test/test_samples_osw/base
           cp -r results/results*.csv test/test_samples_osw/base
-          git add test/test_samples_osw/base_results
+          git add test/test_samples_osw/base
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"

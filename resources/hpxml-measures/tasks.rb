@@ -97,8 +97,9 @@ def create_osws
     'base-dhw-tank-coal.osw' => 'base.osw',
     'base-dhw-tank-elec-uef.osw' => 'base.osw',
     'base-dhw-tank-gas.osw' => 'base.osw',
-    'base-dhw-tank-gas-uef.osw' => 'base-dhw-tank-gas.osw',
-    'base-dhw-tank-gas-outside.osw' => 'base.osw',
+    'base-dhw-tank-gas-uef.osw' => 'base.osw',
+    # 'base-dhw-tank-gas-uef-fhr.osw' => 'base-dhw-tank-gas-uef.osw',
+    'base-dhw-tank-gas-outside.osw' => 'base-dhw-tank-gas.osw',
     'base-dhw-tank-heat-pump.osw' => 'base.osw',
     'base-dhw-tank-heat-pump-outside.osw' => 'base.osw',
     'base-dhw-tank-heat-pump-uef.osw' => 'base-dhw-tank-heat-pump.osw',
@@ -1062,23 +1063,21 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_tank_volume', '30')
     step.setArgument('water_heater_efficiency_type', 'UniformEnergyFactor')
     step.setArgument('water_heater_efficiency', 0.93)
-    step.setArgument('water_heater_first_hour_rating', 46)
+    step.setArgument('water_heater_usage_bin', HPXML::WaterHeaterUsageBinLow)
     step.setArgument('water_heater_recovery_efficiency', 0.98)
   elsif ['base-dhw-tank-gas.osw'].include? osw_file
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_tank_volume', '50')
     step.setArgument('water_heater_efficiency', 0.59)
   elsif ['base-dhw-tank-gas-uef.osw'].include? osw_file
+    step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_tank_volume', '30')
     step.setArgument('water_heater_efficiency_type', 'UniformEnergyFactor')
     step.setArgument('water_heater_efficiency', 0.59)
-    step.setArgument('water_heater_first_hour_rating', 56)
+    step.setArgument('water_heater_usage_bin', HPXML::WaterHeaterUsageBinMedium)
     step.setArgument('water_heater_recovery_efficiency', 0.75)
   elsif ['base-dhw-tank-gas-outside.osw'].include? osw_file
-    step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_location', HPXML::LocationOtherExterior)
-    step.setArgument('water_heater_tank_volume', '50')
-    step.setArgument('water_heater_efficiency', 0.59)
   elsif ['base-dhw-tank-heat-pump.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_tank_volume', '80')
@@ -1092,7 +1091,7 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_tank_volume', '50')
     step.setArgument('water_heater_efficiency_type', 'UniformEnergyFactor')
     step.setArgument('water_heater_efficiency', 3.75)
-    step.setArgument('water_heater_first_hour_rating', 60)
+    step.setArgument('water_heater_usage_bin', HPXML::WaterHeaterUsageBinMedium)
   elsif ['base-dhw-tank-heat-pump-with-solar.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_tank_volume', '80')
@@ -2680,6 +2679,7 @@ def create_hpxmls
     'base-dhw-tank-elec-uef.xml' => 'base.xml',
     'base-dhw-tank-gas.xml' => 'base.xml',
     'base-dhw-tank-gas-uef.xml' => 'base.xml',
+    'base-dhw-tank-gas-uef-fhr.xml' => 'base-dhw-tank-gas-uef.xml',
     'base-dhw-tank-gas-outside.xml' => 'base-dhw-tank-gas.xml',
     'base-dhw-tank-heat-pump.xml' => 'base.xml',
     'base-dhw-tank-heat-pump-outside.xml' => 'base-dhw-tank-heat-pump.xml',
@@ -6833,27 +6833,27 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
       hpxml.water_heating_systems[0].fuel_type = HPXML::FuelTypePropane
     end
   elsif ['base-dhw-tank-elec-uef.xml'].include? hpxml_file
-    # Based on Richmond model number 6ESB30-2 in AHR directory
     hpxml.water_heating_systems[0].energy_factor = nil
     hpxml.water_heating_systems[0].uniform_energy_factor = 0.93
-    hpxml.water_heating_systems[0].first_hour_rating = 46.0
+    hpxml.water_heating_systems[0].usage_bin = HPXML::WaterHeaterUsageBinLow
     hpxml.water_heating_systems[0].tank_volume = 30.0
     hpxml.water_heating_systems[0].heating_capacity = 15354.0 # 4.5 kW
   elsif ['base-dhw-tank-gas-uef.xml'].include? hpxml_file
-    # Based on AO Smith model number G6-MH3030NV 400 in AHRI directory
     hpxml.water_heating_systems[0].fuel_type = HPXML::FuelTypeNaturalGas
     hpxml.water_heating_systems[0].energy_factor = nil
     hpxml.water_heating_systems[0].uniform_energy_factor = 0.59
-    hpxml.water_heating_systems[0].first_hour_rating = 56.0
+    hpxml.water_heating_systems[0].usage_bin = HPXML::WaterHeaterUsageBinMedium
     hpxml.water_heating_systems[0].tank_volume = 30.0
     hpxml.water_heating_systems[0].heating_capacity = 30000.0
     hpxml.water_heating_systems[0].recovery_efficiency = 0.75
+  elsif ['base-dhw-tank-gas-uef-fhr.xml'].include? hpxml_file
+    hpxml.water_heating_systems[0].first_hour_rating = 56.0
+    hpxml.water_heating_systems[0].usage_bin = nil
   elsif ['base-dhw-tank-heat-pump-uef.xml'].include? hpxml_file
-    # Based on Rheem model number XE40T10HS45U0 from AHRI directory
     hpxml.water_heating_systems[0].water_heater_type = HPXML::WaterHeaterTypeHeatPump
     hpxml.water_heating_systems[0].energy_factor = nil
     hpxml.water_heating_systems[0].uniform_energy_factor = 3.75
-    hpxml.water_heating_systems[0].first_hour_rating = 60.0
+    hpxml.water_heating_systems[0].usage_bin = HPXML::WaterHeaterUsageBinMedium
     hpxml.water_heating_systems[0].tank_volume = 50.0
   elsif ['base-dhw-tankless-gas-uef.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].water_heater_type = HPXML::WaterHeaterTypeTankless
@@ -6962,6 +6962,8 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
     hpxml.water_heating_systems[0].recovery_efficiency = nil
     hpxml.water_heating_systems[0].energy_factor = nil
     hpxml.water_heating_systems[0].year_installed = 2009
+    hpxml.water_heating_systems[0].usage_bin = nil
+    hpxml.water_heating_systems[0].first_hour_rating = nil
   elsif ['base-bldgtype-multifamily-shared-water-heater.xml',
          'base-bldgtype-multifamily-shared-laundry-room.xml'].include? hpxml_file
     hpxml.water_heating_systems.clear

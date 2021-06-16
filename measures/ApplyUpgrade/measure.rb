@@ -303,7 +303,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Get the absolute paths relative to this meta measure in the run directory
       new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
-      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, 'upgraded.osw', true, { 'ApplyUpgrade' => runner })
+      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, nil, true, { 'ApplyUpgrade' => runner })
         return false
       end
 
@@ -381,7 +381,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Remove the existing generated_files folder alongside the run folder; if not, getExternalFile returns false for some reason
       FileUtils.rm_rf(File.expand_path('../../generated_files')) if File.exist?(File.expand_path('../../generated_files'))
 
-      if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, nil, true, { 'ApplyUpgrade' => runner })
+      if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'upgraded.osw', true, { 'ApplyUpgrade' => runner })
         new_runner.result.errors.each do |error|
           runner.registerError(error.logMessage)
         end

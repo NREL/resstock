@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>3adb65be-ec01-4635-98e1-13813ab7217f</version_id>
-  <version_modified>20210611T142339Z</version_modified>
+  <version_id>df7efc15-6ef1-4fef-b034-871a60f02f4e</version_id>
+  <version_modified>20210616T152542Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -306,7 +306,7 @@
     <argument>
       <name>geometry_orientation</name>
       <display_name>Geometry: Orientation</display_name>
-      <description>The unit's orientation is measured clockwise from north when viewed from above (e.g., North=0, East=90, South=180, West=270).</description>
+      <description>The unit's orientation is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -903,20 +903,12 @@
           <display_name>asphalt or fiberglass shingles</display_name>
         </choice>
         <choice>
-          <value>concrete</value>
-          <display_name>concrete</display_name>
-        </choice>
-        <choice>
           <value>slate or tile shingles</value>
           <display_name>slate or tile shingles</display_name>
         </choice>
         <choice>
           <value>metal surfacing</value>
           <display_name>metal surfacing</display_name>
-        </choice>
-        <choice>
-          <value>plastic/rubber/synthetic sheeting</value>
-          <display_name>plastic/rubber/synthetic sheeting</display_name>
         </choice>
         <choice>
           <value>wood shingles or shakes</value>
@@ -3241,14 +3233,30 @@
       <default_value>0.67</default_value>
     </argument>
     <argument>
-      <name>water_heater_first_hour_rating</name>
-      <display_name>Water Heater: First Hour Rating</display_name>
-      <description>Rated gallons of hot water supplied in an hour. Required if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers.</description>
-      <type>Double</type>
-      <units>gal/hr</units>
+      <name>water_heater_usage_bin</name>
+      <display_name>Water Heater: Usage Bin</display_name>
+      <description>The usage of the water heater. Required if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers.</description>
+      <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>56</default_value>
+      <choices>
+        <choice>
+          <value>very small</value>
+          <display_name>very small</display_name>
+        </choice>
+        <choice>
+          <value>low</value>
+          <display_name>low</display_name>
+        </choice>
+        <choice>
+          <value>medium</value>
+          <display_name>medium</display_name>
+        </choice>
+        <choice>
+          <value>high</value>
+          <display_name>high</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>water_heater_recovery_efficiency</name>
@@ -3579,7 +3587,7 @@
     <argument>
       <name>solar_thermal_collector_azimuth</name>
       <display_name>Solar Thermal: Collector Azimuth</display_name>
-      <description>The collector azimuth of the solar thermal system.</description>
+      <description>The collector azimuth of the solar thermal system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -3724,7 +3732,7 @@
     <argument>
       <name>pv_system_array_azimuth_1</name>
       <display_name>Photovoltaics 1: Array Azimuth</display_name>
-      <description>Array azimuth of the PV system 1.</description>
+      <description>Array azimuth of the PV system 1. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -3867,7 +3875,7 @@
     <argument>
       <name>pv_system_array_azimuth_2</name>
       <display_name>Photovoltaics 2: Array Azimuth</display_name>
-      <description>Array azimuth of the PV system 2.</description>
+      <description>Array azimuth of the PV system 2. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -7447,24 +7455,6 @@
       <checksum>F8EB2D2D</checksum>
     </file>
     <file>
-      <filename>base-dhw-tank-elec-uef.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>91364EC5</checksum>
-    </file>
-    <file>
-      <filename>base-dhw-tank-gas-uef.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>1A6A6A62</checksum>
-    </file>
-    <file>
-      <filename>base-dhw-tank-heat-pump-uef.osw</filename>
-      <filetype>osw</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9DAA166B</checksum>
-    </file>
-    <file>
       <filename>base-dhw-tankless-electric-uef.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
@@ -8167,6 +8157,24 @@
       <checksum>9625682A</checksum>
     </file>
     <file>
+      <filename>base-dhw-tank-heat-pump-uef.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C7381FBE</checksum>
+    </file>
+    <file>
+      <filename>base-dhw-tank-elec-uef.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B4FDB65C</checksum>
+    </file>
+    <file>
+      <filename>base-dhw-tank-gas-uef.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>430C8FAC</checksum>
+    </file>
+    <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
@@ -8181,7 +8189,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>C4BAADCD</checksum>
+      <checksum>FFF9A171</checksum>
     </file>
   </files>
 </measure>

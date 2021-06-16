@@ -1086,6 +1086,13 @@ class HPXMLDefaults
         water_heating_system.location = Waterheater.get_default_location(hpxml, hpxml.climate_and_risk_zones.iecc_zone)
         water_heating_system.location_isdefaulted = true
       end
+      next unless water_heating_system.usage_bin.nil? && (not water_heating_system.uniform_energy_factor.nil?) # FHR & UsageBin only applies to UEF
+      if not water_heating_system.first_hour_rating.nil?
+        water_heating_system.usage_bin = Waterheater.get_usage_bin_from_first_hour_rating(water_heating_system.first_hour_rating)
+      else
+        water_heating_system.usage_bin = HPXML::WaterHeaterUsageBinMedium
+      end
+      water_heating_system.usage_bin_isdefaulted = true
     end
   end
 
