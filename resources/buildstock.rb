@@ -89,9 +89,9 @@ class TsvFile
 
       if not rows_keys_s[key_s_downcase].nil?
         if key_s.size > 0
-          register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{key_s.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
         else
-          register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename.to_s}.", @runner)
         end
       end
 
@@ -116,9 +116,9 @@ class TsvFile
     rownum = @rows_keys_s[key_s_downcase]
     if rownum.nil?
       if key_s.size > 0
-        register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
+        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s} with dependencies: #{key_s.to_s}.", @runner)
       else
-        register_error("Multiple rows found in #{@filename.to_s}.", @runner)
+        register_error("Could not determine appropriate option in #{@filename.to_s} for sample value #{sample_value.to_s}.", @runner)
       end
     end
 
