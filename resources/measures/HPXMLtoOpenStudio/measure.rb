@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
@@ -195,7 +197,7 @@ class HPXMLTranslator < OpenStudio::Measure::ModelMeasure
     # Validate input HPXML against schema
     if not schemas_dir.nil?
       XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), runner).each do |error|
-        runner.registerError("#{hpxml_path}: #{error.to_s}")
+        runner.registerError("#{hpxml_path}: #{error}")
         is_valid = false
       end
       runner.registerInfo("#{hpxml_path}: Validated against HPXML schema.")
@@ -416,6 +418,7 @@ class OSModel
     # Basements, crawl, garage
     thermal_zones.each do |thermal_zone|
       next unless Geometry.is_finished_basement(thermal_zone) || Geometry.is_unfinished_basement(thermal_zone) || Geometry.is_crawl(thermal_zone) || Geometry.is_garage(thermal_zone)
+
       zones_updated += 1
 
       zone_volume = Geometry.get_height_of_spaces(thermal_zone.spaces) * Geometry.get_floor_area_from_spaces(thermal_zone.spaces)
@@ -433,6 +436,7 @@ class OSModel
     # Conditioned living
     thermal_zones.each do |thermal_zone|
       next unless Geometry.is_living(thermal_zone)
+
       zones_updated += 1
 
       if living_volume <= 0
@@ -445,6 +449,7 @@ class OSModel
     # Attic
     thermal_zones.each do |thermal_zone|
       next unless Geometry.is_unfinished_attic(thermal_zone)
+
       zones_updated += 1
 
       zone_surfaces = []
@@ -1118,7 +1123,8 @@ class OSModel
       end
       addtl_ffa = floor_area - ceiling_area
       next unless addtl_ffa > 0
-      runner.registerWarning("Adding finished basement adiabatic ceiling with #{addtl_ffa.to_s} ft^2.")
+
+      runner.registerWarning("Adding finished basement adiabatic ceiling with #{addtl_ffa} ft^2.")
 
       finishedfloor_width = Math::sqrt(addtl_ffa)
       finishedfloor_length = addtl_ffa / finishedfloor_width
@@ -1146,14 +1152,14 @@ class OSModel
     nstories_ag = building_construction_values[:number_of_conditioned_floors_above_grade]
 
     if model_ffa > ffa
-      runner.registerError("Sum of conditioned floor surface areas #{model_ffa.to_s} is greater than ConditionedFloorArea specified #{ffa.to_s}.")
+      runner.registerError("Sum of conditioned floor surface areas #{model_ffa} is greater than ConditionedFloorArea specified #{ffa}.")
       return false
     end
 
     addtl_ffa = ffa - model_ffa
     return true unless addtl_ffa > 0
 
-    runner.registerWarning("Adding adiabatic conditioned floor with #{addtl_ffa.to_s} ft^2 to preserve building total conditioned floor area.")
+    runner.registerWarning("Adding adiabatic conditioned floor with #{addtl_ffa} ft^2 to preserve building total conditioned floor area.")
 
     finishedfloor_width = Math::sqrt(addtl_ffa)
     finishedfloor_length = addtl_ffa / finishedfloor_width
@@ -3316,7 +3322,7 @@ class OSModel
     else
       objects.each do |object|
         if vars[object.class.to_s].nil?
-          fail "Unexpected object type #{object.class.to_s}."
+          fail "Unexpected object type #{object.class}."
         end
 
         vars[object.class.to_s].each do |object_var|
@@ -3729,7 +3735,7 @@ class OSModel
     end
 
     if (assembly_r - constr_r).abs > 0.01
-      fail "Construction R-value (#{constr_r}) does not match Assembly R-value (#{assembly_r}) for '#{surface.name.to_s}'."
+      fail "Construction R-value (#{constr_r}) does not match Assembly R-value (#{assembly_r}) for '#{surface.name}'."
     end
   end
 

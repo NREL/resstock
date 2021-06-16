@@ -1,4 +1,4 @@
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+# frozen_string_literal: true
 
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
@@ -445,6 +445,7 @@ class ResidentialClothesDryerTest < MiniTest::Test
               break
             end
             next if cd_time.nil?
+
             model.getScheduleRulesets.each do |cw_sch|
               next unless cw_sch.name.to_s.include? Constants.ObjectNameClothesWasher
 

@@ -1,4 +1,4 @@
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+# frozen_string_literal: true
 
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
@@ -275,6 +275,7 @@ class ProcessRoomAirConditionerTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'CoilCoolingDXSingleSpeed'
+
         if new_object.ratedCOP.is_initialized
           assert_in_epsilon(expected_values['COP'], new_object.ratedCOP.get, 0.01)
         end

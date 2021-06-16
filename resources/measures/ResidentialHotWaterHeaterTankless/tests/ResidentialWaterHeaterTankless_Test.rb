@@ -1,4 +1,4 @@
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+# frozen_string_literal: true
 
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
@@ -329,6 +329,7 @@ class ResidentialHotWaterHeaterTanklessTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless (obj_type == 'WaterHeaterMixed') || (obj_type == 'WaterHeaterStratified')
+
         actual_values['TankVolume'] += UnitConversions.convert(new_object.tankVolume.get, 'm^3', 'gal')
         actual_values['InputCapacity'] += UnitConversions.convert(new_object.heaterMaximumCapacity.get, 'W', 'kW')
         actual_values['ThermalEfficiency'] += new_object.heaterThermalEfficiency.get

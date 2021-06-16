@@ -1,4 +1,4 @@
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+# frozen_string_literal: true
 
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
@@ -553,6 +553,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
 
       final_object = final_object.public_send("to_#{obj_type}").get
       next unless obj_type == 'WaterUseEquipment'
+
       schedule_file = final_object.flowRateFractionSchedule.get.to_ScheduleFile.get
       sch_path = schedule_file.externalFile.filePath.to_s
       schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)

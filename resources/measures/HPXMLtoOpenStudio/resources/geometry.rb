@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 require_relative 'util'
@@ -844,6 +846,7 @@ class Geometry
           fv2 = floor_vertices[fidx - 1]
           # Wall within floor edge?
           next unless is_point_between([wv1.x, wv1.y, wv1.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z]) && is_point_between([wv2.x, wv2.y, wv2.z], [fv1.x, fv1.y, fv1.z], [fv2.x, fv2.y, fv2.z])
+
           if not adjacent_wall_surfaces.include? wall_surface
             adjacent_wall_surfaces << wall_surface
           end
@@ -971,6 +974,7 @@ class Geometry
     if is_pier_beam(space_or_zone) || is_crawl(space_or_zone) || is_finished_basement(space_or_zone) || is_unfinished_basement(space_or_zone)
       return true
     end
+
     return false
   end
 
@@ -1456,14 +1460,14 @@ class Geometry
       unit.additionalProperties.setFeature(Constants.BuildingUnitFeatureNumBathrooms, num_ba[unit_index])
 
       if units.size > 1
-        runner.registerInfo("Unit '#{unit_index}' has been assigned #{num_br[unit_index].to_s} bedroom(s) and #{num_ba[unit_index].round(2).to_s} bathroom(s).")
+        runner.registerInfo("Unit '#{unit_index}' has been assigned #{num_br[unit_index]} bedroom(s) and #{num_ba[unit_index].round(2)} bathroom(s).")
       end
 
       total_num_br += num_br[unit_index]
       total_num_ba += num_ba[unit_index]
     end
 
-    runner.registerInfo("The building has been assigned #{total_num_br.to_s} bedroom(s) and #{total_num_ba.round(2).to_s} bathroom(s) across #{units.size} unit(s).")
+    runner.registerInfo("The building has been assigned #{total_num_br} bedroom(s) and #{total_num_ba.round(2)} bathroom(s) across #{units.size} unit(s).")
     return true
   end
 
@@ -1570,7 +1574,7 @@ class Geometry
         spaces = bedroom_ffa_spaces
       end
       spaces.each do |space|
-        space_obj_name = "#{Constants.ObjectNameOccupants(unit.name.to_s)}|#{space.name.to_s}"
+        space_obj_name = "#{Constants.ObjectNameOccupants(unit.name.to_s)}|#{space.name}"
 
         # Remove any existing people
         objects_to_remove = []
@@ -1585,7 +1589,7 @@ class Geometry
           end
         end
         if objects_to_remove.size > 0
-          runner.registerInfo("Removed existing people from space '#{space.name.to_s}'.")
+          runner.registerInfo("Removed existing people from space '#{space.name}'.")
         end
         objects_to_remove.uniq.each do |object|
           begin
@@ -1628,7 +1632,7 @@ class Geometry
 
         total_num_occ += space_num_occ
 
-        runner.registerInfo("#{unit.name.to_s} has been assigned #{space_num_occ.round(2)} occupant(s) for space '#{space.name}'.")
+        runner.registerInfo("#{unit.name} has been assigned #{space_num_occ.round(2)} occupant(s) for space '#{space.name}'.")
       end
     end
 

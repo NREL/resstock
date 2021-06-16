@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Add classes or functions here than can be used across a variety of our python classes and modules.
 require_relative 'constants'
 require_relative 'util'
@@ -828,7 +830,7 @@ class Waterheater
         end
       end
       if objects_to_remove.size > 0
-        runner.registerInfo("Removed existing water heater from plant loop '#{pl.name.to_s}'.")
+        runner.registerInfo("Removed existing water heater from plant loop '#{pl.name}'.")
       end
       objects_to_remove.uniq.each do |object|
         begin

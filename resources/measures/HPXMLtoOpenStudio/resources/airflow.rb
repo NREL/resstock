@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 require_relative 'schedules'
@@ -270,6 +272,7 @@ class Airflow
           pcm.name.to_s.start_with?(obj_name_infil) ||
           pcm.name.to_s.start_with?(obj_name_ducts) ||
           pcm.name.to_s.start_with?(obj_name_mech_vent))
+
       pcm.remove
     end
 
@@ -278,6 +281,7 @@ class Airflow
           sensor.name.to_s.start_with?(obj_name_natvent_underscore) ||
           sensor.name.to_s.start_with?(obj_name_infil_underscore) ||
           sensor.name.to_s.start_with?(obj_name_ducts_underscore))
+
       sensor.remove
     end
 
@@ -286,6 +290,7 @@ class Airflow
           actuator.name.to_s.start_with?(obj_name_natvent_underscore) ||
           actuator.name.to_s.start_with?(obj_name_infil_underscore) ||
           actuator.name.to_s.start_with?(obj_name_ducts_underscore))
+
       actuatedComponent = actuator.actuatedComponent
       if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
         actuatedComponent = actuatedComponent.get
@@ -306,6 +311,7 @@ class Airflow
           program.name.to_s.start_with?(obj_name_infil_underscore) ||
           program.name.to_s.start_with?(obj_name_ducts_underscore) ||
           program.name.to_s.start_with?(obj_name_mechvent_underscore))
+
       program.remove
     end
 
@@ -314,6 +320,7 @@ class Airflow
           subroutine.name.to_s.start_with?(obj_name_natvent_underscore) ||
           subroutine.name.to_s.start_with?(obj_name_infil_underscore) ||
           subroutine.name.to_s.start_with?(obj_name_ducts_underscore))
+
       subroutine.remove
     end
 
@@ -323,6 +330,7 @@ class Airflow
           ems_global_var.name.to_s.start_with?(obj_name_infil_underscore) ||
           ems_global_var.name.to_s.start_with?(obj_name_ducts_underscore) ||
           ems_global_var.name.to_s.start_with?(obj_name_mechvent_underscore))
+
       ems_global_var.remove
     end
 
@@ -332,6 +340,7 @@ class Airflow
           ems_internal_var.name.to_s.start_with?(obj_name_infil_underscore) ||
           ems_internal_var.name.to_s.start_with?(obj_name_ducts_underscore) ||
           ems_internal_var.name.to_s.start_with?(obj_name_mechvent_underscore))
+
       ems_internal_var.remove
     end
 
@@ -905,7 +914,7 @@ class Airflow
     end
 
     if (not has_dryer) && (mech_vent.dryer_exhaust > 0)
-      runner.registerWarning("No clothes dryer object was found in #{unit.name.to_s} but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
+      runner.registerWarning("No clothes dryer object was found in #{unit.name} but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
     end
 
     n_whole_baths = nbaths.to_i.to_f # round down to nearest integer
@@ -2115,7 +2124,7 @@ class Airflow
         infil_program.addLine("Set Cs = #{(infil_output.stack_coef * (UnitConversions.convert(1.0, 'inH2O/R', 'Pa/K')**infil_output.n_i)).round(4)}")
         infil_program.addLine("Set Cw = #{(infil_output.wind_coef * (UnitConversions.convert(1.0, 'inH2O/mph^2', 'Pa*s^2/m^2')**infil_output.n_i)).round(4)}")
         infil_program.addLine("Set n = #{infil_output.n_i}")
-        infil_program.addLine("Set sft = (f_t*#{(((wind_speed.S_wo * (1.0 - infil_output.y_i)) + (infil_output.s_wflue * (1.5 * infil_output.y_i))))})")
+        infil_program.addLine("Set sft = (f_t*#{(wind_speed.S_wo * (1.0 - infil_output.y_i)) + (infil_output.s_wflue * (1.5 * infil_output.y_i))})")
         infil_program.addLine("Set temp1 = ((c*Cw)*((sft*#{vwind_sensor.name})^(2*n)))^2")
         infil_program.addLine('Set Qn = (((c*Cs*(dT^n))^2)+temp1)^0.5')
       else

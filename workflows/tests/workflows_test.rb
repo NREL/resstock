@@ -1,4 +1,4 @@
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+# frozen_string_literal: true
 
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'

@@ -1,4 +1,4 @@
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+# frozen_string_literal: true
 
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
@@ -370,6 +370,7 @@ class ProcessBoilerTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'BoilerHotWater'
+
         assert_in_epsilon(expected_values['Efficiency'], new_object.nominalThermalEfficiency, 0.01)
         assert_equal(HelperMethods.eplus_fuel_map(expected_values['FuelType']), new_object.fuelType)
         if new_object.nominalCapacity.is_initialized

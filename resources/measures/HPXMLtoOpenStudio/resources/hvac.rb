@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'geometry'
 require_relative 'util'
@@ -2728,6 +2730,7 @@ class HVAC
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       next unless thermostat_setpoint.is_initialized
+
       thermostat_setpoint = thermostat_setpoint.get
       thermostat_setpoint.additionalProperties.setFeature('htg_wkdy', "#{htg_wkdy_monthly[0].join(',')}")
       thermostat_setpoint.additionalProperties.setFeature('htg_wked', "#{htg_wked_monthly[0].join(',')}")
@@ -2891,6 +2894,7 @@ class HVAC
     finished_zones.each do |finished_zone|
       thermostat_setpoint = finished_zone.thermostatSetpointDualSetpoint
       next unless thermostat_setpoint.is_initialized
+
       thermostat_setpoint = thermostat_setpoint.get
       thermostat_setpoint.additionalProperties.setFeature('htg_wkdy', "#{htg_wkdy_monthly[0].join(',')}")
       thermostat_setpoint.additionalProperties.setFeature('htg_wked', "#{htg_wked_monthly[0].join(',')}")
@@ -3017,6 +3021,7 @@ class HVAC
     season = []
     model.getScheduleRulesets.each do |sch|
       next unless sch.name.to_s == sch_name
+
       sch.scheduleRules.each do |rule|
         ix = rule.startDate.get.monthOfYear.value.to_i - 1
         season[ix] = rule.daySchedule.values[0]
@@ -3272,6 +3277,7 @@ class HVAC
           end
         end
         next unless weekday_or_weekend_rule(rule).include? 'weekend'
+
         clg_wked_monthly[month].each_with_index do |value, hour|
           new_value = UnitConversions.convert(UnitConversions.convert(value, 'C', 'F') + cooling_setpoint_offset, 'F', 'C')
           rule.daySchedule.addValue(OpenStudio::Time.new(0, hour + 1, 0, 0), UnitConversions.convert(UnitConversions.convert(value, 'C', 'F') + cooling_setpoint_offset, 'F', 'C'))
@@ -3376,7 +3382,7 @@ class HVAC
     unit.spaces.each do |space|
       next if Geometry.space_is_unfinished(space)
 
-      space_obj_name = "#{obj_name} benchmark|#{space.name.to_s}"
+      space_obj_name = "#{obj_name} benchmark|#{space.name}"
 
       next unless (mel_ann > 0) && use_benchmark_energy
 
@@ -3451,7 +3457,7 @@ class HVAC
         equip.electricEquipmentDefinition.remove
       end
 
-      space_obj_name = "#{obj_name} benchmark|#{space.name.to_s}"
+      space_obj_name = "#{obj_name} benchmark|#{space.name}"
 
       space.electricEquipment.each do |equip|
         next unless equip.name.to_s == space_obj_name

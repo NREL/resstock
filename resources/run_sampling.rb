@@ -1,4 +1,4 @@
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+# frozen_string_literal: true
 
 # Performs sampling technique and generates CSV file with parameter options for each building.
 
@@ -21,7 +21,7 @@ class RunSampling
       lookup_file = File.join(resources_dir, 'options_lookup.tsv')
     end
 
-    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
     params = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data)
 
@@ -159,7 +159,7 @@ class RunSampling
     rownum = tsvfile.rows_keys_s[key_s_downcase]
 
     if rownum.nil?
-      register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash.to_s}.", nil)
+      register_error("Could not find row in #{tsvfile.filename} with dependency values: #{dep_hash}.", nil)
     end
 
     return tsvfile.rows[rownum]

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -111,7 +113,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     check_file_exists(lookup_file, runner)
     check_file_exists(buildstock_csv, runner)
 
-    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
     # Retrieve all data associated with sample number
     bldg_data = get_data_for_sample(buildstock_csv, building_id, runner)

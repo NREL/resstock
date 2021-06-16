@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # TODO: Need to handle vacations
 require_relative 'unit_conversions'
 require 'csv'
@@ -55,7 +57,7 @@ class HourlyByMonthSchedule
   private
 
   def validateValues(vals, num_outter_values, num_inner_values)
-    err_msg = "A #{num_outter_values.to_s}-element array with #{num_inner_values.to_s}-element arrays of numbers must be entered for the schedule."
+    err_msg = "A #{num_outter_values}-element array with #{num_inner_values}-element arrays of numbers must be entered for the schedule."
     if not vals.is_a?(Array)
       @runner.registerError(err_msg)
       @validated = false
@@ -74,6 +76,7 @@ class HourlyByMonthSchedule
           return nil
         end
         next unless val.length != num_inner_values
+
         @runner.registerError(err_msg)
         @validated = false
         return nil
@@ -249,7 +252,7 @@ class MonthWeekdayWeekendSchedule
   private
 
   def validateValues(values, num_values, sch_name)
-    err_msg = "A comma-separated string of #{num_values.to_s} numbers must be entered for the #{sch_name} schedule."
+    err_msg = "A comma-separated string of #{num_values} numbers must be entered for the #{sch_name} schedule."
     if values.is_a?(Array)
       if values.length != num_values
         @runner.registerError(err_msg)
@@ -258,6 +261,7 @@ class MonthWeekdayWeekendSchedule
       end
       values.each do |val|
         next unless not valid_float?(val)
+
         @runner.registerError(err_msg)
         @validated = false
         return nil
@@ -268,6 +272,7 @@ class MonthWeekdayWeekendSchedule
         vals = values.split(',')
         vals.each do |val|
           next unless not valid_float?(val)
+
           @runner.registerError(err_msg)
           @validated = false
           return nil

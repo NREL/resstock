@@ -1,4 +1,4 @@
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
+# frozen_string_literal: true
 
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
@@ -342,6 +342,7 @@ class ProcessDehumidifierTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'ZoneHVACDehumidifierDX'
+
         assert_in_epsilon(expected_values['water_removal_rate'], new_object.ratedWaterRemoval, 0.01)
         assert_in_epsilon(expected_values['energy_factor'], new_object.ratedEnergyFactor, 0.01)
         assert_in_epsilon(expected_values['air_flow_rate'], new_object.ratedAirFlowRate, 0.01)
