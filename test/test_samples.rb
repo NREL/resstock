@@ -126,8 +126,8 @@ class IntegrationWorkflowTest < MiniTest::Test
 
         change_building_id(osw, building_id)
         finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, File.join(@top_dir, worker_folder))
-        result_characteristics['OSW'] = "#{project_dir}-#{building_id}.osw"
-        result_output['OSW'] = "#{project_dir}-#{building_id}.osw"
+        result_characteristics['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
+        result_output['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
 
         check_finished_job(result_characteristics, finished_job)
         check_finished_job(result_output, finished_job)
