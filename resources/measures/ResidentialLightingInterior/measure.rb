@@ -271,7 +271,7 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
         # Efficiency lighting adjustments
         int_adj = (hw_inc * eff_ratio_inc) + (hw_fl * eff_ratio_fl) + (hw_led * eff_ratio_led)
         # Calculate energy use
-        interior_ann = mult*(0.9 / 0.925 * (455.0 + 0.8 * ffa) * int_adj) + (0.1 * (455.0 + 0.8 * ffa))
+        interior_ann = mult * ((0.9 / 0.925 * (455.0 + 0.8 * ffa) * int_adj) + (0.1 * (455.0 + 0.8 * ffa)))
       end
 
       success, sch = Lighting.apply_interior(model, unit, runner, weather, sch, interior_ann, schedules_file)
