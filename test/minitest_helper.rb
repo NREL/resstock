@@ -50,7 +50,7 @@ def get_objects(model)
   objects = []
   model.modelObjects.each do |obj|
     obj_type = get_model_object_type(obj)
-    if ['AdditionalProperties', 'YearDescription'].include? obj_type
+    if ['AdditionalProperties', 'YearDescription', 'WaterHeaterSizing'].include? obj_type
       next # Remove this eventually?
     end
 
