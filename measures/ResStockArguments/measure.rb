@@ -491,7 +491,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Calculate exposed wall area ratio for the unit (unit exposed wall area
       # divided by average unit exposed wall area)
-      if (n_units_per_floor == 1) || (n_units_per_floor == 2) || ((n_units_per_floor == 4) && has_rear_units) # No middle unit(s)
+      if (n_units_per_floor <= 2) || (n_units_per_floor == 4 && has_rear_units) # No middle unit(s)
         exposed_wall_area_ratio = 1.0 # all units have same exterior wall area
       else # Has middle unit(s)
         if has_rear_units
