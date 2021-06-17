@@ -1,41 +1,8 @@
-# schema_version: 0.2
-# stock_type: residential
-# buildstock_directory: ../../resstock  # Relative to this file or absolute path to resstock repo
-# project_directory: project_national  # Project, inside buildstock, to use for this run
-# output_directory: /projects/resilience/test_houston_2010
-# #weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-# weather_files_path: resilience_weather/houston_2010.zip  # Relative to this file or absolute path to zipped weather files
-# baseline:
-#   n_datapoints: 500
-#   n_buildings_represented: 133172057
-#   sampling_algorithm: quota # The default resstock sampling algorithm - use precomputed if using the precomputed_sample option
-#   measures:
-#     - measure_dir_name: PowerOutage
-#       arguments:
-#         otg_date: January 1
-#         otg_hr: 6
-#         otg_len: 306
-#         comfort_model_1: Pierce
-# reporting_measures:
-#   - ResilienceMetricsReport
-
-# timeseries_csv_export:
-#   output_variables:
-#     Site Outdoor Air Drybulb Temperature, Zone Mean Air Temperature, Zone Air Relative Humidity, Zone Thermal Comfort Pierce Model Standard Effective Temperature
-#   reporting_frequency: Hourly
-#   include_enduse_subcategories: true
-# downselect:
-#   resample: false
-#   logic:
-#     - Geometry Building Type ACS|Single-Family Detached
-#     - Vacancy Status|Occupied
-#     - County|TX, Harris County
 schema_version: '0.3'
-buildstock_directory: /home/nmoore/github/resstock  # Relative to this file or absolute path to resstock repo
-project_directory: project_national  # Project, inside buildstock, to use for this run
+buildstock_directory: /home/nmoore/github/resstock
+project_directory: project_national
 output_directory: /projects/resilience/test_houston_2010
-# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-weather_files_path: resilience_weather/houston_2010.zip  # Relative to this file or absolute path to zipped weather files
+weather_files_path: resilience_weather/houston_2010.zip
 
 eagle:
   n_jobs: 1
