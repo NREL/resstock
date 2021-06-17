@@ -476,16 +476,16 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
+        if (n_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
+          has_rear_units = true
+        elsif (n_units_per_floor == 2) && (horiz_location == 'None') # double-loaded corridor for 2 units/story
+          has_rear_units = true
+        else
+          has_rear_units = false
+        end
       elsif args['geometry_unit_type'] == HPXML::ResidentialTypeSFA
         n_floors = 1.0
         n_units_per_floor = n_units
-      end
-
-      if (n_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
-        has_rear_units = true
-      elsif (n_units_per_floor == 2) && (horiz_location == 'None') # double-loaded corridor for 2 units/story
-        has_rear_units = true
-      else
         has_rear_units = false
       end
 
@@ -502,7 +502,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         else
           n_end_units = 2 * n_floors
           n_mid_units = n_units - n_end_units
-          n_bldg_fronts_backs = n_end_units * 2 + n_mid_units
+          n_bldg_fronts_backs = n_end_units * 2 + n_mid_units * 2
           n_bldg_sides = n_end_units
         end
         if has_rear_units
