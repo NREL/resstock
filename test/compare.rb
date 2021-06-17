@@ -6,12 +6,14 @@ base = 'base'
 feature = 'feature'
 folder = 'comparisons' # comparison csv files will be exported to this folder
 files = Dir[File.join(Dir.getwd, 'test/test_samples_osw/base/results*.csv')].map { |x| File.basename(x) }
+files = files.sort # characteristics first to store building type map
 
 dir = File.join(Dir.getwd, "test/test_samples_osw/#{folder}")
 unless Dir.exist?(dir)
   Dir.mkdir(dir)
 end
 
+btype_hash = {}
 files.each do |file|
   results = { base => {}, feature => {} }
 
@@ -212,24 +214,35 @@ files.each do |file|
     end
   end
 
+  # write building type hash
+  if file.include? 'characteristics'
+    btype_name_hash = { 'Single-Family Detached' => 'SFD',
+      'Mobile Home' => 'SFD',
+      'Single-Family Attached' => 'SFA',
+      'Multi-Family with 5+ Units' => 'MF',
+      'Multi-Family with 2 - 4 Units' => 'MF' }
+
+    btype_hash = {}
+    hpxmls.sort.each do |hpxml|
+      btype_hash[hpxml] = btype_name_hash[results[base][hpxml]['build_existing_model.geometry_building_type_recs'][0]]
+    end
+  end
+  
+
   # write aggregated results
   agg_cols = []
   agg_cols = rows[0].select { |x| ['simulation_output_report', 'upgrade_costs'].include? x.split('.')[0] }
   rows = [['enduse', 'building type', 'base', 'feature', 'diff', 'percent diff']]
   btypes = ['SFD', 'SFA', 'MF']
-  btype_hash = { 'Single-Family Detached' => 'SFD',
-                 'Mobile Home' => 'SFD',
-                 'Single-Family Attached' => 'SFA',
-                 'Multi-Family with 5+ Units' => 'MF',
-                 'Multi-Family with 2 - 4 Units' => 'MF' }
-
+  
   agg_cols.each do |col|
     row_sum = { 'SFD' => [0, 0], 'SFA' => [0, 0], 'MF' => [0, 0] }
     base_field, feature_field = nil, nil
 
     # aggregate all osws
     hpxmls.sort.each do |hpxml|
-      btype = btype_hash[results[base][hpxml]['build_existing_model.geometry_building_type_recs'][0]]
+      btype = btype_hash[hpxml]
+      # btype = btype_hash[results[base][hpxml]['build_existing_model.geometry_building_type_recs'][0]]
       base_field = results[base][hpxml][col]
       feature_field = results[feature][hpxml][col]
 
