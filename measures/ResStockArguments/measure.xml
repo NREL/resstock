@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>38e059ac-b054-48a8-896b-07d199937db8</version_id>
-  <version_modified>20210529T003943Z</version_modified>
+  <version_id>e3da5a14-dfc8-4af2-a264-2909995f7898</version_id>
+  <version_modified>20210617T171218Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -272,7 +272,7 @@
     <argument>
       <name>geometry_orientation</name>
       <display_name>Geometry: Orientation</display_name>
-      <description>The unit's orientation is measured clockwise from due south when viewed from above (e.g., North=0, East=90, South=180, West=270).</description>
+      <description>The unit's orientation is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -860,20 +860,12 @@
           <display_name>asphalt or fiberglass shingles</display_name>
         </choice>
         <choice>
-          <value>concrete</value>
-          <display_name>concrete</display_name>
-        </choice>
-        <choice>
           <value>slate or tile shingles</value>
           <display_name>slate or tile shingles</display_name>
         </choice>
         <choice>
           <value>metal surfacing</value>
           <display_name>metal surfacing</display_name>
-        </choice>
-        <choice>
-          <value>plastic/rubber/synthetic sheeting</value>
-          <display_name>plastic/rubber/synthetic sheeting</display_name>
         </choice>
         <choice>
           <value>wood shingles or shakes</value>
@@ -3113,14 +3105,30 @@
       <default_value>0.67</default_value>
     </argument>
     <argument>
-      <name>water_heater_first_hour_rating</name>
-      <display_name>Water Heater: First Hour Rating</display_name>
-      <description>Rated gallons of hot water supplied in an hour. Required if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers.</description>
-      <type>Double</type>
-      <units>gal/hr</units>
+      <name>water_heater_usage_bin</name>
+      <display_name>Water Heater: Usage Bin</display_name>
+      <description>The usage of the water heater. Required if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers.</description>
+      <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>56</default_value>
+      <choices>
+        <choice>
+          <value>very small</value>
+          <display_name>very small</display_name>
+        </choice>
+        <choice>
+          <value>low</value>
+          <display_name>low</display_name>
+        </choice>
+        <choice>
+          <value>medium</value>
+          <display_name>medium</display_name>
+        </choice>
+        <choice>
+          <value>high</value>
+          <display_name>high</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>water_heater_recovery_efficiency</name>
@@ -3451,7 +3459,7 @@
     <argument>
       <name>solar_thermal_collector_azimuth</name>
       <display_name>Solar Thermal: Collector Azimuth</display_name>
-      <description>The collector azimuth of the solar thermal system.</description>
+      <description>The collector azimuth of the solar thermal system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -3596,7 +3604,7 @@
     <argument>
       <name>pv_system_array_azimuth_1</name>
       <display_name>Photovoltaics 1: Array Azimuth</display_name>
-      <description>Array azimuth of the PV system 1.</description>
+      <description>Array azimuth of the PV system 1. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -3739,7 +3747,7 @@
     <argument>
       <name>pv_system_array_azimuth_2</name>
       <display_name>Photovoltaics 2: Array Azimuth</display_name>
-      <description>Array azimuth of the PV system 2.</description>
+      <description>Array azimuth of the PV system 2. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -5715,7 +5723,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>40BE0CF4</checksum>
+      <checksum>F5C4FD13</checksum>
     </file>
   </files>
 </measure>
