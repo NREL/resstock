@@ -235,35 +235,9 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Fractions hardwired vs plugin
-    frac_hw = 0.8
-    frac_pg = 0.2
-
-    bab_frac_inc = 0.66
-    bab_frac_cfl = 0.34
-    bab_frac_led = 0.00
-    bab_frac_lfl = 0.00
-
     # Incandescent fractions
     hw_inc = 1 - hw_cfl - hw_led - hw_lfl
     pg_inc = 1 - pg_cfl - pg_led - pg_lfl
-
-    # Efficacy ratios
-    bab_inc_ef = 15.0
-    bab_cfl_ef = 55.0
-    bab_led_ef = 80.0
-    bab_lfl_ef = 88.0
-    er_cfl = bab_inc_ef / cfl_eff
-    er_led = bab_inc_ef / led_eff
-    er_lfl = bab_inc_ef / lfl_eff
-    er_inc = bab_inc_ef / in_eff
-    bab_er_cfl = bab_inc_ef / bab_cfl_ef
-    bab_er_led = bab_inc_ef / bab_led_ef
-    bab_er_lfl = bab_inc_ef / bab_lfl_ef
-    bab_er_inc = bab_inc_ef / bab_inc_ef
-
-    # Smart Replacement Factor
-    smrt_replace_f = (0.1672 * hw_inc**4 - 0.4817 * hw_inc**3 + 0.6336 * hw_inc**2 - 0.492 * hw_inc + 1.1561)
 
     Lighting.remove_interior(model, runner)
 
@@ -286,11 +260,18 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
       if option_type == Constants.OptionTypeLightingEnergyUses
         interior_ann = energy_use_interior
       elsif option_type == Constants.OptionTypeLightingFractions
-        bm_hw_e = mult * frac_hw * (ffa * 0.542 + 334)
-        bm_pg_e = mult * frac_pg * (ffa * 0.542 + 334)
-        int_hw_e = (bm_hw_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
-        int_pg_e = (bm_pg_e * (((pg_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (pg_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (pg_led * er_led - bab_frac_led * bab_er_led) + (pg_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
-        interior_ann = int_hw_e + int_pg_e
+        hw_fl = hw_cfl + hw_lfl
+        fl_eff = cfl_eff
+    
+        # Efficacy ratios
+        eff_ratio_inc = in_eff / in_eff
+        eff_ratio_fl = in_eff / fl_eff
+        eff_ratio_led = in_eff / led_eff
+        
+        # Efficiency lighting adjustments
+        int_adj = (hw_inc * eff_ratio_inc) + (hw_fl * eff_ratio_fl) + (hw_led * eff_ratio_led)
+        # Calculate energy use
+        interior_ann = mult*(0.9 / 0.925 * (455.0 + 0.8 * ffa) * int_adj) + (0.1 * (455.0 + 0.8 * ffa))
       end
 
       success, sch = Lighting.apply_interior(model, unit, runner, weather, sch, interior_ann, schedules_file)
