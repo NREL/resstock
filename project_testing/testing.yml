@@ -1,34 +1,38 @@
-schema_version: 0.2
-stock_type: residential
+schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
 project_directory: project_testing # Relative to buildstock_directory
-output_directory: /scratch/<username>/outputs/project_testing
-weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+output_directory: outputs
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 5
+    logic:
+      - not: Lighting|None
+    resample: false
+
+workflow_generator:
+  type: residential_default
+  args:
+    residential_simulation_controls:
+      timesteps_per_hr: 1
+      begin_month: 1
+      begin_day_of_month: 1
+      end_month: 12
+      end_day_of_month: 31
+      calendar_year: 2007
+
+    simulation_output:
+      include_enduse_subcategories: true
+
+    timeseries_csv_export:
+      reporting_frequency: Hourly
+      include_enduse_subcategories: true
 
 baseline:
-  n_datapoints: 100
   n_buildings_represented: 80000000
-  sampling_algorithm: quota
-
-residential_simulation_controls:
-  timesteps_per_hr: 6
-  begin_month: 1
-  begin_day_of_month: 1
-  end_month: 12
-  end_day_of_month: 31
-  calendar_year: 2007
-
-simulation_output:
-  include_enduse_subcategories: true
-
-timeseries_csv_export:
-  reporting_frequency: Hourly
-  include_enduse_subcategories: true
-
-downselect:
-  resample: false
-  logic:
-    - not: Lighting|None
 
 upgrades:
   - upgrade_name: Triple-Pane Windows
@@ -38,6 +42,7 @@ upgrades:
           - value: 45.77
             multiplier: Window Area (ft^2)
         lifetime: 30
+
   - upgrade_name: R-13 Wall Insulation
     options:
       - option: Insulation Wall|Wood Stud, R-13

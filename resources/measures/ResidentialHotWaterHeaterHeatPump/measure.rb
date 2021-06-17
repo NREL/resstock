@@ -1,21 +1,21 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "waterheater")
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "unit_conversions")
+require File.join(resources_path, 'waterheater')
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'unit_conversions')
 
 # start the measure
 class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Heat Pump Water Heater"
+    return 'Set Residential Heat Pump Water Heater'
   end
 
   def description
@@ -35,18 +35,18 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make an argument for the storage tank volume
-    storage_tank_volume = osargument::makeDoubleArgument("storage_tank_volume", true)
-    storage_tank_volume.setDisplayName("Tank Volume")
-    storage_tank_volume.setDescription("Nominal volume of the of the water heater tank.")
-    storage_tank_volume.setUnits("gal")
+    storage_tank_volume = osargument::makeDoubleArgument('storage_tank_volume', true)
+    storage_tank_volume.setDisplayName('Tank Volume')
+    storage_tank_volume.setDescription('Nominal volume of the of the water heater tank.')
+    storage_tank_volume.setUnits('gal')
     storage_tank_volume.setDefaultValue(50)
     args << storage_tank_volume
 
     # make an argument for hot water setpoint temperature
-    dhw_setpoint = osargument::makeDoubleArgument("setpoint_temp", true)
-    dhw_setpoint.setDisplayName("Setpoint")
-    dhw_setpoint.setDescription("Water heater setpoint temperature.")
-    dhw_setpoint.setUnits("F")
+    dhw_setpoint = osargument::makeDoubleArgument('setpoint_temp', true)
+    dhw_setpoint.setDisplayName('Setpoint')
+    dhw_setpoint.setDescription('Water heater setpoint temperature.')
+    dhw_setpoint.setUnits('F')
     dhw_setpoint.setDefaultValue(125)
     args << dhw_setpoint
 
@@ -56,102 +56,102 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
       location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true, true)
-    location.setDisplayName("Location")
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument('location', location_args, true, true)
+    location.setDisplayName('Location')
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)
     args << location
 
     # make an argument for element_capacity
-    element_capacity = osargument::makeDoubleArgument("element_capacity", true)
-    element_capacity.setDisplayName("Input Capacity")
-    element_capacity.setDescription("The capacity of the backup electric resistance elements in the tank.")
-    element_capacity.setUnits("kW")
+    element_capacity = osargument::makeDoubleArgument('element_capacity', true)
+    element_capacity.setDisplayName('Input Capacity')
+    element_capacity.setDescription('The capacity of the backup electric resistance elements in the tank.')
+    element_capacity.setUnits('kW')
     element_capacity.setDefaultValue(4.5)
     args << element_capacity
 
     # make an argument for min_temp
-    min_temp = osargument::makeDoubleArgument("min_temp", true)
-    min_temp.setDisplayName("Minimum Abient Temperature")
-    min_temp.setDescription("The minimum ambient air temperature at which the heat pump compressor will operate.")
-    min_temp.setUnits("F")
+    min_temp = osargument::makeDoubleArgument('min_temp', true)
+    min_temp.setDisplayName('Minimum Abient Temperature')
+    min_temp.setDescription('The minimum ambient air temperature at which the heat pump compressor will operate.')
+    min_temp.setUnits('F')
     min_temp.setDefaultValue(45)
     args << min_temp
 
     # make an argument for max_temp
-    max_temp = osargument::makeDoubleArgument("max_temp", true)
-    max_temp.setDisplayName("Maximum Ambient Temperature")
-    max_temp.setDescription("The maximum ambient air temperature at which the heat pump compressor will operate.")
-    max_temp.setUnits("F")
+    max_temp = osargument::makeDoubleArgument('max_temp', true)
+    max_temp.setDisplayName('Maximum Ambient Temperature')
+    max_temp.setDescription('The maximum ambient air temperature at which the heat pump compressor will operate.')
+    max_temp.setUnits('F')
     max_temp.setDefaultValue(120)
     args << max_temp
 
     # make an argument for cap
-    cap = osargument::makeDoubleArgument("cap", true)
-    cap.setDisplayName("Rated Capacity")
-    cap.setDescription("The input power of the HPWH compressor at rated conditions.")
-    cap.setUnits("kW")
+    cap = osargument::makeDoubleArgument('cap', true)
+    cap.setDisplayName('Rated Capacity')
+    cap.setDescription('The input power of the HPWH compressor at rated conditions.')
+    cap.setUnits('kW')
     cap.setDefaultValue(0.5)
     args << cap
 
     # make an argument for cop
-    cop = osargument::makeDoubleArgument("cop", true)
-    cop.setDisplayName("Rated COP")
-    cop.setDescription("The coefficient of performance of the HPWH compressor at rated conditions.")
+    cop = osargument::makeDoubleArgument('cop', true)
+    cop.setDisplayName('Rated COP')
+    cop.setDescription('The coefficient of performance of the HPWH compressor at rated conditions.')
     cop.setDefaultValue(2.8)
     args << cop
 
     # make an argument for shr
-    shr = osargument::makeDoubleArgument("shr", true)
-    shr.setDisplayName("Rated SHR")
+    shr = osargument::makeDoubleArgument('shr', true)
+    shr.setDisplayName('Rated SHR')
     shr.setDescription("The sensible heat ratio of the HPWH's evaporator at rated conditions. This is the net SHR of the evaporator and includes the effects of fan heat.")
     shr.setDefaultValue(0.88)
     args << shr
 
     # make an argument for airflow_rate
-    airflow_rate = osargument::makeDoubleArgument("airflow_rate", true)
-    airflow_rate.setDisplayName("Airflow Rate")
-    airflow_rate.setDescription("Air flow rate of the HPWH.")
-    airflow_rate.setUnits("cfm")
+    airflow_rate = osargument::makeDoubleArgument('airflow_rate', true)
+    airflow_rate.setDisplayName('Airflow Rate')
+    airflow_rate.setDescription('Air flow rate of the HPWH.')
+    airflow_rate.setUnits('cfm')
     airflow_rate.setDefaultValue(181)
     args << airflow_rate
 
     # make an argument for fan_power
-    fan_power = osargument::makeDoubleArgument("fan_power", true)
-    fan_power.setDisplayName("Fan Power")
-    fan_power.setDescription("Fan power (in W) per delivered airflow rate (in cfm).")
-    fan_power.setUnits("W/cfm")
+    fan_power = osargument::makeDoubleArgument('fan_power', true)
+    fan_power.setDisplayName('Fan Power')
+    fan_power.setDescription('Fan power (in W) per delivered airflow rate (in cfm).')
+    fan_power.setUnits('W/cfm')
     fan_power.setDefaultValue(0.0462)
     args << fan_power
 
     # make an argument for parasitics
-    parasitics = osargument::makeDoubleArgument("parasitics", true)
-    parasitics.setDisplayName("Parasitics")
-    parasitics.setDescription("Parasitic electricity consumption of the HPWH.")
-    parasitics.setUnits("W")
+    parasitics = osargument::makeDoubleArgument('parasitics', true)
+    parasitics.setDisplayName('Parasitics')
+    parasitics.setDescription('Parasitic electricity consumption of the HPWH.')
+    parasitics.setUnits('W')
     parasitics.setDefaultValue(3)
     args << parasitics
 
     # make an argument for tank_ua
-    tank_ua = osargument::makeDoubleArgument("tank_ua", true)
-    tank_ua.setDisplayName("Tank UA")
-    tank_ua.setDescription("The overall UA of the tank.")
-    tank_ua.setUnits("Btu/h-R")
+    tank_ua = osargument::makeDoubleArgument('tank_ua', true)
+    tank_ua.setDisplayName('Tank UA')
+    tank_ua.setDescription('The overall UA of the tank.')
+    tank_ua.setUnits('Btu/h-R')
     tank_ua.setDefaultValue(3.9)
     args << tank_ua
 
     # make an argument for int_factor
-    int_factor = osargument::makeDoubleArgument("int_factor", true)
-    int_factor.setDisplayName("Interaction Factor")
+    int_factor = osargument::makeDoubleArgument('int_factor', true)
+    int_factor.setDisplayName('Interaction Factor')
     int_factor.setDescription("Specifies how much the HPWH space conditioning impact interacts with the building's HVAC equipment. This can be used to account for situations such as when a HPWH is in a closet and only a portion of the HPWH's space cooling affects the HVAC system.")
     int_factor.setDefaultValue(1.0)
     args << int_factor
 
     # make an argument for temp_depress
-    temp_depress = osargument::makeDoubleArgument("temp_depress", true)
-    temp_depress.setDisplayName("Temperature Depression")
-    temp_depress.setDescription("The reduction in ambient air temperature in the space where the water heater is located. This variable can be used to simulate the impact the HPWH has on its own performance when installing in a confined space suc as a utility closet.")
-    temp_depress.setUnits("F")
+    temp_depress = osargument::makeDoubleArgument('temp_depress', true)
+    temp_depress.setDisplayName('Temperature Depression')
+    temp_depress.setDescription('The reduction in ambient air temperature in the space where the water heater is located. This variable can be used to simulate the impact the HPWH has on its own performance when installing in a confined space suc as a utility closet.')
+    temp_depress.setUnits('F')
     temp_depress.setDefaultValue(0)
     args << temp_depress
 
@@ -176,23 +176,23 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     super(model, runner, user_arguments)
 
     # Assign user inputs to variables
-    e_cap = runner.getDoubleArgumentValue("element_capacity", user_arguments)
-    vol = runner.getDoubleArgumentValue("storage_tank_volume", user_arguments)
-    location = runner.getStringArgumentValue("location", user_arguments)
-    t_set = runner.getDoubleArgumentValue("setpoint_temp", user_arguments).to_f
-    min_temp = runner.getDoubleArgumentValue("min_temp", user_arguments).to_f
-    max_temp = runner.getDoubleArgumentValue("max_temp", user_arguments).to_f
-    cap = runner.getDoubleArgumentValue("cap", user_arguments).to_f
-    cop = runner.getDoubleArgumentValue("cop", user_arguments).to_f
-    shr = runner.getDoubleArgumentValue("shr", user_arguments).to_f
-    airflow_rate = runner.getDoubleArgumentValue("airflow_rate", user_arguments).to_f
-    fan_power = runner.getDoubleArgumentValue("fan_power", user_arguments).to_f
-    parasitics = runner.getDoubleArgumentValue("parasitics", user_arguments).to_f
-    tank_ua = runner.getDoubleArgumentValue("tank_ua", user_arguments).to_f
-    int_factor = runner.getDoubleArgumentValue("int_factor", user_arguments).to_f
-    temp_depress = runner.getDoubleArgumentValue("temp_depress", user_arguments).to_f
+    e_cap = runner.getDoubleArgumentValue('element_capacity', user_arguments)
+    vol = runner.getDoubleArgumentValue('storage_tank_volume', user_arguments)
+    location = runner.getStringArgumentValue('location', user_arguments)
+    t_set = runner.getDoubleArgumentValue('setpoint_temp', user_arguments).to_f
+    min_temp = runner.getDoubleArgumentValue('min_temp', user_arguments).to_f
+    max_temp = runner.getDoubleArgumentValue('max_temp', user_arguments).to_f
+    cap = runner.getDoubleArgumentValue('cap', user_arguments).to_f
+    cop = runner.getDoubleArgumentValue('cop', user_arguments).to_f
+    shr = runner.getDoubleArgumentValue('shr', user_arguments).to_f
+    airflow_rate = runner.getDoubleArgumentValue('airflow_rate', user_arguments).to_f
+    fan_power = runner.getDoubleArgumentValue('fan_power', user_arguments).to_f
+    parasitics = runner.getDoubleArgumentValue('parasitics', user_arguments).to_f
+    tank_ua = runner.getDoubleArgumentValue('tank_ua', user_arguments).to_f
+    int_factor = runner.getDoubleArgumentValue('int_factor', user_arguments).to_f
+    temp_depress = runner.getDoubleArgumentValue('temp_depress', user_arguments).to_f
     # ducting = runner.getStringArgumentValue("ducting",user_arguments)
-    ducting = "none"
+    ducting = 'none'
 
     # Validate inputs
     if not runner.validateUserArguments(arguments(model), user_arguments)
@@ -207,7 +207,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
 
     # Check if mains temperature has been set
     if !model.getSite.siteWaterMainsTemperature.is_initialized
-      runner.registerError("Mains water temperature has not been set.")
+      runner.registerError('Mains water temperature has not been set.')
       return false
     end
 
