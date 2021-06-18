@@ -3603,10 +3603,10 @@ class HPXMLFile
       next if surface == adjacent_surface
       next if adjacent_surface.surfaceType != adjacentSurfaceType
       next if adjacent_surface.outsideBoundaryCondition != 'Adiabatic'
-      next if Geometry.getSurfaceXValues([surface]) != Geometry.getSurfaceXValues([adjacent_surface])
-      next if Geometry.getSurfaceYValues([surface]) != Geometry.getSurfaceYValues([adjacent_surface])
-      next if Geometry.getSurfaceZValues([surface]) != Geometry.getSurfaceZValues([adjacent_surface])
-
+      next if Geometry.getSurfaceXValues([surface]).sort != Geometry.getSurfaceXValues([adjacent_surface]).sort
+      next if Geometry.getSurfaceYValues([surface]).sort != Geometry.getSurfaceYValues([adjacent_surface]).sort
+      next if Geometry.getSurfaceZValues([surface]).sort != Geometry.getSurfaceZValues([adjacent_surface]).sort
+      
       return adjacent_surface
     end
     return
