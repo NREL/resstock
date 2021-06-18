@@ -200,6 +200,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
   def test_fourplex_finished_hip_roof
     num_finished_spaces = 2
     args_hash = {}
+    args_hash['num_floors'] = 2
     args_hash['num_units'] = 4
     args_hash['attic_type'] = 'finished attic'
     args_hash['roof_type'] = Constants.RoofTypeHip
@@ -213,6 +214,7 @@ class CreateResidentialSingleFamilyAttachedGeometryTest < MiniTest::Test
   def test_fourplex_finished_hip_roof_with_rear_units
     num_finished_spaces = 2
     args_hash = {}
+    args_hash['num_floors'] = 2
     args_hash['num_units'] = 4
     args_hash['has_rear_units'] = 'true'
     args_hash['attic_type'] = 'finished attic'

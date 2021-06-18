@@ -258,6 +258,9 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     foundation_type = runner.getStringArgumentValue('foundation_type', user_arguments)
     foundation_height = runner.getDoubleArgumentValue('foundation_height', user_arguments)
     attic_type = runner.getStringArgumentValue('attic_type', user_arguments)
+    if attic_type == 'finished attic'
+      num_floors -= 1
+    end
     roof_type = runner.getStringArgumentValue('roof_type', user_arguments)
     roof_pitch = { '1:12' => 1.0 / 12.0, '2:12' => 2.0 / 12.0, '3:12' => 3.0 / 12.0, '4:12' => 4.0 / 12.0, '5:12' => 5.0 / 12.0, '6:12' => 6.0 / 12.0, '7:12' => 7.0 / 12.0, '8:12' => 8.0 / 12.0, '9:12' => 9.0 / 12.0, '10:12' => 10.0 / 12.0, '11:12' => 11.0 / 12.0, '12:12' => 12.0 / 12.0 }[runner.getStringArgumentValue('roof_pitch', user_arguments)]
     roof_structure = runner.getStringArgumentValue('roof_structure', user_arguments)
