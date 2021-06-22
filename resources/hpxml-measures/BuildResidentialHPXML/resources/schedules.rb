@@ -858,23 +858,18 @@ class ScheduleGenerator
 
   def set_vacancy(args:)
     if args[:schedules_vacancy_begin_month].is_initialized && args[:schedules_vacancy_begin_day_of_month].is_initialized && args[:schedules_vacancy_end_month].is_initialized && args[:schedules_vacancy_end_day_of_month].is_initialized
-      begin
-        vacancy_start_date = Time.new(@sim_year, args[:schedules_vacancy_begin_month].get, args[:schedules_vacancy_begin_day_of_month].get)
-        vacancy_end_date = Time.new(@sim_year, args[:schedules_vacancy_end_month].get, args[:schedules_vacancy_end_day_of_month].get, 24)
+      start_day_num = Schedule.get_day_num_from_month_day(@model, args[:schedules_vacancy_begin_month].get, args[:schedules_vacancy_begin_day_of_month].get)
+      end_day_num = Schedule.get_day_num_from_month_day(@model, args[:schedules_vacancy_end_month].get, args[:schedules_vacancy_end_day_of_month].get)
+      num_steps_per_day = @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour * 24
 
-        sec_per_step = @minutes_per_step * 60.0
-        ts = Time.new(@sim_year, 'Jan', 1)
-        @schedules['vacancy'].each_with_index do |step, i|
-          if vacancy_start_date <= ts && ts <= vacancy_end_date # in the vacancy period
-            @schedules['vacancy'][i] = 1.0
-          end
-          ts += sec_per_step
-        end
-
-        @runner.registerInfo("Set vacancy period from #{vacancy_start_date} to #{vacancy_end_date}.")
-      rescue
-        @runner.registerError('Invalid vacancy date(s) specified.')
+      vacancy = Array.new(@schedules['vacancy'].length, 0)
+      if end_day_num >= start_day_num
+        vacancy.fill(1.0, (start_day_num - 1) * num_steps_per_day, (end_day_num - start_day_num + 1) * num_steps_per_day) # Fill between start/end days
+      else # Wrap around year
+        vacancy.fill(1.0, (start_day_num - 1) * num_steps_per_day) # Fill between start day and end of year
+        vacancy.fill(1.0, 0, end_day_num * num_steps_per_day) # Fill between start of year and end day
       end
+      @schedules['vacancy'] = vacancy
     else
       @runner.registerInfo('No vacancy period set.')
     end

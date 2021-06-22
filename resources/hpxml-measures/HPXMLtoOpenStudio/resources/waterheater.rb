@@ -761,13 +761,13 @@ class Waterheater
       cop = 1.174536058 * uef # Based on simulation of the UEF test procedure at varying COPs
     elsif not water_heating_system.uniform_energy_factor.nil?
       uef = water_heating_system.uniform_energy_factor
-      if water_heating_system.first_hour_rating < 18.0
-        fail 'It is unlikely that a heat pump water heater falls into the very small bin of the First Hour Rating (FHR) test. Double check FHR input.'
-      elsif water_heating_system.first_hour_rating < 51.0 # Includes 18 gal up to (but not including) 51
+      if water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinVerySmall
+        fail 'It is unlikely that a heat pump water heater falls into the very small bin of the First Hour Rating (FHR) test. Double check input.'
+      elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinLow
         cop = 1.0005 * uef - 0.0789
-      elsif water_heating_system.first_hour_rating < 75.0
+      elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinMedium
         cop = 1.0909 * uef - 0.0868
-      else
+      elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinHigh
         cop = 1.1022 * uef - 0.0877
       end
     end
@@ -853,7 +853,7 @@ class Waterheater
 
   def self.setup_hpwh_fan(hpwh, obj_name_hpwh, airflow_rate)
     fan_power = 0.0462 # W/cfm, Based on 1st gen AO Smith HPWH, could be updated but pretty minor impact
-    fan = hpwh.fan.to_FanOnOff.get
+    fan = hpwh.fan.to_FanOnOff.get # TOOD: Update reporting measure if this changes to FanSystemModel per https://github.com/NREL/OpenStudio/issues/4334
     fan.setName("#{obj_name_hpwh} fan")
     fan.setFanEfficiency(65.0 / fan_power * UnitConversions.convert(1.0, 'ft^3/min', 'm^3/s'))
     fan.setPressureRise(65.0)
@@ -1462,13 +1462,13 @@ class Waterheater
         volume_drawn = 64.3 # gal/day
       elsif not water_heating_system.uniform_energy_factor.nil?
         t = 125.0 # F
-        if water_heating_system.first_hour_rating < 18.0
+        if water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinVerySmall
           volume_drawn = 10.0 # gal
-        elsif water_heating_system.first_hour_rating < 51.0 # Includes 18 gal up to (but not including) 51
+        elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinLow
           volume_drawn = 38.0 # gal
-        elsif water_heating_system.first_hour_rating < 75.0
+        elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinMedium
           volume_drawn = 55.0 # gal
-        else
+        elsif water_heating_system.usage_bin == HPXML::WaterHeaterUsageBinHigh
           volume_drawn = 84.0 # gal
         end
       end
@@ -1728,5 +1728,41 @@ class Waterheater
       solar_fraction = solar_thermal_system.solar_fraction
     end
     return solar_fraction.to_f
+  end
+
+  def self.get_default_water_heater_efficiency_by_year_installed(year, fuel_type)
+    fuel_primary_id = { EPlus::FuelTypeElectricity => 'electric',
+                        EPlus::FuelTypeNaturalGas => 'natural_gas',
+                        EPlus::FuelTypeOil => 'fuel_oil',
+                        EPlus::FuelTypeCoal => 'fuel_oil', # assumption
+                        EPlus::FuelTypeWoodCord => 'fuel_oil', # assumption
+                        EPlus::FuelTypeWoodPellets => 'fuel_oil', # assumption
+                        EPlus::FuelTypePropane => 'lpg' }[EPlus.fuel_type(fuel_type)]
+
+    value = nil
+    lookup_year = 0
+    CSV.foreach(File.join(File.dirname(__FILE__), 'lu_water_heater_efficiency.csv'), headers: true) do |row|
+      next unless row['fuel_primary_id'] == fuel_primary_id
+
+      row_year = Integer(row['year'])
+      if (row_year - year).abs <= (lookup_year - year).abs
+        lookup_year = row_year
+        value = Float(row['value'])
+      end
+    end
+
+    return value
+  end
+
+  def self.get_usage_bin_from_first_hour_rating(fhr)
+    if fhr < 18.0
+      return HPXML::WaterHeaterUsageBinVerySmall
+    elsif fhr < 51.0
+      return HPXML::WaterHeaterUsageBinLow
+    elsif fhr < 75.0
+      return HPXML::WaterHeaterUsageBinMedium
+    else
+      return HPXML::WaterHeaterUsageBinHigh
+    end
   end
 end
