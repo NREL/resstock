@@ -51,7 +51,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     num_floors = OpenStudio::Measure::OSArgument::makeIntegerArgument('num_floors', true)
     num_floors.setDisplayName('Building Num Floors')
     num_floors.setUnits('#')
-    num_floors.setDescription('The number of floors above grade.')
+    num_floors.setDescription('The number of floors above grade. Finished attics are included.')
     num_floors.setDefaultValue(1)
     args << num_floors
 
