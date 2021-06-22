@@ -2404,7 +2404,7 @@ class HVACSizing
         hvac.COOL_SH_CURVE_SPEC = hpxml_hvac_ap.cool_sh_curve_spec
       end
       if hpxml_hvac_ap.respond_to? :heat_cap_curve_spec
-        hvac.HEAT_CAP_CURVE_SPEC = hpxml_hvac_ap.cool_cap_curve_spec
+        hvac.HEAT_CAP_CURVE_SPEC = hpxml_hvac_ap.heat_cap_curve_spec
       end
 
       # WLHP

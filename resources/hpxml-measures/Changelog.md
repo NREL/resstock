@@ -12,6 +12,7 @@ __New Features__
 - Revises shared mechanical ventilation preconditioning control logic to operate less often.
 - Allows defaulting of HVAC/DHW system efficiency (by age).
 - Allows defaulting of mechanical ventilation fan power (by type).
+- Allows defaulting of color (solar absorptance) for walls, roofs, and rim joists.
 - Allows CEER (Combined Energy Efficiency Ratio) efficiency unit for room AC.
 - Allows "none" for wall/rim joist siding.
 - Allows interior finish inputs (e.g., 0.5" drywall) for walls, ceilings, and roofs.
