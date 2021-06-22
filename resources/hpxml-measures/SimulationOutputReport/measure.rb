@@ -1014,8 +1014,19 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     all_outputs.each do |outputs|
       outputs.each do |key, obj|
         output_name = get_runner_output_name(obj)
-        runner.registerValue(output_name, obj.annual_output.round(2))
-        runner.registerInfo("Registering #{obj.annual_output.round(2)} for #{output_name}.")
+        output_val = obj.annual_output.round(2)
+        runner.registerValue(output_name, output_val)
+        runner.registerInfo("Registering #{output_val} for #{output_name}.")
+        next unless key == FT::Elec && obj.is_a?(Fuel)
+
+        # Also add Net Electricity
+        elec_total = @fuels[FT::Elec]
+        elec_pv_produced = @end_uses[[FT::Elec, EUT::PV]]
+        elec_generator_produced = @end_uses[[FT::Elec, EUT::Generator]]
+        output_name = 'Fuel Use: Electricity: Net (MBtu)'
+        output_val = (elec_total.annual_output + elec_pv_produced.annual_output + elec_generator_produced.annual_output).round(2)
+        runner.registerValue(output_name, output_val)
+        runner.registerInfo("Registering #{output_val} for #{output_name}.")
       end
     end
     @component_loads.each do |load_type, load|

@@ -28,6 +28,7 @@ class HPXMLDefaults
     apply_slabs(hpxml)
     apply_windows(hpxml)
     apply_skylights(hpxml)
+    apply_doors(hpxml)
     apply_hvac(hpxml, weather, convert_shared_systems)
     apply_hvac_control(hpxml)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
@@ -47,6 +48,42 @@ class HPXMLDefaults
 
     # Do HVAC sizing after all other defaults have been applied
     apply_hvac_sizing(hpxml, weather, cfa, nbeds)
+  end
+
+  def self.get_default_azimuths(hpxml)
+    def self.sanitize_azimuth(azimuth)
+      # Ensure 0 <= orientation < 360
+      while azimuth < 0
+        azimuth += 360
+      end
+      while azimuth >= 360
+        azimuth -= 360
+      end
+      return azimuth
+    end
+
+    # Returns a list of four azimuths (facing each direction). Determined based
+    # on the primary azimuth, as defined by the azimuth with the largest surface
+    # area, plus azimuths that are offset by 90/180/270 degrees. Used for
+    # surfaces that may not have an azimuth defined (e.g., walls).
+    azimuth_areas = {}
+    (hpxml.roofs + hpxml.rim_joists + hpxml.walls + hpxml.foundation_walls +
+     hpxml.windows + hpxml.skylights + hpxml.doors).each do |surface|
+      az = surface.azimuth
+      next if az.nil?
+
+      azimuth_areas[az] = 0 if azimuth_areas[az].nil?
+      azimuth_areas[az] += surface.area
+    end
+    if azimuth_areas.empty?
+      primary_azimuth = 0
+    else
+      primary_azimuth = azimuth_areas.max_by { |k, v| v }[0]
+    end
+    return [primary_azimuth,
+            sanitize_azimuth(primary_azimuth + 90),
+            sanitize_azimuth(primary_azimuth + 180),
+            sanitize_azimuth(primary_azimuth + 270)].sort
   end
 
   private
@@ -491,6 +528,20 @@ class HPXMLDefaults
       if skylight.exterior_shading_factor_winter.nil?
         skylight.exterior_shading_factor_winter = 1.0
         skylight.exterior_shading_factor_winter_isdefaulted = true
+      end
+    end
+  end
+
+  def self.apply_doors(hpxml)
+    hpxml.doors.each do |door|
+      next unless door.azimuth.nil?
+
+      if (not door.wall.nil?) && (not door.wall.azimuth.nil?)
+        door.azimuth = door.wall.azimuth
+      else
+        primary_azimuth = get_default_azimuths(hpxml)[0]
+        door.azimuth = primary_azimuth
+        door.azimuth_isdefaulted = true
       end
     end
   end
