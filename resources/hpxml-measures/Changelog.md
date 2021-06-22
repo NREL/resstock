@@ -12,10 +12,17 @@ __New Features__
 - Revises shared mechanical ventilation preconditioning control logic to operate less often.
 - Allows defaulting of HVAC/DHW system efficiency (by age).
 - Allows defaulting of mechanical ventilation fan power (by type).
+- Allows defaulting of color (solar absorptance) for walls, roofs, and rim joists.
 - Allows CEER (Combined Energy Efficiency Ratio) efficiency unit for room AC.
+- Allows "none" for wall/rim joist siding.
+- Allows interior finish inputs (e.g., 0.5" drywall) for walls, ceilings, and roofs.
+- For water heaters w/ UEF, allows `UsageBin` instead of `FirstHourRating` (or defaults if neither provided).
+- Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
+- Switches to the EnergyPlus Fan:SystemModel object for all HVAC systems.
 
 __Bugfixes__
 - Improves ground reflectance when there is shading of windows/skylights.
+- Fixes heating fan power for single-stage systems that have different heating/cooling airflow rates.
 
 ## OpenStudio-HPXML v1.2.0
 

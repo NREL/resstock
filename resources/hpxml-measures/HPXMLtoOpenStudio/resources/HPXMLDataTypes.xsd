@@ -1143,37 +1143,7 @@
 			</xs:extension>
 		</xs:simpleContent>
 	</xs:complexType>
-	<xs:simpleType name="InteriorAdjacentTo_simple">
-		<xs:restriction base="xs:string">
-			<xs:enumeration value="attic"/>
-			<xs:enumeration value="attic - conditioned"/>
-			<xs:enumeration value="attic - unconditioned"/>
-			<xs:enumeration value="attic - unvented"/>
-			<xs:enumeration value="attic - vented"/>
-			<xs:enumeration value="basement"/>
-			<xs:enumeration value="basement - conditioned"/>
-			<xs:enumeration value="basement - unconditioned"/>
-			<xs:enumeration value="crawlspace"/>
-			<xs:enumeration value="crawlspace - conditioned"/>
-			<xs:enumeration value="crawlspace - unconditioned"/>
-			<xs:enumeration value="crawlspace - unvented"/>
-			<xs:enumeration value="crawlspace - vented"/>
-			<xs:enumeration value="garage"/>
-			<xs:enumeration value="garage - conditioned"/>
-			<xs:enumeration value="garage - unconditioned"/>
-			<xs:enumeration value="living space"/>
-			<xs:enumeration value="other"/>
-			<xs:enumeration value="unconditioned space"/>
-		</xs:restriction>
-	</xs:simpleType>
-	<xs:complexType name="InteriorAdjacentTo">
-		<xs:simpleContent>
-			<xs:extension base="InteriorAdjacentTo_simple">
-				<xs:attribute name="dataSource" type="DataSource"/>
-			</xs:extension>
-		</xs:simpleContent>
-	</xs:complexType>
-	<xs:simpleType name="ExteriorAdjacentTo_simple">
+	<xs:simpleType name="AdjacentTo_simple">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="attic"/>
 			<xs:enumeration value="attic - conditioned"/>
@@ -1192,6 +1162,7 @@
 			<xs:enumeration value="garage - conditioned"/>
 			<xs:enumeration value="garage - unconditioned"/>
 			<xs:enumeration value="ground"/>
+			<xs:enumeration value="living space"/>
 			<xs:enumeration value="other"/>
 			<xs:enumeration value="other heated space"/>
 			<xs:enumeration value="other housing unit"/>
@@ -1203,12 +1174,12 @@
 			<xs:enumeration value="unconditioned space"/>
 		</xs:restriction>
 	</xs:simpleType>
-	<xs:complexType name="ExteriorAdjacentTo">
+	<xs:complexType name="AdjacentTo">
 		<xs:annotation>
 			<xs:documentation>DEPRECATION WARNING: Choices "other housing unit above" and "other housing unit below" will be deprecated in the future. Use Ceiling vs FrameFloor to describe whether "other housing unit" is above or below the given surface.</xs:documentation>
 		</xs:annotation>
 		<xs:simpleContent>
-			<xs:extension base="ExteriorAdjacentTo_simple">
+			<xs:extension base="AdjacentTo_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
@@ -4326,6 +4297,21 @@
 	<xs:complexType name="MinutesPerDay">
 		<xs:simpleContent>
 			<xs:extension base="MinutesPerDay_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="UsageBin_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="very small"/>
+			<xs:enumeration value="low"/>
+			<xs:enumeration value="medium"/>
+			<xs:enumeration value="high"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="UsageBin">
+		<xs:simpleContent>
+			<xs:extension base="UsageBin_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

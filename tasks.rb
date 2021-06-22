@@ -20,8 +20,8 @@ def generate_example_osws(data_hash, include_args, osw_filename, simplify = true
 
   workflowJSON = OpenStudio::WorkflowJSON.new
   workflowJSON.setOswPath(osw_path)
-  workflowJSON.addMeasurePath('../measures')
-  workflowJSON.addMeasurePath('../resources/hpxml-measures')
+  workflowJSON.addMeasurePath('../../measures')
+  workflowJSON.addMeasurePath('../../resources/hpxml-measures')
 
   steps = OpenStudio::WorkflowStepVector.new
 

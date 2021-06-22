@@ -46,7 +46,7 @@ jobs:
         run: |
           rake integration:workflow_tests
 
-      - name: Store feature samples
+      - name: Upload feature samples
         uses: actions/upload-artifact@v2
         with:
           path: resources/buildstock.csv
@@ -84,7 +84,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
-      - name: Store base samples and results
+      - name: Upload base samples and results
         uses: actions/upload-artifact@v2
         with:
           path: test/test_samples_osw/base
@@ -127,7 +127,7 @@ jobs:
           cp -r results/results* test/test_samples_osw/results
           ruby test/compare.rb
 
-      - name: Store comparisons
+      - name: Upload comparisons
         uses: actions/upload-artifact@v2
         with:
           path: test/test_samples_osw/comparisons

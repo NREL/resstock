@@ -466,7 +466,8 @@ class RunOSWs
     system(command)
     finished_job = File.join(parent_dir, 'run/finished.job')
 
-    result = {}
+    result_characteristics = {}
+    result_output = {}
     rows = {}
 
     results = File.join(parent_dir, 'run/results.json')
@@ -480,11 +481,11 @@ class RunOSWs
       end
     end
 
-    result = get_measure_results(rows, result, 'BuildExistingModel')
-    result = get_measure_results(rows, result, 'ApplyUpgrade')
-    result = get_measure_results(rows, result, 'SimulationOutputReport')
-    result = get_measure_results(rows, result, 'UpgradeCosts')
-    return finished_job, result
+    result_characteristics = get_measure_results(rows, result_characteristics, 'BuildExistingModel')
+    result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
+    result_output = get_measure_results(rows, result_output, 'SimulationOutputReport')
+    result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
+    return finished_job, result_characteristics, result_output
   end
 
   def self.get_measure_results(rows, result, measure)
@@ -495,35 +496,34 @@ class RunOSWs
     return result
   end
 
-  def self.write_summary_results(results_dir, results, filename = 'results.csv')
-    Dir.mkdir(results_dir)
+  def self.write_summary_results(results_dir, filename, results)
+    if not File.exist?(results_dir)
+      Dir.mkdir(results_dir)
+    end
     csv_out = File.join(results_dir, filename)
 
     column_headers = []
     results.each do |result|
-      result.keys.each do |column_header|
-        unless column_headers.include?(column_header)
-          column_headers << column_header
-        end
+      result.keys.each do |col|
+        next if col == 'building_id'
+
+        column_headers << col unless column_headers.include?(col)
       end
     end
     column_headers = column_headers.sort
 
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
-      results.each do |result|
+      results.sort_by { |h| h['OSW'] }.each do |result|
         csv_row = []
         column_headers.each do |column_header|
-          if result.keys.include?(column_header)
-            csv_row << result[column_header]
-          else
-            csv_row << ''
-          end
+          csv_row << result[column_header]
         end
         csv << csv_row
       end
     end
 
+    puts "\nWrote: #{csv_out}\n"
     return csv_out
   end
 

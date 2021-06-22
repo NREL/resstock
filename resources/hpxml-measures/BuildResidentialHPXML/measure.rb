@@ -225,7 +225,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_orientation', true)
     arg.setDisplayName('Geometry: Orientation')
     arg.setUnits('degrees')
-    arg.setDescription("The unit's orientation is measured clockwise from due south when viewed from above (e.g., North=0, East=90, South=180, West=270).")
+    arg.setDescription("The unit's orientation is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).")
     arg.setDefaultValue(180.0)
     args << arg
 
@@ -565,10 +565,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     roof_material_type_choices = OpenStudio::StringVector.new
     roof_material_type_choices << HPXML::RoofTypeAsphaltShingles
-    roof_material_type_choices << HPXML::RoofTypeConcrete
     roof_material_type_choices << HPXML::RoofTypeClayTile
     roof_material_type_choices << HPXML::RoofTypeMetal
-    roof_material_type_choices << HPXML::RoofTypePlasticRubber
     roof_material_type_choices << HPXML::RoofTypeWoodShingles
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_material_type', roof_material_type_choices, false)
@@ -1221,36 +1219,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility', false)
-    arg.setDisplayName('Heat Pump: Demand Flexibility')
-    arg.setDescription('Use AirLoopHVACUnitaryHeatPumpAirToAir with VariableSpeed coils.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility_modulating', false)
-    arg.setDisplayName('Heat Pump: Demand Flexibility Modulating')
-    arg.setDescription('')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility_dual_source', false)
-    arg.setDisplayName('Heat Pump: Demand Flexibility Dual-Source')
-    arg.setDescription('')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility_ihp_grid_ac', false)
-    arg.setDisplayName('Heat Pump: Demand Flexibility Integrated Heat Pump Modulating')
-    arg.setDescription('')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility_ihp_ice_storage', false)
-    arg.setDisplayName('Heat Pump: Demand Flexibility Integrated Heat Pump Modulating w/ Ice Storage')
-    arg.setDescription('')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility_ihp_pcm_storage', false)
-    arg.setDisplayName('Heat Pump: Demand Flexibility Integrated Heat Pump Modulating w/ Pcm Storage')
-    arg.setDescription('')
-    args << arg
-
     heating_system_type_2_choices = OpenStudio::StringVector.new
     heating_system_type_2_choices << 'none'
     heating_system_type_2_choices << HPXML::HVACTypeWallFurnace
@@ -1755,6 +1723,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     water_heater_efficiency_type_choices << 'EnergyFactor'
     water_heater_efficiency_type_choices << 'UniformEnergyFactor'
 
+    water_heater_usage_bin_choices = OpenStudio::StringVector.new
+    water_heater_usage_bin_choices << HPXML::WaterHeaterUsageBinVerySmall
+    water_heater_usage_bin_choices << HPXML::WaterHeaterUsageBinLow
+    water_heater_usage_bin_choices << HPXML::WaterHeaterUsageBinMedium
+    water_heater_usage_bin_choices << HPXML::WaterHeaterUsageBinHigh
+
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_type', water_heater_type_choices, true)
     arg.setDisplayName('Water Heater: Type')
     arg.setDescription("The type of water heater. Use 'none' if there is no water heater.")
@@ -1792,11 +1766,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.67)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('water_heater_first_hour_rating', false)
-    arg.setDisplayName('Water Heater: First Hour Rating')
-    arg.setDescription("Rated gallons of hot water supplied in an hour. Required if Efficiency Type is UniformEnergyFactor and Type is not #{HPXML::WaterHeaterTypeTankless}. Does not apply to space-heating boilers.")
-    arg.setUnits('gal/hr')
-    arg.setDefaultValue(56.0)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_usage_bin', water_heater_usage_bin_choices, false)
+    arg.setDisplayName('Water Heater: Usage Bin')
+    arg.setDescription("The usage of the water heater. Required if Efficiency Type is UniformEnergyFactor and Type is not #{HPXML::WaterHeaterTypeTankless}. Does not apply to space-heating boilers.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('water_heater_recovery_efficiency', true)
@@ -1975,7 +1947,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('solar_thermal_collector_azimuth', true)
     arg.setDisplayName('Solar Thermal: Collector Azimuth')
     arg.setUnits('degrees')
-    arg.setDescription('The collector azimuth of the solar thermal system.')
+    arg.setDescription('The collector azimuth of the solar thermal system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).')
     arg.setDefaultValue(180)
     args << arg
 
@@ -2054,7 +2026,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_array_azimuth_1', true)
     arg.setDisplayName('Photovoltaics 1: Array Azimuth')
     arg.setUnits('degrees')
-    arg.setDescription('Array azimuth of the PV system 1.')
+    arg.setDescription('Array azimuth of the PV system 1. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).')
     arg.setDefaultValue(180)
     args << arg
 
@@ -2112,7 +2084,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_array_azimuth_2', true)
     arg.setDisplayName('Photovoltaics 2: Array Azimuth')
     arg.setUnits('degrees')
-    arg.setDescription('Array azimuth of the PV system 2.')
+    arg.setDescription('Array azimuth of the PV system 2. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).')
     arg.setDefaultValue(180)
     args << arg
 
@@ -3132,6 +3104,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = [args[:season_cooling_begin_month].is_initialized, args[:season_cooling_begin_day_of_month].is_initialized, args[:season_cooling_end_month].is_initialized, args[:season_cooling_end_day_of_month].is_initialized].uniq.size == 2
     errors << "season_cooling_begin_month=#{args[:season_cooling_begin_month].is_initialized} and season_cooling_begin_day_of_month=#{args[:season_cooling_begin_day_of_month].is_initialized} and season_cooling_end_month=#{args[:season_cooling_end_month].is_initialized} and season_cooling_end_day_of_month=#{args[:season_cooling_end_day_of_month].is_initialized}" if error
 
+    # vacancy period incomplete
+    error = [args[:schedules_vacancy_begin_month].is_initialized, args[:schedules_vacancy_begin_day_of_month].is_initialized, args[:schedules_vacancy_end_month].is_initialized, args[:schedules_vacancy_end_day_of_month].is_initialized].uniq.size == 2
+    errors << "schedules_vacancy_begin_month=#{args[:schedules_vacancy_begin_month].is_initialized} and schedules_vacancy_begin_day_of_month=#{args[:schedules_vacancy_begin_day_of_month].is_initialized} and schedules_vacancy_end_month=#{args[:schedules_vacancy_end_month].is_initialized} and schedules_vacancy_end_day_of_month=#{args[:schedules_vacancy_end_day_of_month].is_initialized}" if error
+
+    # vacancy period invalid
+    if args[:schedules_vacancy_begin_month].is_initialized && args[:schedules_vacancy_begin_day_of_month].is_initialized && args[:schedules_vacancy_end_month].is_initialized && args[:schedules_vacancy_end_day_of_month].is_initialized
+      HPXML::check_dates('Vacancy Period', args[:schedules_vacancy_begin_month].get, args[:schedules_vacancy_begin_day_of_month].get, args[:schedules_vacancy_end_month].get, args[:schedules_vacancy_end_day_of_month].get).each do |error|
+        errors << error
+      end
+    end
+
     return warnings, errors
   end
 
@@ -3244,10 +3227,6 @@ class HPXMLFile
       args[:geometry_rim_joist_height] = 0.0
     end
 
-    if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
-      args[:geometry_num_floors_above_grade] -= 1
-    end
-
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
       success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
@@ -3259,10 +3238,10 @@ class HPXMLFile
     end
     return false if not success
 
-    success = Geometry.create_windows_and_skylights(runner: runner, model: model, **args)
+    success = Geometry.create_doors(runner: runner, model: model, **args)
     return false if not success
 
-    success = Geometry.create_doors(runner: runner, model: model, **args)
+    success = Geometry.create_windows_and_skylights(runner: runner, model: model, **args)
     return false if not success
 
     return true
@@ -3539,7 +3518,7 @@ class HPXMLFile
       hpxml.roofs.add(id: valid_attr(surface.name),
                       interior_adjacent_to: get_adjacent_to(surface),
                       azimuth: azimuth,
-                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                       roof_type: roof_type,
                       roof_color: roof_color,
                       pitch: args[:geometry_roof_pitch],
@@ -3620,9 +3599,9 @@ class HPXMLFile
       next if surface == adjacent_surface
       next if adjacent_surface.surfaceType != adjacentSurfaceType
       next if adjacent_surface.outsideBoundaryCondition != 'Adiabatic'
-      next if Geometry.getSurfaceXValues([surface]) != Geometry.getSurfaceXValues([adjacent_surface])
-      next if Geometry.getSurfaceYValues([surface]) != Geometry.getSurfaceYValues([adjacent_surface])
-      next if Geometry.getSurfaceZValues([surface]) != Geometry.getSurfaceZValues([adjacent_surface])
+      next if Geometry.getSurfaceXValues([surface]).sort != Geometry.getSurfaceXValues([adjacent_surface]).sort
+      next if Geometry.getSurfaceYValues([surface]).sort != Geometry.getSurfaceYValues([adjacent_surface]).sort
+      next if Geometry.getSurfaceZValues([surface]).sort != Geometry.getSurfaceZValues([adjacent_surface]).sort
 
       return adjacent_surface
     end
@@ -3689,7 +3668,7 @@ class HPXMLFile
                       siding: siding,
                       color: color,
                       solar_absorptance: solar_absorptance,
-                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                       emittance: emittance)
 
       is_uncond_attic_roof_insulated = false
@@ -3761,7 +3740,7 @@ class HPXMLFile
                                  exterior_adjacent_to: exterior_adjacent_to,
                                  interior_adjacent_to: interior_adjacent_to,
                                  height: args[:geometry_foundation_height],
-                                 area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                                 area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                                  thickness: thickness,
                                  depth_below_grade: args[:geometry_foundation_height] - args[:geometry_foundation_height_above_grade],
                                  insulation_assembly_r_value: insulation_assembly_r_value,
@@ -3809,7 +3788,7 @@ class HPXMLFile
       hpxml.frame_floors.add(id: valid_attr(surface.name),
                              exterior_adjacent_to: exterior_adjacent_to,
                              interior_adjacent_to: interior_adjacent_to,
-                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                              other_space_above_or_below: other_space_above_or_below)
 
       if hpxml.frame_floors[-1].is_thermal_boundary
@@ -3836,7 +3815,7 @@ class HPXMLFile
       if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned, HPXML::LocationBasementConditioned].include? interior_adjacent_to
         has_foundation_walls = true
       end
-      exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_foundation_walls).round
+      exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_foundation_walls).round(1)
       next if exposed_perimeter == 0 # this could be, e.g., the foundation floor of an interior corridor
 
       if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned, HPXML::LocationBasementConditioned].include? interior_adjacent_to
@@ -3871,7 +3850,7 @@ class HPXMLFile
 
       hpxml.slabs.add(id: valid_attr(surface.name),
                       interior_adjacent_to: interior_adjacent_to,
-                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round,
+                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
                       thickness: thickness,
                       exposed_perimeter: exposed_perimeter,
                       perimeter_insulation_depth: args[:slab_perimeter_depth],
@@ -3896,19 +3875,19 @@ class HPXMLFile
         if (sub_surface_facade == Constants.FacadeFront) && ((args[:overhangs_front_depth] > 0) || args[:overhangs_front_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_front_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_front_distance_to_top_of_window]
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         elsif (sub_surface_facade == Constants.FacadeBack) && ((args[:overhangs_back_depth] > 0) || args[:overhangs_back_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_back_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_back_distance_to_top_of_window]
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         elsif (sub_surface_facade == Constants.FacadeLeft) && ((args[:overhangs_left_depth] > 0) || args[:overhangs_left_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_left_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_left_distance_to_top_of_window]
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         elsif (sub_surface_facade == Constants.FacadeRight) && ((args[:overhangs_right_depth] > 0) || args[:overhangs_right_distance_to_top_of_window] > 0)
           overhangs_depth = args[:overhangs_right_depth]
           overhangs_distance_to_top_of_window = args[:overhangs_right_distance_to_top_of_window]
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         elsif args[:geometry_eaves_depth] > 0
           # Get max z coordinate of eaves
           eaves_z = args[:geometry_wall_height] * args[:geometry_num_floors_above_grade] + args[:geometry_rim_joist_height]
@@ -3924,7 +3903,7 @@ class HPXMLFile
 
           overhangs_depth = args[:geometry_eaves_depth]
           overhangs_distance_to_top_of_window = eaves_z - sub_surface_z # difference between max z coordinates of eaves and this window
-          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round
+          overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         end
 
         azimuth = get_azimuth_from_facade(sub_surface_facade, args)
@@ -4189,30 +4168,6 @@ class HPXMLFile
       fraction_heat_load_served = 1.0 - args[:heating_system_fraction_heat_load_served_2]
     end
 
-    if args[:heat_pump_demand_flexibility].is_initialized
-      flex = true
-    end
-
-    if args[:heat_pump_demand_flexibility_modulating].is_initialized
-      modulating = true
-    end
-
-    if args[:heat_pump_demand_flexibility_dual_source].is_initialized
-      dual_source = true
-    end
-
-    if args[:heat_pump_demand_flexibility_ihp_grid_ac].is_initialized
-      ihp_grid_ac = true
-    end
-
-    if args[:heat_pump_demand_flexibility_ihp_ice_storage].is_initialized
-      ihp_ice_storage = true
-    end
-
-    if args[:heat_pump_demand_flexibility_ihp_pcm_storage].is_initialized
-      ihp_pcm_storage = true
-    end
-
     hpxml.heat_pumps.add(id: 'HeatPump',
                          heat_pump_type: heat_pump_type,
                          heat_pump_fuel: HPXML::FuelTypeElectricity,
@@ -4233,13 +4188,7 @@ class HPXMLFile
                          heating_efficiency_cop: heating_efficiency_cop,
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
-                         charge_defect_ratio: charge_defect_ratio,
-                         flex: flex,
-                         modulating: modulating,
-                         dual_source: dual_source,
-                         ihp_grid_ac: ihp_grid_ac,
-                         ihp_ice_storage: ihp_ice_storage,
-                         ihp_pcm_storage: ihp_pcm_storage)
+                         charge_defect_ratio: charge_defect_ratio)
   end
 
   def self.set_secondary_heating_systems(hpxml, runner, args)
@@ -4694,7 +4643,7 @@ class HPXMLFile
       elsif args[:water_heater_efficiency_type] == 'UniformEnergyFactor'
         uniform_energy_factor = args[:water_heater_efficiency]
         if water_heater_type != HPXML::WaterHeaterTypeTankless
-          first_hour_rating = args[:water_heater_first_hour_rating]
+          usage_bin = args[:water_heater_usage_bin].get if args[:water_heater_usage_bin].is_initialized
         end
       end
     end
@@ -4753,7 +4702,7 @@ class HPXMLFile
                                     fraction_dhw_load_served: 1.0,
                                     energy_factor: energy_factor,
                                     uniform_energy_factor: uniform_energy_factor,
-                                    first_hour_rating: first_hour_rating,
+                                    usage_bin: usage_bin,
                                     recovery_efficiency: recovery_efficiency,
                                     related_hvac_idref: related_hvac_idref,
                                     standby_loss: standby_loss,
