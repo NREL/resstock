@@ -3662,11 +3662,7 @@ class HPXMLFile
       next if Geometry.getSurfaceXValues([surface]).sort != Geometry.getSurfaceXValues([adjacent_surface]).sort
       next if Geometry.getSurfaceYValues([surface]).sort != Geometry.getSurfaceYValues([adjacent_surface]).sort
       next if Geometry.getSurfaceZValues([surface]).sort != Geometry.getSurfaceZValues([adjacent_surface]).sort
-<<<<<<< HEAD
-
-=======
       
->>>>>>> origin/restructure-v3
       return adjacent_surface
     end
     return
