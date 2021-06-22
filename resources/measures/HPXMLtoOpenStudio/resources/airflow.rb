@@ -1404,9 +1404,24 @@ class Airflow
     # Sensors
 
     # Add a new sensor here for the outage schedule (otg_availability_schedule)
-    otg_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
-    otg_sensor.setName("#{obj_name_natvent} outage s")
-    otg_sensor.setKeyName("Outage Availability Schedule") # TODO: not hard coded
+    # Make sure there's actually an outage though...
+    has_outage = false
+    model.getScheduleRulesets.each do |schedule|
+      next unless schedule.name.to_s.include? 'outage'
+      has_outage = true
+    end
+
+    if has_outage
+      otg_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+      otg_sensor.setName("#{obj_name_natvent} outage s")
+      otg_sensor.setKeyName("Outage Availability Schedule") # TODO: not hard coded
+
+      thermostatsetpointdualsetpoint = unit_living.zone.thermostatSetpointDualSetpoint
+
+      clg_season_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+      clg_season_sensor.setName("res_clg_ssn")
+      clg_season_sensor.setKeyName("res cooling season")
+    end
 
     nvavail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
     nvavail_sensor.setName("#{obj_name_natvent} nva s")
@@ -1415,13 +1430,6 @@ class Airflow
     nvsp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     nvsp_sensor.setName("#{obj_name_natvent} sp s")
     nvsp_sensor.setKeyName(nv_output.temp_sch.schedule.name.to_s)
-
-    thermostatsetpointdualsetpoint = unit_living.zone.thermostatSetpointDualSetpoint
-
-    clg_season_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
-    clg_season_sensor.setName("res_clg_ssn")
-    clg_season_sensor.setKeyName("res cooling season")
-    # clg_season_sensor.setKeyName(thermostatsetpointdualsetpoint.coolingSetpointTemperatureSchedule.get.to_Schedule.name.to_s)
 
     # Actuator
 
@@ -1449,10 +1457,14 @@ class Airflow
     nv_program.addLine("Set MRH = #{nat_vent.max_oa_rh}")
     nv_program.addLine("Set temp1 = (#{nvavail_sensor.name}*NVA)")
     nv_program.addLine("Set SGNV = temp1*((((Cs*dT)+(Cw*(#{vwind_sensor.name}^2)))^0.5)/1000)")
-    nv_program.addLine("If ((#{otg_sensor.name} < 1) && (#{tin_sensor.name} > #{tout_sensor.name})) && (((#{tin_sensor.name} > #{nvsp_sensor.name}) || ((#{clg_season_sensor.name} > 0) && (#{tin_sensor.name} > #{min_htg_sp}))) )") # Recalculate airflow regardless of availability sensor if it's an outage
-    nv_program.addLine("  Set SGNV = NVA * ((((Cs*dT)+(Cw*(#{vwind_sensor.name}^2)))^0.5)/1000)") # Recalculate airflow regardless of availability sensor if it's an outage
-    nv_program.addLine("  Set #{natvent_flow_actuator.name} = @Min SGNV MNV")
-    nv_program.addLine("ElseIf (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name})")
+    if has_outage
+      nv_program.addLine("If ((#{otg_sensor.name} < 1) && (#{tin_sensor.name} > #{tout_sensor.name})) && (((#{tin_sensor.name} > #{nvsp_sensor.name}) || ((#{clg_season_sensor.name} > 0) && (#{tin_sensor.name} > #{min_htg_sp}))) )") # Recalculate airflow regardless of availability sensor if it's an outage
+      nv_program.addLine("  Set SGNV = NVA * ((((Cs*dT)+(Cw*(#{vwind_sensor.name}^2)))^0.5)/1000)") # Recalculate airflow regardless of availability sensor if it's an outage
+      nv_program.addLine("  Set #{natvent_flow_actuator.name} = @Min SGNV MNV")
+      nv_program.addLine("ElseIf (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name})")
+    else
+      nv_program.addLine("If (#{wout_sensor.name}<MHR) && (pt<MRH) && (#{tin_sensor.name}>#{nvsp_sensor.name})")
+    end
     nv_program.addLine("  Set temp2 = (#{tin_sensor.name}-#{nvsp_sensor.name})")
     nv_program.addLine("  Set NVadj1 = temp2/(#{tin_sensor.name}-#{tout_sensor.name})")
     nv_program.addLine('  Set NVadj2 = (@Min NVadj1 1)')
