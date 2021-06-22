@@ -97,8 +97,9 @@ def create_osws
     'base-dhw-tank-coal.osw' => 'base.osw',
     'base-dhw-tank-elec-uef.osw' => 'base.osw',
     'base-dhw-tank-gas.osw' => 'base.osw',
-    'base-dhw-tank-gas-uef.osw' => 'base-dhw-tank-gas.osw',
-    'base-dhw-tank-gas-outside.osw' => 'base.osw',
+    'base-dhw-tank-gas-uef.osw' => 'base.osw',
+    # 'base-dhw-tank-gas-uef-fhr.osw' => 'base-dhw-tank-gas-uef.osw',
+    'base-dhw-tank-gas-outside.osw' => 'base-dhw-tank-gas.osw',
     'base-dhw-tank-heat-pump.osw' => 'base.osw',
     'base-dhw-tank-heat-pump-outside.osw' => 'base.osw',
     'base-dhw-tank-heat-pump-uef.osw' => 'base-dhw-tank-heat-pump.osw',
@@ -194,20 +195,16 @@ def create_osws
     'base-hvac-ground-to-air-heat-pump-cooling-only.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
     'base-hvac-ground-to-air-heat-pump-heating-only.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
     'base-hvac-seasons.osw' => 'base.osw',
-    'base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    'base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    'base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    # 'base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.osw' => 'base-hvac-air-to-air-heat-pump-1-speed.osw',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.osw' => 'base-hvac-furnace-gas-central-ac-2-speed.osw',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.osw' => 'base-hvac-furnace-gas-central-ac-var-speed.osw',
-    'base-hvac-install-quality-all-furnace-gas-only.osw' => 'base-hvac-furnace-gas-only.osw',
-    'base-hvac-install-quality-all-ground-to-air-heat-pump.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
-    'base-hvac-install-quality-all-mini-split-heat-pump-ducted.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
-    'base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
+    'base-hvac-install-quality-air-to-air-heat-pump-1-speed.osw' => 'base-hvac-air-to-air-heat-pump-1-speed.osw',
+    'base-hvac-install-quality-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
+    'base-hvac-install-quality-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-install-quality-furnace-gas-central-ac-1-speed.osw' => 'base.osw',
+    'base-hvac-install-quality-furnace-gas-central-ac-2-speed.osw' => 'base-hvac-furnace-gas-central-ac-2-speed.osw',
+    'base-hvac-install-quality-furnace-gas-central-ac-var-speed.osw' => 'base-hvac-furnace-gas-central-ac-var-speed.osw',
+    'base-hvac-install-quality-furnace-gas-only.osw' => 'base-hvac-furnace-gas-only.osw',
+    'base-hvac-install-quality-ground-to-air-heat-pump.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
+    'base-hvac-install-quality-mini-split-heat-pump-ducted.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
+    'base-hvac-install-quality-mini-split-air-conditioner-only-ducted.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
     'base-hvac-mini-split-air-conditioner-only-ducted.osw' => 'base.osw',
     'base-hvac-mini-split-air-conditioner-only-ductless.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
     'base-hvac-mini-split-heat-pump-ducted.osw' => 'base.osw',
@@ -221,6 +218,7 @@ def create_osws
     'base-hvac-programmable-thermostat-detailed.osw' => 'base.osw',
     'base-hvac-room-ac-only.osw' => 'base.osw',
     'base-hvac-room-ac-only-33percent.osw' => 'base.osw',
+    # 'base-hvac-room-ac-only-ceer.osw' => 'base-hvac-room-ac-only.osw',
     'base-hvac-setpoints.osw' => 'base.osw',
     'base-hvac-stove-oil-only.osw' => 'base.osw',
     'base-hvac-stove-wood-pellets-only.osw' => 'base.osw',
@@ -422,7 +420,9 @@ def create_osws
     'invalid_files/zero-number-of-bedrooms.osw' => 'base.osw',
     'invalid_files/single-family-detached-with-shared-system.osw' => 'base.osw',
     'invalid_files/hvac-seasons-incomplete-heating-season.osw' => 'base.osw',
-    'invalid_files/hvac-seasons-incomplete-cooling-season.osw' => 'base.osw'
+    'invalid_files/hvac-seasons-incomplete-cooling-season.osw' => 'base.osw',
+    'invalid_files/schedules-vacancy-incomplete.osw' => 'base.osw',
+    'invalid_files/schedules-vacancy-invalid.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -589,7 +589,7 @@ def get_values(osw_file, step)
     step.setArgument('skylight_area_right', 0)
     step.setArgument('skylight_ufactor', 0.33)
     step.setArgument('skylight_shgc', 0.45)
-    step.setArgument('door_area', 80.0)
+    step.setArgument('door_area', 40.0)
     step.setArgument('door_rvalue', 4.4)
     step.setArgument('air_leakage_units', HPXML::UnitsACH)
     step.setArgument('air_leakage_house_pressure', 50)
@@ -645,19 +645,19 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_fraction_heat_load_served_2', 0.25)
     step.setArgument('mech_vent_fan_type', 'none')
     step.setArgument('mech_vent_flow_rate', 110)
-    step.setArgument('mech_vent_hours_in_operation', 24)
+    step.setArgument('mech_vent_hours_in_operation', '24')
     step.setArgument('mech_vent_recovery_efficiency_type', 'Unadjusted')
     step.setArgument('mech_vent_total_recovery_efficiency', 0.48)
     step.setArgument('mech_vent_sensible_recovery_efficiency', 0.72)
-    step.setArgument('mech_vent_fan_power', 30)
+    step.setArgument('mech_vent_fan_power', '30')
     step.setArgument('mech_vent_num_units_served', 1)
     step.setArgument('mech_vent_fan_type_2', 'none')
     step.setArgument('mech_vent_flow_rate_2', 110)
-    step.setArgument('mech_vent_hours_in_operation_2', 24)
+    step.setArgument('mech_vent_hours_in_operation_2', '24')
     step.setArgument('mech_vent_recovery_efficiency_type_2', 'Unadjusted')
     step.setArgument('mech_vent_total_recovery_efficiency_2', 0.48)
     step.setArgument('mech_vent_sensible_recovery_efficiency_2', 0.72)
-    step.setArgument('mech_vent_fan_power_2', 30)
+    step.setArgument('mech_vent_fan_power_2', '30')
     step.setArgument('kitchen_fans_quantity', '0')
     step.setArgument('bathroom_fans_quantity', '0')
     step.setArgument('whole_house_fan_present', false)
@@ -945,12 +945,12 @@ def get_values(osw_file, step)
   elsif ['base-bldgtype-multifamily-shared-mechvent.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeSupply)
     step.setArgument('mech_vent_flow_rate', 800)
-    step.setArgument('mech_vent_fan_power', 240)
+    step.setArgument('mech_vent_fan_power', '240')
     step.setArgument('mech_vent_num_units_served', 10)
     step.setArgument('shared_mech_vent_frac_recirculation', 0.5)
     step.setArgument('mech_vent_fan_type_2', HPXML::MechVentTypeExhaust)
     step.setArgument('mech_vent_flow_rate_2', 72)
-    step.setArgument('mech_vent_fan_power_2', 26)
+    step.setArgument('mech_vent_fan_power_2', '26')
   elsif ['base-bldgtype-multifamily-shared-mechvent-preconditioning.osw'].include? osw_file
     step.setArgument('shared_mech_vent_preheating_fuel', HPXML::FuelTypeNaturalGas)
     step.setArgument('shared_mech_vent_preheating_efficiency', 0.92)
@@ -1063,23 +1063,21 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_tank_volume', '30')
     step.setArgument('water_heater_efficiency_type', 'UniformEnergyFactor')
     step.setArgument('water_heater_efficiency', 0.93)
-    step.setArgument('water_heater_first_hour_rating', 46)
+    step.setArgument('water_heater_usage_bin', HPXML::WaterHeaterUsageBinLow)
     step.setArgument('water_heater_recovery_efficiency', 0.98)
   elsif ['base-dhw-tank-gas.osw'].include? osw_file
     step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_tank_volume', '50')
     step.setArgument('water_heater_efficiency', 0.59)
   elsif ['base-dhw-tank-gas-uef.osw'].include? osw_file
+    step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_tank_volume', '30')
     step.setArgument('water_heater_efficiency_type', 'UniformEnergyFactor')
     step.setArgument('water_heater_efficiency', 0.59)
-    step.setArgument('water_heater_first_hour_rating', 56)
+    step.setArgument('water_heater_usage_bin', HPXML::WaterHeaterUsageBinMedium)
     step.setArgument('water_heater_recovery_efficiency', 0.75)
   elsif ['base-dhw-tank-gas-outside.osw'].include? osw_file
-    step.setArgument('water_heater_fuel_type', HPXML::FuelTypeNaturalGas)
     step.setArgument('water_heater_location', HPXML::LocationOtherExterior)
-    step.setArgument('water_heater_tank_volume', '50')
-    step.setArgument('water_heater_efficiency', 0.59)
   elsif ['base-dhw-tank-heat-pump.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_tank_volume', '80')
@@ -1093,7 +1091,7 @@ def get_values(osw_file, step)
     step.setArgument('water_heater_tank_volume', '50')
     step.setArgument('water_heater_efficiency_type', 'UniformEnergyFactor')
     step.setArgument('water_heater_efficiency', 3.75)
-    step.setArgument('water_heater_first_hour_rating', 60)
+    step.setArgument('water_heater_usage_bin', HPXML::WaterHeaterUsageBinMedium)
   elsif ['base-dhw-tank-heat-pump-with-solar.osw'].include? osw_file
     step.setArgument('water_heater_type', HPXML::WaterHeaterTypeHeatPump)
     step.setArgument('water_heater_tank_volume', '80')
@@ -1416,7 +1414,7 @@ def get_values(osw_file, step)
   elsif ['base-hvac-boiler-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 0.98)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-boiler-gas-central-ac-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeBoiler)
@@ -1524,7 +1522,7 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_heating_efficiency', 1.0)
   elsif ['base-hvac-furnace-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 0.98)
     step.setArgument('cooling_system_type', 'none')
   elsif ['base-hvac-furnace-gas-central-ac-2-speed.osw'].include? osw_file
     step.setArgument('cooling_system_cooling_efficiency', 18.0)
@@ -1589,45 +1587,36 @@ def get_values(osw_file, step)
     step.setArgument('season_cooling_begin_day_of_month', 1)
     step.setArgument('season_cooling_end_month', 10)
     step.setArgument('season_cooling_end_day_of_month', 31)
-  elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.osw'].include? osw_file
-    step.setArgument('heating_system_airflow_defect_ratio', 0.0)
-    step.setArgument('cooling_system_airflow_defect_ratio', 0.0)
-    step.setArgument('cooling_system_charge_defect_ratio', 0.0)
-  elsif ['base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.osw'].include? osw_file
-    step.setArgument('heating_system_airflow_defect_ratio', -0.25)
-    step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.osw'].include? osw_file
-    step.setArgument('cooling_system_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-air-to-air-heat-pump-1-speed.osw'].include? osw_file
     step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
     step.setArgument('heat_pump_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-air-to-air-heat-pump-2-speed.osw'].include? osw_file
     step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
     step.setArgument('heat_pump_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-air-to-air-heat-pump-var-speed.osw'].include? osw_file
     step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
     step.setArgument('heat_pump_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-furnace-gas-central-ac-1-speed.osw'].include? osw_file
     step.setArgument('heating_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-furnace-gas-central-ac-2-speed.osw'].include? osw_file
     step.setArgument('heating_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-furnace-gas-central-ac-var-speed.osw'].include? osw_file
     step.setArgument('heating_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-furnace-gas-only.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-furnace-gas-only.osw'].include? osw_file
     step.setArgument('heating_system_airflow_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-ground-to-air-heat-pump.osw'].include? osw_file
-    step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
-    step.setArgument('heat_pump_charge_defect_ratio', 0.0)
-  elsif ['base-hvac-install-quality-all-mini-split-heat-pump-ducted.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-ground-to-air-heat-pump.osw'].include? osw_file
     step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
     step.setArgument('heat_pump_charge_defect_ratio', -0.25)
-  elsif ['base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.osw'].include? osw_file
+  elsif ['base-hvac-install-quality-mini-split-heat-pump-ducted.osw'].include? osw_file
+    step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
+    step.setArgument('heat_pump_charge_defect_ratio', -0.25)
+  elsif ['base-hvac-install-quality-mini-split-air-conditioner-only-ducted.osw'].include? osw_file
     step.setArgument('cooling_system_airflow_defect_ratio', -0.25)
     step.setArgument('cooling_system_charge_defect_ratio', -0.25)
   elsif ['base-hvac-mini-split-heat-pump-ducted.osw'].include? osw_file
@@ -1708,7 +1697,7 @@ def get_values(osw_file, step)
   elsif ['base-hvac-wall-furnace-elec-only.osw'].include? osw_file
     step.setArgument('heating_system_type', HPXML::HVACTypeWallFurnace)
     step.setArgument('heating_system_fuel', HPXML::FuelTypeElectricity)
-    step.setArgument('heating_system_heating_efficiency', 1.0)
+    step.setArgument('heating_system_heating_efficiency', 0.98)
     step.setArgument('cooling_system_type', 'none')
   end
 
@@ -1758,7 +1747,7 @@ def get_values(osw_file, step)
   # Mechanical Ventilation
   if ['base-mechvent-balanced.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeBalanced)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-bath-kitchen-fans.osw'].include? osw_file
     step.setArgument('kitchen_fans_quantity', '1')
     step.setArgument('kitchen_fans_flow_rate', '100.0')
@@ -1773,34 +1762,34 @@ def get_values(osw_file, step)
   elsif ['base-mechvent-cfis.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeCFIS)
     step.setArgument('mech_vent_flow_rate', 330)
-    step.setArgument('mech_vent_hours_in_operation', 8)
-    step.setArgument('mech_vent_fan_power', 300)
+    step.setArgument('mech_vent_hours_in_operation', '8')
+    step.setArgument('mech_vent_fan_power', '300')
   elsif ['base-mechvent-cfis-evap-cooler-only-ducted.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeCFIS)
     step.setArgument('mech_vent_flow_rate', 330)
-    step.setArgument('mech_vent_hours_in_operation', 8)
-    step.setArgument('mech_vent_fan_power', 300)
+    step.setArgument('mech_vent_hours_in_operation', '8')
+    step.setArgument('mech_vent_fan_power', '300')
   elsif ['base-mechvent-erv.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeERV)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-erv-atre-asre.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeERV)
     step.setArgument('mech_vent_recovery_efficiency_type', 'Adjusted')
     step.setArgument('mech_vent_total_recovery_efficiency', 0.526)
     step.setArgument('mech_vent_sensible_recovery_efficiency', 0.79)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-exhaust.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeExhaust)
   elsif ['base-mechvent-exhaust-rated-flow-rate.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeExhaust)
   elsif ['base-mechvent-hrv.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeHRV)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-hrv-asre.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeHRV)
     step.setArgument('mech_vent_recovery_efficiency_type', 'Adjusted')
     step.setArgument('mech_vent_sensible_recovery_efficiency', 0.79)
-    step.setArgument('mech_vent_fan_power', 60)
+    step.setArgument('mech_vent_fan_power', '60')
   elsif ['base-mechvent-supply.osw'].include? osw_file
     step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeSupply)
   elsif ['base-mechvent-whole-house-fan.osw'].include? osw_file
@@ -1827,6 +1816,9 @@ def get_values(osw_file, step)
     step.removeArgument('window_interior_shading_summer')
     step.removeArgument('cooling_system_cooling_compressor_type')
     step.removeArgument('cooling_system_cooling_sensible_heat_fraction')
+    step.setArgument('mech_vent_fan_type', HPXML::MechVentTypeExhaust)
+    step.setArgument('mech_vent_hours_in_operation', Constants.Auto)
+    step.setArgument('mech_vent_fan_power', Constants.Auto)
     step.setArgument('ducts_supply_location', Constants.Auto)
     step.setArgument('ducts_return_location', Constants.Auto)
     step.setArgument('ducts_supply_surface_area', Constants.Auto)
@@ -1994,9 +1986,9 @@ def get_values(osw_file, step)
   if ['base-schedules-stochastic.osw'].include? osw_file
     step.setArgument('schedules_type', 'stochastic')
   elsif ['base-schedules-stochastic-vacant.osw'].include? osw_file
-    step.setArgument('schedules_vacancy_begin_month', 1)
+    step.setArgument('schedules_vacancy_begin_month', 12)
     step.setArgument('schedules_vacancy_begin_day_of_month', 1)
-    step.setArgument('schedules_vacancy_end_month', 12)
+    step.setArgument('schedules_vacancy_end_month', 1)
     step.setArgument('schedules_vacancy_end_day_of_month', 31)
   elsif ['base-schedules-user-specified.osw'].include? osw_file
     step.setArgument('schedules_type', 'user-specified')
@@ -2074,6 +2066,7 @@ def get_values(osw_file, step)
     step.setArgument('geometry_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
   elsif ['extra-enclosure-atticroof-conditioned-eaves-gable.osw'].include? osw_file
+    step.setArgument('geometry_cfa', 4500.0)
     step.setArgument('geometry_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
     step.setArgument('geometry_eaves_depth', 2)
@@ -2447,12 +2440,19 @@ def get_values(osw_file, step)
   elsif ['invalid_files/hvac-seasons-incomplete-cooling-season.osw'].include? osw_file
     step.setArgument('season_cooling_begin_day_of_month', 1)
     step.setArgument('season_cooling_end_day_of_month', 31)
+  elsif ['invalid_files/schedules-vacancy-incomplete.osw'].include? osw_file
+    step.setArgument('schedules_vacancy_begin_month', 1)
+    step.setArgument('schedules_vacancy_end_month', 2)
+  elsif ['invalid_files/schedules-vacancy-invalid.osw'].include? osw_file
+    step.setArgument('schedules_vacancy_begin_month', 1)
+    step.setArgument('schedules_vacancy_begin_day_of_month', 1)
+    step.setArgument('schedules_vacancy_end_month', 4)
+    step.setArgument('schedules_vacancy_end_day_of_month', 31)
   end
   return step
 end
 
 def create_hpxmls
-  require 'oga'
   require_relative 'HPXMLtoOpenStudio/resources/constants'
   require_relative 'HPXMLtoOpenStudio/resources/hotwater_appliances'
   require_relative 'HPXMLtoOpenStudio/resources/hpxml'
@@ -2460,7 +2460,6 @@ def create_hpxmls
   require_relative 'HPXMLtoOpenStudio/resources/misc_loads'
   require_relative 'HPXMLtoOpenStudio/resources/schedules'
   require_relative 'HPXMLtoOpenStudio/resources/waterheater'
-  require_relative 'HPXMLtoOpenStudio/resources/xmlhelper'
 
   this_dir = File.dirname(__FILE__)
   sample_files_dir = File.join(this_dir, 'workflow/sample_files')
@@ -2547,6 +2546,7 @@ def create_hpxmls
     'invalid_files/invalid-datatype-float.xml' => 'base.xml',
     'invalid_files/invalid-datatype-integer.xml' => 'base.xml',
     'invalid_files/invalid-daylight-saving.xml' => 'base-simcontrol-daylight-saving-custom.xml',
+    'invalid_files/invalid-distribution-cfa-served.xml' => 'base.xml',
     'invalid_files/invalid-epw-filepath.xml' => 'base.xml',
     'invalid_files/invalid-facility-type-equipment.xml' => 'base-bldgtype-multifamily-shared-laundry-room.xml',
     'invalid_files/invalid-facility-type-surfaces.xml' => 'base.xml',
@@ -2567,6 +2567,7 @@ def create_hpxmls
     'invalid_files/invalid-timestep.xml' => 'base.xml',
     'invalid_files/invalid-window-height.xml' => 'base-enclosure-overhangs.xml',
     'invalid_files/lighting-fractions.xml' => 'base.xml',
+    'invalid_files/missing-duct-location.xml' => 'base-hvac-multiple.xml',
     'invalid_files/missing-elements.xml' => 'base.xml',
     'invalid_files/multifamily-reference-appliance.xml' => 'base.xml',
     'invalid_files/multifamily-reference-duct.xml' => 'base.xml',
@@ -2580,6 +2581,8 @@ def create_hpxmls
     'invalid_files/net-area-negative-wall.xml' => 'base.xml',
     'invalid_files/orphaned-hvac-distribution.xml' => 'base-hvac-furnace-gas-room-ac.xml',
     'invalid_files/refrigerator-location.xml' => 'base.xml',
+    'invalid_files/refrigerators-multiple-primary.xml' => 'base.xml',
+    'invalid_files/refrigerators-no-primary.xml' => 'base.xml',
     'invalid_files/repeated-relatedhvac-dhw-indirect.xml' => 'base-dhw-indirect.xml',
     'invalid_files/repeated-relatedhvac-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
     'invalid_files/solar-fraction-one.xml' => 'base-dhw-solar-fraction.xml',
@@ -2596,10 +2599,6 @@ def create_hpxmls
     'invalid_files/unattached-window.xml' => 'base.xml',
     'invalid_files/water-heater-location.xml' => 'base.xml',
     'invalid_files/water-heater-location-other.xml' => 'base.xml',
-    'invalid_files/missing-duct-location.xml' => 'base-hvac-multiple.xml',
-    'invalid_files/invalid-distribution-cfa-served.xml' => 'base.xml',
-    'invalid_files/refrigerators-multiple-primary.xml' => 'base.xml',
-    'invalid_files/refrigerators-no-primary.xml' => 'base.xml',
     'base-appliances-coal.xml' => 'base.xml',
     'base-appliances-dehumidifier.xml' => 'base-location-dallas-tx.xml',
     'base-appliances-dehumidifier-ief-portable.xml' => 'base-appliances-dehumidifier.xml',
@@ -2680,6 +2679,7 @@ def create_hpxmls
     'base-dhw-tank-elec-uef.xml' => 'base.xml',
     'base-dhw-tank-gas.xml' => 'base.xml',
     'base-dhw-tank-gas-uef.xml' => 'base.xml',
+    'base-dhw-tank-gas-uef-fhr.xml' => 'base-dhw-tank-gas-uef.xml',
     'base-dhw-tank-gas-outside.xml' => 'base-dhw-tank-gas.xml',
     'base-dhw-tank-heat-pump.xml' => 'base.xml',
     'base-dhw-tank-heat-pump-outside.xml' => 'base-dhw-tank-heat-pump.xml',
@@ -2819,20 +2819,16 @@ def create_hpxmls
     'base-hvac-ground-to-air-heat-pump-cooling-only.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
     'base-hvac-ground-to-air-heat-pump-heating-only.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
     'base-hvac-seasons.xml' => 'base.xml',
-    'base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
-    'base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.xml' => 'base-hvac-furnace-gas-central-ac-2-speed.xml',
-    'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.xml' => 'base-hvac-furnace-gas-central-ac-var-speed.xml',
-    'base-hvac-install-quality-all-furnace-gas-only.xml' => 'base-hvac-furnace-gas-only.xml',
-    'base-hvac-install-quality-all-ground-to-air-heat-pump.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
-    'base-hvac-install-quality-all-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
-    'base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
+    'base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
+    'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-install-quality-furnace-gas-central-ac-1-speed.xml' => 'base.xml',
+    'base-hvac-install-quality-furnace-gas-central-ac-2-speed.xml' => 'base-hvac-furnace-gas-central-ac-2-speed.xml',
+    'base-hvac-install-quality-furnace-gas-central-ac-var-speed.xml' => 'base-hvac-furnace-gas-central-ac-var-speed.xml',
+    'base-hvac-install-quality-furnace-gas-only.xml' => 'base-hvac-furnace-gas-only.xml',
+    'base-hvac-install-quality-ground-to-air-heat-pump.xml' => 'base-hvac-ground-to-air-heat-pump.xml',
+    'base-hvac-install-quality-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
+    'base-hvac-install-quality-mini-split-air-conditioner-only-ducted.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-mini-split-air-conditioner-only-ducted.xml' => 'base.xml',
     'base-hvac-mini-split-air-conditioner-only-ductless.xml' => 'base-hvac-mini-split-air-conditioner-only-ducted.xml',
     'base-hvac-mini-split-heat-pump-ducted.xml' => 'base.xml',
@@ -2846,6 +2842,7 @@ def create_hpxmls
     'base-hvac-programmable-thermostat-detailed.xml' => 'base.xml',
     'base-hvac-room-ac-only.xml' => 'base.xml',
     'base-hvac-room-ac-only-33percent.xml' => 'base-hvac-room-ac-only.xml',
+    'base-hvac-room-ac-only-ceer.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-setpoints.xml' => 'base.xml',
     'base-hvac-stove-oil-only.xml' => 'base.xml',
     'base-hvac-stove-wood-pellets-only.xml' => 'base.xml',
@@ -3455,7 +3452,7 @@ def set_hpxml_roofs(hpxml_file, hpxml)
   elsif ['base.xml'].include? hpxml_file
     hpxml.roofs.add(id: 'Roof',
                     interior_adjacent_to: HPXML::LocationAtticUnvented,
-                    area: 1510,
+                    area: 1509.3,
                     roof_type: HPXML::RoofTypeAsphaltShingles,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
@@ -3470,16 +3467,21 @@ def set_hpxml_roofs(hpxml_file, hpxml)
     roof_types = [[HPXML::RoofTypeClayTile, HPXML::ColorLight],
                   [HPXML::RoofTypeMetal, HPXML::ColorReflective],
                   [HPXML::RoofTypeWoodShingles, HPXML::ColorDark]]
+    int_finish_types = [[HPXML::InteriorFinishGypsumBoard, 0.5],
+                        [HPXML::InteriorFinishPlaster, 0.5],
+                        [HPXML::InteriorFinishWood, 0.5]]
     hpxml.roofs.clear
     roof_types.each_with_index do |roof_type, i|
       hpxml.roofs.add(id: "Roof#{i + 1}",
                       interior_adjacent_to: HPXML::LocationAtticUnvented,
-                      area: 1510 / roof_types.size,
+                      area: 1509.3 / roof_types.size,
                       roof_type: roof_type[0],
                       roof_color: roof_type[1],
                       emittance: 0.92,
                       pitch: 6,
                       radiant_barrier: false,
+                      interior_finish_type: int_finish_types[i % int_finish_types.size][0],
+                      interior_finish_thickness: int_finish_types[i % int_finish_types.size][1],
                       insulation_assembly_r_value: 2.3)
     end
   elsif ['base-atticroof-flat.xml'].include? hpxml_file
@@ -3492,6 +3494,7 @@ def set_hpxml_roofs(hpxml_file, hpxml)
                     emittance: 0.92,
                     pitch: 0,
                     radiant_barrier: false,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 25.8)
   elsif ['base-atticroof-conditioned.xml'].include? hpxml_file
     hpxml.roofs.clear
@@ -3503,6 +3506,7 @@ def set_hpxml_roofs(hpxml_file, hpxml)
                     emittance: 0.92,
                     pitch: 6,
                     radiant_barrier: false,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 25.8)
     hpxml.roofs.add(id: 'RoofUncond',
                     interior_adjacent_to: HPXML::LocationAtticUnvented,
@@ -3518,9 +3522,10 @@ def set_hpxml_roofs(hpxml_file, hpxml)
   elsif ['base-atticroof-cathedral.xml'].include? hpxml_file
     hpxml.roofs[0].interior_adjacent_to = HPXML::LocationLivingSpace
     hpxml.roofs[0].insulation_assembly_r_value = 25.8
+    hpxml.roofs[0].interior_finish_type = HPXML::InteriorFinishGypsumBoard
   elsif ['base-enclosure-garage.xml',
          'base-foundation-basement-garage.xml'].include? hpxml_file
-    hpxml.roofs[0].area += 670
+    hpxml.roofs[0].area += 671
   elsif ['base-atticroof-unvented-insulated-roof.xml'].include? hpxml_file
     hpxml.roofs[0].insulation_assembly_r_value = 25.8
   elsif ['base-enclosure-split-surfaces.xml',
@@ -3550,6 +3555,8 @@ def set_hpxml_roofs(hpxml_file, hpxml)
       roof.roof_color = HPXML::ColorLight
       roof.emittance = nil
       roof.radiant_barrier = nil
+      roof.interior_finish_type = nil
+      roof.interior_finish_thickness = nil
     end
   elsif ['invalid_files/invalid-input-parameters.xml'].include? hpxml_file
     hpxml.roofs[0].radiant_barrier_grade = 4
@@ -3626,7 +3633,8 @@ def set_hpxml_rim_joists(hpxml_file, hpxml)
                     [HPXML::SidingTypeBrick, HPXML::ColorReflective],
                     [HPXML::SidingTypeFiberCement, HPXML::ColorMediumDark],
                     [HPXML::SidingTypeStucco, HPXML::ColorMedium],
-                    [HPXML::SidingTypeVinyl, HPXML::ColorLight]]
+                    [HPXML::SidingTypeVinyl, HPXML::ColorLight],
+                    [HPXML::SidingTypeNone, HPXML::ColorMedium]]
     hpxml.rim_joists.clear
     siding_types.each_with_index do |siding_type, i|
       hpxml.rim_joists.add(id: "RimJoistFoundation#{i + 1}",
@@ -3730,6 +3738,8 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     azimuth: 0,
                     solar_absorptance: 0.6,
                     emittance: 0.9,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
+                    interior_finish_thickness: 0.5,
                     insulation_assembly_r_value: 11.76)
     hpxml.walls.add(id: 'WallEast',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -3740,6 +3750,8 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     azimuth: 90,
                     solar_absorptance: 0.6,
                     emittance: 0.9,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
+                    interior_finish_thickness: 0.5,
                     insulation_assembly_r_value: 11.76)
     hpxml.walls.add(id: 'WallSouth',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -3750,6 +3762,8 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     azimuth: 180,
                     solar_absorptance: 0.6,
                     emittance: 0.9,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
+                    interior_finish_thickness: 0.5,
                     insulation_assembly_r_value: 11.76)
     hpxml.walls.add(id: 'WallWest',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -3760,6 +3774,8 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     azimuth: 270,
                     solar_absorptance: 0.6,
                     emittance: 0.9,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
+                    interior_finish_thickness: 0.5,
                     insulation_assembly_r_value: 11.76)
     hpxml.walls.add(id: 'WallAtticGableEast',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -3805,6 +3821,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 1200,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: 'WallAtticGable',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -3825,6 +3842,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 686,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: 'WallOther',
                     exterior_adjacent_to: HPXML::LocationOtherHousingUnit,
@@ -3833,6 +3851,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 294,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 4.0)
   elsif ['base-bldgtype-single-family-attached.xml'].include? hpxml_file
     hpxml.walls.clear
@@ -3844,6 +3863,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 686,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: 'WallOther',
                     exterior_adjacent_to: HPXML::LocationOtherHousingUnit,
@@ -3852,6 +3872,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 294,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 4.0)
     hpxml.walls.add(id: 'WallAtticGable',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -3877,6 +3898,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
   elsif ['base-atticroof-cathedral.xml'].include? hpxml_file
     hpxml.walls[1].interior_adjacent_to = HPXML::LocationLivingSpace
     hpxml.walls[1].insulation_assembly_r_value = 23.0
+    hpxml.walls[1].interior_finish_type = HPXML::InteriorFinishGypsumBoard
   elsif ['base-atticroof-conditioned.xml'].include? hpxml_file
     hpxml.walls.delete_at(1)
     hpxml.walls.add(id: 'WallAtticKneeWall',
@@ -3886,6 +3908,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 316,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: 'WallAtticGableCond',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -3895,6 +3918,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 240,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 22.3)
     hpxml.walls.add(id: 'WallAtticGableUncond',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -3914,6 +3938,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 100,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: 'WallOtherMultifamilyBufferSpace',
                     exterior_adjacent_to: HPXML::LocationOtherMultifamilyBufferSpace,
@@ -3922,6 +3947,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 100,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: 'WallOtherNonFreezingSpace',
                     exterior_adjacent_to: HPXML::LocationOtherNonFreezingSpace,
@@ -3930,6 +3956,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 100,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23.0)
     hpxml.walls.add(id: 'WallOtherHousingUnit',
                     exterior_adjacent_to: HPXML::LocationOtherHousingUnit,
@@ -3938,6 +3965,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 100,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 4.0)
   elsif ['base-enclosure-walltypes.xml'].include? hpxml_file
     walls_map = { HPXML::WallTypeCMU => 12,
@@ -3955,7 +3983,14 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     [HPXML::SidingTypeBrick, HPXML::ColorMediumDark],
                     [HPXML::SidingTypeFiberCement, HPXML::ColorMedium],
                     [HPXML::SidingTypeStucco, HPXML::ColorLight],
-                    [HPXML::SidingTypeVinyl, HPXML::ColorDark]]
+                    [HPXML::SidingTypeVinyl, HPXML::ColorDark],
+                    [HPXML::SidingTypeNone, HPXML::ColorMedium]]
+    int_finish_types = [[HPXML::InteriorFinishGypsumBoard, 0.5],
+                        [HPXML::InteriorFinishGypsumBoard, 1.0],
+                        [HPXML::InteriorFinishGypsumCompositeBoard, 0.5],
+                        [HPXML::InteriorFinishPlaster, 0.5],
+                        [HPXML::InteriorFinishWood, 0.5],
+                        [HPXML::InteriorFinishNone, nil]]
     last_wall = hpxml.walls[-1]
     hpxml.walls.clear
     walls_map.each_with_index do |(wall_type, assembly_r), i|
@@ -3967,6 +4002,8 @@ def set_hpxml_walls(hpxml_file, hpxml)
                       color: siding_types[i % siding_types.size][1],
                       area: 1200 / walls_map.size,
                       emittance: 0.92,
+                      interior_finish_type: int_finish_types[i % int_finish_types.size][0],
+                      interior_finish_thickness: int_finish_types[i % int_finish_types.size][1],
                       insulation_assembly_r_value: assembly_r)
     end
     hpxml.walls << last_wall
@@ -3982,6 +4019,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 2080,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23)
     hpxml.walls.add(id: 'WallGarageInterior',
                     exterior_adjacent_to: HPXML::LocationGarage,
@@ -3990,6 +4028,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 320,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23)
     hpxml.walls.add(id: 'WallGarageExterior',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -4019,6 +4058,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 960,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23)
     hpxml.walls.add(id: 'WallGarageInterior',
                     exterior_adjacent_to: HPXML::LocationGarage,
@@ -4027,6 +4067,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 240,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23)
     hpxml.walls.add(id: 'WallGarageExterior',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -4087,6 +4128,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 294,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 4.0)
   elsif ['invalid_files/invalid-assembly-effective-rvalue.xml'].include? hpxml_file
     hpxml.walls[0].insulation_assembly_r_value = 0
@@ -4096,6 +4138,8 @@ def set_hpxml_walls(hpxml_file, hpxml)
       wall.solar_absorptance = nil
       wall.color = HPXML::ColorMedium
       wall.emittance = nil
+      wall.interior_finish_type = nil
+      wall.interior_finish_thickness = nil
     end
   elsif ['base-foundation-basement-garage.xml'].include? hpxml_file
     hpxml.walls.add(id: 'WallGarageBasement',
@@ -4105,6 +4149,7 @@ def set_hpxml_walls(hpxml_file, hpxml)
                     area: 320,
                     solar_absorptance: 0.7,
                     emittance: 0.92,
+                    interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                     insulation_assembly_r_value: 23)
     hpxml.walls.add(id: 'WallGarageExterior',
                     exterior_adjacent_to: HPXML::LocationOutside,
@@ -4126,13 +4171,14 @@ end
 def set_hpxml_foundation_walls(hpxml_file, hpxml)
   if ['ASHRAE_Standard_140/L322XC.xml'].include? hpxml_file
     hpxml.foundation_walls.add(id: 'FoundationWallNorth',
-                               exterior_adjacent_to: 'ground',
+                               exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
                                height: 7.25,
                                area: 413.25,
                                azimuth: 0,
                                thickness: 6,
                                depth_below_grade: 6.583,
+                               interior_finish_type: HPXML::InteriorFinishNone,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4140,13 +4186,14 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                insulation_exterior_distance_to_top: 0,
                                insulation_exterior_distance_to_bottom: 0)
     hpxml.foundation_walls.add(id: 'FoundationWallEast',
-                               exterior_adjacent_to: 'ground',
+                               exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
                                height: 7.25,
                                area: 195.75,
                                azimuth: 90,
                                thickness: 6,
                                depth_below_grade: 6.583,
+                               interior_finish_type: HPXML::InteriorFinishNone,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4154,13 +4201,14 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                insulation_exterior_distance_to_top: 0,
                                insulation_exterior_distance_to_bottom: 0)
     hpxml.foundation_walls.add(id: 'FoundationWallSouth',
-                               exterior_adjacent_to: 'ground',
+                               exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
                                height: 7.25,
                                area: 413.25,
                                azimuth: 180,
                                thickness: 6,
                                depth_below_grade: 6.583,
+                               interior_finish_type: HPXML::InteriorFinishNone,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4168,13 +4216,14 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                insulation_exterior_distance_to_top: 0,
                                insulation_exterior_distance_to_bottom: 0)
     hpxml.foundation_walls.add(id: 'FoundationWallWest',
-                               exterior_adjacent_to: 'ground',
+                               exterior_adjacent_to: HPXML::LocationGround,
                                interior_adjacent_to: HPXML::LocationBasementConditioned,
                                height: 7.25,
                                area: 195.75,
                                azimuth: 270,
                                thickness: 6,
                                depth_below_grade: 6.583,
+                               interior_finish_type: HPXML::InteriorFinishNone,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4186,6 +4235,8 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
       hpxml.foundation_walls[i].insulation_interior_r_value = 10.2
       hpxml.foundation_walls[i].insulation_interior_distance_to_top = 0.0
       hpxml.foundation_walls[i].insulation_interior_distance_to_bottom = 7.25
+      hpxml.foundation_walls[i].interior_finish_type = HPXML::InteriorFinishGypsumBoard
+      hpxml.foundation_walls[i].interior_finish_thickness = 0.5
     end
   elsif ['base.xml'].include? hpxml_file
     hpxml.foundation_walls.add(id: 'FoundationWall',
@@ -4195,6 +4246,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 1200,
                                thickness: 8,
                                depth_below_grade: 7,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4212,6 +4264,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 686,
                                thickness: 8,
                                depth_below_grade: 7,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4225,6 +4278,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 294,
                                thickness: 8,
                                depth_below_grade: 7,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4241,6 +4295,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
     hpxml.foundation_walls[0].interior_adjacent_to = HPXML::LocationBasementUnconditioned
     hpxml.foundation_walls[0].insulation_exterior_distance_to_bottom = 0
     hpxml.foundation_walls[0].insulation_exterior_r_value = 0
+    hpxml.foundation_walls[0].interior_finish_type = HPXML::InteriorFinishNone
   elsif ['base-foundation-unconditioned-basement-wall-insulation.xml'].include? hpxml_file
     hpxml.foundation_walls[0].insulation_exterior_distance_to_bottom = 4
     hpxml.foundation_walls[0].insulation_exterior_r_value = 8.9
@@ -4265,6 +4320,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
     hpxml.foundation_walls[0].area /= 2.0
     hpxml.foundation_walls[0].depth_below_grade -= 4
     hpxml.foundation_walls[0].insulation_exterior_distance_to_bottom -= 4
+    hpxml.foundation_walls[0].interior_finish_type = HPXML::InteriorFinishNone
   elsif ['base-foundation-multiple.xml'].include? hpxml_file
     hpxml.foundation_walls[0].area = 600
     hpxml.foundation_walls.add(id: 'FoundationWallInterior',
@@ -4305,6 +4361,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 480,
                                thickness: 8,
                                depth_below_grade: 7,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4318,6 +4375,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 120,
                                thickness: 8,
                                depth_below_grade: 3,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4331,6 +4389,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 60,
                                thickness: 8,
                                depth_below_grade: 1,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4346,6 +4405,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 160,
                                thickness: 8,
                                depth_below_grade: 7,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4359,6 +4419,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 240,
                                thickness: 8,
                                depth_below_grade: 7,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4372,6 +4433,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 160,
                                thickness: 8,
                                depth_below_grade: 3,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4385,6 +4447,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 120,
                                thickness: 8,
                                depth_below_grade: 3,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4398,6 +4461,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 80,
                                thickness: 8,
                                depth_below_grade: 3,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4422,6 +4486,8 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.foundation_walls.each do |fwall|
       fwall.thickness = nil
+      fwall.interior_finish_type = nil
+      fwall.interior_finish_thickness = nil
     end
   elsif ['invalid_files/invalid-facility-type-surfaces.xml'].include? hpxml_file
     hpxml.foundation_walls.add(id: 'FoundationWallOther',
@@ -4431,6 +4497,7 @@ def set_hpxml_foundation_walls(hpxml_file, hpxml)
                                area: 294,
                                thickness: 8,
                                depth_below_grade: 7,
+                               interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                                insulation_interior_r_value: 0,
                                insulation_interior_distance_to_top: 0,
                                insulation_interior_distance_to_bottom: 0,
@@ -4449,12 +4516,14 @@ end
 def set_hpxml_frame_floors(hpxml_file, hpxml)
   if ['ASHRAE_Standard_140/L100AC.xml',
       'ASHRAE_Standard_140/L100AL.xml'].include? hpxml_file
-    hpxml.frame_floors.add(id: 'FloorUnderAttic',
+    hpxml.frame_floors.add(id: 'CeilingBelowAttic',
                            exterior_adjacent_to: HPXML::LocationAtticVented,
                            interior_adjacent_to: HPXML::LocationLivingSpace,
                            area: 1539,
+                           interior_finish_type: HPXML::InteriorFinishGypsumBoard,
+                           interior_finish_thickness: 0.5,
                            insulation_assembly_r_value: 18.45)
-    hpxml.frame_floors.add(id: 'FloorOverFoundation',
+    hpxml.frame_floors.add(id: 'FloorAboveFoundation',
                            exterior_adjacent_to: HPXML::LocationOutside,
                            interior_adjacent_to: HPXML::LocationLivingSpace,
                            area: 1539,
@@ -4471,23 +4540,25 @@ def set_hpxml_frame_floors(hpxml_file, hpxml)
          'ASHRAE_Standard_140/L324XC.xml'].include? hpxml_file
     hpxml.frame_floors.delete_at(1)
   elsif ['base.xml'].include? hpxml_file
-    hpxml.frame_floors.add(id: 'FloorBelowAttic',
+    hpxml.frame_floors.add(id: 'CeilingBelowAttic',
                            exterior_adjacent_to: HPXML::LocationAtticUnvented,
                            interior_adjacent_to: HPXML::LocationLivingSpace,
                            area: 1350,
+                           interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                            insulation_assembly_r_value: 39.3)
   elsif ['base-bldgtype-multifamily.xml'].include? hpxml_file
     hpxml.frame_floors.clear
-    hpxml.frame_floors.add(id: 'FloorOther',
+    hpxml.frame_floors.add(id: 'FloorAboveOther',
                            exterior_adjacent_to: HPXML::LocationOtherHousingUnit,
                            interior_adjacent_to: HPXML::LocationLivingSpace,
                            area: 900,
                            insulation_assembly_r_value: 2.1,
                            other_space_above_or_below: HPXML::FrameFloorOtherSpaceBelow)
-    hpxml.frame_floors.add(id: 'CeilingOther',
+    hpxml.frame_floors.add(id: 'CeilingBelowOther',
                            exterior_adjacent_to: HPXML::LocationOtherHousingUnit,
                            interior_adjacent_to: HPXML::LocationLivingSpace,
                            area: 900,
+                           interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                            insulation_assembly_r_value: 2.1,
                            other_space_above_or_below: HPXML::FrameFloorOtherSpaceAbove)
   elsif ['base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml'].include? hpxml_file
@@ -4622,16 +4693,17 @@ def set_hpxml_frame_floors(hpxml_file, hpxml)
     hpxml.frame_floors[1].exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
     hpxml.frame_floors[1].other_space_above_or_below = HPXML::FrameFloorOtherSpaceAbove
   elsif ['invalid_files/invalid-facility-type-surfaces.xml'].include? hpxml_file
-    hpxml.frame_floors.add(id: 'FloorOther',
+    hpxml.frame_floors.add(id: 'FloorAboveOther',
                            exterior_adjacent_to: HPXML::LocationOtherHousingUnit,
                            interior_adjacent_to: HPXML::LocationLivingSpace,
                            area: 900,
                            insulation_assembly_r_value: 2.1,
                            other_space_above_or_below: HPXML::FrameFloorOtherSpaceBelow)
-    hpxml.frame_floors.add(id: 'CeilingOther',
+    hpxml.frame_floors.add(id: 'CeilingBelowOther',
                            exterior_adjacent_to: HPXML::LocationOtherHousingUnit,
                            interior_adjacent_to: HPXML::LocationLivingSpace,
                            area: 900,
+                           interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                            insulation_assembly_r_value: 2.1,
                            other_space_above_or_below: HPXML::FrameFloorOtherSpaceAbove)
   end
@@ -5246,12 +5318,12 @@ def set_hpxml_doors(hpxml_file, hpxml)
   elsif ['base.xml'].include? hpxml_file
     hpxml.doors.add(id: 'DoorNorth',
                     wall_idref: 'Wall',
-                    area: 40,
+                    area: 20,
                     azimuth: 0,
                     r_value: 4.4)
     hpxml.doors.add(id: 'DoorSouth',
                     wall_idref: 'Wall',
-                    area: 40,
+                    area: 20,
                     azimuth: 180,
                     r_value: 4.4)
   elsif ['base-bldgtype-multifamily.xml'].include? hpxml_file
@@ -5322,12 +5394,12 @@ def set_hpxml_doors(hpxml_file, hpxml)
     hpxml.doors.clear
     hpxml.doors.add(id: 'DoorNorth',
                     wall_idref: 'Wall9',
-                    area: 40,
+                    area: 20,
                     azimuth: 0,
                     r_value: 4.4)
     hpxml.doors.add(id: 'DoorSouth',
                     wall_idref: 'Wall10',
-                    area: 40,
+                    area: 20,
                     azimuth: 180,
                     r_value: 4.4)
   end
@@ -5362,7 +5434,7 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
   elsif ['base-hvac-boiler-elec-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeBoiler
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
-    hpxml.heating_systems[0].heating_efficiency_afue = 1.0
+    hpxml.heating_systems[0].heating_efficiency_afue = 0.98
   elsif ['base-hvac-boiler-gas-central-ac-1-speed.xml',
          'base-hvac-boiler-gas-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeBoiler
@@ -5387,7 +5459,7 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].heating_efficiency_percent = 1
   elsif ['base-hvac-furnace-elec-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
-    hpxml.heating_systems[0].heating_efficiency_afue = 1
+    hpxml.heating_systems[0].heating_efficiency_afue = 0.98
   elsif ['base-hvac-furnace-oil-only.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeOil
   elsif ['base-hvac-furnace-propane-only.xml'].include? hpxml_file
@@ -5499,7 +5571,7 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].distribution_system_idref = nil
     hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeWallFurnace
     hpxml.heating_systems[0].heating_system_fuel = HPXML::FuelTypeElectricity
-    hpxml.heating_systems[0].heating_efficiency_afue = 1.0
+    hpxml.heating_systems[0].heating_efficiency_afue = 0.98
     hpxml.heating_systems[0].fan_watts = 0.0
   elsif ['base-hvac-furnace-x3-dse.xml'].include? hpxml_file
     hpxml.heating_systems << hpxml.heating_systems[0].dup
@@ -5546,16 +5618,10 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].fan_coil_watts = nil
     hpxml.heating_systems[0].shared_loop_watts = nil
     hpxml.heating_systems[0].electric_auxiliary_energy = 500.0
-  elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.heating_systems[0].airflow_defect_ratio = 0.0
-  elsif ['base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.heating_systems[0].airflow_defect_ratio = -0.25
-  elsif ['base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.heating_systems[0].fan_watts_per_cfm = 0.365
-  elsif ['base-hvac-install-quality-all-furnace-gas-only.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
+  elsif ['base-hvac-install-quality-furnace-gas-only.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-1-speed.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-2-speed.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
     hpxml.heating_systems[0].fan_watts_per_cfm = 0.365
     hpxml.heating_systems[0].airflow_defect_ratio = -0.25
   elsif ['invalid_files/multiple-shared-heating-systems.xml'].include? hpxml_file
@@ -5582,6 +5648,9 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].heating_capacity = 48000
   elsif hpxml_file.include?('base-hvac-autosize') && (not hpxml.heating_systems.nil?) && (hpxml.heating_systems.size > 0)
     hpxml.heating_systems[0].heating_capacity = nil
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.heating_systems[0].heating_efficiency_afue = nil
+    hpxml.heating_systems[0].year_installed = 2009
   end
 end
 
@@ -5655,6 +5724,9 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
   elsif ['base-hvac-room-ac-only-33percent.xml'].include? hpxml_file
     hpxml.cooling_systems[0].fraction_cool_load_served = 0.33
     hpxml.cooling_systems[0].cooling_capacity /= 3.0
+  elsif ['base-hvac-room-ac-only-ceer.xml'].include? hpxml_file
+    hpxml.cooling_systems[0].cooling_efficiency_eer = nil
+    hpxml.cooling_systems[0].cooling_efficiency_ceer = 8.4
   elsif ['base-hvac-evap-cooler-only-ducted.xml',
          'base-hvac-evap-cooler-furnace-gas.xml',
          'base-hvac-evap-cooler-only.xml'].include? hpxml_file
@@ -5695,25 +5767,18 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     hpxml.cooling_systems[0].fan_watts_per_cfm = 0.55
   elsif ['base-hvac-undersized.xml'].include? hpxml_file
     hpxml.cooling_systems[0].cooling_capacity /= 10.0
-  elsif ['base-hvac-install-quality-none-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].airflow_defect_ratio = 0.0
-    hpxml.cooling_systems[0].charge_defect_ratio = 0.0
-  elsif ['base-hvac-install-quality-airflow-defect-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].airflow_defect_ratio = -0.25
-  elsif ['base-hvac-install-quality-charge-defect-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].charge_defect_ratio = -0.25
-  elsif ['base-hvac-install-quality-blower-efficiency-furnace-gas-central-ac-1-speed.xml'].include? hpxml_file
-    hpxml.cooling_systems[0].fan_watts_per_cfm = 0.365
-  elsif ['base-hvac-install-quality-all-mini-split-air-conditioner-only-ducted.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-1-speed.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-2-speed.xml',
-         'base-hvac-install-quality-all-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
+  elsif ['base-hvac-install-quality-mini-split-air-conditioner-only-ducted.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-1-speed.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-2-speed.xml',
+         'base-hvac-install-quality-furnace-gas-central-ac-var-speed.xml'].include? hpxml_file
     hpxml.cooling_systems[0].charge_defect_ratio = -0.25
     hpxml.cooling_systems[0].fan_watts_per_cfm = 0.365
     hpxml.cooling_systems[0].airflow_defect_ratio = -0.25
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     hpxml.cooling_systems[0].cooling_shr = nil
     hpxml.cooling_systems[0].compressor_type = nil
+    hpxml.cooling_systems[0].cooling_efficiency_seer = nil
+    hpxml.cooling_systems[0].year_installed = 2009
   elsif ['base-bldgtype-multifamily-shared-chiller-only-baseboard.xml',
          'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.xml',
          'base-bldgtype-multifamily-shared-chiller-only-water-loop-heat-pump.xml',
@@ -5860,7 +5925,7 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
          'base-hvac-ground-to-air-heat-pump-cooling-only.xml',
          'base-hvac-mini-split-heat-pump-ducted-cooling-only.xml'].include? hpxml_file
     hpxml.heat_pumps[0].heating_capacity = 0
-    if not ['base-hvac-ground-to-air-heat-pump-cooling-only.xml'].include? hpxml_file
+    if hpxml_file != 'base-hvac-ground-to-air-heat-pump-cooling-only.xml'
       hpxml.heat_pumps[0].heating_capacity_17F = 0
     end
     hpxml.heat_pumps[0].fraction_heat_load_served = 0
@@ -5954,18 +6019,14 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml'].include? hpxml_file
     hpxml.heat_pumps[0].backup_heating_fuel = HPXML::FuelTypeElectricity
     hpxml.heat_pumps[0].backup_heating_efficiency_afue = 1.0
-  elsif ['base-hvac-install-quality-all-air-to-air-heat-pump-1-speed.xml',
-         'base-hvac-install-quality-all-air-to-air-heat-pump-2-speed.xml',
-         'base-hvac-install-quality-all-air-to-air-heat-pump-var-speed.xml',
-         'base-hvac-install-quality-all-mini-split-heat-pump-ducted.xml',
-         'base-hvac-install-quality-all-ground-to-air-heat-pump.xml'].include? hpxml_file
+  elsif ['base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml',
+         'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml',
+         'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml',
+         'base-hvac-install-quality-mini-split-heat-pump-ducted.xml',
+         'base-hvac-install-quality-ground-to-air-heat-pump.xml'].include? hpxml_file
     hpxml.heat_pumps[0].airflow_defect_ratio = -0.25
     hpxml.heat_pumps[0].fan_watts_per_cfm = 0.365
-    if hpxml_file != 'base-hvac-install-quality-all-ground-to-air-heat-pump.xml'
-      hpxml.heat_pumps[0].charge_defect_ratio = -0.25
-    else
-      hpxml.heat_pumps[0].charge_defect_ratio = 0.0
-    end
+    hpxml.heat_pumps[0].charge_defect_ratio = -0.25
   elsif hpxml_file.include?('base-hvac-autosize') && (not hpxml.heat_pumps.nil?) && (hpxml.heat_pumps.size > 0)
     hpxml.heat_pumps[0].cooling_capacity = nil
     hpxml.heat_pumps[0].heating_capacity = nil
@@ -6479,6 +6540,10 @@ def set_hpxml_ventilation_fans(hpxml_file, hpxml)
                                start_hour: 7,
                                used_for_local_ventilation: true)
   elsif ['base-misc-defaults.xml'].include? hpxml_file
+    hpxml.ventilation_fans.add(id: 'MechanicalVentilation',
+                               fan_type: HPXML::MechVentTypeExhaust,
+                               tested_flow_rate: 110,
+                               used_for_whole_building_ventilation: true)
     hpxml.ventilation_fans.add(id: 'KitchenRangeFan',
                                fan_location: HPXML::LocationKitchen,
                                used_for_local_ventilation: true)
@@ -6768,27 +6833,27 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
       hpxml.water_heating_systems[0].fuel_type = HPXML::FuelTypePropane
     end
   elsif ['base-dhw-tank-elec-uef.xml'].include? hpxml_file
-    # Based on Richmond model number 6ESB30-2 in AHR directory
     hpxml.water_heating_systems[0].energy_factor = nil
     hpxml.water_heating_systems[0].uniform_energy_factor = 0.93
-    hpxml.water_heating_systems[0].first_hour_rating = 46.0
+    hpxml.water_heating_systems[0].usage_bin = HPXML::WaterHeaterUsageBinLow
     hpxml.water_heating_systems[0].tank_volume = 30.0
     hpxml.water_heating_systems[0].heating_capacity = 15354.0 # 4.5 kW
   elsif ['base-dhw-tank-gas-uef.xml'].include? hpxml_file
-    # Based on AO Smith model number G6-MH3030NV 400 in AHRI directory
     hpxml.water_heating_systems[0].fuel_type = HPXML::FuelTypeNaturalGas
     hpxml.water_heating_systems[0].energy_factor = nil
     hpxml.water_heating_systems[0].uniform_energy_factor = 0.59
-    hpxml.water_heating_systems[0].first_hour_rating = 56.0
+    hpxml.water_heating_systems[0].usage_bin = HPXML::WaterHeaterUsageBinMedium
     hpxml.water_heating_systems[0].tank_volume = 30.0
     hpxml.water_heating_systems[0].heating_capacity = 30000.0
     hpxml.water_heating_systems[0].recovery_efficiency = 0.75
+  elsif ['base-dhw-tank-gas-uef-fhr.xml'].include? hpxml_file
+    hpxml.water_heating_systems[0].first_hour_rating = 56.0
+    hpxml.water_heating_systems[0].usage_bin = nil
   elsif ['base-dhw-tank-heat-pump-uef.xml'].include? hpxml_file
-    # Based on Rheem model number XE40T10HS45U0 from AHRI directory
     hpxml.water_heating_systems[0].water_heater_type = HPXML::WaterHeaterTypeHeatPump
     hpxml.water_heating_systems[0].energy_factor = nil
     hpxml.water_heating_systems[0].uniform_energy_factor = 3.75
-    hpxml.water_heating_systems[0].first_hour_rating = 60.0
+    hpxml.water_heating_systems[0].usage_bin = HPXML::WaterHeaterUsageBinMedium
     hpxml.water_heating_systems[0].tank_volume = 50.0
   elsif ['base-dhw-tankless-gas-uef.xml'].include? hpxml_file
     hpxml.water_heating_systems[0].water_heater_type = HPXML::WaterHeaterTypeTankless
@@ -6895,6 +6960,10 @@ def set_hpxml_water_heating_systems(hpxml_file, hpxml)
     hpxml.water_heating_systems[0].heating_capacity = nil
     hpxml.water_heating_systems[0].tank_volume = nil
     hpxml.water_heating_systems[0].recovery_efficiency = nil
+    hpxml.water_heating_systems[0].energy_factor = nil
+    hpxml.water_heating_systems[0].year_installed = 2009
+    hpxml.water_heating_systems[0].usage_bin = nil
+    hpxml.water_heating_systems[0].first_hour_rating = nil
   elsif ['base-bldgtype-multifamily-shared-water-heater.xml',
          'base-bldgtype-multifamily-shared-laundry-room.xml'].include? hpxml_file
     hpxml.water_heating_systems.clear
@@ -8050,6 +8119,9 @@ if ARGV[0].to_sym == :update_measures
   ENV['HOME'] = 'C:' if !ENV['HOME'].nil? && ENV['HOME'].start_with?('U:')
   ENV['HOMEDRIVE'] = 'C:\\' if !ENV['HOMEDRIVE'].nil? && ENV['HOMEDRIVE'].start_with?('U:')
 
+  require 'oga'
+  require_relative 'HPXMLtoOpenStudio/resources/xmlhelper'
+
   # Create sample/test OSWs
   create_osws()
 
@@ -8083,9 +8155,34 @@ if ARGV[0].to_sym == :update_measures
   system(command)
 
   # Update measures XMLs
-  command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.dirname(__FILE__)}'"
   puts 'Updating measure.xmls...'
-  system(command, [:out, :err] => File::NULL)
+  Dir['**/measure.xml'].each do |measure_xml|
+    for n_attempt in 1..5 # For some reason CLI randomly generates errors, so try multiple times; FIXME: Fix CLI so this doesn't happen
+      measure_dir = File.dirname(measure_xml)
+      command = "#{OpenStudio.getOpenStudioCLI} measure -u '#{measure_dir}'"
+      system(command, [:out, :err] => File::NULL)
+
+      # Check for error
+      xml_doc = XMLHelper.parse_file(measure_xml)
+      err_val = XMLHelper.get_value(xml_doc, '/measure/error', :string)
+      if err_val.nil?
+        err_val = XMLHelper.get_value(xml_doc, '/error', :string)
+      end
+      if err_val.nil?
+        break # Successfully updated
+      else
+        if n_attempt == 5
+          fail "#{measure_xml}: #{err_val}" # Error generated all 5 times, fail
+        else
+          # Remove error from measure XML, try again
+          new_lines = File.readlines(measure_xml).select { |l| !l.include?('<error>') }
+          File.open(measure_xml, 'w') do |file|
+            file.puts new_lines
+          end
+        end
+      end
+    end
+  end
 
   puts 'Done.'
 end
