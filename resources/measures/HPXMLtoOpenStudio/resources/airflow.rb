@@ -1393,11 +1393,13 @@ class Airflow
       if heatingSetpointWeekday.nil? or heatingSetpointWeekend.nil?
         return false
       end
-    end
 
-    min_htg_sp_wkdy = heatingSetpointWeekday.min.min
-    min_htg_sp_wknd = heatingSetpointWeekend.min.min
-    min_htg_sp = [min_htg_sp_wkdy, min_htg_sp_wknd].min
+      min_htg_sp_wkdy = heatingSetpointWeekday.min.min
+      min_htg_sp_wknd = heatingSetpointWeekend.min.min
+      min_htg_sp = [min_htg_sp_wkdy, min_htg_sp_wknd].min
+    else
+      min_htg_sp = 21.6667 # default minimum value for EMS
+    end
 
     # Sensors
 

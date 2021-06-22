@@ -262,12 +262,12 @@ class ResidentialLightingInterior < OpenStudio::Measure::ModelMeasure
       elsif option_type == Constants.OptionTypeLightingFractions
         hw_fl = hw_cfl + hw_lfl
         fl_eff = cfl_eff
-    
+
         # Efficacy ratios
         eff_ratio_inc = in_eff / in_eff
         eff_ratio_fl = in_eff / fl_eff
         eff_ratio_led = in_eff / led_eff
-        
+
         # Efficiency lighting adjustments
         int_adj = (hw_inc * eff_ratio_inc) + (hw_fl * eff_ratio_fl) + (hw_led * eff_ratio_led)
         # Calculate energy use
