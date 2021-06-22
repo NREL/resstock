@@ -10,7 +10,7 @@ require_relative '../resources/buildstock'
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
     @project_dir_baseline = { 'project_testing' => 10, 'project_national' => 500 }
-    @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
+    @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 30 }
 
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
     @lib_dir = File.join(@top_dir, '..', '..', 'lib')
