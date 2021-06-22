@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>13974fc9-453e-47d7-9ed3-441c1af50e50</version_id>
-  <version_modified>20210413T181220Z</version_modified>
+  <version_id>e3da5a14-dfc8-4af2-a264-2909995f7898</version_id>
+  <version_modified>20210617T171218Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -250,16 +250,6 @@
       </choices>
     </argument>
     <argument>
-      <name>geometry_cfa</name>
-      <display_name>Geometry: Conditioned Floor Area</display_name>
-      <description>The total floor area of the conditioned space (including any conditioned basement floor area).</description>
-      <type>Double</type>
-      <units>ft^2</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>2000</default_value>
-    </argument>
-    <argument>
       <name>geometry_num_floors_above_grade</name>
       <display_name>Geometry: Number of Floors</display_name>
       <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
@@ -282,7 +272,7 @@
     <argument>
       <name>geometry_orientation</name>
       <display_name>Geometry: Orientation</display_name>
-      <description>The unit's orientation is measured clockwise from due south when viewed from above (e.g., North=0, East=90, South=180, West=270).</description>
+      <description>The unit's orientation is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -675,6 +665,10 @@
       <model_dependent>false</model_dependent>
       <choices>
         <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+        <choice>
           <value>Left</value>
           <display_name>Left</display_name>
         </choice>
@@ -866,20 +860,12 @@
           <display_name>asphalt or fiberglass shingles</display_name>
         </choice>
         <choice>
-          <value>concrete</value>
-          <display_name>concrete</display_name>
-        </choice>
-        <choice>
           <value>slate or tile shingles</value>
           <display_name>slate or tile shingles</display_name>
         </choice>
         <choice>
           <value>metal surfacing</value>
           <display_name>metal surfacing</display_name>
-        </choice>
-        <choice>
-          <value>plastic/rubber/synthetic sheeting</value>
-          <display_name>plastic/rubber/synthetic sheeting</display_name>
         </choice>
         <choice>
           <value>wood shingles or shakes</value>
@@ -2150,6 +2136,78 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
+      <name>season_heating_begin_month</name>
+      <display_name>Heating Season: Begin Month</display_name>
+      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the heating season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_heating_begin_day_of_month</name>
+      <display_name>Heating Season: Begin Day of Month</display_name>
+      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the heating season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_heating_end_month</name>
+      <display_name>Heating Season: End Month</display_name>
+      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the heating season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_heating_end_day_of_month</name>
+      <display_name>Heating Season: End Day of Month</display_name>
+      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the heating season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_cooling_begin_month</name>
+      <display_name>Cooling Season: Begin Month</display_name>
+      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the cooling season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_cooling_begin_day_of_month</name>
+      <display_name>Cooling Season: Begin Day of Month</display_name>
+      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the cooling season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_cooling_end_month</name>
+      <display_name>Cooling Season: End Month</display_name>
+      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the cooling season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>season_cooling_end_day_of_month</name>
+      <display_name>Cooling Season: End Day of Month</display_name>
+      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the cooling season.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>ducts_supply_leakage_units</name>
       <display_name>Ducts: Supply Leakage Units</display_name>
       <description>The leakage units of the supply ducts.</description>
@@ -2406,7 +2464,7 @@
     <argument>
       <name>ducts_number_of_return_registers</name>
       <display_name>Ducts: Number of Return Registers</display_name>
-      <description>The number of return registers of the ducts.</description>
+      <description>The number of return registers of the ducts. Ignored for ducted evaporative cooler.</description>
       <type>String</type>
       <units>#</units>
       <required>true</required>
@@ -2466,11 +2524,11 @@
       <name>mech_vent_hours_in_operation</name>
       <display_name>Mechanical Ventilation: Hours In Operation</display_name>
       <description>The hours in operation of the mechanical ventilation.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>hrs/day</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>24</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>mech_vent_recovery_efficiency_type</name>
@@ -2515,11 +2573,11 @@
       <name>mech_vent_fan_power</name>
       <display_name>Mechanical Ventilation: Fan Power</display_name>
       <description>The fan power of the mechanical ventilation.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>W</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>30</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>mech_vent_num_units_served</name>
@@ -3047,14 +3105,30 @@
       <default_value>0.67</default_value>
     </argument>
     <argument>
-      <name>water_heater_first_hour_rating</name>
-      <display_name>Water Heater: First Hour Rating</display_name>
-      <description>Rated gallons of hot water supplied in an hour. Required if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers.</description>
-      <type>Double</type>
-      <units>gal/hr</units>
+      <name>water_heater_usage_bin</name>
+      <display_name>Water Heater: Usage Bin</display_name>
+      <description>The usage of the water heater. Required if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers.</description>
+      <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>56</default_value>
+      <choices>
+        <choice>
+          <value>very small</value>
+          <display_name>very small</display_name>
+        </choice>
+        <choice>
+          <value>low</value>
+          <display_name>low</display_name>
+        </choice>
+        <choice>
+          <value>medium</value>
+          <display_name>medium</display_name>
+        </choice>
+        <choice>
+          <value>high</value>
+          <display_name>high</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>water_heater_recovery_efficiency</name>
@@ -3385,7 +3459,7 @@
     <argument>
       <name>solar_thermal_collector_azimuth</name>
       <display_name>Solar Thermal: Collector Azimuth</display_name>
-      <description>The collector azimuth of the solar thermal system.</description>
+      <description>The collector azimuth of the solar thermal system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -3530,7 +3604,7 @@
     <argument>
       <name>pv_system_array_azimuth_1</name>
       <display_name>Photovoltaics 1: Array Azimuth</display_name>
-      <description>Array azimuth of the PV system 1.</description>
+      <description>Array azimuth of the PV system 1. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -3673,7 +3747,7 @@
     <argument>
       <name>pv_system_array_azimuth_2</name>
       <display_name>Photovoltaics 2: Array Azimuth</display_name>
-      <description>Array azimuth of the PV system 2.</description>
+      <description>Array azimuth of the PV system 2. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -5330,6 +5404,25 @@
       <default_value>1</default_value>
     </argument>
     <argument>
+      <name>geometry_cfa_bin</name>
+      <display_name>Geometry: Conditioned Floor Area Bin</display_name>
+      <description>E.g., '2000-2499'</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2000-2499</default_value>
+    </argument>
+    <argument>
+      <name>geometry_cfa</name>
+      <display_name>Geometry: Conditioned Floor Area</display_name>
+      <description>E.g., '2000' or 'auto'</description>
+      <type>String</type>
+      <units>sqft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2000</default_value>
+    </argument>
+    <argument>
       <name>plug_loads_other_usage_multiplier_2</name>
       <display_name>Plug Loads: Other Usage Multiplier 2</display_name>
       <description>Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.</description>
@@ -5415,6 +5508,25 @@
       <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
     </argument>
     <argument>
+      <name>use_auto_heating_season</name>
+      <display_name>Use Auto Heating Season</display_name>
+      <description>Specifies whether to automatically define the heating season based on the weather file.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>setpoint_cooling_weekday_temp</name>
       <display_name>Cooling Setpoint: Weekday Temperature</display_name>
       <description>Specify the weekday cooling setpoint temperature.</description>
@@ -5471,6 +5583,25 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
+    </argument>
+    <argument>
+      <name>use_auto_cooling_season</name>
+      <display_name>Use Auto Cooling Season</display_name>
+      <description>Specifies whether to automatically define the cooling season based on the weather file.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>heating_system_has_flue_or_chimney</name>
@@ -5592,7 +5723,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>720CA50C</checksum>
+      <checksum>F5C4FD13</checksum>
     </file>
   </files>
 </measure>

@@ -13,7 +13,9 @@ elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXML
 else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
+require File.join(resources_path, 'location')
 require File.join(resources_path, 'meta_measure')
+require File.join(resources_path, 'weather')
 
 require_relative 'resources/constants'
 
@@ -46,8 +48,27 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     measure.arguments(model).each do |arg|
       next if Constants.excludes.include? arg.name
 
+      # Exclude the geometry_cfa arg from BuildResHPXML in lieu of the one below.
+      # We can't add it to Constants.excludes because a geometry_cfa value will still
+      # need to be passed to the BuildResHPXML measure.
+      next if arg.name == 'geometry_cfa'
+
       args << arg
     end
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_cfa_bin', true)
+    arg.setDisplayName('Geometry: Conditioned Floor Area Bin')
+    arg.setDescription("E.g., '2000-2499'")
+    arg.setDefaultValue('2000-2499')
+    args << arg
+
+    # Adds a geometry_cfa argument similar to the BuildResidentialHPXML measure, but as a string with "auto" allowed
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_cfa', true)
+    arg.setDisplayName('Geometry: Conditioned Floor Area')
+    arg.setDescription("E.g., '2000' or '#{Constants.Auto}'")
+    arg.setUnits('sqft')
+    arg.setDefaultValue('2000')
+    args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_usage_multiplier_2', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
@@ -107,6 +128,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('use_auto_heating_season', true)
+    arg.setDisplayName('Use Auto Heating Season')
+    arg.setDescription('Specifies whether to automatically define the heating season based on the weather file.')
+    arg.setDefaultValue(false)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekday_temp', true)
     arg.setDisplayName('Cooling Setpoint: Weekday Temperature')
     arg.setDescription('Specify the weekday cooling setpoint temperature.')
@@ -145,6 +172,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Cooling Setpoint: Weekend Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.')
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('use_auto_cooling_season', true)
+    arg.setDisplayName('Use Auto Cooling Season')
+    arg.setDescription('Specifies whether to automatically define the cooling season based on the weather file.')
+    arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_has_flue_or_chimney', true)
@@ -233,6 +266,45 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
+
+    # Conditioned floor area
+    if args['geometry_cfa'] == Constants.Auto
+      cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 328,
+               ['0-499', HPXML::ResidentialTypeSFA] => 317,
+               ['0-499', HPXML::ResidentialTypeApartment] => 333,
+               ['500-749', HPXML::ResidentialTypeSFD] => 633,
+               ['500-749', HPXML::ResidentialTypeSFA] => 617,
+               ['500-749', HPXML::ResidentialTypeApartment] => 617,
+               ['750-999', HPXML::ResidentialTypeSFD] => 885,
+               ['750-999', HPXML::ResidentialTypeSFA] => 866,
+               ['750-999', HPXML::ResidentialTypeApartment] => 853,
+               ['1000-1499', HPXML::ResidentialTypeSFD] => 1220,
+               ['1000-1499', HPXML::ResidentialTypeSFA] => 1202,
+               ['1000-1499', HPXML::ResidentialTypeApartment] => 1138,
+               ['1500-1999', HPXML::ResidentialTypeSFD] => 1690,
+               ['1500-1999', HPXML::ResidentialTypeSFA] => 1675,
+               ['1500-1999', HPXML::ResidentialTypeApartment] => 1623,
+               ['2000-2499', HPXML::ResidentialTypeSFD] => 2176,
+               ['2000-2499', HPXML::ResidentialTypeSFA] => 2152,
+               ['2000-2499', HPXML::ResidentialTypeApartment] => 2115,
+               ['2500-2999', HPXML::ResidentialTypeSFD] => 2663,
+               ['2500-2999', HPXML::ResidentialTypeSFA] => 2631,
+               ['2500-2999', HPXML::ResidentialTypeApartment] => 2590,
+               ['3000-3999', HPXML::ResidentialTypeSFD] => 3301,
+               ['3000-3999', HPXML::ResidentialTypeSFA] => 3241,
+               ['3000-3999', HPXML::ResidentialTypeApartment] => 3138,
+               ['4000+', HPXML::ResidentialTypeSFD] => 8194,
+               ['4000+', HPXML::ResidentialTypeSFA] => 13414,
+               ['4000+', HPXML::ResidentialTypeApartment] => 12291 }
+      cfa = cfas[[args['geometry_cfa_bin'], args['geometry_unit_type']]]
+      if cfa.nil?
+        runner.registerError("Could not look up conditioned floor area for '#{args['geometry_cfa_bin']}' and 'args['geometry_unit_type']'.")
+        return false
+      end
+      args['geometry_cfa'] = Float(cfa)
+    else
+      args['geometry_cfa'] = Float(args['geometry_cfa'])
+    end
 
     # Num Occupants
     if args['geometry_num_occupants'] == Constants.Auto
@@ -338,6 +410,29 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['setpoint_cooling_weekday'] = weekday_cooling_setpoints.join(', ')
     args['setpoint_cooling_weekend'] = weekend_cooling_setpoints.join(', ')
 
+    # Seasons
+    if args['use_auto_heating_season'] || args['use_auto_cooling_season']
+      epw_path, cache_path = process_weather(args['weather_station_epw_filepath'], runner, model, '../in.xml')
+      weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
+      heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+    end
+
+    if args['use_auto_heating_season']
+      season_heating_begin_month, season_heating_begin_day_of_month, season_heating_end_month, season_heating_end_day_of_month = get_begin_and_end_dates_from_monthly_array(model, heating_months)
+      args['season_heating_begin_month'] = season_heating_begin_month
+      args['season_heating_begin_day_of_month'] = season_heating_begin_day_of_month
+      args['season_heating_end_month'] = season_heating_end_month
+      args['season_heating_end_day_of_month'] = season_heating_end_day_of_month
+    end
+
+    if args['use_auto_cooling_season']
+      season_cooling_begin_month, season_cooling_begin_day_of_month, season_cooling_end_month, season_cooling_end_day_of_month = get_begin_and_end_dates_from_monthly_array(model, cooling_months)
+      args['season_cooling_begin_month'] = season_cooling_begin_month
+      args['season_cooling_begin_day_of_month'] = season_cooling_begin_day_of_month
+      args['season_cooling_end_month'] = season_cooling_end_month
+      args['season_cooling_end_day_of_month'] = season_cooling_end_day_of_month
+    end
+
     # Flue or Chimney
     args['geometry_has_flue_or_chimney'] = Constants.Auto
     if (args['heating_system_has_flue_or_chimney'] == 'false') &&
@@ -371,6 +466,64 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['heat_pump_charge_defect_ratio'] = args['heat_pump_frac_manufacturer_charge'].get - 1.0
     end
 
+    # Infiltration adjustment for SFA/MF units
+    if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
+      n_units = Float(args['geometry_building_num_units'])
+      n_floors = Float(args['geometry_num_floors_above_grade'])
+      aspect_ratio = Float(args['geometry_aspect_ratio'])
+      horiz_location = args['geometry_horizontal_location'].to_s
+      corridor_position = args['geometry_corridor_position'].to_s
+
+      if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
+        n_units_per_floor = n_units / n_floors
+        if (n_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
+          has_rear_units = true
+        elsif (n_units_per_floor == 2) && (horiz_location == 'None') # double-loaded corridor for 2 units/story
+          has_rear_units = true
+        else
+          has_rear_units = false
+        end
+      elsif args['geometry_unit_type'] == HPXML::ResidentialTypeSFA
+        n_floors = 1.0
+        n_units_per_floor = n_units
+        has_rear_units = false
+      end
+
+      # Calculate exposed wall area ratio for the unit (unit exposed wall area
+      # divided by average unit exposed wall area)
+      if (n_units_per_floor <= 2) || (n_units_per_floor == 4 && has_rear_units) # No middle unit(s)
+        exposed_wall_area_ratio = 1.0 # all units have same exterior wall area
+      else # Has middle unit(s)
+        if has_rear_units
+          n_end_units = 4 * n_floors
+          n_mid_units = n_units - n_end_units
+          n_bldg_fronts_backs = n_end_units + n_mid_units
+          n_bldg_sides = n_end_units
+        else
+          n_end_units = 2 * n_floors
+          n_mid_units = n_units - n_end_units
+          n_bldg_fronts_backs = n_end_units * 2 + n_mid_units * 2
+          n_bldg_sides = n_end_units
+        end
+        if has_rear_units
+          n_unit_fronts_backs = 1
+        else
+          n_unit_fronts_backs = 2
+        end
+        if ['Middle'].include? horiz_location
+          n_unit_sides = 0
+        elsif ['Left', 'Right'].include? horiz_location
+          n_unit_sides = 1
+        end
+        n_bldg_sides_equivalent = n_bldg_sides + n_bldg_fronts_backs / aspect_ratio
+        n_unit_sides_equivalent = n_unit_sides + n_unit_fronts_backs / aspect_ratio
+        exposed_wall_area_ratio = n_unit_sides_equivalent / (n_bldg_sides_equivalent / n_units)
+      end
+
+      # Apply adjustment to infiltration value
+      args['air_leakage_value'] *= exposed_wall_area_ratio
+    end
+
     args.each do |arg_name, arg_value|
       begin
         if arg_value.is_initialized
@@ -396,6 +549,60 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       schedule[i] += offset_magnitude * direction
     end
     return schedule
+  end
+
+  def process_weather(weather_station_epw_filepath, runner, model, hpxml_path)
+    epw_path = weather_station_epw_filepath
+
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist?(epw_path)
+      fail "'#{epw_path}' could not be found."
+    end
+
+    cache_path = epw_path.gsub('.epw', '-cache.csv')
+    if not File.exist?(cache_path)
+      # Process weather file to create cache .csv
+      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
+      epw_file = OpenStudio::EpwFile.new(epw_path)
+      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+      weather = WeatherProcess.new(model, runner)
+      begin
+        File.open(cache_path, 'wb') do |file|
+          weather.dump_to_csv(file)
+        end
+      rescue SystemCallError
+        runner.registerWarning("#{cache_path} could not be written, skipping.")
+      end
+    end
+
+    return epw_path, cache_path
+  end
+
+  def get_begin_and_end_dates_from_monthly_array(model, months)
+    if months.include? 0
+      if months[0] == 1 && months[11] == 1 # Wrap around year
+        begin_month = 12 - months.reverse.index(0) + 1
+        end_month = months.index(0)
+      else
+        begin_month = months.index(1) + 1
+        end_month = 12 - months.reverse.index(1)
+      end
+    end
+    get_num_days_per_month = Schedule.get_num_days_per_month(model)
+    begin_day = 1
+    end_day = get_num_days_per_month[end_month - 1]
+    return begin_month, begin_day, end_month, end_day
   end
 end
 
