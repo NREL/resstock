@@ -83,6 +83,9 @@ class Geometry
     foundation_height = geometry_foundation_height
     rim_joist_height = geometry_rim_joist_height
     attic_type = geometry_attic_type
+    if attic_type == HPXML::AtticTypeConditioned
+      num_floors -= 1
+    end
     roof_type = geometry_roof_type
     roof_pitch = geometry_roof_pitch
 
@@ -1589,6 +1592,9 @@ class Geometry
     foundation_height = geometry_foundation_height
     rim_joist_height = geometry_rim_joist_height
     attic_type = geometry_attic_type
+    if attic_type == HPXML::AtticTypeConditioned
+      num_floors -= 1
+    end
     roof_type = geometry_roof_type
     roof_pitch = geometry_roof_pitch
 

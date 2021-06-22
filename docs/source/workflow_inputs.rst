@@ -316,7 +316,7 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
   ``Area``                                double            ft2           > 0                Yes                                        Gross area (including skylights)
   ``Azimuth``                             integer           deg           0 - 359            No         See [#]_                        Azimuth (clockwise from North)
   ``RoofType``                            string                          See [#]_           No         asphalt or fiberglass shingles  Roof type
-  ``SolarAbsorptance`` or ``RoofColor``   double or string                0 - 1 or See [#]_  Yes        See [#]_                        Solar absorptance or color
+  ``RoofColor`` or ``SolarAbsorptance``   string or double                See [#]_ or 0 - 1  No         medium                          Roof color or solar absorptance [#]_
   ``Emittance``                           double                          0 - 1              No         0.90                            Emittance
   ``InteriorFinish/Type``                 string                          See [#]_           No         See [#]_                        Interior finish material
   ``InteriorFinish/Thickness``            double            in            >= 0               No         0.5                             Interior finish thickness
@@ -332,7 +332,7 @@ For a multifamily building where the dwelling unit has another dwelling unit abo
   .. [#] If Azimuth not provided, modeled as four surfaces of equal area facing every direction.
   .. [#] RoofType choices are "asphalt or fiberglass shingles", "wood shingles or shakes", "slate or tile shingles", or "metal surfacing".
   .. [#] RoofColor choices are "light", "medium", "medium dark", "dark", or "reflective".
-  .. [#] If SolarAbsorptance not provided, defaults based on RoofColor/RoofType:
+  .. [#] If SolarAbsorptance not provided, defaults based on RoofType and RoofColor:
          
          - **asphalt or fiberglass shingles**: dark=0.92, medium dark=0.89, medium=0.85, light=0.75, reflective=0.50
          - **wood shingles or shakes**: dark=0.92, medium dark=0.89, medium=0.85, light=0.75, reflective=0.50
@@ -358,7 +358,7 @@ Each rim joist surface (i.e., the perimeter of floor joists typically found betw
   ``Area``                                double            ft2           > 0                Yes                    Gross area
   ``Azimuth``                             integer           deg           0 - 359            No        See [#]_     Azimuth (clockwise from North)
   ``Siding``                              string                          See [#]_           No        wood siding  Siding material
-  ``SolarAbsorptance`` or ``Color``       double or string                0 - 1 or See [#]_  Yes       See [#]_     Solar absorptance or color
+  ``Color`` or ``SolarAbsorptance``       string or double                See [#]_ or 0 - 1  No        medium       Color or solar absorptance [#]_
   ``Emittance``                           double                          0 - 1              No        0.90         Emittance
   ``Insulation/SystemIdentifier``         id                                                 Yes                    Unique identifier
   ``Insulation/AssemblyEffectiveRValue``  double            F-ft2-hr/Btu  > 0                Yes                    Assembly R-value [#]_
@@ -396,7 +396,7 @@ Each wall that has no contact with the ground and bounds a space type is entered
   ``Area``                                double            ft2           > 0                Yes                         Gross area (including doors/windows)
   ``Azimuth``                             integer           deg           0 - 359            No             See [#]_     Azimuth (clockwise from North)
   ``Siding``                              string                          See [#]_           No             wood siding  Siding material
-  ``SolarAbsorptance`` or ``Color``       double or string                0 - 1 or See [#]_  Yes            See [#]_     Solar absorptance or color
+  ``Color`` or ``SolarAbsorptance``       string or double                See [#]_ or 0 - 1  No             medium       Color or solar absorptance [#]_
   ``Emittance``                           double                          0 - 1              No             0.90         Emittance
   ``InteriorFinish/Type``                 string                          See [#]_           No             See [#]_     Interior finish material
   ``InteriorFinish/Thickness``            double            in            >= 0               No             0.5          Interior finish thickness

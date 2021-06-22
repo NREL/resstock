@@ -237,6 +237,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.99, HPXML::ColorDark, 0.90, false, HPXML::InteriorFinishNone, nil)
 
+    # Test defaults w/o RoofColor & SolarAbsorptance
+    hpxml.roofs[0].solar_absorptance = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.85, HPXML::ColorMedium, 0.90, false, HPXML::InteriorFinishNone, nil)
+
     # Test defaults w/ conditioned space
     hpxml = _create_hpxml('base-atticroof-cathedral.xml')
     hpxml.roofs[0].roof_type = nil
@@ -276,6 +282,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeWood, 0.99, HPXML::ColorDark, 0.90)
+
+    # Test defaults w/o Color & SolarAbsorptance
+    hpxml.rim_joists[0].solar_absorptance = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeWood, 0.7, HPXML::ColorMedium, 0.90)
   end
 
   def test_walls
@@ -309,6 +321,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_wall_values(hpxml_default.walls[0], HPXML::SidingTypeWood, 0.99, HPXML::ColorDark, 0.90, HPXML::InteriorFinishGypsumBoard, 0.5)
+
+    # Test defaults w/o Color & SolarAbsorptance
+    hpxml.walls[0].solar_absorptance = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_rim_joist_values(hpxml_default.walls[0], HPXML::SidingTypeWood, 0.7, HPXML::ColorMedium, 0.90)
 
     # Test defaults w/ unconditioned space
     hpxml.walls[1].siding = nil

@@ -294,6 +294,10 @@ class HPXMLDefaults
         roof.radiant_barrier = false
         roof.radiant_barrier_isdefaulted = true
       end
+      if roof.roof_color.nil? && roof.solar_absorptance.nil?
+        roof.roof_color = HPXML::ColorMedium
+        roof.roof_color_isdefaulted = true
+      end
       if roof.roof_color.nil?
         roof.roof_color = Constructions.get_default_roof_color(roof.roof_type, roof.solar_absorptance)
         roof.roof_color_isdefaulted = true
@@ -329,6 +333,10 @@ class HPXMLDefaults
         rim_joist.siding = HPXML::SidingTypeWood
         rim_joist.siding_isdefaulted = true
       end
+      if rim_joist.color.nil? && rim_joist.solar_absorptance.nil?
+        rim_joist.color = HPXML::ColorMedium
+        rim_joist.color_isdefaulted = true
+      end
       if rim_joist.color.nil?
         rim_joist.color = Constructions.get_default_wall_color(rim_joist.solar_absorptance)
         rim_joist.color_isdefaulted = true
@@ -349,6 +357,10 @@ class HPXMLDefaults
         if wall.siding.nil?
           wall.siding = HPXML::SidingTypeWood
           wall.siding_isdefaulted = true
+        end
+        if wall.color.nil? && wall.solar_absorptance.nil?
+          wall.color = HPXML::ColorMedium
+          wall.color_isdefaulted = true
         end
         if wall.color.nil?
           wall.color = Constructions.get_default_wall_color(wall.solar_absorptance)
