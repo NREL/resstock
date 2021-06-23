@@ -20,7 +20,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
       lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
 
       runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-      Dir["#{parent_dir}/workflow.osw"].each do |workflow|
+      Dir["#{parent_dir}/workflow-baseline.osw"].each do |workflow|
         measures_osw_dir = nil
         measures_upgrade_osw_dir = nil
 
@@ -58,8 +58,8 @@ class TestResStockMeasuresOSW < MiniTest::Test
           RunOSWs.add_simulation_output_report(osw)
 
           out_osw, result_characteristics, result_output = RunOSWs.run_and_check(osw, File.join(parent_dir, worker_folder))
-          result_characteristics['OSW'] = "#{project_dir}-#{building_id}.osw"
-          result_output['OSW'] = "#{project_dir}-#{building_id}.osw"
+          result_characteristics['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
+          result_output['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
           all_results_characteristics << result_characteristics
           all_results_output << result_output
 
@@ -84,7 +84,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
         end # building_id
       end # osw
 
-      Dir["#{parent_dir}/workflow.osw"].each do |workflow|
+      Dir["#{parent_dir}/workflow-baseline.osw"].each do |workflow|
         change_building_id(workflow, 1)
       end
 
