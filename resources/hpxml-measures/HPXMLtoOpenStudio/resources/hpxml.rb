@@ -2609,7 +2609,7 @@ class HPXML < Object
         XMLHelper.add_attribute(attached_to_wall, 'idref', @wall_idref)
       end
       XMLHelper.add_element(door, 'Area', @area, :float) unless @area.nil?
-      XMLHelper.add_element(door, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
+      XMLHelper.add_element(door, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
       XMLHelper.add_element(door, 'Orientation', @orientation, :string) unless @orientation.nil?
       XMLHelper.add_element(door, 'RValue', @r_value, :float) unless @r_value.nil?
     end

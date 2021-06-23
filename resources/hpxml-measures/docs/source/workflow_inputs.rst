@@ -613,11 +613,12 @@ Each opaque door is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Do
   ``SystemIdentifier``                          id                                   Yes                  Unique identifier
   ``AttachedToWall``                            idref                   See [#]_     Yes                  ID of attached wall
   ``Area``                                      double    ft2           > 0          Yes                  Total area
-  ``Azimuth``                                   integer   deg           0 - 359      Yes                  Azimuth (clockwise from North)
+  ``Azimuth``                                   integer   deg           0 - 359      No        See [#]_   Azimuth (clockwise from North)
   ``RValue``                                    double    F-ft2-hr/Btu  > 0          Yes                  R-value
   ============================================  ========  ============  ===========  ========  =========  ==============================
 
   .. [#] AttachedToWall must reference a ``Wall`` or ``FoundationWall``.
+  .. [#] If neither Azimuth nor attached wall azimuth provided, defaults to the azimuth with the largest surface area defined in the HPXML file.
 
 HPXML Systems
 -------------
