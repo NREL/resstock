@@ -20,7 +20,6 @@ class TestResStockMeasuresOSW < MiniTest::Test
       lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
 
       runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-
       Dir["#{parent_dir}/workflow-baseline.osw"].each do |workflow|
         measures_osw_dir = nil
         measures_upgrade_osw_dir = nil

@@ -46,6 +46,12 @@ jobs:
         run: |
           rake test:integration_tests
 
+      - name: Store measures osw
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/project_national_measures_osw
+          name: measures_osw
+
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
         with:
