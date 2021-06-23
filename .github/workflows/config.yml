@@ -101,12 +101,12 @@ jobs:
             base
           name: base
 
-      - name: Download feature samples
-        uses: actions/download-artifact@v2
-        with:
-          path: |
-            samples
-          name: samples
+      # - name: Download feature samples
+        # uses: actions/download-artifact@v2
+        # with:
+          # path: |
+            # samples
+          # name: samples
 
       - name: Download feature results
         uses: actions/download-artifact@v2
@@ -117,10 +117,10 @@ jobs:
 
       - name: Compare samples and results
         run: |
-          cp -r base/buildstock*.csv resources/base_buildstock.csv
-          cp -r samples/buildstock*.csv resources/buildstock.csv
-          pip install pandas
-          python test/compare.py
+          # cp -r base/buildstock*.csv resources/base_buildstock.csv
+          # cp -r samples/buildstock*.csv resources/buildstock.csv
+          # pip install pandas
+          # python test/compare.py
           
           cp -r base/results*.csv test/test_samples_osw/base
           mkdir test/test_samples_osw/results
