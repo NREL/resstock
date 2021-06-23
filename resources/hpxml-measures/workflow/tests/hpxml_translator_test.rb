@@ -90,7 +90,7 @@ class HPXMLTest < MiniTest::Test
   end
 
   def test_run_simulation_epjson_input
-    skip
+    skip # FIXME: flex build doesn't include this capability
     # Check that we can run a simulation using epJSON (instead of IDF) if requested
     os_cli = OpenStudio.getOpenStudioCLI
     rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
@@ -268,8 +268,8 @@ class HPXMLTest < MiniTest::Test
                             'invalid-facility-type-surfaces.xml' => ["The building is of type 'single-family detached' but the surface 'RimJoistOther' is adjacent to Attached/Multifamily space 'other housing unit'.",
                                                                      "The building is of type 'single-family detached' but the surface 'WallOther' is adjacent to Attached/Multifamily space 'other housing unit'.",
                                                                      "The building is of type 'single-family detached' but the surface 'FoundationWallOther' is adjacent to Attached/Multifamily space 'other housing unit'.",
-                                                                     "The building is of type 'single-family detached' but the surface 'FloorOther' is adjacent to Attached/Multifamily space 'other housing unit'.",
-                                                                     "The building is of type 'single-family detached' but the surface 'CeilingOther' is adjacent to Attached/Multifamily space 'other housing unit'."],
+                                                                     "The building is of type 'single-family detached' but the surface 'FloorAboveOther' is adjacent to Attached/Multifamily space 'other housing unit'.",
+                                                                     "The building is of type 'single-family detached' but the surface 'CeilingBelowOther' is adjacent to Attached/Multifamily space 'other housing unit'."],
                             'invalid-foundation-wall-properties.xml' => ['Expected DepthBelowGrade to be less than or equal to Height [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall, id: "FoundationWall"]',
                                                                          'Expected extension/DistanceToBottomOfInsulation to be greater than or equal to extension/DistanceToTopOfInsulation [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWallInsulation"]',
                                                                          'Expected extension/DistanceToBottomOfInsulation to be less than or equal to ../../Height [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWallInsulation"]'],
@@ -628,6 +628,10 @@ class HPXMLTest < MiniTest::Test
       next if err_line.include? 'Full load outlet temperature indicates a possibility of frost/freeze error continues.'
       next if err_line.include? 'Air-cooled condenser inlet dry-bulb temperature below 0 C.'
       next if err_line.include? 'Low condenser dry-bulb temperature error continues.'
+      next if err_line.include? 'Coil control failed to converge for AirLoopHVAC:UnitarySystem'
+      next if err_line.include? 'Coil control failed for AirLoopHVAC:UnitarySystem'
+      next if err_line.include? 'sensible part-load ratio out of range error continues'
+      next if err_line.include? 'Iteration limit exceeded in calculating sensible part-load ratio error continues'
 
       # HPWHs
       if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
