@@ -46,7 +46,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
         Parallel.map(building_ids, in_threads: Parallel.processor_count) do |building_id|
           worker_number = Parallel.worker_number
-          puts "\nBuilding ID: #{building_id} (#{buildings_ids.index(building_id)} / #{building_ids.size}), Worker Number: #{worker_number} ...\n"
+          puts "\nBuilding ID: #{building_id} (#{building_ids.index(building_id)} / #{building_ids.size}), Worker Number: #{worker_number} ...\n"
 
           worker_folder = "run#{worker_number}"
           worker_dir = File.join(File.dirname(workflow), worker_folder)
