@@ -25,7 +25,7 @@ baseline:
   n_buildings_represented: 133172057  # Total number of residential dwelling units in contiguous United States, including unoccupied units, resulting from a census tract level query of ACS 5-yr 2016 (i.e. 2012-2016), using this script: https://github.com/NREL/resstock-estimation/blob/master/sources/spatial/tsv_maker.py.
 
 upgrades:
-  - upgrade_name: Working list of all upgrades
+  - upgrade_name: Polyiso 1 inch
     options:
     #polyiso_1inch
       - &polyiso_1inch_on_uninsulated_wood
@@ -138,6 +138,7 @@ upgrades:
             - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
+  - upgrade_name: Polyiso 2 inch
     #polyiso 2inch
       #2" polyiso continuous insulation, R-13, 19% whole home reduction in ACH50, $1.90 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
       - &polyiso_2inch_on_uninsulated_wood
@@ -246,6 +247,7 @@ upgrades:
             - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
+  - upgrade_name: Siding upgrade
     #siding upgrades - no costs for these, intentionally
       - &siding_upgrade_to_fibercement
         option: Geometry Wall Exterior Finish|Fiber-Cement, Light
@@ -279,6 +281,7 @@ upgrades:
               - Geometry Wall Exterior Finish|Shingle, Composition
               - Geometry Wall Exterior Finish|Vinyl, Light
         lifetime: 30
+  - upgrade_name: Low-E Storms
     #low-E Storm windows
       - &low-e_storms_on_single_clear_metal
         option: Windows|Single, Clear, Metal, Exterior Low-E Storm
@@ -310,6 +313,7 @@ upgrades:
             - not: *vintage_exclusions
         costs: *low-e_storm_costs
         lifetime: 30
+  - upgrade_name: Triple pane windows
     #triple pane windows
       - &triple_window
         option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
@@ -332,6 +336,7 @@ upgrades:
       #   costs:
       #     - value: 30.5 #23 for low-e, 2 for shgc, 5.5 for shading
       #       multiplier: Window Area (ft^2)
+  - upgrade_name: 19% ACH50 reduction
     #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
       - &decrease_ACH50_19%_from_1
         option: Infiltration|0.81 ACH50
@@ -526,6 +531,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
+  - upgrade_name: 30% ACH50 reduction
       #30% ACH50 reduction for low-E storms on single pane without insulation upgrade
       - &decrease_ACH50_30%_from_1
         option: Infiltration|0.7 ACH50
@@ -709,6 +715,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
+  - upgrade_name: 10% ACH50 reduction
       #10% ACH50 reduction for low-E storms on double pane without insulation upgrade
       - &decrease_ACH50_10%_from_1
         option: Infiltration|0.9 ACH50
@@ -891,6 +898,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
+  - upgrade_name: 19% and 30% ACH50 reduction
       # 19% and 30% ACH50 reductions for polyiso, + low-E storms on single pane
       - &decrease_ACH50_19%_and_30%_from_1
         option: Infiltration|0.567 ACH50
@@ -1072,6 +1080,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
+  - upgrade_name: 19% and 10% ACH50 reduction
       # 19% and 10% ACH50 reductions for polyiso, + low-E storms on double pane
       - &decrease_ACH50_19%_and_10%_from_1
         option: Infiltration|0.729 ACH50
