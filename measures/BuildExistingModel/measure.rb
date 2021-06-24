@@ -163,7 +163,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     if ['Single-Family Detached', 'Mobile Home'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
       measures.delete('ResidentialGeometryCreateMultifamily')
-    elsif bldg_data['Geometry Building Type RECS'] == 'Single-Family Attached'
+    elsif ['Single-Family Attached'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyDetached')
       measures.delete('ResidentialGeometryCreateMultifamily')
     elsif ['Multi-Family with 2 - 4 Units', 'Multi-Family with 5+ Units'].include? bldg_data['Geometry Building Type RECS']
