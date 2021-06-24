@@ -27,29 +27,229 @@ baseline:
 upgrades:
   - upgrade_name: Working list of all upgrades
     options:
-      - &polyiso_1inch
+      #polyiso_1inch
+      - &polyiso_1inch_on_uninsulated_wood
         #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
-        option: Insulation Wall| #add R-6.5 to all wall types. Will need to edit options lookup
-        apply_logic: &insulation_apply_logic
+        option: Insulation Wall|Wood Stud, Uninsulated, R-6.5 Sheathing
+        apply_logic:
           and:
-            - not:
-              - Insulation Wall|Wood Stud, R-19
-              - Insulation Wall|CMU, 6-in Hollow, R-19
+            - Insulation Wall|Wood Stud, Uninsulated
+            - not: &insulation_vintage_exclusions
               - Vintage|1990s
               - Vintage|2000s
               - Vintage|2010s
-        costs:
+        costs: &polyiso_1inch_costs
           - value: 1.4
-            multiplier: Wall Area, Above-Grade, Exterior (ft^2) # do I need to worry about conditioned vs not?
-        lifetime: 999 #should be unimportant because we are doing all the econ stuff with postprocessing?
-      - &polyiso_2inch
-        #1" polyiso continuous insulation, R-13, 19% whole home reduction in ACH50, $1.90 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
-        option: Insulation Wall| #add R-13 to all wall types. Will need to edit options lookup
-        apply_logic: *insulation_apply_logic
-        costs:
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_wood
+        option: Insulation Wall|Wood Stud, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-7
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_wood
+        option: Insulation Wall|Wood Stud, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-11
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-13_wood
+        option: Insulation Wall|Wood Stud, R-13, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-13
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_wood
+        option: Insulation Wall|Wood Stud, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-15
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+    #polyiso 2inch
+      #2" polyiso continuous insulation, R-13, 19% whole home reduction in ACH50, $1.90 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
+      - &polyiso_2inch_on_uninsulated_wood
+        option: Insulation Wall|Wood Stud, Uninsulated, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - not: &insulation_vintage_exclusions
+              - Vintage|1990s
+              - Vintage|2000s
+              - Vintage|2010s
+        costs: &polyiso_2inch_costs
           - value: 1.9
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
-        lifetime: 999 #should be unimportant because we are doing all the econ stuff with postprocessing?
+        lifetime: 30
+      - &polyiso_2inch_on_R-7_wood
+        option: Insulation Wall|Wood Stud, R-7, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-7
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-11_wood
+        option: Insulation Wall|Wood Stud, R-11, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-11
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-13_wood
+        option: Insulation Wall|Wood Stud, R-13, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-13
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-15_wood
+        option: Insulation Wall|Wood Stud, R-15, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-15
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_uninsulated_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-7_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-11_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-15_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_uninsulated_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-7_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-11_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-11, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-15_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-15, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+            - not: *insulation_vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+
       - &siding_upgrade #not including costs for these
         option: siding|Fiber-cement, light #update when actual option names are available
         apply_logic:
