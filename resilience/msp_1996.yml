@@ -1,23 +1,23 @@
 schema_version: '0.3'
 buildstock_directory: /home/nmoore/github/resstock
 project_directory: project_national
-output_directory: /projects/resilience/test_msp_1996
+output_directory: /projects/resilience/msp_1996
 weather_files_path: resilience_weather/msp_1996.zip
 
 eagle:
-  n_jobs: 1
+  n_jobs: 8
   minutes_per_sim: 4
   account: resilience
   sampling:
-    time: 10
+    time: 240
   postprocessing:
-    time: 10
+    time: 60
     n_workers: 1
 
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 500
+    n_datapoints: 350000
     resample: false
     logic:
       - Geometry Building Type ACS|Single-Family Detached
@@ -58,6 +58,10 @@ upgrades:
         apply_logic: Geometry Foundation Type|Slab
       - option: Insulation Crawlspace|Wall R-25, Unvented
         apply_logic: Geometry Foundation Type|Crawl
+      - option: Insulation Unfinished Basement|Wall R-25
+        apply_logic: Geometry Foundation Type|Unheated Basement
+      - option: Insulation Finished Basement|Wall R-25
+        apply_logic: Geometry Foundation Type|Heated Basement
       - option: Windows|PHIUS 2021 cz 6
   - upgrade_name: Air Leakage 25% reduction
     options:
