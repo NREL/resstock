@@ -577,18 +577,36 @@ end
 def update_measures
   require 'openstudio'
 
+  # Prevent NREL error regarding U: drive when not VPNed in
+  ENV['HOME'] = 'C:' if !ENV['HOME'].nil? && ENV['HOME'].start_with?('U:')
+  ENV['HOMEDRIVE'] = 'C:\\' if !ENV['HOMEDRIVE'].nil? && ENV['HOMEDRIVE'].start_with?('U:')
+
   # Apply rubocop
-  command = 'rubocop --auto-correct --format simple --only Layout'
-  puts 'Applying rubocop style to measures...'
+  cops = ['Layout',
+          'Lint/DeprecatedClassMethods',
+          # 'Lint/RedundantStringCoercion', # Enable when rubocop is upgraded
+          'Style/AndOr',
+          'Style/FrozenStringLiteralComment',
+          'Style/HashSyntax',
+          'Style/Next',
+          'Style/NilComparison',
+          'Style/RedundantParentheses',
+          'Style/RedundantSelf',
+          'Style/ReturnNil',
+          'Style/SelfAssignment',
+          'Style/StringLiterals',
+          'Style/StringLiteralsInInterpolation']
+  commands = ["\"require 'rubocop/rake_task'\"",
+              "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--auto-correct', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
+              '"Rake.application[:rubocop].invoke"']
+  command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"
+  puts 'Applying rubocop auto-correct to measures...'
   system(command)
 
-  [File.expand_path('../measures/', __FILE__), File.expand_path('../resources/measures/', __FILE__)].each do |measures_dir|
-    # Update measure xmls
-    cli_path = OpenStudio.getOpenStudioCLI
-    command = "\"#{cli_path}\" --no-ssl measure --update_all #{measures_dir} >> log"
-    puts "Updating measure.xml files in #{measures_dir}..."
-    system(command)
-  end
+  # Update measures XMLs
+  command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.join(File.dirname(__FILE__), 'measures')}'"
+  puts 'Updating measure.xmls...'
+  system(command, [:out, :err] => File::NULL)
 
   # Generate example OSWs
 
@@ -655,8 +673,8 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
 
   workflowJSON = OpenStudio::WorkflowJSON.new
   workflowJSON.setOswPath(osw_path)
-  workflowJSON.addMeasurePath('../measures')
-  workflowJSON.addMeasurePath('../resources/measures')
+  workflowJSON.addMeasurePath('../../measures')
+  workflowJSON.addMeasurePath('../../resources/measures')
 
   steps = OpenStudio::WorkflowStepVector.new
 
