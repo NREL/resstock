@@ -296,19 +296,19 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
     if option_type == Constants.OptionTypeLightingEnergyUses
       garage_ann = energy_use_garage
-    elsif option_type == Constants.OptionTypeLightingFractions  
+    elsif option_type == Constants.OptionTypeLightingFractions
       hw_fl = hw_cfl + hw_lfl
       fl_eff = cfl_eff
-  
+
       # Efficacy ratios
       eff_ratio_inc = in_eff / in_eff
       eff_ratio_fl = in_eff / fl_eff
       eff_ratio_led = in_eff / led_eff
-      
+
       # Efficiency lighting adjustments
-      grg_adj  = (hw_inc * eff_ratio_inc) + (hw_fl * eff_ratio_fl) + (hw_led * eff_ratio_led)
+      grg_adj = (hw_inc * eff_ratio_inc) + (hw_fl * eff_ratio_fl) + (hw_led * eff_ratio_led)
       # Calculate energy use
-      garage_ann = mult * 100.0 * grg_adj  
+      garage_ann = mult * 100.0 * grg_adj
     end
 
     success = Lighting.apply_garage(model, runner, weather, garage_ann, schedules_file)
@@ -329,12 +329,12 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
       total_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, runner)
       hw_fl = hw_cfl + hw_lfl
       fl_eff = cfl_eff
-  
+
       # Efficacy ratios
       eff_ratio_inc = in_eff / in_eff
       eff_ratio_fl = in_eff / fl_eff
       eff_ratio_led = in_eff / led_eff
-      
+
       # Efficiency lighting adjustments
       ext_adj = (hw_inc * eff_ratio_inc) + (hw_fl * eff_ratio_fl) + (hw_led * eff_ratio_led)
       # Calculate energy use
