@@ -13,7 +13,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     all_results_characteristics = []
     all_results_output = []
-    [['project_testing', 1], ['project_national', 500]].each do |scenario|
+    [['project_testing', 1], ['project_national', 3000]].each do |scenario|
       project_dir, num_samples = scenario
 
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
@@ -46,7 +46,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
         Parallel.map(building_ids, in_threads: Parallel.processor_count) do |building_id|
           worker_number = Parallel.worker_number
-          puts "\nBuilding ID: #{building_id}, Worker Number: #{worker_number} ...\n"
+          puts "\nBuilding ID: #{building_id} (#{building_ids.index(building_id) + 1} / #{building_ids.size}), Worker Number: #{worker_number} ...\n"
 
           worker_folder = "run#{worker_number}"
           worker_dir = File.join(File.dirname(workflow), worker_folder)
@@ -58,8 +58,11 @@ class TestResStockMeasuresOSW < MiniTest::Test
           RunOSWs.add_simulation_output_report(osw)
 
           out_osw, result_characteristics, result_output = RunOSWs.run_and_check(osw, File.join(parent_dir, worker_folder))
-          result_characteristics['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
-          result_output['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
+
+          osw = "#{project_dir}-#{building_id.to_s.rjust(4, '0')}.osw"
+          result_characteristics['OSW'] = osw
+          result_output['OSW'] = osw
+
           all_results_characteristics << result_characteristics
           all_results_output << result_output
 
