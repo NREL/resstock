@@ -42,25 +42,29 @@ jobs:
         run: |
           rake test:regression_tests
 
-      - name: Store feature samples
+      - name: Run all integration tests
+        run: |
+          rake test:integration_tests
+
+      - name: Upload feature samples
         uses: actions/upload-artifact@v2
         with:
           path: resources/buildstock.csv
           name: samples
 
-      - name: Store example results
+      - name: Upload regression results
         uses: actions/upload-artifact@v2
         with:
           path: workflows/results
-          name: example_osws
+          name: examples
 
-      - name: Store measures results
+      - name: Upload integration results
         uses: actions/upload-artifact@v2
         with:
           path: test/test_samples_osw/results
           name: results
 
-      - name: Store schedules
+      - name: Upload schedules
         uses: actions/upload-artifact@v2
         with:
           path: resources/measures/ResidentialScheduleGenerator/tests/output/test_sweep_building_ids_and_num_occupants
@@ -80,7 +84,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
-      - name: Store base samples and results
+      - name: Upload base samples and results
         uses: actions/upload-artifact@v2
         with:
           path: test/test_samples_osw/base
@@ -123,7 +127,7 @@ jobs:
           cp -r results/results* test/test_samples_osw/results
           ruby test/compare.rb
 
-      - name: Store comparisons
+      - name: Upload comparisons
         uses: actions/upload-artifact@v2
         with:
           path: test/test_samples_osw/comparisons
@@ -188,7 +192,7 @@ jobs:
           pip install -r requirements.txt
           make html
 
-      - name: Store docs
+      - name: Upload docs
         uses: actions/upload-artifact@v2
         with:
           path: docs/read_the_docs/build
