@@ -333,35 +333,18 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
 
       # Activity
       activity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-      activity_schedule.setValue(120)
+      activity_schedule.setValue(100)
       activity_schedule.setName("Activity Level Schedule")
 
       # Air Velocity
       air_velocity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-      air_velocity_schedule.setValue(0.2)
+      air_velocity_schedule.setValue(0.1)
       air_velocity_schedule.setName("Air Velocity Schedule")
 
       # Clothing Insulation
-      clothing_insulation_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
+      clothing_insulation_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      clothing_insulation_schedule.setValue(0.6)
       clothing_insulation_schedule.setName("Clothing Schedule")
-
-      # Rule 1: Jan 1 - Dec 31, value = 1.0
-      clothing_insulation_schedule_rule1 = OpenStudio::Model::ScheduleRule.new(clothing_insulation_schedule)
-      start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, assumed_year)
-      end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(12), 31, assumed_year)
-      clothing_insulation_schedule_rule1.setStartDate(start_date)
-      clothing_insulation_schedule_rule1.setEndDate(end_date)
-      rule1_day_schedule = clothing_insulation_schedule_rule1.daySchedule
-      rule1_day_schedule.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1.0)
-
-      # Rule 2: May 1 - Sep 30, value = 0.5
-      clothing_insulation_schedule_rule2 = OpenStudio::Model::ScheduleRule.new(clothing_insulation_schedule)
-      start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(5), 1, assumed_year)
-      end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(9), 30, assumed_year)
-      clothing_insulation_schedule_rule2.setStartDate(start_date)
-      clothing_insulation_schedule_rule2.setEndDate(end_date)
-      rule2_day_schedule = clothing_insulation_schedule_rule2.daySchedule
-      rule2_day_schedule.addValue(OpenStudio::Time.new(0, 24, 0, 0), 0.5)
 
       model.getPeoples.each do |people|
         # Set schedules
