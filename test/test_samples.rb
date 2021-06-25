@@ -9,7 +9,7 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 500 }
+    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 3000 }
     @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
@@ -116,7 +116,7 @@ class IntegrationWorkflowTest < MiniTest::Test
     Parallel.map(workflow_and_building_ids, in_threads: Parallel.processor_count) do |workflow, building_id|
       worker_number = Parallel.worker_number
       osw_basename = File.basename(workflow)
-      puts "\nWorkflow: #{osw_basename}, Building ID: #{building_id}, Worker Number: #{worker_number} ...\n"
+      puts "\nWorkflow: #{osw_basename}, Building ID: #{building_id} (#{workflow_and_building_ids.index([workflow, building_id]) + 1} / #{workflow_and_building_ids.size}), Worker Number: #{worker_number} ...\n"
 
       worker_folder = "run#{worker_number}"
       worker_dir = File.join(File.dirname(workflow), worker_folder)
@@ -126,8 +126,10 @@ class IntegrationWorkflowTest < MiniTest::Test
 
       change_building_id(osw, building_id)
       finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, File.join(@top_dir, worker_folder))
-      result_characteristics['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
-      result_output['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
+
+      osw = "#{project_dir}-#{building_id.to_s.rjust(4, '0')}.osw"
+      result_characteristics['OSW'] = osw
+      result_output['OSW'] = osw
 
       check_finished_job(result_characteristics, finished_job)
       check_finished_job(result_output, finished_job)
