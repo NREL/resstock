@@ -25,7 +25,7 @@ baseline:
   n_buildings_represented: 133172057  # Total number of residential dwelling units in contiguous United States, including unoccupied units, resulting from a census tract level query of ACS 5-yr 2016 (i.e. 2012-2016), using this script: https://github.com/NREL/resstock-estimation/blob/master/sources/spatial/tsv_maker.py.
 
 upgrades:
-  - upgrade_name: Polyiso 1 inch
+  - upgrade_name: Package 1 - 1" polyiso, low-e storms, siding
     options:
     #polyiso_1inch
       - &polyiso_1inch_on_uninsulated_wood
@@ -138,118 +138,6 @@ upgrades:
             - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
-  - upgrade_name: Polyiso 2 inch
-    options:
-    #polyiso 2inch
-      #2" polyiso continuous insulation, R-13, 19% whole home reduction in ACH50, $1.90 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
-      - &polyiso_2inch_on_uninsulated_wood
-        option: Insulation Wall|Wood Stud, Uninsulated, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|Wood Stud, Uninsulated
-            - not: *vintage_exclusions
-        costs: &polyiso_2inch_costs
-          - value: 1.9
-            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
-        lifetime: 30
-      - &polyiso_2inch_on_R-7_wood
-        option: Insulation Wall|Wood Stud, R-7, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|Wood Stud, R-7
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_R-11_wood
-        option: Insulation Wall|Wood Stud, R-11, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|Wood Stud, R-11
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_R-13_wood
-        option: Insulation Wall|Wood Stud, R-13, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|Wood Stud, R-13
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_R-15_wood
-        option: Insulation Wall|Wood Stud, R-15, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|Wood Stud, R-15
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_uninsulated_cmu
-        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_R-7_cmu
-        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|CMU, 6-in Hollow, R-7
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_R-11_cmu
-        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|CMU, 6-in Hollow, R-11
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_R-15_cmu
-        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|CMU, 6-in Hollow, R-15
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_uninsulated_brick
-        option: Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_R-7_brick
-        option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_R-11_brick
-        option: Insulation Wall|Brick, 12-in, 3-wythe, R-11, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-      - &polyiso_2inch_on_R-15_brick
-        option: Insulation Wall|Brick, 12-in, 3-wythe, R-15, R-13 Sheathing
-        apply_logic:
-          and:
-            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
-            - not: *vintage_exclusions
-        costs: *polyiso_2inch_costs
-        lifetime: 30
-  - upgrade_name: Siding upgrade
-    options:
     #siding upgrades - no costs for these, intentionally
       - &siding_upgrade_to_fibercement
         option: Geometry Wall Exterior Finish|Fiber-Cement, Light
@@ -283,8 +171,6 @@ upgrades:
               - Geometry Wall Exterior Finish|Shingle, Composition
               - Geometry Wall Exterior Finish|Vinyl, Light
         lifetime: 30
-  - upgrade_name: Low-E Storms
-    options:
     #low-E Storm windows
       - &low-e_storms_on_single_clear_metal
         option: Windows|Single, Clear, Metal, Exterior Low-E Storm
@@ -316,59 +202,6 @@ upgrades:
             - not: *vintage_exclusions
         costs: *low-e_storm_costs
         lifetime: 30
-  - upgrade_name: Triple pane windows
-    options:
-    #triple pane windows
-      - &triple_window
-        option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
-        apply_logic:
-          and:
-            - or: &upgradable_windows
-              - Windows|Single, Clear, Metal
-              - Windows|Single, Clear, Metal, Exterior Clear Storm
-              - Windows|Single, Clear, Non-metal
-              - Windows|Single, Clear, Non-metal, Exterior Clear Storm
-              - Windows|Double, Clear, Metal, Air
-            - not: *vintage_exclusions
-        costs:
-          - value: 62
-            multiplier: Window Area (ft^2)
-        lifetime: 30
-  - upgrade_name: Low-E Storms with Shading
-    options:
-    #low-E Storm windows
-      - &low-e_storms_on_single_clear_metal_with_shading
-        option: Windows|Single, Clear, Metal, Exterior Low-E Storm, Solar Screen
-        apply_logic:
-          and:
-            - or:
-                - Windows|Single, Clear, Metal
-                - Windows|Single, Clear, Metal, Exterior Clear Storm
-            - not: *vintage_exclusions
-        costs: &low-e_storm_with_shading_costs
-          - value: 28.50 #I added 5.50 for the shading, I have a note saying to also add 2 for low shgc but I don't think we're doing that any more
-            multiplier: Window Area (ft^2)
-        lifetime: 30
-      - &low-e_storms_on_single_clear_nonmetal
-        option: Windows|Single, Clear, Non-metal, Exterior Low-E Storm, Solar Screen
-        apply_logic:
-          and:
-            - or:
-                - Windows|Single, Clear, Non-metal
-                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
-            - not: *vintage_exclusions
-        costs: *low-e_storm_with_shading_costs
-        lifetime: 30
-      - &low-e_storms_on_double_clear_metal
-        option: Windows|Double, Clear, Metal, Exterior Low-E Storm, Solar Screen
-        apply_logic:
-          and:
-            - Windows|Double, Clear, Metal, Air
-            - not: *vintage_exclusions
-        costs: *low-e_storm_with_shading_costs
-        lifetime: 30
-  - upgrade_name: 19% ACH50 reduction
-    options:
     #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
       - &decrease_ACH50_19pct_from_1
         option: Infiltration|0.81 ACH50
@@ -563,9 +396,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-  - upgrade_name: 30% ACH50 reduction
-    options:
-      #30% ACH50 reduction for low-E storms on single pane without insulation upgrade
+      #30% ACH50 reduction for low-E storms on single pane, or triple pane replacing single pane, without insulation upgrade
       - &decrease_ACH50_30pct_from_1
         option: Infiltration|0.7 ACH50
         apply_logic:
@@ -748,9 +579,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-  - upgrade_name: 10% ACH50 reduction
-    options:
-      #10% ACH50 reduction for low-E storms on double pane without insulation upgrade
+      #10% ACH50 reduction for low-E storms on double pane, or triple pane replacing double pane, without insulation upgrade
       - &decrease_ACH50_10pct_from_1
         option: Infiltration|0.9 ACH50
         apply_logic:
@@ -932,9 +761,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-  - upgrade_name: 19% and 30% ACH50 reduction
-    options:
-      # 19% and 30% ACH50 reductions for polyiso, + low-E storms on single pane
+      # 19% and 30% ACH50 reductions for polyiso, + low-E storms on single pane or triple pane replacing single pane
       - &decrease_ACH50_19pctand_30pct_from_1
         option: Infiltration|0.567 ACH50
         apply_logic:
@@ -1115,9 +942,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-  - upgrade_name: 19% and 10% ACH50 reduction
-    options:
-      # 19% and 10% ACH50 reductions for polyiso, + low-E storms on double pane
+      # 19% and 10% ACH50 reductions for polyiso, + low-E storms on double pane, or triple pane replacing double pane
       - &decrease_ACH50_19pctand_10pct_from_1
         option: Infiltration|0.729 ACH50
         apply_logic:
@@ -1299,92 +1124,456 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 30
 
-#placeholders below
-      # #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
-      # - &decrease_ACH50_19pct_from_1
-      # - &decrease_ACH50_19pct_from_2
-      # - &decrease_ACH50_19pct_from_3
-      # - &decrease_ACH50_19pct_from_4
-      # - &decrease_ACH50_19pct_from_5
-      # - &decrease_ACH50_19pct_from_6
-      # - &decrease_ACH50_19pct_from_7
-      # - &decrease_ACH50_19pct_from_8
-      # - &decrease_ACH50_19pct_from_10
-      # - &decrease_ACH50_19pct_from_15
-      # - &decrease_ACH50_19pct_from_20
-      # - &decrease_ACH50_19pct_from_25
-      # - &decrease_ACH50_19pct_from_30
-      # - &decrease_ACH50_19pct_from_40
-      # - &decrease_ACH50_19pct_from_50
-      # #30% ACH50 reduction for low-E storms on single paane without insulation upgrade
-      # - &decrease_ACH50_30pct_from_1
-      # - &decrease_ACH50_30pct_from_2
-      # - &decrease_ACH50_30pct_from_3
-      # - &decrease_ACH50_30pct_from_4
-      # - &decrease_ACH50_30pct_from_5
-      # - &decrease_ACH50_30pct_from_6
-      # - &decrease_ACH50_30pct_from_7
-      # - &decrease_ACH50_30pct_from_8
-      # - &decrease_ACH50_30pct_from_10
-      # - &decrease_ACH50_30pct_from_15
-      # - &decrease_ACH50_30pct_from_10
-      # - &decrease_ACH50_30pct_from_15
-      # - &decrease_ACH50_30pct_from_20
-      # - &decrease_ACH50_30pct_from_25
-      # - &decrease_ACH50_30pct_from_30
-      # - &decrease_ACH50_30pct_from_40
-      # - &decrease_ACH50_30pct_from_50
-      # #10% ACH50 reduction for low-E storms on double pane without insulation upgrade
-      # - &decrease_ACH50_10pct_from_1
-      # - &decrease_ACH50_10pct_from_2
-      # - &decrease_ACH50_10pct_from_3
-      # - &decrease_ACH50_10pct_from_4
-      # - &decrease_ACH50_10pct_from_5
-      # - &decrease_ACH50_10pct_from_6
-      # - &decrease_ACH50_10pct_from_7
-      # - &decrease_ACH50_10pct_from_8
-      # - &decrease_ACH50_10pct_from_10
-      # - &decrease_ACH50_10pct_from_15
-      # - &decrease_ACH50_10pct_from_20
-      # - &decrease_ACH50_10pct_from_25
-      # - &decrease_ACH50_10pct_from_30
-      # - &decrease_ACH50_10pct_from_40
-      # - &decrease_ACH50_10pct_from_50
-      # # 19% and 30% ACH50 reductions for polyiso, + low-E storms on single pane
-      # - &decrease_ACH50_19pctand_30pct_from_1
-      # - &decrease_ACH50_19pctand_30pct_from_2
-      # - &decrease_ACH50_19pctand_30pct_from_3
-      # - &decrease_ACH50_19pctand_30pct_from_4
-      # - &decrease_ACH50_19pctand_30pct_from_5
-      # - &decrease_ACH50_19pctand_30pct_from_6
-      # - &decrease_ACH50_19pctand_30pct_from_7
-      # - &decrease_ACH50_19pctand_30pct_from_8
-      # - &decrease_ACH50_19pctand_30pct_from_10
-      # - &decrease_ACH50_19pctand_30pct_from_15
-      # - &decrease_ACH50_19pctand_30pct_from_20
-      # - &decrease_ACH50_19pctand_30pct_from_25
-      # - &decrease_ACH50_19pctand_30pct_from_30
-      # - &decrease_ACH50_19pctand_30pct_from_35
-      # - &decrease_ACH50_19pctand_30pct_from_40
-      # - &decrease_ACH50_19pctand_30pct_from_50
-      # # 19% and 10% ACH50 reductions for polyiso, + low-E storms on double pane
-      # - &decrease_ACH50_19pctand_10pct_from_1
-      # - &decrease_ACH50_19pctand_10pct_from_2
-      # - &decrease_ACH50_19pctand_10pct_from_3
-      # - &decrease_ACH50_19pctand_10pct_from_4
-      # - &decrease_ACH50_19pctand_10pct_from_5
-      # - &decrease_ACH50_19pctand_10pct_from_6
-      # - &decrease_ACH50_19pctand_10pct_from_7
-      # - &decrease_ACH50_19pctand_10pct_from_8
-      # - &decrease_ACH50_19pctand_10pct_from_10
-      # - &decrease_ACH50_19pctand_10pct_from_15
-      # - &decrease_ACH50_19pctand_10pct_from_20
-      # - &decrease_ACH50_19pctand_10pct_from_25
-      # - &decrease_ACH50_19pctand_10pct_from_30
-      # - &decrease_ACH50_19pctand_10pct_from_35
-      # - &decrease_ACH50_19pctand_10pct_from_40
-      # - &decrease_ACH50_19pctand_10pct_from_50
-      
+
+  - upgrade_name: Package 2 - 1" polyiso, Triple pane, siding
+    options:
+    #polyiso 1 inch
+      - *polyiso_1inch_on_uninsulated_wood
+      - *polyiso_1inch_on_R-7_wood
+      - *polyiso_1inch_on_R-11_wood
+      - *polyiso_1inch_on_R-13_wood
+      - *polyiso_1inch_on_R-15_wood
+      - *polyiso_1inch_on_uninsulated_cmu
+      - *polyiso_1inch_on_R-7_cmu
+      - *polyiso_1inch_on_R-11_cmu
+      - *polyiso_1inch_on_R-15_cmu
+      - *polyiso_1inch_on_uninsulated_brick
+      - *polyiso_1inch_on_R-7_brick
+      - *polyiso_1inch_on_R-11_brick
+      - *polyiso_1inch_on_R-15_brick
+    #siding upgrades
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+    #triple pane windows
+      - &triple_window
+        option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
+        apply_logic:
+          and:
+            - or: &upgradable_windows
+              - Windows|Single, Clear, Metal
+              - Windows|Single, Clear, Metal, Exterior Clear Storm
+              - Windows|Single, Clear, Non-metal
+              - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+              - Windows|Double, Clear, Metal, Air
+            - not: *vintage_exclusions
+        costs:
+          - value: 62
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+    #Infiltration
+      - *decrease_ACH50_19pct_from_1
+      - *decrease_ACH50_19pct_from_2
+      - *decrease_ACH50_19pct_from_3
+      - *decrease_ACH50_19pct_from_4
+      - *decrease_ACH50_19pct_from_5
+      - *decrease_ACH50_19pct_from_6
+      - *decrease_ACH50_19pct_from_7
+      - *decrease_ACH50_19pct_from_8
+      - *decrease_ACH50_19pct_from_10
+      - *decrease_ACH50_19pct_from_15
+      - *decrease_ACH50_19pct_from_20
+      - *decrease_ACH50_19pct_from_25
+      - *decrease_ACH50_19pct_from_30
+      - *decrease_ACH50_19pct_from_40
+      - *decrease_ACH50_19pct_from_50
+      - *decrease_ACH50_30pct_from_1
+      - *decrease_ACH50_30pct_from_2
+      - *decrease_ACH50_30pct_from_3
+      - *decrease_ACH50_30pct_from_4
+      - *decrease_ACH50_30pct_from_5
+      - *decrease_ACH50_30pct_from_6
+      - *decrease_ACH50_30pct_from_7
+      - *decrease_ACH50_30pct_from_8
+      - *decrease_ACH50_30pct_from_10
+      - *decrease_ACH50_30pct_from_15
+      - *decrease_ACH50_30pct_from_10
+      - *decrease_ACH50_30pct_from_15
+      - *decrease_ACH50_30pct_from_20
+      - *decrease_ACH50_30pct_from_25
+      - *decrease_ACH50_30pct_from_30
+      - *decrease_ACH50_30pct_from_40
+      - *decrease_ACH50_30pct_from_50
+      - *decrease_ACH50_10pct_from_1
+      - *decrease_ACH50_10pct_from_2
+      - *decrease_ACH50_10pct_from_3
+      - *decrease_ACH50_10pct_from_4
+      - *decrease_ACH50_10pct_from_5
+      - *decrease_ACH50_10pct_from_6
+      - *decrease_ACH50_10pct_from_7
+      - *decrease_ACH50_10pct_from_8
+      - *decrease_ACH50_10pct_from_10
+      - *decrease_ACH50_10pct_from_15
+      - *decrease_ACH50_10pct_from_20
+      - *decrease_ACH50_10pct_from_25
+      - *decrease_ACH50_10pct_from_30
+      - *decrease_ACH50_10pct_from_40
+      - *decrease_ACH50_10pct_from_50
+      - *decrease_ACH50_19pctand_30pct_from_1
+      - *decrease_ACH50_19pctand_30pct_from_2
+      - *decrease_ACH50_19pctand_30pct_from_3
+      - *decrease_ACH50_19pctand_30pct_from_4
+      - *decrease_ACH50_19pctand_30pct_from_5
+      - *decrease_ACH50_19pctand_30pct_from_6
+      - *decrease_ACH50_19pctand_30pct_from_7
+      - *decrease_ACH50_19pctand_30pct_from_8
+      - *decrease_ACH50_19pctand_30pct_from_10
+      - *decrease_ACH50_19pctand_30pct_from_15
+      - *decrease_ACH50_19pctand_30pct_from_20
+      - *decrease_ACH50_19pctand_30pct_from_25
+      - *decrease_ACH50_19pctand_30pct_from_30
+      - *decrease_ACH50_19pctand_30pct_from_35
+      - *decrease_ACH50_19pctand_30pct_from_40
+      - *decrease_ACH50_19pctand_30pct_from_50
+      - *decrease_ACH50_19pctand_10pct_from_1
+      - *decrease_ACH50_19pctand_10pct_from_2
+      - *decrease_ACH50_19pctand_10pct_from_3
+      - *decrease_ACH50_19pctand_10pct_from_4
+      - *decrease_ACH50_19pctand_10pct_from_5
+      - *decrease_ACH50_19pctand_10pct_from_6
+      - *decrease_ACH50_19pctand_10pct_from_7
+      - *decrease_ACH50_19pctand_10pct_from_8
+      - *decrease_ACH50_19pctand_10pct_from_10
+      - *decrease_ACH50_19pctand_10pct_from_15
+      - *decrease_ACH50_19pctand_10pct_from_20
+      - *decrease_ACH50_19pctand_10pct_from_25
+      - *decrease_ACH50_19pctand_10pct_from_30
+      - *decrease_ACH50_19pctand_10pct_from_35
+      - *decrease_ACH50_19pctand_10pct_from_40
+      - *decrease_ACH50_19pctand_10pct_from_50
+
+  - upgrade_name: Package 3 - 2" polyiso, low-e storms, siding
+    options:
+    #polyiso 2inch
+      #2" polyiso continuous insulation, R-13, 19% whole home reduction in ACH50, $1.90 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
+      - &polyiso_2inch_on_uninsulated_wood
+        option: Insulation Wall|Wood Stud, Uninsulated, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - not: *vintage_exclusions
+        costs: &polyiso_2inch_costs
+          - value: 1.9
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &polyiso_2inch_on_R-7_wood
+        option: Insulation Wall|Wood Stud, R-7, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-7
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-11_wood
+        option: Insulation Wall|Wood Stud, R-11, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-11
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-13_wood
+        option: Insulation Wall|Wood Stud, R-13, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-13
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-15_wood
+        option: Insulation Wall|Wood Stud, R-15, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-15
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_uninsulated_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-7_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-11_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-15_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_uninsulated_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-7_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-11_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-11, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+      - &polyiso_2inch_on_R-15_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-15, R-13 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+            - not: *vintage_exclusions
+        costs: *polyiso_2inch_costs
+        lifetime: 30
+    #low-E Storms
+      - *low-e_storms_on_single_clear_metal
+      - *low-e_storms_on_single_clear_nonmetal
+      - *low-e_storms_on_double_clear_metal
+    #siding upgrades
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+    #infiltration
+      - *decrease_ACH50_19pct_from_1
+      - *decrease_ACH50_19pct_from_2
+      - *decrease_ACH50_19pct_from_3
+      - *decrease_ACH50_19pct_from_4
+      - *decrease_ACH50_19pct_from_5
+      - *decrease_ACH50_19pct_from_6
+      - *decrease_ACH50_19pct_from_7
+      - *decrease_ACH50_19pct_from_8
+      - *decrease_ACH50_19pct_from_10
+      - *decrease_ACH50_19pct_from_15
+      - *decrease_ACH50_19pct_from_20
+      - *decrease_ACH50_19pct_from_25
+      - *decrease_ACH50_19pct_from_30
+      - *decrease_ACH50_19pct_from_40
+      - *decrease_ACH50_19pct_from_50
+      - *decrease_ACH50_30pct_from_1
+      - *decrease_ACH50_30pct_from_2
+      - *decrease_ACH50_30pct_from_3
+      - *decrease_ACH50_30pct_from_4
+      - *decrease_ACH50_30pct_from_5
+      - *decrease_ACH50_30pct_from_6
+      - *decrease_ACH50_30pct_from_7
+      - *decrease_ACH50_30pct_from_8
+      - *decrease_ACH50_30pct_from_10
+      - *decrease_ACH50_30pct_from_15
+      - *decrease_ACH50_30pct_from_10
+      - *decrease_ACH50_30pct_from_15
+      - *decrease_ACH50_30pct_from_20
+      - *decrease_ACH50_30pct_from_25
+      - *decrease_ACH50_30pct_from_30
+      - *decrease_ACH50_30pct_from_40
+      - *decrease_ACH50_30pct_from_50
+      - *decrease_ACH50_10pct_from_1
+      - *decrease_ACH50_10pct_from_2
+      - *decrease_ACH50_10pct_from_3
+      - *decrease_ACH50_10pct_from_4
+      - *decrease_ACH50_10pct_from_5
+      - *decrease_ACH50_10pct_from_6
+      - *decrease_ACH50_10pct_from_7
+      - *decrease_ACH50_10pct_from_8
+      - *decrease_ACH50_10pct_from_10
+      - *decrease_ACH50_10pct_from_15
+      - *decrease_ACH50_10pct_from_20
+      - *decrease_ACH50_10pct_from_25
+      - *decrease_ACH50_10pct_from_30
+      - *decrease_ACH50_10pct_from_40
+      - *decrease_ACH50_10pct_from_50
+      - *decrease_ACH50_19pctand_30pct_from_1
+      - *decrease_ACH50_19pctand_30pct_from_2
+      - *decrease_ACH50_19pctand_30pct_from_3
+      - *decrease_ACH50_19pctand_30pct_from_4
+      - *decrease_ACH50_19pctand_30pct_from_5
+      - *decrease_ACH50_19pctand_30pct_from_6
+      - *decrease_ACH50_19pctand_30pct_from_7
+      - *decrease_ACH50_19pctand_30pct_from_8
+      - *decrease_ACH50_19pctand_30pct_from_10
+      - *decrease_ACH50_19pctand_30pct_from_15
+      - *decrease_ACH50_19pctand_30pct_from_20
+      - *decrease_ACH50_19pctand_30pct_from_25
+      - *decrease_ACH50_19pctand_30pct_from_30
+      - *decrease_ACH50_19pctand_30pct_from_35
+      - *decrease_ACH50_19pctand_30pct_from_40
+      - *decrease_ACH50_19pctand_30pct_from_50
+      - *decrease_ACH50_19pctand_10pct_from_1
+      - *decrease_ACH50_19pctand_10pct_from_2
+      - *decrease_ACH50_19pctand_10pct_from_3
+      - *decrease_ACH50_19pctand_10pct_from_4
+      - *decrease_ACH50_19pctand_10pct_from_5
+      - *decrease_ACH50_19pctand_10pct_from_6
+      - *decrease_ACH50_19pctand_10pct_from_7
+      - *decrease_ACH50_19pctand_10pct_from_8
+      - *decrease_ACH50_19pctand_10pct_from_10
+      - *decrease_ACH50_19pctand_10pct_from_15
+      - *decrease_ACH50_19pctand_10pct_from_20
+      - *decrease_ACH50_19pctand_10pct_from_25
+      - *decrease_ACH50_19pctand_10pct_from_30
+      - *decrease_ACH50_19pctand_10pct_from_35
+      - *decrease_ACH50_19pctand_10pct_from_40
+      - *decrease_ACH50_19pctand_10pct_from_50
+
+  - upgrade_name: Package 4 - 1" polyiso, low-e storms with shading, siding
+    options:
+    # 1" polyiso
+      - *polyiso_1inch_on_uninsulated_wood
+      - *polyiso_1inch_on_R-7_wood
+      - *polyiso_1inch_on_R-11_wood
+      - *polyiso_1inch_on_R-13_wood
+      - *polyiso_1inch_on_R-15_wood
+      - *polyiso_1inch_on_uninsulated_cmu
+      - *polyiso_1inch_on_R-7_cmu
+      - *polyiso_1inch_on_R-11_cmu
+      - *polyiso_1inch_on_R-15_cmu
+      - *polyiso_1inch_on_uninsulated_brick
+      - *polyiso_1inch_on_R-7_brick
+      - *polyiso_1inch_on_R-11_brick
+      - *polyiso_1inch_on_R-15_brick
+    #low-E Storm windows with shading
+      - &low-e_storms_on_single_clear_metal_with_shading
+        option: Windows|Single, Clear, Metal, Exterior Low-E Storm, Solar Screen
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+            - not: *vintage_exclusions
+        costs: &low-e_storm_with_shading_costs
+          - value: 28.50 #I added 5.50 for the shading, I have a note saying to also add 2 for low shgc but I don't think we're doing that any more
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &low-e_storms_on_single_clear_nonmetal
+        option: Windows|Single, Clear, Non-metal, Exterior Low-E Storm, Solar Screen
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+            - not: *vintage_exclusions
+        costs: *low-e_storm_with_shading_costs
+        lifetime: 30
+      - &low-e_storms_on_double_clear_metal
+        option: Windows|Double, Clear, Metal, Exterior Low-E Storm, Solar Screen
+        apply_logic:
+          and:
+            - Windows|Double, Clear, Metal, Air
+            - not: *vintage_exclusions
+        costs: *low-e_storm_with_shading_costs
+        lifetime: 30
+    #siding upgrades
+      - *siding_upgrade_to_fibercement
+      - *siding_upgrade_to_stucco
+      - *siding_upgrade_to_vinyl
+    #infiltration
+      - *decrease_ACH50_19pct_from_1
+      - *decrease_ACH50_19pct_from_2
+      - *decrease_ACH50_19pct_from_3
+      - *decrease_ACH50_19pct_from_4
+      - *decrease_ACH50_19pct_from_5
+      - *decrease_ACH50_19pct_from_6
+      - *decrease_ACH50_19pct_from_7
+      - *decrease_ACH50_19pct_from_8
+      - *decrease_ACH50_19pct_from_10
+      - *decrease_ACH50_19pct_from_15
+      - *decrease_ACH50_19pct_from_20
+      - *decrease_ACH50_19pct_from_25
+      - *decrease_ACH50_19pct_from_30
+      - *decrease_ACH50_19pct_from_40
+      - *decrease_ACH50_19pct_from_50
+      - *decrease_ACH50_30pct_from_1
+      - *decrease_ACH50_30pct_from_2
+      - *decrease_ACH50_30pct_from_3
+      - *decrease_ACH50_30pct_from_4
+      - *decrease_ACH50_30pct_from_5
+      - *decrease_ACH50_30pct_from_6
+      - *decrease_ACH50_30pct_from_7
+      - *decrease_ACH50_30pct_from_8
+      - *decrease_ACH50_30pct_from_10
+      - *decrease_ACH50_30pct_from_15
+      - *decrease_ACH50_30pct_from_10
+      - *decrease_ACH50_30pct_from_15
+      - *decrease_ACH50_30pct_from_20
+      - *decrease_ACH50_30pct_from_25
+      - *decrease_ACH50_30pct_from_30
+      - *decrease_ACH50_30pct_from_40
+      - *decrease_ACH50_30pct_from_50
+      - *decrease_ACH50_10pct_from_1
+      - *decrease_ACH50_10pct_from_2
+      - *decrease_ACH50_10pct_from_3
+      - *decrease_ACH50_10pct_from_4
+      - *decrease_ACH50_10pct_from_5
+      - *decrease_ACH50_10pct_from_6
+      - *decrease_ACH50_10pct_from_7
+      - *decrease_ACH50_10pct_from_8
+      - *decrease_ACH50_10pct_from_10
+      - *decrease_ACH50_10pct_from_15
+      - *decrease_ACH50_10pct_from_20
+      - *decrease_ACH50_10pct_from_25
+      - *decrease_ACH50_10pct_from_30
+      - *decrease_ACH50_10pct_from_40
+      - *decrease_ACH50_10pct_from_50
+      - *decrease_ACH50_19pctand_30pct_from_1
+      - *decrease_ACH50_19pctand_30pct_from_2
+      - *decrease_ACH50_19pctand_30pct_from_3
+      - *decrease_ACH50_19pctand_30pct_from_4
+      - *decrease_ACH50_19pctand_30pct_from_5
+      - *decrease_ACH50_19pctand_30pct_from_6
+      - *decrease_ACH50_19pctand_30pct_from_7
+      - *decrease_ACH50_19pctand_30pct_from_8
+      - *decrease_ACH50_19pctand_30pct_from_10
+      - *decrease_ACH50_19pctand_30pct_from_15
+      - *decrease_ACH50_19pctand_30pct_from_20
+      - *decrease_ACH50_19pctand_30pct_from_25
+      - *decrease_ACH50_19pctand_30pct_from_30
+      - *decrease_ACH50_19pctand_30pct_from_35
+      - *decrease_ACH50_19pctand_30pct_from_40
+      - *decrease_ACH50_19pctand_30pct_from_50
+      - *decrease_ACH50_19pctand_10pct_from_1
+      - *decrease_ACH50_19pctand_10pct_from_2
+      - *decrease_ACH50_19pctand_10pct_from_3
+      - *decrease_ACH50_19pctand_10pct_from_4
+      - *decrease_ACH50_19pctand_10pct_from_5
+      - *decrease_ACH50_19pctand_10pct_from_6
+      - *decrease_ACH50_19pctand_10pct_from_7
+      - *decrease_ACH50_19pctand_10pct_from_8
+      - *decrease_ACH50_19pctand_10pct_from_10
+      - *decrease_ACH50_19pctand_10pct_from_15
+      - *decrease_ACH50_19pctand_10pct_from_20
+      - *decrease_ACH50_19pctand_10pct_from_25
+      - *decrease_ACH50_19pctand_10pct_from_30
+      - *decrease_ACH50_19pctand_10pct_from_35
+      - *decrease_ACH50_19pctand_10pct_from_40
+      - *decrease_ACH50_19pctand_10pct_from_50
+
+
 eagle:
   n_jobs: 8
   minutes_per_sim: 30
