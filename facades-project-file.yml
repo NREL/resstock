@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /projects/resilience/facades/resstock # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/resilience/facades/test10No1
+output_directory: /projects/resilience/facades/test10No2
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2012_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 
 sampler:
@@ -334,12 +334,39 @@ upgrades:
           - value: 62
             multiplier: Window Area (ft^2)
         lifetime: 30
-      # - &low-e_storms_w_low_SHGC_and_shading
-      #   option: Windows| #create appropriate option
-      #   apply_logic: *windows_apply_logic
-      #   costs:
-      #     - value: 30.5 #23 for low-e, 2 for shgc, 5.5 for shading
-      #       multiplier: Window Area (ft^2)
+  - upgrade_name: Low-E Storms with Shading
+    options:
+    #low-E Storm windows
+      - &low-e_storms_on_single_clear_metal_with_shading
+        option: Windows|Single, Clear, Metal, Exterior Low-E Storm, Solar Screen
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+            - not: *vintage_exclusions
+        costs: &low-e_storm_with_shading_costs
+          - value: 28.50 #I added 5.50 for the shading, I have a note saying to also add 2 for low shgc but I don't think we're doing that any more
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &low-e_storms_on_single_clear_nonmetal
+        option: Windows|Single, Clear, Non-metal, Exterior Low-E Storm, Solar Screen
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+            - not: *vintage_exclusions
+        costs: *low-e_storm_with_shading_costs
+        lifetime: 30
+      - &low-e_storms_on_double_clear_metal
+        option: Windows|Double, Clear, Metal, Exterior Low-E Storm, Solar Screen
+        apply_logic:
+          and:
+            - Windows|Double, Clear, Metal, Air
+            - not: *vintage_exclusions
+        costs: *low-e_storm_with_shading_costs
+        lifetime: 30
   - upgrade_name: 19% ACH50 reduction
     options:
     #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
@@ -1373,7 +1400,7 @@ aws:
   job_identifier: fac_1
   s3:
     bucket: resbldg-datasets
-    prefix: facades/test10No1
+    prefix: facades/test10No2
   emr:
     worker_instance_count: 1
   region: us-west-2
@@ -1387,8 +1414,8 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resbldg-datasets
-      prefix: resstock-athena/facades-test10No1
+      prefix: resstock-athena/facades-test10No2
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: resstock-test10No1
+      database_name: resstock-test10No2
       max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
