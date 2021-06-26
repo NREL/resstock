@@ -223,7 +223,12 @@ upgrades:
               - Insulation Wall|Brick, 12-in, 3-wythe, R-11
               - Insulation Wall|Brick, 12-in, 3-wythe, R-15
             - not: *vintage_exclusions
-            - not: *upgradable_windows
+            - not: &upgradable_windows
+              - Windows|Single, Clear, Metal
+              - Windows|Single, Clear, Metal, Exterior Clear Storm
+              - Windows|Single, Clear, Non-metal
+              - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+              - Windows|Double, Clear, Metal, Air
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -1150,12 +1155,7 @@ upgrades:
         option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
         apply_logic:
           and:
-            - or: &upgradable_windows
-              - Windows|Single, Clear, Metal
-              - Windows|Single, Clear, Metal, Exterior Clear Storm
-              - Windows|Single, Clear, Non-metal
-              - Windows|Single, Clear, Non-metal, Exterior Clear Storm
-              - Windows|Double, Clear, Metal, Air
+            - or: *upgradable_windows
             - not: *vintage_exclusions
         costs:
           - value: 62
