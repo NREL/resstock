@@ -143,7 +143,7 @@ upgrades:
       
       # Lighting Upgrade
       - &lighting
-        option: Lighting|100% LED
+        option: Lighting|100% LED, High Efficacy
         apply_logic:
           or:
             - Lighting|100% Incandescent
@@ -265,23 +265,23 @@ upgrades:
         lifetime: 30
 
       # Heat Pump Water Heater Upgrade
-      # TODO: Need a logic to assign water heater according to bedroom
-      - &water_heater_efficiency_50gal
-        option: Water Heater Efficiency|Electric Heat Pump, 50 gal
-        apply_logic:
-          not: 
-            - Water Heater Efficiency|Electric Heat Pump, 50 gal
-            - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
-            - Water Heater Efficiency|Electric Heat Pump, 50 gal, In Confined Space
-            - Water Heater Efficiency|Electric Heat Pump, 80 gal
-        costs:
-          - value: 1700
-            multiplier: Fixed (1)
-        lifetime: 12
+      # - &water_heater_efficiency_50gal
+      #   option: Water Heater Efficiency|Electric Heat Pump, 50 gal
+      #   apply_logic:
+      #     - not: 
+      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal
+      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
+      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal, In Confined Space
+      #       - Water Heater Efficiency|Electric Heat Pump, 80 gal
+      #     - Water Heater In Unit|Yes
+      #   costs:
+      #     - value: 1700
+      #       multiplier: Fixed (1)
+      #   lifetime: 12
       - &water_heater_efficiency_80gal
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal
         apply_logic:
-          not: 
+          - not: 
             - Water Heater Efficiency|Electric Heat Pump, 50 gal
             - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
             - Water Heater Efficiency|Electric Heat Pump, 50 gal, In Confined Space
@@ -291,9 +291,32 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 12
       
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct
+        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+        lifetime: 42
+      - &HVAC_efficiency_ASHP_ductless
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+          - HVAC Has Ducts|No
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+        lifetime: 42
+      
+      # ERV upgrade
+      # TODO: ERV upgrade
+
   - upgrade_name: Package 1b
     options: 
-      # Same packages as Package 1a
+      Same packages as Package 1a
       - *clothes_washer_80pct
       - *clothes_washer_100pct
       - *clothes_washer_120pct
@@ -313,7 +336,30 @@ upgrades:
       - *ducts_category5
       - *ducts_category6
       - *ducts_category7
-      # - &reference_options
+      - *water_heater_efficiency_80gal
+
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct_1b
+        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load, no aux size
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load, no aux size
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+        lifetime: 42
+      - &HVAC_efficiency_ASHP_ductless_1b
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load, no aux size
+        apply_logic:
+          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load, no aux size
+          - HVAC Has Ducts|No
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+        lifetime: 42
+
+
+        # - &reference_options
       #   option: 
       #   apply_logic:
       #   costs:
