@@ -46,10 +46,10 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     args << fuel_type
 
     # make an argument for hot water setpoint temperature
-    setpoint_temp = osargument::makeDoubleArgument("setpoint_temp", true)
-    setpoint_temp.setDisplayName("Setpoint")
-    setpoint_temp.setDescription("Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.")
-    setpoint_temp.setUnits("F")
+    setpoint_temp = osargument::makeDoubleArgument('setpoint_temp', true)
+    setpoint_temp.setDisplayName('Setpoint')
+    setpoint_temp.setDescription('Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.')
+    setpoint_temp.setUnits('F')
     setpoint_temp.setDefaultValue(125)
     args << setpoint_temp
 
@@ -59,8 +59,8 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
       location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
-    location.setDisplayName("Location")
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument('location', location_args, true)
+    location.setDisplayName('Location')
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)
     args << location

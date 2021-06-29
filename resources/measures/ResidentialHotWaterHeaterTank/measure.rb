@@ -58,32 +58,32 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     setpoint_type_args = OpenStudio::StringVector.new
     setpoint_type_args << Constants.WaterHeaterSetpointTypeConstant
     setpoint_type_args << Constants.WaterHeaterSetpointTypeScheduled
-    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("setpoint_type", setpoint_type_args, true)
-    setpoint_type.setDisplayName("Setpoint type")
+    setpoint_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('setpoint_type', setpoint_type_args, true)
+    setpoint_type.setDisplayName('Setpoint type')
     setpoint_type.setDescription("The water heater setpoint type. The '#{Constants.WaterHeaterSetpointTypeConstant}' option will use a constant value for the whole year, while '#{Constants.WaterHeaterSetpointTypeScheduled}' will use 8760 values in a schedule file.")
     setpoint_type.setDefaultValue(Constants.WaterHeaterSetpointTypeConstant)
     args << setpoint_type
 
     # make an argument for hot water setpoint temperature
-    setpoint_temp = osargument::makeDoubleArgument("setpoint_temp", true)
-    setpoint_temp.setDisplayName("Setpoint")
-    setpoint_temp.setDescription("Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.")
-    setpoint_temp.setUnits("F")
+    setpoint_temp = osargument::makeDoubleArgument('setpoint_temp', true)
+    setpoint_temp.setDisplayName('Setpoint')
+    setpoint_temp.setDescription('Water heater setpoint temperature. This value will be ignored if the setpoint type is Scheduled.')
+    setpoint_temp.setUnits('F')
     setpoint_temp.setDefaultValue(125)
     args << setpoint_temp
 
     # make an argument for the directory that contains the hourly schedules
-    sp_dir = OpenStudio::Measure::OSArgument.makeStringArgument("schedules_directory", true)
-    sp_dir.setDisplayName("Setpoint and Operating Mode Schedule Directory")
-    sp_dir.setDescription("Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.")
-    sp_dir.setDefaultValue("./resources")
+    sp_dir = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_directory', true)
+    sp_dir.setDisplayName('Setpoint and Operating Mode Schedule Directory')
+    sp_dir.setDescription('Absolute (or relative) directory to schedule files. This argument will be ignored if a constant setpoint type is used instead.')
+    sp_dir.setDefaultValue('./resources')
     args << sp_dir
 
     # make an argument for the 8760 hourly setpoint schedule
-    sp_sch = OpenStudio::Measure::OSArgument.makeStringArgument("setpoint_schedule", true)
-    sp_sch.setDisplayName("Setpoint Schedule File Name")
-    sp_sch.setDescription("Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.")
-    sp_sch.setDefaultValue("hourly_setpoint_schedule.csv")
+    sp_sch = OpenStudio::Measure::OSArgument.makeStringArgument('setpoint_schedule', true)
+    sp_sch.setDisplayName('Setpoint Schedule File Name')
+    sp_sch.setDescription('Name of the hourly setpoint schedule. Setpoint should be defined (in F) for every hour. The operating mode schedule must also be located in the same location.')
+    sp_sch.setDefaultValue('hourly_setpoint_schedule.csv')
     args << sp_sch
 
     # make a choice argument for location
@@ -92,8 +92,8 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     Geometry.get_model_locations(model).each do |loc|
       location_args << loc
     end
-    location = OpenStudio::Measure::OSArgument::makeChoiceArgument("location", location_args, true)
-    location.setDisplayName("Location")
+    location = OpenStudio::Measure::OSArgument::makeChoiceArgument('location', location_args, true)
+    location.setDisplayName('Location')
     location.setDescription("The space type for the location. '#{Constants.Auto}' will automatically choose a space type based on the space types found in the model.")
     location.setDefaultValue(Constants.Auto)
     args << location
@@ -148,8 +148,8 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     tank_model_type_display_name = OpenStudio::StringVector.new
     tank_model_type_display_name << Constants.WaterHeaterTypeTankModelTypeMixed
     tank_model_type_display_name << Constants.WaterHeaterTypeTankModelTypeStratified
-    tank_model_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("tank_model_type", tank_model_type_display_name, true)
-    tank_model_type.setDisplayName("Tank Type")
+    tank_model_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('tank_model_type', tank_model_type_display_name, true)
+    tank_model_type.setDisplayName('Tank Type')
     tank_model_type.setDescription("Type of tank model to use. The '#{Constants.WaterHeaterTypeTankModelTypeStratified}' tank generally provide more accurate results, but may significantly increase run time.")
     tank_model_type.setDefaultValue(Constants.WaterHeaterTypeTankModelTypeMixed)
     args << tank_model_type
@@ -162,20 +162,20 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     super(model, runner, user_arguments)
 
     # Assign user inputs to variables
-    fuel_type = runner.getStringArgumentValue("fuel_type", user_arguments)
-    capacity = runner.getStringArgumentValue("capacity", user_arguments)
-    tank_volume = runner.getStringArgumentValue("tank_volume", user_arguments)
-    energy_factor = runner.getStringArgumentValue("energy_factor", user_arguments)
-    recovery_efficiency = runner.getDoubleArgumentValue("recovery_efficiency", user_arguments)
-    location = runner.getStringArgumentValue("location", user_arguments)
-    setpoint_type = runner.getStringArgumentValue("setpoint_type", user_arguments)
-    setpoint_temp = runner.getDoubleArgumentValue("setpoint_temp", user_arguments).to_f
-    schedule_directory = runner.getStringArgumentValue("schedules_directory", user_arguments)
-    setpoint_schedule = runner.getStringArgumentValue("setpoint_schedule", user_arguments)
-    oncycle_power = runner.getDoubleArgumentValue("oncyc_power", user_arguments)
-    offcycle_power = runner.getDoubleArgumentValue("offcyc_power", user_arguments)
-    model.getBuilding.additionalProperties.setFeature("has_water_heater_flue", runner.getBoolArgumentValue("has_water_heater_flue", user_arguments))
-    tank_model_type = runner.getStringArgumentValue("tank_model_type", user_arguments)
+    fuel_type = runner.getStringArgumentValue('fuel_type', user_arguments)
+    capacity = runner.getStringArgumentValue('capacity', user_arguments)
+    tank_volume = runner.getStringArgumentValue('tank_volume', user_arguments)
+    energy_factor = runner.getStringArgumentValue('energy_factor', user_arguments)
+    recovery_efficiency = runner.getDoubleArgumentValue('recovery_efficiency', user_arguments)
+    location = runner.getStringArgumentValue('location', user_arguments)
+    setpoint_type = runner.getStringArgumentValue('setpoint_type', user_arguments)
+    setpoint_temp = runner.getDoubleArgumentValue('setpoint_temp', user_arguments).to_f
+    schedule_directory = runner.getStringArgumentValue('schedules_directory', user_arguments)
+    setpoint_schedule = runner.getStringArgumentValue('setpoint_schedule', user_arguments)
+    oncycle_power = runner.getDoubleArgumentValue('oncyc_power', user_arguments)
+    offcycle_power = runner.getDoubleArgumentValue('offcyc_power', user_arguments)
+    model.getBuilding.additionalProperties.setFeature('has_water_heater_flue', runner.getBoolArgumentValue('has_water_heater_flue', user_arguments))
+    tank_model_type = runner.getStringArgumentValue('tank_model_type', user_arguments)
 
     # Validate inputs
     if not runner.validateUserArguments(arguments(model), user_arguments)
@@ -231,7 +231,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
       # end
       # return true
 
-      if not File.exists?(setpoint_schedule_file)
+      if not File.exist?(setpoint_schedule_file)
         runner.registerError("'#{setpoint_schedule_file}' does not exist.")
         return false
       end

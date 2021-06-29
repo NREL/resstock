@@ -524,7 +524,7 @@ class HourlySchedule
     interval = OpenStudio::Time.new(0, 1, 0, 0)
     start_date = year_description.makeDate(1, 1)
 
-    if (data.length != 24 * Constants.NumDaysInYear(year_description.isLeapYear)) and not fill_value.nil?
+    if (data.length != 24 * Constants.NumDaysInYear(year_description.isLeapYear)) && (not fill_value.nil?)
       # Fill hourly values for full year - allows for schedules shorter than a full year that are the same length as the simulation period
       assumed_year = year_description.assumedYear
       run_period = @model.getRunPeriod
@@ -532,11 +532,11 @@ class HourlySchedule
       start_hr = (run_period_start.yday - 1) * 24
       end_hr = start_hr + data.length
 
-      data_yr = [UnitConversions.convert(fill_value, "F", "C")] * Constants.NumDaysInYear(year_description.isLeapYear) * 24
+      data_yr = [UnitConversions.convert(fill_value, 'F', 'C')] * Constants.NumDaysInYear(year_description.isLeapYear) * 24
       data_yr[start_hr...end_hr] = data
-      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data_yr), "")
+      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data_yr), '')
     else
-      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), "")
+      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), '')
     end
 
     schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, @model).get
