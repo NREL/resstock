@@ -300,16 +300,20 @@ upgrades:
         costs:
           - value: 4600
             multiplier: Fixed (1)
-        lifetime: 42
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
       - &HVAC_efficiency_ASHP_ductless
         option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
         apply_logic:
           - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
           - HVAC Has Ducts|No
         costs:
-          - value: 4600
+          - value: 2510
             multiplier: Fixed (1)
-        lifetime: 42
+          - value: 95
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
       
       # ERV upgrade
       # TODO: ERV upgrade
@@ -347,16 +351,20 @@ upgrades:
         costs:
           - value: 4600
             multiplier: Fixed (1)
-        lifetime: 42
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
       - &HVAC_efficiency_ASHP_ductless_1b
         option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load, no aux size
         apply_logic:
           - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load, no aux size
           - HVAC Has Ducts|No
         costs:
-          - value: 4600
+          - value: 2510
             multiplier: Fixed (1)
-        lifetime: 42
+          - value: 95
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
 
 
         # - &reference_options
