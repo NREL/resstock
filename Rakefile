@@ -10,10 +10,10 @@ require 'json'
 
 desc 'Perform tasks related to unit tests'
 namespace :test do
-  desc 'Run unit tests for all projects/measures'
+  desc 'Run unit tests for all measures'
   Rake::TestTask.new('unit_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb']
+    t.test_files = Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb']
     t.warning = false
     t.verbose = true
   end
@@ -38,6 +38,14 @@ namespace :test do
   Rake::TestTask.new('regenerate_osms') do |t|
     t.libs << 'test'
     t.test_files = Dir['test/osw_files/tests/*.rb']
+    t.warning = false
+    t.verbose = true
+  end
+
+  desc 'Run unit tests for all projects'
+  Rake::TestTask.new('project_tests') do |t|
+    t.libs << 'test'
+    t.test_files = Dir['project_*/tests/*.rb']
     t.warning = false
     t.verbose = true
   end
