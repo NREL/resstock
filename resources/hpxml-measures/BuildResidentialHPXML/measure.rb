@@ -180,9 +180,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('puma', false)
-    arg.setDisplayName('PUMA')
-    arg.setDescription('Public Use Microdata Areas - used to calculate Home Energy Scores from ResStock-generated files')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('fips_code', false)
+    arg.setDisplayName('County FIPS Code')
+    arg.setDescription('County FIPS Code - used to calculate Home Energy Scores from ResStock-generated files')
     args << arg
 
     site_type_choices = OpenStudio::StringVector.new
@@ -3369,8 +3369,8 @@ class HPXMLFile
 
     hpxml.header.building_id = 'MyBuilding'
     hpxml.header.state_code = epw_file.stateProvinceRegion
-    if args[:puma].is_initialized
-      hpxml.header.puma = args[:puma]
+    if args[:fips_code].is_initialized
+      hpxml.header.fips_code = args[:fips_code]
     end
     hpxml.header.event_type = 'proposed workscope'
     hpxml.header.schedules_path = args[:schedules_path]
