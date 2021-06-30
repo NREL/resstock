@@ -3184,7 +3184,6 @@ class HPXMLFile
     set_windows(hpxml, runner, model, args)
     set_skylights(hpxml, runner, model, args)
     set_doors(hpxml, runner, model, args)
-
     set_heating_systems(hpxml, runner, args)
     set_cooling_systems(hpxml, runner, args)
     set_heat_pumps(hpxml, runner, args)
