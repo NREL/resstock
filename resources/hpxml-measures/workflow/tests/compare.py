@@ -116,7 +116,7 @@ class Compare:
             x = x.loc[x[groupby[0]] == group, :]
             y = y.loc[y[groupby[0]] == group, :]
 
-          fig.add_trace(go.Scatter(x=x[end_use], y=y[end_use], marker=dict(size=8), mode='markers', name=end_use, legendgroup=end_use, showlegend=False), row=row, col=col)
+          fig.add_trace(go.Scatter(x=x[end_use], y=y[end_use], marker=dict(size=8), mode='markers', text=base_df.index, name='', legendgroup=end_use, showlegend=False), row=row, col=col)
 
           min_value, max_value = get_min_max(x[end_use], y[end_use], 0, 0)
           add_error_lines(fig, showlegend, row, col, min_value, max_value)
