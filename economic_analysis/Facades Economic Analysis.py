@@ -7,12 +7,22 @@ import os
 default_dir = "C:/Users/EPRESENT/Documents/Mini Projects/Facades/ResStock Results/test10No3"
 
 #load utility bill costs
-df_util_costs = pd.read_csv("C:/Users/EPRESENT/Documents/Mini Projects/Facades/Economic Analysis/Variable Elec Cost by State from EIA State Data.csv")
+df_elec_costs = pd.read_csv("C:/Users/EPRESENT/Documents/Mini Projects/Facades/Economic Analysis/Variable Elec Cost by State from EIA State Data.csv")
+df_ng_costs = pd.read_csv('C:/Users/EPRESENT/Documents/Load Shapes Project/Modeling and Calibration/Calculating Utility Bills/NG costs by state.csv')
+df_fo_costs = pd.read_csv('C:/Users/EPRESENT/Documents/Load Shapes Project/Modeling and Calibration/Calculating Utility Bills/Fuel Oil Prices Averaged by State.csv')
+df_lp_costs = pd.read_csv('C:/Users/EPRESENT/Documents/Load Shapes Project/Modeling and Calibration/Calculating Utility Bills/Propane costs by state.csv')
 
+ 
 ##define functions
 
 #choose results columns to work with
-selected_cols = ['building_id', 'simulation_output_report.total_site_electricity_kwh', 'simulation_output_report.upgrade_cost_usd']#ID, total annual energy savings, cost of upgrade
+selected_cols = [
+    'building_id', 
+    'simulation_output_report.total_site_electricity_kwh', 
+    'simulation_output_report.total_site_natural_gas_therm',
+    'simulation_output_report.total_site_fuel_oil_mbtu',
+    'simulation_output_report.total_site_propane_mbtu',
+    'simulation_output_report.upgrade_cost_usd']
 def downselect_cols(df):
 	df = df[selected_cols]
 	return df
@@ -20,6 +30,13 @@ def downselect_cols(df):
 #calculate total energy difference for each upgrade, for each home, add to the mini dataframes
 def calc_delta_elec(df_upgrade, df_baseline):
 	return (df_upgrade['simulation_output_report.total_site_electricity_kwh']-df_baseline['simulation_output_report.total_site_electricity_kwh'])
+def calc_delta_ng(df_upgrade, df_baseline):
+	return (df_upgrade['simulation_output_report.total_site_natural_gas_therm']-df_baseline['simulation_output_report.total_site_natural_gas_therm'])
+def calc_delta_fo(df_upgrade, df_baseline):
+	return (df_upgrade['simulation_output_report.total_site_fuel_oil_mbtu']-df_baseline['simulation_output_report.total_site_fuel_oil_mbtu'])
+def calc_delta_lp(df_upgrade, df_baseline):
+	return (df_upgrade['simulation_output_report.total_site_propane_mbtu']-df_baseline['simulation_output_report.total_site_propane_mbtu'])
+
 
 #calculate year1 utility bill savings
 def calc_year1_savings(var_util_costs, delta_elec):
@@ -53,7 +70,11 @@ num_ups = 4
 results_b = pd.read_parquet(os.path.join(default_dir, "results_up00.parquet"), engine = "auto")
 
 #add utility bill cost unformation to the baseline results
-results_b = pd.merge(results_b, df_util_costs, left_on = "build_existing_model.state", right_on = 'State', how = 'left')
+results_b = pd.merge(results_b, df_elec_costs[['State', 'Variable Elec Cost $/kWh']], left_on = "build_existing_model.state", right_on = 'State', how = 'left')
+results_b = pd.merge(results_b, df_ng_costs[['State', 'NG Cost without Meter Charge [$/therm]']], left_on = "build_existing_model.state", right_on = 'State', how = 'left')
+results_b = pd.merge(results_b, df_fo_costs[['State', 'Average FO Price [$/gal]']], left_on = "build_existing_model.state", right_on = 'State', how = 'left')
+results_b = pd.merge(results_b, df_lp_costs[['State', 'Average Weekly Cost [$/gal]']], left_on = "build_existing_model.state", right_on = 'State', how = 'left')
+
 
 #define string parts for upgrades
 file_start = "results_up"
@@ -71,7 +92,10 @@ for i in range(1, num_ups):
     results_up = pd.read_parquet(os.path.join(default_dir, filename), engine = "auto")
     df = downselect_cols(results_up)
     delta_elec = calc_delta_elec(results_b, df)
-    results_b[upgrade + "_deltakWh"] = delta_elec
+    results_b[upgrade + "_delta_elec_kWh"] = delta_elec
+    delta_ng = calc_delta_ng(results_b, df)
+    results_b[upgrade + "_delta_ng_therms"] = delta_ng
+    results_fo = calc_delta_fo(res)
     year1_savings = calc_year1_savings(delta_elec, results_b['Variable Elec Cost $/kWh'])
     results_b[upgrade + "_year1_util_bill_savings"] = year1_savings
     simple_payback_period = calc_spp(df['simulation_output_report.upgrade_cost_usd'], year1_savings)
