@@ -113,13 +113,16 @@ jobs:
         run: |
           cp -r base/buildstock*.csv resources/base_buildstock.csv
           cp -r samples/buildstock*.csv resources/buildstock.csv
-          pip install pandas
-          python test/compare.py
-          
           cp -r base/results*.csv test/test_samples_osw/base
           mkdir test/test_samples_osw/results
           cp -r results/results* test/test_samples_osw/results
-          ruby test/compare.rb
+          pip install numpy
+          pip install pandas
+          pip install plotly
+          python resources/hpxml-measures/workflow/tests/compare.py -a samples -b resources -f resources -e test/test_samples_osw/comparisons
+          python resources/hpxml-measures/workflow/tests/compare.py -a results -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons
+          python resources/hpxml-measures/workflow/tests/compare.py -a visualize -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons
+          python resources/hpxml-measures/workflow/tests/compare.py -a visualize -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons -g build_existing_model.geometry_building_type_recs
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
