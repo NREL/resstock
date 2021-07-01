@@ -116,12 +116,17 @@ jobs:
           cp -r base/results*.csv test/test_samples_osw/base
           mkdir test/test_samples_osw/results
           cp -r results/results* test/test_samples_osw/results
+          
           pip install numpy
           pip install pandas
           pip install plotly
           pip install kaleido
+          
           python resources/hpxml-measures/workflow/tests/compare.py -a samples -b resources -f resources -e test/test_samples_osw/comparisons
+          
           python resources/hpxml-measures/workflow/tests/compare.py -a results -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons
+          python resources/hpxml-measures/workflow/tests/compare.py -a results -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons -g build_existing_model.geometry_building_type_recs
+          
           python resources/hpxml-measures/workflow/tests/compare.py -a visualize -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons
           python resources/hpxml-measures/workflow/tests/compare.py -a visualize -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons -g build_existing_model.geometry_building_type_recs
 
