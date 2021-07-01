@@ -217,24 +217,23 @@ files.each do |file|
   # write building type hash
   if file.include? 'characteristics'
     btype_name_hash = { 'Single-Family Detached' => 'SFD',
-      'Mobile Home' => 'SFD',
-      'Single-Family Attached' => 'SFA',
-      'Multi-Family with 5+ Units' => 'MF',
-      'Multi-Family with 2 - 4 Units' => 'MF' }
+                        'Mobile Home' => 'SFD',
+                        'Single-Family Attached' => 'SFA',
+                        'Multi-Family with 5+ Units' => 'MF',
+                        'Multi-Family with 2 - 4 Units' => 'MF' }
 
     btype_hash = {}
     hpxmls.sort.each do |hpxml|
       btype_hash[hpxml] = btype_name_hash[results[base][hpxml]['build_existing_model.geometry_building_type_recs'][0]]
     end
   end
-  
 
   # write aggregated results
   agg_cols = []
   agg_cols = rows[0].select { |x| ['simulation_output_report', 'upgrade_costs'].include? x.split('.')[0] }
   rows = [['enduse', 'building type', 'base', 'feature', 'diff', 'percent diff']]
   btypes = ['SFD', 'SFA', 'MF']
-  
+
   agg_cols.each do |col|
     row_sum = { 'SFD' => [0, 0], 'SFA' => [0, 0], 'MF' => [0, 0] }
     base_field, feature_field = nil, nil
