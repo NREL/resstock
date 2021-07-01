@@ -39,14 +39,13 @@ class Compare:
     file = os.path.join(export_folder, 'feature_samples.csv')
     value_counts(df, file)
 
-
   def results(self, base_folder, feature_folder, export_folder, groupby=[]):
     files = []
     for file in os.listdir(base_folder):
       if file.startswith('results') and file.endswith('.csv'):
         files.append(file)
 
-    for file in files:
+    for file in sorted(files):
       base_df = pd.read_csv(os.path.join(base_folder, file), index_col=0)
       feature_df = pd.read_csv(os.path.join(feature_folder, file), index_col=0)
 
@@ -57,7 +56,51 @@ class Compare:
         df = df.astype(int)
 
       df = df.fillna('NA')
-      df.to_csv(os.path.join(export_folder, file))
+      df.to_csv(os.path.join(export_folder, file))    
+
+      # Get results charactersistics of groupby columns
+      if file == 'results_characteristics.csv':
+        if 'build_existing_model.geometry_building_type_recs' not in groupby:
+          groupby.append('build_existing_model.geometry_building_type_recs')
+        group_df = base_df[groupby]
+
+      # Write grouped & aggregated results dfs
+      if file == 'results_output.csv':
+        # Map building types
+        if 'build_existing_model.geometry_building_type_recs' in groupby:
+          btype_map = {'Single-Family Detached': 'SFD',
+                      'Single-Family Attached': 'SFA',
+                      'Multi-Family with 2 - 4 Units': 'MF',
+                      'Multi-Family with 5+ Units': 'MF'}
+          group_df['build_existing_model.geometry_building_type_recs'] = group_df['build_existing_model.geometry_building_type_recs'].map(btype_map)
+
+        # Merge groupby df and aggregate
+        base_df = group_df.merge(base_df, 'outer', left_index=True, right_index=True).groupby(groupby)
+        base_df = base_df.sum().stack()
+        feature_df = group_df.merge(feature_df, 'outer', left_index=True, right_index=True).groupby(groupby).sum()
+        feature_df = feature_df.stack()
+
+    # Write aggregate results df
+    deltas = pd.DataFrame()
+    deltas['base'] = base_df
+    deltas['feature'] = feature_df
+    deltas['diff'] = deltas['feature'] - deltas['base']
+    deltas['% diff'] = 100*(deltas['diff']/deltas['base'])
+    deltas = deltas.round(2)                          
+    deltas.reset_index(level=groupby, inplace=True)
+    deltas.index.name = 'enduse'
+    sims_df = pd.DataFrame({'base':len(base_df),
+                            'feature':len(feature_df),
+                            'diff':'n/a',
+                            '% diff':'n/a'},
+                            index=['simulation_count'])
+    sims_df[groupby] = 'n/a'
+    deltas = pd.concat([sims_df, deltas])
+    for group in groupby:
+      first_col = deltas.pop(group)
+      deltas.insert(0, group, first_col)
+
+    deltas.to_csv(os.path.join(export_folder, 'aggregate_results.csv'))
 
   def visualize(self, base_folder, feature_folder, export_folder, groupby=[]):
     excludes = ['buildstock.csv', 'results_characteristics.csv']
