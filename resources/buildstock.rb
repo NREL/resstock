@@ -455,6 +455,10 @@ class RunOSWs
     if rows.keys.include? 'SimulationOutputReport'
       result_output = get_simulation_output_report(result_output, rows)
     end
+    if rows.keys.include? 'LoadComponentsReport'
+      result_output = get_load_components_report(result_output, rows)
+    end
+
     return out_osw, result_characteristics, result_output
   end
 
@@ -475,6 +479,18 @@ class RunOSWs
     result.delete('applicable')
     result.delete('upgrade_name')
     result.delete('upgrade_cost_usd')
+    return result
+  end
+
+  def self.get_load_components_report(result, rows)
+    rows['LoadComponentsReport'].each do |k, v|
+      begin
+        rows['LoadComponentsReport'][k] = v.round(1)
+      rescue NoMethodError
+      end
+    end
+    result = result.merge(rows['LoadComponentsReport'])
+    result.delete('applicable')
     return result
   end
 
