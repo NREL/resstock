@@ -4,25 +4,27 @@ require_relative 'minitest_helper'
 require_relative '../resources/run_sampling'
 require_relative '../resources/buildstock'
 require 'minitest/autorun'
+require 'parallel'
 
 class TestResStockMeasuresOSW < MiniTest::Test
   def test_samples_osw
     parent_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
     weather_dir = create_weather_folder(parent_dir, 'project_testing')
 
-    all_results = []
-    [['project_testing', 10], ['project_national', 30]].each do |scenario|
+    all_results_characteristics = []
+    all_results_output = []
+    [['project_testing', 1], ['project_national', 3000]].each do |scenario|
       project_dir, num_samples = scenario
 
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
       lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
 
       runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-      Dir["#{parent_dir}/workflow.osw"].each do |osw|
+      Dir["#{parent_dir}/workflow-baseline.osw"].each do |workflow|
         measures_osw_dir = nil
         measures_upgrade_osw_dir = nil
 
-        json = JSON.parse(File.read(osw), symbolize_names: true)
+        json = JSON.parse(File.read(workflow), symbolize_names: true)
         json[:steps].each do |measure|
           if measure[:measure_dir_name] == 'BuildExistingModel'
             measures_osw_dir = File.join(parent_dir, "#{project_dir}_measures_osw")
@@ -34,17 +36,35 @@ class TestResStockMeasuresOSW < MiniTest::Test
           end
         end
 
+        building_ids = []
         (1..num_samples).to_a.each do |building_id|
           bldg_data = get_data_for_sample(File.join(lib_dir, 'housing_characteristics/buildstock.csv'), building_id, runner)
           next unless counties.include? bldg_data['County']
 
-          puts "\nBuilding ID: #{building_id} ...\n"
+          building_ids << building_id
+        end
+
+        Parallel.map(building_ids, in_threads: Parallel.processor_count) do |building_id|
+          worker_number = Parallel.worker_number
+          puts "\nBuilding ID: #{building_id} (#{building_ids.index(building_id) + 1} / #{building_ids.size}), Worker Number: #{worker_number} ...\n"
+
+          worker_folder = "run#{worker_number}"
+          worker_dir = File.join(File.dirname(workflow), worker_folder)
+          Dir.mkdir(worker_dir) unless File.exist?(worker_dir)
+          FileUtils.cp(workflow, worker_dir)
+          osw = File.join(worker_dir, File.basename(workflow))
 
           change_building_id(osw, building_id)
           RunOSWs.add_simulation_output_report(osw)
-          out_osw, result = RunOSWs.run_and_check(osw, parent_dir)
-          result['OSW'] = "#{project_dir}-#{building_id}.osw"
-          all_results << result
+
+          out_osw, result_characteristics, result_output = RunOSWs.run_and_check(osw, File.join(parent_dir, worker_folder))
+
+          osw = "#{project_dir}-#{building_id.to_s.rjust(4, '0')}.osw"
+          result_characteristics['OSW'] = osw
+          result_output['OSW'] = osw
+
+          all_results_characteristics << result_characteristics
+          all_results_output << result_output
 
           # Check workflow was successful
           assert(File.exist?(out_osw))
@@ -53,7 +73,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
           # Save measures.osw
           unless measures_osw_dir.nil?
-            measures_osw = File.join(parent_dir, 'run', 'measures.osw')
+            measures_osw = File.join(parent_dir, worker_folder, 'run', 'measures.osw')
             new_measures_osw = File.join(measures_osw_dir, "#{building_id}.osw")
             FileUtils.mv(measures_osw, new_measures_osw)
           end
@@ -61,14 +81,14 @@ class TestResStockMeasuresOSW < MiniTest::Test
           # Save measures-upgrade.osw
           next if measures_upgrade_osw_dir.nil?
 
-          measures_upgrade_osw = File.join(parent_dir, 'run', 'measures-upgrade.osw')
+          measures_upgrade_osw = File.join(parent_dir, worker_folder, 'run', 'measures-upgrade.osw')
           new_measures_upgrade_osw = File.join(measures_upgrade_osw_dir, "#{building_id}.osw")
           FileUtils.mv(measures_upgrade_osw, new_measures_upgrade_osw)
         end # building_id
       end # osw
 
-      Dir["#{parent_dir}/workflow.osw"].each do |osw|
-        change_building_id(osw, 1)
+      Dir["#{parent_dir}/workflow-baseline.osw"].each do |workflow|
+        change_building_id(workflow, 1)
       end
 
       FileUtils.rm_rf(lib_dir) if File.exist?(lib_dir)
@@ -76,12 +96,11 @@ class TestResStockMeasuresOSW < MiniTest::Test
     end # scenario
 
     FileUtils.rm_rf(weather_dir) if File.exist?(weather_dir)
-    FileUtils.rm_rf(File.join(parent_dir, 'run'))
-    FileUtils.rm_rf(File.join(parent_dir, 'reports'))
 
     results_dir = File.join(parent_dir, 'results')
     RunOSWs._rm_path(results_dir)
-    RunOSWs.write_summary_results(results_dir, all_results)
+    RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
+    RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
   end
 
   private

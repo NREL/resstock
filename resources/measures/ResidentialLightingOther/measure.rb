@@ -277,35 +277,9 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Fractions hardwired vs plugin
-    frac_hw = 0.8
-    frac_pg = 0.2
-
-    bab_frac_inc = 0.66
-    bab_frac_cfl = 0.34
-    bab_frac_led = 0.00
-    bab_frac_lfl = 0.00
-
     # Incandescent fractions
     hw_inc = 1 - hw_cfl - hw_led - hw_lfl
     pg_inc = 1 - pg_cfl - pg_led - pg_lfl
-
-    # Efficacy ratios
-    bab_inc_ef = 15.0
-    bab_cfl_ef = 55.0
-    bab_led_ef = 80.0
-    bab_lfl_ef = 88.0
-    er_cfl = bab_inc_ef / cfl_eff
-    er_led = bab_inc_ef / led_eff
-    er_lfl = bab_inc_ef / lfl_eff
-    er_inc = bab_inc_ef / in_eff
-    bab_er_cfl = bab_inc_ef / bab_cfl_ef
-    bab_er_led = bab_inc_ef / bab_led_ef
-    bab_er_lfl = bab_inc_ef / bab_lfl_ef
-    bab_er_inc = bab_inc_ef / bab_inc_ef
-
-    # Smart Replacement Factor
-    smrt_replace_f = (0.1672 * hw_inc**4 - 0.4817 * hw_inc**3 + 0.6336 * hw_inc**2 - 0.492 * hw_inc + 1.1561)
 
     Lighting.remove_other(model, runner)
 
@@ -323,8 +297,18 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
     if option_type == Constants.OptionTypeLightingEnergyUses
       garage_ann = energy_use_garage
     elsif option_type == Constants.OptionTypeLightingFractions
-      common_bm_garage_e = mult * (0.08 * gfa + 8 * units.size)
-      garage_ann = (common_bm_garage_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
+      hw_fl = hw_cfl + hw_lfl
+      fl_eff = cfl_eff
+
+      # Efficacy ratios
+      eff_ratio_inc = in_eff / in_eff
+      eff_ratio_fl = in_eff / fl_eff
+      eff_ratio_led = in_eff / led_eff
+
+      # Efficiency lighting adjustments
+      grg_adj = (hw_inc * eff_ratio_inc) + (hw_fl * eff_ratio_fl) + (hw_led * eff_ratio_led)
+      # Calculate energy use
+      garage_ann = mult * 100.0 * grg_adj
     end
 
     success = Lighting.apply_garage(model, runner, weather, garage_ann, schedules_file)
@@ -343,8 +327,18 @@ class ResidentialLightingOther < OpenStudio::Measure::ModelMeasure
       exterior_ann = energy_use_exterior
     elsif option_type == Constants.OptionTypeLightingFractions
       total_ffa = Geometry.get_finished_floor_area_from_spaces(model.getSpaces, runner)
-      bm_outside_e = mult * (0.145 * total_ffa)
-      exterior_ann = (bm_outside_e * (((hw_inc * er_inc + (1 - bab_frac_inc) * bab_er_inc) + (hw_cfl * er_cfl - bab_frac_cfl * bab_er_cfl) + (hw_led * er_led - bab_frac_led * bab_er_led) + (hw_lfl * er_lfl - bab_frac_lfl * bab_er_lfl)) * smrt_replace_f * 0.9 + 0.1))
+      hw_fl = hw_cfl + hw_lfl
+      fl_eff = cfl_eff
+
+      # Efficacy ratios
+      eff_ratio_inc = in_eff / in_eff
+      eff_ratio_fl = in_eff / fl_eff
+      eff_ratio_led = in_eff / led_eff
+
+      # Efficiency lighting adjustments
+      ext_adj = (hw_inc * eff_ratio_inc) + (hw_fl * eff_ratio_fl) + (hw_led * eff_ratio_led)
+      # Calculate energy use
+      exterior_ann = mult * (100.0 + 0.05 * total_ffa) * ext_adj
     end
 
     if exterior_ann > 0
