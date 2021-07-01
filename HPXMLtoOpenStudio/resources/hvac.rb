@@ -3147,9 +3147,9 @@ class HVAC
         elsif clg_ap.demand_flexibility
           if clg_coil.nil?
             clg_coil = OpenStudio::Model::CoilCoolingDXVariableSpeed.new(model, plf_fplr_curve)
-            # clg_coil.setNominalSpeedLevel(4) # FIXME
+            clg_coil.setNominalSpeedLevel(4) # FIXME
             if cooling_system.ihp_ice_storage || cooling_system.ihp_pcm_storage
-              # clg_coil.setNominalSpeedLevel(2) # FIXME
+              clg_coil.setNominalSpeedLevel(2) # FIXME
             end
             clg_coil.setGrossRatedTotalCoolingCapacityAtSelectedNominalSpeedLevel(UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')) # FIXME
             clg_coil.setRatedAirFlowRateAtSelectedNominalSpeedLevel(calc_rated_airflow(cooling_system.cooling_capacity, clg_ap.cool_rated_cfm_per_ton[i], 1.0)) # FIXME
@@ -3240,7 +3240,7 @@ class HVAC
         elsif htg_ap.demand_flexibility
           if htg_coil.nil?
             htg_coil = OpenStudio::Model::CoilHeatingDXVariableSpeed.new(model, plf_fplr_curve)
-            # htg_coil.setNominalSpeedLevel(4) # FIXME
+            htg_coil.setNominalSpeedLevel(4) # FIXME
             htg_coil.setRatedHeatingCapacityAtSelectedNominalSpeedLevel(UnitConversions.convert(heating_system.heating_capacity, 'Btu/hr', 'W')) # FIXME
             htg_coil.setRatedAirFlowRateAtSelectedNominalSpeedLevel(calc_rated_airflow(heating_system.heating_capacity, htg_ap.heat_rated_cfm_per_ton[0], 1.0)) # FIXME
             if not htg_ap.crankcase_temp.nil?
