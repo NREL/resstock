@@ -12,7 +12,12 @@ df_ng_costs = pd.read_csv('C:/Users/EPRESENT/Documents/Load Shapes Project/Model
 df_fo_costs = pd.read_csv('C:/Users/EPRESENT/Documents/Load Shapes Project/Modeling and Calibration/Calculating Utility Bills/Fuel Oil Prices Averaged by State.csv')
 df_lp_costs = pd.read_csv('C:/Users/EPRESENT/Documents/Load Shapes Project/Modeling and Calibration/Calculating Utility Bills/Propane costs by state.csv')
 
- 
+#define constants
+btu_propane_in_one_gallon = 91452 #source: https://www.eia.gov/energyexplained/units-and-calculators/
+gallons_to_barrels = 42 #source: https://www.eia.gov/energyexplained/units-and-calculators/
+btu_fueloil_in_one_barrel = 6287000 #source: https://www.eia.gov/energyexplained/units-and-calculators/
+
+
 ##define functions
 
 #choose results columns to work with
@@ -39,8 +44,19 @@ def calc_delta_lp(df_upgrade, df_baseline):
 
 
 #calculate year1 utility bill savings
-def calc_year1_savings(var_util_costs, delta_elec):
-	return (var_util_costs*delta_elec)
+def calc_year1_bill_savings(var_util_costs, delta_energy):
+	return (var_util_costs*delta_energy)
+def calc_year1_fo_bill_savings(var_util_costs, delta_energy):
+	return (delta_energy *
+            var_util_costs*
+            gallons_to_barrels*
+            (1/btu_fueloil_in_one_barrel)*
+            1000000)
+def calc_year1_lp_bill_savings(var_util_costs, delta_energy):
+    return(delta_energy *
+           var_util_costs*
+           (1/btu_propane_in_one_gallon)*
+           1000000)
 
 #calculate simple payback period
 def calc_spp(upfront_cost, year1_savings):
@@ -82,7 +98,7 @@ file_end = ".parquet"
 up_start = "up"
 
 #do economic calculations for each upgrade package
-for i in range(1, num_ups):
+for i in range(1, num_ups+1):
     if i<10:
         upnum = "0" + str(i)
     else:
@@ -91,16 +107,35 @@ for i in range(1, num_ups):
     upgrade = up_start + upnum
     results_up = pd.read_parquet(os.path.join(default_dir, filename), engine = "auto")
     df = downselect_cols(results_up)
+    #calculate changes in energy use for each fuel
     delta_elec = calc_delta_elec(results_b, df)
     results_b[upgrade + "_delta_elec_kWh"] = delta_elec
     delta_ng = calc_delta_ng(results_b, df)
     results_b[upgrade + "_delta_ng_therms"] = delta_ng
-    results_fo = calc_delta_fo(res)
-    year1_savings = calc_year1_savings(delta_elec, results_b['Variable Elec Cost $/kWh'])
-    results_b[upgrade + "_year1_util_bill_savings"] = year1_savings
-    simple_payback_period = calc_spp(df['simulation_output_report.upgrade_cost_usd'], year1_savings)
+    delta_fo = calc_delta_fo(results_b, df)
+    results_b[upgrade + "_delta_fo_mmbtu"] = delta_fo
+    delta_lp = calc_delta_lp(results_b, df)
+    results_b[upgrade + "delta_lp_mmbtu"] = delta_lp
+    #calculate year1 savings for each fuel, and total
+    year1_savings_elec = calc_year1_bill_savings(results_b['Variable Elec Cost $/kWh'], delta_elec)
+    results_b[upgrade + "_year1_elec_bill_savings"] = year1_savings_elec
+    year1_savings_ng = calc_year1_bill_savings(results_b['NG Cost without Meter Charge [$/therm]'], delta_ng)
+    results_b[upgrade + "_year1_ng_bill_savings"] = year1_savings_ng
+    year1_savings_fo = calc_year1_fo_bill_savings(results_b['Average FO Price [$/gal]'], delta_fo)
+    results_b[upgrade + "_year1_fo_bill_savings"] = year1_savings_fo
+    year1_savings_lp = calc_year1_fo_bill_savings(results_b['Average Weekly Cost [$/gal]'], delta_lp)
+    results_b[upgrade + "_year1_lp_bill_savings"] = year1_savings_lp
+    year1_savings_allfuels = year1_savings_elec + year1_savings_ng + year1_savings_fo + year1_savings_lp
+    results_b[upgrade + "_year1_bill_savings_allfuels"] = year1_savings_allfuels
+    #calculate simple payback period considering all fuels
+    simple_payback_period = calc_spp(df['simulation_output_report.upgrade_cost_usd'], year1_savings_allfuels)
     results_b[upgrade + "_simple_payback_period"] = simple_payback_period
-    npv = calc_npv(df['simulation_output_report.upgrade_cost_usd'], year1_savings)
+    #calculate npv considering all fuels
+    npv = calc_npv(df['simulation_output_report.upgrade_cost_usd'], year1_savings_allfuels)
     results_b[upgrade + "_npv"] = npv
 
-results_b.to_csv('results_with_economics.csv')
+#save results
+results_b.to_csv('results_with_economics_allfuels.csv')
+
+
+#visualizations
