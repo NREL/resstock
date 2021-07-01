@@ -4,7 +4,7 @@ import numpy as np
 import os
 
 #set working directory
-default_dir = "C:/Users/EPRESENT/Documents/Mini Projects/Facades/ResStock Results/test10No3"
+default_dir = "C:/Users/EPRESENT/Documents/Mini Projects/Facades/ResStock Results/test10No4"
 
 #load utility bill costs
 df_elec_costs = pd.read_csv("C:/Users/EPRESENT/Documents/Mini Projects/Facades/Economic Analysis/Variable Elec Cost by State from EIA State Data.csv")
