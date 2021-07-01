@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
@@ -93,7 +95,7 @@ class LoadComponentsReportTest < MiniTest::Test
     FileUtils.cp(sch_path, "#{test_dir(test_name)}")
 
     cli_path = OpenStudio.getOpenStudioCLI
-    cmd = "\"#{cli_path}\" --no-ssl run -w \"#{osw_path}\""
+    cmd = "\"#{cli_path}\" run -w \"#{osw_path}\""
     puts cmd
     system(cmd)
 
