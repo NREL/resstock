@@ -165,12 +165,40 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     if ['Single-Family Detached', 'Mobile Home'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
       measures.delete('ResidentialGeometryCreateMultifamily')
-    elsif bldg_data['Geometry Building Type RECS'] == 'Single-Family Attached'
+    elsif ['Single-Family Attached'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyDetached')
       measures.delete('ResidentialGeometryCreateMultifamily')
     elsif ['Multi-Family with 2 - 4 Units', 'Multi-Family with 5+ Units'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyDetached')
       measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
+    end
+
+    # FIXME: Hack to run the correct ResStock foundation construction measure
+    if ['Ambient'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    elsif ['Unheated Basement'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    elsif ['Heated Basement'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+    elsif ['Vented Crawlspace', 'Unvented Crawlspace'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    elsif ['Slab'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+      measures.delete('ResidentialConstructionsFinishedBasement')
     end
 
     # Remove any measures_to_ignore from the list of measures to run

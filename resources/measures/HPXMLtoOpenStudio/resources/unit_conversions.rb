@@ -31,12 +31,16 @@ class UnitConversions
       return x * 0.9478171203133172
     elsif (from == 'gj') && (to == 'mbtu')
       return x * 0.9478171203133172
+    elsif (from == 'j') && (to == 'mbtu')
+      return x * 0.9478171203133172 / 1000000000.0
     elsif (from == 'gj') && (to == 'kwh')
       return x * 277.778
     elsif (from == 'gj') && (to == 'therm')
       return x * 9.48043
     elsif (from == 'kwh') && (to == 'btu')
       return x * 3412.141633127942
+    elsif (from == 'kwh') && (to == 'mbtu')
+      return x * 0.003412141633127942
     elsif (from == 'kwh') && (to == 'j')
       return x * 3600000.0
     elsif (from == 'wh') && (to == 'gj')
@@ -49,6 +53,8 @@ class UnitConversions
       return x * 293071.0701722222
     elsif (from == 'therm') && (to == 'btu')
       return x * 100000.0
+    elsif (from == 'therm') && (to == 'mbtu')
+      return x / 10.0
     elsif (from == 'therm') && (to == 'kbtu')
       return x * 100.0
     elsif (from == 'therm') && (to == 'kwh')

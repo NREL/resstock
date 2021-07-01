@@ -737,6 +737,54 @@ class OutputMeters
     return @hours_setpoint_not_met
   end
 
+  def supply_energy(sql_file, ann_env_pd)
+    env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
+    env_period_ix = sql_file.execAndReturnFirstInt(env_period_ix_query).get
+    num_ts = get_num_ts(sql_file)
+
+    heatingSupply = Vector.elements(Array.new(num_ts, 0.0))
+    coolingSupply = Vector.elements(Array.new(num_ts, 0.0))
+
+    units = Geometry.get_building_units(@model, @runner)
+    if units.nil?
+      return false
+    end
+
+    units.each do |unit|
+      unit_name = unit.name.to_s.upcase
+
+      thermal_zones = []
+      unit.spaces.each do |space|
+        thermal_zone = space.thermalZone.get
+        unless thermal_zones.include? thermal_zone
+          thermal_zones << thermal_zone
+        end
+      end
+
+      thermal_zones.each do |thermal_zone|
+        key_value = thermal_zone.name.to_s.upcase
+
+        heatingSupply = add_unit(sql_file, heatingSupply, "SELECT VariableValue/1000000000 FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue='#{key_value}' AND VariableName IN ('Zone Air System Sensible Heating Energy') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+
+        coolingSupply = add_unit(sql_file, coolingSupply, "SELECT VariableValue/1000000000 FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Sum' AND KeyValue='#{key_value}' AND VariableName IN ('Zone Air System Sensible Cooling Energy') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+      end
+    end
+
+    @supply_energy = SupplyEnergy.new
+    @supply_energy.heating = heatingSupply
+    @supply_energy.cooling = coolingSupply
+
+    return @supply_energy
+  end
+
+  def get_units_represented(unit)
+    units_represented = 1
+    if unit.additionalProperties.getFeatureAsInteger('Units Represented').is_initialized
+      units_represented = unit.additionalProperties.getFeatureAsInteger('Units Represented').get
+    end
+    return units_represented
+  end
+
   def get_num_ts(sql_file)
     hrs_sim = 0
     if sql_file.hoursSimulated.is_initialized
@@ -1953,6 +2001,12 @@ class Wood
   def initialize
   end
   attr_accessor :heating, :total_end_uses
+end
+
+class SupplyEnergy
+  def initialize
+  end
+  attr_accessor :heating, :cooling
 end
 
 class HoursSetpointNotMet

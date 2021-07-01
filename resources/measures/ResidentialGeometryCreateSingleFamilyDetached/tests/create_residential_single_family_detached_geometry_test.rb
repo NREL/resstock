@@ -156,6 +156,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
   def test_finished_attic_and_finished_basement
     num_finished_spaces = 4
     args_hash = {}
+    args_hash['num_floors'] = 3
     args_hash['foundation_height'] = 8.0
     args_hash['attic_type'] = 'finished attic'
     args_hash['foundation_type'] = 'finished basement'
@@ -168,6 +169,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
   def test_hip_finished_attic
     num_finished_spaces = 3
     args_hash = {}
+    args_hash['num_floors'] = 3
     args_hash['attic_type'] = 'finished attic'
     args_hash['roof_type'] = Constants.RoofTypeHip
     expected_num_del_objects = {}
@@ -206,7 +208,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
   def test_onestory_fbasement_hasgarage_halfprotrusion_garageright_gableroof_fattic
     num_finished_spaces = 3
     args_hash = {}
-    args_hash['num_floors'] = 1
+    args_hash['num_floors'] = 2
     args_hash['garage_width'] = 12
     args_hash['foundation_height'] = 8.0
     args_hash['foundation_type'] = 'finished basement'
@@ -221,7 +223,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
   def test_onestory_ubasement_hasgarage_halfprotrusion_garageright_gableroof_fattic
     num_finished_spaces = 2
     args_hash = {}
-    args_hash['num_floors'] = 1
+    args_hash['num_floors'] = 2
     args_hash['garage_width'] = 12
     args_hash['foundation_height'] = 8.0
     args_hash['foundation_type'] = 'unfinished basement'
@@ -287,6 +289,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
   def test_twostory_fbasement_hasgarage_halfprotrusion_garageright_gableroof_fattic
     num_finished_spaces = 4
     args_hash = {}
+    args_hash['num_floors'] = 3
     args_hash['garage_width'] = 12
     args_hash['foundation_height'] = 8.0
     args_hash['foundation_type'] = 'finished basement'
@@ -301,6 +304,7 @@ class CreateResidentialSingleFamilyDetachedGeometryTest < MiniTest::Test
   def test_twostory_ubasement_hasgarage_halfprotrusion_garageright_gableroof_fattic
     num_finished_spaces = 3
     args_hash = {}
+    args_hash['num_floors'] = 3
     args_hash['garage_width'] = 12
     args_hash['foundation_height'] = 8.0
     args_hash['foundation_type'] = 'unfinished basement'

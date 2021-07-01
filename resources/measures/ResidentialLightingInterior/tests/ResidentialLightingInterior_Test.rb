@@ -27,7 +27,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['pg_lfl'] = 0.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 1707 }
+    expected_values = { 'Annual_kwh' => 2205 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -41,7 +41,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['pg_lfl'] = 0.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 1508 }
+    expected_values = { 'Annual_kwh' => 1914 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -55,7 +55,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['pg_lfl'] = 0.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 1419 }
+    expected_values = { 'Annual_kwh' => 1711 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -69,7 +69,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['pg_lfl'] = 0.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 1208 }
+    expected_values = { 'Annual_kwh' => 1230 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -83,7 +83,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['pg_lfl'] = 0.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 909 }
+    expected_values = { 'Annual_kwh' => 751 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -97,7 +97,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['pg_lfl'] = 0.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 783 }
+    expected_values = { 'Annual_kwh' => 580 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -112,7 +112,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['led_eff'] = 50
     expected_num_del_objects = {}
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 949 }
+    expected_values = { 'Annual_kwh' => 805 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -121,7 +121,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['mult'] = 0.5
     expected_num_del_objects = {}
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 1419 / 2 }
+    expected_values = { 'Annual_kwh' => 1711 / 2 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -129,13 +129,13 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 1419 }
+    expected_values = { 'Annual_kwh' => 1711 }
     model = _test_measure('SFD_2000sqft_2story_FB_GRG_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash = {}
     args_hash['hw_cfl'] = 1.0
     expected_num_del_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
     expected_num_new_objects = { 'LightsDefinition' => 3, 'Lights' => 3, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => 1051 }
+    expected_values = { 'Annual_kwh' => 751 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -302,7 +302,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'Lights' => num_ltg_spaces, 'LightsDefinition' => num_ltg_spaces, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => num_units * 822 }
+    expected_values = { 'Annual_kwh' => num_units * 978 }
     _test_measure('SFA_4units_1story_FB_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
@@ -313,7 +313,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['mult'] = 2
     expected_num_del_objects = {}
     expected_num_new_objects = { 'Lights' => num_ltg_spaces, 'LightsDefinition' => num_ltg_spaces, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => num_units * 822 * 2 }
+    expected_values = { 'Annual_kwh' => num_units * 978 * 2 }
     _test_measure('SFA_4units_1story_FB_UA_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
@@ -323,7 +323,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'Lights' => num_ltg_spaces, 'LightsDefinition' => num_ltg_spaces, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => num_units * 822 }
+    expected_values = { 'Annual_kwh' => num_units * 978 }
     _test_measure('MF_8units_1story_SL_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
@@ -334,7 +334,7 @@ class ResidentialLightingInteriorTest < MiniTest::Test
     args_hash['mult'] = 0.1
     expected_num_del_objects = {}
     expected_num_new_objects = { 'Lights' => num_ltg_spaces, 'LightsDefinition' => num_ltg_spaces, 'ScheduleFile' => 1 }
-    expected_values = { 'Annual_kwh' => num_units * 822 / 10 }
+    expected_values = { 'Annual_kwh' => num_units * 978 / 10 }
     _test_measure('MF_8units_1story_SL_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 0)
   end
 
