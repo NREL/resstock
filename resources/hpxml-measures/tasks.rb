@@ -1475,22 +1475,16 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_backup_heating_efficiency', 0.95)
     step.setArgument('heat_pump_backup_heating_switchover_temp', 25)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex.osw'].include? osw_file
-    step.setArgument('simulation_control_timestep', '15')
     step.setArgument('heat_pump_demand_flexibility', true)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.osw'].include? osw_file
-    step.setArgument('simulation_control_timestep', '15')
     step.setArgument('heat_pump_demand_flexibility_modulating', true)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.osw'].include? osw_file
-    step.setArgument('simulation_control_timestep', '15')
     step.setArgument('heat_pump_demand_flexibility_dual_source', true)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.osw'].include? osw_file
-    step.setArgument('simulation_control_timestep', '15')
     step.setArgument('heat_pump_demand_flexibility_ihp_grid_ac', true)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.osw'].include? osw_file
-    step.setArgument('simulation_control_timestep', '15')
     step.setArgument('heat_pump_demand_flexibility_ihp_ice_storage', true)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.osw'].include? osw_file
-    step.setArgument('simulation_control_timestep', '15')
     step.setArgument('heat_pump_demand_flexibility_ihp_pcm_storage', true)
   elsif ['base-hvac-dual-fuel-mini-split-heat-pump-ducted.osw'].include? osw_file
     step.setArgument('heat_pump_heating_capacity', '36000.0')
@@ -3142,13 +3136,6 @@ def set_hpxml_header(hpxml_file, hpxml)
     hpxml.header.schedules_path = 'BuildResidentialHPXML/tests/schedules/user-specified.csv'
   elsif ['invalid_files/invalid-input-parameters.xml'].include? hpxml_file
     hpxml.header.transaction = 'modify'
-  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex.xml',
-         'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.xml',
-         'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.xml',
-         'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.xml',
-         'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.xml',
-         'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.xml'].include? hpxml_file
-    hpxml.header.timestep = 15
   end
 end
 
