@@ -3,9 +3,9 @@ require 'csv'
 base = 'base'
 feature = 'feature'
 folder = 'comparisons' # comparison csv files will be exported to this folder
-files = Dir[File.join(Dir.getwd, 'test/test_measures_osw/base_results/*.csv')].map { |x| File.basename(x) }
+files = Dir[File.join(Dir.getwd, 'test/test_samples_osw/base/results*.csv')].map { |x| File.basename(x) }
 
-dir = File.join(Dir.getwd, "test/test_measures_osw/#{folder}")
+dir = File.join(Dir.getwd, "test/test_samples_osw/#{folder}")
 unless Dir.exist?(dir)
   Dir.mkdir(dir)
 end
@@ -16,9 +16,9 @@ files.each do |file|
   # load files
   results.keys.each do |key|
     if key == base
-      results[key]['file'] = "test/test_measures_osw/base_results/#{file}"
+      results[key]['file'] = "test/test_samples_osw/base/#{file}"
     elsif key == feature
-      results[key]['file'] = "test/test_measures_osw/results/#{file}"
+      results[key]['file'] = "test/test_samples_osw/results/#{file}"
     end
 
     filepath = File.join(Dir.getwd, results[key]['file'])

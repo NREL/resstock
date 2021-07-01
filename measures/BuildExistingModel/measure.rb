@@ -111,11 +111,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     check_file_exists(lookup_file, runner)
     check_file_exists(buildstock_csv, runner)
 
+    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+
     # Retrieve all data associated with sample number
     bldg_data = get_data_for_sample(buildstock_csv, building_id, runner)
 
     # Retrieve order of parameters to run
-    parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir)
+    parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
 
     # Retrieve options that have been selected for this building_id
     parameters_ordered.each do |parameter_name|
@@ -151,7 +153,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     parameters_ordered.each do |parameter_name|
       option_name = bldg_data[parameter_name]
       print_option_assignment(parameter_name, option_name, runner)
-      options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
+      options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
       options_measure_args[option_name].each do |measure_subdir, args_hash|
         update_args_hash(measures, measure_subdir, args_hash, add_new = false)
       end
@@ -161,12 +163,40 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     if ['Single-Family Detached', 'Mobile Home'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
       measures.delete('ResidentialGeometryCreateMultifamily')
-    elsif bldg_data['Geometry Building Type RECS'] == 'Single-Family Attached'
+    elsif ['Single-Family Attached'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyDetached')
       measures.delete('ResidentialGeometryCreateMultifamily')
     elsif ['Multi-Family with 2 - 4 Units', 'Multi-Family with 5+ Units'].include? bldg_data['Geometry Building Type RECS']
       measures.delete('ResidentialGeometryCreateSingleFamilyDetached')
       measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
+    end
+
+    # FIXME: Hack to run the correct ResStock foundation construction measure
+    if ['Ambient'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    elsif ['Unheated Basement'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    elsif ['Heated Basement'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+    elsif ['Vented Crawlspace', 'Unvented Crawlspace'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    elsif ['Slab'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+      measures.delete('ResidentialConstructionsFinishedBasement')
     end
 
     # Remove any measures_to_ignore from the list of measures to run
