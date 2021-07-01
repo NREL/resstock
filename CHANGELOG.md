@@ -15,6 +15,10 @@ Features
 - Add a sampling probability column in the housing characteristics to define the probability a given column will be sampled ([#584](https://github.com/NREL/resstock/pull/584))
 - Add ReEDS balancing areas as a spatial field ([#591](https://github.com/NREL/resstock/pull/591))
 - Changes heat pump defrost control from OnDemand to Timed ([#605](https://github.com/NREL/resstock/pull/605))
+- Update number of bathrooms assumption to match the Building America House Simulation Protocols ([#601](https://github.com/NREL/resstock/pull/601))
+- Speed up sampling algorithm by multiple orders of magnitude for large numbers of samples ([#606](https://github.com/NREL/resstock/pull/606))
+- Use ANSI/RESNET/ICC 301 equations to calculate annual interior, exterior, and garage lighting energy ([#619](https://github.com/NREL/resstock/pull/619))
+- Update tsv files for both the national and testing projects. Supports transition to ResStock-HPXML ([#559](https://github.com/NREL/resstock/pull/559))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
@@ -26,6 +30,9 @@ Fixes
 - Fixes the problem that `Heating Type=Void` is showing up in buildstock samples ([#568](https://github.com/NREL/resstock/pull/568))
 - Set AZ counties to NA daylight saving times instead of some AR counties ([#585](https://github.com/NREL/resstock/pull/585)) 
 - Housing characteristics fixes based on more samples in testing ([#592](https://github.com/NREL/resstock/pull/592))
+- Fixes number of bathrooms for single-family attached and multi-family buildings ([#601](https://github.com/NREL/resstock/pull/601))
+- Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
+- Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
 
 ## ResStock v2.4.0
 
