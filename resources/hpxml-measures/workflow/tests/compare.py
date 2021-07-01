@@ -60,8 +60,6 @@ class Compare:
 
       # Get results charactersistics of groupby columns
       if file == 'results_characteristics.csv':
-        if 'build_existing_model.geometry_building_type_recs' not in groupby:
-          groupby.append('build_existing_model.geometry_building_type_recs')
         group_df = base_df[groupby]
 
       # Write grouped & aggregated results dfs
@@ -75,10 +73,16 @@ class Compare:
           group_df['build_existing_model.geometry_building_type_recs'] = group_df['build_existing_model.geometry_building_type_recs'].map(btype_map)
 
         # Merge groupby df and aggregate
-        base_df = group_df.merge(base_df, 'outer', left_index=True, right_index=True).groupby(groupby)
-        base_df = base_df.sum().stack()
-        feature_df = group_df.merge(feature_df, 'outer', left_index=True, right_index=True).groupby(groupby).sum()
-        feature_df = feature_df.stack()
+        sim_ct_base = len(base_df)
+        sim_ct_feature = len(feature_df)
+        if groupby:
+          base_df = group_df.merge(base_df, 'outer', left_index=True, right_index=True).groupby(groupby)
+          feature_df = group_df.merge(feature_df, 'outer', left_index=True, right_index=True).groupby(groupby)
+          base_df = base_df.sum().stack()
+          feature_df = feature_df.sum().stack()
+        else:
+          base_df = base_df.sum(numeric_only=True)
+          feature_df = feature_df.sum(numeric_only=True)
 
     # Write aggregate results df
     deltas = pd.DataFrame()
@@ -89,8 +93,8 @@ class Compare:
     deltas = deltas.round(2)                          
     deltas.reset_index(level=groupby, inplace=True)
     deltas.index.name = 'enduse'
-    sims_df = pd.DataFrame({'base':len(base_df),
-                            'feature':len(feature_df),
+    sims_df = pd.DataFrame({'base':sim_ct_base,
+                            'feature':sim_ct_feature,
                             'diff':'n/a',
                             '% diff':'n/a'},
                             index=['simulation_count'])
