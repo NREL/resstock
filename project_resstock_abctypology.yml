@@ -368,7 +368,7 @@ upgrades:
       - &ERVupgrade_sensible_60pct
         option: Mechanical Ventilation|ERV, 60%, 2010 ASHRAE 62.2
         apply_logic:
-          and: 
+          or: 
             - ASHRAE IECC Climate Zone 2004|1A
             - ASHRAE IECC Climate Zone 2004|2A
         costs:
@@ -378,7 +378,7 @@ upgrades:
       - &ERVupgrade_sensible_50pct
         option: Mechanical Ventilation|ERV, 50%, 2010 ASHRAE 62.2
         apply_logic:
-          and: 
+          or: 
             - ASHRAE IECC Climate Zone 2004|2B
         costs: 
           - value: 940
@@ -387,7 +387,7 @@ upgrades:
       - &ERVupgrade_sensible_70pct
         option: Mechanical Ventilation|ERV, 70%, 2010 ASHRAE 62.2
         apply_logic:
-          and: 
+          or: 
             - ASHRAE IECC Climate Zone 2004|3A
         costs: 
           - value: 940
@@ -396,7 +396,7 @@ upgrades:
       - &ERVupgrade_sensible_80pct
         option: Mechanical Ventilation|ERV, 70%, 2010 ASHRAE 62.2
         apply_logic:
-          and: 
+          or: 
             - ASHRAE IECC Climate Zone 2004|4A
         costs: 
           - value: 940
@@ -407,7 +407,7 @@ upgrades:
       - &HRVupgrade_sensible_60pct
         option: Mechanical Ventilation|HRV, 60%, 2010 ASHRAE 62.2
         apply_logic: 
-          and:
+          or:
             - ASHRAE IECC Climate Zone 2004|3C
         costs: 
           - value: 980
@@ -416,7 +416,7 @@ upgrades:
       - &HRVupgrade_sensible_70pct
         option: Mechanical Ventilation|HRV, 70%, 2010 ASHRAE 62.2
         apply_logic: 
-          and:
+          or:
             - ASHRAE IECC Climate Zone 2004|3B
             - ASHRAE IECC Climate Zone 2004|4C
         costs: 
@@ -426,7 +426,7 @@ upgrades:
       - &HRVupgrade_sensible_75pct
         option: Mechanical Ventilation|HRV, 75%, 2010 ASHRAE 62.2
         apply_logic: 
-          and:
+          or:
             - ASHRAE IECC Climate Zone 2004|4B
         costs: 
           - value: 980
@@ -435,7 +435,7 @@ upgrades:
       - &HRVupgrade_sensible_80pct
         option: Mechanical Ventilation|HRV, 80%, 2010 ASHRAE 62.2
         apply_logic: 
-          and:
+          or:
             - ASHRAE IECC Climate Zone 2004|5B
         costs: 
           - value: 980
@@ -444,7 +444,7 @@ upgrades:
       - &HRVupgrade_sensible_85pct
         option: Mechanical Ventilation|HRV, 85%, 2010 ASHRAE 62.2
         apply_logic: 
-          and:
+          or:
             - ASHRAE IECC Climate Zone 2004|5A
             - ASHRAE IECC Climate Zone 2004|6A
             - ASHRAE IECC Climate Zone 2004|6B
@@ -1558,14 +1558,65 @@ upgrades:
         lifetime: 30
 
       # Attic Air Insulation Upgrade
-
-      # - &reference_options
-      #   option: 
-      #   apply_logic:
-      #   costs:
-      #     - value: 
-      #       multiplier:
-      #   lifetime:
+      - &R-30_attic
+        option: Insulation Unfinished Attic|Ceiling R-30, Vented
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|1A
+          - or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &R-49_attic
+        option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+          - or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &R-60_attic
+        option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - or: 
+            - Insulation Unfinished Attic|Uninsulated, Vented
+            - Insulation Unfinished Attic|Ceiling R-7, Vented
+            - Insulation Unfinished Attic|Ceiling R-13, Vented
+            - Insulation Unfinished Attic|Ceiling R-19, Vented
+            - Insulation Unfinished Attic|Ceiling R-30, Vented
+            - Insulation Unfinished Attic|Ceiling R-38, Vented
+            - Insulation Unfinished Attic|Ceiling R-49, Vented
+        costs:
+          - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
       # - &reference_options
       #   option: 
       #   apply_logic:
