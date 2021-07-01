@@ -104,7 +104,11 @@ class Compare:
       first_col = deltas.pop(group)
       deltas.insert(0, group, first_col)
 
-    deltas.to_csv(os.path.join(export_folder, 'aggregate_results.csv'))
+    basename = 'aggregate_results'
+    if groupby:
+        basename += '_{groupby}'.format(groupby=groupby[0])
+
+    deltas.to_csv(os.path.join(export_folder, '{basename}.csv'.format(basename=basename)))
 
   def visualize(self, base_folder, feature_folder, export_folder, groupby=[]):
     excludes = ['buildstock.csv', 'results_characteristics.csv']
