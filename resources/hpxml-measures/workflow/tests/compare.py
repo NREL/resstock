@@ -138,7 +138,8 @@ class BaseCompare:
 
       end_uses = sorted(list(set(base_df.columns) | set(feature_df.columns)))
       if file == 'results.csv' or file == 'results_output.csv':
-        end_uses = [x for x in end_uses if 'Fuel Use:' in x or 'fuel_use_' in x] # FIXME
+        if [x for x in end_uses if 'Fuel Use:' in x or 'fuel_use_' in x]:
+          end_uses = [x for x in end_uses if 'Fuel Use:' in x or 'fuel_use_' in x] # FIXME
 
       if groupby_columns:
         base_df = base_characteristics_df.join(base_df)
