@@ -72,7 +72,7 @@ class Compare:
         group_df = base_df[groupby_columns]
 
       # Write grouped & aggregated results dfs
-      if file == 'results_output.csv':
+      if file != 'results_characteristics.csv':
         # Map building types
         if 'build_existing_model.geometry_building_type_recs' in groupby_columns:
           group_df['build_existing_model.geometry_building_type_recs'] = group_df['build_existing_model.geometry_building_type_recs'].map(btype_map)
@@ -97,6 +97,8 @@ class Compare:
             base_df = base_df.mean(numeric_only=True)
             feature_df = feature_df.mean(numeric_only=True)
 
+    if not groupby_columns: return
+
     # Write aggregate results df
     deltas = pd.DataFrame()
     deltas['base'] = base_df
@@ -117,7 +119,7 @@ class Compare:
       first_col = deltas.pop(group)
       deltas.insert(0, group, first_col)
 
-    basename = 'aggregate_results'
+    basename, ext = os.path.splitext(file)
     if groupby_columns:
         basename += '_{groupby_column}'.format(groupby_column=groupby_columns[0])
 
@@ -169,6 +171,7 @@ class Compare:
         groups = list(base_df[groupby_columns[0]].unique())
       else:
         groups = ['1-to-1']
+        groupby_function = '1-to-1'
 
       if groupby_function == '1-to-1':
         fig = make_subplots(rows=len(end_uses), cols=len(groups), subplot_titles=groups*len(end_uses), row_titles=[f'<b>{f}</b>' for f in end_uses], vertical_spacing = 0.015)
