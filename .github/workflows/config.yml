@@ -122,14 +122,14 @@ jobs:
           pip install plotly
           pip install kaleido
           
-          python resources/hpxml-measures/workflow/tests/compare.py -a samples -b resources -f resources -e test/test_samples_osw/comparisons
+          python test/compare.py -a samples
           
-          python resources/hpxml-measures/workflow/tests/compare.py -a results -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons
-          python resources/hpxml-measures/workflow/tests/compare.py -a results -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons -gf sum -gc build_existing_model.geometry_building_type_recs
+          python test/compare.py -a results
+          python test/compare.py -a results -gf sum -gc build_existing_model.geometry_building_type_recs
           
-          python resources/hpxml-measures/workflow/tests/compare.py -a visualize -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons -gf 1-to-1 -gc build_existing_model.geometry_building_type_recs
-          python resources/hpxml-measures/workflow/tests/compare.py -a visualize -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons -gf 1-to-1 -gc build_existing_model.county
-          python resources/hpxml-measures/workflow/tests/compare.py -a visualize -b test/test_samples_osw/base -f test/test_samples_osw/results -e test/test_samples_osw/comparisons -gf sum -gc build_existing_model.county
+          python test/compare.py -a visualize -gf 1-to-1 -gc build_existing_model.geometry_building_type_recs
+          python test/compare.py -a visualize -gf 1-to-1 -gc build_existing_model.county
+          python test/compare.py -a visualize -gf sum -gc build_existing_model.county
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2

@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import numpy as np
 import pandas as pd
@@ -7,56 +8,27 @@ import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-btype_map = {'Single-Family Detached': 'SFD',
-            'Single-Family Attached': 'SFA',
-            'Multi-Family with 2 - 4 Units': 'MF',
-            'Multi-Family with 5+ Units': 'MF'}
+class BaseCompare:
+  def __init__(self, base_folder, feature_folder, export_folder):
+    self.base_folder = base_folder
+    self.feature_folder = feature_folder
+    self.export_folder = export_folder
 
-class Compare:
-
-  def samples(self, base_folder, feature_folder, export_folder, groupby_column, groupby_function):
-
-    def value_counts(df, file):
-      value_counts = []
-      with open(file, 'w', newline='') as f:
-
-        for col in sorted(df.columns):
-          if col == 'Building':
-            continue
-
-          value_count = df[col].value_counts(normalize=True)
-          value_count = value_count.round(2)
-          keys_to_values = dict(zip(value_count.index.values, value_count.values))
-          keys_to_values = dict(sorted(keys_to_values.items(), key=lambda x: (x[1], x[0]), reverse=True))
-          value_counts.append([value_count.name])
-          value_counts.append(keys_to_values.keys())
-          value_counts.append(keys_to_values.values())
-          value_counts.append('')
-
-        w = csv.writer(f)
-        w.writerows(value_counts)
-
-    df = pd.read_csv(os.path.join(base_folder, 'base_buildstock.csv'))
-    file = os.path.join(export_folder, 'base_samples.csv')
-    value_counts(df, file)
-
-    df = pd.read_csv(os.path.join(feature_folder, 'buildstock.csv'))
-    file = os.path.join(export_folder, 'feature_samples.csv')
-    value_counts(df, file)
-
-  def results(self, base_folder, feature_folder, export_folder, groupby_column, groupby_function):
+  def results(self, groupby_column, groupby_function, btype_map=None):
     groupby_columns = []
     if groupby_column:
       groupby_columns.append(groupby_column)
 
+    excludes = ['buildstock.csv']
+
     files = []
-    for file in os.listdir(base_folder):
-      if file.startswith('results') and file.endswith('.csv'):
+    for file in os.listdir(self.base_folder):
+      if not file in excludes:
         files.append(file)
 
     for file in sorted(files):
-      base_df = pd.read_csv(os.path.join(base_folder, file), index_col=0)
-      feature_df = pd.read_csv(os.path.join(feature_folder, file), index_col=0)
+      base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
+      feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
 
       try:
         df = feature_df - base_df
@@ -65,7 +37,7 @@ class Compare:
         df = df.astype(int)
 
       df = df.fillna('NA')
-      df.to_csv(os.path.join(export_folder, file))    
+      df.to_csv(os.path.join(self.export_folder, file))    
 
       # Get results charactersistics of groupby columns
       if file == 'results_characteristics.csv':
@@ -123,24 +95,35 @@ class Compare:
     if groupby_columns:
         basename += '_{groupby_column}'.format(groupby_column=groupby_columns[0])
 
-    deltas.to_csv(os.path.join(export_folder, '{basename}_{groupby_function}.csv'.format(basename=basename, groupby_function=groupby_function)))
+    deltas.to_csv(os.path.join(self.export_folder, '{basename}_{groupby_function}.csv'.format(basename=basename, groupby_function=groupby_function)))
 
-  def visualize(self, base_folder, feature_folder, export_folder, groupby_column, groupby_function):
+  def visualize(self, groupby_column, groupby_function, btype_map=None):
     groupby_columns = []
     if groupby_column:
       groupby_columns.append(groupby_column)
 
     excludes = ['buildstock.csv', 'results_characteristics.csv']
 
+    files = []
+    for file in os.listdir(self.base_folder):
+      if not file in excludes:
+        files.append(file)
+
     if groupby_columns:
-      base_characteristics_df = pd.read_csv(os.path.join(base_folder, 'results_characteristics.csv'), index_col=0)[groupby_columns]
-      feature_characteristics_df = pd.read_csv(os.path.join(feature_folder, 'results_characteristics.csv'), index_col=0)[groupby_columns]
+      base_characteristics_df = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)[groupby_columns]
+      feature_characteristics_df = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)[groupby_columns]
 
     def get_min_max(x_col, y_col, min_value, max_value):
-        if 0.9 * np.min([x_col.min(), y_col.min()]) < min_value:
-                        min_value = 0.9 * np.min([x_col.min(), y_col.min()])
-        if 1.1 * np.max([x_col.max(), y_col.max()]) > max_value:
-                        max_value = 1.1 * np.max([x_col.max(), y_col.max()])
+        try:
+          if 0.9 * np.min([x_col.min(), y_col.min()]) < min_value:
+            min_value = 0.9 * np.min([x_col.min(), y_col.min()])
+        except:
+          pass
+        try:
+          if 1.1 * np.max([x_col.max(), y_col.max()]) > max_value:
+            max_value = 1.1 * np.max([x_col.max(), y_col.max()])
+        except:
+          pass
 
         return(min_value, max_value)
 
@@ -149,14 +132,9 @@ class Compare:
         fig.add_trace(go.Scatter(x=[min_value, max_value], y=[0.9*min_value, 0.9*max_value], line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=showlegend, name='+/- 10% Error'), row=row, col=col)
         fig.add_trace(go.Scatter(x=[min_value, max_value], y=[1.1*min_value, 1.1*max_value], line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=False), row=row, col=col)
 
-    files = []
-    for file in os.listdir(base_folder):
-      if not file in excludes:
-        files.append(file)
-
     for file in files:
-      base_df = pd.read_csv(os.path.join(base_folder, file), index_col=0)
-      feature_df = pd.read_csv(os.path.join(feature_folder, file), index_col=0)
+      base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
+      feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
 
       end_uses = sorted(list(set(base_df.columns) | set(feature_df.columns)))
       if file == 'results.csv' or file == 'results_output.csv':
@@ -245,7 +223,7 @@ class Compare:
       if groupby_columns:
         basename += '_{groupby_column}'.format(groupby_column=groupby_columns[0])
 
-      plotly.offline.plot(fig, filename=os.path.join(export_folder, '{basename}_{groupby_function}.html'.format(basename=basename, groupby_function=groupby_function)), auto_open=False)
+      plotly.offline.plot(fig, filename=os.path.join(self.export_folder, '{basename}_{groupby_function}.html'.format(basename=basename, groupby_function=groupby_function)), auto_open=False)
 
 if __name__ == '__main__':
 
@@ -253,10 +231,9 @@ if __name__ == '__main__':
   default_feature_folder = 'workflow/tests/results'
   default_export_folder = 'workflow/tests/comparisons'
 
-  actions = [method for method in dir(Compare) if method.startswith('__') is False]
+  actions = [method for method in dir(BaseCompare) if method.startswith('__') is False]
 
-  groupby_columns = ['build_existing_model.geometry_building_type_recs',
-                     'build_existing_model.county']
+  groupby_columns = []
   groupby_functions = ['1-to-1', 'sum', 'mean']
 
   parser = argparse.ArgumentParser()
@@ -272,10 +249,13 @@ if __name__ == '__main__':
   if not os.path.exists(args.export_folder):
     os.makedirs(args.export_folder)
 
-  compare = Compare()
+  compare = BaseCompare(args.base_folder, args.feature_folder, args.export_folder)
 
   if args.actions == None:
     args.actions = [] 
 
   for action in args.actions:
-    getattr(compare, action)(args.base_folder, args.feature_folder, args.export_folder, args.groupby_column, args.groupby_function)
+    if action == 'results':
+      compare.results(args.groupby_column, args.groupby_function)
+    elif action == 'visualize':
+      compare.visualize(args.groupby_column, args.groupby_function)
