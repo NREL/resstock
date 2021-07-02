@@ -87,9 +87,19 @@ results_b = pd.read_parquet(os.path.join(default_dir, "results_up00.parquet"), e
 
 #add utility bill cost unformation to the baseline results
 results_b = pd.merge(results_b, df_elec_costs[['State', 'Variable Elec Cost $/kWh']], left_on = "build_existing_model.state", right_on = 'State', how = 'left')
+results_b = results_b.drop(['State'], 1)
 results_b = pd.merge(results_b, df_ng_costs[['State', 'NG Cost without Meter Charge [$/therm]']], left_on = "build_existing_model.state", right_on = 'State', how = 'left')
+results_b = results_b.drop(['State'], 1)
 results_b = pd.merge(results_b, df_fo_costs[['State', 'Average FO Price [$/gal]']], left_on = "build_existing_model.state", right_on = 'State', how = 'left')
+results_b = results_b.drop(['State'], 1)
 results_b = pd.merge(results_b, df_lp_costs[['State', 'Average Weekly Cost [$/gal]']], left_on = "build_existing_model.state", right_on = 'State', how = 'left')
+results_b = results_b.drop(['State'], 1)
+results_b.rename(columns={
+    'Variable Elec Cost $/kWh': 'Elec Variable Cost [$/kWh]',
+    'NG Cost without Meter Charge [$/therm]': 'NG Variable Cost [$/therm]', 
+    'Average FO Price [$/gal]': 'FO Average Cost [$/gal]',
+    'Average Weekly Cost [$/gal]': 'LP Average Price [$/gal]'},
+    inplace=True)
 
 
 #define string parts for upgrades
@@ -115,24 +125,24 @@ for i in range(1, num_ups+1):
     delta_fo = calc_delta_fo(results_b, df)
     results_b[upgrade + "_delta_fo_mmbtu"] = delta_fo
     delta_lp = calc_delta_lp(results_b, df)
-    results_b[upgrade + "delta_lp_mmbtu"] = delta_lp
+    results_b[upgrade + "_delta_lp_mmbtu"] = delta_lp
     #calculate year1 savings for each fuel, and total
-    year1_savings_elec = calc_year1_bill_savings(results_b['Variable Elec Cost $/kWh'], delta_elec)
-    results_b[upgrade + "_year1_elec_bill_savings"] = year1_savings_elec
-    year1_savings_ng = calc_year1_bill_savings(results_b['NG Cost without Meter Charge [$/therm]'], delta_ng)
-    results_b[upgrade + "_year1_ng_bill_savings"] = year1_savings_ng
-    year1_savings_fo = calc_year1_fo_bill_savings(results_b['Average FO Price [$/gal]'], delta_fo)
-    results_b[upgrade + "_year1_fo_bill_savings"] = year1_savings_fo
-    year1_savings_lp = calc_year1_fo_bill_savings(results_b['Average Weekly Cost [$/gal]'], delta_lp)
-    results_b[upgrade + "_year1_lp_bill_savings"] = year1_savings_lp
+    year1_savings_elec = calc_year1_bill_savings(results_b['Elec Variable Cost [$/kWh]'], delta_elec)
+    results_b[upgrade + "_annualbillsavings_elec_$"] = year1_savings_elec
+    year1_savings_ng = calc_year1_bill_savings(results_b['NG Variable Cost [$/therm]'], delta_ng)
+    results_b[upgrade + "_annualbillsavings_ng_$"] = year1_savings_ng
+    year1_savings_fo = calc_year1_fo_bill_savings(results_b['FO Average Cost [$/gal]'], delta_fo)
+    results_b[upgrade + "_annualbillsavings_fo_$"] = year1_savings_fo
+    year1_savings_lp = calc_year1_fo_bill_savings(results_b['LP Average Price [$/gal]'], delta_lp)
+    results_b[upgrade + "_annualbillsavings_lp_$"] = year1_savings_lp
     year1_savings_allfuels = year1_savings_elec + year1_savings_ng + year1_savings_fo + year1_savings_lp
-    results_b[upgrade + "_year1_bill_savings_allfuels"] = year1_savings_allfuels
+    results_b[upgrade + "_annualbillsavings_allfuels_$"] = year1_savings_allfuels
     #calculate simple payback period considering all fuels
     simple_payback_period = calc_spp(df['simulation_output_report.upgrade_cost_usd'], year1_savings_allfuels)
-    results_b[upgrade + "_simple_payback_period"] = simple_payback_period
+    results_b[upgrade + "_spp_allfuels_yrs"] = simple_payback_period
     #calculate npv considering all fuels
     npv = calc_npv(df['simulation_output_report.upgrade_cost_usd'], year1_savings_allfuels)
-    results_b[upgrade + "_npv"] = npv
+    results_b[upgrade + "_npv_allfuels_$"] = npv
 
 #save results
 results_b.to_csv('results_with_economics_allfuels.csv')
