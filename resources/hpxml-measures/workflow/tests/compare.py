@@ -7,9 +7,14 @@ import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+btype_map = {'Single-Family Detached': 'SFD',
+            'Single-Family Attached': 'SFA',
+            'Multi-Family with 2 - 4 Units': 'MF',
+            'Multi-Family with 5+ Units': 'MF'}
+
 class Compare:
 
-  def samples(self, base_folder, feature_folder, export_folder, groupby_columns=[], groupby_functions=[]):
+  def samples(self, base_folder, feature_folder, export_folder, groupby_column, groupby_function):
 
     def value_counts(df, file):
       value_counts = []
@@ -39,7 +44,11 @@ class Compare:
     file = os.path.join(export_folder, 'feature_samples.csv')
     value_counts(df, file)
 
-  def results(self, base_folder, feature_folder, export_folder, groupby_columns=[], groupby_functions=[]):
+  def results(self, base_folder, feature_folder, export_folder, groupby_column, groupby_function):
+    groupby_columns = []
+    if groupby_column:
+      groupby_columns.append(groupby_column)
+
     files = []
     for file in os.listdir(base_folder):
       if file.startswith('results') and file.endswith('.csv'):
@@ -66,10 +75,6 @@ class Compare:
       if file == 'results_output.csv':
         # Map building types
         if 'build_existing_model.geometry_building_type_recs' in groupby_columns:
-          btype_map = {'Single-Family Detached': 'SFD',
-                      'Single-Family Attached': 'SFA',
-                      'Multi-Family with 2 - 4 Units': 'MF',
-                      'Multi-Family with 5+ Units': 'MF'}
           group_df['build_existing_model.geometry_building_type_recs'] = group_df['build_existing_model.geometry_building_type_recs'].map(btype_map)
 
         # Merge groupby df and aggregate
@@ -78,11 +83,19 @@ class Compare:
         if groupby_columns:
           base_df = group_df.merge(base_df, 'outer', left_index=True, right_index=True).groupby(groupby_columns)
           feature_df = group_df.merge(feature_df, 'outer', left_index=True, right_index=True).groupby(groupby_columns)
-          base_df = base_df.sum().stack()
-          feature_df = feature_df.sum().stack()
+          if groupby_function == 'sum':
+            base_df = base_df.sum().stack()
+            feature_df = feature_df.sum().stack()
+          elif groupby_function == 'mean':
+            base_df = base_df.mean().stack()
+            feature_df = feature_df.mean().stack()
         else:
-          base_df = base_df.sum(numeric_only=True)
-          feature_df = feature_df.sum(numeric_only=True)
+          if groupby_function == 'sum':
+            base_df = base_df.sum(numeric_only=True)
+            feature_df = feature_df.sum(numeric_only=True)
+          elif groupby_function == 'mean':
+            base_df = base_df.mean(numeric_only=True)
+            feature_df = feature_df.mean(numeric_only=True)
 
     # Write aggregate results df
     deltas = pd.DataFrame()
@@ -93,10 +106,10 @@ class Compare:
     deltas = deltas.round(2)                          
     deltas.reset_index(level=groupby_columns, inplace=True)
     deltas.index.name = 'enduse'
-    sims_df = pd.DataFrame({'base':sim_ct_base,
-                            'feature':sim_ct_feature,
-                            'diff':'n/a',
-                            '% diff':'n/a'},
+    sims_df = pd.DataFrame({'base': sim_ct_base,
+                            'feature': sim_ct_feature,
+                            'diff': 'n/a',
+                            '% diff': 'n/a'},
                             index=['simulation_count'])
     sims_df[groupby_columns] = 'n/a'
     deltas = pd.concat([sims_df, deltas])
@@ -108,9 +121,13 @@ class Compare:
     if groupby_columns:
         basename += '_{groupby_column}'.format(groupby_column=groupby_columns[0])
 
-    deltas.to_csv(os.path.join(export_folder, '{basename}.csv'.format(basename=basename)))
+    deltas.to_csv(os.path.join(export_folder, '{basename}_{groupby_function}.csv'.format(basename=basename, groupby_function=groupby_function)))
 
-  def visualize(self, base_folder, feature_folder, export_folder, groupby_columns=[], groupby_functions=[]):
+  def visualize(self, base_folder, feature_folder, export_folder, groupby_column, groupby_function):
+    groupby_columns = []
+    if groupby_column:
+      groupby_columns.append(groupby_column)
+
     excludes = ['buildstock.csv', 'results_characteristics.csv']
 
     if groupby_columns:
@@ -146,45 +163,86 @@ class Compare:
       if groupby_columns:
         base_df = base_characteristics_df.join(base_df)
         feature_df = feature_characteristics_df.join(feature_df)
+        if 'build_existing_model.geometry_building_type_recs' in groupby_columns:
+          for df in [base_df, feature_df]:
+            df['build_existing_model.geometry_building_type_recs'] = df['build_existing_model.geometry_building_type_recs'].map(btype_map)
         groups = list(base_df[groupby_columns[0]].unique())
       else:
-        groups = ['1:1']
+        groups = ['1-to-1']
 
-      fig = make_subplots(rows=len(end_uses), cols=len(groups), subplot_titles=groups*len(end_uses), row_titles=[f'<b>{f}</b>' for f in end_uses], vertical_spacing = 0.015)
+      if groupby_function == '1-to-1':
+        fig = make_subplots(rows=len(end_uses), cols=len(groups), subplot_titles=groups*len(end_uses), row_titles=[f'<b>{f}</b>' for f in end_uses], vertical_spacing = 0.015)
 
-      row = 0
-      for end_use in end_uses:
-        row += 1
-        for group in groups:
-          col = groups.index(group) + 1
-          showlegend = False
-          if col == 1 and row == 1: showlegend = True
+        row = 0
+        for end_use in end_uses:
+          row += 1
+          for group in groups:
+            col = groups.index(group) + 1
+            showlegend = False
+            if col == 1 and row == 1: showlegend = True
 
-          x = base_df
-          y = feature_df
+            x = base_df
+            y = feature_df
 
-          if groupby_columns:
+            if groupby_columns:
+              x = x.loc[x[groupby_columns[0]] == group, :]
+              y = y.loc[y[groupby_columns[0]] == group, :]
+
+            fig.add_trace(go.Scatter(x=x[end_use], y=y[end_use], marker=dict(size=8), mode='markers', text=base_df.index, name='', legendgroup=end_use, showlegend=False), row=row, col=col)
+
+            min_value, max_value = get_min_max(x[end_use], y[end_use], 0, 0)
+            add_error_lines(fig, showlegend, row, col, min_value, max_value)
+            fig.update_xaxes(title_text='base', row=row, col=col)
+            fig.update_yaxes(title_text='feature', row=row, col=col)
+
+        fig['layout'].update(title=file, template='plotly_white')
+        fig.update_layout(width=800*len(groups), height=600*len(end_uses), autosize=False, font=dict(size=12))
+        for i in fig['layout']['annotations']:
+            i['font'] = dict(size=12) if i['text'] in end_uses else dict(size=12)
+      else:
+        if groupby_function == 'sum':
+          base_df = base_df.groupby(groupby_columns).sum().reset_index()
+          feature_df = feature_df.groupby(groupby_columns).sum().reset_index()
+        elif groupby_function == 'mean':
+          base_df = base_df.groupby(groupby_columns).mean().reset_index()
+          feature_df = feature_df.groupby(groupby_columns).mean().reset_index()
+
+        fig = make_subplots(rows=len(end_uses), cols=1, subplot_titles=[groupby_function]*len(end_uses), row_titles=[f'<b>{f}</b>' for f in end_uses], vertical_spacing = 0.015)
+
+        row = 0
+        for end_use in end_uses:  
+          row += 1
+          min_value = 0
+          max_value = 0
+          for group in groups:
+            showlegend = False
+            if row == 1: showlegend = True
+            
+            x = base_df
+            y = feature_df
+            
             x = x.loc[x[groupby_columns[0]] == group, :]
             y = y.loc[y[groupby_columns[0]] == group, :]
 
-          fig.add_trace(go.Scatter(x=x[end_use], y=y[end_use], marker=dict(size=8), mode='markers', text=base_df.index, name='', legendgroup=end_use, showlegend=False), row=row, col=col)
+            fig.add_trace(go.Scatter(x=x[end_use], y=y[end_use], marker=dict(size=8), mode='markers', text=group, name=group, legendgroup=end_use, showlegend=showlegend), row=row, col=1)
 
-          min_value, max_value = get_min_max(x[end_use], y[end_use], 0, 0)
-          add_error_lines(fig, showlegend, row, col, min_value, max_value)
-          fig.update_xaxes(title_text='base', row=row, col=col)
-          fig.update_yaxes(title_text='feature', row=row, col=col)
+            min_v, max_v = get_min_max(x[end_use], y[end_use], 0, 0)
+            min_value = np.min([min_value, min_v])
+            max_value = np.max([max_value, max_v])
+          add_error_lines(fig, showlegend, row, 1, min_value, max_value)
+          fig.update_xaxes(title_text='base', row=row, col=1)
+          fig.update_yaxes(title_text='feature', row=row, col=1)
 
-      fig['layout'].update(title=file, template='plotly_white')
-      fig.update_layout(width=800*len(groups), height=600*len(end_uses), autosize=False, font=dict(size=12))
-      for i in fig['layout']['annotations']:
-          i['font'] = dict(size=12) if i['text'] in end_uses else dict(size=12)
+        fig['layout'].update(title=file, template='plotly_white')
+        fig.update_layout(width=800, height=600*len(end_uses), autosize=False, font=dict(size=12))
+        for i in fig['layout']['annotations']:
+            i['font'] = dict(size=12) if i['text'] in end_uses else dict(size=12)
 
       basename, ext = os.path.splitext(file)
       if groupby_columns:
         basename += '_{groupby_column}'.format(groupby_column=groupby_columns[0])
 
-      # fig.write_image(os.path.join(export_folder, '{basename}.svg'.format(basename=basename)))
-      plotly.offline.plot(fig, filename=os.path.join(export_folder, '{basename}.html'.format(basename=basename)), auto_open=False)
+      plotly.offline.plot(fig, filename=os.path.join(export_folder, '{basename}_{groupby_function}.html'.format(basename=basename, groupby_function=groupby_function)), auto_open=False)
 
 if __name__ == '__main__':
 
@@ -194,16 +252,17 @@ if __name__ == '__main__':
 
   actions = [method for method in dir(Compare) if method.startswith('__') is False]
 
-  groupby_columns = ['build_existing_model.geometry_building_type_recs']
-  groupby_functions = ['1:1', 'sum', 'avg']
+  groupby_columns = ['build_existing_model.geometry_building_type_recs',
+                     'build_existing_model.county']
+  groupby_functions = ['1-to-1', 'sum', 'mean']
 
   parser = argparse.ArgumentParser()
   parser.add_argument('-b', '--base_folder', default=default_base_folder, help='TODO')
   parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='TODO')
   parser.add_argument('-a', '--actions', action='append', choices=actions, help='TODO')
   parser.add_argument('-e', '--export_folder', default=default_export_folder, help='TODO')
-  parser.add_argument('-gc', '--groupby_columns', action='append', choices=groupby_columns, help='TODO')
-  parser.add_argument('-gf', '--groupby_functions', action='append', choices=groupby_functions, help='TODO')
+  parser.add_argument('-gc', '--groupby_column', choices=groupby_columns, help='TODO')
+  parser.add_argument('-gf', '--groupby_function', default='sum', choices=groupby_functions, help='TODO')
   parser.add_argument('-m', '--mapping', help='TODO')
   args = parser.parse_args()
 
@@ -213,14 +272,7 @@ if __name__ == '__main__':
   compare = Compare()
 
   if args.actions == None:
-    args.actions = []
-
-  if args.groupby_columns == None:
-    args.groupby_columns = []
-  assert len(args.groupby_columns) < 2
-
-  if args.groupby_functions == None:
-    args.groupby_functions = []  
+    args.actions = [] 
 
   for action in args.actions:
-    getattr(compare, action)(args.base_folder, args.feature_folder, args.export_folder, args.groupby_columns, args.groupby_functions)
+    getattr(compare, action)(args.base_folder, args.feature_folder, args.export_folder, args.groupby_column, args.groupby_function)
