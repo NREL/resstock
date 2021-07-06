@@ -278,6 +278,7 @@ class HotWaterAndAppliances
         gpd_frac = water_heating_system.fraction_dhw_load_served
       end
       next unless not gpd_frac.nil?
+
       if not schedules_file.nil?
         dw_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: 'dishwasher', daily_water: dw_gpd)
         water_dw_schedule = schedules_file.create_schedule_file(col_name: 'dishwasher')

@@ -217,6 +217,7 @@ class Material
       thick_in = 0.375 if thick_in.nil?
       return new(name: siding, thick_in: thick_in, mat_base: BaseMaterial.Aluminum, tAbs: emittance, sAbs: solar_absorptance)
     end
+
     fail "Unexpected siding: #{siding}."
   end
 
@@ -238,6 +239,7 @@ class Material
         return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Wood, tAbs: emittance, sAbs: solar_absorptance)
       end
     end
+
     fail "Unexpected type: #{type}."
   end
 

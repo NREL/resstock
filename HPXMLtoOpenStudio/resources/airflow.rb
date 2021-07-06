@@ -1809,7 +1809,7 @@ class Airflow
       infil_program.addLine("Set Cs = #{(stack_coef * (UnitConversions.convert(1.0, 'inH2O/R', 'Pa/K')**n_i)).round(4)}")
       infil_program.addLine("Set Cw = #{(wind_coef * (UnitConversions.convert(1.0, 'inH2O/mph^2', 'Pa*s^2/m^2')**n_i)).round(4)}")
       infil_program.addLine("Set n = #{n_i}")
-      infil_program.addLine("Set sft = (f_t*#{(((site_ap.aim2_shelter_coeff * (1.0 - y_i)) + (s_wflue * (1.5 * y_i))))})")
+      infil_program.addLine("Set sft = (f_t*#{(site_ap.aim2_shelter_coeff * (1.0 - y_i)) + (s_wflue * (1.5 * y_i))})")
       infil_program.addLine("Set temp1 = ((c*Cw)*((sft*#{@vwind_sensor.name})^(2*n)))^2")
       infil_program.addLine('Set Qinf = (((c*Cs*(dT^n))^2)+temp1)^0.5')
       infil_program.addLine('Set Qinf = (@Max Qinf 0)')

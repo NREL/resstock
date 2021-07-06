@@ -104,6 +104,29 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_site_values(hpxml_default, HPXML::SiteTypeSuburban, HPXML::ShieldingNormal)
   end
 
+  def test_neighbor_buildings
+    # Test inputs not overridden by defaults
+    hpxml = _create_hpxml('base-misc-neighbor-shading.xml')
+    hpxml.neighbor_buildings[0].azimuth = 123
+    hpxml.neighbor_buildings[1].azimuth = 321
+    hpxml.walls[0].azimuth = 123
+    hpxml.walls[1].azimuth = 321
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_neighbor_building_values(hpxml_default, [123, 321])
+
+    # Test defaults
+    hpxml.neighbor_buildings[0].azimuth = nil
+    hpxml.neighbor_buildings[1].azimuth = nil
+    hpxml.neighbor_buildings[0].orientation = HPXML::OrientationEast
+    hpxml.neighbor_buildings[1].orientation = HPXML::OrientationNorth
+    hpxml.walls[0].azimuth = 90
+    hpxml.walls[1].azimuth = 0
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_neighbor_building_values(hpxml_default, [90, 0])
+  end
+
   def test_occupancy
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
@@ -214,34 +237,39 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.roofs[0].emittance = 0.88
     hpxml.roofs[0].interior_finish_type = HPXML::InteriorFinishPlaster
     hpxml.roofs[0].interior_finish_thickness = 0.25
+    hpxml.roofs[0].azimuth = 123
+    hpxml.roofs[0].radiant_barrier_grade = 3
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeMetal, 0.77, HPXML::ColorDark, 0.88, true, HPXML::InteriorFinishPlaster, 0.25)
+    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeMetal, 0.77, HPXML::ColorDark, 0.88, true, 3, HPXML::InteriorFinishPlaster, 0.25, 123)
 
     # Test defaults w/ RoofColor
     hpxml.roofs[0].roof_type = nil
     hpxml.roofs[0].solar_absorptance = nil
     hpxml.roofs[0].roof_color = HPXML::ColorLight
     hpxml.roofs[0].emittance = nil
-    hpxml.roofs[0].radiant_barrier = nil
     hpxml.roofs[0].interior_finish_thickness = nil
+    hpxml.roofs[0].orientation = HPXML::OrientationNortheast
+    hpxml.roofs[0].azimuth = nil
+    hpxml.roofs[0].radiant_barrier_grade = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.75, HPXML::ColorLight, 0.90, false, HPXML::InteriorFinishPlaster, 0.5)
+    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.75, HPXML::ColorLight, 0.90, true, 1, HPXML::InteriorFinishPlaster, 0.5, 45)
 
     # Test defaults w/ SolarAbsorptance
     hpxml.roofs[0].solar_absorptance = 0.99
     hpxml.roofs[0].roof_color = nil
     hpxml.roofs[0].interior_finish_type = nil
+    hpxml.roofs[0].radiant_barrier = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.99, HPXML::ColorDark, 0.90, false, HPXML::InteriorFinishNone, nil)
+    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.99, HPXML::ColorDark, 0.90, false, nil, HPXML::InteriorFinishNone, nil, 45)
 
     # Test defaults w/o RoofColor & SolarAbsorptance
     hpxml.roofs[0].solar_absorptance = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.85, HPXML::ColorMedium, 0.90, false, HPXML::InteriorFinishNone, nil)
+    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.85, HPXML::ColorMedium, 0.90, false, nil, HPXML::InteriorFinishNone, nil, 45)
 
     # Test defaults w/ conditioned space
     hpxml = _create_hpxml('base-atticroof-cathedral.xml')
@@ -251,9 +279,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.roofs[0].emittance = nil
     hpxml.roofs[0].interior_finish_type = nil
     hpxml.roofs[0].interior_finish_thickness = nil
+    hpxml.roofs[0].orientation = HPXML::OrientationNortheast
+    hpxml.roofs[0].azimuth = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.75, HPXML::ColorLight, 0.90, false, HPXML::InteriorFinishGypsumBoard, 0.5)
+    _test_default_roof_values(hpxml_default.roofs[0], HPXML::RoofTypeAsphaltShingles, 0.75, HPXML::ColorLight, 0.90, false, nil, HPXML::InteriorFinishGypsumBoard, 0.5, 45)
   end
 
   def test_rim_joists
@@ -263,31 +293,34 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.rim_joists[0].solar_absorptance = 0.55
     hpxml.rim_joists[0].color = HPXML::ColorLight
     hpxml.rim_joists[0].emittance = 0.88
+    hpxml.rim_joists[0].azimuth = 123
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeBrick, 0.55, HPXML::ColorLight, 0.88)
+    _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeBrick, 0.55, HPXML::ColorLight, 0.88, 123)
 
     # Test defaults w/ Color
     hpxml.rim_joists[0].siding = nil
     hpxml.rim_joists[0].solar_absorptance = nil
     hpxml.rim_joists[0].color = HPXML::ColorDark
     hpxml.rim_joists[0].emittance = nil
+    hpxml.rim_joists[0].orientation = HPXML::OrientationNorthwest
+    hpxml.rim_joists[0].azimuth = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeWood, 0.95, HPXML::ColorDark, 0.90)
+    _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeWood, 0.95, HPXML::ColorDark, 0.90, 315)
 
     # Test defaults w/ SolarAbsorptance
     hpxml.rim_joists[0].solar_absorptance = 0.99
     hpxml.rim_joists[0].color = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeWood, 0.99, HPXML::ColorDark, 0.90)
+    _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeWood, 0.99, HPXML::ColorDark, 0.90, 315)
 
     # Test defaults w/o Color & SolarAbsorptance
     hpxml.rim_joists[0].solar_absorptance = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeWood, 0.7, HPXML::ColorMedium, 0.90)
+    _test_default_rim_joist_values(hpxml_default.rim_joists[0], HPXML::SidingTypeWood, 0.7, HPXML::ColorMedium, 0.90, 315)
   end
 
   def test_walls
@@ -299,9 +332,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.walls[0].emittance = 0.88
     hpxml.walls[0].interior_finish_type = HPXML::InteriorFinishWood
     hpxml.walls[0].interior_finish_thickness = 0.75
+    hpxml.walls[0].azimuth = 123
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_wall_values(hpxml_default.walls[0], HPXML::SidingTypeFiberCement, 0.66, HPXML::ColorDark, 0.88, HPXML::InteriorFinishWood, 0.75)
+    _test_default_wall_values(hpxml_default.walls[0], HPXML::SidingTypeFiberCement, 0.66, HPXML::ColorDark, 0.88, HPXML::InteriorFinishWood, 0.75, 123)
 
     # Test defaults w/ Color
     hpxml.walls[0].siding = nil
@@ -310,9 +344,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.walls[0].emittance = nil
     hpxml.walls[0].interior_finish_type = HPXML::InteriorFinishWood
     hpxml.walls[0].interior_finish_thickness = nil
+    hpxml.walls[0].orientation = HPXML::OrientationSouth
+    hpxml.walls[0].azimuth = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_wall_values(hpxml_default.walls[0], HPXML::SidingTypeWood, 0.5, HPXML::ColorLight, 0.90, HPXML::InteriorFinishWood, 0.5)
+    _test_default_wall_values(hpxml_default.walls[0], HPXML::SidingTypeWood, 0.5, HPXML::ColorLight, 0.90, HPXML::InteriorFinishWood, 0.5, 180)
 
     # Test defaults w/ SolarAbsorptance
     hpxml.walls[0].solar_absorptance = 0.99
@@ -320,13 +356,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.walls[0].interior_finish_type = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_wall_values(hpxml_default.walls[0], HPXML::SidingTypeWood, 0.99, HPXML::ColorDark, 0.90, HPXML::InteriorFinishGypsumBoard, 0.5)
+    _test_default_wall_values(hpxml_default.walls[0], HPXML::SidingTypeWood, 0.99, HPXML::ColorDark, 0.90, HPXML::InteriorFinishGypsumBoard, 0.5, 180)
 
     # Test defaults w/o Color & SolarAbsorptance
     hpxml.walls[0].solar_absorptance = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_rim_joist_values(hpxml_default.walls[0], HPXML::SidingTypeWood, 0.7, HPXML::ColorMedium, 0.90)
+    _test_default_wall_values(hpxml_default.walls[0], HPXML::SidingTypeWood, 0.7, HPXML::ColorMedium, 0.90, HPXML::InteriorFinishGypsumBoard, 0.5, 180)
 
     # Test defaults w/ unconditioned space
     hpxml.walls[1].siding = nil
@@ -337,7 +373,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.walls[1].interior_finish_thickness = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_wall_values(hpxml_default.walls[1], HPXML::SidingTypeWood, 0.5, HPXML::ColorLight, 0.90, HPXML::InteriorFinishNone, nil)
+    _test_default_wall_values(hpxml_default.walls[1], HPXML::SidingTypeWood, 0.5, HPXML::ColorLight, 0.90, HPXML::InteriorFinishNone, nil, 180)
   end
 
   def test_foundation_walls
@@ -346,26 +382,50 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.foundation_walls[0].thickness = 7.0
     hpxml.foundation_walls[0].interior_finish_type = HPXML::InteriorFinishGypsumCompositeBoard
     hpxml.foundation_walls[0].interior_finish_thickness = 0.625
+    hpxml.foundation_walls[0].azimuth = 123
+    hpxml.foundation_walls[0].area = 789
+    hpxml.foundation_walls[0].insulation_interior_distance_to_top = 0.5
+    hpxml.foundation_walls[0].insulation_interior_distance_to_bottom = 7.75
+    hpxml.foundation_walls[0].insulation_exterior_distance_to_top = 0.75
+    hpxml.foundation_walls[0].insulation_exterior_distance_to_bottom = 7.5
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_foundation_wall_values(hpxml_default.foundation_walls[0], 7.0, HPXML::InteriorFinishGypsumCompositeBoard, 0.625)
+    _test_default_foundation_wall_values(hpxml_default.foundation_walls[0], 7.0, HPXML::InteriorFinishGypsumCompositeBoard, 0.625, 123,
+                                         789, 0.5, 7.75, 0.75, 7.5)
 
     # Test defaults
     hpxml.foundation_walls[0].thickness = nil
     hpxml.foundation_walls[0].interior_finish_type = nil
     hpxml.foundation_walls[0].interior_finish_thickness = nil
+    hpxml.foundation_walls[0].orientation = HPXML::OrientationSoutheast
+    hpxml.foundation_walls[0].azimuth = nil
+    hpxml.foundation_walls[0].area = nil
+    hpxml.foundation_walls[0].length = 100
+    hpxml.foundation_walls[0].insulation_interior_distance_to_bottom = nil
+    hpxml.foundation_walls[0].insulation_exterior_distance_to_bottom = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_foundation_wall_values(hpxml_default.foundation_walls[0], 8.0, HPXML::InteriorFinishGypsumBoard, 0.5)
+    _test_default_foundation_wall_values(hpxml_default.foundation_walls[0], 8.0, HPXML::InteriorFinishGypsumBoard, 0.5, 135,
+                                         800, 0.5, 8.0, 0.75, 8.0)
 
     # Test defaults w/ unconditioned surfaces
     hpxml = _create_hpxml('base-foundation-unconditioned-basement.xml')
     hpxml.foundation_walls[0].thickness = nil
     hpxml.foundation_walls[0].interior_finish_type = nil
     hpxml.foundation_walls[0].interior_finish_thickness = nil
+    hpxml.foundation_walls[0].orientation = HPXML::OrientationSoutheast
+    hpxml.foundation_walls[0].azimuth = nil
+    hpxml.foundation_walls[0].area = nil
+    hpxml.foundation_walls[0].length = 100
+    hpxml.foundation_walls[0].height = 10
+    hpxml.foundation_walls[0].insulation_interior_distance_to_top = nil
+    hpxml.foundation_walls[0].insulation_interior_distance_to_bottom = nil
+    hpxml.foundation_walls[0].insulation_exterior_distance_to_top = nil
+    hpxml.foundation_walls[0].insulation_exterior_distance_to_bottom = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_foundation_wall_values(hpxml_default.foundation_walls[0], 8.0, HPXML::InteriorFinishNone, nil)
+    _test_default_foundation_wall_values(hpxml_default.foundation_walls[0], 8.0, HPXML::InteriorFinishNone, nil, 135,
+                                         1000, 0.0, 10.0, 0.0, 10.0)
   end
 
   def test_frame_floors
@@ -430,11 +490,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       window.exterior_shading_factor_winter = 0.55
       window.interior_shading_factor_summer = 0.66
       window.interior_shading_factor_winter = 0.77
+      window.azimuth = 123
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     n_windows = hpxml_default.windows.size
-    _test_default_window_values(hpxml_default, [0.44] * n_windows, [0.55] * n_windows, [0.66] * n_windows, [0.77] * n_windows, [0.5] * n_windows)
+    _test_default_window_values(hpxml_default, [0.44] * n_windows, [0.55] * n_windows, [0.66] * n_windows, [0.77] * n_windows, [0.5] * n_windows, [123] * n_windows)
 
     # Test defaults
     hpxml.windows.each do |window|
@@ -443,11 +504,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       window.exterior_shading_factor_winter = nil
       window.interior_shading_factor_summer = nil
       window.interior_shading_factor_winter = nil
+      window.orientation = HPXML::OrientationSouthwest
+      window.azimuth = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     n_windows = hpxml_default.windows.size
-    _test_default_window_values(hpxml_default, [1.0] * n_windows, [1.0] * n_windows, [0.7] * n_windows, [0.85] * n_windows, [0.67] * n_windows)
+    _test_default_window_values(hpxml_default, [1.0] * n_windows, [1.0] * n_windows, [0.7] * n_windows, [0.85] * n_windows, [0.67] * n_windows, [225] * n_windows)
   end
 
   def test_skylights
@@ -458,11 +521,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       skylight.exterior_shading_factor_winter = 0.55
       skylight.interior_shading_factor_summer = 0.66
       skylight.interior_shading_factor_winter = 0.77
+      skylight.azimuth = 123
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     n_skylights = hpxml_default.skylights.size
-    _test_default_skylight_values(hpxml_default, [0.44] * n_skylights, [0.55] * n_skylights, [0.66] * n_skylights, [0.77] * n_skylights)
+    _test_default_skylight_values(hpxml_default, [0.44] * n_skylights, [0.55] * n_skylights, [0.66] * n_skylights, [0.77] * n_skylights, [123] * n_skylights)
 
     # Test defaults
     hpxml.skylights.each do |skylight|
@@ -470,11 +534,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       skylight.exterior_shading_factor_winter = nil
       skylight.interior_shading_factor_summer = nil
       skylight.interior_shading_factor_winter = nil
+      skylight.orientation = HPXML::OrientationWest
+      skylight.azimuth = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     n_skylights = hpxml_default.skylights.size
-    _test_default_skylight_values(hpxml_default, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights)
+    _test_default_skylight_values(hpxml_default, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights, [270] * n_skylights)
   end
 
   def test_doors
@@ -501,6 +567,14 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_door_values(hpxml_default, [0, 0])
+
+    # Test defaults w/ Orientation
+    hpxml.doors.each do |door|
+      door.orientation = HPXML::OrientationEast
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_door_values(hpxml_default, [90, 90])
   end
 
   def test_central_air_conditioners
@@ -990,10 +1064,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['attic - unvented']
     expected_supply_areas = [150.0]
     expected_return_areas = [50.0]
-    expected_area_fracs = [1.0]
+    expected_supply_fracs = [1.0]
+    expected_return_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
-                              expected_area_fracs, expected_n_return_registers)
+                              expected_supply_fracs, expected_return_fracs, expected_n_return_registers)
 
     # Test defaults w/ conditioned basement
     hpxml.hvac_distributions[0].number_of_return_registers = nil
@@ -1009,10 +1084,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['basement - conditioned']
     expected_supply_areas = [729.0]
     expected_return_areas = [270.0]
-    expected_area_fracs = [1.0]
+    expected_supply_fracs = [1.0]
+    expected_return_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
-                              expected_area_fracs, expected_n_return_registers)
+                              expected_supply_fracs, expected_return_fracs, expected_n_return_registers)
 
     # Test defaults w/ multiple foundations
     hpxml = _create_hpxml('base-foundation-multiple.xml')
@@ -1028,10 +1104,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['basement - unconditioned']
     expected_supply_areas = [364.5]
     expected_return_areas = [67.5]
-    expected_area_fracs = [1.0]
+    expected_supply_fracs = [1.0]
+    expected_return_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
-                              expected_area_fracs, expected_n_return_registers)
+                              expected_supply_fracs, expected_return_fracs, expected_n_return_registers)
 
     # Test defaults w/ foundation exposed to ambient
     hpxml = _create_hpxml('base-foundation-ambient.xml')
@@ -1047,10 +1124,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['attic - unvented']
     expected_supply_areas = [364.5]
     expected_return_areas = [67.5]
-    expected_area_fracs = [1.0]
+    expected_supply_fracs = [1.0]
+    expected_return_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
-                              expected_area_fracs, expected_n_return_registers)
+                              expected_supply_fracs, expected_return_fracs, expected_n_return_registers)
 
     # Test defaults w/ building/unit adjacent to other housing unit
     hpxml = _create_hpxml('base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml')
@@ -1066,10 +1144,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['living space']
     expected_supply_areas = [243.0]
     expected_return_areas = [45.0]
-    expected_area_fracs = [1.0]
+    expected_supply_fracs = [1.0]
+    expected_return_fracs = [1.0]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
-                              expected_area_fracs, expected_n_return_registers)
+                              expected_supply_fracs, expected_return_fracs, expected_n_return_registers)
 
     # Test defaults w/ 2-story building
     hpxml = _create_hpxml('base-enclosure-2stories.xml')
@@ -1081,14 +1160,15 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    expected_supply_locations = ['basement - conditioned', 'living space']
-    expected_return_locations = ['basement - conditioned', 'living space']
-    expected_supply_areas = [820.13, 273.38]
-    expected_return_areas = [455.63, 151.88]
-    expected_area_fracs = [0.75, 0.25]
+    expected_supply_locations = ['basement - conditioned', 'basement - conditioned', 'living space', 'living space']
+    expected_return_locations = ['basement - conditioned', 'basement - conditioned', 'living space', 'living space']
+    expected_supply_areas = [410.06, 410.06, 136.69, 136.69]
+    expected_return_areas = [227.82, 227.82, 75.94, 75.94]
+    expected_supply_fracs = [0.375, 0.375, 0.125, 0.125]
+    expected_return_fracs = [0.375, 0.375, 0.125, 0.125]
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
-                              expected_area_fracs, expected_n_return_registers)
+                              expected_supply_fracs, expected_return_fracs, expected_n_return_registers)
 
     # Test defaults w/ 1-story building & multiple HVAC systems
     hpxml = _create_hpxml('base-hvac-multiple.xml')
@@ -1104,10 +1184,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['basement - conditioned', 'basement - conditioned'] * hpxml_default.hvac_distributions.size
     expected_supply_areas = [36.45, 36.45] * hpxml_default.hvac_distributions.size
     expected_return_areas = [13.5, 13.5] * hpxml_default.hvac_distributions.size
-    expected_area_fracs = [0.5, 0.5] * hpxml_default.hvac_distributions.size
+    expected_supply_fracs = [0.5, 0.5] * hpxml_default.hvac_distributions.size
+    expected_return_fracs = [0.5, 0.5] * hpxml_default.hvac_distributions.size
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
-                              expected_area_fracs, expected_n_return_registers)
+                              expected_supply_fracs, expected_return_fracs, expected_n_return_registers)
 
     # Test defaults w/ 2-story building & multiple HVAC systems
     hpxml = _create_hpxml('base-hvac-multiple.xml')
@@ -1124,10 +1205,39 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     expected_return_locations = ['basement - conditioned', 'basement - conditioned', 'living space', 'living space'] * hpxml_default.hvac_distributions.size
     expected_supply_areas = [27.34, 27.34, 9.11, 9.11] * hpxml_default.hvac_distributions.size
     expected_return_areas = [10.13, 10.13, 3.38, 3.38] * hpxml_default.hvac_distributions.size
-    expected_area_fracs = [0.375, 0.375, 0.125, 0.125] * hpxml_default.hvac_distributions.size
+    expected_supply_fracs = [0.375, 0.375, 0.125, 0.125] * hpxml_default.hvac_distributions.size
+    expected_return_fracs = [0.375, 0.375, 0.125, 0.125] * hpxml_default.hvac_distributions.size
     expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
     _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
-                              expected_area_fracs, expected_n_return_registers)
+                              expected_supply_fracs, expected_return_fracs, expected_n_return_registers)
+
+    # Test defaults w/ 2-story building & multiple HVAC systems & duct area fractions
+    hpxml = _create_hpxml('base-hvac-multiple.xml')
+    hpxml.building_construction.number_of_conditioned_floors_above_grade = 2
+    hpxml.hvac_distributions.each do |hvac_distribution|
+      next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
+
+      hvac_distribution.ducts[0].duct_fraction_area = 0.75
+      hvac_distribution.ducts[1].duct_fraction_area = 0.25
+      hvac_distribution.ducts[2].duct_fraction_area = 0.5
+      hvac_distribution.ducts[3].duct_fraction_area = 0.5
+    end
+    hpxml.hvac_distributions.each do |hvac_distribution|
+      hvac_distribution.ducts.each do |duct|
+        duct.duct_surface_area = nil
+      end
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    expected_supply_locations = ['attic - unvented', 'outside', 'attic - unvented', 'outside'] * hpxml_default.hvac_distributions.size
+    expected_return_locations = ['attic - unvented', 'outside', 'attic - unvented', 'outside'] * hpxml_default.hvac_distributions.size
+    expected_supply_areas = [54.68, 18.23] * hpxml_default.hvac_distributions.size
+    expected_return_areas = [13.5, 13.5] * hpxml_default.hvac_distributions.size
+    expected_supply_fracs = [0.75, 0.25] * hpxml_default.hvac_distributions.size
+    expected_return_fracs = [0.5, 0.5] * hpxml_default.hvac_distributions.size
+    expected_n_return_registers = hpxml_default.building_construction.number_of_conditioned_floors
+    _test_default_duct_values(hpxml_default, expected_supply_locations, expected_return_locations, expected_supply_areas, expected_return_areas,
+                              expected_supply_fracs, expected_return_fracs, expected_n_return_registers)
   end
 
   def test_mech_ventilation_fans
@@ -1463,22 +1573,25 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-dhw-solar-direct-flat-plate.xml')
     hpxml.solar_thermal_systems[0].storage_volume = 55.0
+    hpxml.solar_thermal_systems[0].collector_azimuth = 123
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_solar_thermal_values(hpxml_default.solar_thermal_systems[0], 55.0)
+    _test_default_solar_thermal_values(hpxml_default.solar_thermal_systems[0], 55.0, 123)
 
     # Test defaults w/ collector area of 40 sqft
     hpxml.solar_thermal_systems[0].storage_volume = nil
+    hpxml.solar_thermal_systems[0].collector_orientation = HPXML::OrientationNorth
+    hpxml.solar_thermal_systems[0].collector_azimuth = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_solar_thermal_values(hpxml_default.solar_thermal_systems[0], 60.0)
+    _test_default_solar_thermal_values(hpxml_default.solar_thermal_systems[0], 60.0, 0)
 
     # Test defaults w/ collector area of 100 sqft
     hpxml.solar_thermal_systems[0].collector_area = 100.0
     hpxml.solar_thermal_systems[0].storage_volume = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_solar_thermal_values(hpxml_default.solar_thermal_systems[0], 150.0)
+    _test_default_solar_thermal_values(hpxml_default.solar_thermal_systems[0], 150.0, 0)
   end
 
   def test_pv_systems
@@ -1493,10 +1606,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       pv.location = HPXML::LocationGround
       pv.tracking = HPXML::PVTrackingType1Axis
       pv.module_type = HPXML::PVModuleTypePremium
+      pv.array_azimuth = 123
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_pv_system_values(hpxml_default, 0.90, 0.20, true, HPXML::LocationGround, HPXML::PVTrackingType1Axis, HPXML::PVModuleTypePremium)
+    _test_default_pv_system_values(hpxml_default, 0.90, 0.20, true, HPXML::LocationGround, HPXML::PVTrackingType1Axis, HPXML::PVModuleTypePremium, 123)
 
     # Test defaults w/o year modules manufactured
     hpxml.pv_systems.each do |pv|
@@ -1506,10 +1620,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       pv.location = nil
       pv.tracking = nil
       pv.module_type = nil
+      pv.array_orientation = HPXML::OrientationSoutheast
+      pv.array_azimuth = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_pv_system_values(hpxml_default, 0.96, 0.14, false, HPXML::LocationRoof, HPXML::PVTrackingTypeFixed, HPXML::PVModuleTypeStandard)
+    _test_default_pv_system_values(hpxml_default, 0.96, 0.14, false, HPXML::LocationRoof, HPXML::PVTrackingTypeFixed, HPXML::PVModuleTypeStandard, 135)
 
     # Test defaults w/ year modules manufactured
     hpxml.pv_systems.each do |pv|
@@ -1517,7 +1633,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_pv_system_values(hpxml_default, 0.96, 0.186, false, HPXML::LocationRoof, HPXML::PVTrackingTypeFixed, HPXML::PVModuleTypeStandard)
+    _test_default_pv_system_values(hpxml_default, 0.96, 0.186, false, HPXML::LocationRoof, HPXML::PVTrackingTypeFixed, HPXML::PVModuleTypeStandard, 135)
   end
 
   def test_generators
@@ -2313,6 +2429,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(shielding_of_home, hpxml.site.shielding_of_home)
   end
 
+  def _test_default_neighbor_building_values(hpxml, azimuths)
+    assert_equal(azimuths.size, hpxml.neighbor_buildings.size)
+    hpxml.neighbor_buildings.each_with_index do |neighbor_building, idx|
+      assert_equal(azimuths[idx], neighbor_building.azimuth)
+    end
+  end
+
   def _test_default_occupancy_values(hpxml, num_occupants)
     assert_equal(num_occupants, hpxml.building_occupancy.number_of_residents)
   end
@@ -2336,28 +2459,36 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_in_epsilon(sla, foundation.vented_crawlspace_sla, 0.001)
   end
 
-  def _test_default_roof_values(roof, roof_type, solar_absorptance, roof_color, emittance, radiant_barrier, int_finish_type, int_finish_thickness)
+  def _test_default_roof_values(roof, roof_type, solar_absorptance, roof_color, emittance, radiant_barrier,
+                                radiant_barrier_grade, int_finish_type, int_finish_thickness, azimuth)
     assert_equal(roof_type, roof.roof_type)
     assert_equal(solar_absorptance, roof.solar_absorptance)
     assert_equal(roof_color, roof.roof_color)
     assert_equal(emittance, roof.emittance)
     assert_equal(radiant_barrier, roof.radiant_barrier)
+    if not radiant_barrier_grade.nil?
+      assert_equal(radiant_barrier_grade, roof.radiant_barrier_grade)
+    else
+      assert_nil(roof.radiant_barrier_grade)
+    end
     assert_equal(int_finish_type, roof.interior_finish_type)
     if not int_finish_thickness.nil?
       assert_equal(int_finish_thickness, roof.interior_finish_thickness)
     else
       assert_nil(roof.interior_finish_thickness)
     end
+    assert_equal(azimuth, roof.azimuth)
   end
 
-  def _test_default_rim_joist_values(rim_joist, siding, solar_absorptance, color, emittance)
+  def _test_default_rim_joist_values(rim_joist, siding, solar_absorptance, color, emittance, azimuth)
     assert_equal(siding, rim_joist.siding)
     assert_equal(solar_absorptance, rim_joist.solar_absorptance)
     assert_equal(color, rim_joist.color)
     assert_equal(emittance, rim_joist.emittance)
+    assert_equal(azimuth, rim_joist.azimuth)
   end
 
-  def _test_default_wall_values(wall, siding, solar_absorptance, color, emittance, int_finish_type, int_finish_thickness)
+  def _test_default_wall_values(wall, siding, solar_absorptance, color, emittance, int_finish_type, int_finish_thickness, azimuth)
     assert_equal(siding, wall.siding)
     assert_equal(solar_absorptance, wall.solar_absorptance)
     assert_equal(color, wall.color)
@@ -2370,7 +2501,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_foundation_wall_values(foundation_wall, thickness, int_finish_type, int_finish_thickness)
+  def _test_default_foundation_wall_values(foundation_wall, thickness, int_finish_type, int_finish_thickness, azimuth, area,
+                                           ins_int_top, ins_int_bottom, ins_ext_top, ins_ext_bottom)
     assert_equal(thickness, foundation_wall.thickness)
     assert_equal(int_finish_type, foundation_wall.interior_finish_type)
     if not int_finish_thickness.nil?
@@ -2378,6 +2510,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     else
       assert_nil(foundation_wall.interior_finish_thickness)
     end
+    assert_equal(azimuth, foundation_wall.azimuth)
+    assert_equal(area, foundation_wall.area)
+    assert_equal(ins_int_top, foundation_wall.insulation_interior_distance_to_top)
+    assert_equal(ins_int_bottom, foundation_wall.insulation_interior_distance_to_bottom)
+    assert_equal(ins_ext_top, foundation_wall.insulation_exterior_distance_to_top)
+    assert_equal(ins_ext_bottom, foundation_wall.insulation_exterior_distance_to_bottom)
   end
 
   def _test_default_frame_floor_values(frame_floor, int_finish_type, int_finish_thickness)
@@ -2395,7 +2533,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(carpet_fraction, slab.carpet_fraction)
   end
 
-  def _test_default_window_values(hpxml, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, fraction_operable)
+  def _test_default_window_values(hpxml, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, fraction_operable, azimuths)
     assert_equal(ext_summer_sfs.size, hpxml.windows.size)
     hpxml.windows.each_with_index do |window, idx|
       assert_equal(ext_summer_sfs[idx], window.exterior_shading_factor_summer)
@@ -2403,16 +2541,18 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       assert_equal(int_summer_sfs[idx], window.interior_shading_factor_summer)
       assert_equal(int_winter_sfs[idx], window.interior_shading_factor_winter)
       assert_equal(fraction_operable[idx], window.fraction_operable)
+      assert_equal(azimuths[idx], window.azimuth)
     end
   end
 
-  def _test_default_skylight_values(hpxml, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs)
+  def _test_default_skylight_values(hpxml, ext_summer_sfs, ext_winter_sfs, int_summer_sfs, int_winter_sfs, azimuths)
     assert_equal(ext_summer_sfs.size, hpxml.skylights.size)
     hpxml.skylights.each_with_index do |skylight, idx|
       assert_equal(ext_summer_sfs[idx], skylight.exterior_shading_factor_summer)
       assert_equal(ext_winter_sfs[idx], skylight.exterior_shading_factor_winter)
       assert_equal(int_summer_sfs[idx], skylight.interior_shading_factor_summer)
       assert_equal(int_winter_sfs[idx], skylight.interior_shading_factor_winter)
+      assert_equal(azimuths[idx], skylight.azimuth)
     end
   end
 
@@ -2705,7 +2845,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   end
 
   def _test_default_duct_values(hpxml, supply_locations, return_locations, supply_areas, return_areas,
-                                area_fracs, n_return_registers)
+                                supply_fracs, return_fracs, n_return_registers)
     supply_duct_idx = 0
     return_duct_idx = 0
     hpxml.hvac_distributions.each do |hvac_distribution|
@@ -2716,12 +2856,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
         if duct.duct_type == HPXML::DuctTypeSupply
           assert_equal(supply_locations[supply_duct_idx], duct.duct_location)
           assert_in_epsilon(supply_areas[supply_duct_idx], duct.duct_surface_area, 0.01)
-          assert_in_epsilon(area_fracs[supply_duct_idx], duct.duct_fraction_area, 0.01)
+          assert_in_epsilon(supply_fracs[supply_duct_idx], duct.duct_fraction_area, 0.01)
           supply_duct_idx += 1
         elsif duct.duct_type == HPXML::DuctTypeReturn
           assert_equal(return_locations[return_duct_idx], duct.duct_location)
           assert_in_epsilon(return_areas[return_duct_idx], duct.duct_surface_area, 0.01)
-          assert_in_epsilon(area_fracs[return_duct_idx], duct.duct_fraction_area, 0.01)
+          assert_in_epsilon(return_fracs[return_duct_idx], duct.duct_fraction_area, 0.01)
           return_duct_idx += 1
         end
       end
@@ -2806,11 +2946,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(usage_multiplier, hpxml.water_heating.water_fixtures_usage_multiplier)
   end
 
-  def _test_default_solar_thermal_values(solar_thermal_system, storage_volume)
+  def _test_default_solar_thermal_values(solar_thermal_system, storage_volume, azimuth)
     assert_equal(storage_volume, solar_thermal_system.storage_volume)
+    assert_equal(azimuth, solar_thermal_system.collector_azimuth)
   end
 
-  def _test_default_pv_system_values(hpxml, interver_efficiency, system_loss_frac, is_shared_system, location, tracking, module_type)
+  def _test_default_pv_system_values(hpxml, interver_efficiency, system_loss_frac, is_shared_system, location, tracking, module_type, azimuth)
     hpxml.pv_systems.each_with_index do |pv, idx|
       assert_equal(is_shared_system, pv.is_shared_system)
       assert_equal(interver_efficiency, pv.inverter_efficiency)
@@ -2818,6 +2959,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       assert_equal(location, pv.location)
       assert_equal(tracking, pv.tracking)
       assert_equal(module_type, pv.module_type)
+      assert_equal(azimuth, pv.array_azimuth)
     end
   end
 
