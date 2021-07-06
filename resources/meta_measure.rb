@@ -78,6 +78,7 @@ def apply_child_measures(measures_dir, measures, runner, model, workflow_json = 
       end
 
       next if parent_measure_runner.empty?
+
       measure_time = (Time.now - measure_start).round(1)
       parent_measure = parent_measure_runner.keys[0]
       parent_runner = parent_measure_runner[parent_measure]

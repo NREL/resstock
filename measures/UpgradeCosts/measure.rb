@@ -146,11 +146,13 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
       # Save option cost/lifetime to results.csv
       next unless option_cost != 0
+
       option_cost = option_cost.round(2)
       option_cost_name = 'option_%02d_cost_usd' % option_num
       register_value(runner, option_cost_name, option_cost)
       runner.registerInfo("Registering #{option_cost} for #{option_cost_name}.")
       next unless (not option_lifetimes[option_num].nil?) && (option_lifetimes[option_num] != 0)
+
       lifetime = option_lifetimes[option_num].round(2)
       option_lifetime_name = 'option_%02d_lifetime_yrs' % option_num
       register_value(runner, option_lifetime_name, lifetime)
