@@ -359,8 +359,8 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
       parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
         args.keys.each do |arg|
-          args_map[arg] = [] if args_map[arg].nil?
-          args_map[arg] << parameter_name
+          args_map[[measure_name, arg]] = [] if args_map[[measure_name, arg]].nil?
+          args_map[[measure_name, arg]] << parameter_name
         end
       end
     end
@@ -368,9 +368,11 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
       next unless v.size > 1
 
       param_names = v.join('", "')
-      next if err.include?(param_names) && err.include?(k)
+      measure_name = k[0]
+      arg_name = k[1]
+      next if err.include?(param_names) && err.include?(measure_name) && err.include?(arg_name)
 
-      err += "ERROR: Duplicate measure argument assignment(s) across [\"#{param_names}\"] parameters. \"#{k}\" assigned twice.\n"
+      err += "ERROR: Duplicate measure argument assignment(s) across [\"#{param_names}\"] parameters. #{measure_name} => \"#{arg_name}\" already assigned.\n"
     end
   end
   if not err.empty?
