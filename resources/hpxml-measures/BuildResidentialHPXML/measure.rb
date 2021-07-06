@@ -475,11 +475,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_insulation_distance_to_top', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('foundation_wall_insulation_distance_to_top', true)
     arg.setDisplayName('Foundation: Wall Insulation Distance To Top')
     arg.setUnits('ft')
     arg.setDescription('The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces.')
-    arg.setDefaultValue(0)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('foundation_wall_insulation_distance_to_bottom', true)
@@ -3582,6 +3582,7 @@ class HPXMLFile
     if (args[:geometry_garage_protrusion] == 1.0) && (args[:geometry_garage_width] * args[:geometry_garage_depth] > 0)
       return args[:geometry_garage_width]
     end
+
     return 0
   end
 
@@ -3721,15 +3722,14 @@ class HPXMLFile
           insulation_exterior_distance_to_bottom = 0
         else
           insulation_exterior_r_value = args[:foundation_wall_insulation_r]
-          insulation_exterior_distance_to_top = args[:foundation_wall_insulation_distance_to_top]
-          insulation_exterior_distance_to_bottom = args[:foundation_wall_insulation_distance_to_bottom]
-          if insulation_exterior_distance_to_bottom == Constants.Auto
-            insulation_exterior_distance_to_bottom = args[:geometry_foundation_height]
+          if args[:foundation_wall_insulation_distance_to_top] != Constants.Auto
+            insulation_exterior_distance_to_top = args[:foundation_wall_insulation_distance_to_top]
+          end
+          if args[:foundation_wall_insulation_distance_to_bottom] != Constants.Auto
+            insulation_exterior_distance_to_bottom = args[:foundation_wall_insulation_distance_to_bottom]
           end
         end
         insulation_interior_r_value = 0
-        insulation_interior_distance_to_top = 0
-        insulation_interior_distance_to_bottom = 0
       end
 
       if args[:foundation_wall_thickness] != Constants.Auto
@@ -3745,8 +3745,6 @@ class HPXMLFile
                                  depth_below_grade: args[:geometry_foundation_height] - args[:geometry_foundation_height_above_grade],
                                  insulation_assembly_r_value: insulation_assembly_r_value,
                                  insulation_interior_r_value: insulation_interior_r_value,
-                                 insulation_interior_distance_to_top: insulation_interior_distance_to_top,
-                                 insulation_interior_distance_to_bottom: insulation_interior_distance_to_bottom,
                                  insulation_exterior_r_value: insulation_exterior_r_value,
                                  insulation_exterior_distance_to_top: insulation_exterior_distance_to_top,
                                  insulation_exterior_distance_to_bottom: insulation_exterior_distance_to_bottom)
