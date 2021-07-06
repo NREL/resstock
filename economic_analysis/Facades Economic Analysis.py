@@ -129,7 +129,7 @@ for i in range(1, num_ups+1):
     delta_lp = calc_delta_lp(results_b, df)
     results_b[upgrade + "_delta_lp_mmbtu"] = delta_lp
     delta_energy = calc_delta_elec(results_b, df)
-    results_b[upgrade + "_delta_allfuels_mmbtu"] = delta_lp
+    results_b[upgrade + "_delta_allfuels_mmbtu"] = delta_energy
     #calculate year1 savings for each fuel, and total
     year1_savings_elec = calc_year1_bill_savings(results_b['Elec Variable Cost [$/kWh]'], delta_elec)
     results_b[upgrade + "_annualbillsavings_elec_$"] = year1_savings_elec
