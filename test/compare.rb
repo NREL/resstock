@@ -49,6 +49,7 @@ files.each do |file|
   feature_cols = []
   rows[1..-1].each do |row|
     next unless row[1]
+
     dev_row = row[1].split(',')
     dev_row = dev_row.map { |x| x.split('.')[1] }
     dev_row.each do |field|
@@ -290,6 +291,7 @@ files.each do |file|
 
     btypes.each do |btype|
       next unless (row_sum[btype][0] != 'N/A') || (row_sum[btype][1] != 'N/A')
+
       row = [col.split('.')[1]]
       row << btype
       row += row_sum[btype]

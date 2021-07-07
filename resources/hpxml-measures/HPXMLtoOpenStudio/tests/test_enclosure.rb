@@ -58,7 +58,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       subsurface_view_factor = 0.5
       window_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == window.id }[0]
       program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'fixedwindow view factor to ground program')
-      assert_equal(subsurface_view_factor, program_values["#{window_actuator.name.to_s}"][0])
+      assert_equal(subsurface_view_factor, program_values["#{window_actuator.name}"][0])
     end
   end
 
@@ -107,7 +107,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       subsurface_view_factor = 0.05 # 6:12 pitch
       skylight_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == skylight.id }[0]
       program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'skylight view factor to ground program')
-      assert_equal(subsurface_view_factor, program_values["#{skylight_actuator.name.to_s}"][0])
+      assert_equal(subsurface_view_factor, program_values["#{skylight_actuator.name}"][0])
     end
   end
 

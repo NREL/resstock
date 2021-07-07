@@ -1279,9 +1279,6 @@ class OSModel
     end
   end
 
-  def self.add_neighbors(runner, model, length)
-  end
-
   def self.add_shading_schedule(runner, model, weather)
     # Use BAHSP cooling season, and not year-round or user-specified cooling season, to ensure windows use appropriate interior shading factors
     default_heating_months, @default_cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)

@@ -971,7 +971,7 @@ class HPXML < Object
   end
 
   class NeighborBuilding < BaseElement
-    ATTRS = [:azimuth, :distance, :height]
+    ATTRS = [:azimuth, :orientation, :distance, :height]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -984,7 +984,8 @@ class HPXML < Object
 
       neighbors = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'BuildingSummary', 'Site', 'extension', 'Neighbors'])
       neighbor_building = XMLHelper.add_element(neighbors, 'NeighborBuilding')
-      XMLHelper.add_element(neighbor_building, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
+      XMLHelper.add_element(neighbor_building, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
+      XMLHelper.add_element(neighbor_building, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
       XMLHelper.add_element(neighbor_building, 'Distance', @distance, :float) unless @distance.nil?
       XMLHelper.add_element(neighbor_building, 'Height', @height, :float) unless @height.nil?
     end
@@ -992,6 +993,7 @@ class HPXML < Object
     def from_oga(neighbor_building)
       return if neighbor_building.nil?
 
+      @orientation = XMLHelper.get_value(neighbor_building, 'Orientation', :string)
       @azimuth = XMLHelper.get_value(neighbor_building, 'Azimuth', :integer)
       @distance = XMLHelper.get_value(neighbor_building, 'Distance', :float)
       @height = XMLHelper.get_value(neighbor_building, 'Height', :float)
@@ -1570,8 +1572,8 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(roof, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
       XMLHelper.add_element(roof, 'Area', @area, :float) unless @area.nil?
-      XMLHelper.add_element(roof, 'Orientation', @orientation, :string) unless @orientation.nil?
-      XMLHelper.add_element(roof, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
+      XMLHelper.add_element(roof, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
+      XMLHelper.add_element(roof, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
       XMLHelper.add_element(roof, 'RoofType', @roof_type, :string, @roof_type_isdefaulted) unless @roof_type.nil?
       XMLHelper.add_element(roof, 'RoofColor', @roof_color, :string, @roof_color_isdefaulted) unless @roof_color.nil?
       XMLHelper.add_element(roof, 'SolarAbsorptance', @solar_absorptance, :float, @solar_absorptance_isdefaulted) unless @solar_absorptance.nil?
@@ -1583,7 +1585,7 @@ class HPXML < Object
       end
       XMLHelper.add_element(roof, 'Pitch', @pitch, :float) unless @pitch.nil?
       XMLHelper.add_element(roof, 'RadiantBarrier', @radiant_barrier, :boolean, @radiant_barrier_isdefaulted) unless @radiant_barrier.nil?
-      XMLHelper.add_element(roof, 'RadiantBarrierGrade', @radiant_barrier_grade, :integer) unless @radiant_barrier_grade.nil?
+      XMLHelper.add_element(roof, 'RadiantBarrierGrade', @radiant_barrier_grade, :integer, @radiant_barrier_grade_isdefaulted) unless @radiant_barrier_grade.nil?
       insulation = XMLHelper.add_element(roof, 'Insulation')
       sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
       if not @insulation_id.nil?
@@ -1701,8 +1703,8 @@ class HPXML < Object
       XMLHelper.add_element(rim_joist, 'ExteriorAdjacentTo', @exterior_adjacent_to, :string) unless @exterior_adjacent_to.nil?
       XMLHelper.add_element(rim_joist, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
       XMLHelper.add_element(rim_joist, 'Area', @area, :float) unless @area.nil?
-      XMLHelper.add_element(rim_joist, 'Orientation', @orientation, :string) unless @orientation.nil?
-      XMLHelper.add_element(rim_joist, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
+      XMLHelper.add_element(rim_joist, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
+      XMLHelper.add_element(rim_joist, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
       XMLHelper.add_element(rim_joist, 'Siding', @siding, :string, @siding_isdefaulted) unless @siding.nil?
       XMLHelper.add_element(rim_joist, 'Color', @color, :string, @color_isdefaulted) unless @color.nil?
       XMLHelper.add_element(rim_joist, 'SolarAbsorptance', @solar_absorptance, :float, @solar_absorptance_isdefaulted) unless @solar_absorptance.nil?
@@ -1853,8 +1855,8 @@ class HPXML < Object
         end
       end
       XMLHelper.add_element(wall, 'Area', @area, :float) unless @area.nil?
-      XMLHelper.add_element(wall, 'Orientation', @orientation, :string) unless @orientation.nil?
-      XMLHelper.add_element(wall, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
+      XMLHelper.add_element(wall, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
+      XMLHelper.add_element(wall, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
       XMLHelper.add_element(wall, 'Siding', @siding, :string, @siding_isdefaulted) unless @siding.nil?
       XMLHelper.add_element(wall, 'Color', @color, :string, @color_isdefaulted) unless @color.nil?
       XMLHelper.add_element(wall, 'SolarAbsorptance', @solar_absorptance, :float, @solar_absorptance_isdefaulted) unless @solar_absorptance.nil?
@@ -1931,8 +1933,8 @@ class HPXML < Object
   end
 
   class FoundationWall < BaseElement
-    ATTRS = [:id, :exterior_adjacent_to, :interior_adjacent_to, :height, :area, :orientation, :azimuth,
-             :thickness, :depth_below_grade, :insulation_id, :insulation_interior_r_value,
+    ATTRS = [:id, :exterior_adjacent_to, :interior_adjacent_to, :length, :height, :area, :orientation,
+             :azimuth, :thickness, :depth_below_grade, :insulation_id, :insulation_interior_r_value,
              :insulation_interior_distance_to_top, :insulation_interior_distance_to_bottom,
              :insulation_exterior_r_value, :insulation_exterior_distance_to_top,
              :insulation_exterior_distance_to_bottom, :insulation_assembly_r_value,
@@ -2018,10 +2020,11 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(foundation_wall, 'ExteriorAdjacentTo', @exterior_adjacent_to, :string) unless @exterior_adjacent_to.nil?
       XMLHelper.add_element(foundation_wall, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
+      XMLHelper.add_element(foundation_wall, 'Length', @length, :float) unless @length.nil?
       XMLHelper.add_element(foundation_wall, 'Height', @height, :float) unless @height.nil?
-      XMLHelper.add_element(foundation_wall, 'Area', @area, :float) unless @area.nil?
-      XMLHelper.add_element(foundation_wall, 'Orientation', @orientation, :string) unless @orientation.nil?
-      XMLHelper.add_element(foundation_wall, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
+      XMLHelper.add_element(foundation_wall, 'Area', @area, :float, @area_isdefaulted) unless @area.nil?
+      XMLHelper.add_element(foundation_wall, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
+      XMLHelper.add_element(foundation_wall, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
       XMLHelper.add_element(foundation_wall, 'Thickness', @thickness, :float, @thickness_isdefaulted) unless @thickness.nil?
       XMLHelper.add_element(foundation_wall, 'DepthBelowGrade', @depth_below_grade, :float) unless @depth_below_grade.nil?
       if (not @interior_finish_type.nil?) || (not @interior_finish_thickness.nil?)
@@ -2041,15 +2044,15 @@ class HPXML < Object
         layer = XMLHelper.add_element(insulation, 'Layer')
         XMLHelper.add_element(layer, 'InstallationType', 'continuous - exterior', :string)
         XMLHelper.add_element(layer, 'NominalRValue', @insulation_exterior_r_value, :float)
-        XMLHelper.add_extension(layer, 'DistanceToTopOfInsulation', @insulation_exterior_distance_to_top, :float) unless @insulation_exterior_distance_to_top.nil?
-        XMLHelper.add_extension(layer, 'DistanceToBottomOfInsulation', @insulation_exterior_distance_to_bottom, :float) unless @insulation_exterior_distance_to_bottom.nil?
+        XMLHelper.add_extension(layer, 'DistanceToTopOfInsulation', @insulation_exterior_distance_to_top, :float, @insulation_exterior_distance_to_top_isdefaulted) unless @insulation_exterior_distance_to_top.nil?
+        XMLHelper.add_extension(layer, 'DistanceToBottomOfInsulation', @insulation_exterior_distance_to_bottom, :float, @insulation_exterior_distance_to_bottom_isdefaulted) unless @insulation_exterior_distance_to_bottom.nil?
       end
       if not @insulation_interior_r_value.nil?
         layer = XMLHelper.add_element(insulation, 'Layer')
         XMLHelper.add_element(layer, 'InstallationType', 'continuous - interior', :string)
         XMLHelper.add_element(layer, 'NominalRValue', @insulation_interior_r_value, :float)
-        XMLHelper.add_extension(layer, 'DistanceToTopOfInsulation', @insulation_interior_distance_to_top, :float) unless @insulation_interior_distance_to_top.nil?
-        XMLHelper.add_extension(layer, 'DistanceToBottomOfInsulation', @insulation_interior_distance_to_bottom, :float) unless @insulation_interior_distance_to_bottom.nil?
+        XMLHelper.add_extension(layer, 'DistanceToTopOfInsulation', @insulation_interior_distance_to_top, :float, @insulation_interior_distance_to_top_isdefaulted) unless @insulation_interior_distance_to_top.nil?
+        XMLHelper.add_extension(layer, 'DistanceToBottomOfInsulation', @insulation_interior_distance_to_bottom, :float, @insulation_interior_distance_to_bottom_isdefaulted) unless @insulation_interior_distance_to_bottom.nil?
       end
     end
 
@@ -2059,6 +2062,7 @@ class HPXML < Object
       @id = HPXML::get_id(foundation_wall)
       @exterior_adjacent_to = XMLHelper.get_value(foundation_wall, 'ExteriorAdjacentTo', :string)
       @interior_adjacent_to = XMLHelper.get_value(foundation_wall, 'InteriorAdjacentTo', :string)
+      @length = XMLHelper.get_value(foundation_wall, 'Length', :float)
       @height = XMLHelper.get_value(foundation_wall, 'Height', :float)
       @area = XMLHelper.get_value(foundation_wall, 'Area', :float)
       @orientation = XMLHelper.get_value(foundation_wall, 'Orientation', :string)
@@ -2417,8 +2421,8 @@ class HPXML < Object
       sys_id = XMLHelper.add_element(window, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(window, 'Area', @area, :float) unless @area.nil?
-      XMLHelper.add_element(window, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
-      XMLHelper.add_element(window, 'Orientation', @orientation, :string) unless @orientation.nil?
+      XMLHelper.add_element(window, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
+      XMLHelper.add_element(window, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
       if not @frame_type.nil?
         frame_type_el = XMLHelper.add_element(window, 'FrameType')
         frame_type = XMLHelper.add_element(frame_type_el, @frame_type)
@@ -2562,8 +2566,8 @@ class HPXML < Object
       sys_id = XMLHelper.add_element(skylight, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(skylight, 'Area', @area, :float) unless @area.nil?
-      XMLHelper.add_element(skylight, 'Azimuth', @azimuth, :integer) unless @azimuth.nil?
-      XMLHelper.add_element(skylight, 'Orientation', @orientation, :string) unless @orientation.nil?
+      XMLHelper.add_element(skylight, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
+      XMLHelper.add_element(skylight, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
       if not @frame_type.nil?
         frame_type_el = XMLHelper.add_element(skylight, 'FrameType')
         frame_type = XMLHelper.add_element(frame_type_el, @frame_type)
@@ -2694,7 +2698,7 @@ class HPXML < Object
       end
       XMLHelper.add_element(door, 'Area', @area, :float) unless @area.nil?
       XMLHelper.add_element(door, 'Azimuth', @azimuth, :integer, @azimuth_isdefaulted) unless @azimuth.nil?
-      XMLHelper.add_element(door, 'Orientation', @orientation, :string) unless @orientation.nil?
+      XMLHelper.add_element(door, 'Orientation', @orientation, :string, @orientation_isdefaulted) unless @orientation.nil?
       XMLHelper.add_element(door, 'RValue', @r_value, :float) unless @r_value.nil?
     end
 
@@ -3282,13 +3286,13 @@ class HPXML < Object
       return if hvac_plant.nil?
 
       HDL_ATTRS.each do |attr, element_name|
-        send("#{attr.to_s}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/Heating/#{element_name}", :float))
+        send("#{attr}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/Heating/#{element_name}", :float))
       end
       CDL_SENS_ATTRS.each do |attr, element_name|
-        send("#{attr.to_s}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/CoolingSensible/#{element_name}", :float))
+        send("#{attr}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/CoolingSensible/#{element_name}", :float))
       end
       CDL_LAT_ATTRS.each do |attr, element_name|
-        send("#{attr.to_s}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/CoolingLatent/#{element_name}", :float))
+        send("#{attr}=", XMLHelper.get_value(hvac_plant, "extension/DesignLoads/CoolingLatent/#{element_name}", :float))
       end
     end
   end
@@ -4207,7 +4211,7 @@ class HPXML < Object
   end
 
   class SolarThermalSystem < BaseElement
-    ATTRS = [:id, :system_type, :collector_area, :collector_loop_type, :collector_azimuth,
+    ATTRS = [:id, :system_type, :collector_area, :collector_loop_type, :collector_orientation, :collector_azimuth,
              :collector_type, :collector_tilt, :collector_frta, :collector_frul, :storage_volume,
              :water_heating_system_idref, :solar_fraction]
     attr_accessor(*ATTRS)
@@ -4244,7 +4248,8 @@ class HPXML < Object
       XMLHelper.add_element(solar_thermal_system, 'CollectorArea', @collector_area, :float) unless @collector_area.nil?
       XMLHelper.add_element(solar_thermal_system, 'CollectorLoopType', @collector_loop_type, :string) unless @collector_loop_type.nil?
       XMLHelper.add_element(solar_thermal_system, 'CollectorType', @collector_type, :string) unless @collector_type.nil?
-      XMLHelper.add_element(solar_thermal_system, 'CollectorAzimuth', @collector_azimuth, :integer) unless @collector_azimuth.nil?
+      XMLHelper.add_element(solar_thermal_system, 'CollectorOrientation', @collector_orientation, :string, @collector_orientation_isdefaulted) unless @collector_orientation.nil?
+      XMLHelper.add_element(solar_thermal_system, 'CollectorAzimuth', @collector_azimuth, :integer, @collector_azimuth_isdefaulted) unless @collector_azimuth.nil?
       XMLHelper.add_element(solar_thermal_system, 'CollectorTilt', @collector_tilt, :float) unless @collector_tilt.nil?
       XMLHelper.add_element(solar_thermal_system, 'CollectorRatedOpticalEfficiency', @collector_frta, :float) unless @collector_frta.nil?
       XMLHelper.add_element(solar_thermal_system, 'CollectorRatedThermalLosses', @collector_frul, :float) unless @collector_frul.nil?
@@ -4264,6 +4269,7 @@ class HPXML < Object
       @collector_area = XMLHelper.get_value(solar_thermal_system, 'CollectorArea', :float)
       @collector_loop_type = XMLHelper.get_value(solar_thermal_system, 'CollectorLoopType', :string)
       @collector_type = XMLHelper.get_value(solar_thermal_system, 'CollectorType', :string)
+      @collector_orientation = XMLHelper.get_value(solar_thermal_system, 'CollectorOrientation', :string)
       @collector_azimuth = XMLHelper.get_value(solar_thermal_system, 'CollectorAzimuth', :integer)
       @collector_tilt = XMLHelper.get_value(solar_thermal_system, 'CollectorTilt', :float)
       @collector_frta = XMLHelper.get_value(solar_thermal_system, 'CollectorRatedOpticalEfficiency', :float)
@@ -4314,8 +4320,8 @@ class HPXML < Object
       XMLHelper.add_element(pv_system, 'Location', @location, :string, @location_isdefaulted) unless @location.nil?
       XMLHelper.add_element(pv_system, 'ModuleType', @module_type, :string, @module_type_isdefaulted) unless @module_type.nil?
       XMLHelper.add_element(pv_system, 'Tracking', @tracking, :string, @tracking_isdefaulted) unless @tracking.nil?
-      XMLHelper.add_element(pv_system, 'ArrayOrientation', @array_orientation, :string) unless @array_orientation.nil?
-      XMLHelper.add_element(pv_system, 'ArrayAzimuth', @array_azimuth, :integer) unless @array_azimuth.nil?
+      XMLHelper.add_element(pv_system, 'ArrayOrientation', @array_orientation, :string, @array_orientation_isdefaulted) unless @array_orientation.nil?
+      XMLHelper.add_element(pv_system, 'ArrayAzimuth', @array_azimuth, :integer, @array_azimuth_isdefaulted) unless @array_azimuth.nil?
       XMLHelper.add_element(pv_system, 'ArrayTilt', @array_tilt, :float) unless @array_tilt.nil?
       XMLHelper.add_element(pv_system, 'MaxPowerOutput', @max_power_output, :float) unless @max_power_output.nil?
       XMLHelper.add_element(pv_system, 'NumberOfPanels', @number_of_panels, :integer) unless @number_of_panels.nil?
@@ -5580,6 +5586,8 @@ class HPXML < Object
     # Check for errors across objects #
     # ------------------------------- #
 
+    # FUTURE: Move these to EPvalidator.xml
+
     # Check for globally unique SystemIdentifier IDs and empty IDs
     sys_ids = {}
     self.class::HPXML_ATTRS.each do |attribute|
@@ -5619,6 +5627,19 @@ class HPXML < Object
     frac_dhw_load = @water_heating_systems.map { |dhw| dhw.fraction_dhw_load_served.to_f }.sum(0.0)
     if (frac_dhw_load > 0) && ((frac_dhw_load < 0.99) || (frac_dhw_load > 1.01)) # Use 0.99/1.01 in case of rounding
       errors << "Expected FractionDHWLoadServed to sum to 1, but calculated sum is #{frac_dhw_load.round(2)}."
+    end
+
+    # Check sum of Ducts FractionDuctArea == 1
+    @hvac_distributions.each do |hvac_dist|
+      [HPXML::DuctTypeSupply, HPXML::DuctTypeReturn].each do |duct_type|
+        ducts_with_fractions = hvac_dist.ducts.select { |du| du.duct_type == duct_type && !du.duct_fraction_area.nil? }
+        next unless ducts_with_fractions.size > 0
+
+        ducts_frac_area = ducts_with_fractions.map { |du| Float(du.duct_fraction_area) }.sum()
+        if (ducts_frac_area < 0.99) || (ducts_frac_area > 1.01) # Use 0.99/1.01 in case of rounding
+          errors << "Expected FractionDuctArea for Ducts (of type #{duct_type}) to sum to 1, but calculated sum is #{ducts_frac_area.round(2)}."
+        end
+      end
     end
 
     # Check sum of lighting fractions in a location <= 1

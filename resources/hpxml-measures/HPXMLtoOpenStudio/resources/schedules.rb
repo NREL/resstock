@@ -1236,6 +1236,7 @@ class Schedule
     values.each_with_index do |value, i|
       i += 1
       next unless value != start_value || i == values.length
+
       rule = OpenStudio::Model::ScheduleRule.new(s)
       set_weekday_rule(rule)
       set_weekend_rule(rule)
