@@ -14,12 +14,10 @@ class BaseCompare:
     self.feature_folder = feature_folder
     self.export_folder = export_folder
 
-  def results(self, aggregate_column=None, aggregate_function=None, btype_map=None):
+  def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}, column_maps={}):
     aggregate_columns = []
     if aggregate_column:
       aggregate_columns.append(aggregate_column)
-
-    excludes = ['buildstock.csv']
 
     files = []
     for file in os.listdir(self.base_folder):
@@ -45,9 +43,9 @@ class BaseCompare:
 
       # Write grouped & aggregated results dfs
       if file != 'results_characteristics.csv':
-        # Map building types
-        if 'build_existing_model.geometry_building_type_recs' in aggregate_columns:
-          group_df['build_existing_model.geometry_building_type_recs'] = group_df['build_existing_model.geometry_building_type_recs'].map(btype_map)
+        for col, enum_map in enum_maps.items():
+          if col in aggregate_columns:
+            group_df[col] = group_df[col].map(enum_map)
 
         # Merge groupby df and aggregate
         sim_ct_base = len(base_df)
@@ -97,7 +95,7 @@ class BaseCompare:
 
     deltas.to_csv(os.path.join(self.export_folder, '{basename}_{aggregate_function}.csv'.format(basename=basename, aggregate_function=aggregate_function)))
 
-  def visualize(self, display_column=None, aggregate_column=None, aggregate_function=None, btype_map=None):
+  def visualize(self, display_column=None, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}, column_maps={}):
     display_columns = []
     if display_column:
       display_columns.append(display_column)
@@ -105,8 +103,6 @@ class BaseCompare:
     aggregate_columns = []
     if aggregate_column:
       aggregate_columns.append(aggregate_column)
-
-    excludes = ['buildstock.csv', 'results_characteristics.csv']
 
     files = []
     for file in os.listdir(self.base_folder):
@@ -161,9 +157,12 @@ class BaseCompare:
       if display_columns:
         base_df = base_characteristics_df.join(base_df)
         feature_df = feature_characteristics_df.join(feature_df)
-        if 'build_existing_model.geometry_building_type_recs' in display_columns:
-          for df in [base_df, feature_df]:
-            df['build_existing_model.geometry_building_type_recs'] = df['build_existing_model.geometry_building_type_recs'].map(btype_map)
+
+        for col, enum_map in enum_maps.items():
+          if col in display_columns:
+            for df in [base_df, feature_df]:
+              df[col] = df[col].map(enum_map)
+
         groups = list(base_df[display_columns[0]].unique())        
 
       fig = make_subplots(rows=len(cols), cols=len(groups), subplot_titles=groups*len(cols), row_titles=[f'<b>{f}</b>' for f in cols], vertical_spacing=0.0015)
@@ -232,10 +231,9 @@ if __name__ == '__main__':
   parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='The path of the feature folder.')
   parser.add_argument('-e', '--export_folder', default=default_export_folder, help='The path of the export folder.')
   parser.add_argument('-a', '--actions', action='append', choices=actions, help='The method to call.')
-  parser.add_argument('-dc', '--display_column', help='How to organize the subplots.')
-  parser.add_argument('-ac', '--aggregate_column', choices=aggregate_functions, help='TODO')
-  parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='TODO')
-  # parser.add_argument('-m', '--mapping', help='TODO')
+  parser.add_argument('-dc', '--display_column', help='How to organize the subplots columnwise.')
+  parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
+  parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
   args = parser.parse_args()
 
   if not os.path.exists(args.export_folder):
