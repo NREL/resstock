@@ -61,18 +61,21 @@ if __name__ == '__main__':
 
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]
 
-  groupby_columns = ['build_existing_model.geometry_building_type_recs',
+  display_columns = ['build_existing_model.geometry_building_type_recs',
                      'build_existing_model.county']
-  groupby_functions = ['1-to-1', 'sum', 'mean']
+  aggregate_columns = ['build_existing_model.geometry_building_type_recs',
+                       'build_existing_model.county']
+  aggregate_functions = ['sum', 'mean']
 
   parser = argparse.ArgumentParser()
   parser.add_argument('-b', '--base_folder', default=default_base_folder, help='TODO')
   parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='TODO')
   parser.add_argument('-a', '--actions', action='append', choices=actions, help='TODO')
   parser.add_argument('-e', '--export_folder', default=default_export_folder, help='TODO')
-  parser.add_argument('-gc', '--groupby_column', choices=groupby_columns, help='TODO')
-  parser.add_argument('-gf', '--groupby_function', default='sum', choices=groupby_functions, help='TODO')
-  parser.add_argument('-m', '--mapping', help='TODO')
+  parser.add_argument('-dc', '--display_column', choices=display_columns, help='How to organize the subplots.')
+  parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='TODO')
+  parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='TODO')
+  # parser.add_argument('-m', '--mapping', help='TODO')
   args = parser.parse_args()
 
   if not os.path.exists(args.export_folder):
@@ -87,6 +90,6 @@ if __name__ == '__main__':
     if action == 'samples':
       compare.samples()
     elif action == 'results':
-      compare.results(args.groupby_column, args.groupby_function, btype_map)
+      compare.results(args.aggregate_column, args.aggregate_function, btype_map)
     elif action == 'visualize':
-      compare.visualize(args.groupby_column, args.groupby_function, btype_map)
+      compare.visualize(args.display_column, args.aggregate_column, args.aggregate_function, btype_map)

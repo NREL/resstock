@@ -124,11 +124,11 @@ jobs:
           python test/compare.py -a samples
           
           python test/compare.py -a results
-          python test/compare.py -a results -gf sum -gc build_existing_model.geometry_building_type_recs
+          python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs
           
-          python test/compare.py -a visualize -gf 1-to-1 -gc build_existing_model.geometry_building_type_recs
-          python test/compare.py -a visualize -gf 1-to-1 -gc build_existing_model.county
-          python test/compare.py -a visualize -gf sum -gc build_existing_model.county
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs
+          python test/compare.py -a visualize -dc build_existing_model.county
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.county -af sum
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
