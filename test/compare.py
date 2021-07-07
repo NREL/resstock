@@ -12,10 +12,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../.
 
 from compare import BaseCompare
 
-btype_map = {'Single-Family Detached': 'SFD',
-             'Single-Family Attached': 'SFA',
-             'Multi-Family with 2 - 4 Units': 'MF',
-             'Multi-Family with 5+ Units': 'MF'}
+enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family Detached': 'SFD',
+                                                                  'Single-Family Attached': 'SFA',
+                                                                  'Multi-Family with 2 - 4 Units': 'MF',
+                                                                  'Multi-Family with 5+ Units': 'MF'} }
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder):
@@ -73,9 +73,8 @@ if __name__ == '__main__':
   parser.add_argument('-a', '--actions', action='append', choices=actions, help='TODO')
   parser.add_argument('-e', '--export_folder', default=default_export_folder, help='TODO')
   parser.add_argument('-dc', '--display_column', choices=display_columns, help='How to organize the subplots.')
-  parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='TODO')
-  parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='TODO')
-  # parser.add_argument('-m', '--mapping', help='TODO')
+  parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
+  parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
   args = parser.parse_args()
 
   if not os.path.exists(args.export_folder):
@@ -90,6 +89,8 @@ if __name__ == '__main__':
     if action == 'samples':
       compare.samples()
     elif action == 'results':
-      compare.results(args.aggregate_column, args.aggregate_function, btype_map)
+      excludes = ['buildstock.csv']
+      compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps)
     elif action == 'visualize':
-      compare.visualize(args.display_column, args.aggregate_column, args.aggregate_function, btype_map)
+      excludes = ['buildstock.csv', 'results_characteristics.csv']
+      compare.visualize(args.display_column, args.aggregate_column, args.aggregate_function, excludes, enum_maps)
