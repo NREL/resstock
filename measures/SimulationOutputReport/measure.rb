@@ -489,9 +489,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         if not ["#{Constants.SpaceTypeLiving} zone", "#{Constants.SpaceTypeFinishedBasement} zone"].include? location_zone_name
           supply_area = unit.getFeatureAsDouble('SizingInfoDuctsSupplySurfaceArea')
           return_area = unit.getFeatureAsDouble('SizingInfoDuctsReturnSurfaceArea')
-          location_frac = unit.getFeatureAsDouble('SizingInfoDuctsLocationFrac')
           if supply_area.is_initialized
-            cost_mult += supply_area.get * location_frac.get
+            cost_mult += supply_area.get
           end
           if return_area.is_initialized
             cost_mult += return_area.get

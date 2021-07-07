@@ -102,7 +102,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Roof Area (ft^2)' => 1118.03,
       'Window Area (ft^2)' => 250.52,
       'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 454,
+      'Duct Unconditioned Surface Area (ft^2)' => 555,
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
@@ -123,7 +123,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Roof Area (ft^2)' => 1838.05,
       'Window Area (ft^2)' => 422.51,
       'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 681,
+      'Duct Unconditioned Surface Area (ft^2)' => 832.5,
       'Size, Heating System (kBtu/h)' => 60, # hp, not backup
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
@@ -207,7 +207,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Roof Area (ft^2)' => 1118.03,
       'Window Area (ft^2)' => 342.25,
       'Door Area (ft^2)' => 40,
-      'Duct Unconditioned Surface Area (ft^2)' => 453,
+      'Duct Unconditioned Surface Area (ft^2)' => 555,
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 0,
@@ -228,7 +228,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Roof Area (ft^2)' => 1838.05,
       'Window Area (ft^2)' => 304.73,
       'Door Area (ft^2)' => 40,
-      'Duct Unconditioned Surface Area (ft^2)' => 681,
+      'Duct Unconditioned Surface Area (ft^2)' => 832.5,
       'Size, Heating System (kBtu/h)' => 60, # hp, not backup
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
@@ -249,7 +249,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Roof Area (ft^2)' => 279.5,
       'Window Area (ft^2)' => 124.62,
       'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 113.4,
+      'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
@@ -270,7 +270,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Roof Area (ft^2)' => 0,
       'Window Area (ft^2)' => 67.2,
       'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 113,
+      'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
@@ -333,7 +333,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Roof Area (ft^2)' => 0,
       'Window Area (ft^2)' => 67.2,
       'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 113,
+      'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
@@ -354,7 +354,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Roof Area (ft^2)' => 279.5,
       'Window Area (ft^2)' => 124.62,
       'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 113,
+      'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 60,
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
@@ -396,7 +396,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Roof Area (ft^2)' => 0,
       'Window Area (ft^2)' => 67.2,
       'Door Area (ft^2)' => 20,
-      'Duct Unconditioned Surface Area (ft^2)' => 113,
+      'Duct Unconditioned Surface Area (ft^2)' => 138.75,
       'Size, Heating System (kBtu/h)' => 60,
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
