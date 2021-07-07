@@ -130,54 +130,49 @@ class TestResStockErrors < MiniTest::Test
   end
 
   def test_housing_characteristics_measure_missing_argument
-    skip
     begin
       housing_characteristics_dir = 'housing_characteristics_measure_missing_argument'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
-      assert(e.message.include? "ERROR: Required argument 'exterior_depth' not provided in")
-      assert(e.message.include? "test_options_lookup.tsv for measure 'BuildResidentialHPXML'.")
+      assert(e.message.include? "ERROR: Required argument 'ext_surf_cat' not provided in")
+      assert(e.message.include? "test_options_lookup.tsv for measure 'SetSpaceInfiltrationPerExteriorArea'.")
     else
       flunk "Should have caused an error but didn't."
     end
   end
 
   def test_housing_characteristics_measure_extra_argument
-    skip
     begin
       housing_characteristics_dir = 'housing_characteristics_measure_extra_argument'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
       assert(e.message.include? "ERROR: Extra argument 'extra_arg' specified in")
-      assert(e.message.include? "test_options_lookup.tsv for measure 'BuildResidentialHPXML'.")
+      assert(e.message.include? "test_options_lookup.tsv for measure 'SetSpaceInfiltrationPerExteriorArea'.")
     else
       flunk "Should have caused an error but didn't."
     end
   end
 
   def test_housing_characteristics_measure_bad_argument_value
-    skip
     begin
       housing_characteristics_dir = 'housing_characteristics_measure_bad_argument_value'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
-      assert_equal("ERROR: Value of '1.5' for argument 'wall_filled_cavity' and measure 'BuildResidentialHPXML' must be 'true' or 'false'.", e.message)
+      assert_equal("ERROR: Value of 'foo' for argument 'ext_surf_cat' and measure 'SetSpaceInfiltrationPerExteriorArea' must be one of: [\"ExteriorArea\", \"ExteriorWallArea\"].", e.message)
     else
       flunk "Should have caused an error but didn't."
     end
   end
 
   def test_housing_characteristics_measure_missing
-    skip
     begin
       housing_characteristics_dir = 'housing_characteristics_measure_missing'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
-      puts e.message
       assert(e.message.include? 'ERROR: Cannot find file')
       assert(e.message.include? 'ResidentialMissingMeasure/measure.rb')
     else
