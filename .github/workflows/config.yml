@@ -111,10 +111,9 @@ jobs:
 
       - name: Compare samples and results
         run: |
-          cp -r base/buildstock*.csv resources/base_buildstock.csv
-          cp -r samples/buildstock*.csv resources/buildstock.csv
-          cp -r base/results*.csv test/test_samples_osw/base
+          cp -r base/*.csv test/test_samples_osw/base
           mkdir test/test_samples_osw/results
+          cp -r samples/buildstock*.csv test/test_samples_osw/results
           cp -r results/results* test/test_samples_osw/results
           
           pip install numpy
