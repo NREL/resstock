@@ -157,7 +157,7 @@ class BaseCompare:
       cols = sorted(list(set(base_df.columns) | set(feature_df.columns)))
       cols = remove_columns(cols)
 
-      groups = []
+      groups = [None]
       if display_columns:
         base_df = base_characteristics_df.join(base_df)
         feature_df = feature_characteristics_df.join(feature_df)
@@ -179,8 +179,9 @@ class BaseCompare:
           x = base_df
           y = feature_df
 
-          x = x.loc[x[display_columns[0]] == group, :]
-          y = y.loc[y[display_columns[0]] == group, :]
+          if group:
+            x = x.loc[x[display_columns[0]] == group, :]
+            y = y.loc[y[display_columns[0]] == group, :]
 
           if aggregate_function:
             if aggregate_function == 'sum':
