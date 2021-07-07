@@ -219,6 +219,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Add component load outputs
     @component_loads.each do |key, comp_load|
       next if comp_loads_program.nil?
+
       result << OpenStudio::IdfObject.load("EnergyManagementSystem:OutputVariable,#{comp_load.ems_variable}_annual_outvar,#{comp_load.ems_variable},Summed,ZoneTimestep,#{comp_loads_program.name},J;").get
       result << OpenStudio::IdfObject.load("Output:Variable,*,#{comp_load.ems_variable}_annual_outvar,runperiod;").get
     end

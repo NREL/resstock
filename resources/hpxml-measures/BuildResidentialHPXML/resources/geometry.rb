@@ -717,6 +717,7 @@ class Geometry
        getSurfaceZValues([surface1]) == getSurfaceZValues([surface2])
       return true
     end
+
     return false
   end
 
@@ -1710,6 +1711,7 @@ class Geometry
         os_facade = get_facade_for_surface(surface)
         next unless surface.surfaceType == 'Wall'
         next unless adb_facade.include? os_facade
+
         x_ft = UnitConversions.convert(x, 'm', 'ft')
         max_x = getSurfaceXValues([surface]).max
         min_x = getSurfaceXValues([surface]).min
@@ -1818,6 +1820,7 @@ class Geometry
       spaces = model.getSpaces
       spaces.each do |space|
         next unless get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, 'm', 'ft') < 0
+
         surfaces = space.surfaces
         surfaces.each do |surface|
           next if surface.surfaceType.downcase != 'wall'
@@ -1880,6 +1883,7 @@ class Geometry
         os_facade = get_facade_for_surface(surface)
         next unless surface.surfaceType == 'Wall'
         next unless adb_facade.include? os_facade
+
         x_ft = UnitConversions.convert(x, 'm', 'ft')
         max_x = getSurfaceXValues([surface]).max
         min_x = getSurfaceXValues([surface]).min
@@ -2324,6 +2328,7 @@ class Geometry
 
       foundation_spaces.each do |foundation_space| # (corridor and foundation)
         next unless [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(foundation_type)
+
         # create foundation zone
         foundation_zone = OpenStudio::Model::ThermalZone.new(model)
 
@@ -2740,6 +2745,7 @@ class Geometry
   def self.surface_is_rim_joist(surface, height)
     return false unless (height - Geometry.get_surface_height(surface)).abs < 0.00001
     return false unless Geometry.getSurfaceZValues([surface]).max > 0
+
     return true
   end
 end
