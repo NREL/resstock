@@ -269,7 +269,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
     puts "Checking for issues with #{measure_subdir} measure..."
 
     measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), '..', 'test', measure_subdir, 'measure.rb'))
-    if not File.exists?(measurerb_path)
+    if not File.exist?(measurerb_path)
       measurerb_path = File.absolute_path(File.join(File.dirname(lookup_file), '..', 'measures', measure_subdir, 'measure.rb'))
     end
     check_file_exists(measurerb_path, nil)
