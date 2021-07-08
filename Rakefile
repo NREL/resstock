@@ -353,24 +353,26 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   # Check that measure arguments aren't getting overwritten
   err = ''
   CSV.foreach(output_file, headers: true).each do |row|
+    args_map = {}
     row.each do |parameter_name, option_name|
       next if parameter_name == 'Building'
 
       parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
-        parameters_options_measure_args.each do |parameter_name_2, options|
-          next if parameter_name == parameter_name_2
-
-          parameters_options_measure_args[parameter_name_2][row[parameter_name_2]].each do |measure_name_2, args_2|
-            next if measure_name != measure_name_2
-
-            arg_names = args.keys & args_2.keys
-            next if arg_names.empty?
-            next if err.include?(parameter_name) && err.include?(parameter_name_2) && err.include?(measure_name)
-
-            err += "ERROR: Duplicate measure argument assignment(s) across #{[parameter_name, parameter_name_2]} parameters. (#{measure_name} => #{arg_names}) already assigned.\n"
-          end
+        args.keys.each do |arg|
+          args_map[[measure_name, arg]] = [] if args_map[[measure_name, arg]].nil?
+          args_map[[measure_name, arg]] << parameter_name
         end
       end
+    end
+    args_map.each do |k, v|
+      next unless v.size > 1
+
+      param_names = v.join('", "')
+      measure_name = k[0]
+      arg_name = k[1]
+      next if err.include?(param_names) && err.include?(measure_name) && err.include?(arg_name)
+
+      err += "ERROR: Duplicate measure argument assignment(s) across [\"#{param_names}\"] parameters. #{measure_name} => \"#{arg_name}\" already assigned.\n"
     end
   end
   if not err.empty?
