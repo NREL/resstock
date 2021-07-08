@@ -183,6 +183,9 @@ class BaseCompare:
             y = y.loc[y[display_columns[0]] == group, :]
 
           if aggregate_function:
+            x = x.assign(count=1)
+            sizes = x.groupby(aggregate_columns)[['count']].sum().reset_index()
+
             if aggregate_function == 'sum':
               x = x.groupby(aggregate_columns).sum().reset_index()
               y = y.groupby(aggregate_columns).sum().reset_index()
@@ -190,10 +193,33 @@ class BaseCompare:
               x = x.groupby(aggregate_columns).mean().reset_index()
               y = y.groupby(aggregate_columns).mean().reset_index()
 
-            for agg_col in list(x[aggregate_columns[0]].unique()):
-              fig.add_trace(go.Scatter(x=x[x[aggregate_columns[0]]==agg_col][col], y=y[y[aggregate_columns[0]]==agg_col][col], marker=dict(size=8), mode='markers', text=agg_col, name=agg_col, legendgroup=agg_col, showlegend=showlegend), row=nrow, col=ncol)
+            for agg_col in sorted(list(x[aggregate_columns[0]].unique())):
+              x_c = x[x[aggregate_columns[0]]==agg_col]
+              y_c = y[y[aggregate_columns[0]]==agg_col]
+              s_c = sizes[sizes[aggregate_columns[0]]==agg_col]
+              fig.add_trace(go.Scatter(x=x_c[col], 
+                                       y=y_c[col],
+                                       marker=dict(size=s_c['count'],
+                                                   line=dict(width=1.5,
+                                                             color='DarkSlateGrey')),
+                                       mode='markers',
+                                       text=s_c['count'],
+                                       name=agg_col,
+                                       legendgroup=agg_col,
+                                       showlegend=False),
+                                       row=nrow, col=ncol)
           else:
-            fig.add_trace(go.Scatter(x=x[col], y=y[col], marker=dict(size=8), mode='markers', text=base_df.index, name='', legendgroup=col, showlegend=False), row=nrow, col=ncol)
+            fig.add_trace(go.Scatter(x=x[col],
+                                     y=y[col],
+                                     marker=dict(size=12,
+                                                 line=dict(width=1.5,
+                                                 color='DarkSlateGrey')),
+                                     mode='markers',
+                                     text=base_df.index,
+                                     name='',
+                                     legendgroup=col,
+                                     showlegend=False),
+                                     row=nrow, col=ncol)
 
           min_value, max_value = get_min_max(x[col], y[col], 0, 0)
           add_error_lines(fig, showlegend, nrow, ncol, min_value, max_value)
