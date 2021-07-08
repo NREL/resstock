@@ -91,4 +91,4 @@ if __name__ == '__main__':
       compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps)
     elif action == 'visualize':
       excludes = ['buildstock.csv', 'results_characteristics.csv']
-      compare.visualize(args.display_column, args.aggregate_column, args.aggregate_function, excludes, enum_maps)
+      compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps)
