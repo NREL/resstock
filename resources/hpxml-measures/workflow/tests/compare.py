@@ -14,7 +14,7 @@ class BaseCompare:
     self.feature_folder = feature_folder
     self.export_folder = export_folder
 
-  def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}, column_maps={}):
+  def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}):
     aggregate_columns = []
     if aggregate_column:
       aggregate_columns.append(aggregate_column)
@@ -95,14 +95,14 @@ class BaseCompare:
 
     deltas.to_csv(os.path.join(self.export_folder, '{basename}_{aggregate_function}.csv'.format(basename=basename, aggregate_function=aggregate_function)))
 
-  def visualize(self, display_column=None, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}, column_maps={}):
-    display_columns = []
-    if display_column:
-      display_columns.append(display_column)
-
+  def visualize(self, aggregate_column=None, aggregate_function=None, display_column=None, excludes=[], enum_maps={}):
     aggregate_columns = []
     if aggregate_column:
       aggregate_columns.append(aggregate_column)
+
+    display_columns = []
+    if display_column:
+      display_columns.append(display_column)
 
     files = []
     for file in os.listdir(self.base_folder):
@@ -146,7 +146,7 @@ class BaseCompare:
         if 'upgrade_cost_' in col: cols.remove(col)
       return cols
 
-    for file in files:
+    for file in sorted(files):
       base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
       feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
 
@@ -220,20 +220,13 @@ if __name__ == '__main__':
   default_base_folder = 'workflow/tests/base_results'
   default_feature_folder = 'workflow/tests/results'
   default_export_folder = 'workflow/tests/comparisons'
-
   actions = [method for method in dir(BaseCompare) if method.startswith('__') is False]
-
-  aggregate_columns = []
-  aggregate_functions = ['sum', 'mean']
 
   parser = argparse.ArgumentParser()
   parser.add_argument('-b', '--base_folder', default=default_base_folder, help='The path of the base folder.')
   parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='The path of the feature folder.')
   parser.add_argument('-e', '--export_folder', default=default_export_folder, help='The path of the export folder.')
   parser.add_argument('-a', '--actions', action='append', choices=actions, help='The method to call.')
-  parser.add_argument('-dc', '--display_column', help='How to organize the subplots columnwise.')
-  parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
-  parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
   args = parser.parse_args()
 
   if not os.path.exists(args.export_folder):
