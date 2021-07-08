@@ -879,8 +879,10 @@ class HPXML < Object
         XMLHelper.add_attribute(site_id, 'id', 'SiteID')
         address = XMLHelper.add_element(site, 'Address')
         XMLHelper.add_element(address, 'StateCode', @state_code, :string)
-        extension = XMLHelper.create_elements_as_needed(address, ['extension'])
-        XMLHelper.add_element(extension, 'FIPS', @fips_code, :string)
+        if not @fips_code.nil?
+          extension = XMLHelper.create_elements_as_needed(address, ['extension'])
+          XMLHelper.add_element(extension, 'FIPS', @fips_code, :string)
+        end
       end
       project_status = XMLHelper.add_element(building, 'ProjectStatus')
       XMLHelper.add_element(project_status, 'EventType', @event_type, :string)
@@ -1341,6 +1343,10 @@ class HPXML < Object
       XMLHelper.get_elements(attic, 'AttachedToRoof').each do |roof|
         @attached_to_roof_idrefs << HPXML::get_idref(roof)
       end
+      @attached_to_wall_idrefs = []
+      XMLHelper.get_elements(attic, 'AttachedToWall').each do |wall|
+        @attached_to_wall_idrefs << HPXML::get_idref(wall)
+      end
       @attached_to_frame_floor_idrefs = []
       XMLHelper.get_elements(attic, 'AttachedToFrameFloor').each do |frame_floor|
         @attached_to_frame_floor_idrefs << HPXML::get_idref(frame_floor)
@@ -1501,22 +1507,10 @@ class HPXML < Object
           fail "Unhandled foundation type '#{@foundation_type}'."
         end
       end
-      if not @attached_to_slab_idrefs.nil?
-        @attached_to_slab_idrefs.each do |slab|
-          slab_attached = XMLHelper.add_element(foundation, 'AttachedToSlab')
-          XMLHelper.add_attribute(slab_attached, 'idref', slab)
-        end
-      end
-      if not @attached_to_frame_floor_idrefs.nil?
-        @attached_to_frame_floor_idrefs.each do |frame_floor|
-          floor_frame_attached = XMLHelper.add_element(foundation, 'AttachedToFrameFloor')
-          XMLHelper.add_attribute(floor_frame_attached, 'idref', frame_floor)
-        end
-      end
-      if not @attached_to_foundation_wall_idrefs.nil?
-        @attached_to_foundation_wall_idrefs.each do |foundation_wall|
-          foundation_wall_attached = XMLHelper.add_element(foundation, 'AttachedToFoundationWall')
-          XMLHelper.add_attribute(foundation_wall_attached, 'idref', foundation_wall)
+      if not @attached_to_rim_joist_idrefs.nil?
+        @attached_to_rim_joist_idrefs.each do |rim_joist|
+          rim_joist_attached = XMLHelper.add_element(foundation, 'AttachedToRimJoist')
+          XMLHelper.add_attribute(rim_joist_attached, 'idref', rim_joist)
         end
       end
       if not @attached_to_wall_idrefs.nil?
@@ -1525,10 +1519,22 @@ class HPXML < Object
           XMLHelper.add_attribute(wall_attached, 'idref', wall)
         end
       end
-      if not @attached_to_rim_joist_idrefs.nil?
-        @attached_to_rim_joist_idrefs.each do |rim_joist|
-          rim_joist_attached = XMLHelper.add_element(foundation, 'AttachedToRimJoist')
-          XMLHelper.add_attribute(rim_joist_attached, 'idref', rim_joist)
+      if not @attached_to_foundation_wall_idrefs.nil?
+        @attached_to_foundation_wall_idrefs.each do |foundation_wall|
+          foundation_wall_attached = XMLHelper.add_element(foundation, 'AttachedToFoundationWall')
+          XMLHelper.add_attribute(foundation_wall_attached, 'idref', foundation_wall)
+        end
+      end
+      if not @attached_to_frame_floor_idrefs.nil?
+        @attached_to_frame_floor_idrefs.each do |frame_floor|
+          floor_frame_attached = XMLHelper.add_element(foundation, 'AttachedToFrameFloor')
+          XMLHelper.add_attribute(floor_frame_attached, 'idref', frame_floor)
+        end
+      end
+      if not @attached_to_slab_idrefs.nil?
+        @attached_to_slab_idrefs.each do |slab|
+          slab_attached = XMLHelper.add_element(foundation, 'AttachedToSlab')
+          XMLHelper.add_attribute(slab_attached, 'idref', slab)
         end
       end
       XMLHelper.add_element(foundation, 'WithinInfiltrationVolume', @within_infiltration_volume, :boolean) unless @within_infiltration_volume.nil?
@@ -1856,7 +1862,7 @@ class HPXML < Object
     ATTRS = [:id, :exterior_adjacent_to, :interior_adjacent_to, :wall_type, :optimum_value_engineering,
              :area, :orientation, :azimuth, :siding, :color, :solar_absorptance, :emittance, :insulation_id,
              :insulation_assembly_r_value, :insulation_cavity_r_value, :insulation_continuous_r_value,
-             :interior_finish_type, :interior_finish_thickness]
+             :interior_finish_type, :interior_finish_thickness, :attic_wall_type]
     attr_accessor(*ATTRS)
 
     def windows
@@ -1933,6 +1939,7 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(wall, 'ExteriorAdjacentTo', @exterior_adjacent_to, :string) unless @exterior_adjacent_to.nil?
       XMLHelper.add_element(wall, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
+      XMLHelper.add_element(wall, 'AtticWallType', @attic_wall_type, :string) unless @attic_wall_type.nil?
       if not @wall_type.nil?
         wall_type_el = XMLHelper.add_element(wall, 'WallType')
         wall_type = XMLHelper.add_element(wall_type_el, @wall_type)
@@ -1978,6 +1985,7 @@ class HPXML < Object
       @id = HPXML::get_id(wall)
       @exterior_adjacent_to = XMLHelper.get_value(wall, 'ExteriorAdjacentTo', :string)
       @interior_adjacent_to = XMLHelper.get_value(wall, 'InteriorAdjacentTo', :string)
+      @attic_wall_type = XMLHelper.get_value(wall, 'AtticWallType', :string)
       @wall_type = XMLHelper.get_child_name(wall, 'WallType')
       if @wall_type == HPXML::WallTypeWoodStud
         @optimum_value_engineering = XMLHelper.get_value(wall, 'WallType/WoodStud/OptimumValueEngineering', :boolean)
