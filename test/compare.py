@@ -58,23 +58,21 @@ if __name__ == '__main__':
   default_base_folder = 'test/test_samples_osw/base'
   default_feature_folder = 'test/test_samples_osw/results'
   default_export_folder = 'test/test_samples_osw/comparisons'
-
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]
-
-  display_columns = ['build_existing_model.geometry_building_type_recs',
-                     'build_existing_model.county']
   aggregate_columns = ['build_existing_model.geometry_building_type_recs',
                        'build_existing_model.county']
   aggregate_functions = ['sum', 'mean']
+  display_columns = ['build_existing_model.geometry_building_type_recs',
+                     'build_existing_model.county']
 
   parser = argparse.ArgumentParser()
-  parser.add_argument('-b', '--base_folder', default=default_base_folder, help='TODO')
-  parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='TODO')
-  parser.add_argument('-a', '--actions', action='append', choices=actions, help='TODO')
-  parser.add_argument('-e', '--export_folder', default=default_export_folder, help='TODO')
-  parser.add_argument('-dc', '--display_column', choices=display_columns, help='How to organize the subplots.')
+  parser.add_argument('-b', '--base_folder', default=default_base_folder, help='The path of the base folder.')
+  parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='The path of the feature folder.')
+  parser.add_argument('-e', '--export_folder', default=default_export_folder, help='The path of the export folder.')
+  parser.add_argument('-a', '--actions', action='append', choices=actions, help='The method to call.')
   parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
   parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
+  parser.add_argument('-dc', '--display_column', choices=display_columns, help='How to organize the subplots.')
   args = parser.parse_args()
 
   if not os.path.exists(args.export_folder):
