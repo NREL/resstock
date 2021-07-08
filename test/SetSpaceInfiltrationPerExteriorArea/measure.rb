@@ -117,13 +117,13 @@ class SetSpaceInfiltrationPerExteriorArea < OpenStudio::Measure::ModelMeasure
           infil.remove
         end
         space_has_infil += 1
-        if infil.schedule.is_initialized
-          sch = infil.schedule.get
-          if sch_hash.key?(sch)
-            sch_hash[sch] += 1
-          else
-            sch_hash[sch] = 1
-          end
+        next unless infil.schedule.is_initialized
+
+        sch = infil.schedule.get
+        if sch_hash.key?(sch)
+          sch_hash[sch] += 1
+        else
+          sch_hash[sch] = 1
         end
       end
       # add schedule for infil assigned to space types
@@ -134,13 +134,13 @@ class SetSpaceInfiltrationPerExteriorArea < OpenStudio::Measure::ModelMeasure
             infil.remove
           end
           space_type_has_infil += 1
-          if infil.schedule.is_initialized
-            sch = infil.schedule.get
-            if sch_hash.key?(sch)
-              sch_hash[sch] += 1
-            else
-              sch_hash[sch] = 1
-            end
+          next unless infil.schedule.is_initialized
+
+          sch = infil.schedule.get
+          if sch_hash.key?(sch)
+            sch_hash[sch] += 1
+          else
+            sch_hash[sch] = 1
           end
         end
       end
@@ -163,6 +163,7 @@ class SetSpaceInfiltrationPerExteriorArea < OpenStudio::Measure::ModelMeasure
     model.getSpaceInfiltrationDesignFlowRates.each do |infil|
       # TODO: - skip if this is unused space type
       next if infil.spaceType.is_initialized && infil.spaceType.get.floorArea == 0
+
       runner.registerInfo("Changing flow rate for #{infil.name}.")
       if ext_surf_cat == 'ExteriorWallArea'
         infil.setFlowperExteriorWallArea(flow_per_area_si)
