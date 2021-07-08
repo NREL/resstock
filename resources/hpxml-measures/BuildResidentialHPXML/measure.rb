@@ -3692,6 +3692,11 @@ class HPXMLFile
 
       next if exterior_adjacent_to == HPXML::LocationLivingSpace # already captured these surfaces
 
+      attic_wall_type = nil
+      if ([HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to) && (exterior_adjacent_to == HPXML::LocationOutside)
+        attic_wall_type = 'gable'
+      end
+
       wall_type = args[:wall_type]
       if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to
         wall_type = HPXML::WallTypeWoodStud
@@ -3724,6 +3729,7 @@ class HPXMLFile
                       interior_adjacent_to: interior_adjacent_to,
                       azimuth: azimuth,
                       wall_type: wall_type,
+                      attic_wall_type: attic_wall_type,
                       siding: siding,
                       color: color,
                       solar_absorptance: solar_absorptance,
