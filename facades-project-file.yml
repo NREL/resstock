@@ -10,6 +10,17 @@ sampler:
     n_datapoints: 10000
     logic:
       - Vacancy Status|Occupied
+      - Geometry Building Type RECS|Single-Family Detached
+      - not:
+        or:
+          - Vintage|1990s
+          - Vintage|2000s
+          - Vintage|2010s
+      - not:
+        or:
+          - Heating Fuel|Wood
+          - Heating Fuel|Other Fuel
+          - Heating Fuel|None
     resample: false
 
 workflow_generator:
@@ -34,11 +45,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, Uninsulated
-            - not: &vintage_exclusions
-                or:
-                  - Vintage|1990s
-                  - Vintage|2000s
-                  - Vintage|2010s
         costs: &polyiso_1inch_costs
           - value: 1.4
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
@@ -48,7 +54,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-7
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_R-11_wood
@@ -56,7 +61,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-11
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_R-13_wood
@@ -64,7 +68,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-13
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_R-15_wood
@@ -72,7 +75,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-15
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_uninsulated_cmu
@@ -80,7 +82,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, Uninsulated
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_R-7_cmu
@@ -88,7 +89,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, R-7
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_R-11_cmu
@@ -96,7 +96,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, R-11
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_R-15_cmu
@@ -104,7 +103,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, R-15
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_uninsulated_brick
@@ -112,7 +110,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_R-7_brick
@@ -120,7 +117,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, R-7
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_R-11_brick
@@ -128,7 +124,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, R-11
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
       - &polyiso_1inch_on_R-15_brick
@@ -136,7 +131,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, R-15
-            - not: *vintage_exclusions
         costs: *polyiso_1inch_costs
         lifetime: 30
     #siding upgrades - no costs for these, intentionally
@@ -144,7 +138,6 @@ upgrades:
         option: Geometry Wall Exterior Finish|Fiber-Cement, Light
         apply_logic:
           and:
-            - not: *vintage_exclusions
             - or:
               - Geometry Wall Exterior Finish|Aluminum, Light
               - Geometry Wall Exterior Finish|Fiber-Cement, Light
@@ -154,7 +147,6 @@ upgrades:
         option: Geometry Wall Exterior Finish|Stucco, Medium/Light
         apply_logic:
           and:
-            - not: *vintage_exclusions
             - or:
               - Geometry Wall Exterior Finish|Brick, Light
               - Geometry Wall Exterior Finish|Brick, Medium/Dark
@@ -166,7 +158,6 @@ upgrades:
         option: Geometry Wall Exterior Finish|Vinyl, Light
         apply_logic:
           and:
-            - not: *vintage_exclusions
             - or:
               - Geometry Wall Exterior Finish|Shingle, Asbestos
               - Geometry Wall Exterior Finish|Shingle, Composition
@@ -180,7 +171,6 @@ upgrades:
             - or:
                 - Windows|Single, Clear, Metal
                 - Windows|Single, Clear, Metal, Exterior Clear Storm
-            - not: *vintage_exclusions
         costs: &low-e_storm_costs
           - value: 23
             multiplier: Window Area (ft^2)
@@ -192,7 +182,6 @@ upgrades:
             - or:
                 - Windows|Single, Clear, Non-metal
                 - Windows|Single, Clear, Non-metal, Exterior Clear Storm
-            - not: *vintage_exclusions
         costs: *low-e_storm_costs
         lifetime: 30
       - &low-e_storms_on_double_clear_metal
@@ -200,7 +189,6 @@ upgrades:
         apply_logic:
           and:
             - Windows|Double, Clear, Metal, Air
-            - not: *vintage_exclusions
         costs: *low-e_storm_costs
         lifetime: 30
     #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
@@ -224,7 +212,6 @@ upgrades:
                 - Insulation Wall|Brick, 12-in, 3-wythe, R-7
                 - Insulation Wall|Brick, 12-in, 3-wythe, R-11
                 - Insulation Wall|Brick, 12-in, 3-wythe, R-15
-            - not: *vintage_exclusions
             - not: &upgradable_windows
                 or:
                   - Windows|Single, Clear, Metal
@@ -242,7 +229,6 @@ upgrades:
           and:
             - Infiltration|2 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -254,7 +240,6 @@ upgrades:
           and:
             - Infiltration|3 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -266,7 +251,6 @@ upgrades:
           and:
             - Infiltration|4 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -278,7 +262,6 @@ upgrades:
           and:
             - Infiltration|5 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -290,7 +273,6 @@ upgrades:
           and:
             - Infiltration|6 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -302,7 +284,6 @@ upgrades:
           and:
             - Infiltration|7 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -314,7 +295,6 @@ upgrades:
           and:
             - Infiltration|8 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -326,7 +306,6 @@ upgrades:
           and:
             - Infiltration|10 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -338,7 +317,6 @@ upgrades:
           and:
             - Infiltration|15 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -350,7 +328,6 @@ upgrades:
           and:
             - Infiltration|20 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -362,7 +339,6 @@ upgrades:
           and:
             - Infiltration|25 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -374,7 +350,6 @@ upgrades:
           and:
             - Infiltration|30 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -386,7 +361,6 @@ upgrades:
           and:
             - Infiltration|40 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -398,7 +372,6 @@ upgrades:
           and:
             - Infiltration|50 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -411,7 +384,6 @@ upgrades:
           and:
             - Infiltration|1 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - &single_pane_windows
                 or:  #assuming no ACH50 improvement from replacing a clear storm with a low-E storm
                 - Windows|Single, Clear, Metal
@@ -426,7 +398,6 @@ upgrades:
           and:
             - Infiltration|2 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -438,7 +409,6 @@ upgrades:
           and:
             - Infiltration|3 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -450,7 +420,6 @@ upgrades:
           and:
             - Infiltration|4 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -462,7 +431,6 @@ upgrades:
           and:
             - Infiltration|5 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -474,7 +442,6 @@ upgrades:
           and:
             - Infiltration|6 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -486,7 +453,6 @@ upgrades:
           and:
             - Infiltration|7 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -498,7 +464,6 @@ upgrades:
           and:
             - Infiltration|8 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -510,7 +475,6 @@ upgrades:
           and:
             - Infiltration|10 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -522,7 +486,6 @@ upgrades:
           and:
             - Infiltration|15 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -534,7 +497,6 @@ upgrades:
           and:
             - Infiltration|20 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -546,7 +508,6 @@ upgrades:
           and:
             - Infiltration|25 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -558,7 +519,6 @@ upgrades:
           and:
             - Infiltration|30 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -570,7 +530,6 @@ upgrades:
           and:
             - Infiltration|40 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -582,7 +541,6 @@ upgrades:
           and:
             - Infiltration|50 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -595,7 +553,6 @@ upgrades:
           and:
             - Infiltration|1 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - &double_pane_metal_windows
               or: 
                 - Windows|Double, Clear, Metal, Air
@@ -609,7 +566,6 @@ upgrades:
           and:
             - Infiltration|2 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -621,7 +577,6 @@ upgrades:
           and:
             - Infiltration|3 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -633,7 +588,6 @@ upgrades:
           and:
             - Infiltration|4 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -645,7 +599,6 @@ upgrades:
           and:
             - Infiltration|5 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -657,7 +610,6 @@ upgrades:
           and:
             - Infiltration|6 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -669,7 +621,6 @@ upgrades:
           and:
             - Infiltration|7 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -681,7 +632,6 @@ upgrades:
           and:
             - Infiltration|8 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -693,7 +643,6 @@ upgrades:
           and:
             - Infiltration|10 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -705,7 +654,6 @@ upgrades:
           and:
             - Infiltration|15 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -717,7 +665,6 @@ upgrades:
           and:
             - Infiltration|20 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -729,7 +676,6 @@ upgrades:
           and:
             - Infiltration|25 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -741,7 +687,6 @@ upgrades:
           and:
             - Infiltration|30 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -753,7 +698,6 @@ upgrades:
           and:
             - Infiltration|40 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -765,7 +709,6 @@ upgrades:
           and:
             - Infiltration|50 ACH50
             - not: *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -778,7 +721,6 @@ upgrades:
           and:
             - Infiltration|1 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -790,7 +732,6 @@ upgrades:
           and:
             - Infiltration|2 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -802,7 +743,6 @@ upgrades:
           and:
             - Infiltration|3 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -814,7 +754,6 @@ upgrades:
           and:
             - Infiltration|4 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -826,7 +765,6 @@ upgrades:
           and:
             - Infiltration|5 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -838,7 +776,6 @@ upgrades:
           and:
             - Infiltration|6 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -849,9 +786,8 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|7 ACH50
-            - or: *upgradable_walls
-            - not: *vintage_exclusions
-            - or: *single_pane_windows
+            - *upgradable_walls
+            - *single_pane_windows
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -861,9 +797,8 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|8 ACH50
-            - or: *upgradable_walls
-            - not: *vintage_exclusions
-            - or: *single_pane_windows
+            - *upgradable_walls
+            - *single_pane_windows
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -874,7 +809,6 @@ upgrades:
           and:
             - Infiltration|10 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -886,7 +820,6 @@ upgrades:
           and:
             - Infiltration|15 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -898,7 +831,6 @@ upgrades:
           and:
             - Infiltration|20 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -910,7 +842,6 @@ upgrades:
           and:
             - Infiltration|25 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -922,7 +853,6 @@ upgrades:
           and:
             - Infiltration|30 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -934,7 +864,6 @@ upgrades:
           and:
             - Infiltration|40 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *single_pane_windows
         costs:
           - value: 0
@@ -945,9 +874,8 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|50 ACH50
-            - or: *upgradable_walls
-            - not: *vintage_exclusions
-            - or: *single_pane_windows
+            - *upgradable_walls
+            - *single_pane_windows
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -959,7 +887,6 @@ upgrades:
           and:
             - Infiltration|1 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -971,7 +898,6 @@ upgrades:
           and:
             - Infiltration|2 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -983,7 +909,6 @@ upgrades:
           and:
             - Infiltration|3 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -995,7 +920,6 @@ upgrades:
           and:
             - Infiltration|4 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1007,7 +931,6 @@ upgrades:
           and:
             - Infiltration|5 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1019,7 +942,6 @@ upgrades:
           and:
             - Infiltration|6 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1031,7 +953,6 @@ upgrades:
           and:
             - Infiltration|7 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1043,7 +964,6 @@ upgrades:
           and:
             - Infiltration|8 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1055,7 +975,6 @@ upgrades:
           and:
             - Infiltration|10 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1067,7 +986,6 @@ upgrades:
           and:
             - Infiltration|15 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1079,7 +997,6 @@ upgrades:
           and:
             - Infiltration|20 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1091,7 +1008,6 @@ upgrades:
           and:
             - Infiltration|25 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1103,7 +1019,6 @@ upgrades:
           and:
             - Infiltration|30 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1115,7 +1030,6 @@ upgrades:
           and:
             - Infiltration|40 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1127,7 +1041,6 @@ upgrades:
           and:
             - Infiltration|50 ACH50
             - *upgradable_walls
-            - not: *vintage_exclusions
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -1253,7 +1166,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, Uninsulated
-            - not: *vintage_exclusions
         costs: &polyiso_2inch_costs
           - value: 1.9
             multiplier: Wall Area, Above-Grade, Exterior (ft^2)
@@ -1263,7 +1175,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-7
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_R-11_wood
@@ -1271,7 +1182,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-11
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_R-13_wood
@@ -1279,7 +1189,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-13
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_R-15_wood
@@ -1287,7 +1196,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-15
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_uninsulated_cmu
@@ -1295,7 +1203,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, Uninsulated
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_R-7_cmu
@@ -1303,7 +1210,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, R-7
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_R-11_cmu
@@ -1311,7 +1217,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, R-11
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_R-15_cmu
@@ -1319,7 +1224,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, R-15
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_uninsulated_brick
@@ -1327,7 +1231,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_R-7_brick
@@ -1335,7 +1238,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, R-7
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_R-11_brick
@@ -1343,7 +1245,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, R-11
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
       - &polyiso_2inch_on_R-15_brick
@@ -1351,7 +1252,6 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, R-15
-            - not: *vintage_exclusions
         costs: *polyiso_2inch_costs
         lifetime: 30
     #low-E Storms
@@ -1465,7 +1365,6 @@ upgrades:
             - or:
                 - Windows|Single, Clear, Metal
                 - Windows|Single, Clear, Metal, Exterior Clear Storm
-            - not: *vintage_exclusions
         costs: &low-e_storm_with_shading_costs
           - value: 28.50 #I added 5.50 for the shading, I have a note saying to also add 2 for low shgc but I don't think we're doing that any more
             multiplier: Window Area (ft^2)
@@ -1477,7 +1376,6 @@ upgrades:
             - or:
                 - Windows|Single, Clear, Non-metal
                 - Windows|Single, Clear, Non-metal, Exterior Clear Storm
-            - not: *vintage_exclusions
         costs: *low-e_storm_with_shading_costs
         lifetime: 30
       - &low-e_storms_on_double_clear_metal_with_shading
@@ -1485,7 +1383,6 @@ upgrades:
         apply_logic:
           and:
             - Windows|Double, Clear, Metal, Air
-            - not: *vintage_exclusions
         costs: *low-e_storm_with_shading_costs
         lifetime: 30
     #siding upgrades
