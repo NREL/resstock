@@ -97,9 +97,9 @@ upgrades:
       
       # Refrigerator Upgrade
       - &refrigerator
-        option: Refrigerator|EF 21.9
+        option: Refrigerator|EF 21.9, 100% Usage
         apply_logic:
-          not: Refrigerator|EF 21.9
+          not: Refrigerator|EF 21.9, 100% Usage
         costs:
           - value: 670
             multiplier: Fixed (1)
@@ -142,15 +142,14 @@ upgrades:
       
       # Lighting Upgrade
       - &lighting
-        option: Lighting|100% LED, High Efficacy
+        option: Lighting|100% LED
         apply_logic:
           or:
             - Lighting|100% Incandescent
-            - Lighting|60% CFL Hardwired, 34% CFL Plugin
-            - Lighting|60% LED Hardwired, 34% CFL Plugin
             - Lighting|60% CFL
             - Lighting|100% CFL
-            - Lighting|100% LED, Low Efficacy            
+            - Lighting|20% LED
+            - Lighting|100% LED
         costs:
           - value: 0.40
             multiplier: Floor Area, Lighting (ft^2)
@@ -158,9 +157,9 @@ upgrades:
         
       # Cooking upgrade
       - &cooking_range
-        option: Cooking Range|Electric, Induction
+        option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
-          not: Cooking Range|Electric, Induction
+          not: Cooking Range|Electric, Induction, 100% Usage
         costs:
           - value: 0 
             multiplier: Fixed (1)
@@ -185,7 +184,7 @@ upgrades:
             - Ducts|30% Leakage, R-6            
         costs:
           - value: 2.2
-            multiplier: Duct Surface Area (ft^2)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category2
         option: Ducts|10% Leakage, R-8
@@ -197,7 +196,7 @@ upgrades:
             - Ducts|30% Leakage, R-8   
         costs:
           - value: 0.81
-            multiplier: Duct Surface Area (ft^2)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category3
         option: Ducts|10% Leakage, R-8
@@ -211,7 +210,7 @@ upgrades:
             - Ducts|20% Leakage, R-6 
         costs:
           - value: 0.4
-            multiplier: Duct Surface Area (ft^2)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category4
         option: Ducts|10% Leakage, R-8
@@ -221,7 +220,7 @@ upgrades:
             - Ducts|20% Leakage, R-8
         costs:
           - value: 0.4
-            multiplier: Duct Surface Area (ft^2)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category5
         option: Ducts|10% Leakage, R-8
@@ -236,7 +235,7 @@ upgrades:
             - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
         costs:
           - value: 1.6
-            multiplier: Duct Surface Area (ft^2)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category6
         option: Ducts|10% Leakage, R-8
@@ -246,7 +245,7 @@ upgrades:
             - Ducts|14% Leakage, R-8
         costs:
           - value: 0.2
-            multiplier: Duct Surface Area (ft^2)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category7
         option: Ducts|10% Leakage, R-8
@@ -257,7 +256,7 @@ upgrades:
             - Ducts|10% Leakage, R-6
         costs:
           - value: 1.4
-            multiplier: Duct Surface Area (ft^2)
+            multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
 
       # Heat Pump Water Heater Upgrade
@@ -280,7 +279,6 @@ upgrades:
           - not: 
             - Water Heater Efficiency|Electric Heat Pump, 50 gal
             - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
-            - Water Heater Efficiency|Electric Heat Pump, 50 gal, In Confined Space
             - Water Heater Efficiency|Electric Heat Pump, 80 gal
         costs:
           - value: 2000
@@ -625,23 +623,23 @@ upgrades:
 
       # Attic Air Insulation Upgrade
       - &R-30_attic
-        option: Insulation Unfinished Attic|Ceiling R-30, Vented
+        option: Insulation Ceiling|R-30
         apply_logic: &attic_insulation_1
           - and:
             - or: 
               - ASHRAE IECC Climate Zone 2004|1A
             - or: 
-              - Insulation Unfinished Attic|Uninsulated, Vented
-              - Insulation Unfinished Attic|Ceiling R-7, Vented
-              - Insulation Unfinished Attic|Ceiling R-13, Vented
-              - Insulation Unfinished Attic|Ceiling R-19, Vented
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
             - Geometry Attic Type|Vented Attic
         costs:
           - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
       - &R-49_attic
-        option: Insulation Unfinished Attic|Ceiling R-49, Vented
+        option: Insulation Ceiling|R-49
         apply_logic: &attic_insulation_2
           - and: 
             - or: 
@@ -651,19 +649,19 @@ upgrades:
               - ASHRAE IECC Climate Zone 2004|3B
               - ASHRAE IECC Climate Zone 2004|3C
             - or: 
-              - Insulation Unfinished Attic|Uninsulated, Vented
-              - Insulation Unfinished Attic|Ceiling R-7, Vented
-              - Insulation Unfinished Attic|Ceiling R-13, Vented
-              - Insulation Unfinished Attic|Ceiling R-19, Vented
-              - Insulation Unfinished Attic|Ceiling R-30, Vented
-              - Insulation Unfinished Attic|Ceiling R-38, Vented
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+              - Insulation Ceiling|R-30
+              - Insulation Ceiling|R-38
             - Geometry Attic Type|Vented Attic
         costs:
           - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
       - &R-60_attic
-        option: Insulation Unfinished Attic|Ceiling R-60, Vented
+        option: Insulation Ceiling|R-60
         apply_logic: &attic_insulation_3
           - or: 
             - ASHRAE IECC Climate Zone 2004|4A
@@ -676,13 +674,13 @@ upgrades:
             - ASHRAE IECC Climate Zone 2004|7A
             - ASHRAE IECC Climate Zone 2004|7B
           - or: 
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-            - Insulation Unfinished Attic|Ceiling R-49, Vented
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
           - Geometry Attic Type|Vented Attic
         costs:
           - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
