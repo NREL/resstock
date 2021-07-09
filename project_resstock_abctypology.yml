@@ -728,11 +728,11 @@ upgrades:
       # 1) Other than Vented Crawlspace 
       # 2) Without window upgrade and, 
       # 3) Without attic upgrade (Multi-family)
-      - &decrease_ACH50_19pct_from_1
-        option: Infiltration|0.81 ACH50
+      - &decrease_ACH50_19pct_from_4
+        option: Infiltration|3.24 ACH50
         apply_logic:
           and:
-            - Infiltration|1 ACH50
+            - Infiltration|4 ACH50
             - or: &upgradable_walls
               - Insulation Wall|Wood Stud, Uninsulated
               - Insulation Wall|Wood Stud, R-7
@@ -764,20 +764,6 @@ upgrades:
               - Insulation Crawlspace|Ceiling R-13, Vented
               - Insulation Crawlspace|Ceiling R-19, Vented
               - Insulation Crawlspace|Ceiling R-30, Vented
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 30
-      - &decrease_ACH50_19pct_from_4
-        option: Infiltration|3.24 ACH50
-        apply_logic:
-          and:
-            - Infiltration|4 ACH50
-            - or: *upgradable_walls
-            - not: *vintage_exclusions
-            - not: *upgradable_windows
-            - not: *upgradable_attic
-            - not: *vented_crawlspace
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -1123,7 +1109,9 @@ upgrades:
             - not:
               - or: *upgradable_walls
               - not: *vintage_exclusions
-            - or: *single_pane_windows
+            - or: &single_pane_windows
+              - Windows|Single, Clear, Metal
+              - Windows|Single, Clear, Non-metal
             - not: *upgradable_attic
             - not: *vented_crawlspace
         costs: 
@@ -1308,7 +1296,11 @@ upgrades:
             - not:
               - or: *upgradable_walls
               - not: *vintage_exclusions
-            - or: *double_pane_windows
+            - or: &double_pane_windows
+              - Windows|Double, Clear, Metal, Air
+              - Windows|Double, Clear, Non-metal, Air
+              - Windows|Single, Clear, Metal, Exterior Clear Storm
+              - Windows|Single, Clear, Non-metal, Exterior Clear Storm
             - not: *upgradable_attic
             - not: *vented_crawlspace
         costs: 
