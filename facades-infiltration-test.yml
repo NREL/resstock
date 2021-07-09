@@ -9,18 +9,19 @@ sampler:
   args:
     n_datapoints: 500
     logic:
-      - Vacancy Status|Occupied
-      - Geometry Building Type RECS|Single-Family Detached
-      - not:
-        or:
-          - Vintage|1990s
-          - Vintage|2000s
-          - Vintage|2010s
-      - not:
-        or:
-          - Heating Fuel|Wood
-          - Heating Fuel|Other Fuel
-          - Heating Fuel|None
+      and:
+        - Vacancy Status|Occupied
+        - Geometry Building Type RECS|Single-Family Detached
+        - not:
+          or:
+            - Vintage|1990s
+            - Vintage|2000s
+            - Vintage|2010s
+        - not:
+          or:
+            - Heating Fuel|Wood
+            - Heating Fuel|Other Fuel
+            - Heating Fuel|None
     resample: false
 
 workflow_generator:
