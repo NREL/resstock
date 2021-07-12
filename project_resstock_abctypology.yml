@@ -4569,6 +4569,10 @@ upgrades:
       - option: Insulation Roof|Phius Roof, Zone 7B, R-82
         apply_logic: ASHRAE IECC Climate Zone 2004|7B
 
+      # Also convert to unvented attic
+      - option: Geometry Attic Type|Unvented Attic
+        apply_logic: Geometry Attic Type|Vented Attic
+
       # Wall Insulation
       - option: Insulation Wall|Phius Walls, Zone 1A, R-22
         apply_logic: ASHRAE IECC Climate Zone 2004|1A
@@ -4634,35 +4638,38 @@ upgrades:
         apply_logic: ASHRAE IECC Climate Zone 2004|7B
 
       # Foundation Insulation
-      - option: Insulation Pier Beam|Phius Floor, Zone 1A, R-22
-        apply_logic: ASHRAE IECC Climate Zone 2004|1A
-      - option: Insulation Pier Beam|Phius Floor, Zone 2A, R-27
+      - option: Insulation Floor|Phius Floor, Zone 1A, R-22
+        apply_logic: 
+          and:
+          - ASHRAE IECC Climate Zone 2004|1A
+          - Geometry Foundation Type|Ambient
+      - option: Insulation Floor|Phius Floor, Zone 2A, R-27
         apply_logic: ASHRAE IECC Climate Zone 2004|2A
-      - option: Insulation Pier Beam|Phius Floor, Zone 2B, R-27
+      - option: Insulation Floor|Phius Floor, Zone 2B, R-27
         apply_logic: ASHRAE IECC Climate Zone 2004|2B
-      - option: Insulation Pier Beam|Phius Floor, Zone 3A, R-31
+      - option: Insulation Floor|Phius Floor, Zone 3A, R-31
         apply_logic: ASHRAE IECC Climate Zone 2004|3A
-      - option: Insulation Pier Beam|Phius Floor, Zone 3B, R-30
+      - option: Insulation Floor|Phius Floor, Zone 3B, R-30
         apply_logic: ASHRAE IECC Climate Zone 2004|3B
-      - option: Insulation Pier Beam|Phius Floor, Zone 3C, R-30
+      - option: Insulation Floor|Phius Floor, Zone 3C, R-30
         apply_logic: ASHRAE IECC Climate Zone 2004|3C
-      - option: Insulation Pier Beam|Phius Floor, Zone 4A, R-36
+      - option: Insulation Floor|Phius Floor, Zone 4A, R-36
         apply_logic: ASHRAE IECC Climate Zone 2004|4A
-      - option: Insulation Pier Beam|Phius Floor, Zone 4B, R-37
+      - option: Insulation Floor|Phius Floor, Zone 4B, R-37
         apply_logic: ASHRAE IECC Climate Zone 2004|4B
-      - option: Insulation Pier Beam|Phius Floor, Zone 4C, R-35
+      - option: Insulation Floor|Phius Floor, Zone 4C, R-35
         apply_logic: ASHRAE IECC Climate Zone 2004|4C
-      - option: Insulation Pier Beam|Phius Floor, Zone 5A, R-42
+      - option: Insulation Floor|Phius Floor, Zone 5A, R-42
         apply_logic: ASHRAE IECC Climate Zone 2004|5A
-      - option: Insulation Pier Beam|Phius Floor, Zone 5B, R-39
+      - option: Insulation Floor|Phius Floor, Zone 5B, R-39
         apply_logic: ASHRAE IECC Climate Zone 2004|5B
-      - option: Insulation Pier Beam|Phius Floor, Zone 6A, R-46
+      - option: Insulation Floor|Phius Floor, Zone 6A, R-46
         apply_logic: ASHRAE IECC Climate Zone 2004|6A
-      - option: Insulation Pier Beam|Phius Floor, Zone 6B, R-44
+      - option: Insulation Floor|Phius Floor, Zone 6B, R-44
         apply_logic: ASHRAE IECC Climate Zone 2004|6B
-      - option: Insulation Pier Beam|Phius Floor, Zone 7A, R-51
+      - option: Insulation Floor|Phius Floor, Zone 7A, R-51
         apply_logic: ASHRAE IECC Climate Zone 2004|7A
-      - option: Insulation Pier Beam|Phius Floor, Zone 7B, R-51
+      - option: Insulation Floor|Phius Floor, Zone 7B, R-51
         apply_logic: ASHRAE IECC Climate Zone 2004|7B
 
       - option: Insulation Slab|Phius Slab Edge, Zone 1A, 2ft R-7 Exterior
@@ -4696,97 +4703,39 @@ upgrades:
       - option: Insulation Slab|Phius Slab Edge, Zone 7B, 2ft R-30 Exterior
         apply_logic: ASHRAE IECC Climate Zone 2004|7B
 
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 1A, Wall R-7, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 1A, Wall R-7, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|1A
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 2A, Wall R-10, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 2A, Wall R-10, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|2A
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 2B, Wall R-13, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 2B, Wall R-13, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|2B
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 3A, Wall R-13, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 3A, Wall R-13, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|3A
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 3B, Wall R-14, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 3B, Wall R-14, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|3B
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 3C, Wall R-10, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 3C, Wall R-10, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|3C
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 4A, Wall R-17, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 4A, Wall R-17, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|4A
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 4B, Wall R-17, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 4B, Wall R-17, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|4B
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 4C, Wall R-16, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 4C, Wall R-16, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|4C
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 5A, Wall R-21, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 5A, Wall R-21, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|5A
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 5B, Wall R-19, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 5B, Wall R-19, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|5B
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 6A, Wall R-24, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 6A, Wall R-24, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|6A
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 6B, Wall R-23, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 6B, Wall R-23, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|6B
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 7A, Wall R-30, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 7A, Wall R-30, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|7A
-      - option: Insulation Crawlspace|Phius Fnd Walls, Zone 7B, Wall R-30, Unvented
+      - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 7B, Wall R-30, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|7B
 
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 1A, Wall R-7, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|1A
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 2A, Wall R-10, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|2A
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 2B, Wall R-13, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|2B
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 3A, Wall R-13, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|3A
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 3B, Wall R-14, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|3B
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 3C, Wall R-10, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|3C
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 4A, Wall R-17, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|4A
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 4B, Wall R-17, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|4B
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 4C, Wall R-16, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|4C
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 5A, Wall R-21, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|5A
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 5B, Wall R-19, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|5B
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 6A, Wall R-24, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|6A
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 6B, Wall R-23, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|6B
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 7A, Wall R-30, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|7A
-      - option: Insulation Unfinished Basement|Phius Fnd Walls, Zone 7B, Wall R-30, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|7B
-
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 1A, Wall R-7, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|1A
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 2A, Wall R-10, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|2A
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 2B, Wall R-13, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|2B
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 3A, Wall R-13, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|3A
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 3B, Wall R-14, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|3B
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 3C, Wall R-10, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|3C
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 4A, Wall R-17, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|4A
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 4B, Wall R-17, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|4B
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 4C, Wall R-16, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|4C
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 5A, Wall R-21, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|5A
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 5B, Wall R-19, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|5B
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 6A, Wall R-24, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|6A
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 6B, Wall R-23, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|6B
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 7A, Wall R-30, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|7A
-      - option: Insulation Finished Basement|Phius Fnd Walls, Zone 7B, Wall R-30, Unvented
-        apply_logic: ASHRAE IECC Climate Zone 2004|7B
+      # Also seal crawlspace vents
+      - option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic: Geometry Foundation Type|Vented Crawlspace
 
                       
