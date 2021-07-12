@@ -7,9 +7,9 @@ class Material
   # k_in - Conductivity [Btu-in/h-ft^2-F]
   # rho - Density [lb/ft^3]
   # cp - Specific heat [Btu/lb*F]
-  # tAbs - thermal absorptance (emittance)
-  # sAbs - solar absorptance
-  def initialize(name: nil, thick_in: nil, mat_base: nil, k_in: nil, rho: nil, cp: nil, tAbs: nil, sAbs: nil)
+  # tAbs - thermal absorptance (emittance); 0.9 is EnergyPlus default
+  # sAbs - solar absorptance; 0.7 is EnergyPlus default
+  def initialize(name: nil, thick_in: nil, mat_base: nil, k_in: nil, rho: nil, cp: nil, tAbs: 0.9, sAbs: 0.7)
     @name = name
 
     if not thick_in.nil?
@@ -188,55 +188,50 @@ class Material
   def self.CoveringBare(floorFraction = 0.8, rvalue = 2.08)
     # Combined layer of, e.g., carpet and bare floor
     thick_in = 0.5 # in
-    return new(name: 'Floor Covering', thick_in: thick_in, k_in: thick_in / (rvalue * floorFraction), rho: 3.4, cp: 0.32, tAbs: 0.9, sAbs: 0.9)
+    return new(name: 'floor covering', thick_in: thick_in, k_in: thick_in / (rvalue * floorFraction), rho: 3.4, cp: 0.32, tAbs: 0.9, sAbs: 0.9)
   end
 
   def self.Concrete(thick_in)
-    return new(name: "Concrete #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Concrete, tAbs: 0.9)
+    return new(name: "concrete #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Concrete, tAbs: 0.9)
   end
 
-  def self.ExteriorFinishMaterial(siding, emittance, solar_absorptance, thick_in = nil)
-    if siding == HPXML::SidingTypeNone
+  def self.ExteriorFinishMaterial(type, thick_in = nil)
+    if (type == HPXML::SidingTypeNone) || (!thick_in.nil? && thick_in <= 0)
       return
-    elsif siding == HPXML::SidingTypeWood
+    elsif type == HPXML::SidingTypeWood
       thick_in = 1.0 if thick_in.nil?
-      return new(name: siding, thick_in: thick_in, k_in: 0.71, rho: 34.0, cp: 0.28, tAbs: emittance, sAbs: solar_absorptance)
-    elsif siding == HPXML::SidingTypeVinyl
+      return new(name: type, thick_in: thick_in, k_in: 0.71, rho: 34.0, cp: 0.28)
+    elsif type == HPXML::SidingTypeVinyl
       thick_in = 0.375 if thick_in.nil?
-      return new(name: siding, thick_in: thick_in, mat_base: BaseMaterial.Vinyl, tAbs: emittance, sAbs: solar_absorptance)
-    elsif siding == HPXML::SidingTypeStucco
+      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Vinyl)
+    elsif type == HPXML::SidingTypeStucco
       thick_in = 1.0 if thick_in.nil?
-      return new(name: siding, thick_in: thick_in, mat_base: BaseMaterial.Stucco, tAbs: emittance, sAbs: solar_absorptance)
-    elsif siding == HPXML::SidingTypeFiberCement
+      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Stucco)
+    elsif type == HPXML::SidingTypeFiberCement
       thick_in = 0.375 if thick_in.nil?
-      return new(name: siding, thick_in: thick_in, k_in: 1.79, rho: 21.7, cp: 0.24, tAbs: emittance, sAbs: solar_absorptance)
-    elsif siding == HPXML::SidingTypeBrick
+      return new(name: type, thick_in: thick_in, k_in: 1.79, rho: 21.7, cp: 0.24)
+    elsif type == HPXML::SidingTypeBrick
       thick_in = 4.0 if thick_in.nil?
-      return new(name: siding, thick_in: thick_in, mat_base: BaseMaterial.Brick, tAbs: emittance, sAbs: solar_absorptance)
-    elsif siding == HPXML::SidingTypeAluminum
+      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Brick)
+    elsif type == HPXML::SidingTypeAluminum
       thick_in = 0.375 if thick_in.nil?
-      return new(name: siding, thick_in: thick_in, mat_base: BaseMaterial.Aluminum, tAbs: emittance, sAbs: solar_absorptance)
+      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Aluminum)
     end
 
-    fail "Unexpected siding: #{siding}."
+    fail "Unexpected type: #{type}."
   end
 
-  def self.FloorWood
-    return new(name: 'Wood Floor', thick_in: 0.625, k_in: 0.8004, rho: 34.0, cp: 0.29)
-  end
-
-  def self.InteriorFinishMaterial(type, thick_in)
-    if (type == HPXML::InteriorFinishNone) || (thick_in <= 0)
+  def self.InteriorFinishMaterial(type, thick_in = nil)
+    if (type == HPXML::InteriorFinishNone) || (!thick_in.nil? && thick_in <= 0)
       return
     else
-      emittance = 0.9
-      solar_absorptance = 0.6
+      thick_in = 0.5 if thick_in.nil?
       if [HPXML::InteriorFinishGypsumBoard,
           HPXML::InteriorFinishGypsumCompositeBoard,
           HPXML::InteriorFinishPlaster].include? type
-        return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Gypsum, tAbs: emittance, sAbs: solar_absorptance)
+        return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Gypsum)
       elsif [HPXML::InteriorFinishWood].include? type
-        return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Wood, tAbs: emittance, sAbs: solar_absorptance)
+        return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Wood)
       end
     end
 
@@ -244,27 +239,27 @@ class Material
   end
 
   def self.Soil(thick_in)
-    return new(name: "Soil #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Soil)
+    return new(name: "soil #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Soil)
   end
 
   def self.Stud2x(thick_in)
-    return new(name: "Stud 2x #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Wood)
+    return new(name: "stud 2x #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Wood)
   end
 
   def self.Stud2x4
-    return new(name: 'Stud 2x4', thick_in: 3.5, mat_base: BaseMaterial.Wood)
+    return new(name: 'stud 2x4', thick_in: 3.5, mat_base: BaseMaterial.Wood)
   end
 
   def self.Stud2x6
-    return new(name: 'Stud 2x6', thick_in: 5.5, mat_base: BaseMaterial.Wood)
+    return new(name: 'stud 2x6', thick_in: 5.5, mat_base: BaseMaterial.Wood)
   end
 
   def self.Stud2x8
-    return new(name: 'Stud 2x8', thick_in: 7.25, mat_base: BaseMaterial.Wood)
+    return new(name: 'stud 2x8', thick_in: 7.25, mat_base: BaseMaterial.Wood)
   end
 
-  def self.Plywood(thick_in)
-    return new(name: "Plywood #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Wood)
+  def self.OSBSheathing(thick_in)
+    return new(name: "osb sheathing #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Wood)
   end
 
   def self.RadiantBarrier(grade)
@@ -279,11 +274,12 @@ class Material
     rb_emittance = 0.05
     non_rb_emittance = 0.90
     emittance = rb_emittance * (1.0 - gap_frac) + non_rb_emittance * gap_frac
-    return new(name: 'Radiant Barrier', thick_in: 0.0084, k_in: 1629.6, rho: 168.6, cp: 0.22, tAbs: emittance, sAbs: 0.05)
+    return new(name: 'radiant barrier', thick_in: 0.0084, k_in: 1629.6, rho: 168.6, cp: 0.22, tAbs: emittance, sAbs: 0.05)
   end
 
-  def self.RoofMaterial(name, emissivity, absorptivity)
-    return new(name: name, thick_in: 0.375, k_in: 1.128, rho: 70, cp: 0.35, tAbs: emissivity, sAbs: absorptivity)
+  def self.RoofMaterial(type, thick_in = nil)
+    thick_in = 0.375 if thick_in.nil?
+    return new(name: type, thick_in: thick_in, k_in: 1.128, rho: 70, cp: 0.35)
   end
 end
 
