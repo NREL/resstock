@@ -4,13 +4,13 @@ import numpy as np
 import os
 
 #set working directory
-default_dir = "C:/Users/EPRESENT/Documents/Mini Projects/Facades/ResStock Results/test10kNo3"
+default_dir = "C:/Users/epresent/Documents/Mini Projects/Facades/ResStock Results/infiltration_check_run500No3"
 
 #load utility bill costs
-df_elec_costs = pd.read_csv("C:/Users/EPRESENT/Documents/Mini Projects/Facades/Economic Analysis/Variable Elec Cost by State from EIA State Data.csv")
-df_ng_costs = pd.read_csv('C:/Users/EPRESENT/Documents/Load Shapes Project/Modeling and Calibration/Calculating Utility Bills/NG costs by state.csv')
-df_fo_costs = pd.read_csv('C:/Users/EPRESENT/Documents/Load Shapes Project/Modeling and Calibration/Calculating Utility Bills/Fuel Oil Prices Averaged by State.csv')
-df_lp_costs = pd.read_csv('C:/Users/EPRESENT/Documents/Load Shapes Project/Modeling and Calibration/Calculating Utility Bills/Propane costs by state.csv')
+df_elec_costs = pd.read_csv("Fuel Price Input Files/Variable Elec Cost by State from EIA State Data.csv")
+df_ng_costs = pd.read_csv('Fuel Price Input Files/NG costs by state.csv')
+df_fo_costs = pd.read_csv('Fuel Price Input Files/Fuel Oil Prices Averaged by State.csv')
+df_lp_costs = pd.read_csv('Fuel Price Input Files/Propane costs by state.csv')
 
 #define constants
 btu_propane_in_one_gallon = 91452 #source: https://www.eia.gov/energyexplained/units-and-calculators/
@@ -34,16 +34,16 @@ def downselect_cols(df):
 	return df
 
 #calculate total energy difference for each upgrade, for each home, add to the mini dataframes
-def calc_delta_elec(df_upgrade, df_baseline):
-	return (df_upgrade['simulation_output_report.total_site_electricity_kwh']-df_baseline['simulation_output_report.total_site_electricity_kwh'])
-def calc_delta_ng(df_upgrade, df_baseline):
-	return (df_upgrade['simulation_output_report.total_site_natural_gas_therm']-df_baseline['simulation_output_report.total_site_natural_gas_therm'])
-def calc_delta_fo(df_upgrade, df_baseline):
-	return (df_upgrade['simulation_output_report.total_site_fuel_oil_mbtu']-df_baseline['simulation_output_report.total_site_fuel_oil_mbtu'])
-def calc_delta_lp(df_upgrade, df_baseline):
-	return (df_upgrade['simulation_output_report.total_site_propane_mbtu']-df_baseline['simulation_output_report.total_site_propane_mbtu'])
-def calc_delta_energy(df_upgrade, df_baseline):
-    return(df_upgrade['simulation_output_report.total_site_energy_mbtu']-df_baseline['simulation_output_report.total_site_energy_mbtu'])
+def calc_delta_elec(df_baseline, df_upgrade):
+	return (df_baseline['simulation_output_report.total_site_electricity_kwh']-df_upgrade['simulation_output_report.total_site_electricity_kwh'])
+def calc_delta_ng(df_baseline, df_upgrade):
+	return (df_baseline['simulation_output_report.total_site_natural_gas_therm']-df_upgrade['simulation_output_report.total_site_natural_gas_therm'])
+def calc_delta_fo(df_baseline, df_upgrade):
+	return (df_baseline['simulation_output_report.total_site_fuel_oil_mbtu']-df_upgrade['simulation_output_report.total_site_fuel_oil_mbtu'])
+def calc_delta_lp(df_baseline, df_upgrade):
+	return (df_baseline['simulation_output_report.total_site_propane_mbtu']-df_upgrade['simulation_output_report.total_site_propane_mbtu'])
+def calc_delta_energy(df_baseline, df_upgrade):
+    return(df_baseline['simulation_output_report.total_site_energy_mbtu']-df_upgrade['simulation_output_report.total_site_energy_mbtu'])
 
 #calculate year1 utility bill savings
 def calc_year1_bill_savings(var_util_costs, delta_energy):
@@ -73,6 +73,7 @@ def calc_npv(upfront_cost, year1_savings): #note: assuming 30 year lifetime for 
 		cost_array = [0]*(analysis_period+1)
 		cost_array[0] = cost
 		savings_array = [savings] * (analysis_period+1)
+        savings_array[0] = 0
 		cash_flows = list(np.array(savings_array)-np.array(cost_array))
 		npv = 0
 		for year in range(0,analysis_period + 1):
