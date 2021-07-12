@@ -18,10 +18,14 @@ enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family
                                                                   'Multi-Family with 5+ Units': 'MF'} }
 
 class MoreCompare(BaseCompare):
-  def __init__(self, base_folder, feature_folder, export_folder):
+  def __init__(self, base_folder, feature_folder, export_folder, map_results):
     self.base_folder = base_folder
     self.feature_folder = feature_folder
     self.export_folder = export_folder
+
+    if map_results:
+      self.map_columns(map_results)
+
 
   def samples(self):
 
@@ -53,6 +57,88 @@ class MoreCompare(BaseCompare):
     file = os.path.join(self.export_folder, 'feature_samples.csv')
     value_counts(df, file)
 
+  def convert_units(self, df):
+    for col in df.columns:
+      units = col.split('_')[-1]
+      if units == 'kwh':
+        if col == 'simulation_output_report.electricity_heating_supplemental_kwh':
+            df[col] *= 3412.14/1000 # to kbtu
+        else:
+            df[col] *= 3412.14/1000000  # to mbtu
+      elif units == 'therm':
+          df[col] *= 0.1  # to mbtu
+
+    return
+
+  def map_columns(self, map_results):
+    cwd = os.path.dirname(os.path.realpath(__file__))
+    map_df = pd.read_csv(os.path.join(cwd, 'column_mapping.csv'), usecols=['restructure_cols','develop_cols'])
+    map_df = map_df.dropna(axis=0)
+    map_dict = {k:v for k,v in zip(map_df['develop_cols'], map_df['restructure_cols'])}
+    base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0)
+    feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output.csv'), index_col=0)
+
+    if map_results == 'base':
+      df_to_keep = base_df
+      df_to_map = feature_df
+    elif map_results == 'feature':
+      df_to_keep  = feature_df
+      df_to_map = base_df
+
+    # Aggregate variables w/ multiple cols
+    del_cols_map = []
+    for cols, map_to in map_dict.items():
+      map_to_s = map_to.split(',')
+      if len(map_to_s) > 1: # Sum columns and use first parameter as col name
+        map_to = map_to_s[0]
+        try:
+          df_to_keep[map_to] = df_to_keep[map_to_s].sum(axis=1)
+        except:
+          for col in map_to_s:
+            if col in df_to_keep.columns:
+              df_to_keep[map_to] = df_to_keep[col]
+        map_dict[cols] = map_to
+
+      cols_s = cols.split(',')
+      if len(cols_s)>1:
+        del_cols_map.append(cols)
+        cols_s = [col.split('.')[1] for col in cols_s]
+        try:
+          df_to_map[map_to] = df_to_map[cols_s].sum(axis=1)
+        except:
+          for col in cols_s:
+            if col in df_to_map.columns:
+              df_to_map[map_to] = df_to_map[col]
+
+    for col in del_cols_map:
+      del map_dict[col]
+
+    self.convert_units(df_to_map)
+    self.convert_units(df_to_keep)
+   
+    # Map column headers
+    map_dict = {k.split('.')[1]:v for k,v in map_dict.items()}
+    df_to_map.rename(columns=map_dict, inplace=True)
+    
+    # Filter out aggregated and non-overlapping columns   
+    mapped_cols = list(set(map_dict.values()).intersection(list(df_to_map.columns)))
+    df_to_map = df_to_map[mapped_cols]
+    missing_cols = list(set(df_to_keep.columns) - set(df_to_map.columns))
+    df_to_map[missing_cols] = np.nan
+
+    # Re-order columns for comparison
+    df_to_keep = df_to_keep.reindex(sorted(df_to_keep.columns), axis=1)
+    df_to_map = df_to_map.reindex(sorted(df_to_map.columns), axis=1)
+
+    if map_results == 'base':
+      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output_map.csv'))
+      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output_map.csv'))
+    elif map_results == 'feature':
+      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output_map.csv'))
+      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output_map.csv'))
+
+    return
+
 if __name__ == '__main__':
 
   default_base_folder = 'test/test_samples_osw/base'
@@ -64,6 +150,7 @@ if __name__ == '__main__':
   aggregate_functions = ['sum', 'mean']
   display_columns = ['build_existing_model.geometry_building_type_recs',
                      'build_existing_model.county']
+  map_result_choices = ['base', 'feature']
 
   parser = argparse.ArgumentParser()
   parser.add_argument('-b', '--base_folder', default=default_base_folder, help='The path of the base folder.')
@@ -73,12 +160,13 @@ if __name__ == '__main__':
   parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
   parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
   parser.add_argument('-dc', '--display_column', choices=display_columns, help='How to organize the subplots.')
+  parser.add_argument('-m', '--map_results', choices=map_result_choices, help="Which file's columns to map to")
   args = parser.parse_args()
 
   if not os.path.exists(args.export_folder):
     os.makedirs(args.export_folder)
-
-  compare = MoreCompare(args.base_folder, args.feature_folder, args.export_folder)
+    
+  compare = MoreCompare(args.base_folder, args.feature_folder, args.export_folder, args.map_results)
 
   if args.actions == None:
     args.actions = [] 
@@ -88,7 +176,7 @@ if __name__ == '__main__':
       compare.samples()
     elif action == 'results':
       excludes = ['buildstock.csv']
-      compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps)
+      compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps, args.map_results)
     elif action == 'visualize':
       excludes = ['buildstock.csv', 'results_characteristics.csv']
       compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps)

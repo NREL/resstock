@@ -14,7 +14,7 @@ class BaseCompare:
     self.feature_folder = feature_folder
     self.export_folder = export_folder
 
-  def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}):
+  def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}, map_results=None):
     aggregate_columns = []
     if aggregate_column:
       aggregate_columns.append(aggregate_column)
@@ -25,8 +25,14 @@ class BaseCompare:
         files.append(file)
 
     for file in sorted(files):
-      base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
-      feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
+      if file == 'results_output_map.csv':
+        continue
+      if file == 'results_output.csv' and map_results:
+        base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output_map.csv'), index_col=0)
+        feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output_map.csv'), index_col=0)
+      else:
+        base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
+        feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
 
       try:
         df = feature_df - base_df
@@ -39,10 +45,13 @@ class BaseCompare:
 
       # Get results charactersistics of groupby columns
       if file == 'results_characteristics.csv':
+        ## FIXME: Assumes that base df comes from `develop` branch
+        if map_results:
+          base_df.columns = ['build_existing_model.' + col for col in base_df.columns]
         group_df = base_df[aggregate_columns]
 
       # Write grouped & aggregated results dfs
-      if file != 'results_characteristics.csv':
+      if file == 'results_output.csv':
         for col, enum_map in enum_maps.items():
           if col in aggregate_columns:
             group_df[col] = group_df[col].map(enum_map)
@@ -54,30 +63,32 @@ class BaseCompare:
           base_df = group_df.merge(base_df, 'outer', left_index=True, right_index=True).groupby(aggregate_columns)
           feature_df = group_df.merge(feature_df, 'outer', left_index=True, right_index=True).groupby(aggregate_columns)
           if aggregate_function == 'sum':
-            base_df = base_df.sum().stack()
-            feature_df = feature_df.sum().stack()
+            base_df = base_df.sum(min_count=1).stack(dropna=False)
+            feature_df = feature_df.sum(min_count=1).stack(dropna=False)
           elif aggregate_function == 'mean':
-            base_df = base_df.mean().stack()
-            feature_df = feature_df.mean().stack()
+            base_df = base_df.mean(numeric_only=True).stack(dropna=False)
+            feature_df = feature_df.mean(numeric_only=True).stack(dropna=False)
         else:
           if aggregate_function == 'sum':
-            base_df = base_df.sum(numeric_only=True)
-            feature_df = feature_df.sum(numeric_only=True)
+            base_df = base_df.sum(min_count=1)
+            feature_df = feature_df.sum(min_count=1)
           elif aggregate_function == 'mean':
             base_df = base_df.mean(numeric_only=True)
             feature_df = feature_df.mean(numeric_only=True)
 
-    if not aggregate_columns: return
+    if not aggregate_function: return
 
     # Write aggregate results df
     deltas = pd.DataFrame()
     deltas['base'] = base_df
     deltas['feature'] = feature_df
     deltas['diff'] = deltas['feature'] - deltas['base']
-    deltas['% diff'] = 100*(deltas['diff']/deltas['base'])
-    deltas = deltas.round(2)                          
+    deltas_non_zero = deltas[deltas['base'] != 0].index
+    deltas.loc[deltas_non_zero, '% diff'] = 100*(deltas.loc[deltas_non_zero,'diff']/deltas.loc[deltas_non_zero, 'base'])
+    deltas = deltas.round(2)  
     deltas.reset_index(level=aggregate_columns, inplace=True)
     deltas.index.name = 'enduse'
+    deltas.fillna('n/a', inplace=True)
     sims_df = pd.DataFrame({'base': sim_ct_base,
                             'feature': sim_ct_feature,
                             'diff': 'n/a',
