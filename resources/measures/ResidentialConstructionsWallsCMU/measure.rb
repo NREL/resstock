@@ -150,7 +150,7 @@ class ProcessConstructionsWallsCMU < OpenStudio::Measure::ModelMeasure
     mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue('exterior_finish', user_arguments))
 
     # Remove wall sheathing if no exterior finish
-    if mat_ext_finish.name.include? "None"
+    if mat_ext_finish.name.include? 'None'
       osb_thick_in = 0.0
     end
 
@@ -186,8 +186,8 @@ class ProcessConstructionsWallsCMU < OpenStudio::Measure::ModelMeasure
     end
 
     # Assume uninsulated wall properties (garage walls, gable walls, etc) if no exterior finish
-    if mat_ext_finish.name.include? "None"
-      unins_ext_finish = WallConstructions.get_exterior_finish_material("Vinyl, Light")
+    if mat_ext_finish.name.include? 'None'
+      unins_ext_finish = WallConstructions.get_exterior_finish_material('Vinyl, Light')
       osb_thick_in = 0.5
     else
       unins_ext_finish = mat_ext_finish

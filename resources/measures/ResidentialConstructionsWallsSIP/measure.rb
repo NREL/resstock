@@ -134,7 +134,7 @@ class ProcessConstructionsWallsSIP < OpenStudio::Measure::ModelMeasure
     rigid_r = runner.getDoubleArgumentValue('rigid_r', user_arguments)
     mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue('exterior_finish', user_arguments))
 
-    if mat_ext_finish.name.include?("None")
+    if mat_ext_finish.name.include?('None')
       runner.registerError("SIP walls cannot have a 'None' exterior finish")
       return false
     end
