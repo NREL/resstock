@@ -662,7 +662,7 @@ class OSModel
                                              cavity_r, install_grade, cavity_ins_thick_in,
                                              framing_factor, framing_thick_in,
                                              constr_set.osb_thick_in, layer_r + constr_set.rigid_r,
-                                             mat_roofing, has_radiant_barrier,
+                                             constr_set.mat_ext_finish, has_radiant_barrier,
                                              inside_film, outside_film, radiant_barrier_grade,
                                              roof.solar_absorptance, roof.emittance)
       end

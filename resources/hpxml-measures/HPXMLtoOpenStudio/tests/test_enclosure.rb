@@ -76,6 +76,27 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       [{ assembly_r: 0.1, layer_names: ['wood shingles or shakes', 'roof stud and cavity', 'wood'] },
        { assembly_r: 5.0, layer_names: ['wood shingles or shakes', 'osb sheathing', 'roof stud and cavity', 'wood'] },
        { assembly_r: 20.0, layer_names: ['wood shingles or shakes', 'roof rigid ins', 'osb sheathing', 'roof stud and cavity', 'wood'] }],
+      # Shingles
+      [{ assembly_r: 0.1, layer_names: ['shingles', 'roof stud and cavity', 'gypsum board'] },
+       { assembly_r: 5.0, layer_names: ['shingles', 'osb sheathing', 'roof stud and cavity', 'gypsum board'] },
+       { assembly_r: 20.0, layer_names: ['shingles', 'roof rigid ins', 'osb sheathing', 'roof stud and cavity', 'gypsum board'] }],
+      # Plastic/rubber
+      [{ assembly_r: 0.1, layer_names: ['plastic/rubber/synthetic sheeting', 'roof stud and cavity', 'plaster'] },
+       { assembly_r: 5.0, layer_names: ['plastic/rubber/synthetic sheeting', 'osb sheathing', 'roof stud and cavity', 'plaster'] },
+       { assembly_r: 20.0, layer_names: ['plastic/rubber/synthetic sheeting', 'roof rigid ins', 'osb sheathing', 'roof stud and cavity', 'plaster'] }],
+      # EPS
+      [{ assembly_r: 0.1, layer_names: ['expanded polystyrene sheathing', 'roof stud and cavity', 'wood'] },
+       { assembly_r: 5.0, layer_names: ['expanded polystyrene sheathing', 'roof stud and cavity', 'wood'] },
+       { assembly_r: 20.0, layer_names: ['expanded polystyrene sheathing', 'roof rigid ins', 'osb sheathing', 'roof stud and cavity', 'wood'] }],
+      # Concrete
+      [{ assembly_r: 0.1, layer_names: ['concrete', 'roof stud and cavity', 'gypsum board'] },
+       { assembly_r: 5.0, layer_names: ['concrete', 'osb sheathing', 'roof stud and cavity', 'gypsum board'] },
+       { assembly_r: 20.0, layer_names: ['concrete', 'roof rigid ins', 'osb sheathing', 'roof stud and cavity', 'gypsum board'] }],
+      # Cool
+      [{ assembly_r: 0.1, layer_names: ['cool roof', 'roof stud and cavity', 'plaster'] },
+       { assembly_r: 5.0, layer_names: ['cool roof', 'osb sheathing', 'roof stud and cavity', 'plaster'] },
+       { assembly_r: 20.0, layer_names: ['cool roof', 'roof rigid ins', 'osb sheathing', 'roof stud and cavity', 'plaster'] }],
+
     ]
 
     hpxml = _create_hpxml('base-enclosure-rooftypes.xml')
@@ -134,23 +155,39 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
     # Miscellaneous
     rimjs_values = [
-      # Aluminum siding
+      # Aluminum
       [{ assembly_r: 0.1, layer_names: ['aluminum siding', 'rim joist stud and cavity'] },
        { assembly_r: 5.0, layer_names: ['aluminum siding', 'osb sheathing', 'rim joist stud and cavity'] },
        { assembly_r: 20.0, layer_names: ['aluminum siding', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
+      # Asbestos
+      [{ assembly_r: 0.1, layer_names: ['asbestos siding', 'rim joist stud and cavity'] },
+       { assembly_r: 5.0, layer_names: ['asbestos siding', 'osb sheathing', 'rim joist stud and cavity'] },
+       { assembly_r: 20.0, layer_names: ['asbestos siding', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
       # Brick veneer
       [{ assembly_r: 0.1, layer_names: ['brick veneer', 'rim joist stud and cavity'] },
        { assembly_r: 5.0, layer_names: ['brick veneer', 'osb sheathing', 'rim joist stud and cavity'] },
        { assembly_r: 20.0, layer_names: ['brick veneer', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
-      # Fiber cement siding
+      # Composite shingle
+      [{ assembly_r: 0.1, layer_names: ['composite shingle siding', 'rim joist stud and cavity'] },
+       { assembly_r: 5.0, layer_names: ['composite shingle siding', 'osb sheathing', 'rim joist stud and cavity'] },
+       { assembly_r: 20.0, layer_names: ['composite shingle siding', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
+      # Fiber cement
       [{ assembly_r: 0.1, layer_names: ['fiber cement siding', 'rim joist stud and cavity'] },
        { assembly_r: 5.0, layer_names: ['fiber cement siding', 'osb sheathing', 'rim joist stud and cavity'] },
        { assembly_r: 20.0, layer_names: ['fiber cement siding', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
+      # Masonite
+      [{ assembly_r: 0.1, layer_names: ['masonite siding', 'rim joist stud and cavity'] },
+       { assembly_r: 5.0, layer_names: ['masonite siding', 'osb sheathing', 'rim joist stud and cavity'] },
+       { assembly_r: 20.0, layer_names: ['masonite siding', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
       # Stucco
       [{ assembly_r: 0.1, layer_names: ['stucco', 'rim joist stud and cavity'] },
        { assembly_r: 5.0, layer_names: ['stucco', 'osb sheathing', 'rim joist stud and cavity'] },
        { assembly_r: 20.0, layer_names: ['stucco', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
-      # Vinyl siding
+      # Synthetic stucco
+      [{ assembly_r: 0.1, layer_names: ['synthetic stucco', 'rim joist stud and cavity'] },
+       { assembly_r: 5.0, layer_names: ['synthetic stucco', 'rim joist stud and cavity'] },
+       { assembly_r: 20.0, layer_names: ['synthetic stucco', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
+      # Vinyl
       [{ assembly_r: 0.1, layer_names: ['vinyl siding', 'rim joist stud and cavity'] },
        { assembly_r: 5.0, layer_names: ['vinyl siding', 'osb sheathing', 'rim joist stud and cavity'] },
        { assembly_r: 20.0, layer_names: ['vinyl siding', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
@@ -201,45 +238,45 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
        { assembly_r: 5.0, layer_names: ['aluminum siding', 'wall rigid ins', 'concrete block', 'gypsum board'] },
        { assembly_r: 20.0, layer_names: ['aluminum siding', 'wall rigid ins', 'osb sheathing', 'concrete block', 'gypsum board'] }],
       # Double Stud wall
-      [{ assembly_r: 0.1, layer_names: ['brick veneer', 'wall stud and cavity', 'wall cavity', 'wall stud and cavity', 'gypsum board'] },
-       { assembly_r: 5.0, layer_names: ['brick veneer', 'osb sheathing', 'wall stud and cavity', 'wall cavity', 'wall stud and cavity', 'gypsum board'] },
-       { assembly_r: 20.0, layer_names: ['brick veneer', 'osb sheathing', 'wall stud and cavity', 'wall cavity', 'wall stud and cavity', 'gypsum board'] }],
+      [{ assembly_r: 0.1, layer_names: ['asbestos siding', 'wall stud and cavity', 'wall cavity', 'wall stud and cavity', 'gypsum board'] },
+       { assembly_r: 5.0, layer_names: ['asbestos siding', 'osb sheathing', 'wall stud and cavity', 'wall cavity', 'wall stud and cavity', 'gypsum board'] },
+       { assembly_r: 20.0, layer_names: ['asbestos siding', 'osb sheathing', 'wall stud and cavity', 'wall cavity', 'wall stud and cavity', 'gypsum board'] }],
       # ICF wall
-      [{ assembly_r: 0.1, layer_names: ['fiber cement siding', 'wall ins form', 'wall concrete', 'wall ins form', 'gypsum composite board'] },
-       { assembly_r: 5.0, layer_names: ['fiber cement siding', 'osb sheathing', 'wall ins form', 'wall concrete', 'wall ins form', 'gypsum composite board'] },
-       { assembly_r: 20.0, layer_names: ['fiber cement siding', 'osb sheathing', 'wall ins form', 'wall concrete', 'wall ins form', 'gypsum composite board'] }],
+      [{ assembly_r: 0.1, layer_names: ['brick veneer', 'wall ins form', 'wall concrete', 'wall ins form', 'gypsum composite board'] },
+       { assembly_r: 5.0, layer_names: ['brick veneer', 'osb sheathing', 'wall ins form', 'wall concrete', 'wall ins form', 'gypsum composite board'] },
+       { assembly_r: 20.0, layer_names: ['brick veneer', 'osb sheathing', 'wall ins form', 'wall concrete', 'wall ins form', 'gypsum composite board'] }],
       # Log wall
-      [{ assembly_r: 0.1, layer_names: ['stucco', 'wall layer', 'plaster'] },
-       { assembly_r: 5.0, layer_names: ['stucco', 'osb sheathing', 'wall layer', 'plaster'] },
-       { assembly_r: 20.0, layer_names: ['stucco', 'wall rigid ins', 'osb sheathing', 'wall layer', 'plaster'] }],
+      [{ assembly_r: 0.1, layer_names: ['composite shingle siding', 'wall layer', 'plaster'] },
+       { assembly_r: 5.0, layer_names: ['composite shingle siding', 'osb sheathing', 'wall layer', 'plaster'] },
+       { assembly_r: 20.0, layer_names: ['composite shingle siding', 'wall rigid ins', 'osb sheathing', 'wall layer', 'plaster'] }],
       # SIP wall
-      [{ assembly_r: 0.1, layer_names: ['vinyl siding', 'wall spline layer', 'wall ins layer', 'wall spline layer', 'osb sheathing', 'wood'] },
-       { assembly_r: 5.0, layer_names: ['vinyl siding', 'osb sheathing', 'wall spline layer', 'wall ins layer', 'wall spline layer', 'osb sheathing', 'wood'] },
-       { assembly_r: 20.0, layer_names: ['vinyl siding', 'osb sheathing', 'wall spline layer', 'wall ins layer', 'wall spline layer', 'osb sheathing', 'wood'] }],
+      [{ assembly_r: 0.1, layer_names: ['fiber cement siding', 'wall spline layer', 'wall ins layer', 'wall spline layer', 'osb sheathing', 'wood'] },
+       { assembly_r: 5.0, layer_names: ['fiber cement siding', 'osb sheathing', 'wall spline layer', 'wall ins layer', 'wall spline layer', 'osb sheathing', 'wood'] },
+       { assembly_r: 20.0, layer_names: ['fiber cement siding', 'osb sheathing', 'wall spline layer', 'wall ins layer', 'wall spline layer', 'osb sheathing', 'wood'] }],
       # Solid Concrete wall
-      [{ assembly_r: 0.1, layer_names: ['wall layer'] },
-       { assembly_r: 5.0, layer_names: ['osb sheathing', 'wall layer'] },
-       { assembly_r: 20.0, layer_names: ['wall rigid ins', 'osb sheathing', 'wall layer'] }],
+      [{ assembly_r: 0.1, layer_names: ['masonite siding', 'wall layer'] },
+       { assembly_r: 5.0, layer_names: ['masonite siding', 'osb sheathing', 'wall layer'] },
+       { assembly_r: 20.0, layer_names: ['masonite siding', 'wall rigid ins', 'osb sheathing', 'wall layer'] }],
       # Steel frame wall
-      [{ assembly_r: 0.1, layer_names: ['aluminum siding', 'wall stud and cavity', 'gypsum board'] },
-       { assembly_r: 5.0, layer_names: ['aluminum siding', 'osb sheathing', 'wall stud and cavity', 'gypsum board'] },
-       { assembly_r: 20.0, layer_names: ['aluminum siding', 'wall rigid ins', 'osb sheathing', 'wall stud and cavity', 'gypsum board'] }],
+      [{ assembly_r: 0.1, layer_names: ['stucco', 'wall stud and cavity', 'gypsum board'] },
+       { assembly_r: 5.0, layer_names: ['stucco', 'osb sheathing', 'wall stud and cavity', 'gypsum board'] },
+       { assembly_r: 20.0, layer_names: ['stucco', 'wall rigid ins', 'osb sheathing', 'wall stud and cavity', 'gypsum board'] }],
       # Stone wall
-      [{ assembly_r: 0.1, layer_names: ['brick veneer', 'wall layer', 'gypsum board'] },
-       { assembly_r: 5.0, layer_names: ['brick veneer', 'osb sheathing', 'wall layer', 'gypsum board'] },
-       { assembly_r: 20.0, layer_names: ['brick veneer', 'wall rigid ins', 'osb sheathing', 'wall layer', 'gypsum board'] }],
+      [{ assembly_r: 0.1, layer_names: ['synthetic stucco', 'wall layer', 'gypsum board'] },
+       { assembly_r: 5.0, layer_names: ['synthetic stucco', 'wall layer', 'gypsum board'] },
+       { assembly_r: 20.0, layer_names: ['synthetic stucco', 'wall rigid ins', 'osb sheathing', 'wall layer', 'gypsum board'] }],
       # Straw Bale wall
-      [{ assembly_r: 0.1, layer_names: ['fiber cement siding', 'wall layer', 'gypsum composite board'] },
-       { assembly_r: 5.0, layer_names: ['fiber cement siding', 'osb sheathing', 'wall layer', 'gypsum composite board'] },
-       { assembly_r: 20.0, layer_names: ['fiber cement siding', 'wall rigid ins', 'osb sheathing', 'wall layer', 'gypsum composite board'] }],
+      [{ assembly_r: 0.1, layer_names: ['vinyl siding', 'wall layer', 'gypsum composite board'] },
+       { assembly_r: 5.0, layer_names: ['vinyl siding', 'osb sheathing', 'wall layer', 'gypsum composite board'] },
+       { assembly_r: 20.0, layer_names: ['vinyl siding', 'wall rigid ins', 'osb sheathing', 'wall layer', 'gypsum composite board'] }],
       # Structural Brick wall
-      [{ assembly_r: 0.1, layer_names: ['stucco', 'wall layer', 'plaster'] },
-       { assembly_r: 5.0, layer_names: ['stucco', 'osb sheathing', 'wall layer', 'plaster'] },
-       { assembly_r: 20.0, layer_names: ['stucco', 'wall rigid ins', 'osb sheathing', 'wall layer', 'plaster'] }],
+      [{ assembly_r: 0.1, layer_names: ['wall layer', 'plaster'] },
+       { assembly_r: 5.0, layer_names: ['osb sheathing', 'wall layer', 'plaster'] },
+       { assembly_r: 20.0, layer_names: ['wall rigid ins', 'osb sheathing', 'wall layer', 'plaster'] }],
       # Adobe wall
-      [{ assembly_r: 0.1, layer_names: ['vinyl siding', 'wall layer', 'wood'] },
-       { assembly_r: 5.0, layer_names: ['vinyl siding', 'osb sheathing', 'wall layer', 'wood'] },
-       { assembly_r: 20.0, layer_names: ['vinyl siding', 'wall rigid ins', 'osb sheathing', 'wall layer', 'wood'] }],
+      [{ assembly_r: 0.1, layer_names: ['aluminum siding', 'wall layer', 'wood'] },
+       { assembly_r: 5.0, layer_names: ['aluminum siding', 'osb sheathing', 'wall layer', 'wood'] },
+       { assembly_r: 20.0, layer_names: ['aluminum siding', 'wall rigid ins', 'osb sheathing', 'wall layer', 'wood'] }],
     ]
 
     hpxml = _create_hpxml('base-enclosure-walltypes.xml')

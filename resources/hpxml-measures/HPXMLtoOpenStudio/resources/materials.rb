@@ -198,24 +198,33 @@ class Material
   def self.ExteriorFinishMaterial(type, thick_in = nil)
     if (type == HPXML::SidingTypeNone) || (!thick_in.nil? && thick_in <= 0)
       return
-    elsif type == HPXML::SidingTypeWood
-      thick_in = 1.0 if thick_in.nil?
-      return new(name: type, thick_in: thick_in, k_in: 0.71, rho: 34.0, cp: 0.28)
-    elsif type == HPXML::SidingTypeVinyl
-      thick_in = 0.375 if thick_in.nil?
-      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Vinyl)
-    elsif type == HPXML::SidingTypeStucco
-      thick_in = 1.0 if thick_in.nil?
-      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Stucco)
-    elsif type == HPXML::SidingTypeFiberCement
-      thick_in = 0.375 if thick_in.nil?
-      return new(name: type, thick_in: thick_in, k_in: 1.79, rho: 21.7, cp: 0.24)
-    elsif type == HPXML::SidingTypeBrick
+    elsif [HPXML::SidingTypeAsbestos].include? type
+      thick_in = 0.25 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, k_in: 4.20, rho: 118.6, cp: 0.24)
+    elsif [HPXML::SidingTypeBrick].include? type
       thick_in = 4.0 if thick_in.nil?
       return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Brick)
-    elsif type == HPXML::SidingTypeAluminum
+    elsif [HPXML::SidingTypeCompositeShingle].include? type
+      thick_in = 0.25 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, k_in: 1.128, rho: 70.0, cp: 0.35)
+    elsif [HPXML::SidingTypeFiberCement].include? type
       thick_in = 0.375 if thick_in.nil?
-      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Aluminum)
+      return new(name: type, thick_in: thick_in, k_in: 1.79, rho: 21.7, cp: 0.24)
+    elsif [HPXML::SidingTypeMasonite].include? type # Masonite hardboard
+      thick_in = 0.5 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, k_in: 0.69, rho: 46.8, cp: 0.39)
+    elsif [HPXML::SidingTypeStucco].include? type
+      thick_in = 1.0 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Stucco)
+    elsif [HPXML::SidingTypeSyntheticStucco].include? type # EIFS
+      thick_in = 1.0 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.InsulationRigid)
+    elsif [HPXML::SidingTypeVinyl, HPXML::SidingTypeAluminum].include? type
+      thick_in = 0.375 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.Vinyl)
+    elsif [HPXML::SidingTypeWood].include? type
+      thick_in = 1.0 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, k_in: 0.71, rho: 34.0, cp: 0.28)
     end
 
     fail "Unexpected type: #{type}."
@@ -263,7 +272,7 @@ class Material
   end
 
   def self.RadiantBarrier(grade)
-    # Merge w/ Constructions.get_gap_factor
+    # FUTURE: Merge w/ Constructions.get_gap_factor
     if grade == 1
       gap_frac = 0.0
     elsif grade == 2
@@ -278,8 +287,27 @@ class Material
   end
 
   def self.RoofMaterial(type, thick_in = nil)
-    thick_in = 0.375 if thick_in.nil?
-    return new(name: type, thick_in: thick_in, k_in: 1.128, rho: 70, cp: 0.35)
+    if [HPXML::RoofTypeMetal].include? type
+      thick_in = 0.02 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, k_in: 346.9, rho: 487.0, cp: 0.11)
+    elsif [HPXML::RoofTypeAsphaltShingles, HPXML::RoofTypeWoodShingles, HPXML::RoofTypeShingles, HPXML::RoofTypeCool].include? type
+      thick_in = 0.25 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, k_in: 1.128, rho: 70.0, cp: 0.35)
+    elsif [HPXML::RoofTypeConcrete].include? type
+      thick_in = 0.75 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, k_in: 7.63, rho: 131.1, cp: 0.199)
+    elsif [HPXML::RoofTypeClayTile].include? type
+      thick_in = 0.75 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, k_in: 5.83, rho: 118.6, cp: 0.191)
+    elsif [HPXML::RoofTypeEPS].include? type
+      thick_in = 1.0 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, mat_base: BaseMaterial.InsulationRigid)
+    elsif [HPXML::RoofTypePlasticRubber].include? type
+      thick_in = 0.25 if thick_in.nil?
+      return new(name: type, thick_in: thick_in, k_in: 2.78, rho: 110.8, cp: 0.36)
+    end
+
+    fail "Unexpected type: #{type}."
   end
 end
 
@@ -347,10 +375,6 @@ class BaseMaterial
 
   def self.Vinyl
     return new(rho: 11.1, cp: 0.25, k_in: 0.62)
-  end
-
-  def self.Aluminum
-    return new(rho: 10.9, cp: 0.29, k_in: 0.61)
   end
 
   def self.Stucco
