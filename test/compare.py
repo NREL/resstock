@@ -71,13 +71,44 @@ class MoreCompare(BaseCompare):
     return
 
   def map_columns(self, map_results):
+    # Read in files
+    ## Characteristics
+    base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
+    feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
+
+    ## Outputs
+    base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0)
+    feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output.csv'), index_col=0)
+
+    ## Mapping
     cwd = os.path.dirname(os.path.realpath(__file__))
     map_df = pd.read_csv(os.path.join(cwd, 'column_mapping.csv'), usecols=['restructure_cols','develop_cols'])
     map_df = map_df.dropna(axis=0)
     map_dict = {k:v for k,v in zip(map_df['develop_cols'], map_df['restructure_cols'])}
-    base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0)
-    feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output.csv'), index_col=0)
 
+    # Set new base and feature folders
+    self.base_folder = os.path.join(self.base_folder, 'map')
+    self.feature_folder = os.path.join(self.feature_folder, 'map')
+    if not os.path.exists(self.base_folder):
+      os.makedirs(self.base_folder)
+    if not os.path.exists(self.feature_folder):
+      os.makedirs(self.feature_folder)
+
+    # Align results_charactersitics columns
+    base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
+    feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
+
+    base_df_char.columns = base_cols
+    feature_df_char.columns = feature_cols
+
+    common_cols = np.intersect1d(base_df_char.columns, feature_df_char.columns)
+    base_df_char = base_df_char[common_cols]
+    feature_df_char = feature_df_char[common_cols]
+
+    base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
+    feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
+
+    # Map results_output columns
     if map_results == 'base':
       df_to_keep = base_df
       df_to_map = feature_df
@@ -113,6 +144,7 @@ class MoreCompare(BaseCompare):
     for col in del_cols_map:
       del map_dict[col]
 
+    # Convert units
     self.convert_units(df_to_map)
     self.convert_units(df_to_keep)
    
@@ -130,12 +162,13 @@ class MoreCompare(BaseCompare):
     df_to_keep = df_to_keep.reindex(sorted(df_to_keep.columns), axis=1)
     df_to_map = df_to_map.reindex(sorted(df_to_map.columns), axis=1)
 
+    # Store new mapped csvs
     if map_results == 'base':
-      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output_map.csv'))
-      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output_map.csv'))
+      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
+      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
     elif map_results == 'feature':
-      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output_map.csv'))
-      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output_map.csv'))
+      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
+      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
 
     return
 
@@ -176,7 +209,10 @@ if __name__ == '__main__':
       compare.samples()
     elif action == 'results':
       excludes = ['buildstock.csv']
-      compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps, args.map_results)
+      if args.map_results:
+        compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps, args.map_results)
+      else:
+        compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps)
     elif action == 'visualize':
       excludes = ['buildstock.csv', 'results_characteristics.csv']
       compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps)

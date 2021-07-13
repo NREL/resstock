@@ -14,7 +14,7 @@ class BaseCompare:
     self.feature_folder = feature_folder
     self.export_folder = export_folder
 
-  def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}, map_results=None):
+  def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}):
     aggregate_columns = []
     if aggregate_column:
       aggregate_columns.append(aggregate_column)
@@ -25,11 +25,9 @@ class BaseCompare:
         files.append(file)
 
     for file in sorted(files):
-      if file == 'results_output_map.csv':
-        continue
-      if file == 'results_output.csv' and map_results:
-        base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output_map.csv'), index_col=0)
-        feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output_map.csv'), index_col=0)
+      if file == 'results_output.csv':
+        base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0).select_dtypes(exclude=['string', 'bool'])
+        feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output.csv'), index_col=0).select_dtypes(exclude=['string', 'bool'])
       else:
         base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
         feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
@@ -45,9 +43,6 @@ class BaseCompare:
 
       # Get results charactersistics of groupby columns
       if file == 'results_characteristics.csv':
-        ## FIXME: Assumes that base df comes from `develop` branch
-        if map_results:
-          base_df.columns = ['build_existing_model.' + col for col in base_df.columns]
         group_df = base_df[aggregate_columns]
 
       # Write grouped & aggregated results dfs
