@@ -508,7 +508,7 @@ class HVAC
       end
       htg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(crankcase_temp, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
 
       supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
       supp_htg_coil.setName(obj_name + ' supp heater')
@@ -768,7 +768,7 @@ class HVAC
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
       htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(40.0, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
       htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       htg_coil.setFuelType('Electricity')
 
@@ -1059,7 +1059,7 @@ class HVAC
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
       htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(40.0, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
       htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       htg_coil.setFuelType('Electricity')
 
@@ -1365,7 +1365,7 @@ class HVAC
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
       htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(max_defrost_temp, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
       htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       htg_coil.setFuelType('Electricity')
 
@@ -2020,21 +2020,24 @@ class HVAC
 
     return true if frac_cool_load_served <= 0
 
-    # Performance curves
-    # From Frigidaire 10.7 EER unit in Winkler et. al. Lab Testing of Window ACs (2013)
-    # NOTE: These coefficients are in SI UNITS
-    cOOL_CAP_FT_SPEC = [0.6405, 0.01568, 0.0004531, 0.001615, -0.0001825, 0.00006614]
-    cOOL_EIR_FT_SPEC = [2.287, -0.1732, 0.004745, 0.01662, 0.000484, -0.001306]
-    cOOL_CAP_FFLOW_SPEC = [0.887, 0.1128, 0]
-    cOOL_EIR_FFLOW_SPEC = [1.763, -0.6081, 0]
-    cOOL_PLF_FPLR = [0.78, 0.22, 0]
+    # From "Improved Modeling of Residential Air Conditioners and Heat Pumps for Energy Calculations", Cutler at al
+    # https://www.nrel.gov/docs/fy13osti/56354.pdf
+    cOOL_CAP_FT_SPEC = [[3.68637657, -0.098352478, 0.000956357, 0.005838141, -0.0000127, -0.000131702]]
+    cOOL_EIR_FT_SPEC = [[-3.437356399, 0.136656369, -0.001049231, -0.0079378, 0.000185435, -0.0001441]]
+    cOOL_CAP_FFLOW_SPEC = [[1, 0, 0]]
+    cOOL_EIR_FFLOW_SPEC = [[1, 0, 0]]
+    cOOL_PLF_FPLR = [[0.78, 0.22, 0]]
     cfms_ton_rated = [312] # medium speed
 
-    roomac_cap_ft_curve = create_curve_biquadratic(model, cOOL_CAP_FT_SPEC, 'RoomAC-Cap-fT', 0, 100, 0, 100)
-    roomac_cap_fff_curve = create_curve_quadratic(model, cOOL_CAP_FFLOW_SPEC, 'RoomAC-Cap-fFF', 0, 2, 0, 2)
-    roomac_eir_ft_curve = create_curve_biquadratic(model, cOOL_EIR_FT_SPEC, 'RoomAC-EIR-fT', 0, 100, 0, 100)
-    roomcac_eir_fff_curve = create_curve_quadratic(model, cOOL_EIR_FFLOW_SPEC, 'RoomAC-EIR-fFF', 0, 2, 0, 2)
-    roomac_plf_fplr_curve = create_curve_quadratic(model, cOOL_PLF_FPLR, 'RoomAC-PLF-fPLR', 0, 1, 0, 1)
+    # Performance curves
+    cOOL_CAP_FT_SPEC_SI = convert_curve_biquadratic(cOOL_CAP_FT_SPEC[0])
+    cOOL_EIR_FT_SPEC_SI = convert_curve_biquadratic(cOOL_EIR_FT_SPEC[0])
+
+    roomac_cap_ft_curve = create_curve_biquadratic(model, cOOL_CAP_FT_SPEC_SI, 'RoomAC-Cap-fT', 0, 100, 0, 100)
+    roomac_cap_fff_curve = create_curve_quadratic(model, cOOL_CAP_FFLOW_SPEC[0], 'RoomAC-Cap-fFF', 0, 2, 0, 2)
+    roomac_eir_ft_curve = create_curve_biquadratic(model, cOOL_EIR_FT_SPEC_SI, 'RoomAC-EIR-fT', 0, 100, 0, 100)
+    roomcac_eir_fff_curve = create_curve_quadratic(model, cOOL_EIR_FFLOW_SPEC[0], 'RoomAC-EIR-fFF', 0, 2, 0, 2)
+    roomac_plf_fplr_curve = create_curve_quadratic(model, cOOL_PLF_FPLR[0], 'RoomAC-PLF-fPLR', 0, 1, 0, 1)
 
     obj_name = Constants.ObjectNameRoomAirConditioner(unit.name.to_s)
 
@@ -2051,7 +2054,7 @@ class HVAC
           clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(capacity, 'Btu/hr', 'W')) # Used by HVACSizing measure
         end
         clg_coil.setRatedSensibleHeatRatio(shr)
-        clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(UnitConversions.convert(eer, 'Btu/hr', 'W')))
+        clg_coil.setRatedCOP(UnitConversions.convert(calc_ceer_from_eer(eer), 'Btu/hr', 'W'))
         clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(773.3))
         clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(0.9))
         clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
@@ -2084,6 +2087,11 @@ class HVAC
     end # control_zone
 
     return true
+  end
+
+  def self.calc_ceer_from_eer(eer)
+    # Reference: http://documents.dps.ny.gov/public/Common/ViewDoc.aspx?DocRefId=%7BB6A57FC0-6376-4401-92BD-D66EC1930DCF%7D
+    return eer / 1.01
   end
 
   def self.apply_furnace(model, unit, runner, fuel_type, afue,
@@ -3650,7 +3658,7 @@ class HVAC
     return constant_cubic
   end
 
-  def self.convert_curve_biquadratic(coeff, ip_to_si)
+  def self.convert_curve_biquadratic(coeff, ip_to_si = true)
     if ip_to_si
       # Convert IP curves to SI curves
       si_coeff = []
@@ -3785,8 +3793,8 @@ class HVAC
     clg_coil_stage_data = []
     speeds.each_with_index do |speed, i|
       if curves_in_ip
-        cOOL_CAP_FT_SPEC_ip = convert_curve_biquadratic(cOOL_CAP_FT_SPEC[speed], true)
-        cOOL_EIR_FT_SPEC_ip = convert_curve_biquadratic(cOOL_EIR_FT_SPEC[speed], true)
+        cOOL_CAP_FT_SPEC_ip = convert_curve_biquadratic(cOOL_CAP_FT_SPEC[speed])
+        cOOL_EIR_FT_SPEC_ip = convert_curve_biquadratic(cOOL_EIR_FT_SPEC[speed])
       else
         cOOL_CAP_FT_SPEC_ip = cOOL_CAP_FT_SPEC[speed]
         cOOL_EIR_FT_SPEC_ip = cOOL_EIR_FT_SPEC[speed]
@@ -3826,8 +3834,8 @@ class HVAC
     # Loop through speeds to create curves for each speed
     speeds.each_with_index do |speed, i|
       if curves_in_ip
-        hEAT_CAP_FT_SPEC_ip = convert_curve_biquadratic(hEAT_CAP_FT_SPEC[speed], true)
-        hEAT_EIR_FT_SPEC_ip = convert_curve_biquadratic(hEAT_EIR_FT_SPEC[speed], true)
+        hEAT_CAP_FT_SPEC_ip = convert_curve_biquadratic(hEAT_CAP_FT_SPEC[speed])
+        hEAT_EIR_FT_SPEC_ip = convert_curve_biquadratic(hEAT_EIR_FT_SPEC[speed])
       else
         hEAT_CAP_FT_SPEC_ip = hEAT_CAP_FT_SPEC[speed]
         hEAT_EIR_FT_SPEC_ip = hEAT_EIR_FT_SPEC[speed]
