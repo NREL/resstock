@@ -565,8 +565,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     roof_material_type_choices = OpenStudio::StringVector.new
     roof_material_type_choices << HPXML::RoofTypeAsphaltShingles
+    roof_material_type_choices << HPXML::RoofTypeConcrete
+    roof_material_type_choices << HPXML::RoofTypeCool
     roof_material_type_choices << HPXML::RoofTypeClayTile
+    roof_material_type_choices << HPXML::RoofTypeEPS
     roof_material_type_choices << HPXML::RoofTypeMetal
+    roof_material_type_choices << HPXML::RoofTypePlasticRubber
+    roof_material_type_choices << HPXML::RoofTypeShingles
     roof_material_type_choices << HPXML::RoofTypeWoodShingles
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_material_type', roof_material_type_choices, false)
@@ -687,11 +692,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     wall_siding_type_choices = OpenStudio::StringVector.new
-    wall_siding_type_choices << HPXML::SidingTypeNone
     wall_siding_type_choices << HPXML::SidingTypeAluminum
+    wall_siding_type_choices << HPXML::SidingTypeAsbestos
     wall_siding_type_choices << HPXML::SidingTypeBrick
+    wall_siding_type_choices << HPXML::SidingTypeCompositeShingle
     wall_siding_type_choices << HPXML::SidingTypeFiberCement
+    wall_siding_type_choices << HPXML::SidingTypeMasonite
+    wall_siding_type_choices << HPXML::SidingTypeNone
     wall_siding_type_choices << HPXML::SidingTypeStucco
+    wall_siding_type_choices << HPXML::SidingTypeSyntheticStucco
     wall_siding_type_choices << HPXML::SidingTypeVinyl
     wall_siding_type_choices << HPXML::SidingTypeWood
 
