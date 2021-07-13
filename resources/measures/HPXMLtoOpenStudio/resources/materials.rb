@@ -233,27 +233,27 @@ class Material
 
   def self.ExtFinishConcrete
     cement_mat = self.ExtFinishFiberCementMedDark
-    return self.new(name = "Concrete", thick_in = 0.375, mat_base = BaseMaterial.Concrete, k_in = nil, rho = nil, cp = nil, tAbs = cement_mat.tAbs, sAbs = cement_mat.sAbs, vAbs = cement_mat.vAbs)
+    return new(name = 'Concrete', thick_in = 0.375, mat_base = BaseMaterial.Concrete, k_in = nil, rho = nil, cp = nil, tAbs = cement_mat.tAbs, sAbs = cement_mat.sAbs, vAbs = cement_mat.vAbs)
   end
 
   def self.ExtFinishShingleAsbestos
     shingle_mat = self.RoofingCompositionShingles
-    return self.RoofMaterial("Asbestos Shingles", shingle_mat.tAbs, shingle_mat.sAbs)
+    return self.RoofMaterial('Asbestos Shingles', shingle_mat.tAbs, shingle_mat.sAbs)
   end
 
   def self.ExtFinishShingleComposition
     shingle_mat = self.RoofingCompositionShingles
-    return self.RoofMaterial("Composition Shingles", shingle_mat.tAbs, shingle_mat.sAbs)
+    return self.RoofMaterial('Composition Shingles', shingle_mat.tAbs, shingle_mat.sAbs)
   end
 
   def self.ExtFinishNoneCMU
     cement_mat = self.ExtFinishFiberCementMedDark
-    return self.new(name = "None, CMU", thick_in = nil, mat_base = nil, k_in = nil, rho = nil, cp = nil, tAbs = cement_mat.tAbs, sAbs = cement_mat.sAbs, vAbs = cement_mat.vAbs)
+    return new(name = 'None, CMU', thick_in = nil, mat_base = nil, k_in = nil, rho = nil, cp = nil, tAbs = cement_mat.tAbs, sAbs = cement_mat.sAbs, vAbs = cement_mat.vAbs)
   end
 
   def self.ExtFinishNoneBrick
     brick_mat = self.ExtFinishBrickMedDark
-    return self.new(name = "None, Brick", thick_in = nil, mat_base = nil, k_in = nil, rho = nil, cp = nil, tAbs = brick_mat.tAbs, sAbs = brick_mat.sAbs, vAbs = brick_mat.vAbs)
+    return new(name = 'None, Brick', thick_in = nil, mat_base = nil, k_in = nil, rho = nil, cp = nil, tAbs = brick_mat.tAbs, sAbs = brick_mat.sAbs, vAbs = brick_mat.vAbs)
   end
 
   def self.FloorWood
