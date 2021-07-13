@@ -230,10 +230,10 @@ class WallConstructions
     end
 
     # Define materials
-    mat_cmu = Material.new(name = "WallCMU", thick_in = thick_in, mat_base = BaseMaterial.Concrete, k_in = conductivity, rho = density)
+    mat_cmu = Material.new(name = 'WallCMU', thick_in = thick_in, mat_base = BaseMaterial.Concrete, k_in = conductivity, rho = density)
 
     # If no exterior finish, use exterior finish absorptance values for CMU/Brick
-    if not mat_ext_finish.nil? and mat_ext_finish.name.include? "None"
+    if (not mat_ext_finish.nil?) && mat_ext_finish.name.include?('None')
       mat_cmu.tAbs, mat_cmu.sAbs, mat_cmu.vAbs = mat_ext_finish.tAbs, mat_ext_finish.sAbs, mat_ext_finish.vAbs
     end
 
@@ -272,7 +272,7 @@ class WallConstructions
     constr = Construction.new(constr_name, path_fracs)
     if not mat_ext_finish.nil?
       constr.add_layer(Material.AirFilmOutside)
-      if not mat_ext_finish.name.include? "None"
+      if not mat_ext_finish.name.include? 'None'
         constr.add_layer(mat_ext_finish)
       end
     else # interior wall
@@ -2246,7 +2246,7 @@ class Construction
   def assembly_absorptance(runner)
     # Calculate absorptance values for assembly
     if not validated?(runner)
-      return nil
+      return
     end
 
     tAbs, sAbs, vAbs = [0] * 3
