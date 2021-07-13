@@ -8,6 +8,7 @@ Features
 - Include HVAC cooling type as a dependency to cooling setpoint ([#551](https://github.com/NREL/resstock/pull/551))
 - Include electric zonal heating equipment as a dependency in heating setpoint-related tsvs ([#549](https://github.com/NREL/resstock/pull/549))
 - Geo-temporal shifting of the stochastic load model schedules using the American Time Use Survey ([#550](https://github.com/NREL/resstock/pull/550))
+- Switch data source for `geometry wall type.tsv` from RECS 2009 to Lightbox ([#561](https://github.com/NREL/resstock/pull/561))
 - Use Schedule:File with well pump / vehicle plug loads, as well as gas grill / fireplace / lighting fuel loads. This enables the optional vacancy period to apply to these end uses ([#566](https://github.com/NREL/resstock/pull/556))
 - Update example project yaml files to use buildstockbatch input schema version 0.3 ([#583](https://github.com/NREL/resstock/pull/583))
 - Update default daylight saving start and end dates to March 12 and November 5, respectively ([#585](https://github.com/NREL/resstock/pull/585))

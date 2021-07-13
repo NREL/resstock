@@ -687,6 +687,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     wall_siding_type_choices = OpenStudio::StringVector.new
+    wall_siding_type_choices << HPXML::SidingTypeNone
     wall_siding_type_choices << HPXML::SidingTypeAluminum
     wall_siding_type_choices << HPXML::SidingTypeBrick
     wall_siding_type_choices << HPXML::SidingTypeFiberCement
