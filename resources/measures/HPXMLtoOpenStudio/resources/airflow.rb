@@ -42,7 +42,11 @@ class Airflow
     building.crawlspace = []
     building.unfinished_basement = []
     building.unfinished_attic = []
-    building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
+    if Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
+      building.stories = 1
+    else
+      building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
+    end
 
     building.ag_ext_wall_area = 0
     building.ag_ffa = 0
@@ -270,7 +274,6 @@ class Airflow
           pcm.name.to_s.start_with?(obj_name_infil) ||
           pcm.name.to_s.start_with?(obj_name_ducts) ||
           pcm.name.to_s.start_with?(obj_name_mech_vent))
-
       pcm.remove
     end
 
@@ -279,7 +282,6 @@ class Airflow
           sensor.name.to_s.start_with?(obj_name_natvent_underscore) ||
           sensor.name.to_s.start_with?(obj_name_infil_underscore) ||
           sensor.name.to_s.start_with?(obj_name_ducts_underscore))
-
       sensor.remove
     end
 
@@ -288,7 +290,6 @@ class Airflow
           actuator.name.to_s.start_with?(obj_name_natvent_underscore) ||
           actuator.name.to_s.start_with?(obj_name_infil_underscore) ||
           actuator.name.to_s.start_with?(obj_name_ducts_underscore))
-
       actuatedComponent = actuator.actuatedComponent
       if actuatedComponent.is_a? OpenStudio::Model::OptionalModelObject # 2.4.0 or higher
         actuatedComponent = actuatedComponent.get
@@ -309,7 +310,6 @@ class Airflow
           program.name.to_s.start_with?(obj_name_infil_underscore) ||
           program.name.to_s.start_with?(obj_name_ducts_underscore) ||
           program.name.to_s.start_with?(obj_name_mechvent_underscore))
-
       program.remove
     end
 
@@ -318,7 +318,6 @@ class Airflow
           subroutine.name.to_s.start_with?(obj_name_natvent_underscore) ||
           subroutine.name.to_s.start_with?(obj_name_infil_underscore) ||
           subroutine.name.to_s.start_with?(obj_name_ducts_underscore))
-
       subroutine.remove
     end
 
@@ -328,7 +327,6 @@ class Airflow
           ems_global_var.name.to_s.start_with?(obj_name_infil_underscore) ||
           ems_global_var.name.to_s.start_with?(obj_name_ducts_underscore) ||
           ems_global_var.name.to_s.start_with?(obj_name_mechvent_underscore))
-
       ems_global_var.remove
     end
 
@@ -338,7 +336,6 @@ class Airflow
           ems_internal_var.name.to_s.start_with?(obj_name_infil_underscore) ||
           ems_internal_var.name.to_s.start_with?(obj_name_ducts_underscore) ||
           ems_internal_var.name.to_s.start_with?(obj_name_mechvent_underscore))
-
       ems_internal_var.remove
     end
 

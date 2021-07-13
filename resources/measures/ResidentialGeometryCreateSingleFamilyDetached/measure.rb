@@ -51,7 +51,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     num_floors = OpenStudio::Measure::OSArgument::makeIntegerArgument('num_floors', true)
     num_floors.setDisplayName('Number of Floors')
     num_floors.setUnits('#')
-    num_floors.setDescription('The number of floors above grade.')
+    num_floors.setDescription('The number of floors above grade. Finished attics are included.')
     num_floors.setDefaultValue(2)
     args << num_floors
 
@@ -266,6 +266,9 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     foundation_type = runner.getStringArgumentValue('foundation_type', user_arguments)
     foundation_height = runner.getDoubleArgumentValue('foundation_height', user_arguments)
     attic_type = runner.getStringArgumentValue('attic_type', user_arguments)
+    if attic_type == 'finished attic'
+      num_floors -= 1
+    end
     roof_type = runner.getStringArgumentValue('roof_type', user_arguments)
     roof_pitch = { '1:12' => 1.0 / 12.0, '2:12' => 2.0 / 12.0, '3:12' => 3.0 / 12.0, '4:12' => 4.0 / 12.0, '5:12' => 5.0 / 12.0, '6:12' => 6.0 / 12.0, '7:12' => 7.0 / 12.0, '8:12' => 8.0 / 12.0, '9:12' => 9.0 / 12.0, '10:12' => 10.0 / 12.0, '11:12' => 11.0 / 12.0, '12:12' => 12.0 / 12.0 }[runner.getStringArgumentValue('roof_pitch', user_arguments)]
     roof_structure = runner.getStringArgumentValue('roof_structure', user_arguments)
@@ -704,7 +707,6 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
       spaces = model.getSpaces
       spaces.each do |space|
         next unless Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, 'm', 'ft') < 0
-
         surfaces = space.surfaces
         surfaces.each do |surface|
           next if surface.surfaceType.downcase != 'wall'
@@ -739,7 +741,6 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
       end
       space_with_roof_over_garage.surfaces.each do |surface|
         next unless (surface.surfaceType.downcase == 'roofceiling') && (surface.outsideBoundaryCondition.downcase == 'outdoors')
-
         n_points = []
         s_points = []
         surface.vertices.each do |vertex|
@@ -879,7 +880,6 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
 
         garage_attic_space.surfaces.each do |surface|
           next unless (num_floors > 1) || (attic_type == 'finished attic')
-
           m = Geometry.initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
           m[2, 3] = -attic_space.zOrigin
           transformation = OpenStudio::Transformation.new(m)
