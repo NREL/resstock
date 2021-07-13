@@ -9,9 +9,11 @@ Features
 - Include HVAC cooling type as a dependency to cooling setpoint ([#551](https://github.com/NREL/resstock/pull/551))
 - Include electric zonal heating equipment as a dependency in heating setpoint-related tsvs ([#549](https://github.com/NREL/resstock/pull/549))
 - Geo-temporal shifting of the stochastic load model schedules using the American Time Use Survey ([#550](https://github.com/NREL/resstock/pull/550))
+- Switch data source for `geometry wall type.tsv` from RECS 2009 to Lightbox ([#561](https://github.com/NREL/resstock/pull/561))
 - Use Schedule:File with well pump / vehicle plug loads, as well as gas grill / fireplace / lighting fuel loads. This enables the optional vacancy period to apply to these end uses ([#566](https://github.com/NREL/resstock/pull/556))
 - Update example project yaml files to use buildstockbatch input schema version 0.3 ([#583](https://github.com/NREL/resstock/pull/583))
 - Update default daylight saving start and end dates to March 12 and November 5, respectively ([#585](https://github.com/NREL/resstock/pull/585))
+- Switches room air conditioner model to use Cutler performance curves ([#586](https://github.com/NREL/resstock/pull/586))
 - Remove 3 story limit for multi-family buildings, and instead use RECS data to allow for buildings up to 21 stories ([#558](https://github.com/NREL/resstock/pull/558))
 - Add a sampling probability column in the housing characteristics to define the probability a given column will be sampled ([#584](https://github.com/NREL/resstock/pull/584))
 - Add ReEDS balancing areas as a spatial field ([#591](https://github.com/NREL/resstock/pull/591))
@@ -19,6 +21,7 @@ Features
 - Speed up sampling algorithm by multiple orders of magnitude for large numbers of samples ([#606](https://github.com/NREL/resstock/pull/606))
 - Use ANSI/RESNET/ICC 301 equations to calculate annual interior, exterior, and garage lighting energy ([#619](https://github.com/NREL/resstock/pull/619))
 - Update tsv files for both the national and testing projects. Supports transition to ResStock-HPXML ([#559](https://github.com/NREL/resstock/pull/559))
+- Changes "Duct Surface Area (ft^2)" cost multiplier to "Duct Unconditioned Surface Area (ft^2)" ([#634](https://github.com/NREL/resstock/pull/634))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
