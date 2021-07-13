@@ -209,10 +209,7 @@ if __name__ == '__main__':
       compare.samples()
     elif action == 'results':
       excludes = ['buildstock.csv']
-      if args.map_results:
-        compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps, args.map_results)
-      else:
-        compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps)
+      compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps)
     elif action == 'visualize':
       excludes = ['buildstock.csv', 'results_characteristics.csv']
       compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps)
