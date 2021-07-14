@@ -27,11 +27,17 @@ class Material
       end
       @rho = mat_base.rho
       @cp = mat_base.cp
+      @tAbs = mat_base.tAbs
+      @sAbs = mat_base.sAbs
+      @vAbs = mat_base.vAbs
     else
       @k_in = nil
       @k = nil
       @rho = nil
       @cp = nil
+      @tAbs = nil
+      @sAbs = nil
+      @vAbs = nil
     end
 
     # Override the base material if both are included
@@ -46,9 +52,15 @@ class Material
       @cp = cp # Btu/lb*F
     end
 
-    @tAbs = tAbs
-    @sAbs = sAbs
-    @vAbs = vAbs
+    if not tAbs.nil?
+      @tAbs = tAbs
+    end
+    if not sAbs.nil?
+      @sAbs = sAbs
+    end
+    if not vAbs.nil?
+      @vAbs = vAbs
+    end
 
     # Calculate R-value
     if not rvalue.nil?
@@ -177,6 +189,10 @@ class Material
     return new(name = 'Stucco, Medium/Dark', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.75, vAbs = 0.75)
   end
 
+  def self.ExtFinishStuccoMedLight
+    return new(name = 'Stucco, Medium/Light', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.45, sAbs = 0.75, vAbs = 0.75)
+  end
+
   def self.ExtFinishBrickLight
     return new(name = 'Brick, Light', thick_in = 4.0, mat_base = BaseMaterial.Brick, k_in = nil, rho = nil, cp = nil, tAbs = 0.93, sAbs = 0.55, vAbs = 0.55)
   end
@@ -215,6 +231,31 @@ class Material
 
   def self.ExtFinishFiberCementMedDark
     return new(name = 'Fiber-Cement, Medium/Dark', thick_in = 0.375, mat_base = nil, k_in = 1.79, rho = 21.7, cp = 0.24, tAbs = 0.9, sAbs = 0.75, vAbs = 0.75)
+  end
+
+  def self.ExtFinishConcrete
+    cement_mat = self.ExtFinishFiberCementMedDark
+    return new(name = 'Concrete', thick_in = 0.375, mat_base = BaseMaterial.Concrete, k_in = nil, rho = nil, cp = nil, tAbs = cement_mat.tAbs, sAbs = cement_mat.sAbs, vAbs = cement_mat.vAbs)
+  end
+
+  def self.ExtFinishShingleAsbestos
+    shingle_mat = self.RoofingCompositionShingles
+    return self.RoofMaterial('Asbestos Shingles', shingle_mat.tAbs, shingle_mat.sAbs)
+  end
+
+  def self.ExtFinishShingleComposition
+    shingle_mat = self.RoofingCompositionShingles
+    return self.RoofMaterial('Composition Shingles', shingle_mat.tAbs, shingle_mat.sAbs)
+  end
+
+  def self.ExtFinishNoneCMU
+    cement_mat = self.ExtFinishFiberCementMedDark
+    return new(name = 'None, CMU', thick_in = nil, mat_base = nil, k_in = nil, rho = nil, cp = nil, tAbs = cement_mat.tAbs, sAbs = cement_mat.sAbs, vAbs = cement_mat.vAbs)
+  end
+
+  def self.ExtFinishNoneBrick
+    brick_mat = self.ExtFinishBrickMedDark
+    return new(name = 'None, Brick', thick_in = nil, mat_base = nil, k_in = nil, rho = nil, cp = nil, tAbs = brick_mat.tAbs, sAbs = brick_mat.sAbs, vAbs = brick_mat.vAbs)
   end
 
   def self.FloorWood
@@ -351,20 +392,23 @@ class Material
 end
 
 class BaseMaterial
-  def initialize(rho, cp, k_in)
+  def initialize(rho, cp, k_in, tAbs = nil, sAbs = nil, vAbs = nil)
     @rho = rho
     @cp = cp
     @k_in = k_in
+    @tAbs = tAbs
+    @sAbs = sAbs
+    @vAbs = vAbs
   end
 
-  attr_accessor :rho, :cp, :k_in
+  attr_accessor :rho, :cp, :k_in, :tAbs, :sAbs, :vAbs
 
   def self.Gypsum
     return new(rho = 50.0, cp = 0.2, k_in = 1.1112)
   end
 
   def self.Wood
-    return new(rho = 32.0, cp = 0.29, k_in = 0.8004)
+    return new(rho = 32.0, cp = 0.29, k_in = 0.8004, tAbs = 0.82, sAbs = 0.3, vAbs = 0.3)
   end
 
   def self.Concrete

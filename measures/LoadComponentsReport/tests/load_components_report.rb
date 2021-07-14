@@ -168,6 +168,7 @@ class LoadComponentsReportTest < MiniTest::Test
 
     result.stepValues.each do |step_value|
       next unless (step_value.name == 'heating_demand_error_percent') || (step_value.name == 'cooling_demand_error_percent')
+
       if step_value.valueAsDouble.abs > error_threshold
         assert_operator(step_value.valueAsDouble.abs, :<=, error_threshold, "#{step_value.name} is greater than threshold of #{error_threshold}%")
       end

@@ -160,6 +160,13 @@ class ProcessConstructionsWallsSteelStudTest < MiniTest::Test
     assert_equal(result.errors.map { |x| x.logMessage }[0], 'Correction Factor must be greater than or equal to 0 and less than or equal to 1.')
   end
 
+  def test_argument_error_none_ext_finish
+    args_hash = {}
+    args_hash['exterior_finish'] = 'None, Brick'
+    result = _test_error('SFD_2000sqft_2story_SL_UA_CeilingIns.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "Steel stud walls cannot have a 'None' exterior finish")
+  end
+
   private
 
   def _test_error(osm_file, args_hash)

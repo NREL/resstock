@@ -80,7 +80,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       'Roof Area (ft^2)' => 'roof_area_ft_2',
       'Window Area (ft^2)' => 'window_area_ft_2',
       'Door Area (ft^2)' => 'door_area_ft_2',
-      'Duct Surface Area (ft^2)' => 'duct_surface_area_ft_2',
+      'Duct Unconditioned Surface Area (ft^2)' => 'duct_unconditioned_surface_area_ft_2',
       'Size, Heating System (kBtu/h)' => 'size_heating_system_kbtu_h',
       'Size, Cooling System (kBtu/h)' => 'size_cooling_system_kbtu_h',
       'Size, Water Heater (gal)' => 'size_water_heater_gal'
@@ -488,15 +488,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       if cost_mult_type == 'Fixed (1)'
         cost_mult += 1.0
 
-      elsif cost_mult_type == 'Duct Surface Area (ft^2)'
+      elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
         # Duct supply+return surface area
-        supply_area = unit.getFeatureAsDouble('SizingInfoDuctsSupplySurfaceArea')
-        if supply_area.is_initialized
-          cost_mult += supply_area.get
-        end
-        return_area = unit.getFeatureAsDouble('SizingInfoDuctsReturnSurfaceArea')
-        if return_area.is_initialized
-          cost_mult += return_area.get
+        location_zone_name = unit.getFeatureAsString('SizingInfoDuctsLocationZone').to_s
+        if not ["#{Constants.SpaceTypeLiving} zone", "#{Constants.SpaceTypeFinishedBasement} zone"].include? location_zone_name
+          supply_area = unit.getFeatureAsDouble('SizingInfoDuctsSupplySurfaceArea')
+          return_area = unit.getFeatureAsDouble('SizingInfoDuctsReturnSurfaceArea')
+          if supply_area.is_initialized
+            cost_mult += supply_area.get
+          end
+          if return_area.is_initialized
+            cost_mult += return_area.get
+          end
         end
 
       end

@@ -44,7 +44,11 @@ class Airflow
     building.crawlspace = []
     building.unfinished_basement = []
     building.unfinished_attic = []
-    building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
+    if Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
+      building.stories = 1
+    else
+      building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
+    end
 
     building.ag_ext_wall_area = 0
     building.ag_ffa = 0
