@@ -549,7 +549,7 @@ class Geometry
     xValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        xValueArray << UnitConversions.convert(vertex.x, 'm', 'ft')
+        xValueArray << UnitConversions.convert(vertex.x, 'm', 'ft').round(5)
       end
     end
     return xValueArray
@@ -560,7 +560,7 @@ class Geometry
     yValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        yValueArray << UnitConversions.convert(vertex.y, 'm', 'ft')
+        yValueArray << UnitConversions.convert(vertex.y, 'm', 'ft').round(5)
       end
     end
     return yValueArray
@@ -571,7 +571,7 @@ class Geometry
     zValueArray = []
     surfaceArray.each do |surface|
       surface.vertices.each do |vertex|
-        zValueArray << UnitConversions.convert(vertex.z, 'm', 'ft')
+        zValueArray << UnitConversions.convert(vertex.z, 'm', 'ft').round(5)
       end
     end
     return zValueArray

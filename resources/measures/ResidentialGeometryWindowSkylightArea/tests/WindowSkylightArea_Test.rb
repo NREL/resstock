@@ -48,6 +48,14 @@ class WindowSkylightAreaTest < MiniTest::Test
     model = _test_measure('SFD_1000sqft_1story_FB_GRG_UA_DoorArea.osm', args_hash, [0, 0, 0, 0], [0.0, 59.0, 32.8, 15.5], [0] * 5, [0] * 5, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
+  def test_sfd_new_construction_door_area2
+    args_hash = {}
+    expected_num_del_objects = {}
+    expected_num_new_objects = { 'Surface' => 2, 'SubSurface' => 36, 'ShadingSurface' => 36, 'ShadingSurfaceGroup' => 36 }
+    expected_values = { 'Constructions' => 1, 'OverhangDepth' => 2 }
+    model = _test_measure('SFD_2000sqft_2story_SL_GRG_UA_Doors_OneConstruction.osm', args_hash, [0, 0, 0, 0], [100.0, 128.8, 78.8, 64.4], [0] * 5, [0] * 5, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
   def test_sfd_retrofit_replace
     args_hash = {}
     expected_num_del_objects = {}
