@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import os
 
+#make sure you run while in the Github directory that the python file is in (resstock/economic_analysis) or else the relative references break
+
 #set working directory
 default_dir = "C:/Users/epresent/Documents/Mini Projects/Facades/ResStock Results/infiltration_check_run500No3"
 
@@ -30,26 +32,26 @@ selected_cols = [
     'simulation_output_report.total_site_energy_mbtu',
     'simulation_output_report.upgrade_cost_usd']
 def downselect_cols(df):
-	df = df[selected_cols]
-	return df
+    df = df[selected_cols]
+    return df
 
 #calculate total energy difference for each upgrade, for each home, add to the mini dataframes
 def calc_delta_elec(df_baseline, df_upgrade):
-	return (df_baseline['simulation_output_report.total_site_electricity_kwh']-df_upgrade['simulation_output_report.total_site_electricity_kwh'])
+    return (df_baseline['simulation_output_report.total_site_electricity_kwh']-df_upgrade['simulation_output_report.total_site_electricity_kwh'])
 def calc_delta_ng(df_baseline, df_upgrade):
-	return (df_baseline['simulation_output_report.total_site_natural_gas_therm']-df_upgrade['simulation_output_report.total_site_natural_gas_therm'])
+    return (df_baseline['simulation_output_report.total_site_natural_gas_therm']-df_upgrade['simulation_output_report.total_site_natural_gas_therm'])
 def calc_delta_fo(df_baseline, df_upgrade):
-	return (df_baseline['simulation_output_report.total_site_fuel_oil_mbtu']-df_upgrade['simulation_output_report.total_site_fuel_oil_mbtu'])
+    return (df_baseline['simulation_output_report.total_site_fuel_oil_mbtu']-df_upgrade['simulation_output_report.total_site_fuel_oil_mbtu'])
 def calc_delta_lp(df_baseline, df_upgrade):
-	return (df_baseline['simulation_output_report.total_site_propane_mbtu']-df_upgrade['simulation_output_report.total_site_propane_mbtu'])
+    return (df_baseline['simulation_output_report.total_site_propane_mbtu']-df_upgrade['simulation_output_report.total_site_propane_mbtu'])
 def calc_delta_energy(df_baseline, df_upgrade):
     return(df_baseline['simulation_output_report.total_site_energy_mbtu']-df_upgrade['simulation_output_report.total_site_energy_mbtu'])
 
 #calculate year1 utility bill savings
 def calc_year1_bill_savings(var_util_costs, delta_energy):
-	return (var_util_costs*delta_energy)
+    return (var_util_costs*delta_energy)
 def calc_year1_fo_bill_savings(var_util_costs, delta_energy):
-	return (delta_energy *
+    return (delta_energy *
             var_util_costs*
             gallons_to_barrels*
             (1/btu_fueloil_in_one_barrel)*
@@ -62,31 +64,31 @@ def calc_year1_lp_bill_savings(var_util_costs, delta_energy):
 
 #calculate simple payback period
 def calc_spp(upfront_cost, year1_savings):
-	return(upfront_cost/year1_savings)
+    return(upfront_cost/year1_savings)
 
 #calculate npv
 analysis_period = 30
 discount_rate = 0.034
 def calc_npv(upfront_cost, year1_savings): #note: assuming 30 year lifetime for everything, which is not a general solution to this situation
-	npv_list = []
-	for cost, savings in zip(upfront_cost, year1_savings): #this loops through all the rows in the results_csv (ie each dwelling unit)
-		cost_array = [0]*(analysis_period+1)
-		cost_array[0] = cost
-		savings_array = [savings] * (analysis_period+1)
+    npv_list = []
+    for cost, savings in zip(upfront_cost, year1_savings): #this loops through all the rows in the results_csv (ie each dwelling unit)
+        cost_array = [0]*(analysis_period+1)
+        cost_array[0] = cost
+        savings_array = [savings] * (analysis_period+1)
         savings_array[0] = 0
-		cash_flows = list(np.array(savings_array)-np.array(cost_array))
-		npv = 0
-		for year in range(0,analysis_period + 1):
-			npv += (1/((1 + discount_rate) ** year)) * cash_flows[year]
-		npv_list.append(npv)
-	return npv_list
+        cash_flows = list(np.array(savings_array)-np.array(cost_array))
+        npv = 0
+        for year in range(0,analysis_period + 1):
+            npv += (1/((1 + discount_rate) ** year)) * cash_flows[year]
+        npv_list.append(npv)
+    return npv_list
 
 ##Set up and run things!
 #number of upgrade packages
 num_ups = 4
 
 #load baseline results
-results_b = pd.read_parquet(os.path.join(default_dir, "results_up00.parquet"), engine = "auto")
+results_b = pd.read_parquet(os.path.join(default_dir, "results_up00.parquet"), engine = "pyarrow")
 
 #add utility bill cost unformation to the baseline results
 results_b = pd.merge(results_b, df_elec_costs[['State', 'Variable Elec Cost $/kWh']], left_on = "build_existing_model.state", right_on = 'State', how = 'left')
@@ -118,7 +120,7 @@ for i in range(1, num_ups+1):
         upnum = str(i)
     filename = file_start + upnum + file_end
     upgrade = up_start + upnum
-    results_up = pd.read_parquet(os.path.join(default_dir, filename), engine = "auto")
+    results_up = pd.read_parquet(os.path.join(default_dir, filename), engine = "pyarrow")
     df = downselect_cols(results_up)
     #calculate changes in energy use for each fuel
     delta_elec = calc_delta_elec(results_b, df)
