@@ -10,10 +10,18 @@ require 'json'
 
 desc 'Perform tasks related to unit tests'
 namespace :test do
-  desc 'Run unit tests for all projects/measures'
+  desc 'Run unit tests for all measures'
   Rake::TestTask.new('unit_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['project_*/tests/*.rb'] + Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb'] + Dir['test/test_samples.rb']
+    t.test_files = Dir['test/test_integrity_checks.rb'] + Dir['measures/*/tests/*.rb'] + Dir['resources/measures/*/tests/*.rb']
+    t.warning = false
+    t.verbose = true
+  end
+
+  desc 'Run integration tests for sampled datapoints'
+  Rake::TestTask.new('integration_tests') do |t|
+    t.libs << 'test'
+    t.test_files = Dir['test/test_samples.rb']
     t.warning = false
     t.verbose = true
   end
@@ -34,10 +42,10 @@ namespace :test do
     t.verbose = true
   end
 
-  desc 'Test creating measure osws'
-  Rake::TestTask.new('measures_osw') do |t|
+  desc 'Run unit tests for all projects'
+  Rake::TestTask.new('project_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['test/test_measures_osw.rb']
+    t.test_files = Dir['project_*/tests/*.rb']
     t.warning = false
     t.verbose = true
   end
@@ -345,24 +353,26 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   # Check that measure arguments aren't getting overwritten
   err = ''
   CSV.foreach(output_file, headers: true).each do |row|
+    args_map = {}
     row.each do |parameter_name, option_name|
       next if parameter_name == 'Building'
 
       parameters_options_measure_args[parameter_name][option_name].each do |measure_name, args|
-        parameters_options_measure_args.each do |parameter_name_2, options|
-          next if parameter_name == parameter_name_2
-
-          parameters_options_measure_args[parameter_name_2][row[parameter_name_2]].each do |measure_name_2, args_2|
-            next if measure_name != measure_name_2
-
-            arg_names = args.keys & args_2.keys
-            next if arg_names.empty?
-            next if err.include?(parameter_name) && err.include?(parameter_name_2) && err.include?(measure_name)
-
-            err += "ERROR: Duplicate measure argument assignment(s) across #{[parameter_name, parameter_name_2]} parameters. (#{measure_name} => #{arg_names}) already assigned.\n"
-          end
+        args.keys.each do |arg|
+          args_map[[measure_name, arg]] = [] if args_map[[measure_name, arg]].nil?
+          args_map[[measure_name, arg]] << parameter_name
         end
       end
+    end
+    args_map.each do |k, v|
+      next unless v.size > 1
+
+      param_names = v.join('", "')
+      measure_name = k[0]
+      arg_name = k[1]
+      next if err.include?(param_names) && err.include?(measure_name) && err.include?(arg_name)
+
+      err += "ERROR: Duplicate measure argument assignment(s) across [\"#{param_names}\"] parameters. #{measure_name} => \"#{arg_name}\" already assigned.\n"
     end
   end
   if not err.empty?
@@ -577,18 +587,36 @@ end
 def update_measures
   require 'openstudio'
 
+  # Prevent NREL error regarding U: drive when not VPNed in
+  ENV['HOME'] = 'C:' if !ENV['HOME'].nil? && ENV['HOME'].start_with?('U:')
+  ENV['HOMEDRIVE'] = 'C:\\' if !ENV['HOMEDRIVE'].nil? && ENV['HOMEDRIVE'].start_with?('U:')
+
   # Apply rubocop
-  command = 'rubocop --auto-correct --format simple --only Layout'
-  puts 'Applying rubocop style to measures...'
+  cops = ['Layout',
+          'Lint/DeprecatedClassMethods',
+          # 'Lint/RedundantStringCoercion', # Enable when rubocop is upgraded
+          'Style/AndOr',
+          'Style/FrozenStringLiteralComment',
+          'Style/HashSyntax',
+          'Style/Next',
+          'Style/NilComparison',
+          'Style/RedundantParentheses',
+          'Style/RedundantSelf',
+          'Style/ReturnNil',
+          'Style/SelfAssignment',
+          'Style/StringLiterals',
+          'Style/StringLiteralsInInterpolation']
+  commands = ["\"require 'rubocop/rake_task'\"",
+              "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--auto-correct', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
+              '"Rake.application[:rubocop].invoke"']
+  command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"
+  puts 'Applying rubocop auto-correct to measures...'
   system(command)
 
-  [File.expand_path('../measures/', __FILE__), File.expand_path('../resources/measures/', __FILE__)].each do |measures_dir|
-    # Update measure xmls
-    cli_path = OpenStudio.getOpenStudioCLI
-    command = "\"#{cli_path}\" --no-ssl measure --update_all #{measures_dir} >> log"
-    puts "Updating measure.xml files in #{measures_dir}..."
-    system(command)
-  end
+  # Update measures XMLs
+  command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.join(File.dirname(__FILE__), 'measures')}'"
+  puts 'Updating measure.xmls...'
+  system(command, [:out, :err] => File::NULL)
 
   # Generate example OSWs
 
@@ -655,8 +683,8 @@ def generate_example_osws(data_hash, include_measures, exclude_measures,
 
   workflowJSON = OpenStudio::WorkflowJSON.new
   workflowJSON.setOswPath(osw_path)
-  workflowJSON.addMeasurePath('../measures')
-  workflowJSON.addMeasurePath('../resources/measures')
+  workflowJSON.addMeasurePath('../../measures')
+  workflowJSON.addMeasurePath('../../resources/measures')
 
   steps = OpenStudio::WorkflowStepVector.new
 
