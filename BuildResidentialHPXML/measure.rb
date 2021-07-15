@@ -485,11 +485,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_insulation_distance_to_top', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('foundation_wall_insulation_distance_to_top', true)
     arg.setDisplayName('Foundation: Wall Insulation Distance To Top')
     arg.setUnits('ft')
     arg.setDescription('The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces.')
-    arg.setDefaultValue(0)
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('foundation_wall_insulation_distance_to_bottom', true)
@@ -575,8 +575,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     roof_material_type_choices = OpenStudio::StringVector.new
     roof_material_type_choices << HPXML::RoofTypeAsphaltShingles
+    roof_material_type_choices << HPXML::RoofTypeConcrete
+    roof_material_type_choices << HPXML::RoofTypeCool
     roof_material_type_choices << HPXML::RoofTypeClayTile
+    roof_material_type_choices << HPXML::RoofTypeEPS
     roof_material_type_choices << HPXML::RoofTypeMetal
+    roof_material_type_choices << HPXML::RoofTypePlasticRubber
+    roof_material_type_choices << HPXML::RoofTypeShingles
     roof_material_type_choices << HPXML::RoofTypeWoodShingles
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('roof_material_type', roof_material_type_choices, false)
@@ -698,9 +703,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     wall_siding_type_choices = OpenStudio::StringVector.new
     wall_siding_type_choices << HPXML::SidingTypeAluminum
+    wall_siding_type_choices << HPXML::SidingTypeAsbestos
     wall_siding_type_choices << HPXML::SidingTypeBrick
+    wall_siding_type_choices << HPXML::SidingTypeCompositeShingle
     wall_siding_type_choices << HPXML::SidingTypeFiberCement
+    wall_siding_type_choices << HPXML::SidingTypeMasonite
+    wall_siding_type_choices << HPXML::SidingTypeNone
     wall_siding_type_choices << HPXML::SidingTypeStucco
+    wall_siding_type_choices << HPXML::SidingTypeSyntheticStucco
     wall_siding_type_choices << HPXML::SidingTypeVinyl
     wall_siding_type_choices << HPXML::SidingTypeWood
 
@@ -982,6 +992,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     cooling_efficiency_type_choices = OpenStudio::StringVector.new
     cooling_efficiency_type_choices << HPXML::UnitsSEER
     cooling_efficiency_type_choices << HPXML::UnitsEER
+    cooling_efficiency_type_choices << HPXML::UnitsCEER
 
     compressor_type_choices = OpenStudio::StringVector.new
     compressor_type_choices << HPXML::HVACCompressorTypeSingleStage
@@ -1035,13 +1046,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooling_system_cooling_efficiency_type', cooling_efficiency_type_choices, true)
     arg.setDisplayName('Cooling System: Efficiency Type')
-    arg.setDescription("The efficiency type of the cooling system. System types #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} use #{HPXML::UnitsSEER}. System type #{HPXML::HVACTypeRoomAirConditioner} uses #{HPXML::UnitsEER}. Ignored for system type #{HPXML::HVACTypeEvaporativeCooler}.")
+    arg.setDescription("The efficiency type of the cooling system. System types #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} use #{HPXML::UnitsSEER}. System type #{HPXML::HVACTypeRoomAirConditioner} uses #{HPXML::UnitsEER} or #{HPXML::UnitsCEER}. Ignored for system type #{HPXML::HVACTypeEvaporativeCooler}.")
     arg.setDefaultValue(HPXML::UnitsSEER)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_efficiency', true)
     arg.setDisplayName('Cooling System: Efficiency')
-    arg.setUnits("#{HPXML::UnitsSEER} or #{HPXML::UnitsEER}")
+    arg.setUnits("#{HPXML::UnitsSEER} or #{HPXML::UnitsEER} or #{HPXML::UnitsCEER}")
     arg.setDescription("The rated efficiency value of the cooling system. Ignored for #{HPXML::HVACTypeEvaporativeCooler}.")
     arg.setDefaultValue(13.0)
     args << arg
@@ -3237,10 +3248,6 @@ class HPXMLFile
       args[:geometry_rim_joist_height] = 0.0
     end
 
-    if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
-      args[:geometry_num_floors_above_grade] -= 1
-    end
-
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
       success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
@@ -3383,6 +3390,16 @@ class HPXMLFile
 
     if args[:site_type].is_initialized
       hpxml.site.site_type = args[:site_type].get
+    end
+
+    surroundings_hash = {'Left' => 'attached on one side',
+                        'Right' => 'attached on one side',
+                        'Middle' => 'attached on two sides',
+                        'None' => 'stand-alone'}
+
+    if args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
+      hpxml.site.surroundings = 'attached on one side'
+      hpxml.site.surroundings = surroundings_hash[args[:geometry_horizontal_location].get]
     end
 
     hpxml.site.orientation_of_front_of_home = Geometry.get_orientation_direction(args[:geometry_orientation])
@@ -3642,6 +3659,7 @@ class HPXMLFile
     if (args[:geometry_garage_protrusion] == 1.0) && (args[:geometry_garage_width] * args[:geometry_garage_depth] > 0)
       return args[:geometry_garage_width]
     end
+
     return 0
   end
 
@@ -3787,15 +3805,14 @@ class HPXMLFile
           insulation_exterior_distance_to_bottom = 0
         else
           insulation_exterior_r_value = args[:foundation_wall_insulation_r]
-          insulation_exterior_distance_to_top = args[:foundation_wall_insulation_distance_to_top]
-          insulation_exterior_distance_to_bottom = args[:foundation_wall_insulation_distance_to_bottom]
-          if insulation_exterior_distance_to_bottom == Constants.Auto
-            insulation_exterior_distance_to_bottom = args[:geometry_foundation_height]
+          if args[:foundation_wall_insulation_distance_to_top] != Constants.Auto
+            insulation_exterior_distance_to_top = args[:foundation_wall_insulation_distance_to_top]
+          end
+          if args[:foundation_wall_insulation_distance_to_bottom] != Constants.Auto
+            insulation_exterior_distance_to_bottom = args[:foundation_wall_insulation_distance_to_bottom]
           end
         end
         insulation_interior_r_value = 0
-        insulation_interior_distance_to_top = 0
-        insulation_interior_distance_to_bottom = 0
       end
 
       if args[:foundation_wall_thickness] != Constants.Auto
@@ -3811,8 +3828,6 @@ class HPXMLFile
                                  depth_below_grade: args[:geometry_foundation_height] - args[:geometry_foundation_height_above_grade],
                                  insulation_assembly_r_value: insulation_assembly_r_value,
                                  insulation_interior_r_value: insulation_interior_r_value,
-                                 insulation_interior_distance_to_top: insulation_interior_distance_to_top,
-                                 insulation_interior_distance_to_bottom: insulation_interior_distance_to_bottom,
                                  insulation_exterior_r_value: insulation_exterior_r_value,
                                  insulation_exterior_distance_to_top: insulation_exterior_distance_to_top,
                                  insulation_exterior_distance_to_bottom: insulation_exterior_distance_to_bottom)
@@ -4132,6 +4147,8 @@ class HPXMLFile
       cooling_efficiency_seer = args[:cooling_system_cooling_efficiency]
     elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsEER
       cooling_efficiency_eer = args[:cooling_system_cooling_efficiency]
+    elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsCEER
+      cooling_efficiency_ceer = args[:cooling_system_cooling_efficiency]
     end
 
     if args[:cooling_system_airflow_defect_ratio].is_initialized
@@ -4155,6 +4172,7 @@ class HPXMLFile
                               cooling_shr: cooling_shr,
                               cooling_efficiency_seer: cooling_efficiency_seer,
                               cooling_efficiency_eer: cooling_efficiency_eer,
+                              cooling_efficiency_ceer: cooling_efficiency_ceer,
                               airflow_defect_ratio: airflow_defect_ratio,
                               charge_defect_ratio: charge_defect_ratio)
   end

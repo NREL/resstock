@@ -1,27 +1,37 @@
 ## OpenStudio-HPXML v1.3.0 (Pending)
 
 __New Features__
-- Updates to OpenStudio 3.2.0/EnergyPlus 9.5.0.
-- Introduces a small amount of infiltration for unvented spaces.
+- Updates to OpenStudio 3.2.1/EnergyPlus 9.5.0.
 - **Breaking change**: Replaces ClothesDryer `extension/IsVented` and `extension/VentedFlowRate` with `Vented` and `VentedFlowRate`.
-- Allows additional fuel types for generators.
 - Adds an `--ep-input-format` argument to run_simulation.rb to choose epJSON as the EnergyPlus input file format instead of IDF.
 - Allows non-zero refrigerant charge defect ratios for ground source heat pumps.
 - Allows `HeatingSeason` & `CoolingSeason` to be specified for defining heating and cooling equipment availability.
-- Removes error-check for number of bedrooms based on conditioned floor area, per RESNET guidance.
 - Revises shared mechanical ventilation preconditioning control logic to operate less often.
-- Allows defaulting of HVAC/DHW system efficiency (by age).
-- Allows defaulting of mechanical ventilation fan power (by type).
+- Expands choices allowed for `Siding` (Wall/RimJoist) and `RoofType` (Roof) elements.
+- Allows `Ducts/FractionDuctArea` to be provided instead of `Ducts/DuctSurfaceArea`.
 - Allows CEER (Combined Energy Efficiency Ratio) efficiency unit for room AC.
 - Allows "none" for wall/rim joist siding.
 - Allows interior finish inputs (e.g., 0.5" drywall) for walls, ceilings, and roofs.
+- Allows `Orientation` to be provided instead of `Azimuth` for all applicable surfaces, PV systems, and solar thermal systems.
+- Allows `Length` to be provided instead of `Area` for foundation walls.
+- Allows additional fuel types for generators.
+- Allows more defaulting (optional inputs):
+  - HVAC/DHW system efficiency (by age).
+  - Mechanical ventilation fan power (by type).
+  - Color (solar absorptance) for walls, roofs, and rim joists.
+  - Foundation wall distance to top/bottom of insulation.
+  - Door azimuth.
+  - Radiant barrier grade.
 - For water heaters w/ UEF, allows `UsageBin` instead of `FirstHourRating` (or defaults if neither provided).
-- Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
 - Switches to the EnergyPlus Fan:SystemModel object for all HVAC systems.
+- Introduces a small amount of infiltration for unvented spaces.
+- Removes error-check for number of bedrooms based on conditioned floor area, per RESNET guidance.
+- Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
 
 __Bugfixes__
 - Improves ground reflectance when there is shading of windows/skylights.
-- Fixes heating fan power for single-stage systems that have different heating/cooling airflow rates.
+- Improves HVAC fan power for central forced air systems.
+- Negative `DistanceToTopOfInsulation` values are now disallowed in the EPvalidator schematron doc.
 
 ## OpenStudio-HPXML v1.2.0
 

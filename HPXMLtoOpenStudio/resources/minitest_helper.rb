@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
-
 called_from_cli = true
 begin
   OpenStudio.getOpenStudioCLI

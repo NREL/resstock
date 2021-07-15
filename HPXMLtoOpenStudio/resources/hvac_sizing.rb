@@ -2404,7 +2404,7 @@ class HVACSizing
         hvac.COOL_SH_CURVE_SPEC = hpxml_hvac_ap.cool_sh_curve_spec
       end
       if hpxml_hvac_ap.respond_to? :heat_cap_curve_spec
-        hvac.HEAT_CAP_CURVE_SPEC = hpxml_hvac_ap.cool_cap_curve_spec
+        hvac.HEAT_CAP_CURVE_SPEC = hpxml_hvac_ap.heat_cap_curve_spec
       end
 
       # WLHP
@@ -2443,6 +2443,7 @@ class HVACSizing
       # FUTURE: Consolidate w/ ducts code in measure.rb
       hvac.Ducts = []
       next unless not hpxml_hvac.distribution_system.nil?
+
       lto = { supply_percent: nil, supply_cfm25: nil, return_percent: nil, return_cfm25: nil }
       hpxml_hvac.distribution_system.duct_leakage_measurements.each do |m|
         next unless m.duct_leakage_total_or_to_outside == 'to outside'
@@ -2492,6 +2493,7 @@ class HVACSizing
         hvac.Ducts << d
       end
       next unless (lto[:return_percent].to_f + lto[:return_cfm25].to_f) > 0 && total_uncond_return_area == 0
+
       d = DuctInfo.new
       d.Side = HPXML::DuctTypeReturn
       d.Location = HPXML::LocationOutside
