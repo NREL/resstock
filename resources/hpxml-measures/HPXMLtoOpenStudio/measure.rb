@@ -316,7 +316,7 @@ class OSModel
     @ncfl = @hpxml.building_construction.number_of_conditioned_floors
     @ncfl_ag = @hpxml.building_construction.number_of_conditioned_floors_above_grade
     @nbeds = @hpxml.building_construction.number_of_bedrooms
-    @default_azimuths = get_default_azimuths()
+    @default_azimuths = HPXMLDefaults.get_default_azimuths(@hpxml)
 
     # Apply defaults to HPXML object
     HPXMLDefaults.apply(@hpxml, @eri_version, weather, epw_file: epw_file)
@@ -551,42 +551,6 @@ class OSModel
     Geometry.apply_occupants(model, num_occ, @cfa, spaces[HPXML::LocationLivingSpace], @schedules_file)
   end
 
-  def self.get_default_azimuths()
-    def self.sanitize_azimuth(azimuth)
-      # Ensure 0 <= orientation < 360
-      while azimuth < 0
-        azimuth += 360
-      end
-      while azimuth >= 360
-        azimuth -= 360
-      end
-      return azimuth
-    end
-
-    # Returns a list of four azimuths (facing each direction). Determined based
-    # on the primary azimuth, as defined by the azimuth with the largest surface
-    # area, plus azimuths that are offset by 90/180/270 degrees. Used for
-    # surfaces that may not have an azimuth defined (e.g., walls).
-    azimuth_areas = {}
-    (@hpxml.roofs + @hpxml.rim_joists + @hpxml.walls + @hpxml.foundation_walls +
-     @hpxml.windows + @hpxml.skylights + @hpxml.doors).each do |surface|
-      az = surface.azimuth
-      next if az.nil?
-
-      azimuth_areas[az] = 0 if azimuth_areas[az].nil?
-      azimuth_areas[az] += surface.area
-    end
-    if azimuth_areas.empty?
-      primary_azimuth = 0
-    else
-      primary_azimuth = azimuth_areas.max_by { |k, v| v }[0]
-    end
-    return [primary_azimuth,
-            sanitize_azimuth(primary_azimuth + 90),
-            sanitize_azimuth(primary_azimuth + 180),
-            sanitize_azimuth(primary_azimuth + 270)].sort
-  end
-
   def self.create_or_get_space(model, spaces, spacetype)
     if spaces[spacetype].nil?
       Geometry.create_space_and_zone(model, spaces, spacetype)
@@ -637,8 +601,6 @@ class OSModel
       next if surfaces.empty?
 
       # Apply construction
-      solar_abs = roof.solar_absorptance
-      emitt = roof.emittance
       has_radiant_barrier = roof.radiant_barrier
       if has_radiant_barrier
         radiant_barrier_grade = roof.radiant_barrier_grade
@@ -646,12 +608,17 @@ class OSModel
       # FUTURE: Create Constructions.get_air_film(surface) method; use in measure.rb and hpxml_translator_test.rb
       inside_film = Material.AirFilmRoof(Geometry.get_roof_pitch([surfaces[0]]))
       outside_film = Material.AirFilmOutside
-      mat_roofing = Material.RoofMaterial(roof.roof_type, emitt, solar_abs)
+      mat_roofing = Material.RoofMaterial(roof.roof_type)
       if @apply_ashrae140_assumptions
         inside_film = Material.AirFilmRoofASHRAE140
         outside_film = Material.AirFilmOutsideASHRAE140
       end
       mat_int_finish = Material.InteriorFinishMaterial(roof.interior_finish_type, roof.interior_finish_thickness)
+      if mat_int_finish.nil?
+        fallback_mat_int_finish = nil
+      else
+        fallback_mat_int_finish = Material.InteriorFinishMaterial(mat_int_finish.name, 0.1) # Try thin material
+      end
 
       install_grade = 1
       assembly_r = roof.insulation_assembly_r_value
@@ -659,12 +626,12 @@ class OSModel
       if not mat_int_finish.nil?
         # Closed cavity
         constr_sets = [
-          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 20.0, 0.75, mat_int_finish, mat_roofing), # 2x8, 24" o.c. + R20
-          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 10.0, 0.75, mat_int_finish, mat_roofing), # 2x8, 24" o.c. + R10
-          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 0.0, 0.75, mat_int_finish, mat_roofing),  # 2x8, 24" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x6, 0.07, 0.0, 0.75, mat_int_finish, mat_roofing),      # 2x6, 24" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.07, 0.0, 0.5, mat_int_finish, mat_roofing),       # 2x4, 16" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, nil, mat_roofing),                  # Fallback
+          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 20.0, 0.75, mat_int_finish, mat_roofing),    # 2x8, 24" o.c. + R20
+          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 10.0, 0.75, mat_int_finish, mat_roofing),    # 2x8, 24" o.c. + R10
+          WoodStudConstructionSet.new(Material.Stud2x(8.0), 0.07, 0.0, 0.75, mat_int_finish, mat_roofing),     # 2x8, 24" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.07, 0.0, 0.75, mat_int_finish, mat_roofing),         # 2x6, 24" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.07, 0.0, 0.5, mat_int_finish, mat_roofing),          # 2x4, 16" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, fallback_mat_int_finish, mat_roofing), # Fallback
         ]
         match, constr_set, cavity_r = Constructions.pick_wood_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film, roof.id)
 
@@ -675,7 +642,8 @@ class OSModel
                                                constr_set.mat_int_finish,
                                                constr_set.osb_thick_in, constr_set.rigid_r,
                                                constr_set.mat_ext_finish, has_radiant_barrier,
-                                               inside_film, outside_film, radiant_barrier_grade)
+                                               inside_film, outside_film, radiant_barrier_grade,
+                                               roof.solar_absorptance, roof.emittance)
       else
         # Open cavity
         constr_sets = [
@@ -694,8 +662,9 @@ class OSModel
                                              cavity_r, install_grade, cavity_ins_thick_in,
                                              framing_factor, framing_thick_in,
                                              constr_set.osb_thick_in, layer_r + constr_set.rigid_r,
-                                             mat_roofing, has_radiant_barrier,
-                                             inside_film, outside_film, radiant_barrier_grade)
+                                             constr_set.mat_ext_finish, has_radiant_barrier,
+                                             inside_film, outside_film, radiant_barrier_grade,
+                                             roof.solar_absorptance, roof.emittance)
       end
       Constructions.check_surface_assembly_rvalue(runner, surfaces, inside_film, outside_film, assembly_r, match)
     end
@@ -752,7 +721,7 @@ class OSModel
       inside_film = Material.AirFilmVertical
       if wall.is_exterior
         outside_film = Material.AirFilmOutside
-        mat_ext_finish = Material.ExteriorFinishMaterial(wall.siding, wall.emittance, wall.solar_absorptance)
+        mat_ext_finish = Material.ExteriorFinishMaterial(wall.siding)
       else
         outside_film = Material.AirFilmVertical
         mat_ext_finish = nil
@@ -763,8 +732,9 @@ class OSModel
       end
       mat_int_finish = Material.InteriorFinishMaterial(wall.interior_finish_type, wall.interior_finish_thickness)
 
-      Constructions.apply_wall_construction(runner, model, surfaces, wall, wall.id, wall.wall_type, wall.insulation_assembly_r_value,
-                                            mat_int_finish, inside_film, outside_film, mat_ext_finish)
+      Constructions.apply_wall_construction(runner, model, surfaces, wall.id, wall.wall_type, wall.insulation_assembly_r_value,
+                                            mat_int_finish, inside_film, outside_film, mat_ext_finish, wall.solar_absorptance,
+                                            wall.emittance)
     end
   end
 
@@ -813,7 +783,7 @@ class OSModel
       inside_film = Material.AirFilmVertical
       if rim_joist.is_exterior
         outside_film = Material.AirFilmOutside
-        mat_ext_finish = Material.ExteriorFinishMaterial(rim_joist.siding, rim_joist.emittance, rim_joist.solar_absorptance)
+        mat_ext_finish = Material.ExteriorFinishMaterial(rim_joist.siding)
       else
         outside_film = Material.AirFilmVertical
         mat_ext_finish = nil
@@ -830,11 +800,12 @@ class OSModel
       match, constr_set, cavity_r = Constructions.pick_wood_stud_construction_set(assembly_r, constr_sets, inside_film, outside_film, rim_joist.id)
       install_grade = 1
 
-      Constructions.apply_rim_joist(runner, model, surfaces, rim_joist, "#{rim_joist.id} construction",
+      Constructions.apply_rim_joist(runner, model, surfaces, "#{rim_joist.id} construction",
                                     cavity_r, install_grade, constr_set.framing_factor,
                                     constr_set.mat_int_finish, constr_set.osb_thick_in,
                                     constr_set.rigid_r, constr_set.mat_ext_finish,
-                                    inside_film, outside_film)
+                                    inside_film, outside_film, rim_joist.solar_absorptance,
+                                    rim_joist.emittance)
       Constructions.check_surface_assembly_rvalue(runner, surfaces, inside_film, outside_film, assembly_r, match)
     end
   end
@@ -882,10 +853,19 @@ class OSModel
           outside_film = Material.AirFilmFloorAverage
         end
         mat_int_finish = Material.InteriorFinishMaterial(frame_floor.interior_finish_type, frame_floor.interior_finish_thickness)
+        if mat_int_finish.nil?
+          fallback_mat_int_finish = nil
+        else
+          fallback_mat_int_finish = Material.InteriorFinishMaterial(mat_int_finish.name, 0.1) # Try thin material
+        end
         constr_sets = [
-          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 0.0, 0.0, mat_int_finish, nil),  # 2x6, 24" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.13, 0.0, 0.0, mat_int_finish, nil),  # 2x4, 16" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, nil, nil),             # Fallback
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 50.0, 0.0, mat_int_finish, nil),         # 2x6, 24" o.c. + R50
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 40.0, 0.0, mat_int_finish, nil),         # 2x6, 24" o.c. + R40
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 30.0, 0.0, mat_int_finish, nil),         # 2x6, 24" o.c. + R30
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 20.0, 0.0, mat_int_finish, nil),         # 2x6, 24" o.c. + R20
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 10.0, 0.0, mat_int_finish, nil),         # 2x6, 24" o.c. + R10
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.13, 0.0, 0.0, mat_int_finish, nil),          # 2x4, 16" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, fallback_mat_int_finish, nil), # Fallback
         ]
       else # Floor
         if @apply_ashrae140_assumptions
@@ -905,12 +885,17 @@ class OSModel
             covering = Material.CoveringBare
           end
         end
+        if covering.nil?
+          fallback_covering = nil
+        else
+          fallback_covering = Material.CoveringBare(0.8, 0.01) # Try thin material
+        end
         constr_sets = [
-          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 20.0, 0.75, nil, covering), # 2x6, 24" o.c. + R20
-          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 10.0, 0.75, nil, covering), # 2x6, 24" o.c. + R10
-          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 0.0, 0.75, nil, covering),  # 2x6, 24" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.13, 0.0, 0.5, nil, covering),   # 2x4, 16" o.c.
-          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, nil, nil),        # Fallback
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 20.0, 0.75, nil, covering),        # 2x6, 24" o.c. + R20
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 10.0, 0.75, nil, covering),        # 2x6, 24" o.c. + R10
+          WoodStudConstructionSet.new(Material.Stud2x6, 0.10, 0.0, 0.75, nil, covering),         # 2x6, 24" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.13, 0.0, 0.5, nil, covering),          # 2x4, 16" o.c.
+          WoodStudConstructionSet.new(Material.Stud2x4, 0.01, 0.0, 0.0, nil, fallback_covering), # Fallback
         ]
       end
       assembly_r = frame_floor.insulation_assembly_r_value
@@ -919,9 +904,10 @@ class OSModel
 
       install_grade = 1
       if frame_floor.is_ceiling
+
         Constructions.apply_ceiling(runner, model, [surface], "#{frame_floor.id} construction",
                                     cavity_r, install_grade,
-                                    constr_set.stud.thick_in, constr_set.framing_factor,
+                                    constr_set.rigid_r, constr_set.framing_factor,
                                     constr_set.stud.thick_in, constr_set.mat_int_finish,
                                     inside_film, outside_film)
 
@@ -1079,8 +1065,8 @@ class OSModel
         end
         mat_ext_finish = nil
 
-        Constructions.apply_wall_construction(runner, model, [surface], foundation_wall, foundation_wall.id, wall_type, assembly_r,
-                                              mat_int_finish, inside_film, outside_film, mat_ext_finish)
+        Constructions.apply_wall_construction(runner, model, [surface], foundation_wall.id, wall_type, assembly_r,
+                                              mat_int_finish, inside_film, outside_film, mat_ext_finish, nil, nil)
       end
     end
   end
@@ -1211,7 +1197,11 @@ class OSModel
       end
       slab_whole_r = 0
     end
-    slab_gap_r = slab_under_r
+    if slab_under_r + slab_whole_r > 0
+      slab_gap_r = 5.0 # Assume gap insulation when insulation under slab is present
+    else
+      slab_gap_r = 0
+    end
 
     mat_carpet = nil
     if (slab.carpet_fraction > 0) && (slab.carpet_r_value > 0)
@@ -1313,9 +1303,6 @@ class OSModel
       Constructions.apply_furniture(runner, model, mass_lb_per_sqft, density_lb_per_cuft, mat,
                                     basement_frac_of_cfa, @cond_bsmnt_surfaces, spaces[HPXML::LocationLivingSpace])
     end
-  end
-
-  def self.add_neighbors(runner, model, length)
   end
 
   def self.add_shading_schedule(runner, model, weather)
@@ -1524,8 +1511,8 @@ class OSModel
 
     if type == 'wall'
       mat_int_finish = Material.InteriorFinishMaterial(HPXML::InteriorFinishGypsumBoard, 0.5)
-      mat_ext_finish = Material.ExteriorFinishMaterial(HPXML::SidingTypeWood, 0.90, 0.75)
-      Constructions.apply_wood_stud_wall(runner, model, surfaces, nil, 'AdiabaticWallConstruction',
+      mat_ext_finish = Material.ExteriorFinishMaterial(HPXML::SidingTypeWood)
+      Constructions.apply_wood_stud_wall(runner, model, surfaces, 'AdiabaticWallConstruction',
                                          0, 1, 3.5, true, 0.1, mat_int_finish, 0, 99, mat_ext_finish,
                                          Material.AirFilmVertical, Material.AirFilmVertical)
     elsif type == 'floor'
@@ -1535,7 +1522,7 @@ class OSModel
     elsif type == 'roof'
       Constructions.apply_open_cavity_roof(runner, model, surfaces, 'AdiabaticRoofConstruction',
                                            0, 1, 7.25, 0.07, 7.25, 0.75, 99,
-                                           Material.RoofMaterial(HPXML::RoofTypeAsphaltShingles, 0.90, 0.75),
+                                           Material.RoofMaterial(HPXML::RoofTypeAsphaltShingles),
                                            false, Material.AirFilmOutside,
                                            Material.AirFilmRoof(Geometry.get_roof_pitch(surfaces)), nil)
     end
