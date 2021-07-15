@@ -9,7 +9,7 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = { 'project_testing' => 10, 'project_national' => 500 }
+    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 3000 }
     @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
@@ -90,62 +90,64 @@ class IntegrationWorkflowTest < MiniTest::Test
     parent_dir = File.join(scenario_dir, project_dir)
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
+    osw_dir = File.join(parent_dir, 'osw')
+    Dir.mkdir(osw_dir) unless File.exist?(osw_dir)
+
+    xml_dir = File.join(parent_dir, 'xml')
+    Dir.mkdir(xml_dir) unless File.exist?(xml_dir)
+
     create_lib_folder(project_dir)
     create_buildstock_csv(parent_dir, project_dir, num_samples)
 
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
+    workflow_and_building_ids = []
     Dir["#{@top_dir}/workflow*.osw"].each do |workflow|
       next unless workflow.include?(File.basename(scenario_dir))
 
-      osw_basename = File.basename(workflow)
-      puts "\nWorkflow: #{osw_basename} ...\n"
-
-      osw_dir = File.join(parent_dir, 'osw')
-      Dir.mkdir(osw_dir) unless File.exist?(osw_dir)
-
-      xml_dir = File.join(parent_dir, 'xml')
-      Dir.mkdir(xml_dir) unless File.exist?(xml_dir)
-
-      building_ids = []
       (1..num_samples).to_a.each do |building_id|
         bldg_data = get_data_for_sample(File.join(@lib_dir, 'housing_characteristics/buildstock.csv'), building_id, runner)
         next unless counties.include? bldg_data['County']
 
-        building_ids << building_id
+        workflow_and_building_ids << [workflow, building_id]
       end
+    end
 
-      Parallel.map(building_ids, in_threads: Parallel.processor_count) do |building_id|
-        worker_number = Parallel.worker_number
-        puts "\nBuilding ID: #{building_id}, Worker Number: #{worker_number} ...\n"
+    Parallel.map(workflow_and_building_ids, in_threads: Parallel.processor_count) do |workflow, building_id|
+      worker_number = Parallel.worker_number
+      osw_basename = File.basename(workflow)
+      puts "\nWorkflow: #{osw_basename}, Building ID: #{building_id} (#{workflow_and_building_ids.index([workflow, building_id]) + 1} / #{workflow_and_building_ids.size}), Worker Number: #{worker_number} ...\n"
 
-        worker_folder = "run#{worker_number}"
-        worker_dir = File.join(File.dirname(workflow), worker_folder)
-        Dir.mkdir(worker_dir) unless File.exist?(worker_dir)
-        FileUtils.cp(workflow, worker_dir)
-        osw = File.join(worker_dir, File.basename(workflow))
+      worker_folder = "run#{worker_number}"
+      worker_dir = File.join(File.dirname(workflow), worker_folder)
+      Dir.mkdir(worker_dir) unless File.exist?(worker_dir)
+      FileUtils.cp(workflow, worker_dir)
+      osw = File.join(worker_dir, File.basename(workflow))
 
-        change_building_id(osw, building_id)
-        finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, File.join(@top_dir, worker_folder))
-        result_characteristics['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
-        result_output['OSW'] = "#{project_dir}-#{building_id.to_s.rjust(3, '0')}.osw"
+      change_building_id(osw, building_id)
 
-        check_finished_job(result_characteristics, finished_job)
-        check_finished_job(result_output, finished_job)
+      finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, File.join(@top_dir, worker_folder))
 
-        all_results_characteristics << result_characteristics
-        all_results_output << result_output
+      osw = "#{project_dir}-#{building_id.to_s.rjust(4, '0')}.osw"
+      result_characteristics['OSW'] = osw
+      result_output['OSW'] = osw
 
-        # Save existing/upgraded osws and xmls
-        ['existing', 'upgraded'].each do |scen|
-          ['osw', 'xml'].each do |type|
-            from = File.join(@top_dir, worker_folder, 'run', "#{scen}.#{type}")
+      check_finished_job(result_characteristics, finished_job)
+      check_finished_job(result_output, finished_job)
 
-            dir = osw_dir
-            dir = xml_dir if type == 'xml'
-            to = File.join(dir, "#{building_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
+      all_results_characteristics << result_characteristics
+      all_results_output << result_output
 
-            FileUtils.mv(from, to) if File.exist?(from)
-          end
+      # Save existing/upgraded osws and xmls
+      ['existing', 'upgraded'].each do |scen|
+        ['osw', 'xml'].each do |type|
+          from = File.join(@top_dir, worker_folder, 'run', "#{scen}.#{type}")
+
+          dir = osw_dir
+          dir = xml_dir if type == 'xml'
+          to = File.join(dir, "#{building_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
+
+          FileUtils.mv(from, to) if File.exist?(from)
         end
       end
     end

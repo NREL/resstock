@@ -91,9 +91,9 @@ class TsvFile
 
       if not rows_keys_s[key_s_downcase].nil?
         if key_s.size > 0
-          register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename} with dependencies: #{key_s}.", @runner)
         else
-          register_error("Multiple rows found in #{@filename.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename}.", @runner)
         end
       end
 
@@ -135,7 +135,7 @@ class TsvFile
 
       # Check positivity of the probability values
       if rowvals[option_name] < 0
-        register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+        register_error("Probability value in #{@filename} is less than zero.", @runner)
       end
     end
 
@@ -158,6 +158,7 @@ class TsvFile
     @option_cols.each_with_index do |(option_name, option_col), index|
       rowsum += rowvals[option_name]
       next unless (rowsum >= sample_value) || ((index == n_options - 1) && (rowsum + 0.00001 >= sample_value))
+
       matched_option_name = option_name
       matched_row_num = rownum
       break
@@ -414,7 +415,7 @@ def get_data_for_sample(buildstock_csv, building_id, runner)
     return sample
   end
   # If we got this far, couldn't find the sample #
-  msg = "Could not find row for #{building_id.to_s} in #{File.basename(buildstock_csv).to_s}."
+  msg = "Could not find row for #{building_id} in #{File.basename(buildstock_csv)}."
   runner.registerError(msg)
   fail msg
 end
