@@ -34,6 +34,7 @@ Fixes
 - Fixes the problem that `Heating Type=Void` is showing up in buildstock samples ([#568](https://github.com/NREL/resstock/pull/568))
 - Set AZ counties to NA daylight saving times instead of some AR counties ([#585](https://github.com/NREL/resstock/pull/585)) 
 - Housing characteristics fixes based on more samples in testing ([#592](https://github.com/NREL/resstock/pull/592))
+- Fixes window-to-wall ratio calculation for facades with doors ([#597](https://github.com/NREL/resstock/pull/597))
 - Fixes number of bathrooms for single-family attached and multi-family buildings ([#601](https://github.com/NREL/resstock/pull/601))
 - Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
 - Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
