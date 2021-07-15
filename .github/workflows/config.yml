@@ -111,15 +111,26 @@ jobs:
 
       - name: Compare samples and results
         run: |
-          cp -r base/buildstock*.csv resources/base_buildstock.csv
-          cp -r samples/buildstock*.csv resources/buildstock.csv
-          pip install pandas
-          python test/compare.py
-          
-          cp -r base/results*.csv test/test_samples_osw/base
+          cp -r base/*.csv test/test_samples_osw/base
           mkdir test/test_samples_osw/results
+          cp -r samples/buildstock*.csv test/test_samples_osw/results
           cp -r results/results* test/test_samples_osw/results
-          ruby test/compare.rb
+          
+          pip install numpy
+          pip install pandas
+          pip install plotly
+          pip install kaleido
+          
+          python test/compare.py -a samples
+          
+          python test/compare.py -m feature
+          
+          python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map
+          python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -af sum -ac build_existing_model.geometry_building_type_recs
+          
+          python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_building_type_recs
+          python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.county
+          python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.county -af sum
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
