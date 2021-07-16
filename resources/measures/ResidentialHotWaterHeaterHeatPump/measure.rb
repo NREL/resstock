@@ -61,14 +61,14 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     args << dhw_setpoint
 
     # make an argument for operating mode type (constant or variable)
-    operating_mode_type_args = OpenStudio::StringVector.new
-    operating_mode_type_args << Constants.WaterHeaterOperatingModeTypeConstant
-    operating_mode_type_args << Constants.WaterHeaterOperatingModeTypeScheduled
-    operating_mode_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('operating_mode_type', operating_mode_type_args, true)
-    operating_mode_type.setDisplayName('Operating mode type')
-    operating_mode_type.setDescription("The water heater operating mode type. The '#{Constants.WaterHeaterOperatingModeTypeConstant}' option will use a constant control strategy for the whole year, while '#{Constants.WaterHeaterOperatingModeTypeScheduled}' will use 8760 values in a schedule file.")
-    operating_mode_type.setDefaultValue(Constants.WaterHeaterOperatingModeTypeConstant)
-    args << operating_mode_type
+    operating_mode_schedule_type_args = OpenStudio::StringVector.new
+    operating_mode_schedule_type_args << Constants.WaterHeaterOperatingModeTypeConstant
+    operating_mode_schedule_type_args << Constants.WaterHeaterOperatingModeTypeScheduled
+    operating_mode_schedule_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('operating_mode_schedule_type', operating_mode_schedule_type_args, true)
+    operating_mode_schedule_type.setDisplayName('Operating mode type')
+    operating_mode_schedule_type.setDescription("The water heater operating mode type. The '#{Constants.WaterHeaterOperatingModeTypeConstant}' option will use a constant control strategy for the whole year, while '#{Constants.WaterHeaterOperatingModeTypeScheduled}' will use 8760 values in a schedule file.")
+    operating_mode_schedule_type.setDefaultValue(Constants.WaterHeaterOperatingModeTypeConstant)
+    args << operating_mode_schedule_type
 
     # make an argument for operating mode (standard or hp_only)
     operating_mode_args = OpenStudio::StringVector.new
@@ -232,7 +232,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     location = runner.getStringArgumentValue('location', user_arguments)
     setpoint_type = runner.getStringArgumentValue('setpoint_type', user_arguments)
     t_set = runner.getDoubleArgumentValue('setpoint_temp', user_arguments).to_f
-    operating_mode_type = runner.getStringArgumentValue('operating_mode_type', user_arguments)
+    operating_mode_schedule_type = runner.getStringArgumentValue('operating_mode_schedule_type', user_arguments)
     operating_mode = runner.getStringArgumentValue('operating_mode', user_arguments)
     schedule_directory = runner.getStringArgumentValue('schedules_directory', user_arguments)
     setpoint_schedule = runner.getStringArgumentValue('setpoint_schedule', user_arguments)
@@ -251,7 +251,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
     # ducting = runner.getStringArgumentValue("ducting",user_arguments)
     ducting = 'none'
 
-    if (setpoint_type == Constants.WaterHeaterSetpointTypeScheduled) || (operating_mode_type == Constants.WaterHeaterOperatingModeTypeScheduled)
+    if (setpoint_type == Constants.WaterHeaterSetpointTypeScheduled) || (operating_mode_schedule_type == Constants.WaterHeaterOperatingModeTypeScheduled)
       unless (Pathname.new schedule_directory).absolute?
         schedule_directory = File.expand_path(File.join(File.dirname(__FILE__), schedule_directory))
       end
@@ -262,7 +262,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
           return false
         end
       end
-      if operating_mode_type == Constants.WaterHeaterOperatingModeTypeScheduled
+      if operating_mode_schedule_type == Constants.WaterHeaterOperatingModeTypeScheduled
         operating_mode_schedule_file = File.join(schedule_directory, operating_mode_schedule)
         if not File.exist?(operating_mode_schedule_file)
           runner.registerError("'#{operating_mode_schedule_file}' does not exist.")
@@ -320,7 +320,7 @@ class ResidentialHotWaterHeaterHeatPump < OpenStudio::Measure::ModelMeasure
 
       success = Waterheater.apply_heatpump(model, unit, runner, loop, space, weather,
                                            e_cap, vol, setpoint_type, t_set, operating_mode,
-                                           operating_mode_type, setpoint_schedule_file,
+                                           operating_mode_schedule_type, setpoint_schedule_file,
                                            operating_mode_schedule_file, min_temp, max_temp,
                                            cap, cop, shr, airflow_rate, fan_power,
                                            parasitics, tank_ua, int_factor, temp_depress,

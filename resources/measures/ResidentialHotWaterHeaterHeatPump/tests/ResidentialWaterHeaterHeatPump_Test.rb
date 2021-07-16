@@ -28,7 +28,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
   def test_new_construction_50_op_sched
     args_hash = {}
     args_hash['setpoint_type'] = Constants.WaterHeaterSetpointTypeConstant
-    args_hash['operating_mode_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
+    args_hash['operating_mode_schedule_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
     args_hash['schedule_directory'] = './resources'
     args_hash['operating_mode_schedule'] = 'hourly_operating_mode_schedule.csv'
     expected_num_del_objects = {}
@@ -42,7 +42,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     args_hash['setpoint_type'] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash['schedule_directory'] = './resources'
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
-    args_hash['operating_mode_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
+    args_hash['operating_mode_schedule_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
     args_hash['operating_mode_schedule'] = 'hourly_operating_mode_schedule.csv'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemSensor' => 11, 'EnergyManagementSystemActuator' => 7, 'EnergyManagementSystemTrendVariable' => 3, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemProgramCallingManager' => 1, 'ScheduleFixedInterval' => 4, 'ScheduleConstant' => 5, 'ScheduleRuleset' => 7, 'SetpointManagerScheduled' => 1 }
@@ -122,7 +122,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     args_hash['setpoint_type'] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash['schedule_directory'] = './resources'
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
-    args_hash['operating_mode_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
+    args_hash['operating_mode_schedule_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
     args_hash['operating_mode_schedule'] = 'hourly_operating_mode_schedule.csv'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemSensor' => 8, 'EnergyManagementSystemActuator' => 5, 'EnergyManagementSystemTrendVariable' => 1, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemProgramCallingManager' => 1, 'ScheduleFixedInterval' => 4, 'ScheduleConstant' => 5, 'ScheduleRuleset' => 7, 'SetpointManagerScheduled' => 1 }
@@ -143,7 +143,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     args_hash['tank_ua'] = '4.0'
     args_hash['setpoint_type'] = Constants.WaterHeaterSetpointTypeConstant
     args_hash['schedule_directory'] = './resources'
-    args_hash['operating_mode_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
+    args_hash['operating_mode_schedule_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
     args_hash['operating_mode_schedule'] = 'hourly_operating_mode_schedule.csv'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemSensor' => 8, 'EnergyManagementSystemActuator' => 5, 'EnergyManagementSystemTrendVariable' => 1, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemProgramCallingManager' => 1, 'ScheduleFixedInterval' => 1, 'ScheduleConstant' => 7, 'ScheduleRuleset' => 7, 'SetpointManagerScheduled' => 1 }
@@ -222,7 +222,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     args_hash['setpoint_type'] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash['schedule_directory'] = './resources'
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule_feb.csv'
-    args_hash['operating_mode_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
+    args_hash['operating_mode_schedule_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
     args_hash['operating_mode_schedule'] = 'hourly_operating_mode_schedule_feb.csv'
     args_hash['storage_tank_volume'] = '80'
     args_hash['max_temp'] = '110'
@@ -244,7 +244,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     args_hash['setpoint_type'] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash['schedule_directory'] = './resources'
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
-    args_hash['operating_mode_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
+    args_hash['operating_mode_schedule_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
     args_hash['operating_mode_schedule'] = 'hourly_operating_mode_schedule.csv'
     args_hash['storage_tank_volume'] = '80'
     args_hash['max_temp'] = '110'
@@ -266,7 +266,7 @@ class ResidentialHotWaterHeaterHeatPumpTest < MiniTest::Test
     args_hash['setpoint_type'] = Constants.WaterHeaterSetpointTypeScheduled
     args_hash['schedule_directory'] = './resources'
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
-    args_hash['operating_mode_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
+    args_hash['operating_mode_schedule_type'] = Constants.WaterHeaterOperatingModeTypeScheduled
     args_hash['operating_mode_schedule'] = 'hourly_operating_mode_schedule_feb.csv'
     args_hash['storage_tank_volume'] = '80'
     args_hash['max_temp'] = '110'
