@@ -30,11 +30,11 @@ workflow_generator:
 eagle:
   account: abctypol
   n_jobs: 500
-  minutes_per_sim: 5
+  minutes_per_sim: 80
   sampling:
     time: 20
   postprocessing:
-    time: 60
+    time: 180
 
 upgrades:
   - upgrade_name: Package 1
@@ -4508,7 +4508,7 @@ upgrades:
         option: Infiltration|1 ACH50
       # Add the appropriate ERV or HRV for the climate zone
 
-      - option: Insulation Wall|Wood Stud, R-19, R-5 Sheathing
+      # - option: Insulation Wall|Wood Stud, R-19, R-5 Sheathing
       - option: Insulation Ceiling|R-49
       
       # Phius windows
@@ -4575,9 +4575,9 @@ upgrades:
       - option: Insulation Roof|Phius Roof, Zone 7B, R-82
         apply_logic: ASHRAE IECC Climate Zone 2004|7B
 
-      # Also convert to unvented attic
-      - option: Geometry Attic Type|Unvented Attic
-        apply_logic: Geometry Attic Type|Vented Attic
+      # # Also convert to unvented attic
+      # - option: Geometry Attic Type|Unvented Attic
+      #   apply_logic: Geometry Attic Type|Vented Attic
 
       # Wall Insulation
       - option: Insulation Wall|Phius Walls, Zone 1A, R-22
@@ -4677,38 +4677,85 @@ upgrades:
       #   apply_logic: ASHRAE IECC Climate Zone 2004|7A
       # - option: Insulation Floor|Phius Floor, Zone 7B, R-51
       #   apply_logic: ASHRAE IECC Climate Zone 2004|7B
-
+      
+      # Slab Insulation
       - option: Insulation Slab|Phius Slab Edge, Zone 1A, 2ft R-7 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|1A
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|1A
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 2A, 2ft R-10 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|2A
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|2A
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 2B, 2ft R-13 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|2B
+        apply_logic:           
+          and: 
+            - ASHRAE IECC Climate Zone 2004|2B
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 3A, 2ft R-13 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|3A
+        apply_logic:
+          and: 
+            - ASHRAE IECC Climate Zone 2004|3A
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 3B, 2ft R-14 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|3B
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|3B
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 3C, 2ft R-10 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|3C
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|3C
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 4A, 2ft R-17 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|4A
+        apply_logic:           
+          and: 
+            - ASHRAE IECC Climate Zone 2004|4A
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 4B, 2ft R-17 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|4B
+        apply_logic:
+          and: 
+            - ASHRAE IECC Climate Zone 2004|4B
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 4C, 2ft R-16 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|4C
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|4C
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 5A, 2ft R-21 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|5A
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|5A
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 5B, 2ft R-19 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|5B
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|5B
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 6A, 2ft R-24 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|6A
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|6A
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 6B, 2ft R-23 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|6B
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|6B
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 7A, 2ft R-30 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|7A
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|7A
+            - Geometry Foundation Type|Slab
       - option: Insulation Slab|Phius Slab Edge, Zone 7B, 2ft R-30 Exterior
-        apply_logic: ASHRAE IECC Climate Zone 2004|7B
-
+        apply_logic: 
+          and: 
+            - ASHRAE IECC Climate Zone 2004|7B
+            - Geometry Foundation Type|Slab
+      
+      # Foundation Insulation
       - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 1A, Wall R-7, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|1A
       - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 2A, Wall R-10, Unvented
@@ -4740,8 +4787,8 @@ upgrades:
       - option: Insulation Foundation Wall|Phius Fnd Walls, Zone 7B, Wall R-30, Unvented
         apply_logic: ASHRAE IECC Climate Zone 2004|7B
 
-      # Also seal crawlspace vents
-      - option: Geometry Foundation Type|Unvented Crawlspace
-        apply_logic: Geometry Foundation Type|Vented Crawlspace
+      # # Also seal crawlspace vents
+      # - option: Geometry Foundation Type|Unvented Crawlspace
+      #   apply_logic: Geometry Foundation Type|Vented Crawlspace
 
                       
