@@ -25,12 +25,11 @@ class BaseCompare:
         files.append(file)
 
     for file in sorted(files):
+      base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
+      feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
       if file == 'results_output.csv':
-        base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0).select_dtypes(exclude=['string', 'bool'])
-        feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output.csv'), index_col=0).select_dtypes(exclude=['string', 'bool'])
-      else:
-        base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
-        feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
+        base_df = base_df.select_dtypes(exclude=['string', 'bool'])
+        feature_df = feature_df.select_dtypes(exclude=['string', 'bool'])
 
       try:
         df = feature_df - base_df
@@ -221,7 +220,7 @@ class BaseCompare:
                                                  line=dict(width=1.5,
                                                  color='DarkSlateGrey')),
                                      mode='markers',
-                                     text=base_df.index,
+                                     text=x.index,
                                      name='',
                                      legendgroup=col,
                                      showlegend=False),
