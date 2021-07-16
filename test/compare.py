@@ -117,7 +117,6 @@ class MoreCompare(BaseCompare):
       df_to_map = base_df
 
     # Aggregate variables w/ multiple cols
-    del_cols_map = []
     for cols, map_to in map_dict.items():
       map_to_s = map_to.split(',')
       if len(map_to_s) > 1: # Sum columns and use first parameter as col name
@@ -132,26 +131,22 @@ class MoreCompare(BaseCompare):
 
       cols_s = cols.split(',')
       if len(cols_s)>1:
-        del_cols_map.append(cols)
         cols_s = [col.split('.')[1] for col in cols_s]
         try:
-          df_to_map[map_to] = df_to_map[cols_s].sum(axis=1)
+          df_to_map[cols] = df_to_map[cols_s].sum(axis=1)
         except:
           for col in cols_s:
             if col in df_to_map.columns:
               df_to_map[map_to] = df_to_map[col]
-
-    for col in del_cols_map:
-      del map_dict[col]
 
     # Convert units
     self.convert_units(df_to_map)
     self.convert_units(df_to_keep)
    
     # Map column headers
-    map_dict = {k.split('.')[1]:v for k,v in map_dict.items()}
+    map_dict = {k.split('.')[1] if ',' not in k else k:v for k,v in map_dict.items()}
     df_to_map.rename(columns=map_dict, inplace=True)
-    
+
     # Filter out aggregated and non-overlapping columns   
     mapped_cols = list(set(map_dict.values()).intersection(list(df_to_map.columns)))
     df_to_map = df_to_map[mapped_cols]
