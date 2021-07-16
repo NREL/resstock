@@ -406,8 +406,8 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   return result
 end
 
-def get_data_for_sample(buildstock_csv, building_id, runner)
-  CSV.foreach(buildstock_csv, headers: true) do |sample|
+def get_data_for_sample(buildstock_csv_data, building_id, runner)
+  buildstock_csv_data.each do |sample|
     next if sample['Building'].to_i != building_id
 
     return sample
