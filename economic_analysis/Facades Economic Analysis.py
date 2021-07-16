@@ -6,7 +6,7 @@ import os
 #make sure you run while in the Github directory that the python file is in (resstock/economic_analysis) or else the relative references break
 
 #set working directory
-default_dir = "C:/Users/epresent/Documents/Mini Projects/Facades/ResStock Results/infiltration_check_run500No3"
+default_dir = "C:/Users/epresent/Documents/Mini Projects/Facades/ResStock Results/test10kNo4"
 
 #load utility bill costs
 df_elec_costs = pd.read_csv("Fuel Price Input Files/Variable Elec Cost by State from EIA State Data.csv")
