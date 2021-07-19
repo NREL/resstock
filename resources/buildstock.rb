@@ -328,7 +328,7 @@ def get_measure_args_from_option_names(lookup_csv_data, option_names, parameter_
 end
 
 def print_option_assignment(parameter_name, option_name, runner)
-  runner.registerInfo("Assigning option '#{option_name.to_s}' for parameter '#{parameter_name.to_s}'.")
+  puts "Assigning option '#{option_name.to_s}' for parameter '#{parameter_name.to_s}'."
 end
 
 def register_value(runner, parameter_name, option_name)
