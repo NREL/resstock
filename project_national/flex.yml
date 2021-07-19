@@ -6,9 +6,12 @@ output_directory: outputs
 weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota
+  type: residential_quota_downselect
   args:
-    n_datapoints: 20
+    n_datapoints: 10
+    logic:
+      - Geometry Building Type RECS|Single-Family Detached
+    resample: false
 
 workflow_generator:
   type: residential_hpxml
