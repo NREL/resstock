@@ -85,9 +85,9 @@ def print_measure_call(measure_args, measure_dir, runner)
 
   args_s = hash_to_string(measure_args, delim = ' -> ', separator = " \n")
   if args_s.size > 0
-    puts "Calling #{measure_dir.to_s} measure with arguments:\n#{args_s}"
+    runner.registerInfo("Calling #{measure_dir.to_s} measure with arguments:\n#{args_s}")
   else
-    puts "Calling #{measure_dir.to_s} measure with no arguments."
+    runner.registerInfo("Calling #{measure_dir.to_s} measure with no arguments.")
   end
 end
 
