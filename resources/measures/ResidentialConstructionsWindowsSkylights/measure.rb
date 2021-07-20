@@ -150,8 +150,10 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
     model.getSubSurfaces.each do |subsurface|
       if subsurface.subSurfaceType.downcase.include? 'window'
         window_subsurfaces << subsurface
+        subsurface.additionalProperties.setFeature(Constants.SizingInfoWindowSummerShadingFactor, window_cool_shade_mult.to_f)
       elsif subsurface.subSurfaceType.downcase.include? 'skylight'
         skylight_subsurfaces << subsurface
+        subsurface.additionalProperties.setFeature(Constants.SizingInfoWindowSummerShadingFactor, skylight_cool_shade_mult.to_f)
       end
     end
 
