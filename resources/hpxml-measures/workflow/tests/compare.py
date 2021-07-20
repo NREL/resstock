@@ -7,10 +7,11 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 class BaseCompare:
-    def __init__(self, base_folder, feature_folder, export_folder):
+    def __init__(self, base_folder, feature_folder, export_folder, export_file):
         self.base_folder = base_folder
         self.feature_folder = feature_folder
         self.export_folder = export_folder
+        self.export_file = export_file
 
     def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}):
         aggregate_columns = []
@@ -100,9 +101,7 @@ class BaseCompare:
         deltas.to_csv(
             os.path.join(
                 self.export_folder,
-                '{basename}_{aggregate_function}.csv'.format(
-                    basename=basename,
-                    aggregate_function=aggregate_function)))
+                self.export_file))
 
     def visualize(self, aggregate_column=None, aggregate_function=None, display_column=None, excludes=[], enum_maps={}):
         aggregate_columns = []
@@ -210,7 +209,7 @@ class BaseCompare:
                 subplot_titles=groups * len(cols),
                 row_titles=[
                     f'<b>{f}</b>' for f in cols],
-                vertical_spacing=0.0040)
+                vertical_spacing=0.003)
 
             nrow = 0
             for col in cols:
@@ -285,14 +284,11 @@ class BaseCompare:
                     i['y'] += increment
 
             basename, ext = os.path.splitext(file)
-            if display_columns:
-                basename += '_{display_column}'.format(display_column=display_columns[0])
-            if aggregate_columns:
-                basename += '_{aggregate_column}'.format(aggregate_column=aggregate_columns[0])
-            if aggregate_function:
-                basename += '_{aggregate_function}'.format(aggregate_function=aggregate_function)
+            filename = '{basename}.html'.format(basename=basename)
+            if self.export_file:
+                filename = self.export_file
 
-            plotly.offline.plot(fig, filename=os.path.join(self.export_folder, '{basename}.html'.format(basename=basename)), auto_open=False)
+            plotly.offline.plot(fig, filename=os.path.join(self.export_folder, '{filename}'.format(filename=filename)), auto_open=False)
 
 
 if __name__ == '__main__':
@@ -306,13 +302,14 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--base_folder', default=default_base_folder, help='The path of the base folder.')
     parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='The path of the feature folder.')
     parser.add_argument('-e', '--export_folder', default=default_export_folder, help='The path of the export folder.')
+    parser.add_argument('-x', '--export_file', help='The path of the export file.')
     parser.add_argument('-a', '--actions', action='append', choices=actions, help='The method to call.')
     args = parser.parse_args()
 
     if not os.path.exists(args.export_folder):
         os.makedirs(args.export_folder)
 
-    compare = BaseCompare(args.base_folder, args.feature_folder, args.export_folder)
+    compare = BaseCompare(args.base_folder, args.feature_folder, args.export_folder, args.export_file)
 
     if args.actions is None:
         args.actions = []

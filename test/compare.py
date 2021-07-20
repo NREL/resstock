@@ -18,10 +18,11 @@ enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family
                                                                   'Multi-Family with 5+ Units': 'MF'} }
 
 class MoreCompare(BaseCompare):
-  def __init__(self, base_folder, feature_folder, export_folder, map_results):
+  def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
     self.base_folder = base_folder
     self.feature_folder = feature_folder
     self.export_folder = export_folder
+    self.export_file = export_file
 
     if map_results:
       self.map_columns(map_results)
@@ -184,6 +185,7 @@ if __name__ == '__main__':
   parser.add_argument('-b', '--base_folder', default=default_base_folder, help='The path of the base folder.')
   parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='The path of the feature folder.')
   parser.add_argument('-e', '--export_folder', default=default_export_folder, help='The path of the export folder.')
+  parser.add_argument('-x', '--export_file', help='The path of the export file.')
   parser.add_argument('-a', '--actions', action='append', choices=actions, help='The method to call.')
   parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
   parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
@@ -194,7 +196,7 @@ if __name__ == '__main__':
   if not os.path.exists(args.export_folder):
     os.makedirs(args.export_folder)
     
-  compare = MoreCompare(args.base_folder, args.feature_folder, args.export_folder, args.map_results)
+  compare = MoreCompare(args.base_folder, args.feature_folder, args.export_folder, args.export_file, args.map_results)
 
   if args.actions == None:
     args.actions = [] 
