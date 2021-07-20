@@ -203,13 +203,14 @@ class BaseCompare:
 
                 groups = list(base_df[display_columns[0]].unique())
 
+            vertical_spacing = 0.3 / len(cols)
             fig = make_subplots(
                 rows=len(cols),
                 cols=len(groups),
                 subplot_titles=groups * len(cols),
                 row_titles=[
                     f'<b>{f}</b>' for f in cols],
-                vertical_spacing=0.003)
+                vertical_spacing=vertical_spacing)
 
             nrow = 0
             for col in cols:
