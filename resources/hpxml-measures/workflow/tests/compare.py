@@ -210,7 +210,7 @@ class BaseCompare:
                 subplot_titles=groups * len(cols),
                 row_titles=[
                     f'<b>{f}</b>' for f in cols],
-                vertical_spacing=0.0025)
+                vertical_spacing=0.0040)
 
             nrow = 0
             for col in cols:
@@ -272,10 +272,17 @@ class BaseCompare:
                     fig.update_xaxes(title_text='base', row=nrow, col=ncol)
                     fig.update_yaxes(title_text='feature', row=nrow, col=ncol)
 
-            fig['layout'].update(title=file, template='plotly_white')
+            fig['layout'].update(template='plotly_white')
             fig.update_layout(width=800 * len(groups), height=600 * len(cols), autosize=False, font=dict(size=12))
+
+            # Re-locate row titles above plots
+            increment = (1/len(cols)/2)*0.95
             for i in fig['layout']['annotations']:
-                i['font'] = dict(size=12) if i['text'] in cols else dict(size=12)
+                text = i['text'].replace('<b>','').replace('</b>','')
+                if text in cols:
+                    i['textangle'] = 0
+                    i['x'] = 0
+                    i['y'] += increment
 
             basename, ext = os.path.splitext(file)
             if display_columns:
