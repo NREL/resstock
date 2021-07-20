@@ -51,7 +51,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['fluid_type'] = Constants.FluidWater
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.0, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.0, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -59,7 +59,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -67,7 +67,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_West_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -75,7 +75,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_East_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -85,7 +85,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['azimuth'] = 90.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'West', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'West', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_South_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -95,7 +95,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['azimuth'] = 90.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'South', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'South', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_West_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -105,7 +105,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['azimuth'] = 90.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_East_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -115,7 +115,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['azimuth'] = 45.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'Southeast', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'Southeast', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_West_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -125,7 +125,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['azimuth'] = 45.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'Northwest', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'Northwest', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_East_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -135,7 +135,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['azimuth'] = 45.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'Southwest', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'Southwest', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_South_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -144,7 +144,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt_type'] = Constants.CoordAbsolute
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -153,7 +153,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt_type'] = Constants.CoordAbsolute
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_West_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -162,7 +162,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt_type'] = Constants.CoordAbsolute
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_East_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -171,7 +171,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt_type'] = Constants.CoordAbsolute
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_South_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -181,7 +181,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = 30.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 30 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 30 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -191,7 +191,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = 30.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 30 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 30 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_West_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -201,7 +201,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = 30.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 30 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 30 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_East_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -211,7 +211,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = 30.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 30 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 30 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_South_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -221,7 +221,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = -15.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 - 15 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 - 15 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -231,7 +231,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = -15.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 - 15 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 - 15 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_West_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -241,7 +241,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = -15.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 - 15 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 - 15 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_East_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -251,7 +251,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = -15.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 - 15 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 - 15 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_South_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -261,7 +261,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = 15.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 + 15 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 + 15 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -271,7 +271,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = 15.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 + 15 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 + 15 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_West_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -281,7 +281,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = 15.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 + 15 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 + 15 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_East_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -291,7 +291,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash['tilt'] = 15.0
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 + 15 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => 39.83 + 15 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_South_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -299,7 +299,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -307,7 +307,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_West_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -315,7 +315,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_East_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -323,7 +323,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_South_GasWHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
@@ -332,7 +332,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => num_units, 'ShadingSurface' => num_units, 'SizingPlant' => num_units, 'PumpConstantSpeed' => num_units, 'AvailabilityManagerDifferentialThermostat' => num_units, 'WaterHeaterStratified' => num_units, 'SetpointManagerScheduled' => num_units, 'SolarCollectorFlatPlateWater' => num_units, 'PlantLoop' => num_units, 'SolarCollectorPerformanceFlatPlate' => num_units }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure('SFA_4units_1story_FB_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 4)
   end
 
@@ -341,7 +341,7 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => num_units, 'ShadingSurface' => num_units, 'SizingPlant' => num_units, 'PumpConstantSpeed' => num_units, 'AvailabilityManagerDifferentialThermostat' => num_units, 'WaterHeaterStratified' => num_units, 'SetpointManagerScheduled' => num_units, 'SolarCollectorFlatPlateWater' => num_units, 'PlantLoop' => num_units, 'SolarCollectorPerformanceFlatPlate' => num_units }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'StraightUp', 'Tilt' => 0 }
     _test_measure('MF_8units_1story_SL_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units * 4)
   end
 
@@ -349,12 +349,12 @@ class ResidentialHotWaterSolarTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 60, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 40, 'CollectorFlowRate' => 0.0000568724330873, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     model = _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
     args_hash['collector_area'] = 64
     expected_num_del_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
     expected_num_new_objects = { 'ShadingSurfaceGroup' => 1, 'ShadingSurface' => 1, 'SizingPlant' => 1, 'PumpConstantSpeed' => 1, 'AvailabilityManagerDifferentialThermostat' => 1, 'WaterHeaterStratified' => 1, 'SetpointManagerScheduled' => 1, 'SolarCollectorFlatPlateWater' => 1, 'PlantLoop' => 1, 'SolarCollectorPerformanceFlatPlate' => 1 }
-    expected_values = { 'TankVolume' => 96, 'Heater1Setpoint' => 126.8, 'Heater2Setpoint' => 126.8, 'CollectorArea' => 64, 'CollectorFlowRate' => 0.0000909958929397, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
+    expected_values = { 'TankVolume' => 96, 'Heater1Setpoint' => 125, 'Heater2Setpoint' => 125, 'CollectorArea' => 64, 'CollectorFlowRate' => 0.0000909958929397, 'GlycolFrac' => 0.5, 'CoordDir' => 'North', 'Tilt' => UnitConversions.convert(Math.atan(1.0 / 2.0), 'rad', 'deg') }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 4)
   end
 
