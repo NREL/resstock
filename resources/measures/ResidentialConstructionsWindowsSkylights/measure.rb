@@ -154,33 +154,33 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
         skylight_subsurfaces << subsurface
       end
     end
-    
+
     # Remove any existing window/skylight shading
     model.getShadingSurfaceGroups.each do |shading_group|
       next unless shading_group.name.to_s == 'window and skylight shading group'
-      
+
       shading_group.remove
     end
     model.getSchedules.each do |schedule|
-      next unless ["window trans schedule", "skylight trans schedule"].include? schedule.name.to_s
-      
+      next unless ['window shading schedule', 'skylight shading schedule'].include? schedule.name.to_s
+
       schedule.remove
     end
 
     shading_group = nil
-    
+
     # Apply constructions
     if not SubsurfaceConstructions.apply_window(runner, model, window_subsurfaces, 'WindowConstruction', window_ufactor, window_shgc)
       return false
     end
-    
+
     # Apply interior shading (as needed)
     if (window_cool_shade_mult < 1.0) || (window_heat_shade_mult < 1.0)
       window_schedule = nil
       window_subsurfaces.each do |sub_surface|
         trans_values = cooling_season.map { |c| c == 1 ? window_cool_shade_mult : window_heat_shade_mult }
         if window_schedule.nil?
-          window_schedule = MonthWeekdayWeekendSchedule.new(model, runner, "window trans schedule", Array.new(24, 1), Array.new(24, 1), trans_values, 1.0, 1.0, false)
+          window_schedule = MonthWeekdayWeekendSchedule.new(model, runner, 'window shading schedule', Array.new(24, 1), Array.new(24, 1), trans_values, 1.0, 1.0, false)
         end
         shading_group = apply_interior_shading(model, sub_surface, shading_group, window_schedule, trans_values)
       end
@@ -190,14 +190,14 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
     if not SubsurfaceConstructions.apply_skylight(runner, model, skylight_subsurfaces, 'SkylightConstruction', skylight_ufactor, skylight_shgc)
       return false
     end
-    
+
     # Apply interior shading (as needed)
     if (skylight_cool_shade_mult < 1.0) || (skylight_heat_shade_mult < 1.0)
       skylight_schedule = nil
       skylight_subsurfaces.each do |sub_surface|
         trans_values = cooling_season.map { |c| c == 1 ? skylight_cool_shade_mult : skylight_heat_shade_mult }
         if skylight_schedule.nil?
-          skylight_schedule = MonthWeekdayWeekendSchedule.new(model, runner, "skylight trans schedule", Array.new(24, 1), Array.new(24, 1), trans_values, 1.0, 1.0, false)
+          skylight_schedule = MonthWeekdayWeekendSchedule.new(model, runner, 'skylight shading schedule', Array.new(24, 1), Array.new(24, 1), trans_values, 1.0, 1.0, false)
         end
         shading_group = apply_interior_shading(model, sub_surface, shading_group, skylight_schedule, trans_values)
       end

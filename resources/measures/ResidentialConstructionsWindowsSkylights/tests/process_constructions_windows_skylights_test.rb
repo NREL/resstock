@@ -85,7 +85,7 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
     args_hash['skylight_cool_shade_mult'] = 0.7
     expected_num_del_objects = {}
     expected_num_new_objects = { 'SimpleGlazing' => 2, 'Construction' => 2, 'ShadingSurface' => 34, 'ShadingSurfaceGroup' => 1, 'ScheduleRuleset' => 2 }
-    expected_values = { 'shgc' => 0.3 + 0.5, 'ufactor' => 0.37 + 0.20/1.2, 'SubSurfacesWithConstructions' => 34 }
+    expected_values = { 'shgc' => 0.3 + 0.5, 'ufactor' => 0.37 + 0.20 / 1.2, 'SubSurfacesWithConstructions' => 34 }
     result = _test_measure('SFD_2000sqft_2story_SL_FA_Denver_Windows_Skylights.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 

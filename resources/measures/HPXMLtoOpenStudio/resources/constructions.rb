@@ -1849,7 +1849,6 @@ class SubsurfaceConstructions
   end
 
   def self.apply_window(runner, model, subsurfaces, constr_name, ufactor, shgc)
-
     success = apply_window_skylight(runner, model, 'Window', subsurfaces, constr_name, ufactor, shgc)
     return false if not success
 
@@ -1857,7 +1856,6 @@ class SubsurfaceConstructions
   end
 
   def self.apply_skylight(runner, model, subsurfaces, constr_name, ufactor, shgc)
-
     success = apply_window_skylight(runner, model, 'Skylight', subsurfaces, constr_name, ufactor, shgc)
     return false if not success
 
@@ -1865,7 +1863,6 @@ class SubsurfaceConstructions
   end
 
   def self.apply_window_skylight(runner, model, type, subsurfaces, constr_name, ufactor, shgc)
-
     return true if subsurfaces.empty?
 
     # Validate Inputs
