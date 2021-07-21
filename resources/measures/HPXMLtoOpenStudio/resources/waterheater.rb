@@ -1218,7 +1218,7 @@ class Waterheater
     end
 
     model.getPlantLoops.each do |plant_loop|
-      next if pl.name.to_s != plantloop_s
+      next if plant_loop.name.to_s != plantloop_s
 
       return plant_loop
     end
