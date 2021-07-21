@@ -181,6 +181,9 @@ class BaseCompare:
             base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
             feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
 
+            base_df = base_df[base_df.index.isin(feature_df.index)]
+            feature_df = feature_df[feature_df.index.isin(base_df.index)]
+
             for col in base_df.columns:
                 if base_df[col].isnull().all():
                     base_df.drop(col, axis=1, inplace=True)
