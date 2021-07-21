@@ -433,7 +433,7 @@ class Airflow
   end
 
   def self.get_default_shelter_coefficient()
-    return 0.5 # Table 4.2.2(1)(g)
+    return 0.9 # Table 4.2.2(1)(g)
   end
 
   def self.get_default_vented_attic_sla()
