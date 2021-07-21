@@ -164,7 +164,7 @@ class ScheduleGenerator
   end
 
   def create_average_lighting_exterior_holiday
-    create_timeseries_from_weekday_weekend_monthly(sch_name: 'lighting_exterior_holiday', weekday_sch: Schedule.LightingExteriorHolidayWeekdayFractions, weekend_sch: Schedule.LightingExteriorHolidayWeekendFractions, monthly_sch: Schedule.LightingExteriorHolidayMonthlyMultipliers, begin_month: 11, begin_day_of_month: 24, end_month: 1, end_day_of_month: 6)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: 'lighting_exterior_holiday', weekday_sch: Schedule.LightingExteriorHolidayWeekdayFractions, weekend_sch: Schedule.LightingExteriorHolidayWeekendFractions, monthly_sch: Schedule.LightingExteriorHolidayMonthlyMultipliers, begin_month: 11, begin_day: 24, end_month: 1, end_day: 6)
   end
 
   def create_average_cooking_range
@@ -255,20 +255,20 @@ class ScheduleGenerator
                                                      weekend_sch:,
                                                      monthly_sch:,
                                                      begin_month: nil,
-                                                     begin_day_of_month: nil,
+                                                     begin_day: nil,
                                                      end_month: nil,
-                                                     end_day_of_month: nil)
+                                                     end_day: nil)
 
     daily_sch = { 'weekday_sch' => weekday_sch.split(',').map { |i| i.to_f },
                   'weekend_sch' => weekend_sch.split(',').map { |i| i.to_f },
                   'monthly_multiplier' => monthly_sch.split(',').map { |i| i.to_f } }
 
-    if begin_month.nil? && begin_day_of_month.nil? && end_month.nil? && end_day_of_month.nil?
+    if begin_month.nil? && begin_day.nil? && end_month.nil? && end_day.nil?
       begin_day = @sim_start_day
       end_day = DateTime.new(@sim_year, 12, 31)
     else
-      begin_day = DateTime.new(@sim_year, begin_month, begin_day_of_month)
-      end_day = DateTime.new(@sim_year, end_month, end_day_of_month)
+      begin_day = DateTime.new(@sim_year, begin_month, begin_day)
+      end_day = DateTime.new(@sim_year, end_month, end_day)
     end
 
     @total_days_in_year.times do |day|
@@ -857,9 +857,9 @@ class ScheduleGenerator
   end
 
   def set_vacancy(args:)
-    if args[:schedules_vacancy_begin_month].is_initialized && args[:schedules_vacancy_begin_day_of_month].is_initialized && args[:schedules_vacancy_end_month].is_initialized && args[:schedules_vacancy_end_day_of_month].is_initialized
-      start_day_num = Schedule.get_day_num_from_month_day(@model, args[:schedules_vacancy_begin_month].get, args[:schedules_vacancy_begin_day_of_month].get)
-      end_day_num = Schedule.get_day_num_from_month_day(@model, args[:schedules_vacancy_end_month].get, args[:schedules_vacancy_end_day_of_month].get)
+    if (not args[:schedules_vacancy_begin_month].nil?) && (not args[:schedules_vacancy_begin_day].nil?) && (not args[:schedules_vacancy_end_month].nil?) && (not args[:schedules_vacancy_end_day].nil?)
+      start_day_num = Schedule.get_day_num_from_month_day(@model, args[:schedules_vacancy_begin_month], args[:schedules_vacancy_begin_day])
+      end_day_num = Schedule.get_day_num_from_month_day(@model, args[:schedules_vacancy_end_month], args[:schedules_vacancy_end_day])
       num_steps_per_day = @model.getSimulationControl.timestep.get.numberOfTimestepsPerHour * 24
 
       vacancy = Array.new(@schedules['vacancy'].length, 0)

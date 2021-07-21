@@ -134,10 +134,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'conditioned-attic-with-one-floor-above-grade.osw' => 'geometry_num_floors_above_grade=1 and geometry_attic_type=ConditionedAttic',
       'zero-number-of-bedrooms.osw' => 'geometry_num_bedrooms=0',
       'single-family-detached-with-shared-system.osw' => 'geometry_unit_type=single-family detached and heating_system_type=Shared Boiler w/ Baseboard',
-      'hvac-seasons-incomplete-heating-season.osw' => 'season_heating_begin_month=true and season_heating_begin_day_of_month=false and season_heating_end_month=true and seasons_heating_end_day_of_month=false',
-      'hvac-seasons-incomplete-cooling-season.osw' => 'season_cooling_begin_month=false and season_cooling_begin_day_of_month=true and season_cooling_end_month=false and season_cooling_end_day_of_month=true',
-      'schedules-vacancy-incomplete.osw' => 'schedules_vacancy_begin_month=true and schedules_vacancy_begin_day_of_month=false and schedules_vacancy_end_month=true and schedules_vacancy_end_day_of_month=false',
-      'schedules-vacancy-invalid.osw' => 'Vacancy Period End Day of Month (31) must be one of: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30.'
     }
 
     measures = {}

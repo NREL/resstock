@@ -60,6 +60,7 @@ def create_osws
     'base-bldgtype-multifamily-shared-water-heater.osw' => 'base-bldgtype-multifamily.osw',
     # 'base-bldgtype-multifamily-shared-water-heater-recirc.osw' => 'base.osw', $ Not supporting shared recirculation for now
     'base-bldgtype-single-family-attached.osw' => 'base.osw',
+    'base-bldgtype-single-family-attached-2stories.osw' => 'base-bldgtype-single-family-attached.osw',
     'base-dhw-combi-tankless.osw' => 'base-dhw-indirect.osw',
     'base-dhw-combi-tankless-outside.osw' => 'base-dhw-combi-tankless.osw',
     # 'base-dhw-desuperheater.osw' => 'base.osw', # Not supporting desuperheater for now
@@ -96,7 +97,7 @@ def create_osws
     'base-dhw-tank-elec-uef.osw' => 'base.osw',
     'base-dhw-tank-gas.osw' => 'base.osw',
     'base-dhw-tank-gas-uef.osw' => 'base.osw',
-    # 'base-dhw-tank-gas-uef-fhr.osw' => 'base-dhw-tank-gas-uef.osw',
+    # 'base-dhw-tank-gas-uef-fhr.osw' => 'base-dhw-tank-gas-uef.osw', # Supporting Usage Bin instead of FHR
     'base-dhw-tank-gas-outside.osw' => 'base-dhw-tank-gas.osw',
     'base-dhw-tank-heat-pump.osw' => 'base.osw',
     'base-dhw-tank-heat-pump-outside.osw' => 'base.osw',
@@ -130,6 +131,7 @@ def create_osws
     # 'base-enclosure-rooftypes.osw' => 'base.osw',
     # 'base-enclosure-skylights.osw' => 'base.osw', # There are no front roof surfaces, but 15.0 ft^2 of skylights were specified.
     # 'base-enclosure-skylights-shading.osw' => 'base-enclosure-skylights.osw", # Not going to support interior/exterior shading by facade
+    # 'base-enclosure-split-level.osw' => 'base.osw',
     # 'base-enclosure-split-surfaces.osw' => 'base.osw',
     # 'base-enclosure-split-surfaces2.osw' => 'base.osw',
     # 'base-enclosure-walltypes.osw' => 'base.osw',
@@ -232,7 +234,6 @@ def create_osws
     'base-hvac-ground-to-air-heat-pump.osw' => 'base.osw',
     'base-hvac-ground-to-air-heat-pump-cooling-only.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
     'base-hvac-ground-to-air-heat-pump-heating-only.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
-    'base-hvac-seasons.osw' => 'base.osw',
     'base-hvac-install-quality-air-to-air-heat-pump-1-speed.osw' => 'base-hvac-air-to-air-heat-pump-1-speed.osw',
     'base-hvac-install-quality-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
     'base-hvac-install-quality-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
@@ -256,7 +257,8 @@ def create_osws
     'base-hvac-programmable-thermostat-detailed.osw' => 'base.osw',
     'base-hvac-room-ac-only.osw' => 'base.osw',
     'base-hvac-room-ac-only-33percent.osw' => 'base.osw',
-    # 'base-hvac-room-ac-only-ceer.osw' => 'base-hvac-room-ac-only.osw',
+    'base-hvac-room-ac-only-ceer.osw' => 'base-hvac-room-ac-only.osw',
+    'base-hvac-seasons.osw' => 'base.osw',
     'base-hvac-setpoints.osw' => 'base.osw',
     'base-hvac-stove-oil-only.osw' => 'base.osw',
     'base-hvac-stove-wood-pellets-only.osw' => 'base.osw',
@@ -265,7 +267,7 @@ def create_osws
     'base-hvac-wall-furnace-elec-only.osw' => 'base.osw',
     'base-lighting-ceiling-fans.osw' => 'base.osw',
     'base-lighting-detailed.osw' => 'base.osw',
-    # 'base-lighting-none.osw' => 'base.osw',
+    # 'base-lighting-none.osw' => 'base.osw', # No need to support no lighting
     'base-location-AMY-2012.osw' => 'base.osw',
     'base-location-baltimore-md.osw' => 'base-foundation-unvented-crawlspace.osw',
     'base-location-dallas-tx.osw' => 'base-foundation-slab.osw',
@@ -290,14 +292,14 @@ def create_osws
     'base-mechvent-supply.osw' => 'base.osw',
     'base-mechvent-whole-house-fan.osw' => 'base.osw',
     'base-misc-defaults.osw' => 'base.osw',
-    # 'base-misc-generators.osw' => 'base.osw',
+    # 'base-misc-generators.osw' => 'base.osw', # Not supporting generators for now
     'base-misc-loads-large-uncommon.osw' => 'base.osw',
     'base-misc-loads-large-uncommon2.osw' => 'base-misc-loads-large-uncommon.osw',
-    # 'base-misc-loads-none.osw' => 'base.osw',
+    # 'base-misc-loads-none.osw' => 'base.osw', # No need to support no misc loads
     'base-misc-neighbor-shading.osw' => 'base.osw',
     'base-misc-shielding-of-home.osw' => 'base.osw',
     'base-misc-usage-multiplier.osw' => 'base.osw',
-    # 'base-multiple-buildings.osw' => 'base.osw',
+    # 'base-multiple-buildings.osw' => 'base.osw', # No need to support multiple buildings
     'base-pv.osw' => 'base.osw',
     'base-simcontrol-calendar-year-custom.osw' => 'base.osw',
     'base-simcontrol-daylight-saving-custom.osw' => 'base.osw',
@@ -457,10 +459,6 @@ def create_osws
     'invalid_files/conditioned-attic-with-one-floor-above-grade.osw' => 'base.osw',
     'invalid_files/zero-number-of-bedrooms.osw' => 'base.osw',
     'invalid_files/single-family-detached-with-shared-system.osw' => 'base.osw',
-    'invalid_files/hvac-seasons-incomplete-heating-season.osw' => 'base.osw',
-    'invalid_files/hvac-seasons-incomplete-cooling-season.osw' => 'base.osw',
-    'invalid_files/schedules-vacancy-incomplete.osw' => 'base.osw',
-    'invalid_files/schedules-vacancy-invalid.osw' => 'base.osw'
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -665,8 +663,7 @@ def get_values(osw_file, step)
     step.setArgument('setpoint_heating_weekend', '68')
     step.setArgument('setpoint_cooling_weekday', '78')
     step.setArgument('setpoint_cooling_weekend', '78')
-    step.setArgument('ducts_supply_leakage_units', HPXML::UnitsCFM25)
-    step.setArgument('ducts_return_leakage_units', HPXML::UnitsCFM25)
+    step.setArgument('ducts_leakage_units', HPXML::UnitsCFM25)
     step.setArgument('ducts_supply_leakage_value', 75.0)
     step.setArgument('ducts_return_leakage_value', 25.0)
     step.setArgument('ducts_supply_insulation_r', 4.0)
@@ -767,10 +764,6 @@ def get_values(osw_file, step)
     step.setArgument('lighting_usage_multiplier_garage', 1.0)
     step.setArgument('holiday_lighting_present', false)
     step.setArgument('holiday_lighting_daily_kwh', Constants.Auto)
-    step.setArgument('holiday_lighting_period_begin_month', Constants.Auto)
-    step.setArgument('holiday_lighting_period_begin_day_of_month', Constants.Auto)
-    step.setArgument('holiday_lighting_period_end_month', Constants.Auto)
-    step.setArgument('holiday_lighting_period_end_day_of_month', Constants.Auto)
     step.setArgument('dehumidifier_type', 'none')
     step.setArgument('dehumidifier_efficiency_type', 'EnergyFactor')
     step.setArgument('dehumidifier_efficiency', 1.8)
@@ -945,6 +938,15 @@ def get_values(osw_file, step)
     step.setArgument('window_area_right', 0)
     step.setArgument('heating_system_heating_capacity', '24000.0')
     step.setArgument('plug_loads_other_annual_kwh', '1638.0')
+  elsif ['base-bldgtype-single-family-attached-2stories.osw'].include? osw_file
+    step.setArgument('geometry_num_floors_above_grade', 2)
+    step.setArgument('geometry_cfa', 2700.0)
+    step.setArgument('heating_system_heating_capacity', '48000.0')
+    step.setArgument('cooling_system_cooling_capacity', '36000.0')
+    step.setArgument('ducts_supply_surface_area', '112.5')
+    step.setArgument('ducts_return_surface_area', '37.5')
+    step.setArgument('ducts_number_of_return_registers', '3')
+    step.setArgument('plug_loads_other_annual_kwh', '2457.0')
   elsif ['base-bldgtype-multifamily.osw'].include? osw_file
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeApartment)
     step.setArgument('geometry_cfa', 900.0)
@@ -1670,8 +1672,7 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_backup_heating_efficiency', 0.95)
     step.setArgument('heat_pump_backup_heating_switchover_temp', 25)
   elsif ['base-hvac-ducts-leakage-percent.osw'].include? osw_file
-    step.setArgument('ducts_supply_leakage_units', HPXML::UnitsPercent)
-    step.setArgument('ducts_return_leakage_units', HPXML::UnitsPercent)
+    step.setArgument('ducts_leakage_units', HPXML::UnitsPercent)
     step.setArgument('ducts_supply_leakage_value', 0.1)
     step.setArgument('ducts_return_leakage_value', 0.05)
   elsif ['base-hvac-elec-resistance-only.osw'].include? osw_file
@@ -1774,14 +1775,8 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_cooling_capacity', '0.0')
     step.setArgument('heat_pump_fraction_cool_load_served', 0)
   elsif ['base-hvac-seasons.osw'].include? osw_file
-    step.setArgument('season_heating_begin_month', 11)
-    step.setArgument('season_heating_begin_day_of_month', 1)
-    step.setArgument('season_heating_end_month', 6)
-    step.setArgument('season_heating_end_day_of_month', 30)
-    step.setArgument('season_cooling_begin_month', 6)
-    step.setArgument('season_cooling_begin_day_of_month', 1)
-    step.setArgument('season_cooling_end_month', 10)
-    step.setArgument('season_cooling_end_day_of_month', 31)
+    step.setArgument('season_heating_period', 'Nov 1 - Jun 30')
+    step.setArgument('season_cooling_period', 'Jun 1 - Oct 31')
   elsif ['base-hvac-install-quality-air-to-air-heat-pump-1-speed.osw'].include? osw_file
     step.setArgument('heat_pump_airflow_defect_ratio', -0.25)
     step.setArgument('heat_pump_charge_defect_ratio', -0.25)
@@ -1860,6 +1855,9 @@ def get_values(osw_file, step)
     step.setArgument('cooling_system_cooling_efficiency', 8.5)
     step.removeArgument('cooling_system_cooling_compressor_type')
     step.setArgument('cooling_system_cooling_sensible_heat_fraction', 0.65)
+  elsif ['base-hvac-room-ac-only-ceer.osw'].include? osw_file
+    step.setArgument('cooling_system_cooling_efficiency_type', HPXML::UnitsCEER)
+    step.setArgument('cooling_system_cooling_efficiency', 8.4)
   elsif ['base-hvac-room-ac-only-33percent.osw'].include? osw_file
     step.setArgument('heating_system_type', 'none')
     step.setArgument('cooling_system_type', HPXML::HVACTypeRoomAirConditioner)
@@ -1905,10 +1903,7 @@ def get_values(osw_file, step)
   elsif ['base-lighting-detailed.osw'].include? osw_file
     step.setArgument('holiday_lighting_present', true)
     step.setArgument('holiday_lighting_daily_kwh', '1.1')
-    step.setArgument('holiday_lighting_period_begin_month', '11')
-    step.setArgument('holiday_lighting_period_begin_day_of_month', '24')
-    step.setArgument('holiday_lighting_period_end_month', '1')
-    step.setArgument('holiday_lighting_period_end_day_of_month', '6')
+    step.setArgument('holiday_lighting_period', 'Nov 24 - Jan 6')
   end
 
   # Location
@@ -2164,17 +2159,11 @@ def get_values(osw_file, step)
     step.setArgument('simulation_control_run_period_calendar_year', 2008)
   elsif ['base-simcontrol-daylight-saving-custom.osw'].include? osw_file
     step.setArgument('simulation_control_daylight_saving_enabled', true)
-    step.setArgument('simulation_control_daylight_saving_begin_month', 3)
-    step.setArgument('simulation_control_daylight_saving_begin_day_of_month', 10)
-    step.setArgument('simulation_control_daylight_saving_end_month', 11)
-    step.setArgument('simulation_control_daylight_saving_end_day_of_month', 6)
+    step.setArgument('simulation_control_daylight_saving_period', 'Mar 10 - Nov 6')
   elsif ['base-simcontrol-daylight-saving-disabled.osw'].include? osw_file
     step.setArgument('simulation_control_daylight_saving_enabled', false)
   elsif ['base-simcontrol-runperiod-1-month.osw'].include? osw_file
-    step.setArgument('simulation_control_run_period_begin_month', 1)
-    step.setArgument('simulation_control_run_period_begin_day_of_month', 1)
-    step.setArgument('simulation_control_run_period_end_month', 1)
-    step.setArgument('simulation_control_run_period_end_day_of_month', 31)
+    step.setArgument('simulation_control_run_period', 'Jan 1 - Jan 31')
   elsif ['base-simcontrol-timestep-10-mins.osw'].include? osw_file
     step.setArgument('simulation_control_timestep', '10')
   end
@@ -2183,10 +2172,7 @@ def get_values(osw_file, step)
   if ['base-schedules-stochastic.osw'].include? osw_file
     step.setArgument('schedules_type', 'stochastic')
   elsif ['base-schedules-stochastic-vacant.osw'].include? osw_file
-    step.setArgument('schedules_vacancy_begin_month', 12)
-    step.setArgument('schedules_vacancy_begin_day_of_month', 1)
-    step.setArgument('schedules_vacancy_end_month', 1)
-    step.setArgument('schedules_vacancy_end_day_of_month', 31)
+    step.setArgument('schedules_vacancy_period', 'Dec 1 - Jan 31')
   elsif ['base-schedules-user-specified.osw'].include? osw_file
     step.setArgument('schedules_type', 'user-specified')
     step.setArgument('schedules_path', 'BuildResidentialHPXML/tests/schedules/user-specified.csv')
@@ -2338,190 +2324,122 @@ def get_values(osw_file, step)
     step.setArgument('geometry_building_num_units', 4)
     step.setArgument('geometry_corridor_position', 'Double Exterior')
 
-  elsif ['extra-bldgtype-single-family-attached-slab-middle.osw'].include? osw_file
+  elsif ['extra-bldgtype-single-family-attached-slab-middle.osw',
+         'extra-bldgtype-single-family-attached-vented-crawlspace-middle.osw',
+         'extra-bldgtype-single-family-attached-unvented-crawlspace-middle.osw',
+         'extra-bldgtype-single-family-attached-unconditioned-basement-middle.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Middle')
-  elsif ['extra-bldgtype-single-family-attached-slab-right.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Right')
-  elsif ['extra-bldgtype-single-family-attached-vented-crawlspace-middle.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Middle')
-  elsif ['extra-bldgtype-single-family-attached-vented-crawlspace-right.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Right')
-  elsif ['extra-bldgtype-single-family-attached-unvented-crawlspace-middle.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Middle')
-  elsif ['extra-bldgtype-single-family-attached-unvented-crawlspace-right.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Right')
-  elsif ['extra-bldgtype-single-family-attached-unconditioned-basement-middle.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Middle')
-  elsif ['extra-bldgtype-single-family-attached-unconditioned-basement-right.osw'].include? osw_file
+  elsif ['extra-bldgtype-single-family-attached-slab-right.osw',
+         'extra-bldgtype-single-family-attached-vented-crawlspace-right.osw',
+         'extra-bldgtype-single-family-attached-unvented-crawlspace-right.osw',
+         'extra-bldgtype-single-family-attached-unconditioned-basement-right.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Right')
 
   elsif ['extra-bldgtype-multifamily-slab.osw'].include? osw_file
-    step.setArgument('geometry_building_num_units', 9)
+    step.setArgument('geometry_building_num_units', 18)
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeSlab)
     step.setArgument('geometry_foundation_height', 0.0)
     step.setArgument('geometry_foundation_height_above_grade', 0.0)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', Constants.Auto)
   elsif ['extra-bldgtype-multifamily-vented-crawlspace.osw'].include? osw_file
-    step.setArgument('geometry_building_num_units', 9)
+    step.setArgument('geometry_building_num_units', 18)
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeCrawlspaceVented)
     step.setArgument('geometry_foundation_height', 4.0)
     step.setArgument('floor_assembly_r', 18.7)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', '4.0')
   elsif ['extra-bldgtype-multifamily-unvented-crawlspace.osw'].include? osw_file
-    step.setArgument('geometry_building_num_units', 9)
+    step.setArgument('geometry_building_num_units', 18)
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeCrawlspaceUnvented)
     step.setArgument('geometry_foundation_height', 4.0)
     step.setArgument('floor_assembly_r', 18.7)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', '4.0')
 
   elsif ['extra-bldgtype-multifamily-double-loaded-interior.osw'].include? osw_file
+    step.setArgument('geometry_building_num_units', 18)
     step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
   elsif ['extra-bldgtype-multifamily-single-exterior-front.osw'].include? osw_file
+    step.setArgument('geometry_building_num_units', 18)
     step.setArgument('geometry_corridor_position', 'Single Exterior (Front)')
   elsif ['extra-bldgtype-multifamily-double-exterior.osw'].include? osw_file
+    step.setArgument('geometry_building_num_units', 18)
     step.setArgument('geometry_corridor_position', 'Double Exterior')
 
-  elsif ['extra-bldgtype-multifamily-slab-left-bottom.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-left-bottom.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-left-bottom.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-left-bottom.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Left')
     step.setArgument('geometry_level', 'Bottom')
-  elsif ['extra-bldgtype-multifamily-slab-left-middle.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-left-middle.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-left-middle.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-left-middle.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Left')
     step.setArgument('geometry_level', 'Middle')
-  elsif ['extra-bldgtype-multifamily-slab-left-top.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Left')
-    step.setArgument('geometry_level', 'Top')
-  elsif ['extra-bldgtype-multifamily-slab-middle-bottom.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Middle')
-    step.setArgument('geometry_level', 'Bottom')
-  elsif ['extra-bldgtype-multifamily-slab-middle-middle.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Middle')
-    step.setArgument('geometry_level', 'Middle')
-  elsif ['extra-bldgtype-multifamily-slab-middle-top.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Middle')
-    step.setArgument('geometry_level', 'Top')
-  elsif ['extra-bldgtype-multifamily-slab-right-bottom.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Right')
-    step.setArgument('geometry_level', 'Bottom')
-  elsif ['extra-bldgtype-multifamily-slab-right-middle.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Right')
-    step.setArgument('geometry_level', 'Middle')
-  elsif ['extra-bldgtype-multifamily-slab-right-top.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Right')
-    step.setArgument('geometry_level', 'Top')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-left-bottom.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Left')
-    step.setArgument('geometry_level', 'Bottom')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-left-middle.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Left')
-    step.setArgument('geometry_level', 'Middle')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-left-top.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-left-top.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-left-top.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-left-top.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Left')
     step.setArgument('geometry_level', 'Top')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-middle-bottom.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-middle-bottom.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-middle-bottom.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-middle-bottom.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Middle')
     step.setArgument('geometry_level', 'Bottom')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-middle-middle.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-middle-middle.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-middle-middle.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-middle-middle.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Middle')
     step.setArgument('geometry_level', 'Middle')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-middle-top.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-middle-top.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-middle-top.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-middle-top.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Middle')
     step.setArgument('geometry_level', 'Top')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-right-bottom.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-right-bottom.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-right-bottom.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-right-bottom.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Right')
     step.setArgument('geometry_level', 'Bottom')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-right-middle.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-right-middle.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-right-middle.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-right-middle.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Right')
     step.setArgument('geometry_level', 'Middle')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-right-top.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Right')
-    step.setArgument('geometry_level', 'Top')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-left-bottom.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Left')
-    step.setArgument('geometry_level', 'Bottom')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-left-middle.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Left')
-    step.setArgument('geometry_level', 'Middle')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-left-top.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Left')
-    step.setArgument('geometry_level', 'Top')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-middle-bottom.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Middle')
-    step.setArgument('geometry_level', 'Bottom')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-middle-middle.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Middle')
-    step.setArgument('geometry_level', 'Middle')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-middle-top.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Middle')
-    step.setArgument('geometry_level', 'Top')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-right-bottom.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Right')
-    step.setArgument('geometry_level', 'Bottom')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-right-middle.osw'].include? osw_file
-    step.setArgument('geometry_horizontal_location', 'Right')
-    step.setArgument('geometry_level', 'Middle')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-right-top.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-right-top.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-right-top.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-right-top.osw'].include? osw_file
     step.setArgument('geometry_horizontal_location', 'Right')
     step.setArgument('geometry_level', 'Top')
 
-  elsif ['extra-bldgtype-multifamily-slab-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-slab-left-bottom-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-slab-left-middle-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-slab-left-top-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-slab-middle-bottom-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-slab-middle-middle-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-slab-middle-top-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-slab-right-bottom-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-slab-right-middle-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-slab-right-top-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-left-bottom-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-left-middle-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-left-top-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-middle-bottom-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-middle-middle-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-middle-top-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-right-bottom-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-right-middle-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-vented-crawlspace-right-top-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-left-bottom-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-left-middle-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-left-top-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-middle-bottom-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-middle-middle-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-middle-top-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-right-bottom-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-right-middle-double-loaded-interior.osw'].include? osw_file
-    step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
-  elsif ['extra-bldgtype-multifamily-unvented-crawlspace-right-top-double-loaded-interior.osw'].include? osw_file
+  elsif ['extra-bldgtype-multifamily-slab-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-slab-left-bottom-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-slab-left-middle-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-slab-left-top-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-slab-middle-bottom-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-slab-middle-middle-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-slab-middle-top-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-slab-right-bottom-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-slab-right-middle-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-slab-right-top-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-left-bottom-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-left-middle-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-left-top-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-middle-bottom-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-middle-middle-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-middle-top-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-right-bottom-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-right-middle-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-vented-crawlspace-right-top-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-left-bottom-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-left-middle-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-left-top-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-middle-bottom-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-middle-middle-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-middle-top-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-right-bottom-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-right-middle-double-loaded-interior.osw',
+         'extra-bldgtype-multifamily-unvented-crawlspace-right-top-double-loaded-interior.osw'].include? osw_file
     step.setArgument('geometry_corridor_position', 'Double-Loaded Interior')
   end
 
@@ -2636,20 +2554,6 @@ def get_values(osw_file, step)
     step.setArgument('geometry_num_bedrooms', 0)
   elsif ['invalid_files/single-family-detached-with-shared-system.osw'].include? osw_file
     step.setArgument('heating_system_type', "Shared #{HPXML::HVACTypeBoiler} w/ Baseboard")
-  elsif ['invalid_files/hvac-seasons-incomplete-heating-season.osw'].include? osw_file
-    step.setArgument('season_heating_begin_month', 11)
-    step.setArgument('season_heating_end_month', 6)
-  elsif ['invalid_files/hvac-seasons-incomplete-cooling-season.osw'].include? osw_file
-    step.setArgument('season_cooling_begin_day_of_month', 1)
-    step.setArgument('season_cooling_end_day_of_month', 31)
-  elsif ['invalid_files/schedules-vacancy-incomplete.osw'].include? osw_file
-    step.setArgument('schedules_vacancy_begin_month', 1)
-    step.setArgument('schedules_vacancy_end_month', 2)
-  elsif ['invalid_files/schedules-vacancy-invalid.osw'].include? osw_file
-    step.setArgument('schedules_vacancy_begin_month', 1)
-    step.setArgument('schedules_vacancy_begin_day_of_month', 1)
-    step.setArgument('schedules_vacancy_end_month', 4)
-    step.setArgument('schedules_vacancy_end_day_of_month', 31)
   end
   return step
 end
@@ -2852,6 +2756,7 @@ def create_hpxmls
     'base-bldgtype-multifamily-shared-water-heater.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-shared-water-heater-recirc.xml' => 'base-bldgtype-multifamily-shared-water-heater.xml',
     'base-bldgtype-single-family-attached.xml' => 'base.xml',
+    'base-bldgtype-single-family-attached-2stories.xml' => 'base-bldgtype-single-family-attached.xml',
     'base-dhw-combi-tankless.xml' => 'base-dhw-indirect.xml',
     'base-dhw-combi-tankless-outside.xml' => 'base-dhw-combi-tankless.xml',
     'base-dhw-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
@@ -3409,6 +3314,11 @@ def set_hpxml_building_construction(hpxml_file, hpxml)
     hpxml.building_construction.number_of_conditioned_floors_above_grade += 1
     hpxml.building_construction.conditioned_floor_area += 1350
     hpxml.building_construction.conditioned_building_volume += 1350 * 8
+  elsif ['base-bldgtype-single-family-attached-2stories.xml'].include? hpxml_file
+    hpxml.building_construction.number_of_conditioned_floors += 1
+    hpxml.building_construction.number_of_conditioned_floors_above_grade += 1
+    hpxml.building_construction.conditioned_floor_area += 900
+    hpxml.building_construction.conditioned_building_volume += 900 * 8
   elsif ['base-enclosure-2stories-garage.xml',
          'base-foundation-basement-garage.xml'].include? hpxml_file
     hpxml.building_construction.conditioned_floor_area -= 400 * 2
@@ -4229,6 +4139,9 @@ def set_hpxml_walls(hpxml_file, hpxml)
     hpxml.walls << last_wall
   elsif ['base-enclosure-2stories.xml'].include? hpxml_file
     hpxml.walls[0].area *= 2.0
+  elsif ['base-bldgtype-single-family-attached-2stories.xml'].include? hpxml_file
+    hpxml.walls[0].area *= 2.0
+    hpxml.walls[1].area *= 2.0
   elsif ['base-enclosure-2stories-garage.xml'].include? hpxml_file
     hpxml.walls.clear
     hpxml.walls.add(id: 'Wall',
@@ -5355,11 +5268,11 @@ def set_hpxml_windows(hpxml_file, hpxml)
                       wall_idref: 'WallAtticGable')
   elsif ['base-enclosure-garage.xml'].include? hpxml_file
     hpxml.windows[1].area = 12
-  elsif ['base-enclosure-2stories.xml'].include? hpxml_file
-    hpxml.windows[0].area = 216
-    hpxml.windows[1].area = 216
-    hpxml.windows[2].area = 144
-    hpxml.windows[3].area = 144
+  elsif ['base-enclosure-2stories.xml',
+         'base-bldgtype-single-family-attached-2stories.xml'].include? hpxml_file
+    hpxml.windows.each do |window|
+      window.area *= 2.0
+    end
   elsif ['base-enclosure-2stories-garage'].include? hpxml_file
     hpxml.windows[0].area = 168
     hpxml.windows[1].area = 216
@@ -5890,7 +5803,8 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems[0].heating_capacity = 24000
   elsif ['base-location-helena-mt.xml',
          'base-enclosure-2stories.xml',
-         'base-enclosure-2stories-garage.xml'].include? hpxml_file
+         'base-enclosure-2stories-garage.xml',
+         'base-bldgtype-single-family-attached-2stories.xml'].include? hpxml_file
     hpxml.heating_systems[0].heating_capacity = 48000
   elsif hpxml_file.include?('base-hvac-autosize') && (not hpxml.heating_systems.nil?) && (hpxml.heating_systems.size > 0)
     hpxml.heating_systems[0].heating_capacity = nil
@@ -6055,7 +5969,8 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
   elsif ['base-bldgtype-multifamily.xml'].include? hpxml_file
     hpxml.cooling_systems[0].cooling_capacity = 12000
   elsif ['base-enclosure-2stories.xml',
-         'base-enclosure-2stories-garage.xml'].include? hpxml_file
+         'base-enclosure-2stories-garage.xml',
+         'base-bldgtype-single-family-attached-2stories.xml'].include? hpxml_file
     hpxml.cooling_systems[0].cooling_capacity = 36000
   elsif hpxml_file.include?('base-hvac-autosize') && (not hpxml.cooling_systems.nil?) && (hpxml.cooling_systems.size > 0)
     hpxml.cooling_systems[0].cooling_capacity = nil
@@ -6549,7 +6464,8 @@ def set_hpxml_hvac_distributions(hpxml_file, hpxml)
                                           duct_insulation_r_value: 0,
                                           duct_location: HPXML::LocationRoofDeck,
                                           duct_surface_area: 50)
-  elsif ['base-enclosure-2stories.xml'].include? hpxml_file
+  elsif ['base-enclosure-2stories.xml',
+         'base-bldgtype-single-family-attached-2stories.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[0].ducts[0].dup
     hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[0].ducts[1].dup
     hpxml.hvac_distributions[0].ducts[0].duct_surface_area *= 0.75
