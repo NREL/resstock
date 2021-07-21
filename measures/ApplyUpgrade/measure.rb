@@ -366,16 +366,10 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
       simulation_control_timestep = get_value_from_runner_past_results(runner, 'simulation_control_timestep', 'build_existing_model', false)
-      simulation_control_run_period_begin_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_begin_month', 'build_existing_model', false)
-      simulation_control_run_period_begin_day_of_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_begin_day_of_month', 'build_existing_model', false)
-      simulation_control_run_period_end_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_end_month', 'build_existing_model', false)
-      simulation_control_run_period_end_day_of_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_end_day_of_month', 'build_existing_model', false)
+      simulation_control_run_period = get_value_from_runner_past_results(runner, 'simulation_control_run_period', 'build_existing_model', false)
       simulation_control_run_period_calendar_year = get_value_from_runner_past_results(runner, 'simulation_control_run_period_calendar_year', 'build_existing_model', false)
       measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = simulation_control_timestep
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_month'] = simulation_control_run_period_begin_month
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_day_of_month'] = simulation_control_run_period_begin_day_of_month
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_month'] = simulation_control_run_period_end_month
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_day_of_month'] = simulation_control_run_period_end_day_of_month
+      measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = simulation_control_run_period
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = simulation_control_run_period_calendar_year
 
       # Remove the existing generated_files folder alongside the run folder; if not, getExternalFile returns false for some reason
