@@ -250,10 +250,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get simulation control timestep and run period
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args['simulation_control_timestep'].get if args['simulation_control_timestep'].is_initialized
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_month'] = args['simulation_control_run_period_begin_month'].get if args['simulation_control_run_period_begin_month'].is_initialized
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_day_of_month'] = args['simulation_control_run_period_begin_day_of_month'].get if args['simulation_control_run_period_begin_day_of_month'].is_initialized
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_month'] = args['simulation_control_run_period_end_month'].get if args['simulation_control_run_period_end_month'].is_initialized
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_day_of_month'] = args['simulation_control_run_period_end_day_of_month'].get if args['simulation_control_run_period_end_day_of_month'].is_initialized
+    if args['simulation_control_run_period_begin_month'].is_initialized && args['simulation_control_run_period_begin_day_of_month'].is_initialized && args['simulation_control_run_period_end_month'].is_initialized && args['simulation_control_run_period_end_day_of_month'].is_initialized
+      begin_month = "#{Date::ABBR_MONTHNAMES[args['simulation_control_run_period_begin_month'].get]}"
+      begin_day = args['simulation_control_run_period_begin_day_of_month'].get
+      end_month = "#{Date::ABBR_MONTHNAMES[args['simulation_control_run_period_end_month'].get]}"
+      end_day = args['simulation_control_run_period_end_day_of_month'].get
+      measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
+    end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
 
     # Get the schedules random seed
