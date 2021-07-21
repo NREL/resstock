@@ -433,7 +433,7 @@ class Airflow
   end
 
   def self.get_default_shelter_coefficient()
-    return 0.9 # Table 4.2.2(1)(g)
+    return 0.5 # Table 4.2.2(1)(g)
   end
 
   def self.get_default_vented_attic_sla()
@@ -487,15 +487,15 @@ class Airflow
     if shelter_coef == Constants.Auto
       if neighbors_min_nonzero_offset == 0
         # Typical shelter for isolated rural house
-        wind_speed.S_wo = 0.90
+        wind_speed.S_wo = 0.30
       elsif neighbors_min_nonzero_offset > building_height
         # Typical shelter caused by other building across the street
-        wind_speed.S_wo = 0.70
+        wind_speed.S_wo = 0.30
       else
         # Typical shelter for urban buildings where sheltering obstacles
         # are less than one building height away.
         # Recommended by C.Christensen.
-        wind_speed.S_wo = 0.50
+        wind_speed.S_wo = 0.30
       end
     else
       wind_speed.S_wo = Float(shelter_coef)
