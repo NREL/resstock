@@ -508,7 +508,7 @@ class HVAC
       end
       htg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(crankcase_temp, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
 
       supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
       supp_htg_coil.setName(obj_name + ' supp heater')
@@ -768,7 +768,7 @@ class HVAC
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
       htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(40.0, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
       htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       htg_coil.setFuelType('Electricity')
 
@@ -1059,7 +1059,7 @@ class HVAC
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
       htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(40.0, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
       htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       htg_coil.setFuelType('Electricity')
 
@@ -1365,7 +1365,7 @@ class HVAC
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
       htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(max_defrost_temp, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
       htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       htg_coil.setFuelType('Electricity')
 
@@ -3006,6 +3006,7 @@ class HVAC
     season = []
     model.getScheduleRulesets.each do |sch|
       next unless sch.name.to_s == sch_name
+
       sch.scheduleRules.each do |rule|
         ix = rule.startDate.get.monthOfYear.value.to_i - 1
         season[ix] = rule.daySchedule.values[0]
@@ -3261,6 +3262,7 @@ class HVAC
           end
         end
         next unless weekday_or_weekend_rule(rule).include? 'weekend'
+
         clg_wked_monthly[month].each_with_index do |value, hour|
           new_value = UnitConversions.convert(UnitConversions.convert(value, 'C', 'F') + cooling_setpoint_offset, 'F', 'C')
           rule.daySchedule.addValue(OpenStudio::Time.new(0, hour + 1, 0, 0), UnitConversions.convert(UnitConversions.convert(value, 'C', 'F') + cooling_setpoint_offset, 'F', 'C'))

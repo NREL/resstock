@@ -48,6 +48,14 @@ class WindowSkylightAreaTest < MiniTest::Test
     model = _test_measure('SFD_1000sqft_1story_FB_GRG_UA_DoorArea.osm', args_hash, [0, 0, 0, 0], [0.0, 59.0, 32.8, 15.5], [0] * 5, [0] * 5, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
+  def test_sfd_new_construction_door_area2
+    args_hash = {}
+    expected_num_del_objects = {}
+    expected_num_new_objects = { 'Surface' => 2, 'SubSurface' => 36, 'ShadingSurface' => 36, 'ShadingSurfaceGroup' => 36 }
+    expected_values = { 'Constructions' => 1, 'OverhangDepth' => 2 }
+    model = _test_measure('SFD_2000sqft_2story_SL_GRG_UA_Doors_OneConstruction.osm', args_hash, [0, 0, 0, 0], [100.0, 128.8, 78.8, 64.4], [0] * 5, [0] * 5, expected_num_del_objects, expected_num_new_objects, expected_values)
+  end
+
   def test_sfd_retrofit_replace
     args_hash = {}
     expected_num_del_objects = {}
@@ -625,6 +633,7 @@ class WindowSkylightAreaTest < MiniTest::Test
     constructions = []
     model.getSubSurfaces.each do |sub_surface|
       next unless sub_surface.construction.is_initialized
+
       if not constructions.include? sub_surface.construction.get
         constructions << sub_surface.construction.get
         actual_values['Constructions'] += 1
@@ -647,6 +656,7 @@ class WindowSkylightAreaTest < MiniTest::Test
 
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'ShadingSurface'
+
         l, w, h = Geometry.get_surface_dimensions(new_object)
         if l < w
           assert_in_epsilon(expected_values['OverhangDepth'], UnitConversions.convert(l, 'm', 'ft'), 0.01)
