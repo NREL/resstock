@@ -404,10 +404,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription("The number of bedrooms in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} units with shared PV systems.")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_assembly_r', true)
-    arg.setDisplayName('Floor: Assembly R-value')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_over_foundation_assembly_r', true)
+    arg.setDisplayName('Floor: Over Foundation Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
-    arg.setDescription('Assembly R-value for the floor (foundation ceiling). Ignored if the building has a slab foundation.')
+    arg.setDescription('Assembly R-value for the floor over the foundation. Ignored if the building has a slab-on-grade foundation.')
+    arg.setDefaultValue(30)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_over_garage_assembly_r', true)
+    arg.setDisplayName('Floor: Over Garage Assembly R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Assembly R-value for the floor over the garage. Ignored unless the building has a garage under conditioned space.')
     arg.setDefaultValue(30)
     args << arg
 
@@ -2918,16 +2925,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_building_num_units=#{args[:geometry_building_num_units].is_initialized} and geometry_level=#{args[:geometry_level].is_initialized} and geometry_horizontal_location=#{args[:geometry_horizontal_location].is_initialized}" if error
 
     # crawlspace or unconditioned basement with foundation wall and ceiling insulation
-    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || (args[:foundation_wall_assembly_r].is_initialized && (args[:foundation_wall_assembly_r].get > 0))) && (args[:floor_assembly_r] > 2.1)
-    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and foundation_wall_insulation_r=#{args[:foundation_wall_insulation_r]} and foundation_wall_assembly_r=#{args[:foundation_wall_assembly_r].is_initialized} and floor_assembly_r=#{args[:floor_assembly_r]}" if warning
+    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || (args[:foundation_wall_assembly_r].is_initialized && (args[:foundation_wall_assembly_r].get > 0))) && (args[:floor_over_foundation_assembly_r] > 2.1)
+    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and foundation_wall_insulation_r=#{args[:foundation_wall_insulation_r]} and foundation_wall_assembly_r=#{args[:foundation_wall_assembly_r].is_initialized} and floor_over_foundation_assembly_r=#{args[:floor_over_foundation_assembly_r]}" if warning
 
     # vented/unvented attic with floor and roof insulation
     warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1) && (args[:roof_assembly_r] > 2.3)
     warnings << "geometry_attic_type=#{args[:geometry_attic_type]} and ceiling_assembly_r=#{args[:ceiling_assembly_r]} and roof_assembly_r=#{args[:roof_assembly_r]}" if warning
 
     # conditioned basement with ceiling insulation
-    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_assembly_r] > 2.1)
-    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and floor_assembly_r=#{args[:floor_assembly_r]}" if warning
+    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_over_foundation_assembly_r] > 2.1)
+    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and floor_over_foundation_assembly_r=#{args[:floor_over_foundation_assembly_r]}" if warning
 
     # conditioned attic with floor insulation
     warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1)
@@ -3616,8 +3623,8 @@ class HPXMLFile
   end
 
   def self.set_frame_floors(hpxml, runner, model, args)
-    if [HPXML::FoundationTypeBasementConditioned].include?(args[:geometry_foundation_type]) && (args[:floor_assembly_r] > 2.1)
-      args[:floor_assembly_r] = 2.1 # Uninsulated
+    if [HPXML::FoundationTypeBasementConditioned].include?(args[:geometry_foundation_type]) && (args[:floor_over_foundation_assembly_r] > 2.1)
+      args[:floor_over_foundation_assembly_r] = 2.1 # Uninsulated
     end
 
     if [HPXML::AtticTypeConditioned].include?(args[:geometry_attic_type]) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1)
@@ -3654,10 +3661,12 @@ class HPXMLFile
                              other_space_above_or_below: other_space_above_or_below)
 
       if hpxml.frame_floors[-1].is_thermal_boundary
-        if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented, HPXML::LocationGarage].include? exterior_adjacent_to
+        if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? exterior_adjacent_to
           hpxml.frame_floors[-1].insulation_assembly_r_value = args[:ceiling_assembly_r]
+        elsif [HPXML::LocationGarage].include? exterior_adjacent_to
+          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_over_garage_assembly_r]
         else
-          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_assembly_r]
+          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_over_foundation_assembly_r]
         end
       else
         hpxml.frame_floors[-1].insulation_assembly_r_value = 2.1 # Uninsulated
@@ -4251,7 +4260,6 @@ class HPXMLFile
 
     if args[:season_heating_period].is_initialized
       begin_month, begin_day, end_month, end_day = parse_date_range(args[:season_heating_period].get)
-      puts 'heating', begin_month, begin_day, end_month, end_day
       hpxml.hvac_controls[0].seasons_heating_begin_month = begin_month
       hpxml.hvac_controls[0].seasons_heating_begin_day = begin_day
       hpxml.hvac_controls[0].seasons_heating_end_month = end_month
@@ -4260,7 +4268,6 @@ class HPXMLFile
 
     if args[:season_cooling_period].is_initialized
       begin_month, begin_day, end_month, end_day = parse_date_range(args[:season_cooling_period].get)
-      puts 'cooling', begin_month, begin_day, end_month, end_day
       hpxml.hvac_controls[0].seasons_cooling_begin_month = begin_month
       hpxml.hvac_controls[0].seasons_cooling_begin_day = begin_day
       hpxml.hvac_controls[0].seasons_cooling_end_month = end_month
