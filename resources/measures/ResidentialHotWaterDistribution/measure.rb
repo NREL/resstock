@@ -536,7 +536,13 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
 
       # Add in an electricEquipment object for the recirculation pump
       if pump_e_ann > 0
-        recirc_pump_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: 'showers', daily_kwh: pump_e_ann / num_days_in_year)
+        dist_hourly_sch = '0.00623, 0.00312, 0.00078, 0.00078, 0.00312, 0.02181, 0.07477, 0.07944, 0.07632, 0.06698, 0.06075, 0.04829, 0.04206, 0.03738, 0.03738, 0.03271, 0.04361, 0.05763, 0.06854, 0.06542, 0.05919, 0.04829, 0.04206, 0.02336'
+        dist_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+        dist_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_dist + ' schedule', dist_hourly_sch, dist_hourly_sch, dist_monthly_sch)
+        if not dist_sch.validated?
+          return false
+        end
+        recirc_pump_design_level = dist_sch.calcDesignLevelFromDailykWh(pump_e_ann / num_days_in_year)
         recirc_pump_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
         recirc_pump = OpenStudio::Model::ElectricEquipment.new(recirc_pump_def)
         recirc_pump.setName(obj_name_recirc_pump)
@@ -553,7 +559,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
           recirc_pump_def.setFractionLatent(0)
           recirc_pump_def.setFractionLost(1)
         end
-        recirc_pump.setSchedule(sch_sh_schedule)
+        recirc_pump.setSchedule(dist_sch.schedule)
       end
 
       pump_s = ''
