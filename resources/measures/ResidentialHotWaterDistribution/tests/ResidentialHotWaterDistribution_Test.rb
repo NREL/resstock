@@ -170,7 +170,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash['recirc_type'] = Constants.RecircTypeTimer
     args_hash['dist_ins'] = 0
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 47.95, 'SinkDailyWater_gpd' => 40.45, 'BathDailyWater_gpd' => 28.56, 'InternalLoadAnnual_MBtu' => 8.904, 'RecircPumpAnnual_kWh' => 193, 'RecircPumpFractionLost' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -183,7 +183,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash['recirc_type'] = Constants.RecircTypeTimer
     args_hash['dist_ins'] = 2
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 33.28, 'SinkDailyWater_gpd' => 25.33, 'BathDailyWater_gpd' => 14.29, 'InternalLoadAnnual_MBtu' => 4.542, 'RecircPumpAnnual_kWh' => 193, 'RecircPumpFractionLost' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -196,7 +196,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash['recirc_type'] = Constants.RecircTypeDemand
     args_hash['dist_ins'] = 0
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 28.85, 'SinkDailyWater_gpd' => 22.58, 'BathDailyWater_gpd' => 9.57, 'InternalLoadAnnual_MBtu' => 2.085, 'RecircPumpAnnual_kWh' => 2.03, 'RecircPumpFractionLost' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -209,7 +209,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash['recirc_type'] = Constants.RecircTypeDemand
     args_hash['dist_ins'] = 2
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 25.55, 'SinkDailyWater_gpd' => 18.62, 'BathDailyWater_gpd' => 6.67, 'InternalLoadAnnual_MBtu' => 1.599, 'RecircPumpAnnual_kWh' => 1.65, 'RecircPumpFractionLost' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -222,7 +222,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash['recirc_type'] = Constants.RecircTypeTimer
     args_hash['dist_ins'] = 0
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 46.92, 'SinkDailyWater_gpd' => 38.81, 'BathDailyWater_gpd' => 28.41, 'InternalLoadAnnual_MBtu' => 6.714, 'RecircPumpAnnual_kWh' => 193, 'RecircPumpFractionLost' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -235,7 +235,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash['recirc_type'] = Constants.RecircTypeTimer
     args_hash['dist_ins'] = 2
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 32.38, 'SinkDailyWater_gpd' => 23.78, 'BathDailyWater_gpd' => 14.14, 'InternalLoadAnnual_MBtu' => 3.425, 'RecircPumpAnnual_kWh' => 193, 'RecircPumpFractionLost' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -248,7 +248,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash['recirc_type'] = Constants.RecircTypeDemand
     args_hash['dist_ins'] = 0
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 27.83, 'SinkDailyWater_gpd' => 20.85, 'BathDailyWater_gpd' => 9.42, 'InternalLoadAnnual_MBtu' => 1.572, 'RecircPumpAnnual_kWh' => 2.03, 'RecircPumpFractionLost' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -261,7 +261,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash['recirc_type'] = Constants.RecircTypeDemand
     args_hash['dist_ins'] = 2
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 24.55, 'SinkDailyWater_gpd' => 16.99, 'BathDailyWater_gpd' => 6.53, 'InternalLoadAnnual_MBtu' => 1.206, 'RecircPumpAnnual_kWh' => 1.65, 'RecircPumpFractionLost' => 0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
@@ -341,7 +341,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     model = _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash['recirc_type'] = Constants.RecircTypeTimer
     expected_num_del_objects = { 'WaterUseEquipment' => 3, 'OtherEquipment' => 1 }
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 47.95, 'SinkDailyWater_gpd' => 40.45, 'BathDailyWater_gpd' => 28.56, 'InternalLoadAnnual_MBtu' => 8.904, 'RecircPumpAnnual_kWh' => 193, 'RecircPumpFractionLost' => 0 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
@@ -354,7 +354,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
     args_hash['recirc_type'] = Constants.RecircTypeTimer
     args_hash['dist_ins'] = 0
     expected_num_del_objects = {}
-    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 1, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
+    expected_num_new_objects = { 'WaterUseEquipmentDefinition' => 3, 'WaterUseEquipment' => 3, 'ScheduleRuleset' => 2, 'OtherEquipmentDefinition' => 1, 'OtherEquipment' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values = { 'ShowerDailyWater_gpd' => 47.95, 'SinkDailyWater_gpd' => 40.45, 'BathDailyWater_gpd' => 28.56, 'InternalLoadAnnual_MBtu' => 8.904, 'RecircPumpAnnual_kWh' => 193, 'RecircPumpFractionLost' => 0 }
     model = _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_HWFixtures.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
     args_hash['recirc_type'] = Constants.RecircTypeNone
@@ -532,10 +532,7 @@ class ResidentialHotWaterDistributionTest < MiniTest::Test
           full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, new_object.schedule.get)
           actual_values['InternalLoadAnnual_MBtu'] += UnitConversions.convert(full_load_hrs * new_object.otherEquipmentDefinition.designLevel.get * new_object.multiplier, 'Wh', 'MBtu')
         elsif obj_type == 'ElectricEquipment'
-          schedule_file = new_object.schedule.get.to_ScheduleFile.get
-          sch_path = schedule_file.externalFile.filePath.to_s
-          schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_output_path: sch_path)
-          full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: 'showers')
+          full_load_hrs = Schedule.annual_equivalent_full_load_hrs(year_description, new_object.schedule.get)
           actual_values['RecircPumpAnnual_kWh'] += UnitConversions.convert(full_load_hrs * new_object.designLevel.get * new_object.multiplier, 'Wh', 'kWh')
           actual_values['RecircPumpFractionLost'] += new_object.electricEquipmentDefinition.fractionLost
         end
