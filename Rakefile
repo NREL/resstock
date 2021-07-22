@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 require 'fileutils'
-
 require 'rake'
 require 'rake/testtask'
 require 'ci/reporter/rake/minitest'
-
 require 'pp'
 require 'colored'
 require 'json'
