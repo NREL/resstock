@@ -26,6 +26,10 @@ class BaseCompare:
         for file in sorted(files):
             base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
             feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
+
+            base_df = base_df[base_df.index.isin(feature_df.index)]
+            feature_df = feature_df[feature_df.index.isin(base_df.index)]
+
             if file == 'results_output.csv':
                 base_df = base_df.select_dtypes(exclude=['string', 'bool'])
                 feature_df = feature_df.select_dtypes(exclude=['string', 'bool'])
