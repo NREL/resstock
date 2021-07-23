@@ -4992,4 +4992,220 @@ upgrades:
       # - option: Geometry Foundation Type|Unvented Crawlspace
       #   apply_logic: Geometry Foundation Type|Vented Crawlspace
 
-                      
+  - upgrade_name: Package 5 (IECC 2021)
+    options:      
+      # Same packages as Package 2 
+      - *clothes_washer_80pct
+      - *clothes_washer_100pct
+      - *clothes_washer_120pct
+      - *dishwasher_80pct
+      - *dishwasher_100pct
+      - *dishwasher_120pct
+      - *refrigerator
+      - *clothes_dryer_80pct
+      - *clothes_dryer_100pct
+      - *clothes_dryer_120pct
+      - *lighting
+      - *cooking_range
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7
+      - *water_heater_efficiency_80gal
+      - *HVAC_efficiency_ASHP_duct
+      - *HVAC_efficiency_MSHP_ductless
+      - *ERVupgrade_sensible_60pct_below7ACH50
+      - *ERVupgrade_sensible_50pct_below7ACH50
+      - *ERVupgrade_sensible_70pct_below7ACH50
+      - *ERVupgrade_sensible_80pct_below7ACH50
+      - *HRVupgrade_sensible_60pct_below7ACH50
+      - *HRVupgrade_sensible_70pct_below7ACH50
+      - *HRVupgrade_sensible_75pct_below7ACH50
+      - *HRVupgrade_sensible_80pct_below7ACH50
+      - *HRVupgrade_sensible_85pct_below7ACH50
+
+      ## Insulation upgrade
+      # Ceiling Insulation upgrade
+      - option: Insulation Ceiling|R-30
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|1A
+          - not: 
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
+            - Insulation Ceiling|R-60
+      - option: Insulation Ceiling|R-49
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+          - not: 
+            - Insulation Ceiling|R-49
+            - Insulation Ceiling|R-60
+      - option: Insulation Ceiling|R-60
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - not: 
+            - Insulation Ceiling|R-60
+      
+      # Floor Insulation upgrade
+      - option: Insulation Floor|Ceiling R-13
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+          - not: 
+            - Insulation Floor|Ceiling R-13
+            - Insulation Floor|Ceiling R-19
+            - Insulation Floor|Ceiling R-30
+            - Insulation Floor|Ceiling R-38
+      - option: Insulation Floor|Ceiling R-19
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+          - not: 
+            - Insulation Floor|Ceiling R-19
+            - Insulation Floor|Ceiling R-30
+            - Insulation Floor|Ceiling R-38           
+      - option: Insulation Floor|Ceiling R-30
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+          - not: 
+            - Insulation Floor|Ceiling R-30
+            - Insulation Floor|Ceiling R-38 
+      - option: Insulation Floor|Ceiling R-38
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - not: 
+            - Insulation Floor|Ceiling R-38 
+      
+      #Baseline Wall Insulation Upgrade
+      - option: Insulation Foundation Wall|Wall R-5, Exterior
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|3A
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|3C
+          - not: 
+            - Insulation Foundation Wall|Wall R-5, Exterior
+            - Insulation Foundation Wall|Wall R-10, Exterior
+            - Insulation Foundation Wall|Wall R-15, Exterior
+            - Insulation Foundation Wall|Wall R-13, Interior
+      - option: Insulation Foundation Wall|Wall R-10, Exterior
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+          - not: 
+            - Insulation Foundation Wall|Wall R-10, Exterior
+            - Insulation Foundation Wall|Wall R-15, Exterior
+            - Insulation Foundation Wall|Wall R-13, Interior
+      - option: Insulation Foundation Wall|Wall R-15, Exterior
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - not: 
+            - Insulation Foundation Wall|Wall R-15, Exterior
+    
+      # Slab Insulation Upgrade
+      - option: Insulation Slab|2ft R10 Perimeter, Vertical
+        apply_logic: 
+          and: 
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|3A
+              - ASHRAE IECC Climate Zone 2004|3B
+              - ASHRAE IECC Climate Zone 2004|3C
+            - Geometry Foundation Type|Slab
+      - option: Insulation Slab|4ft R10 Perimeter, Vertical
+        apply_logic: 
+          and: 
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|4A
+              - ASHRAE IECC Climate Zone 2004|4B
+              - ASHRAE IECC Climate Zone 2004|4C
+              - ASHRAE IECC Climate Zone 2004|5A
+              - ASHRAE IECC Climate Zone 2004|5B
+              - ASHRAE IECC Climate Zone 2004|6A
+              - ASHRAE IECC Climate Zone 2004|6B
+              - ASHRAE IECC Climate Zone 2004|7A
+              - ASHRAE IECC Climate Zone 2004|7B
+            - Geometry Foundation Type|Slab
+
+      # Wall Insulation Upgrade
+      - option: Insulation Wall|Wood Stud, R-13
+        apply_logic: 
+          and: 
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|1A
+              - ASHRAE IECC Climate Zone 2004|2A
+              - ASHRAE IECC Climate Zone 2004|2B
+            - or: 
+              - Insulation Wall|Wood Stud, Uninsulated
+              - Insulation Wall|Wood Stud, R-7
+              - Insulation Wall|Wood Stud, R-11
+      - option: Insulation Wall|Wood Stud, R-20
+        apply_logic: 
+          and: 
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|3A
+              - ASHRAE IECC Climate Zone 2004|3B
+              - ASHRAE IECC Climate Zone 2004|3C
+              - ASHRAE IECC Climate Zone 2004|4A
+              - ASHRAE IECC Climate Zone 2004|4B
+              - ASHRAE IECC Climate Zone 2004|4C
+              - ASHRAE IECC Climate Zone 2004|5A
+              - ASHRAE IECC Climate Zone 2004|5B
+            - or: 
+              - Insulation Wall|Wood Stud, Uninsulated
+              - Insulation Wall|Wood Stud, R-7
+              - Insulation Wall|Wood Stud, R-11
+              - Insulation Wall|Wood Stud, R-15
+              - Insulation Wall|Wood Stud, R-19
+      - option: Insulation Wall|Wood Stud, R-30
+        apply_logic: 
+          and: 
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|6A
+              - ASHRAE IECC Climate Zone 2004|6B
+              - ASHRAE IECC Climate Zone 2004|7A
+              - ASHRAE IECC Climate Zone 2004|7B
+            - or: 
+              - Insulation Wall|Wood Stud, Uninsulated
+              - Insulation Wall|Wood Stud, R-7
+              - Insulation Wall|Wood Stud, R-11
+              - Insulation Wall|Wood Stud, R-15
+              - Insulation Wall|Wood Stud, R-19
