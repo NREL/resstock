@@ -358,7 +358,7 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       
-  - upgrade_name: Package 2
+  - upgrade_name: Package 1c
     options:
       # Same packages as Package 1 
       - *clothes_washer_80pct
@@ -476,7 +476,7 @@ upgrades:
 
   - upgrade_name: Package 3
     options: 
-      # Same packages as Package 2
+      # Same packages as Package 1
       - *clothes_washer_80pct
       - *clothes_washer_100pct
       - *clothes_washer_120pct
@@ -499,16 +499,217 @@ upgrades:
       - *water_heater_efficiency_80gal
       - *HVAC_efficiency_ASHP_duct
       - *HVAC_efficiency_MSHP_ductless
-      - *ERVupgrade_sensible_60pct
-      - *ERVupgrade_sensible_50pct
-      - *ERVupgrade_sensible_70pct
-      - *ERVupgrade_sensible_80pct
-      - *HRVupgrade_sensible_60pct
-      - *HRVupgrade_sensible_70pct
-      - *HRVupgrade_sensible_75pct
-      - *HRVupgrade_sensible_80pct
-      - *HRVupgrade_sensible_85pct
 
+      # ERV and HRV options only if ACH50 decreases below 7ACH50
+      - &ERVupgrade_sensible_60pct_below7ACH50
+        option: Mechanical Ventilation|ERV, 60%, 2010 ASHRAE 62.2
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+          - or: &below_7ach50 
+            - Infiltration|6 ACH50
+            - Infiltration|5.25 ACH50
+            - Infiltration|5 ACH50
+            - Infiltration|4.5 ACH50
+            - Infiltration|4 ACH50
+            - Infiltration|3.75 ACH50
+            - Infiltration|3 ACH50
+            - Infiltration|2.25 ACH50
+            - Infiltration|2 ACH50
+            - Infiltration|1.5 ACH50
+            - Infiltration|1 ACH50
+            - Infiltration|0.75 ACH50
+            - Infiltration|0.5 ACH50
+            - Infiltration|0.25 ACH50
+            - Infiltration|0.567 ACH50
+            - Infiltration|0.7 ACH50
+            - Infiltration|0.729 ACH50
+            - Infiltration|0.81 ACH50
+            - Infiltration|0.9 ACH50
+            - Infiltration|1.134 ACH50
+            - Infiltration|1.4 ACH50
+            - Infiltration|1.458 ACH50
+            - Infiltration|1.62 ACH50
+            - Infiltration|1.701 ACH50
+            - Infiltration|1.8 ACH50
+            - Infiltration|2.1 ACH50
+            - Infiltration|2.187 ACH50
+            - Infiltration|2.268 ACH50
+            - Infiltration|2.43 ACH50
+            - Infiltration|2.7 ACH50
+            - Infiltration|2.8 ACH50
+            - Infiltration|2.835 ACH50
+            - Infiltration|2.916 ACH50
+            - Infiltration|3.24 ACH50
+            - Infiltration|3.402 ACH50
+            - Infiltration|3.5 ACH50
+            - Infiltration|3.6 ACH50
+            - Infiltration|3.645 ACH50
+            - Infiltration|4.05 ACH50
+            - Infiltration|4.2 ACH50
+            - Infiltration|4.374 ACH50
+            - Infiltration|4.5 ACH50
+            - Infiltration|4.86 ACH50
+            - Infiltration|4.9 ACH50
+            - Infiltration|5.103 ACH50
+            - Infiltration|5.4 ACH50
+            - Infiltration|5.6 ACH50
+            - Infiltration|5.67 ACH50
+            - Infiltration|5.832 ACH50
+            - Infiltration|6.3 ACH50
+            - Infiltration|6.48 ACH50
+            - Infiltration|1.74 ACH50
+            - Infiltration|0.87 ACH50
+            - Infiltration|2.61 ACH50
+            - Infiltration|3.48 ACH50
+            - Infiltration|3.45 ACH50
+            - Infiltration|4.35 ACH50
+            - Infiltration|5.22 ACH50
+            - Infiltration|6.09 ACH50
+            - Infiltration|3.16 ACH50
+            - Infiltration|3.95 ACH50
+            - Infiltration|4.74 ACH50
+            - Infiltration|5.53 ACH50
+            - Infiltration|6.32 ACH50
+            - Infiltration|3.72 ACH50
+            - Infiltration|4.65 ACH50
+            - Infiltration|5.58 ACH50
+            - Infiltration|6.51 ACH50
+            - Infiltration|3.68 ACH50
+            - Infiltration|4.6 ACH50
+            - Infiltration|5.52 ACH50
+            - Infiltration|6.44 ACH50
+            - Infiltration|3.44 ACH50
+            - Infiltration|4.12 ACH50
+            - Infiltration|4.81 ACH50
+            - Infiltration|5.50 ACH50
+            - Infiltration|6.87 ACH50
+            - Infiltration|4.85 ACH50
+            - Infiltration|5.66 ACH50
+            - Infiltration|6.47 ACH50
+            - Infiltration|3.05 ACH50
+            - Infiltration|3.65 ACH50
+            - Infiltration|4.26 ACH50
+            - Infiltration|4.87 ACH50
+            - Infiltration|3.13 ACH50
+            - Infiltration|3.92 ACH50
+            - Infiltration|4.70 ACH50
+            - Infiltration|5.48 ACH50
+            - Infiltration|6.26 ACH50
+            - Infiltration|3.63 ACH50
+            - Infiltration|4.36 ACH50
+            - Infiltration|5.09 ACH50
+            - Infiltration|5.81 ACH50
+            - Infiltration|3.42 ACH50
+            - Infiltration|4.28 ACH50
+            - Infiltration|5.13 ACH50
+            - Infiltration|6.84 ACH50
+            - Infiltration|3.52 ACH50
+            - Infiltration|4.23 ACH50
+            - Infiltration|4.93 ACH50
+            - Infiltration|5.64 ACH50
+            - Infiltration|3.2 ACH50
+            - Infiltration|4.8 ACH50
+            - Infiltration|6.4 ACH50
+            - Infiltration|3.17 ACH50
+            - Infiltration|3.81 ACH50
+            - Infiltration|4.44 ACH50
+            - Infiltration|5.07 ACH50
+            - Infiltration|6.34 ACH50
+            - Infiltration|4.47 ACH50
+            - Infiltration|5.21 ACH50
+        costs:
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &ERVupgrade_sensible_50pct_below7ACH50
+        option: Mechanical Ventilation|ERV, 50%, 2010 ASHRAE 62.2
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|2B
+          - or: *below_7ach50
+        costs: 
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &ERVupgrade_sensible_70pct_below7ACH50
+        option: Mechanical Ventilation|ERV, 70%, 2010 ASHRAE 62.2
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|3A
+          - or: *below_7ach50
+        costs: 
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &ERVupgrade_sensible_80pct_below7ACH50
+        option: Mechanical Ventilation|ERV, 80%, 2010 ASHRAE 62.2
+        apply_logic:
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|4A
+          - or: *below_7ach50
+        costs: 
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+
+      # HRV upgrade
+      - &HRVupgrade_sensible_60pct_below7ACH50
+        option: Mechanical Ventilation|HRV, 60%, 2010 ASHRAE 62.2
+        apply_logic: 
+          - or:
+            - ASHRAE IECC Climate Zone 2004|3C
+          - or: *below_7ach50
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_70pct_below7ACH50
+        option: Mechanical Ventilation|HRV, 70%, 2010 ASHRAE 62.2
+        apply_logic: 
+          - or:
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|4C
+          - or: *below_7ach50  
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_75pct_below7ACH50
+        option: Mechanical Ventilation|HRV, 75%, 2010 ASHRAE 62.2
+        apply_logic: 
+          - or:
+            - ASHRAE IECC Climate Zone 2004|4B
+          - or: *below_7ach50
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_80pct_below7ACH50
+        option: Mechanical Ventilation|HRV, 80%, 2010 ASHRAE 62.2
+        apply_logic: 
+          - or:
+            - ASHRAE IECC Climate Zone 2004|5B
+          - or: *below_7ach50
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_85pct_below7ACH50
+        option: Mechanical Ventilation|HRV, 85%, 2010 ASHRAE 62.2
+        apply_logic: 
+          - or:
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - or: *below_7ach50
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
       # 1" wall insulation added to the homes
       - &polyiso_1inch_on_uninsulated_wood
         #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
@@ -4496,15 +4697,15 @@ upgrades:
       - *water_heater_efficiency_80gal
       - *HVAC_efficiency_ASHP_duct
       - *HVAC_efficiency_MSHP_ductless
-      - *ERVupgrade_sensible_60pct
-      - *ERVupgrade_sensible_50pct
-      - *ERVupgrade_sensible_70pct
-      - *ERVupgrade_sensible_80pct
-      - *HRVupgrade_sensible_60pct
-      - *HRVupgrade_sensible_70pct
-      - *HRVupgrade_sensible_75pct
-      - *HRVupgrade_sensible_80pct
-      - *HRVupgrade_sensible_85pct
+      - *ERVupgrade_sensible_60pct_below7ACH50
+      - *ERVupgrade_sensible_50pct_below7ACH50
+      - *ERVupgrade_sensible_70pct_below7ACH50
+      - *ERVupgrade_sensible_80pct_below7ACH50
+      - *HRVupgrade_sensible_60pct_below7ACH50
+      - *HRVupgrade_sensible_70pct_below7ACH50
+      - *HRVupgrade_sensible_75pct_below7ACH50
+      - *HRVupgrade_sensible_80pct_below7ACH50
+      - *HRVupgrade_sensible_85pct_below7ACH50
       - &phius_infiltration 
         option: Infiltration|1 ACH50
       # Add the appropriate ERV or HRV for the climate zone
