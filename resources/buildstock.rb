@@ -504,8 +504,9 @@ class RunOSWs
       rescue NoMethodError
       end
     end
-    result = result.merge(rows['QOIReport'])
-    result.delete('applicable')
+    rows['QOIReport'].each do |k, v|
+      result["qoi_#{k}"] = v unless k == 'applicable'
+    end
     return result
   end
 
