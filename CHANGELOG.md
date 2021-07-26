@@ -40,6 +40,7 @@ Fixes
 - Fixes number of bathrooms for single-family attached and multi-family buildings ([#601](https://github.com/NREL/resstock/pull/601))
 - Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
 - Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
+- Fixes zero energy use for hot water recirculation pump ([#646](https://github.com/NREL/resstock/pull/646))
 
 ## ResStock v2.4.0
 
