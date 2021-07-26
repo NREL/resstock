@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../.
 from compare import BaseCompare
 
 enum_maps = {'geometry_building_type_recs': {'Single-Family Detached': 'SFD',
+                                             'Mobile Home': 'SFD',
                                              'Single-Family Attached': 'SFA',
                                              'Multi-Family with 2 - 4 Units': 'MF',
                                              'Multi-Family with 5+ Units': 'MF'} }
