@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
-
 require 'csv'
 require "#{File.dirname(__FILE__)}/meta_measure"
 
@@ -22,7 +20,7 @@ class TsvFile
 
     full_header = nil
     rows = []
-    CSV.foreach(@full_path, { col_sep: "\t" }) do |row|
+    CSV.foreach(@full_path, col_sep: "\t") do |row|
       next if row[0].start_with? "\#"
 
       row.delete_if { |x| x.nil? || (x.size == 0) } # purge trailing empty fields
@@ -140,7 +138,7 @@ class TsvFile
     end
 
     # Sum of values within 2% of 100%?
-    sum_rowvals = rowvals.values.reduce(:+)
+    sum_rowvals = rowvals.values.sum()
     if (sum_rowvals < 0.98) || (sum_rowvals > 1.02)
       register_error("Values in #{@filename} incorrectly sum to #{sum_rowvals}.", @runner)
     end
@@ -420,25 +418,6 @@ def get_data_for_sample(buildstock_csv_data, building_id, runner)
   fail msg
 end
 
-def version
-  data = {}
-  File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
-    file.each_line do |line|
-      key, value = line.split(' = ')
-      data[key] = value.chomp.gsub("'", '')
-    end
-  end
-  return data
-end
-
-def software_program_used
-  return version['__title__']
-end
-
-def software_program_version
-  return version['__version__']
-end
-
 class RunOSWs
   require 'csv'
   require 'json'
@@ -463,37 +442,57 @@ class RunOSWs
   def self.run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
-    system(command)
-    finished_job = File.join(parent_dir, 'run/finished.job')
+    command = "\"#{cli_path}\" run -w #{in_osw}"
 
+    system(command)
+    out_osw = File.join(parent_dir, 'out.osw')
+
+    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
     result_characteristics = {}
     result_output = {}
-    rows = {}
-
-    results = File.join(parent_dir, 'run/results.json')
-    if File.exist?(File.expand_path(results))
-      old_rows = JSON.parse(File.read(File.expand_path(results)))
-      old_rows.each do |measure, values|
-        rows[measure] = {}
-        values.each do |arg, val|
-          rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
-        end
-      end
+    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
+    if rows.keys.include? 'BuildExistingModel'
+      result_characteristics = get_build_existing_model(result_characteristics, rows)
+    end
+    if rows.keys.include? 'SimulationOutputReport'
+      result_output = get_simulation_output_report(result_output, rows)
+    end
+    if rows.keys.include? 'LoadComponentsReport'
+      result_output = get_load_components_report(result_output, rows)
     end
 
-    result_characteristics = get_measure_results(rows, result_characteristics, 'BuildExistingModel')
-    result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
-    result_output = get_measure_results(rows, result_output, 'SimulationOutputReport')
-    result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
-    return finished_job, result_characteristics, result_output
+    return out_osw, result_characteristics, result_output
   end
 
-  def self.get_measure_results(rows, result, measure)
-    if rows.keys.include?(measure)
-      result = result.merge(rows[measure])
-      result.delete('applicable')
+  def self.get_build_existing_model(result, rows)
+    result = result.merge(rows['BuildExistingModel'])
+    result.delete('applicable')
+    return result
+  end
+
+  def self.get_simulation_output_report(result, rows)
+    rows['SimulationOutputReport'].each do |k, v|
+      begin
+        rows['SimulationOutputReport'][k] = v.round(1)
+      rescue NoMethodError
+      end
     end
+    result = result.merge(rows['SimulationOutputReport'])
+    result.delete('applicable')
+    result.delete('upgrade_name')
+    result.delete('upgrade_cost_usd')
+    return result
+  end
+
+  def self.get_load_components_report(result, rows)
+    rows['LoadComponentsReport'].each do |k, v|
+      begin
+        rows['LoadComponentsReport'][k] = v.round(1)
+      rescue NoMethodError
+      end
+    end
+    result = result.merge(rows['LoadComponentsReport'])
+    result.delete('applicable')
     return result
   end
 
@@ -523,9 +522,6 @@ class RunOSWs
         csv << csv_row
       end
     end
-
-    puts "\nWrote: #{csv_out}\n"
-    return csv_out
   end
 
   def self._rm_path(path)

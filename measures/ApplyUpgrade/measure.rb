@@ -193,7 +193,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Check file/dir paths exist
     check_file_exists(lookup_file, runner)
 
-    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
