@@ -18,6 +18,8 @@ enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family
                                                                   'Multi-Family with 2 - 4 Units': 'MF',
                                                                   'Multi-Family with 5+ Units': 'MF'} }
 
+cols_to_ignore = ['include_', 'timeseries_', 'output_format_', 'completed_status_', 'applicable', 'upgrade_name_', 'upgrade_cost_']
+
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
     self.base_folder = base_folder
@@ -191,8 +193,9 @@ if __name__ == '__main__':
   parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
   parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
   parser.add_argument('-dc', '--display_column', choices=display_columns, help='How to organize the subplots.')
-  parser.add_argument('-m', '--map_results', choices=map_result_choices, help="Which file's columns to map to")
+  parser.add_argument('-m', '--map_results', choices=map_result_choices, help='Map to columns of base or feature.')
   args = parser.parse_args()
+  print(args)
 
   if not os.path.exists(args.export_folder):
     os.makedirs(args.export_folder)
@@ -210,4 +213,4 @@ if __name__ == '__main__':
       compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps)
     elif action == 'visualize':
       excludes = ['buildstock.csv', 'results_characteristics.csv']
-      compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps)
+      compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps, cols_to_ignore)
