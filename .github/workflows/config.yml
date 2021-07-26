@@ -42,10 +42,6 @@ jobs:
         run: |
           rake test:project_tests
 
-      - name: Run all regression tests
-        run: |
-          rake test:regression_tests
-
       - name: Run all integration tests
         run: |
           rake test:integration_tests
@@ -55,12 +51,6 @@ jobs:
         with:
           path: resources/buildstock.csv
           name: samples
-
-      - name: Upload regression results
-        uses: actions/upload-artifact@v2
-        with:
-          path: workflows/results
-          name: examples
 
       - name: Upload integration results
         uses: actions/upload-artifact@v2
@@ -132,7 +122,7 @@ jobs:
           pip install kaleido
           
           python test/compare.py -a samples
-                    
+          
           python test/compare.py -a results
           python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv
           
