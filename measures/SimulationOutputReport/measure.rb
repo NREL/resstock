@@ -34,7 +34,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments
+  def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     # make an argument for including optional end use subcategories

@@ -9,7 +9,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments()
+  def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
   end # end the arguments method
 
