@@ -3171,98 +3171,42 @@ class HVAC
     end
   end
 
-  def self.apply_ceiling_fans(model, unit, runner, coverage, specified_num, power,
-                              control, use_benchmark_energy, cooling_setpoint_offset,
-                              mult, sch, schedules_file)
-
-    # check for valid inputs
-    if mult < 0
-      runner.registerError('Multiplier must be greater than or equal to 0.')
-      return false
-    end
+  def self.apply_ceiling_fans(model, unit, runner, weather, specified_num, power,
+                              cooling_setpoint_offset, sch, schedules_file)
 
     obj_name = Constants.ObjectNameCeilingFan(unit.name.to_s)
 
-    num_bedrooms, num_bathrooms = Geometry.get_unit_beds_baths(model, unit, runner)
-    if num_bedrooms.nil? || num_bathrooms.nil?
-      return false
-    end
-
-    above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
-    finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
-
-    # Determine geometry for spaces and zones that are unit specific
     living_zone = nil
-    finished_basement_zone = nil
     Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
       if Geometry.is_living(thermal_zone)
         living_zone = thermal_zone
-      elsif Geometry.is_finished_basement(thermal_zone)
-        finished_basement_zone = thermal_zone
       end
     end
 
-    # Determine the number of ceiling fans
-    ceiling_fan_num = 0
-    if not coverage.nil?
-      # User has chosen to specify the number of fans by indicating
-      # % coverage, where it is assumed that 100% coverage requires 1 fan
-      # per 300 square feet.
-      ceiling_fan_num = (above_grade_finished_floor_area * coverage / 300.0).round(1)
-    elsif not specified_num.nil?
-      ceiling_fan_num = specified_num
-    else
-      ceiling_fan_num = 0
+    # Ceiling fan applies during cooling season only
+    _, cooling_season = calc_heating_and_cooling_seasons(model, weather, runner)
+
+    # Apply electrical consumption
+    hrs_per_day = 10.5
+    annual_kwh = UnitConversions.convert(specified_num * power * hrs_per_day * 365.0 * (cooling_season.sum / 12.0), 'Wh', 'kWh')
+    col_name = 'ceiling_fan'
+    if sch.nil?
+      sch = schedules_file.create_schedule_file(col_name: col_name)
     end
+    space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: annual_kwh)
+    mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
+    mel.setName(obj_name)
+    mel.setEndUseSubcategory(obj_name)
+    mel.setSpace(living_zone.spaces[0])
+    mel_def.setName(obj_name)
+    mel_def.setDesignLevel(space_design_level)
+    mel_def.setFractionRadiant(0.558)
+    mel_def.setFractionLatent(0.0)
+    mel_def.setFractionLost(0.0)
+    mel.setSchedule(sch)
 
-    # Adjust the power consumption based on the occupancy control.
-    # The default assumption is that when the fans are "on" half of the
-    # fans will be used. This is consistent with the results from an FSEC
-    # survey (described in FSEC-PF-306-96) and approximates the reasonable
-    # assumption that during the night the bedroom fans will be on and all
-    # of the other fans will be off while during the day the reverse will
-    # be true. "Smart" occupancy control indicates that fans are used more
-    # sparingly; in other words, fans are frequently turned off when rooms
-    # are vacant. To approximate this kind of control, the overall fan
-    # power consumption is reduced by 50%.Note that although the idea here
-    # is that in reality "smart" control means that fans will be run for
-    # fewer hours, it is modeled as a reduction in power consumption.
-
-    if control == Constants.CeilingFanControlSmart
-      ceiling_fan_control_factor = 0.25
-    else
-      ceiling_fan_control_factor = 0.5
-    end
-
-    # Determine the power draw for the ceiling fans.
-    # The power consumption depends on the number of fans, the "standard"
-    # power consumption per fan, the fan efficiency, and the fan occupancy
-    # control. Rather than specifying usage via a schedule, as for most
-    # other electrical uses, the fans will be modeled as "on" with a
-    # constant power consumption whenever the interior space temperature
-    # exceeds the cooling setpoint and "off" at all other times (this
-    # on/off behavior is accomplished in DOE2.bmi using EQUIP-PWR-FT - see
-    # comments there). Note that there is also a fan schedule that accounts
-    # for cooling setpoint setups (it is assumed that fans will always be
-    # off during the setup period).
-
-    if ceiling_fan_num > 0
-      ceiling_fans_max_power = ceiling_fan_num * power * ceiling_fan_control_factor / UnitConversions.convert(1.0, 'kW', 'W') # kW
-    else
-      ceiling_fans_max_power = 0
-    end
-
-    # Determine ceiling fan schedule.
-    # In addition to turning the fans off when the interior space
-    # temperature falls below the cooling setpoint (handled in DOE2.bmi by
-    # EQUIP-PWR-FT), the fans should be turned off during any setup of the
-    # cooling setpoint (based on the assumption that the occupants leave
-    # the house at those times). Therefore the fan schedule specifies zero
-    # power during the setup period and full power outside of the setup
-    # period. Determine the lowest value of all of the hourly cooling setpoints.
-
-    clg_wkdy_monthly = nil
-    clg_wked_monthly = nil
+    # Adjust thermostat setpoint
     thermostatsetpointdualsetpoint = living_zone.thermostatSetpointDualSetpoint
     if thermostatsetpointdualsetpoint.is_initialized
 
@@ -3273,6 +3217,7 @@ class HVAC
 
       thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
         month = rule.startDate.get.monthOfYear.value.to_i - 1
+        next unless cooling_season[month] > 0
         next if htg_wkdy_monthly[month].zip(clg_wkdy_monthly[month]).any? { |h, c| c < h }
         next if htg_wked_monthly[month].zip(clg_wked_monthly[month]).any? { |h, c| c < h }
 
@@ -3293,129 +3238,6 @@ class HVAC
         end
       end
     end
-
-    if clg_wkdy_monthly.nil? && clg_wked_monthly.nil?
-      runner.registerWarning("No cooling setpoint schedule found. Assuming #{Constants.DefaultCoolingSetpoint} F for ceiling fan operation.")
-      clg_wkdy_monthly = [[Constants.DefaultCoolingSetpoint] * 24] * 12
-      clg_wked_monthly = [[Constants.DefaultCoolingSetpoint] * 24] * 12
-    end
-
-    cooling_setpoint_min = [clg_wkdy_monthly.min, clg_wked_monthly.min].min.min
-
-    ceiling_fans_hourly_weekday = []
-    ceiling_fans_hourly_weekend = []
-
-    (0..23).to_a.each do |hour|
-      if clg_wkdy_monthly[6][hour] > cooling_setpoint_min # july
-        ceiling_fans_hourly_weekday << 0
-      else
-        ceiling_fans_hourly_weekday << 1
-      end
-      if clg_wked_monthly[6][hour] > cooling_setpoint_min # july
-        ceiling_fans_hourly_weekend << 0
-      else
-        ceiling_fans_hourly_weekend << 1
-      end
-    end
-
-    ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + ' schedule', ceiling_fans_hourly_weekday, ceiling_fans_hourly_weekend, Array.new(12, 1), mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-
-    unless ceiling_fan_sch.validated?
-      return false
-    end
-
-    schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
-    schedule_type_limits.setName('OnOff')
-    schedule_type_limits.setLowerLimitValue(0)
-    schedule_type_limits.setUpperLimitValue(1)
-    schedule_type_limits.setNumericType('Discrete')
-
-    ceiling_fan_master_sch = OpenStudio::Model::ScheduleConstant.new(model)
-    ceiling_fan_master_sch.setName(obj_name + ' master')
-    ceiling_fan_master_sch.setScheduleTypeLimits(schedule_type_limits)
-    ceiling_fan_master_sch.setValue(1)
-
-    # Ceiling Fans
-    # As described in more detail in the schedules section, ceiling fans are controlled by two schedules, CeilingFan and CeilingFansMaster.
-    # The program CeilingFanScheduleProgram checks to see if a cooling setpoint setup is in effect (by checking the sensor CeilingFan_sch) and
-    # it checks the indoor temperature to see if it is less than the normal cooling setpoint. In either case, it turns the fans off.
-    # Otherwise it turns the fans on.
-
-    equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    equip_def.setName(obj_name + ' non benchmark equip')
-    equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
-    equip.setName(equip_def.name.to_s)
-    equip.setEndUseSubcategory(obj_name)
-    equip.setSpace(living_zone.spaces[0])
-    equip_def.setDesignLevel(UnitConversions.convert(ceiling_fans_max_power, 'kW', 'W'))
-    equip_def.setFractionRadiant(0.558)
-    equip_def.setFractionLatent(0)
-    equip_def.setFractionLost(0.07)
-    equip.setSchedule(ceiling_fan_master_sch)
-
-    # Sensor that reports the value of the schedule CeilingFan (0 if cooling setpoint setup is in effect, 1 otherwise).
-    sched_val_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-    sched_val_sensor.setName("#{obj_name} sched val sensor".gsub('|', '_'))
-    sched_val_sensor.setKeyName(obj_name + ' schedule')
-
-    tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mean Air Temperature')
-    tin_sensor.setName("#{obj_name} tin sensor".gsub('|', '_'))
-    tin_sensor.setKeyName(living_zone.name.to_s)
-
-    # Actuator that overrides the master ceiling fan schedule.
-    sched_override_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(ceiling_fan_master_sch, 'Schedule:Constant', 'Schedule Value')
-    sched_override_actuator.setName("#{obj_name} sched override".gsub('|', '_'))
-
-    # Program that turns the ceiling fans off in the situations described above.
-    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-    program.setName(obj_name + ' schedule program')
-    program.addLine("If #{sched_val_sensor.name} == 0")
-    program.addLine("Set #{sched_override_actuator.name} = 0")
-    # Subtract 0.1 from cooling setpoint to avoid fans cycling on and off with minor temperature variations.
-    program.addLine("ElseIf #{tin_sensor.name} < #{UnitConversions.convert(cooling_setpoint_min - 0.1 - 32.0, 'R', 'K').round(3)}")
-    program.addLine("Set #{sched_override_actuator.name} = 0")
-    program.addLine('Else')
-    program.addLine("Set #{sched_override_actuator.name} = 1")
-    program.addLine('EndIf')
-
-    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-    program_calling_manager.setName(obj_name + ' program calling manager')
-    program_calling_manager.setCallingPoint('BeginTimestepBeforePredictor')
-    program_calling_manager.addProgram(program)
-
-    mel_ann_no_ceiling_fan = (1108.1 + 180.2 * num_bedrooms + 0.2785 * finished_floor_area) * mult
-    mel_ann_with_ceiling_fan = (1185.4 + 180.2 * num_bedrooms + 0.3188 * finished_floor_area) * mult
-    mel_ann = mel_ann_with_ceiling_fan - mel_ann_no_ceiling_fan
-
-    unit.spaces.each do |space|
-      next if Geometry.space_is_unfinished(space)
-
-      space_obj_name = "#{obj_name} benchmark|#{space.name}"
-
-      next unless (mel_ann > 0) && use_benchmark_energy
-
-      col_name = 'ceiling_fan'
-      if sch.nil?
-        sch = schedules_file.create_schedule_file(col_name: col_name)
-      end
-
-      space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, 'm^2', 'ft^2') / finished_floor_area
-      space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: space_mel_ann)
-
-      mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-      mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
-      mel.setName(space_obj_name)
-      mel.setEndUseSubcategory(obj_name)
-      mel.setSpace(space)
-      mel_def.setName(space_obj_name)
-      mel_def.setDesignLevel(space_design_level)
-      mel_def.setFractionRadiant(0.558)
-      mel_def.setFractionLatent(0.0)
-      mel_def.setFractionLost(0.07)
-      mel.setSchedule(sch)
-
-      # benchmark
-    end # unit spaces
 
     return true, sch
   end
