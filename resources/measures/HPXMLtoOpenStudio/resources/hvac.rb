@@ -3183,12 +3183,17 @@ class HVAC
       end
     end
 
-    # Ceiling fan applies during cooling season only
-    _, cooling_season = calc_heating_and_cooling_seasons(model, weather, runner)
+    # Ceiling fan applies only when monthly average outdoor temperature > 63F
+    ceiling_fan_season = [0] * 12
+    weather.data.MonthlyAvgDrybulbs.each_with_index do |val, m|
+      next unless val > 63.0 # deg-F
+
+      ceiling_fan_season[m] = 1
+    end
 
     # Apply electrical consumption
     hrs_per_day = 10.5
-    annual_kwh = UnitConversions.convert(specified_num * power * hrs_per_day * 365.0 * (cooling_season.sum / 12.0), 'Wh', 'kWh')
+    annual_kwh = UnitConversions.convert(specified_num * power * hrs_per_day * 365.0 * (ceiling_fan_season.sum / 12.0), 'Wh', 'kWh')
     col_name = 'ceiling_fan'
     if sch.nil?
       sch = schedules_file.create_schedule_file(col_name: col_name)
@@ -3217,7 +3222,7 @@ class HVAC
 
       thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
         month = rule.startDate.get.monthOfYear.value.to_i - 1
-        next unless cooling_season[month] > 0
+        next unless ceiling_fan_season[month] > 0
         next if htg_wkdy_monthly[month].zip(clg_wkdy_monthly[month]).any? { |h, c| c < h }
         next if htg_wked_monthly[month].zip(clg_wked_monthly[month]).any? { |h, c| c < h }
 

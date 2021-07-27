@@ -13,7 +13,7 @@ class ProcessCeilingFanTest < MiniTest::Test
     args_hash['specified_num'] = 2
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleFile' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
-    expected_values = { 'ceiling_fans_design_level' => 42.2 }
+    expected_values = { 'ceiling_fans_design_level' => 28.1 }
     _test_measure('SFD_2000sqft_2story_FB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -24,7 +24,7 @@ class ProcessCeilingFanTest < MiniTest::Test
     expected_num_new_objects = { 'ScheduleFile' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values_clg_wkday_setpoints = [80] * 24
     expected_values_clg_wked_setpoints = [80] * 24
-    expected_values = { 'ceiling_fans_design_level' => 21.1, 'clg_wkday_setpoints' => expected_values_clg_wkday_setpoints, 'clg_wked_setpoints' => expected_values_clg_wked_setpoints }
+    expected_values = { 'ceiling_fans_design_level' => 14.1, 'clg_wkday_setpoints' => expected_values_clg_wkday_setpoints, 'clg_wked_setpoints' => expected_values_clg_wked_setpoints }
     _test_measure('SFD_2000sqft_2story_FB_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -35,7 +35,7 @@ class ProcessCeilingFanTest < MiniTest::Test
     expected_num_new_objects = { 'ScheduleFile' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
     expected_values_clg_wkday_setpoints = [80, 79, 78, 78, 79, 80, 80, 79, 78, 78, 79, 80, 80, 79, 78, 78, 79, 80, 80, 79, 78, 78, 79, 80]
     expected_values_clg_wked_setpoints = [81, 82, 83, 83, 82, 81, 81, 82, 83, 83, 82, 81, 81, 82, 83, 83, 82, 81, 81, 82, 83, 83, 82, 81]
-    expected_values = { 'ceiling_fans_design_level' => 21.1, 'clg_wkday_setpoints' => expected_values_clg_wkday_setpoints, 'clg_wked_setpoints' => expected_values_clg_wked_setpoints }
+    expected_values = { 'ceiling_fans_design_level' => 14.1, 'clg_wkday_setpoints' => expected_values_clg_wkday_setpoints, 'clg_wked_setpoints' => expected_values_clg_wked_setpoints }
     _test_measure('SFD_2000sqft_2story_FB_UA_3Beds_2Baths_Denver_Furnace_CentralAC_VarTstat.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -43,7 +43,7 @@ class ProcessCeilingFanTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleFile' => 1, 'ElectricEquipmentDefinition' => 1, 'ElectricEquipment' => 1 }
-    expected_values = { 'ceiling_fans_design_level' => 21.1 }
+    expected_values = { 'ceiling_fans_design_level' => 14.1 }
     _test_measure('SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -52,7 +52,7 @@ class ProcessCeilingFanTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleFile' => num_units * 1, 'ElectricEquipmentDefinition' => num_units * 1, 'ElectricEquipment' => num_units * 1 }
-    expected_values = { 'ceiling_fans_design_level' => 21.1 }
+    expected_values = { 'ceiling_fans_design_level' => 14.1 }
     _test_measure('SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
@@ -61,7 +61,7 @@ class ProcessCeilingFanTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleFile' => num_units * 1, 'ElectricEquipmentDefinition' => num_units * 1, 'ElectricEquipment' => num_units * 1 }
-    expected_values = { 'ceiling_fans_design_level' => 21.1 }
+    expected_values = { 'ceiling_fans_design_level' => 14.1 }
     _test_measure('MF_8units_1story_SL_3Beds_2Baths_Denver_Furnace_CentralAC.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
