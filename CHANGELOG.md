@@ -41,6 +41,7 @@ Fixes
 - Fixes number of bathrooms for single-family attached and multi-family buildings ([#601](https://github.com/NREL/resstock/pull/601))
 - Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
 - Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
+- Fixes hot water distribution internal gains not being zeroed out during vacancies ([#653](https://github.com/NREL/resstock/pull/653))
 
 ## ResStock v2.4.0
 
