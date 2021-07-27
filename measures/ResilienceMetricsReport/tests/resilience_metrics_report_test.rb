@@ -8,15 +8,6 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class ResilienceMetricsReportTest < MiniTest::Test
-  def test_argument_error
-    args_hash = {}
-    args_hash['output_vars'] = 'Zone Mean Air Temperature, Zone Air Relative Humidity'
-    args_hash['min_vals'] = '60, 5, 0'
-    args_hash['max_vals'] = '80, 60, 0'
-    result = _test_error(args_hash)
-    assert_includes(result.errors.map { |x| x.logMessage }, 'Number of output variable elements specified inconsistent with either number of minimum or maximum values.')
-  end
-
   def test_resilience_metrics
     resilience_metrics = {
       # output_var=>[timeseries, min_val, max_val, hours_spent_below, hours_spent_above, ix_outage_start, ix_outage_end]
@@ -148,42 +139,6 @@ class ResilienceMetricsReportTest < MiniTest::Test
       actual_val = measure.calc_minimum_during_outage_val(minimum_indoor_drybulb_temperature_during_outage_val, values, ix_outage_start, ix_outage_end)
       assert_in_epsilon(expected_val, actual_val, 0.01)
     end
-  end
-
-  def _test_error(args_hash)
-    # create an instance of the measure
-    measure = ResilienceMetricsReport.new
-
-    # create an instance of a runner
-    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-
-    model = get_model(File.dirname(__FILE__), nil)
-
-    # get arguments
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
-
-    # populate argument with specified hash value if specified
-    arguments.each do |arg|
-      temp_arg_var = arg.clone
-      if args_hash.has_key?(arg.name)
-        assert(temp_arg_var.setValue(args_hash[arg.name]))
-      end
-      argument_map[arg.name] = temp_arg_var
-    end
-
-    # run the measure
-    measure.run(runner, argument_map)
-    result = runner.result
-
-    # show the output
-    show_output(result) unless result.value.valueName == 'Fail'
-
-    # assert that it didn't run
-    assert_equal('Fail', result.value.valueName)
-    assert(result.errors.size == 1)
-
-    return result
   end
 
   def model_in_path_default(osm_file_or_model)
