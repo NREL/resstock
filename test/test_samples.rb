@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require_relative 'minitest_helper'
@@ -13,7 +15,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     all_results_characteristics = []
     all_results_output = []
-    [['project_testing', 1], ['project_national', 3000]].each do |scenario|
+    [['project_testing', 100], ['project_national', 3000]].each do |scenario|
       project_dir, num_samples = scenario
 
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
