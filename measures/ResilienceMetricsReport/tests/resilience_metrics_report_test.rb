@@ -157,8 +157,10 @@ class ResilienceMetricsReportTest < MiniTest::Test
     # create an instance of a runner
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
+    model = get_model(File.dirname(__FILE__), nil)
+
     # get arguments
-    arguments = measure.arguments
+    arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 
     # populate argument with specified hash value if specified
