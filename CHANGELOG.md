@@ -25,6 +25,7 @@ Features
 - Update tsv files for both the national and testing projects. Supports transition to ResStock-HPXML ([#559](https://github.com/NREL/resstock/pull/559))
 - Changes "Duct Surface Area (ft^2)" cost multiplier to "Duct Unconditioned Surface Area (ft^2)" ([#634](https://github.com/NREL/resstock/pull/634))
 - Update window type distributions using RECS 2015. Includes additional of frame material types (RECS 2015) and presence of storm windows (D&R International) ([#615](https://github.com/NREL/resstock/pull/615))
+- Reduces window interior shading during Winter to match ANSI/RESNET/ICC 301 assumption ([#649](https://github.com/NREL/resstock/pull/649))
 - Updates ceiling fan model based on ANSI/RESNET ICC 301 assumptions ([#652](https://github.com/NREL/resstock/pull/652))
 
 Fixes
