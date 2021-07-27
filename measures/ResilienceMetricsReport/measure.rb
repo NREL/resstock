@@ -98,8 +98,15 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
 
     result = OpenStudio::IdfObjectVector.new
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    if !runner.validateUserArguments(arguments, user_arguments)
+    if !runner.validateUserArguments(arguments(model), user_arguments)
       return result
     end
 
