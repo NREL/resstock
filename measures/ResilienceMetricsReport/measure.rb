@@ -124,8 +124,15 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    if !runner.validateUserArguments(arguments, user_arguments)
+    if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
@@ -139,14 +146,6 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
       runner.registerError('Number of output variable elements specified inconsistent with either number of minimum or maximum values.')
       return false
     end
-
-    # Get the last model
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError('Cannot find last model.')
-      return false
-    end
-    model = model.get
 
     # Get the last sql file
     sql = runner.lastEnergyPlusSqlFile
