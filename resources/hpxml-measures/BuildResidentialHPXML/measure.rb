@@ -3401,7 +3401,7 @@ class HPXMLFile
       hpxml.site.surroundings = surroundings_hash[args[:geometry_horizontal_location].get]
     end
 
-    hpxml.site.orientation_of_front_of_home = Geometry.get_orientation_direction(args[:geometry_orientation])
+    hpxml.site.azimuth_of_front_of_home = args[:geometry_orientation]
     hpxml.site.shielding_of_home = shielding_of_home
   end
 
