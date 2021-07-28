@@ -10,6 +10,7 @@ end
 require File.join(resources_path, 'constants')
 require File.join(resources_path, 'geometry')
 require File.join(resources_path, 'hvac')
+require File.join(resources_path, 'weather')
 
 # start the measure
 class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
@@ -32,20 +33,12 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    # make a string argument for coverage
-    coverage = OpenStudio::Measure::OSArgument::makeStringArgument('coverage', true)
-    coverage.setDisplayName('Coverage')
-    coverage.setUnits('frac')
-    coverage.setDescription('Fraction of house conditioned by fans where # fans = (above-grade finished floor area)/(% coverage)/300.')
-    coverage.setDefaultValue('NA')
-    args << coverage
-
     # make a string argument for specified number
-    specified_num = OpenStudio::Measure::OSArgument::makeStringArgument('specified_num', true)
+    specified_num = OpenStudio::Measure::OSArgument::makeIntegerArgument('specified_num', true)
     specified_num.setDisplayName('Specified Number')
     specified_num.setUnits('#/unit')
     specified_num.setDescription('Total number of fans.')
-    specified_num.setDefaultValue('1')
+    specified_num.setDefaultValue(1)
     args << specified_num
 
     # make a double argument for power
@@ -55,30 +48,6 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
     power.setDescription('Power consumption per fan assuming it runs at medium speed.')
     power.setDefaultValue(45.0)
     args << power
-
-    # make choice arguments for control
-    control_names = OpenStudio::StringVector.new
-    control_names << Constants.CeilingFanControlTypical
-    control_names << Constants.CeilingFanControlSmart
-    control = OpenStudio::Measure::OSArgument::makeChoiceArgument('control', control_names, true)
-    control.setDisplayName('Control')
-    control.setDescription("'typical' indicates half of the fans will be on whenever the interior temperature is above the cooling setpoint; 'smart' indicates 50% of the energy consumption of 'typical.'")
-    control.setDefaultValue(Constants.CeilingFanControlTypical)
-    args << control
-
-    # make a bool argument for using benchmark energy
-    use_benchmark_energy = OpenStudio::Measure::OSArgument::makeBoolArgument('use_benchmark_energy', true)
-    use_benchmark_energy.setDisplayName('Use Benchmark Energy')
-    use_benchmark_energy.setDescription('Use the energy value specified in the BA Benchmark: 77.3 + 0.0403 x FFA kWh/yr, where FFA is Finished Floor Area.')
-    use_benchmark_energy.setDefaultValue(true)
-    args << use_benchmark_energy
-
-    # make a double argument for BA Benchamrk multiplier
-    mult = OpenStudio::Measure::OSArgument::makeDoubleArgument('mult')
-    mult.setDisplayName('Building America Benchmark Multiplier')
-    mult.setDefaultValue(1)
-    mult.setDescription("A multiplier on the national average energy use. Only applies if 'Use Benchmark Energy' is set to True.")
-    args << mult
 
     # make a double argument for cooling setpoint offset
     cooling_setpoint_offset = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_setpoint_offset', true)
@@ -100,30 +69,9 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    coverage = runner.getStringArgumentValue('coverage', user_arguments)
-    unless coverage == 'NA'
-      coverage = coverage.to_f
-    else
-      coverage = nil
-    end
-    specified_num = runner.getStringArgumentValue('specified_num', user_arguments)
-    unless specified_num == 'NA'
-      specified_num = specified_num.to_f
-    else
-      specified_num = nil
-    end
+    specified_num = runner.getIntegerArgumentValue('specified_num', user_arguments)
     power = runner.getDoubleArgumentValue('power', user_arguments)
-    control = runner.getStringArgumentValue('control', user_arguments)
-    use_benchmark_energy = runner.getBoolArgumentValue('use_benchmark_energy', user_arguments)
     cooling_setpoint_offset = runner.getDoubleArgumentValue('cooling_setpoint_offset', user_arguments)
-    mult = runner.getDoubleArgumentValue('mult', user_arguments)
-
-    if use_benchmark_energy
-      coverage = nil
-      specified_num = nil
-      power = nil
-      control = nil
-    end
 
     # get building units
     units = Geometry.get_building_units(model, runner)
@@ -136,13 +84,17 @@ class ProcessCeilingFan < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    weather = WeatherProcess.new(model, runner)
+    if weather.error?
+      return false
+    end
+
     sch = nil
     units.each do |unit|
       HVAC.remove_ceiling_fans(runner, model, unit)
 
-      success, sch = HVAC.apply_ceiling_fans(model, unit, runner, coverage, specified_num, power,
-                                             control, use_benchmark_energy, cooling_setpoint_offset,
-                                             mult, sch, schedules_file)
+      success, sch = HVAC.apply_ceiling_fans(model, unit, runner, weather, specified_num, power,
+                                             cooling_setpoint_offset, sch, schedules_file)
       return false if not success
     end # units
 

@@ -460,6 +460,9 @@ class RunOSWs
     if rows.keys.include? 'LoadComponentsReport'
       result_output = get_load_components_report(result_output, rows)
     end
+    if rows.keys.include? 'QOIReport'
+      result_output = get_qoi_report(result_output, rows)
+    end
 
     return out_osw, result_characteristics, result_output
   end
@@ -493,6 +496,19 @@ class RunOSWs
     end
     result = result.merge(rows['LoadComponentsReport'])
     result.delete('applicable')
+    return result
+  end
+
+  def self.get_qoi_report(result, rows)
+    rows['QOIReport'].each do |k, v|
+      begin
+        rows['QOIReport'][k] = v.round(1)
+      rescue NoMethodError
+      end
+    end
+    rows['QOIReport'].each do |k, v|
+      result["qoi_#{k}"] = v unless k == 'applicable'
+    end
     return result
   end
 
