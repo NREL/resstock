@@ -375,8 +375,9 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     else
       valInUnits = UnitConversions.convert(total_val, os_units, desired_units)
     end
+    valInUnits = valInUnits.round(2)
     runner.registerValue(name, valInUnits)
-    runner.registerInfo("Registering #{valInUnits.round(2)} for #{name}.")
+    runner.registerInfo("Registering #{valInUnits} for #{name}.")
   end
 end
 
