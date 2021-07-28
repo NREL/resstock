@@ -368,7 +368,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # WEIGHT
 
-    weight = get_value_from_runner_past_results(runner, 'weight', 'build_existing_model', false)
+    values = get_values_from_runner_past_results(runner, 'build_existing_model')
+    weight = values['weight']
     if not weight.nil?
       register_value(runner, 'weight', weight.to_f)
       runner.registerInfo("Registering #{weight} for weight.")
@@ -382,7 +383,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # UPGRADE NAME
-    upgrade_name = get_value_from_runner_past_results(runner, 'upgrade_name', 'apply_upgrade', false)
+    values = get_values_from_runner_past_results(runner, 'apply_upgrade')
+    upgrade_name = values['upgrade_name']
     if upgrade_name.nil?
       register_value(runner, 'upgrade_name', '')
       runner.registerInfo('Registering (blank) for upgrade_name.')

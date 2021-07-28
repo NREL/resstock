@@ -224,7 +224,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
     # Retrieve workflow_json from BuildExistingModel measure if provided
-    workflow_json = get_value_from_runner_past_results(runner, 'workflow_json', 'build_existing_model', false)
+    values = get_values_from_runner_past_results(runner, 'build_existing_model')
+    workflow_json = values['workflow_json']
     if not workflow_json.nil?
       workflow_json = File.join(resources_dir, workflow_json)
     end
@@ -291,7 +292,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
       measures.keys.each do |measure_subdir|
         parameters.each do |parameter_name|
-          existing_option_name = get_value_from_runner_past_results(runner, parameter_name, 'build_existing_model')
+          values = get_values_from_runner_past_results(runner, 'build_existing_model')
+          existing_option_name = values[parameter_name]
 
           options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
           options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|

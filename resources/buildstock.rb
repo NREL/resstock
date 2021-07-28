@@ -245,30 +245,6 @@ def get_value_from_workflow_step_value(step_value)
   end
 end
 
-def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_if_missing = true)
-  require 'openstudio'
-  key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
-  success_value = OpenStudio::StepResult.new('Success')
-  runner.workflow.workflowSteps.each do |step|
-    next if not step.result.is_initialized
-
-    step_result = step.result.get
-    next if not step_result.measureName.is_initialized
-    next if step_result.measureName.get != measure_name
-    next if step_result.value != success_value
-
-    step_result.stepValues.each do |step_value|
-      next if step_value.name != key_lookup
-
-      return get_value_from_workflow_step_value(step_value)
-    end
-  end
-  if error_if_missing
-    register_error("Could not find past value for '#{key_lookup}'.", runner)
-  end
-  return
-end
-
 def get_values_from_runner_past_results(runner, measure_name)
   require 'openstudio'
   values = {}
@@ -371,6 +347,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
     return
   end
 
+  values = get_values_from_runner_past_results(runner, 'build_existing_model')
   ruby_eval_str = ''
   option_apply_logic.split('||').each do |or_segment|
     or_segment.split('&&').each do |segment|
@@ -403,7 +380,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
 
       # Get existing building option name for the same parameter
       if past_results
-        segment_existing_option = get_value_from_runner_past_results(runner, segment_parameter, 'build_existing_model')
+        segment_existing_option = values[segment_parameter]
       else
         segment_existing_option = get_value_from_runner(runner, segment_parameter)
       end
