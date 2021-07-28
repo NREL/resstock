@@ -43,7 +43,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     results = OpenStudio::IdfObjectVector.new
     results << OpenStudio::IdfObject.load('Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;').get
     results << OpenStudio::IdfObject.load('Output:Meter,Electricity:Facility,hourly;').get
-    
+
     return results
   end
 
@@ -178,7 +178,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
         timeseries['Temperature'] << UnitConversions.convert(val, 'C', 'F')
       end
     end
-    
+
     query_str = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('Electricity:Facility') AND ReportingFrequency='Hourly' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
     electricity_total_end_uses = sqlFile.execAndReturnVectorOfDouble(query_str).get
 
