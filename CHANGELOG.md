@@ -26,6 +26,7 @@ Features
 - Changes "Duct Surface Area (ft^2)" cost multiplier to "Duct Unconditioned Surface Area (ft^2)" ([#634](https://github.com/NREL/resstock/pull/634))
 - Update window type distributions using RECS 2015. Includes additional of frame material types (RECS 2015) and presence of storm windows (D&R International) ([#615](https://github.com/NREL/resstock/pull/615))
 - Reduces window interior shading during Winter to match ANSI/RESNET/ICC 301 assumption ([#649](https://github.com/NREL/resstock/pull/649))
+- Updates ceiling fan model based on ANSI/RESNET ICC 301 assumptions ([#652](https://github.com/NREL/resstock/pull/652))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
@@ -41,7 +42,7 @@ Fixes
 - Fixes number of bathrooms for single-family attached and multi-family buildings ([#601](https://github.com/NREL/resstock/pull/601))
 - Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
 - Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
-- Fixes zero energy use for hot water recirculation pump ([#646](https://github.com/NREL/resstock/pull/646))
+- Fixes hot water distribution internal gains not being zeroed out during vacancies ([#653](https://github.com/NREL/resstock/pull/653))
 
 ## ResStock v2.4.0
 
