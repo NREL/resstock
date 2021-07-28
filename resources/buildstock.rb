@@ -269,6 +269,25 @@ def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_i
   return
 end
 
+def get_values_from_runner_past_results(runner, measure_name)
+  require 'openstudio'
+  values = {}
+  success_value = OpenStudio::StepResult.new('Success')
+  runner.workflow.workflowSteps.each do |step|
+    next if not step.result.is_initialized
+
+    step_result = step.result.get
+    next if not step_result.measureName.is_initialized
+    next if step_result.measureName.get != measure_name
+    next if step_result.value != success_value
+
+    step_result.stepValues.each do |step_value|
+      values["#{step_value.name}"] = get_value_from_workflow_step_value(step_value)
+    end
+  end
+  return values
+end
+
 def get_value_from_runner(runner, key_lookup, error_if_missing = true)
   key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
   runner.result.stepValues.each do |step_value|
