@@ -239,11 +239,12 @@ class HotWaterAndAppliances
         # Recirculation pump
         dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(hot_water_distribution)
         if dist_pump_annual_kwh > 0
-          dist_pump_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
-          dist_pump_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
-          dist_pump_schedule = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameHotWaterRecircPump, dist_pump_weekday_sch, dist_pump_weekday_sch, dist_pump_monthly_sch)
-          dist_pump_design_level = dist_pump_schedule.calcDesignLevelFromDailykWh(dist_pump_annual_kwh / 365.0)
-          dist_pump = add_electric_equipment(model, Constants.ObjectNameHotWaterRecircPump, living_space, dist_pump_design_level * gpd_frac, 0.0, 0.0, dist_pump_schedule.schedule)
+          if not schedules_file.nil?
+            dist_pump_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: 'fixtures', daily_kwh: dist_pump_annual_kwh / 365.0)
+          else
+            dist_pump_design_level = schedule_obj.calcDesignLevelFromDailykWh(dist_pump_annual_kwh / 365.0)
+          end
+          dist_pump = add_electric_equipment(model, Constants.ObjectNameHotWaterRecircPump, living_space, dist_pump_design_level * gpd_frac, 0.0, 0.0, water_schedule)
           dhw_map[water_heating_system.id] << dist_pump unless dist_pump.nil?
         end
       end

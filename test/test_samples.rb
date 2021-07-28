@@ -102,11 +102,12 @@ class IntegrationWorkflowTest < MiniTest::Test
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
     workflow_and_building_ids = []
+    buildstock_csv_data = CSV.open(File.join(@lib_dir, 'housing_characteristics/buildstock.csv'), headers: true).map(&:to_hash)
     Dir["#{@top_dir}/workflow*.osw"].each do |workflow|
       next unless workflow.include?(File.basename(scenario_dir))
 
       (1..num_samples).to_a.each do |building_id|
-        bldg_data = get_data_for_sample(File.join(@lib_dir, 'housing_characteristics/buildstock.csv'), building_id, runner)
+        bldg_data = get_data_for_sample(buildstock_csv_data, building_id, runner)
         next unless counties.include? bldg_data['County']
 
         workflow_and_building_ids << [workflow, building_id]

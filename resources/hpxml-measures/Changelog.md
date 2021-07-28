@@ -7,6 +7,7 @@ __New Features__
 - Allows non-zero refrigerant charge defect ratios for ground source heat pumps.
 - Allows `HeatingSeason` & `CoolingSeason` to be specified for defining heating and cooling equipment availability.
 - Revises shared mechanical ventilation preconditioning control logic to operate less often.
+- Expands choices allowed for `Siding` (Wall/RimJoist) and `RoofType` (Roof) elements.
 - Allows `Ducts/FractionDuctArea` to be provided instead of `Ducts/DuctSurfaceArea`.
 - Allows CEER (Combined Energy Efficiency Ratio) efficiency unit for room AC.
 - Allows "none" for wall/rim joist siding.
@@ -29,7 +30,8 @@ __New Features__
 
 __Bugfixes__
 - Improves ground reflectance when there is shading of windows/skylights.
-- Fixes heating fan power for single-stage systems that have different heating/cooling airflow rates.
+- Improves HVAC fan power for central forced air systems.
+- Negative `DistanceToTopOfInsulation` values are now disallowed in the EPvalidator schematron doc.
 
 ## OpenStudio-HPXML v1.2.0
 

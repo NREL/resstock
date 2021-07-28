@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
-
 require 'csv'
 require "#{File.dirname(__FILE__)}/meta_measure"
 
@@ -91,9 +89,9 @@ class TsvFile
 
       if not rows_keys_s[key_s_downcase].nil?
         if key_s.size > 0
-          register_error("Multiple rows found in #{@filename.to_s} with dependencies: #{key_s.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename} with dependencies: #{key_s}.", @runner)
         else
-          register_error("Multiple rows found in #{@filename.to_s}.", @runner)
+          register_error("Multiple rows found in #{@filename}.", @runner)
         end
       end
 
@@ -135,7 +133,7 @@ class TsvFile
 
       # Check positivity of the probability values
       if rowvals[option_name] < 0
-        register_error("Probability value in #{@filename.to_s} is less than zero.", @runner)
+        register_error("Probability value in #{@filename} is less than zero.", @runner)
       end
     end
 
@@ -408,14 +406,14 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   return result
 end
 
-def get_data_for_sample(buildstock_csv, building_id, runner)
-  CSV.foreach(buildstock_csv, headers: true) do |sample|
+def get_data_for_sample(buildstock_csv_data, building_id, runner)
+  buildstock_csv_data.each do |sample|
     next if sample['Building'].to_i != building_id
 
     return sample
   end
   # If we got this far, couldn't find the sample #
-  msg = "Could not find row for #{building_id.to_s} in #{File.basename(buildstock_csv).to_s}."
+  msg = "Could not find row for #{building_id} in #{File.basename(buildstock_csv)}."
   runner.registerError(msg)
   fail msg
 end
@@ -486,6 +484,7 @@ class RunOSWs
     result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
     result_output = get_measure_results(rows, result_output, 'SimulationOutputReport')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
+    result_output = get_measure_results(rows, result_output, 'QOIReport')
     return finished_job, result_characteristics, result_output
   end
 

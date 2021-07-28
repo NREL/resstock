@@ -62,7 +62,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError('Cannot find last model.')
+      runner.registerError('Cannot find OpenStudio model.')
       return false
     end
     model = model.get
