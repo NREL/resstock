@@ -34,7 +34,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments
+  def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     # make an argument for including optional end use subcategories
@@ -91,21 +91,20 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    if not runner.validateUserArguments(arguments(), user_arguments)
+    if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
     # Assign the user inputs to variables
     include_enduse_subcategories = runner.getBoolArgumentValue('include_enduse_subcategories', user_arguments)
-
-    # get the last model and sql file
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError('Cannot find last model.')
-      return false
-    end
-    model = model.get
 
     sqlFile = runner.lastEnergyPlusSqlFile
     if sqlFile.empty?

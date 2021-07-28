@@ -119,7 +119,7 @@ class LoadComponentsReportTest < MiniTest::Test
     initial_objects = get_objects(model)
 
     # get arguments
-    arguments = measure.arguments()
+    arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 
     # populate argument with specified hash value if specified
