@@ -292,7 +292,6 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
       measures.keys.each do |measure_subdir|
         parameters.each do |parameter_name|
-          values = get_values_from_runner_past_results(runner, 'build_existing_model')
           existing_option_name = values[parameter_name]
 
           options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
