@@ -484,6 +484,7 @@ class RunOSWs
     result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
     result_output = get_measure_results(rows, result_output, 'SimulationOutputReport')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
+    result_output = get_measure_results(rows, result_output, 'QOIReport')
     return finished_job, result_characteristics, result_output
   end
 
