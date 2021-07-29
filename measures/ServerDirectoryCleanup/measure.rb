@@ -11,23 +11,25 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
   # define the arguments that the user will input
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
+
+    return args
   end # end the arguments method
 
   # define what happens when the measure is run
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
-    # use the built-in error checking
-    unless runner.validateUserArguments(arguments, user_arguments)
-      false
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
     end
+    model = model.get
 
-    initial_string = 'The following files were in the local run directory prior to the execution of this measure: '
-    Dir.entries('./../').each do |f|
-      initial_string << "#{f}, "
+    # use the built-in error checking
+    if !runner.validateUserArguments(arguments(model), user_arguments)
+      return false
     end
-    initial_string = initial_string[0..(initial_string.length - 3)] + '.'
-    runner.registerInitialCondition(initial_string)
 
     Dir.glob('./../*.sql').each do |f|
       File.delete(f)
@@ -38,10 +40,6 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
     Dir.glob('./../in.osm').each do |f|
-      File.delete(f)
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
-    Dir.glob('./../../in.osm').each do |f|
       File.delete(f)
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
@@ -69,13 +67,6 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       File.delete(f)
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
-
-    final_string = 'The following files were in the local run directory following the execution of this measure: '
-    Dir.entries('./..').each do |f|
-      final_string << "#{f}, "
-    end
-    final_string = final_string[0..(final_string.length - 3)] + '.'
-    runner.registerFinalCondition(final_string)
 
     true
   end # end the run method
