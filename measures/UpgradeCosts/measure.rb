@@ -88,7 +88,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     # UPGRADE NAME
-    upgrade_name = get_value_from_runner_past_results(runner, 'upgrade_name', 'apply_upgrade', false)
+    values = get_values_from_runner_past_results(runner, 'apply_upgrade')
+    upgrade_name = values['upgrade_name']
     if upgrade_name.nil?
       register_value(runner, 'upgrade_name', '')
       runner.registerInfo('Registering (blank) for upgrade_name.')
@@ -109,16 +110,16 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       option_cost_pairs[option_num] = []
       option_lifetimes[option_num] = nil
       for cost_num in 1..num_costs_per_option # Sync with ApplyUpgrade measure
-        cost_value = get_value_from_runner_past_results(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, 'apply_upgrade', false)
+        cost_value = values["option_%02d_cost_#{cost_num}_value_to_apply" % option_num]
         next if cost_value.nil?
 
-        cost_mult_type = get_value_from_runner_past_results(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, 'apply_upgrade', false)
+        cost_mult_type = values["option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num]
         next if cost_mult_type.nil?
 
         has_costs = true
         option_cost_pairs[option_num] << [cost_value.to_f, cost_mult_type]
       end
-      lifetime = get_value_from_runner_past_results(runner, 'option_%02d_lifetime_to_apply' % option_num, 'apply_upgrade', false)
+      lifetime = values['option_%02d_lifetime_to_apply' % option_num]
       next if lifetime.nil?
 
       option_lifetimes[option_num] = lifetime.to_f
