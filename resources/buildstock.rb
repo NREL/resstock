@@ -116,7 +116,7 @@ class TsvFile
     rownum = @rows_keys_s[key_s_downcase]
     if rownum.nil?
       if key_s.size > 0
-        register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value} with dependencies: #{key_s}.", @runner)
+        register_error("Couldn't determine appropriate option in #{@filename} for sample value #{sample_value} with dependencies: #{key_s}.", @runner)
       else
         register_error("Could not determine appropriate option in #{@filename} for sample value #{sample_value}.", @runner)
       end
