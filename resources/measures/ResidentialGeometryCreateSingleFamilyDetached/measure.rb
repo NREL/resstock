@@ -728,7 +728,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
 
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       spaces << space
     end
 
@@ -861,7 +861,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
 
         # put all of the spaces in the model into a vector
         spaces = OpenStudio::Model::SpaceVector.new
-        model.getSpaces.each do |space|
+        model.getSpaces.sort.each do |space|
           spaces << space
         end
 
@@ -902,7 +902,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     end
 
     # set foundation outside boundary condition to Kiva "foundation"
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != 'ground'
 
       surface.setOutsideBoundaryCondition('Foundation')
@@ -910,7 +910,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
 
     # set foundation walls adjacent to garage to adiabatic
     foundation_walls = []
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next if surface.surfaceType.downcase != 'wall'
       next if surface.outsideBoundaryCondition.downcase != 'foundation'
 
@@ -932,7 +932,7 @@ class CreateResidentialSingleFamilyDetachedGeometry < OpenStudio::Measure::Model
     unit = OpenStudio::Model::BuildingUnit.new(model)
     unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
     unit.setName(Constants.ObjectNameBuildingUnit)
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       next if not Geometry.space_is_finished(space)
 
       space.setBuildingUnit(unit)

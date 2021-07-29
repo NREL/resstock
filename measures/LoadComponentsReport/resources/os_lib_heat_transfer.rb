@@ -285,7 +285,7 @@ module OsLib_HeatTransfer
     # WH internal gains
     wh_internal_gain_outputs.each do |output|
       heat_transfer_vectors[output] = Vector.elements(Array.new(num_ts, 0.0))
-      zone.model.getWaterHeaterMixeds.each do |wh|
+      zone.model.getWaterHeaterMixeds.sort.each do |wh|
         next if wh.ambientTemperatureThermalZone.get != zone
 
         wh_name = wh.name.to_s.upcase

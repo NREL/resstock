@@ -360,7 +360,7 @@ class ProcessConstructionsUnfinishedBasementTest < MiniTest::Test
               actual_values['CeilingRValue'] += mat.thickness / mat.conductivity
             end
           elsif new_object.name.to_s.start_with? Constants.SurfaceTypeFloorFndGrndUnfinB
-            model.getSurfaces.each do |surface|
+            model.getSurfaces.sort.each do |surface|
               next if not surface.construction.is_initialized
               next if surface.construction.get.name.to_s != new_object.name.to_s
               next if not surface.surfacePropertyExposedFoundationPerimeter.is_initialized

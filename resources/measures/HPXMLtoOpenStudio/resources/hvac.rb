@@ -2676,7 +2676,7 @@ class HVAC
     cooling_season = get_season(model, weather, runner, Constants.ObjectNameCoolingSeason)
 
     # Remove existing heating season schedule
-    model.getScheduleRulesets.each do |sch|
+    model.getScheduleRulesets.sort.each do |sch|
       next unless sch.name.to_s == Constants.ObjectNameHeatingSeason
 
       sch.remove
@@ -2691,14 +2691,14 @@ class HVAC
     htg_wked_monthly = htg_wked_monthly.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
 
     finished_zones = []
-    model.getThermalZones.each do |thermal_zone|
+    model.getThermalZones.sort.each do |thermal_zone|
       if Geometry.zone_is_finished(thermal_zone)
         finished_zones << thermal_zone
       end
     end
 
     # Remove existing heating setpoint schedule
-    model.getScheduleRulesets.each do |sch|
+    model.getScheduleRulesets.sort.each do |sch|
       next unless sch.name.to_s == Constants.ObjectNameHeatingSetpoint
 
       sch.remove
@@ -2720,7 +2720,7 @@ class HVAC
           return false
         end
 
-        model.getScheduleRulesets.each do |sch|
+        model.getScheduleRulesets.sort.each do |sch|
           next unless sch.name.to_s == Constants.ObjectNameCoolingSetpoint
 
           sch.remove
@@ -2811,7 +2811,7 @@ class HVAC
       runner.registerInfo("Set the heating setpoint schedule for #{thermostat_setpoint.name}.")
     end
 
-    model.getScheduleDays.each do |obj| # remove orphaned summer and winter design day schedules
+    model.getScheduleDays.sort.each do |obj| # remove orphaned summer and winter design day schedules
       next if obj.directUseCount > 0
 
       obj.remove
@@ -2840,7 +2840,7 @@ class HVAC
     heating_season = get_season(model, weather, runner, Constants.ObjectNameHeatingSeason)
 
     # Remove existing cooling season schedule
-    model.getScheduleRulesets.each do |sch|
+    model.getScheduleRulesets.sort.each do |sch|
       next unless sch.name.to_s == Constants.ObjectNameCoolingSeason
 
       sch.remove
@@ -2855,14 +2855,14 @@ class HVAC
     clg_wked_monthly = clg_wked_monthly.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
 
     finished_zones = []
-    model.getThermalZones.each do |thermal_zone|
+    model.getThermalZones.sort.each do |thermal_zone|
       if Geometry.zone_is_finished(thermal_zone)
         finished_zones << thermal_zone
       end
     end
 
     # Remove existing cooling setpoint schedule
-    model.getScheduleRulesets.each do |sch|
+    model.getScheduleRulesets.sort.each do |sch|
       next unless sch.name.to_s == Constants.ObjectNameCoolingSetpoint
 
       sch.remove
@@ -2884,7 +2884,7 @@ class HVAC
           return false
         end
 
-        model.getScheduleRulesets.each do |sch|
+        model.getScheduleRulesets.sort.each do |sch|
           next unless sch.name.to_s == Constants.ObjectNameHeatingSetpoint
 
           sch.remove
@@ -2971,7 +2971,7 @@ class HVAC
       runner.registerInfo("Set the cooling setpoint schedule for #{thermostat_setpoint.name}.")
     end
 
-    model.getScheduleDays.each do |obj| # remove orphaned summer and winter design day schedules
+    model.getScheduleDays.sort.each do |obj| # remove orphaned summer and winter design day schedules
       next if obj.directUseCount > 0
 
       obj.remove
@@ -3027,7 +3027,7 @@ class HVAC
 
   def self.get_season(model, weather, runner, sch_name)
     season = []
-    model.getScheduleRulesets.each do |sch|
+    model.getScheduleRulesets.sort.each do |sch|
       next unless sch.name.to_s == sch_name
 
       sch.scheduleRules.each do |rule|
@@ -3152,13 +3152,13 @@ class HVAC
 
   def self.remove_dehumidifier(runner, model, zone, unit)
     # FIXME: Needs to be zone specific...
-    model.getScheduleConstants.each do |sch|
+    model.getScheduleConstants.sort.each do |sch|
       next unless sch.name.to_s == Constants.ObjectNameRelativeHumiditySetpoint(unit.name.to_s)
 
       sch.remove
     end
 
-    model.getZoneHVACDehumidifierDXs.each do |dehumidifier|
+    model.getZoneHVACDehumidifierDXs.sort.each do |dehumidifier|
       next unless zone.handle.to_s == dehumidifier.thermalZone.get.handle.to_s
 
       runner.registerInfo("Removed '#{dehumidifier.name}' from #{zone.name}.")
@@ -3259,27 +3259,27 @@ class HVAC
     obj_name = Constants.ObjectNameCeilingFan(unit.name.to_s)
 
     # Remove existing ceiling fan
-    model.getScheduleRulesets.each do |schedule|
+    model.getScheduleRulesets.sort.each do |schedule|
       next unless schedule.name.to_s == obj_name + ' schedule'
 
       schedule.remove
     end
-    model.getEnergyManagementSystemSensors.each do |sensor|
+    model.getEnergyManagementSystemSensors.sort.each do |sensor|
       next unless (sensor.name.to_s == "#{obj_name} sched val sensor".gsub(' ', '_').gsub('|', '_')) || (sensor.name.to_s == "#{obj_name} tin sensor".gsub(' ', '_').gsub('|', '_'))
 
       sensor.remove
     end
-    model.getEnergyManagementSystemActuators.each do |actuator|
+    model.getEnergyManagementSystemActuators.sort.each do |actuator|
       next unless actuator.name.to_s == "#{obj_name} sched override".gsub(' ', '_').gsub('|', '_')
 
       actuator.remove
     end
-    model.getEnergyManagementSystemPrograms.each do |program|
+    model.getEnergyManagementSystemPrograms.sort.each do |program|
       next unless program.name.to_s == "#{obj_name} schedule program".gsub(' ', '_')
 
       program.remove
     end
-    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+    model.getEnergyManagementSystemProgramCallingManagers.sort.each do |program_calling_manager|
       next unless program_calling_manager.name.to_s == obj_name + ' program calling manager'
 
       program_calling_manager.remove
@@ -3299,7 +3299,7 @@ class HVAC
 
         equip.electricEquipmentDefinition.remove
       end
-      model.getScheduleRulesets.each do |schedule|
+      model.getScheduleRulesets.sort.each do |schedule|
         next unless schedule.name.to_s == space_obj_name + ' schedule'
 
         schedule.remove
@@ -4092,7 +4092,7 @@ class HVAC
   def self.get_ptacs(model, runner, thermal_zone)
     # Returns the PTAC(s) if available
     ptacs = []
-    model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
+    model.getZoneHVACPackagedTerminalAirConditioners.sort.each do |ptac|
       next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
       next if ptac.heatingCoil.to_CoilHeatingWater.is_initialized # exclude central PTAC
 
@@ -4104,7 +4104,7 @@ class HVAC
   def self.get_central_baseboard_waters(model, runner, thermal_zone)
     # Returns the central water baseboard(s) if available
     baseboards = []
-    model.getZoneHVACBaseboardConvectiveWaters.each do |baseboard|
+    model.getZoneHVACBaseboardConvectiveWaters.sort.each do |baseboard|
       next unless baseboard.additionalProperties.getFeatureAsBoolean('CentralSystem').get
       next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
 
@@ -4116,7 +4116,7 @@ class HVAC
   def self.get_central_ptacs(model, runner, thermal_zone)
     # Returns the central PTAC(s) if available
     ptacs = []
-    model.getZoneHVACPackagedTerminalAirConditioners.each do |ptac|
+    model.getZoneHVACPackagedTerminalAirConditioners.sort.each do |ptac|
       next unless thermal_zone.handle.to_s == ptac.thermalZone.get.handle.to_s
       next unless ptac.heatingCoil.to_CoilHeatingWater.is_initialized
 
@@ -4128,7 +4128,7 @@ class HVAC
   def self.get_central_fan_coils(model, runner, thermal_zone)
     # Returns the fan coil(s) if available
     fcus = []
-    model.getZoneHVACFourPipeFanCoils.each do |fcu|
+    model.getZoneHVACFourPipeFanCoils.sort.each do |fcu|
       next unless thermal_zone.handle.to_s == fcu.thermalZone.get.handle.to_s
 
       fcus << fcu
@@ -4139,7 +4139,7 @@ class HVAC
   def self.get_baseboard_waters(model, runner, thermal_zone)
     # Returns the water baseboard if available
     baseboards = []
-    model.getZoneHVACBaseboardConvectiveWaters.each do |baseboard|
+    model.getZoneHVACBaseboardConvectiveWaters.sort.each do |baseboard|
       next if baseboard.additionalProperties.getFeatureAsBoolean('CentralSystem').get
       next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
 
@@ -4151,7 +4151,7 @@ class HVAC
   def self.get_baseboard_electrics(model, runner, thermal_zone)
     # Returns the electric baseboard if available
     baseboards = []
-    model.getZoneHVACBaseboardConvectiveElectrics.each do |baseboard|
+    model.getZoneHVACBaseboardConvectiveElectrics.sort.each do |baseboard|
       next unless thermal_zone.handle.to_s == baseboard.thermalZone.get.handle.to_s
 
       baseboards << baseboard
@@ -4162,7 +4162,7 @@ class HVAC
   def self.get_dehumidifiers(model, runner, thermal_zone)
     # Returns the dehumidifier if available
     dehums = []
-    model.getZoneHVACDehumidifierDXs.each do |dehum|
+    model.getZoneHVACDehumidifierDXs.sort.each do |dehum|
       next unless thermal_zone.handle.to_s == dehum.thermalZone.get.handle.to_s
 
       dehums << dehum
@@ -4172,7 +4172,7 @@ class HVAC
 
   def self.get_ideal_air_heating(model, runner, thermal_zone)
     # Returns the heating ideal air loads system if available
-    model.getZoneHVACIdealLoadsAirSystems.each do |ideal_air|
+    model.getZoneHVACIdealLoadsAirSystems.sort.each do |ideal_air|
       next unless thermal_zone.handle.to_s == ideal_air.thermalZone.get.handle.to_s
       next if ideal_air.heatingAvailabilitySchedule == model.alwaysOffDiscreteSchedule
 
@@ -4183,7 +4183,7 @@ class HVAC
 
   def self.get_ideal_air_cooling(model, runner, thermal_zone)
     # Returns the heating ideal air loads system if available
-    model.getZoneHVACIdealLoadsAirSystems.each do |ideal_air|
+    model.getZoneHVACIdealLoadsAirSystems.sort.each do |ideal_air|
       next unless thermal_zone.handle.to_s == ideal_air.thermalZone.get.handle.to_s
       next if ideal_air.coolingAvailabilitySchedule == model.alwaysOffDiscreteSchedule
 
@@ -4511,22 +4511,22 @@ class HVAC
       runner.registerInfo("Removed '#{air_loop.name}' from #{thermal_zone.name}.")
     end
     obj_name = Constants.ObjectNameGroundSourceHeatPumpVerticalBore(unit.name.to_s)
-    model.getEnergyManagementSystemSensors.each do |sensor|
+    model.getEnergyManagementSystemSensors.sort.each do |sensor|
       next if (sensor.name.to_s != "#{obj_name} pump s".gsub(' ', '_').gsub('|', '_')) && (sensor.name.to_s != "#{obj_name} heating coil s".gsub(' ', '_').gsub('|', '_')) && (sensor.name.to_s != "#{obj_name} cooling coil s".gsub(' ', '_').gsub('|', '_'))
 
       sensor.remove
     end
-    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+    model.getEnergyManagementSystemOutputVariables.sort.each do |output_var|
       next if (output_var.name.to_s != "#{obj_name} htg pump:Pumps:Electricity") && (output_var.name.to_s != "#{obj_name} clg pump:Pumps:Electricity")
 
       output_var.remove
     end
-    model.getEnergyManagementSystemPrograms.each do |program|
+    model.getEnergyManagementSystemPrograms.sort.each do |program|
       next unless program.name.to_s == "#{obj_name} pumps program".gsub(' ', '_')
 
       program.remove
     end
-    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+    model.getEnergyManagementSystemProgramCallingManagers.sort.each do |program_calling_manager|
       next unless program_calling_manager.name.to_s == "#{obj_name} pump program calling manager"
 
       program_calling_manager.remove
@@ -4577,27 +4577,27 @@ class HVAC
       air_loop.remove
     end
     obj_name = Constants.ObjectNameMiniSplitHeatPump(unit.name.to_s)
-    model.getEnergyManagementSystemSensors.each do |sensor|
+    model.getEnergyManagementSystemSensors.sort.each do |sensor|
       next unless sensor.name.to_s == "#{obj_name} vrf energy sensor".gsub(' ', '_').gsub('|', '_')
 
       sensor.remove
     end
-    model.getEnergyManagementSystemSensors.each do |sensor|
+    model.getEnergyManagementSystemSensors.sort.each do |sensor|
       next unless sensor.name.to_s == "#{obj_name} tout sensor".gsub(' ', '_').gsub('|', '_')
 
       sensor.remove
     end
-    model.getEnergyManagementSystemActuators.each do |actuator|
+    model.getEnergyManagementSystemActuators.sort.each do |actuator|
       next unless actuator.name.to_s == "#{obj_name} pan heater actuator".gsub(' ', '_').gsub('|', '_')
 
       actuator.remove
     end
-    model.getEnergyManagementSystemPrograms.each do |program|
+    model.getEnergyManagementSystemPrograms.sort.each do |program|
       next unless program.name.to_s == "#{obj_name} pan heater program".gsub(' ', '_')
 
       program.remove
     end
-    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+    model.getEnergyManagementSystemProgramCallingManagers.sort.each do |program_calling_manager|
       next unless program_calling_manager.name.to_s == obj_name + ' pan heater program calling manager'
 
       program_calling_manager.remove
@@ -4636,22 +4636,22 @@ class HVAC
     end
     [Constants.FuelTypeGas, Constants.FuelTypeOil, Constants.FuelTypePropane, Constants.FuelTypeElectric].each do |fuel_type|
       obj_name = Constants.ObjectNameBoiler(fuel_type, unit.name.to_s)
-      model.getEnergyManagementSystemSensors.each do |sensor|
+      model.getEnergyManagementSystemSensors.sort.each do |sensor|
         next if (sensor.name.to_s != "#{obj_name} hydronic pump s".gsub(' ', '_').gsub('|', '_')) && (sensor.name.to_s != 'Central pump s'.gsub(' ', '_').gsub('|', '_'))
 
         sensor.remove
       end
-      model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      model.getEnergyManagementSystemOutputVariables.sort.each do |output_var|
         next if (output_var.name.to_s != "#{obj_name} htg pump:Pumps:Electricity") && (output_var.name.to_s != 'Central htg pump:Pumps:Electricity')
 
         output_var.remove
       end
-      model.getEnergyManagementSystemPrograms.each do |program|
+      model.getEnergyManagementSystemPrograms.sort.each do |program|
         next if (program.name.to_s != "#{obj_name} pumps program".gsub(' ', '_')) && (program.name.to_s != 'Central pumps program'.gsub(' ', '_'))
 
         program.remove
       end
-      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      model.getEnergyManagementSystemProgramCallingManagers.sort.each do |program_calling_manager|
         next if (program_calling_manager.name.to_s != "#{obj_name} pump program calling manager") && (program_calling_manager.name.to_s != 'Central pump program calling manager')
 
         program_calling_manager.remove
@@ -4691,7 +4691,7 @@ class HVAC
   end
 
   def self.remove_boiler_and_gshp_loops(model, runner, thermal_zone)
-    model.getPlantLoops.each do |plant_loop|
+    model.getPlantLoops.sort.each do |plant_loop|
       remove = false
 
       # Ensure we're operating on the right plant loop
@@ -4769,22 +4769,22 @@ class HVAC
     end
 
     ['htg', 'clg'].each do |htg_or_clg|
-      model.getEnergyManagementSystemSensors.each do |sensor|
+      model.getEnergyManagementSystemSensors.sort.each do |sensor|
         next if sensor.name.to_s != "Central #{htg_or_clg} pump s".gsub(' ', '_').gsub('|', '_')
 
         sensor.remove
       end
-      model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      model.getEnergyManagementSystemOutputVariables.sort.each do |output_var|
         next if output_var.name.to_s != "Central #{htg_or_clg} pump:Pumps:Electricity"
 
         output_var.remove
       end
-      model.getEnergyManagementSystemPrograms.each do |program|
+      model.getEnergyManagementSystemPrograms.sort.each do |program|
         next unless program.name.to_s == "Central pumps #{htg_or_clg} program".gsub(' ', '_')
 
         program.remove
       end
-      model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      model.getEnergyManagementSystemProgramCallingManagers.sort.each do |program_calling_manager|
         next unless program_calling_manager.name.to_s == "Central pump #{htg_or_clg} program calling manager"
 
         program_calling_manager.remove
@@ -4802,22 +4802,22 @@ class HVAC
       runner.registerInfo("Removed '#{ptac.name}' from '#{thermal_zone.name}'.")
       ptac.remove
     end
-    model.getEnergyManagementSystemSensors.each do |sensor|
+    model.getEnergyManagementSystemSensors.sort.each do |sensor|
       next if sensor.name.to_s != 'Central pump s'.gsub(' ', '_').gsub('|', '_')
 
       sensor.remove
     end
-    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+    model.getEnergyManagementSystemOutputVariables.sort.each do |output_var|
       next if output_var.name.to_s != 'Central htg pump:Pumps:Electricity'
 
       output_var.remove
     end
-    model.getEnergyManagementSystemPrograms.each do |program|
+    model.getEnergyManagementSystemPrograms.sort.each do |program|
       next unless program.name.to_s == 'Central pumps program'.gsub(' ', '_')
 
       program.remove
     end
-    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+    model.getEnergyManagementSystemProgramCallingManagers.sort.each do |program_calling_manager|
       next unless program_calling_manager.name.to_s == 'Central pump program calling manager'
 
       program_calling_manager.remove
@@ -4826,7 +4826,7 @@ class HVAC
   end
 
   def self.remove_fan_coil_loops(model, runner, thermal_zone)
-    model.getPlantLoops.each do |plant_loop|
+    model.getPlantLoops.sort.each do |plant_loop|
       remove = false
 
       # Ensure we're operating on the right plant loop

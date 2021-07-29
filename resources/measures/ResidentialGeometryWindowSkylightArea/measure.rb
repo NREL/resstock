@@ -376,7 +376,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
       # other surfaces on that facade and unit.
 
       # Check wall surface areas (by unit/space)
-      model.getBuildingUnits.each do |unit|
+      model.getBuildingUnits.sort.each do |unit|
         wall_surfaces[facade].each_with_index do |surface, surface_num|
           next if surface_window_area[surface] == 0
           next unless unit.spaces.include? surface.space.get # surface belongs to this unit
@@ -408,7 +408,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
     # Calculate facade areas for each unit
     unit_facade_areas = {}
     unit_wall_surfaces = {}
-    model.getBuildingUnits.each do |unit|
+    model.getBuildingUnits.sort.each do |unit|
       unit_facade_areas[unit] = {}
       unit_wall_surfaces[unit] = {}
       facades.each do |facade|
@@ -425,7 +425,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
 
     # if the sum of the window areas on the facade are < minimum, move to different facade
     facades.each do |facade|
-      model.getBuildingUnits.each do |unit|
+      model.getBuildingUnits.sort.each do |unit|
         next if unit_facade_areas[unit][facade] == 0
         next unless unit_facade_areas[unit][facade] < min_single_window_area
 
@@ -461,7 +461,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
     end
 
     facades.each do |facade|
-      model.getBuildingUnits.each do |unit|
+      model.getBuildingUnits.sort.each do |unit|
         # Because the above process is calculated based on the order of surfaces, it's possible
         # that we have less area for this facade than we should. If so, redistribute proportionally
         # to all surfaces that have window area.

@@ -61,7 +61,7 @@ class ProcessConstructionsDoors < OpenStudio::Measure::ModelMeasure
 
     finished_subsurfaces = []
     unfinished_subsurfaces = []
-    model.getSubSurfaces.each do |subsurface|
+    model.getSubSurfaces.sort.each do |subsurface|
       next unless subsurface.subSurfaceType.downcase.include? 'door'
 
       if Geometry.space_is_finished(subsurface.surface.get.space.get)

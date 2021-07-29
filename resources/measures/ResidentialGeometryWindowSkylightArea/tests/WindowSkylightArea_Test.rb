@@ -484,7 +484,7 @@ class WindowSkylightAreaTest < MiniTest::Test
 
     # store the original windows in the model
     orig_windows = []
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next if sub_surface.subSurfaceType.downcase != 'fixedwindow'
 
       orig_windows << sub_surface
@@ -492,7 +492,7 @@ class WindowSkylightAreaTest < MiniTest::Test
 
     # store the original skylights in the model
     orig_skylights = []
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next if sub_surface.subSurfaceType.downcase != 'skylight'
 
       orig_skylights << sub_surface
@@ -530,7 +530,7 @@ class WindowSkylightAreaTest < MiniTest::Test
 
     # get new/deleted window objects
     new_win_objects = []
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next if sub_surface.subSurfaceType.downcase != 'fixedwindow'
       next if orig_windows.include?(sub_surface)
 
@@ -539,7 +539,7 @@ class WindowSkylightAreaTest < MiniTest::Test
     del_objects = []
     orig_windows.each do |orig_window|
       has_window = false
-      model.getSubSurfaces.each do |sub_surface|
+      model.getSubSurfaces.sort.each do |sub_surface|
         next if sub_surface != orig_window
 
         has_window = true
@@ -573,7 +573,7 @@ class WindowSkylightAreaTest < MiniTest::Test
 
     # get new/deleted skylight objects
     new_sky_objects = []
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next if sub_surface.subSurfaceType.downcase != 'skylight'
       next if orig_skylights.include?(sub_surface)
 
@@ -583,7 +583,7 @@ class WindowSkylightAreaTest < MiniTest::Test
     del_objects = []
     orig_skylights.each do |orig_skylight|
       has_skylight = false
-      model.getSubSurfaces.each do |sub_surface|
+      model.getSubSurfaces.sort.each do |sub_surface|
         next if sub_surface != orig_skylight
 
         has_skylight = true
@@ -627,13 +627,13 @@ class WindowSkylightAreaTest < MiniTest::Test
     assert_in_epsilon(expected_fblr_sky_area_removed[3], del_sky_area[Constants.FacadeRight], 0.01)
     assert_in_epsilon(expected_fblr_sky_area_removed[4], del_sky_area[Constants.FacadeNone], 0.01)
 
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       assert(surface.netArea > 0)
     end
 
     actual_values = { 'Constructions' => 0 }
     constructions = []
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next unless sub_surface.construction.is_initialized
 
       if not constructions.include? sub_surface.construction.get

@@ -151,14 +151,14 @@ class HVACSizing
 
     # Arbitrary unit for retrieving unit features
     unit = nil
-    model.getBuildingUnits.each do |u|
+    model.getBuildingUnits.sort.each do |u|
       next if u.spaces.size == 0
 
       unit = u
     end
 
     # Initialize Manual J buffer space temperatures using current design temperatures
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       mj8.cool_design_temps[space] = process_design_temp_cooling(runner, mj8, weather, space, unit)
       return nil if mj8.cool_design_temps[space].nil?
 
@@ -3100,7 +3100,7 @@ class HVACSizing
 
     # GSHP
     if hvac.HasGroundSourceHeatPump
-      model.getPlantLoops.each do |pl|
+      model.getPlantLoops.sort.each do |pl|
         next if not pl.name.to_s.start_with?(Constants.ObjectNameGroundSourceHeatPumpVerticalBore)
 
         pl.supplyComponents.each do |plc|

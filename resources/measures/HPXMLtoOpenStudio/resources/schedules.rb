@@ -781,7 +781,7 @@ class Schedule
     return if schedule_type_limits_name.nil?
 
     schedule_type_limits = nil
-    model.getScheduleTypeLimitss.each do |stl|
+    model.getScheduleTypeLimitss.sort.each do |stl|
       next if stl.name.to_s != schedule_type_limits_name
 
       schedule_type_limits = stl
@@ -2011,7 +2011,7 @@ class SchedulesFile
 
   def create_schedule_file(col_name:,
                            rows_to_skip: 1)
-    @model.getScheduleFiles.each do |schedule_file|
+    @model.getScheduleFiles.sort.each do |schedule_file|
       next if schedule_file.name.to_s != col_name
 
       return schedule_file

@@ -261,7 +261,7 @@ class ResidentialHotWaterFixturesTest < MiniTest::Test
     assert_in_epsilon(expected_values['Annual_kwh'], actual_values['Annual_kwh'], 0.01)
     assert_in_epsilon(expected_values['HotWater_gpd'], actual_values['HotWater_gpd'], 0.01)
 
-    model.getElectricEquipments.each do |ee|
+    model.getElectricEquipments.sort.each do |ee|
       assert(ee.schedule.is_initialized)
     end
 

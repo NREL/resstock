@@ -100,7 +100,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
 
     # Finished Zones
     finished_zones = []
-    model.getThermalZones.each do |thermal_zone|
+    model.getThermalZones.sort.each do |thermal_zone|
       if Geometry.zone_is_finished(thermal_zone)
         finished_zones << thermal_zone
       end

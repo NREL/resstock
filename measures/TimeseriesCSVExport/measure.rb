@@ -167,7 +167,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     end
 
     run_period_control_daylight_saving_time = nil
-    model.getModelObjects.each do |model_object| # FIXME: getRunPeriodControlDaylightSavingTime creates the object with defaults
+    model.getModelObjects.sort.each do |model_object| # FIXME: getRunPeriodControlDaylightSavingTime creates the object with defaults
       obj_type = model_object.to_s.split(',')[0].gsub('OS:', '').gsub(':', '')
       next if obj_type != 'RunPeriodControlDaylightSavingTime'
 

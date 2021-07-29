@@ -537,7 +537,7 @@ class Waterheater
     tank.setSourceSideOutletHeight(0)
 
     # when replacing wh and the fixtures measure was already called
-    model.getEnergyManagementSystemSensors.each do |sensor|
+    model.getEnergyManagementSystemSensors.sort.each do |sensor|
       next if sensor.outputVariableOrMeterName != 'Water Heater Use Side Outlet Temperature'
 
       sensor.setKeyName(tank.name.to_s)
@@ -943,7 +943,7 @@ class Waterheater
 
   def self.remove(model, runner) # TODO: Make unit specific
     obj_name = Constants.ObjectNameWaterHeater
-    model.getPlantLoops.each do |pl|
+    model.getPlantLoops.sort.each do |pl|
       next if not pl.name.to_s.start_with? Constants.PlantLoopDomesticWater
 
       # Remove existing hot water objects
@@ -958,7 +958,7 @@ class Waterheater
           end
         elsif wh.to_WaterHeaterStratified.is_initialized # Need to remove both HPWH and stratified electric/gas tanks
           if not wh.to_WaterHeaterStratified.get.secondaryPlantLoop.is_initialized # don't remove SWH
-            model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
+            model.getWaterHeaterHeatPumpWrappedCondensers.sort.each do |hpwh|
               objects_to_remove << hpwh.tank
               objects_to_remove << hpwh
             end
@@ -975,19 +975,19 @@ class Waterheater
         next if !wh.to_WaterHeaterMixed.is_initialized && !wh.to_WaterHeaterStratified.is_initialized
 
         obj_name_underscore = obj_name.gsub(' ', '_')
-        model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+        model.getEnergyManagementSystemProgramCallingManagers.sort.each do |program_calling_manager|
           next unless program_calling_manager.name.to_s.include? obj_name
 
           program_calling_manager.remove
         end
 
-        model.getEnergyManagementSystemSensors.each do |sensor|
+        model.getEnergyManagementSystemSensors.sort.each do |sensor|
           next unless sensor.name.to_s.include? obj_name_underscore
 
           sensor.remove
         end
 
-        model.getEnergyManagementSystemActuators.each do |actuator|
+        model.getEnergyManagementSystemActuators.sort.each do |actuator|
           next unless actuator.name.to_s.include? obj_name_underscore
 
           actuatedComponent = actuator.actuatedComponent
@@ -1001,14 +1001,14 @@ class Waterheater
         end
 
         # Remove constant schedules
-        model.getScheduleConstants.each do |schedule|
+        model.getScheduleConstants.sort.each do |schedule|
           next unless schedule.name.to_s.include?(obj_name) || schedule.name.to_s.include?('dhw temp')
 
           schedule.remove
         end
 
         # Remove fixed interval schedules
-        model.getScheduleFixedIntervals.each do |schedule|
+        model.getScheduleFixedIntervals.sort.each do |schedule|
           next unless schedule.name.to_s.include?(obj_name) || schedule.name.to_s.include?('dhw temp')
 
           schedule.remove
@@ -1019,13 +1019,13 @@ class Waterheater
           sp_mgr.remove
         end
 
-        model.getEnergyManagementSystemPrograms.each do |program|
+        model.getEnergyManagementSystemPrograms.sort.each do |program|
           next unless program.name.to_s.include? obj_name_underscore
 
           program.remove
         end
 
-        model.getEnergyManagementSystemTrendVariables.each do |trend_var|
+        model.getEnergyManagementSystemTrendVariables.sort.each do |trend_var|
           next unless trend_var.name.to_s.include? obj_name_underscore
 
           trend_var.remove
@@ -1198,7 +1198,7 @@ class Waterheater
   private
 
   def self.get_shw_storage_tank(model, unit)
-    model.getPlantLoops.each do |plant_loop|
+    model.getPlantLoops.sort.each do |plant_loop|
       next unless plant_loop.name.to_s == Constants.PlantLoopSolarHotWater(unit.name.to_s)
 
       (plant_loop.supplyComponents + plant_loop.demandComponents).each do |component|
@@ -1212,14 +1212,14 @@ class Waterheater
 
   def self.get_plant_loop_from_string(model, runner, plantloop_s, unit)
     if plantloop_s == Constants.Auto
-      model.getPlantLoops.each do |plant_loop|
+      model.getPlantLoops.sort.each do |plant_loop|
         next if plant_loop.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
 
         return plant_loop
       end
     end
 
-    model.getPlantLoops.each do |plant_loop|
+    model.getPlantLoops.sort.each do |plant_loop|
       next if plant_loop.name.to_s != plantloop_s
 
       return plant_loop
@@ -1562,7 +1562,7 @@ class Waterheater
       elsif wh.to_WaterHeaterStratified.is_initialized
         waterHeater = wh.to_WaterHeaterStratified.get
         # Look for attached HPWH
-        model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
+        model.getWaterHeaterHeatPumpWrappedCondensers.sort.each do |hpwh|
           next if not hpwh.tank.to_WaterHeaterStratified.is_initialized
           next if hpwh.tank.to_WaterHeaterStratified.get != waterHeater
 

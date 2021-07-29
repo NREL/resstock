@@ -111,7 +111,7 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
     end
 
     # Remove all existing objects
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       MiscLoads.remove(runner, space, [Constants.ObjectNameMiscPlugLoads])
     end
 

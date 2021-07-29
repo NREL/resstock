@@ -152,7 +152,7 @@ class ResidentialDishwasher < OpenStudio::Measure::ModelMeasure
 
     # Remove all existing objects
     obj_name = Constants.ObjectNameDishwasher
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       Dishwasher.remove(runner, space, obj_name)
     end
 

@@ -543,7 +543,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           end
 
           # Unitary system?
-          model.getAirLoopHVACUnitarySystems.each do |sys|
+          model.getAirLoopHVACUnitarySystems.sort.each do |sys|
             next if zone != sys.controllingZoneorThermostatLocation.get
             next if not sys.heatingCoil.is_initialized
 
@@ -586,7 +586,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
           # Electric baseboard?
           max_value = 0.0
-          model.getZoneHVACBaseboardConvectiveElectrics.each do |sys|
+          model.getZoneHVACBaseboardConvectiveElectrics.sort.each do |sys|
             next if zone != sys.thermalZone.get
 
             component = sys
@@ -600,7 +600,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
           # Boiler?
           max_value = 0.0
-          model.getPlantLoops.each do |pl|
+          model.getPlantLoops.sort.each do |pl|
             pl.components.each do |plc|
               next if not plc.to_BoilerHotWater.is_initialized
 
@@ -620,7 +620,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           # Supplemental heating system capacity
 
           # Unitary system?
-          model.getAirLoopHVACUnitarySystems.each do |sys|
+          model.getAirLoopHVACUnitarySystems.sort.each do |sys|
             next if zone != sys.controllingZoneorThermostatLocation.get
             next if not sys.supplementalHeatingCoil.is_initialized
 
@@ -641,7 +641,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           # Cooling system capacity
 
           # Unitary system?
-          model.getAirLoopHVACUnitarySystems.each do |sys|
+          model.getAirLoopHVACUnitarySystems.sort.each do |sys|
             next if zone != sys.controllingZoneorThermostatLocation.get
             next if not sys.coolingCoil.is_initialized
 
@@ -673,7 +673,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           end
 
           # PTAC?
-          model.getZoneHVACPackagedTerminalAirConditioners.each do |sys|
+          model.getZoneHVACPackagedTerminalAirConditioners.sort.each do |sys|
             next if zone != sys.thermalZone.get
 
             component = sys.coolingCoil
@@ -692,7 +692,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         elsif cost_mult_type == 'Size, Water Heater (gal)'
           # Water heater tank volume
-          model.getWaterHeaterMixeds.each do |wh|
+          model.getWaterHeaterMixeds.sort.each do |wh|
             next if Constants.ObjectNameWaterHeater(unit.name.to_s) != wh.name.to_s
 
             next unless wh.tankVolume.is_initialized
@@ -710,7 +710,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
             end
           end
 
-          model.getWaterHeaterHeatPumpWrappedCondensers.each do |wh|
+          model.getWaterHeaterHeatPumpWrappedCondensers.sort.each do |wh|
             next if "#{Constants.ObjectNameWaterHeater(unit.name.to_s.gsub('unit ', '')).gsub('|', '_')} hpwh" != wh.name.to_s
 
             if wh.to_WaterHeaterHeatPumpWrappedCondenser.is_initialized
@@ -836,7 +836,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     if cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
       # Walls between conditioned space and 1) outdoors or 2) unconditioned space
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         space = surface.space.get
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'wall'
@@ -853,7 +853,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'
       # Walls adjacent to outdoors
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         space = surface.space.get
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'wall'
@@ -866,7 +866,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       foundation_walls = []
 
       # Exterior foundation walls
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         next if surface.surfaceType.downcase != 'wall'
         next if (surface.outsideBoundaryCondition.downcase != 'ground') && (surface.outsideBoundaryCondition.downcase != 'foundation')
 
@@ -875,7 +875,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
       # Floors of conditioned zone
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         space = surface.space.get
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'floor'
@@ -887,7 +887,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
       # Floors under sloped surfaces and above conditioned space
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         space = surface.space.get
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'floor'
@@ -905,7 +905,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
       # Floors with lighting objects
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         space = surface.space.get
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'floor'
@@ -917,7 +917,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     elsif cost_mult_type == 'Roof Area (ft^2)'
       # Roofs adjacent to outdoors
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         space = surface.space.get
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'roofceiling'
@@ -928,7 +928,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     elsif cost_mult_type == 'Window Area (ft^2)'
       # Window subsurfaces
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         space = surface.space.get
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'wall'
@@ -942,7 +942,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     elsif cost_mult_type == 'Door Area (ft^2)'
       # Door subsurfaces
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         space = surface.space.get
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'wall'
@@ -990,7 +990,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     capacity_ratio = 1.0
 
     # Override capacity ratio for residential multispeed systems
-    model.getAirLoopHVACUnitarySystems.each do |sys|
+    model.getAirLoopHVACUnitarySystems.sort.each do |sys|
       capacity_ratio_str = sys.additionalProperties.getFeatureAsString(property_str)
       next if not capacity_ratio_str.is_initialized
 

@@ -405,7 +405,7 @@ class ProcessMiniSplitHeatPumpTest < MiniTest::Test
       end
     end
 
-    model.getBuildingUnits.each do |unit|
+    model.getBuildingUnits.sort.each do |unit|
       next if unit.spaces.size == 0
 
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)

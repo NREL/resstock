@@ -609,7 +609,7 @@ class ResidentialMiscLargeUncommonLoads < OpenStudio::Measure::ModelMeasure
                  Constants.ObjectNameGasGrill,
                  Constants.ObjectNameGasLighting,
                  Constants.ObjectNameElectricVehicle]
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       MiscLoads.remove(runner, space, obj_names)
     end
 

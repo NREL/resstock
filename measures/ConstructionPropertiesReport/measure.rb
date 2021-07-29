@@ -134,7 +134,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
     model.setSqlFile(sqlFile)
 
     areas = {}
-    model.getConstructions.each do |construction|
+    model.getConstructions.sort.each do |construction|
       name = construction.name.to_s
       surface_area = get_surface_area(model, construction)
       sub_surface_area = get_sub_surface_area(model, construction)
@@ -148,7 +148,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
     calculations = {}
     metrics.each do |metric|
       calculations[metric] = {}
-      model.getConstructions.each do |construction|
+      model.getConstructions.sort.each do |construction|
         name = construction.name.to_s
         next unless areas.keys.include? name
 
@@ -161,7 +161,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    model.getThermalZones.each do |thermal_zone|
+    model.getThermalZones.sort.each do |thermal_zone|
       name = thermal_zone.name.to_s
       vol = Geometry.get_zone_volume(thermal_zone)
       next unless vol > 0
@@ -236,7 +236,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
 
   def get_surface_area(model, construction)
     area = 0
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next if surface.construction.get.to_LayeredConstruction.get != construction
 
       area += surface.grossArea
@@ -246,7 +246,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
 
   def get_sub_surface_area(model, construction)
     area = 0
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next if sub_surface.construction.get.to_LayeredConstruction.get != construction
 
       area += sub_surface.grossArea
@@ -256,7 +256,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
 
   def get_internal_mass_area(model, construction)
     area = 0
-    model.getInternalMassDefinitions.each do |internal_mass_def|
+    model.getInternalMassDefinitions.sort.each do |internal_mass_def|
       next if internal_mass_def.construction.get.to_LayeredConstruction.get != construction
 
       surface_area = internal_mass_def.surfaceArea

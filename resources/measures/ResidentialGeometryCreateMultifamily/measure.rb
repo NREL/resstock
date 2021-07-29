@@ -477,7 +477,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     adiabatic_surf = adb_facade + adb_level
     # Make living space surfaces adiabatic
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       space.surfaces.each do |surface|
         os_facade = Geometry.get_facade_for_surface(surface)
         if surface.surfaceType == 'Wall'
@@ -619,7 +619,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
       # put all of the spaces in the model into a vector
       spaces = OpenStudio::Model::SpaceVector.new
-      model.getSpaces.each do |space|
+      model.getSpaces.sort.each do |space|
         spaces << space
       end
 
@@ -628,7 +628,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
       OpenStudio::Model.matchSurfaces(spaces)
 
       # Foundation space boundary conditions
-      model.getSpaces.each do |space|
+      model.getSpaces.sort.each do |space|
         next unless Geometry.get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, 'm', 'ft') < 0 # Foundation
         next if space.name.get.include? 'corridor'
 
@@ -662,7 +662,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
 
     # Corridor space boundary conditions
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       next unless Geometry.is_corridor(space)
 
       space.surfaces.each do |surface|
@@ -689,7 +689,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
 
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       spaces << space
     end
 
@@ -700,7 +700,7 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     # make corridor floors adiabatic if no exterior walls to avoid exposed perimeter error
     exterior_obcs = ['Foundation', 'Ground', 'Outdoors']
     obcs_hash = {}
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       next unless space.name.get.include? 'corridor' # corridor and foundation corridor spaces
 
       space_name = space.name
@@ -725,14 +725,14 @@ class CreateResidentialMultifamilyGeometry < OpenStudio::Measure::ModelMeasure
     end
 
     # set foundation outside boundary condition to Kiva "foundation"
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != 'ground'
 
       surface.setOutsideBoundaryCondition('Foundation')
     end
 
     # set adjacent corridor walls to adiabatic
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       next unless Geometry.is_corridor(space)
 
       space.surfaces.each do |surface|

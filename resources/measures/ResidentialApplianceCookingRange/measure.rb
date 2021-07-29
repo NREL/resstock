@@ -109,7 +109,7 @@ class ResidentialCookingRange < OpenStudio::Measure::ModelMeasure
 
     # Remove all existing objects
     obj_name = Constants.ObjectNameCookingRange(nil)
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       CookingRange.remove(runner, space, obj_name)
     end
 

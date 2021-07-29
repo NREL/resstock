@@ -186,7 +186,7 @@ class ProcessConstructionsWindowsSkylightsTest < MiniTest::Test
           actual_values['ufactor'] += UnitConversions.convert(new_object.uFactor, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
           actual_values['shgc'] += new_object.solarHeatGainCoefficient
         elsif obj_type == 'Construction'
-          model.getSubSurfaces.each do |sub_surface|
+          model.getSubSurfaces.sort.each do |sub_surface|
             next unless sub_surface.construction.is_initialized
             next unless sub_surface.construction.get == new_object
 

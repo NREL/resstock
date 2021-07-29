@@ -124,7 +124,7 @@ class Lighting
 
   def self.remove_interior(model, runner)
     objects_to_remove = []
-    model.getLightss.each do |light|
+    model.getLightss.sort.each do |light|
       next unless Geometry.space_is_finished(light.space.get)
 
       objects_to_remove << light
@@ -147,14 +147,14 @@ class Lighting
 
   def self.remove_other(model, runner)
     objects_to_remove = []
-    model.getExteriorLightss.each do |exterior_light|
+    model.getExteriorLightss.sort.each do |exterior_light|
       objects_to_remove << exterior_light
       objects_to_remove << exterior_light.exteriorLightsDefinition
       if exterior_light.schedule.is_initialized
         objects_to_remove << exterior_light.schedule.get
       end
     end
-    model.getLightss.each do |light|
+    model.getLightss.sort.each do |light|
       next if Geometry.space_is_finished(light.space.get)
 
       objects_to_remove << light

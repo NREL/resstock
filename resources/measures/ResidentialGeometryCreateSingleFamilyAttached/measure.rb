@@ -395,7 +395,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
     adiabatic_surf = adb_facade
     # Make surfaces adiabatic
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       space.surfaces.each do |surface|
         os_facade = Geometry.get_facade_for_surface(surface)
         next unless surface.surfaceType == 'Wall'
@@ -480,7 +480,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
       # put all of the spaces in the model into a vector
       spaces = OpenStudio::Model::SpaceVector.new
-      model.getSpaces.each do |space|
+      model.getSpaces.sort.each do |space|
         spaces << space
       end
 
@@ -531,7 +531,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       spaces << space
     end
 
@@ -584,7 +584,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
 
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       spaces << space
     end
 
@@ -593,7 +593,7 @@ class CreateResidentialSingleFamilyAttachedGeometry < OpenStudio::Measure::Model
     OpenStudio::Model.matchSurfaces(spaces)
 
     # set foundation outside boundary condition to Kiva "foundation"
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != 'ground'
 
       surface.setOutsideBoundaryCondition('Foundation')

@@ -153,7 +153,7 @@ class Geometry
     end
 
     return_units = []
-    model.getBuildingUnits.each do |unit|
+    model.getBuildingUnits.sort.each do |unit|
       # Remove any units from list that have no associated spaces or are not residential
       next if not ((unit.spaces.size > 0) && (unit.buildingUnitType == Constants.BuildingUnitTypeResidential))
 
@@ -168,10 +168,10 @@ class Geometry
       unit = OpenStudio::Model::BuildingUnit.new(model)
       unit.setBuildingUnitType(Constants.BuildingUnitTypeResidential)
       unit.setName(Constants.ObjectNameBuildingUnit)
-      model.getSpaces.each do |space|
+      model.getSpaces.sort.each do |space|
         space.setBuildingUnit(unit)
       end
-      model.getBuildingUnits.each do |unit|
+      model.getBuildingUnits.sort.each do |unit|
         return_units << unit
       end
     end
@@ -245,7 +245,7 @@ class Geometry
 
   def self.get_common_spaces(model)
     spaces = []
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       next if space.buildingUnit.is_initialized
 
       spaces << space
@@ -316,7 +316,7 @@ class Geometry
 
   def self.get_above_grade_finished_volume(model, runner = nil)
     volume = 0
-    model.getThermalZones.each do |zone|
+    model.getThermalZones.sort.each do |zone|
       next if not (zone_is_finished(zone) && zone_is_above_grade(zone))
 
       volume += get_zone_volume(zone, runner)
@@ -517,7 +517,7 @@ class Geometry
 
   def self.get_model_locations(model)
     locations = []
-    model.getSpaceTypes.each do |spaceType|
+    model.getSpaceTypes.sort.each do |spaceType|
       next if not spaceType.standardsSpaceType.is_initialized
 
       locations << spaceType.standardsSpaceType.get
@@ -730,7 +730,7 @@ class Geometry
     end
     # Get bottom edges of exterior walls (building footprint)
     surfaces = []
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next if not surface.surfaceType.downcase == 'wall'
       next if surface.outsideBoundaryCondition.downcase != 'outdoors'
 
@@ -1146,7 +1146,7 @@ class Geometry
   def self.get_closest_neighbor_distance(model)
     # House surfaces
     house_points = []
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       next unless surface.surfaceType.downcase == 'wall'
 
       surface.vertices.each do |vertex|
@@ -1156,7 +1156,7 @@ class Geometry
 
     # Neighbor surfaces
     neighbor_points = {}
-    model.getShadingSurfaces.each do |shading_surface|
+    model.getShadingSurfaces.sort.each do |shading_surface|
       next unless shading_surface.name.to_s.downcase.include? 'neighbor'
 
       xs, ys = [], []
@@ -1341,7 +1341,7 @@ class Geometry
 
     # Remove existing overhangs
     num_removed = 0
-    model.getShadingSurfaceGroups.each do |shading_surface_group|
+    model.getShadingSurfaceGroups.sort.each do |shading_surface_group|
       remove_group = false
       shading_surface_group.shadingSurfaces.each do |shading_surface|
         next unless shading_surface.name.to_s.downcase.include? Constants.ObjectNameOverhangs
@@ -1388,7 +1388,7 @@ class Geometry
 
   def self.get_window_sub_surfaces(model)
     sub_surfaces = []
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next unless sub_surface.subSurfaceType.downcase.include? 'window'
       next if (90 - sub_surface.tilt * 180 / Math::PI).abs > 0.01 # not a vertical subsurface
 
@@ -1668,7 +1668,7 @@ class Geometry
     # Remove existing eaves
     num_removed = 0
     existing_eaves_depth = nil
-    model.getShadingSurfaceGroups.each do |shading_surface_group|
+    model.getShadingSurfaceGroups.sort.each do |shading_surface_group|
       next unless shading_surface_group.name.to_s == Constants.ObjectNameEaves
 
       shading_surface_group.shadingSurfaces.each do |shading_surface|
@@ -1697,7 +1697,7 @@ class Geometry
     shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
     shading_surface_group.setName(Constants.ObjectNameEaves)
 
-    model.getSurfaces.each do |roof_surface|
+    model.getSurfaces.sort.each do |roof_surface|
       next unless roof_surface.surfaceType.downcase == 'roofceiling'
       next unless roof_surface.outsideBoundaryCondition.downcase == 'outdoors'
 
@@ -1864,7 +1864,7 @@ class Geometry
 
     # Remove eaves overlapping roofceiling
     shading_surfaces_to_remove = []
-    model.getShadingSurfaces.each do |shading_surface|
+    model.getShadingSurfaces.sort.each do |shading_surface|
       next unless shading_surface.name.to_s.include? Constants.ObjectNameEaves
 
       new_shading_vertices = []
@@ -1872,7 +1872,7 @@ class Geometry
         new_shading_vertices << OpenStudio::Point3d.new(vertex.x, vertex.y, 0)
       end
 
-      model.getSurfaces.each do |roof_surface|
+      model.getSurfaces.sort.each do |roof_surface|
         next unless roof_surface.surfaceType.downcase == 'roofceiling'
         next unless (roof_surface.outsideBoundaryCondition.downcase == 'outdoors') || (roof_surface.outsideBoundaryCondition.downcase == 'adiabatic')
 
@@ -1933,7 +1933,7 @@ class Geometry
 
     # Remove existing neighbors
     num_removed = 0
-    model.getShadingSurfaceGroups.each do |shading_surface_group|
+    model.getShadingSurfaceGroups.sort.each do |shading_surface_group|
       next unless shading_surface_group.name.to_s == Constants.ObjectNameNeighbors
 
       shading_surface_group.remove

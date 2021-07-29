@@ -571,7 +571,7 @@ class OSModel
     # 1. At least one floor surface
     # 2. At least one roofceiling surface
     # 3. At least one surface adjacent to outside/ground
-    model.getThermalZones.each do |zone|
+    model.getThermalZones.sort.each do |zone|
       n_floors = 0
       n_roofceilings = 0
       n_exteriors = 0
@@ -613,7 +613,7 @@ class OSModel
       space = OpenStudio::Model::Space.new(model)
       space.setName(space_type)
 
-      model.getBuildingUnits.each do |unit|
+      model.getBuildingUnits.sort.each do |unit|
         space.setBuildingUnit(unit)
       end
 
@@ -1109,7 +1109,7 @@ class OSModel
     # First check if we need to add a finished basement ceiling
     foundation_top = get_foundation_top(model)
 
-    model.getThermalZones.each do |zone|
+    model.getThermalZones.sort.each do |zone|
       next if not Geometry.is_finished_basement(zone)
 
       floor_area = Geometry.get_finished_floor_area_from_spaces(zone.spaces).round(1)
@@ -2634,7 +2634,7 @@ class OSModel
 
   def self.get_zone_hvacs(model)
     zone_hvacs = []
-    model.getThermalZones.each do |zone|
+    model.getThermalZones.sort.each do |zone|
       zone.equipment.each do |zone_hvac|
         next unless zone_hvac.to_ZoneHVACComponent.is_initialized
 
@@ -2649,13 +2649,13 @@ class OSModel
     loop_hvacs[sys_id] = []
     zone_hvacs[sys_id] = []
 
-    model.getAirLoopHVACs.each do |air_loop|
+    model.getAirLoopHVACs.sort.each do |air_loop|
       next if orig_air_loops.include? air_loop # Only include newly added air loops
 
       loop_hvacs[sys_id] << air_loop
     end
 
-    model.getPlantLoops.each do |plant_loop|
+    model.getPlantLoops.sort.each do |plant_loop|
       next if orig_plant_loops.include? plant_loop # Only include newly added plant loops
 
       loop_hvacs[sys_id] << plant_loop
@@ -2684,7 +2684,7 @@ class OSModel
     sys_id = sys.elements['SystemIdentifier'].attributes['id']
     loop_dhws[sys_id] = []
 
-    model.getPlantLoops.each do |plant_loop|
+    model.getPlantLoops.sort.each do |plant_loop|
       next if orig_plant_loops.include? plant_loop # Only include newly added plant loops
 
       loop_dhws[sys_id] << plant_loop
@@ -3257,7 +3257,7 @@ class OSModel
             hpwh_tank = comp.to_WaterHeaterStratified.get
             dhw_mapping[sys_id] << hpwh_tank
 
-            model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwh|
+            model.getWaterHeaterHeatPumpWrappedCondensers.sort.each do |hpwh|
               next if hpwh.tank.name.to_s != hpwh_tank.name.to_s
 
               water_heater_coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
@@ -3270,7 +3270,7 @@ class OSModel
         recirc_pump_name = loop.additionalProperties.getFeatureAsString('PlantLoopRecircPump')
         if recirc_pump_name.is_initialized
           recirc_pump_name = recirc_pump_name.get
-          model.getElectricEquipments.each do |ee|
+          model.getElectricEquipments.sort.each do |ee|
             next unless ee.name.to_s == recirc_pump_name
 
             dhw_mapping[sys_id] << ee
@@ -3806,7 +3806,7 @@ class OSModel
   def self.get_foundation_top(model)
     # Get top of foundation surfaces
     foundation_top = -9999
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       next unless Geometry.space_is_below_grade(space)
 
       space.surfaces.each do |surface|
@@ -3821,7 +3821,7 @@ class OSModel
     if foundation_top == -9999
       foundation_top = 9999
       # Pier & beam foundation; get lowest floor vertex
-      model.getSpaces.each do |space|
+      model.getSpaces.sort.each do |space|
         space.surfaces.each do |surface|
           next unless surface.surfaceType.downcase == 'floor'
 
@@ -3844,7 +3844,7 @@ class OSModel
   def self.get_walls_top(model)
     # Get top of wall surfaces
     walls_top = -9999
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       space.surfaces.each do |surface|
         next unless surface.surfaceType.downcase == 'wall'
         next unless surface.subSurfaces.size == 0

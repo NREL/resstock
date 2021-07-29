@@ -100,7 +100,7 @@ class ResidentialClothesDryer < OpenStudio::Measure::ModelMeasure
 
     # Remove all existing objects
     obj_name = Constants.ObjectNameClothesDryer(nil)
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       ClothesDryer.remove(runner, space, obj_name)
     end
 

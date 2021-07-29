@@ -138,7 +138,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_start.month), otg_period_start.day, otg_period_start.year)
     otg_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_end.month), otg_period_end.day, otg_period_end.year)
 
-    model.getScheduleRulesets.each do |schedule_ruleset|
+    model.getScheduleRulesets.sort.each do |schedule_ruleset|
       next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
 
       otg_val = 0
@@ -238,7 +238,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_availability_schedule.setName('Outage Availability Schedule')
 
     # set outage availability schedule on all hvac objects
-    model.getThermalZones.each do |thermal_zone|
+    model.getThermalZones.sort.each do |thermal_zone|
       equipments = HVAC.existing_heating_equipment(model, runner, thermal_zone) + HVAC.existing_cooling_equipment(model, runner, thermal_zone)
       equipments.each do |equipment|
         equipment.setAvailabilitySchedule(otg_availability_schedule)
@@ -247,7 +247,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # set the outage availability schedule on res_infil_1_wh_sch_s (so house fan zeroes out)
-    model.getEnergyManagementSystemSensors.each do |ems_sensor|
+    model.getEnergyManagementSystemSensors.sort.each do |ems_sensor|
       next unless ems_sensor.name.to_s.include? '_wh_sch_s'
 
       ems_sensor.setKeyName('Outage Availability Schedule')

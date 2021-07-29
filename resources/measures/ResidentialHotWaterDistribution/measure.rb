@@ -445,7 +445,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
       sch_sh_temperatureSchedule = nil
       sch_s_temperatureSchedule = nil
       sch_b_temperatureSchedule = nil
-      model.getWaterUseEquipments.each do |space_equipment|
+      model.getWaterUseEquipments.sort.each do |space_equipment|
         if space_equipment.name.to_s == obj_name_sh
           sch_sh_schedule = space_equipment.flowRateFractionSchedule.get
           sch_sh_temperatureSchedule = space_equipment.waterUseEquipmentDefinition.targetTemperatureSchedule.get

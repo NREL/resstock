@@ -56,7 +56,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
 
     construction = nil
     warn_msg = nil
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next if sub_surface.subSurfaceType.downcase != 'door'
 
       if sub_surface.construction.is_initialized
@@ -133,7 +133,7 @@ class CreateResidentialDoorArea < OpenStudio::Measure::ModelMeasure
           next unless surface.surfaceType.downcase == 'wall'
           next unless surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
-          model.getSpaces.each do |potential_corridor_space|
+          model.getSpaces.sort.each do |potential_corridor_space|
             next unless Geometry.is_corridor(potential_corridor_space)
 
             potential_corridor_space.surfaces.each do |potential_corridor_surface|

@@ -147,7 +147,7 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
 
     window_subsurfaces = []
     skylight_subsurfaces = []
-    model.getSubSurfaces.each do |subsurface|
+    model.getSubSurfaces.sort.each do |subsurface|
       if subsurface.subSurfaceType.downcase.include? 'window'
         window_subsurfaces << subsurface
         subsurface.additionalProperties.setFeature(Constants.SizingInfoWindowSummerShadingFactor, window_cool_shade_mult.to_f)
@@ -158,12 +158,12 @@ class ProcessConstructionsWindowsSkylights < OpenStudio::Measure::ModelMeasure
     end
 
     # Remove any existing window/skylight shading
-    model.getShadingSurfaceGroups.each do |shading_group|
+    model.getShadingSurfaceGroups.sort.each do |shading_group|
       next unless shading_group.name.to_s == 'window and skylight shading group'
 
       shading_group.remove
     end
-    model.getSchedules.each do |schedule|
+    model.getSchedules.sort.each do |schedule|
       next unless ['window shading schedule', 'skylight shading schedule'].include? schedule.name.to_s
 
       schedule.remove

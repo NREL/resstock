@@ -117,7 +117,7 @@ class DoorAreaTest < MiniTest::Test
 
     # store the original doors in the model
     orig_doors = []
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next if sub_surface.subSurfaceType.downcase != 'door'
 
       orig_doors << sub_surface
@@ -149,7 +149,7 @@ class DoorAreaTest < MiniTest::Test
 
     # get new/deleted door objects
     new_objects = []
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next if sub_surface.subSurfaceType.downcase != 'door'
       next if orig_doors.include?(sub_surface)
 
@@ -158,7 +158,7 @@ class DoorAreaTest < MiniTest::Test
     del_objects = []
     orig_doors.each do |orig_door|
       has_door = false
-      model.getSubSurfaces.each do |sub_surface|
+      model.getSubSurfaces.sort.each do |sub_surface|
         next if sub_surface != orig_door
 
         has_door = true
@@ -187,13 +187,13 @@ class DoorAreaTest < MiniTest::Test
     assert_in_epsilon(expected_corridor_door_area_added, new_corridor_door_area, 0.01)
     assert_in_epsilon(expected_door_area_removed, del_door_area, 0.01)
 
-    model.getSurfaces.each do |surface|
+    model.getSurfaces.sort.each do |surface|
       assert(surface.netArea > 0)
     end
 
     actual_values = { 'Constructions' => 0 }
     constructions = []
-    model.getSubSurfaces.each do |sub_surface|
+    model.getSubSurfaces.sort.each do |sub_surface|
       next unless sub_surface.construction.is_initialized
 
       if not constructions.include? sub_surface.construction.get

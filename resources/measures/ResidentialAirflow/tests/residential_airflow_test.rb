@@ -741,7 +741,7 @@ class ResidentialAirflowTest < MiniTest::Test
         elsif obj_type == 'ZoneHVACEnergyRecoveryVentilator'
           actual_values[new_object.name.to_s]['SupAirRate'] = new_object.supplyAirFlowRate
           actual_values[new_object.name.to_s]['ExhAirRate'] = new_object.exhaustAirFlowRate
-          model.getThermalZones.each do |thermal_zone|
+          model.getThermalZones.sort.each do |thermal_zone|
             heating_seq = thermal_zone.equipmentInHeatingOrder.index(new_object)
             next if heating_seq.nil?
 

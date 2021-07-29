@@ -108,12 +108,12 @@ class ConstructionPropertiesReportTest < MiniTest::Test
       zone = nil
       val = nil
       vol = nil
-      model.getConstructions.each do |construction|
+      model.getConstructions.sort.each do |construction|
         next if OpenStudio::toUnderscoreCase(construction.name.to_s) != name
 
         constr = construction
       end
-      model.getThermalZones.each do |thermal_zone|
+      model.getThermalZones.sort.each do |thermal_zone|
         next if OpenStudio::toUnderscoreCase(thermal_zone.name.to_s) != name
 
         zone = thermal_zone
@@ -145,7 +145,7 @@ class ConstructionPropertiesReportTest < MiniTest::Test
     # Check for correct construction property values
     uas.each do |constr_name, ua|
       constr = nil
-      model.getConstructions.each do |construction|
+      model.getConstructions.sort.each do |construction|
         next if OpenStudio::toUnderscoreCase(construction.name.to_s) != constr_name
 
         constr = construction

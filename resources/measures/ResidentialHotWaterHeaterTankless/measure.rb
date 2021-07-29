@@ -167,7 +167,7 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
 
       # Get loop if it exists
       loop = nil
-      model.getPlantLoops.each do |pl|
+      model.getPlantLoops.sort.each do |pl|
         next if pl.name.to_s != Constants.PlantLoopDomesticWater(unit.name.to_s)
 
         loop = pl

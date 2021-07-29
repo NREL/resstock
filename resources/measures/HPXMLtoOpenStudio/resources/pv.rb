@@ -28,7 +28,7 @@ class PV
   def self.remove(model, runner, obj_name)
     # Remove existing photovoltaics
     curves_to_remove = []
-    model.getElectricLoadCenterDistributions.each do |electric_load_center_dist|
+    model.getElectricLoadCenterDistributions.sort.each do |electric_load_center_dist|
       next unless electric_load_center_dist.name.to_s == "#{obj_name} elec load center dist"
 
       electric_load_center_dist.generators.each do |generator|

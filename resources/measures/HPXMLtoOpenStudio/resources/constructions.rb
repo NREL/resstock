@@ -723,7 +723,7 @@ class WallConstructions
     constr.setLayers([mat])
     shared_building_facades = shared_building_facades.split(', ')
     shared_building_facades.each do |shared_building_facade|
-      model.getSurfaces.each do |surface|
+      model.getSurfaces.sort.each do |surface|
         next unless surface.surfaceType.downcase == 'wall'
         next unless ['outdoors', 'foundation'].include? surface.outsideBoundaryCondition.downcase
         next if surface.adjacentSurface.is_initialized
@@ -2020,7 +2020,7 @@ class ThermalMassConstructions
 
     # Remove any existing furniture mass.
     furniture_removed = false
-    model.getInternalMasss.each do |im|
+    model.getInternalMasss.sort.each do |im|
       next if not im.name.get.include?(Constants.ObjectNameFurniture)
 
       md = im.internalMassDefinition
@@ -2408,7 +2408,7 @@ class Construction
     tolerance = 0.0001
     if material.is_a? SimpleMaterial
       # Material already exists?
-      model.getMasslessOpaqueMaterials.each do |mat|
+      model.getMasslessOpaqueMaterials.sort.each do |mat|
         next if mat.roughness.downcase.to_s != 'rough'
         next if (mat.thermalResistance - UnitConversions.convert(material.rvalue, 'hr*ft^2*F/Btu', 'm^2*K/W')).abs > tolerance
 
@@ -2421,7 +2421,7 @@ class Construction
       mat.setThermalResistance(UnitConversions.convert(material.rvalue, 'hr*ft^2*F/Btu', 'm^2*K/W'))
     elsif material.is_a? GlazingMaterial
       # Material already exists?
-      model.getSimpleGlazings.each do |mat|
+      model.getSimpleGlazings.sort.each do |mat|
         next if (mat.uFactor - UnitConversions.convert(material.ufactor, 'Btu/(hr*ft^2*F)', 'W/(m^2*K)')).abs > tolerance
         next if (mat.solarHeatGainCoefficient - material.shgc).abs > tolerance
 
@@ -2434,7 +2434,7 @@ class Construction
       mat.setSolarHeatGainCoefficient(material.shgc)
     else
       # Material already exists?
-      model.getStandardOpaqueMaterials.each do |mat|
+      model.getStandardOpaqueMaterials.sort.each do |mat|
         next if mat.roughness.downcase.to_s != 'rough'
         next if (mat.thickness - UnitConversions.convert(material.thick_in, 'in', 'm')).abs > tolerance
         next if (mat.conductivity - UnitConversions.convert(material.k, 'Btu/(hr*ft*R)', 'W/(m*K)')).abs > tolerance
@@ -2510,7 +2510,7 @@ class SurfaceTypes
       Constants.SurfaceTypeWallFndGrndCS => [],
     }
 
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       is_finished = Geometry.space_is_finished(space)
 
       space.surfaces.each do |surface|
@@ -2585,7 +2585,7 @@ class SurfaceTypes
       Constants.SurfaceTypeRoofAdiabatic => [],
     }
 
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       is_finished = Geometry.space_is_finished(space)
       above_grade = Geometry.space_is_above_grade(space)
 
@@ -2639,7 +2639,7 @@ class SurfaceTypes
     }
 
     # Ceilings
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       space.surfaces.each do |surface|
         next if surface.surfaceType.downcase != 'roofceiling'
 
@@ -2676,7 +2676,7 @@ class SurfaceTypes
 
     building_type = Geometry.get_building_type(model)
     # Floors
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       is_finished = Geometry.space_is_finished(space)
       above_grade = Geometry.space_is_above_grade(space)
 

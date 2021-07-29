@@ -446,7 +446,7 @@ class ResidentialClothesDryerTest < MiniTest::Test
             end
             next if cd_time.nil?
 
-            model.getScheduleRulesets.each do |cw_sch|
+            model.getScheduleRulesets.sort.each do |cw_sch|
               next unless cw_sch.name.to_s.include? Constants.ObjectNameClothesWasher
 
               cw_sch.scheduleRules.each do |cw_rule|

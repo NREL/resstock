@@ -110,7 +110,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     obj_names = [Constants.ObjectNameShower,
                  Constants.ObjectNameSink,
                  Constants.ObjectNameBath]
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       remove_existing(model, runner, space, obj_names)
     end
 
@@ -276,7 +276,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           next unless space_equipment.schedule.is_initialized
 
           # Check if there is a recirc pump referencing this schedule
-          model.getElectricEquipments.each do |ee|
+          model.getElectricEquipments.sort.each do |ee|
             next if ee.name.to_s != obj_name_recirc_pump
             next if not ee.schedule.is_initialized
             next if ee.schedule.get.handle.to_s != space_equipment.schedule.get.handle.to_s
@@ -298,7 +298,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
         t_out_wh = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Use Side Outlet Temperature')
         t_out_wh.setName("#{obj_name_sh} tout")
-        model.getPlantLoops.each do |pl|
+        model.getPlantLoops.sort.each do |pl|
           next if not pl.name.to_s.start_with? Constants.PlantLoopDomesticWater
 
           wh = Waterheater.get_water_heater(model, pl, runner)
@@ -459,26 +459,26 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
   def remove_existing(model, runner, space, obj_names)
     # Remove existing EMS
     obj_name_sh = Constants.ObjectNameShower
-    model.getEnergyManagementSystemProgramCallingManagers.each do |pcm|
+    model.getEnergyManagementSystemProgramCallingManagers.sort.each do |pcm|
       if pcm.name.to_s.start_with? obj_name_sh
         pcm.remove
       end
     end
 
-    model.getEnergyManagementSystemSensors.each do |sensor|
+    model.getEnergyManagementSystemSensors.sort.each do |sensor|
       if sensor.name.to_s.start_with? obj_name_sh.gsub(' ', '_')
         sensor.remove
       end
     end
 
-    model.getEnergyManagementSystemPrograms.each do |program|
+    model.getEnergyManagementSystemPrograms.sort.each do |program|
       if program.name.to_s.start_with? obj_name_sh.gsub(' ', '_')
         program.remove
       end
     end
 
     unmet_sh_outputs = ['Unmet Shower Energy', 'Unmet Shower Time', 'Shower Draw Time']
-    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+    model.getEnergyManagementSystemOutputVariables.sort.each do |ems_output_var|
       unmet_sh_outputs.each do |unmet_sh_output|
         if ems_output_var.name.to_s.start_with? unmet_sh_output
           ems_output_var.remove

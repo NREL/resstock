@@ -483,13 +483,13 @@ class ClothesWasher
       # Check if there's a clothes dryer that needs to be updated
       cd_unit_obj_name = Constants.ObjectNameClothesDryer(nil)
       cd = nil
-      model.getElectricEquipments.each do |ee|
+      model.getElectricEquipments.sort.each do |ee|
         next if not ee.name.to_s.start_with? cd_unit_obj_name
         next if not unit.spaces.include? ee.space.get
 
         cd = ee
       end
-      model.getOtherEquipments.each do |oe|
+      model.getOtherEquipments.sort.each do |oe|
         next if not oe.name.to_s.start_with? cd_unit_obj_name
         next if not unit.spaces.include? oe.space.get
 
@@ -601,7 +601,7 @@ class ClothesDryer
 
     # Get clothes washer properties
     cw = nil
-    model.getElectricEquipments.each do |ee|
+    model.getElectricEquipments.sort.each do |ee|
       next if ee.name.to_s != Constants.ObjectNameClothesWasher(unit.name.to_s)
 
       cw = ee

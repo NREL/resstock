@@ -60,7 +60,7 @@ class Airflow
       building.ag_ffa += Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
     end
 
-    model.getThermalZones.each do |thermal_zone|
+    model.getThermalZones.sort.each do |thermal_zone|
       if Geometry.is_garage(thermal_zone)
         building.garage = ZoneInfo.new(thermal_zone, Geometry.get_height_of_spaces(thermal_zone.spaces), UnitConversions.convert(thermal_zone.floorArea, 'm^2', 'ft^2'), Geometry.get_zone_volume(thermal_zone, runner), Geometry.get_z_origin_for_zone(thermal_zone), nil, nil)
       elsif Geometry.is_unfinished_basement(thermal_zone)
@@ -252,7 +252,7 @@ class Airflow
                 Constants.TerrainCity => 'City' } # Towns, city outskirts, center of large cities
     model.getSite.setTerrain(terrain[infil.terrain])
 
-    model.getScheduleDays.each do |obj| # remove any orphaned day schedules
+    model.getScheduleDays.sort.each do |obj| # remove any orphaned day schedules
       next if obj.directUseCount > 0
 
       obj.remove
@@ -270,7 +270,7 @@ class Airflow
     obj_name_ducts_underscore = obj_name_ducts.gsub(' ', '_')
     obj_name_mechvent_underscore = obj_name_mech_vent.gsub(' ', '_')
 
-    model.getEnergyManagementSystemProgramCallingManagers.each do |pcm|
+    model.getEnergyManagementSystemProgramCallingManagers.sort.each do |pcm|
       next unless (pcm.name.to_s.start_with?(obj_name_airflow) ||
           pcm.name.to_s.start_with?(obj_name_natvent) ||
           pcm.name.to_s.start_with?(obj_name_infil) ||
@@ -280,7 +280,7 @@ class Airflow
       pcm.remove
     end
 
-    model.getEnergyManagementSystemSensors.each do |sensor|
+    model.getEnergyManagementSystemSensors.sort.each do |sensor|
       next unless (sensor.name.to_s.start_with?(obj_name_airflow_underscore) ||
           sensor.name.to_s.start_with?(obj_name_natvent_underscore) ||
           sensor.name.to_s.start_with?(obj_name_infil_underscore) ||
@@ -289,7 +289,7 @@ class Airflow
       sensor.remove
     end
 
-    model.getEnergyManagementSystemActuators.each do |actuator|
+    model.getEnergyManagementSystemActuators.sort.each do |actuator|
       next unless (actuator.name.to_s.start_with?(obj_name_airflow_underscore) ||
           actuator.name.to_s.start_with?(obj_name_natvent_underscore) ||
           actuator.name.to_s.start_with?(obj_name_infil_underscore) ||
@@ -309,7 +309,7 @@ class Airflow
       actuator.remove
     end
 
-    model.getEnergyManagementSystemPrograms.each do |program|
+    model.getEnergyManagementSystemPrograms.sort.each do |program|
       next unless (program.name.to_s.start_with?(obj_name_airflow_underscore) ||
           program.name.to_s.start_with?(obj_name_natvent_underscore) ||
           program.name.to_s.start_with?(obj_name_infil_underscore) ||
@@ -319,7 +319,7 @@ class Airflow
       program.remove
     end
 
-    model.getEnergyManagementSystemSubroutines.each do |subroutine|
+    model.getEnergyManagementSystemSubroutines.sort.each do |subroutine|
       next unless (subroutine.name.to_s.start_with?(obj_name_airflow_underscore) ||
           subroutine.name.to_s.start_with?(obj_name_natvent_underscore) ||
           subroutine.name.to_s.start_with?(obj_name_infil_underscore) ||
@@ -328,7 +328,7 @@ class Airflow
       subroutine.remove
     end
 
-    model.getEnergyManagementSystemGlobalVariables.each do |ems_global_var|
+    model.getEnergyManagementSystemGlobalVariables.sort.each do |ems_global_var|
       next unless (ems_global_var.name.to_s.start_with?(obj_name_airflow_underscore) ||
           ems_global_var.name.to_s.start_with?(obj_name_natvent_underscore) ||
           ems_global_var.name.to_s.start_with?(obj_name_infil_underscore) ||
@@ -338,7 +338,7 @@ class Airflow
       ems_global_var.remove
     end
 
-    model.getEnergyManagementSystemInternalVariables.each do |ems_internal_var|
+    model.getEnergyManagementSystemInternalVariables.sort.each do |ems_internal_var|
       next unless (ems_internal_var.name.to_s.start_with?(obj_name_airflow_underscore) ||
           ems_internal_var.name.to_s.start_with?(obj_name_natvent_underscore) ||
           ems_internal_var.name.to_s.start_with?(obj_name_infil_underscore) ||
@@ -348,7 +348,7 @@ class Airflow
       ems_internal_var.remove
     end
 
-    model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+    model.getEnergyManagementSystemOutputVariables.sort.each do |ems_output_var|
       if (ems_output_var.name.to_s.start_with? obj_name_mechvent_underscore)
         ems_output_var.remove
       end
@@ -356,13 +356,13 @@ class Airflow
 
     # Remove existing infiltration
 
-    model.getScheduleRulesets.each do |schedule|
+    model.getScheduleRulesets.sort.each do |schedule|
       next unless schedule.name.to_s.start_with? obj_name_infil
 
       schedule.remove
     end
 
-    model.getSpaces.each do |space|
+    model.getSpaces.sort.each do |space|
       space.spaceInfiltrationEffectiveLeakageAreas.each do |leakage_area|
         next unless leakage_area.name.to_s.start_with? obj_name_infil
 
@@ -377,7 +377,7 @@ class Airflow
 
     # Remove existing natural ventilation
 
-    model.getScheduleRulesets.each do |schedule|
+    model.getScheduleRulesets.sort.each do |schedule|
       next unless schedule.name.to_s.start_with? obj_name_natvent
 
       schedule.remove
@@ -385,19 +385,19 @@ class Airflow
 
     # Remove existing mechanical ventilation
 
-    model.getZoneHVACEnergyRecoveryVentilators.each do |erv|
+    model.getZoneHVACEnergyRecoveryVentilators.sort.each do |erv|
       next unless erv.name.to_s.start_with? obj_name_mech_vent
 
       erv.remove
     end
 
-    model.getScheduleRulesets.each do |schedule|
+    model.getScheduleRulesets.sort.each do |schedule|
       next unless schedule.name.to_s.start_with? obj_name_mech_vent
 
       schedule.remove
     end
 
-    model.getScheduleFixedIntervals.each do |schedule|
+    model.getScheduleFixedIntervals.sort.each do |schedule|
       next unless schedule.name.to_s.start_with? obj_name_mech_vent
 
       schedule.remove
@@ -405,7 +405,7 @@ class Airflow
 
     # Remove existing ducts
 
-    model.getThermalZones.each do |thermal_zone|
+    model.getThermalZones.sort.each do |thermal_zone|
       next unless thermal_zone.name.to_s.start_with? obj_name_ducts
 
       thermal_zone.spaces.each do |space|
@@ -424,7 +424,7 @@ class Airflow
 
     # Remove adiabatic construction/material
 
-    model.getLayeredConstructions.each do |construction|
+    model.getLayeredConstructions.sort.each do |construction|
       next unless construction.name.to_s == 'AdiabaticConst'
 
       construction.layers.each do |material|
@@ -607,7 +607,7 @@ class Airflow
       if (building_type == Constants.BuildingTypeMultifamily) || (building_type == Constants.BuildingTypeSingleFamilyAttached)
         facade_areas = {}
 
-        model.getThermalZones.each do |thermal_zone|
+        model.getThermalZones.sort.each do |thermal_zone|
           next unless thermal_zone.name.to_s.start_with? 'living'
 
           thermal_zone.spaces.each do |space|
@@ -1522,14 +1522,14 @@ class Airflow
       duct_lk_supply_fan_equiv_var, duct_lk_return_fan_equiv_var = duct_lks[obj_name_ducts]
 
       max_supply_fan_mfr = nil
-      model.getEnergyManagementSystemInternalVariables.each do |v|
+      model.getEnergyManagementSystemInternalVariables.sort.each do |v|
         next if v.name.to_s != "#{obj_name_ducts} max sup fan mfr".gsub(' ', '_')
 
         max_supply_fan_mfr = v
       end
 
       fan_rtf_sensor = nil
-      model.getEnergyManagementSystemSensors.each do |s|
+      model.getEnergyManagementSystemSensors.sort.each do |s|
         next if s.name.to_s != "#{obj_name_ducts} fan rtf s".gsub(' ', '_')
 
         fan_rtf_sensor = s
