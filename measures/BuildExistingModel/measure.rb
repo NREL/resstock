@@ -28,7 +28,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'Builds the OpenStudio Model for an existing building.'
+    return 'Builds the OpenStudio Model for a existing building.'
   end
 
   # human readable description of modeling approach
