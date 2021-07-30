@@ -398,7 +398,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     upgrade_cost_name = 'upgrade_cost_usd'
 
     # Get upgrade cost value/multiplier pairs and lifetimes from the upgrade measure
-    values = get_values_from_runner_past_results(runner, 'apply_upgrade')
     has_costs = false
     option_cost_pairs = {}
     option_lifetimes = {}
