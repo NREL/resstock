@@ -70,7 +70,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def peak_magnitude_timing
-    output_names = ['peak_magnitude_timing_kw']
+    output_names = ['peak_magnitude_timing_hour']
     return output_names
   end
 
@@ -200,7 +200,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, 'peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
 
     # Timing of peak magnitude (1)
-    report_sim_output(runner, 'peak_magnitude_timing_kw', timing(timeseries, [-1e9, 1e9], 'max'), '', '')
+    report_sim_output(runner, 'peak_magnitude_timing_hour', timing(timeseries, [-1e9, 1e9], 'max'), '', '')
 
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|
