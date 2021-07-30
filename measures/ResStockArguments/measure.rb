@@ -29,12 +29,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'Measure that extends the arguments available for ResStock.'
+    return 'Measure that pre-processes the arguments passed to the BuildResidentialHPXML measure.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Defines the set of arguments needed for ResStock that are not available in BuildResidentialHPXML.'
+    return ''
   end
 
   # define the arguments that the user will input
@@ -410,25 +410,18 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['setpoint_cooling_weekday'] = weekday_cooling_setpoints.join(', ')
     args['setpoint_cooling_weekend'] = weekend_cooling_setpoints.join(', ')
 
-    # Appliance energy adjustments based on # occupants
+    # Energy and hot water adjustments based on # occupants
     occ_to_nbr_ratio = Float(args['geometry_num_occupants']) / Float(args['geometry_num_bedrooms'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       occ_factor = occ_to_nbr_ratio**0.51
     elsif [HPXML::ResidentialTypeSFD].include? args['geometry_unit_type']
       occ_factor = occ_to_nbr_ratio**0.70
     end
-    if args['cooking_range_oven_location'] != 'none'
-      args['cooking_range_oven_usage_multiplier'] *= occ_factor
-    end
-    if args['clothes_washer_location'] != 'none'
-      args['clothes_washer_usage_multiplier'] *= occ_factor
-    end
-    if args['clothes_dryer_location'] != 'none'
-      args['clothes_dryer_usage_multiplier'] *= occ_factor
-    end
-    if args['dishwasher_location'] != 'none'
-      args['dishwasher_usage_multiplier'] *= occ_factor
-    end
+    args['cooking_range_oven_usage_multiplier'] *= occ_factor
+    args['clothes_washer_usage_multiplier'] *= occ_factor
+    args['clothes_dryer_usage_multiplier'] *= occ_factor
+    args['dishwasher_usage_multiplier'] *= occ_factor
+    args['water_fixtures_usage_multiplier'] *= occ_factor
 
     # Seasons
     if args['use_auto_heating_season'] || args['use_auto_cooling_season']
