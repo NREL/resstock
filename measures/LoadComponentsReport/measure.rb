@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
@@ -28,7 +30,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments
+  def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
     return args
@@ -135,8 +137,15 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    if not runner.validateUserArguments(arguments(), user_arguments)
+    if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
@@ -151,6 +160,7 @@ class LoadComponentsReport < OpenStudio::Measure::ReportingMeasure
     sqlFile.availableEnvPeriods.each do |env_pd|
       env_type = sqlFile.environmentType(env_pd)
       next unless env_type.is_initialized
+
       if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
         @ann_env_pd = env_pd
       end

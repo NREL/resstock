@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # insert your copyright here
 
 # see the URL below for information on how to write OpenStudio measures
@@ -35,7 +37,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments
+  def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make an argument for optional output variables
@@ -96,8 +98,15 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
 
     result = OpenStudio::IdfObjectVector.new
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    if !runner.validateUserArguments(arguments, user_arguments)
+    if !runner.validateUserArguments(arguments(model), user_arguments)
       return result
     end
 
@@ -122,8 +131,15 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    if !runner.validateUserArguments(arguments, user_arguments)
+    if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
@@ -137,14 +153,6 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
       runner.registerError('Number of output variable elements specified inconsistent with either number of minimum or maximum values.')
       return false
     end
-
-    # Get the last model
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError('Cannot find last model.')
-      return false
-    end
-    model = model.get
 
     # Get the last sql file
     sql = runner.lastEnergyPlusSqlFile
@@ -160,6 +168,7 @@ class ResilienceMetricsReport < OpenStudio::Measure::ReportingMeasure
     sql.availableEnvPeriods.each do |env_pd|
       env_type = sql.environmentType(env_pd)
       next unless env_type.is_initialized
+
       if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
         ann_env_pd = env_pd
       end

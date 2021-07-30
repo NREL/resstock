@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -99,68 +101,68 @@ class ProcessConstructionsWallsCMUTest < MiniTest::Test
 
   def test_no_ext_finish_cmu
     args_hash = {}
-    args_hash["thick_in"] = 6
-    args_hash["conductivity"] = 4.29
-    args_hash["density"] = 65
-    args_hash["framing_factor"] = 0.076
-    args_hash["furring_r"] = 0
-    args_hash["furring_cavity_depth_in"] = 1
-    args_hash["furring_spacing"] = 24
-    args_hash["exterior_finish"] = "None, CMU"
+    args_hash['thick_in'] = 6
+    args_hash['conductivity'] = 4.29
+    args_hash['density'] = 65
+    args_hash['framing_factor'] = 0.076
+    args_hash['furring_r'] = 0
+    args_hash['furring_cavity_depth_in'] = 1
+    args_hash['furring_spacing'] = 24
+    args_hash['exterior_finish'] = 'None, CMU'
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 7, "Construction" => 5, "InternalMass" => 4, "InternalMassDefinition" => 4 }
+    expected_num_new_objects = { 'Material' => 7, 'Construction' => 5, 'InternalMass' => 4, 'InternalMassDefinition' => 4 }
     ext_finish_r = 0
     osb_r = 0
     drywall_r = 0.0127 / 0.1602906
     cmu_r = 0.1524 / 0.562061786498589
     furring_r = 0.0254 / 0.13578938501631
     assembly_r = ext_finish_r + osb_r + drywall_r + cmu_r + furring_r
-    expected_values = { "AssemblyR" => assembly_r }
-    _test_measure("SFD_2000sqft_2story_SL_UA_CeilingIns.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    expected_values = { 'AssemblyR' => assembly_r }
+    _test_measure('SFD_2000sqft_2story_SL_UA_CeilingIns.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_asbestos_shingle_ext_finish
     args_hash = {}
-    args_hash["thick_in"] = 6
-    args_hash["conductivity"] = 4.29
-    args_hash["density"] = 65
-    args_hash["framing_factor"] = 0.076
-    args_hash["furring_r"] = 0
-    args_hash["furring_cavity_depth_in"] = 1
-    args_hash["furring_spacing"] = 24
-    args_hash["exterior_finish"] = "Asbestos Shingles"
+    args_hash['thick_in'] = 6
+    args_hash['conductivity'] = 4.29
+    args_hash['density'] = 65
+    args_hash['framing_factor'] = 0.076
+    args_hash['furring_r'] = 0
+    args_hash['furring_cavity_depth_in'] = 1
+    args_hash['furring_spacing'] = 24
+    args_hash['exterior_finish'] = 'Asbestos Shingles'
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 6, "Construction" => 5, "InternalMass" => 4, "InternalMassDefinition" => 4 }
+    expected_num_new_objects = { 'Material' => 6, 'Construction' => 5, 'InternalMass' => 4, 'InternalMassDefinition' => 4 }
     ext_finish_r = 0.0094488 / 0.162714
     osb_r = 0.0127 / 0.1154577
     drywall_r = 0.0127 / 0.1602906
     cmu_r = 0.1524 / 0.562061786498589
     furring_r = 0.0254 / 0.13578938501631
     assembly_r = ext_finish_r + osb_r + drywall_r + cmu_r + furring_r
-    expected_values = { "AssemblyR" => assembly_r }
-    _test_measure("SFD_2000sqft_2story_SL_UA_CeilingIns.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    expected_values = { 'AssemblyR' => assembly_r }
+    _test_measure('SFD_2000sqft_2story_SL_UA_CeilingIns.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_no_ext_finish_brick
     args_hash = {}
-    args_hash["thick_in"] = 6
-    args_hash["conductivity"] = 4.29
-    args_hash["density"] = 65
-    args_hash["framing_factor"] = 0.076
-    args_hash["furring_r"] = 0
-    args_hash["furring_cavity_depth_in"] = 1
-    args_hash["furring_spacing"] = 24
-    args_hash["exterior_finish"] = "None, Brick"
+    args_hash['thick_in'] = 6
+    args_hash['conductivity'] = 4.29
+    args_hash['density'] = 65
+    args_hash['framing_factor'] = 0.076
+    args_hash['furring_r'] = 0
+    args_hash['furring_cavity_depth_in'] = 1
+    args_hash['furring_spacing'] = 24
+    args_hash['exterior_finish'] = 'None, Brick'
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Material" => 7, "Construction" => 5, "InternalMass" => 4, "InternalMassDefinition" => 4 }
+    expected_num_new_objects = { 'Material' => 7, 'Construction' => 5, 'InternalMass' => 4, 'InternalMassDefinition' => 4 }
     ext_finish_r = 0
     osb_r = 0
     drywall_r = 0.0127 / 0.1602906
     cmu_r = 0.1524 / 0.562061786498589
     furring_r = 0.0254 / 0.13578938501631
     assembly_r = ext_finish_r + osb_r + drywall_r + cmu_r + furring_r
-    expected_values = { "AssemblyR" => assembly_r }
-    _test_measure("SFD_2000sqft_2story_SL_UA_CeilingIns.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
+    expected_values = { 'AssemblyR' => assembly_r }
+    _test_measure('SFD_2000sqft_2story_SL_UA_CeilingIns.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values)
   end
 
   def test_single_family_attached_new_construction

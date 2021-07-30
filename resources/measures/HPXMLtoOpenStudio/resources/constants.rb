@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Constants
   # Numbers --------------------
 
@@ -1222,6 +1224,10 @@ class Constants
     return __method__.to_s
   end
 
+  def self.SizingInfoWindowSummerShadingFactor
+    return __method__.to_s
+  end
+
   def self.SizingInfoWindowOverhangOffset
     return __method__.to_s
   end
@@ -1438,6 +1444,14 @@ class Constants
     return 'central fan integrated supply'
   end
 
+  def self.WaterHeaterDrawProfileTypeRealistic
+    return 'realistic'
+  end
+
+  def self.WaterHeaterDrawProfileTypeSmooth
+    return 'smooth'
+  end
+
   def self.WaterHeaterTypeTankless
     return 'tankless'
   end
@@ -1446,8 +1460,40 @@ class Constants
     return 'tank'
   end
 
+  def self.WaterHeaterTypeTankModelTypeMixed
+    return 'mixed'
+  end
+
+  def self.WaterHeaterTypeTankModelTypeStratified
+    return 'stratified'
+  end
+
   def self.WaterHeaterTypeHeatPump
     return 'heatpump'
+  end
+
+  def self.WaterHeaterSetpointTypeConstant
+    return 'constant'
+  end
+
+  def self.WaterHeaterSetpointTypeScheduled
+    return 'scheduled'
+  end
+
+  def self.WaterHeaterOperatingModeTypeConstant
+    return 'constant'
+  end
+
+  def self.WaterHeaterOperatingModeTypeScheduled
+    return 'scheduled'
+  end
+
+  def self.WaterHeaterOperatingModeStandard
+    return 'standard'
+  end
+
+  def self.WaterHeaterOperatingModeHeatPumpOnly
+    return 'heat pump only'
   end
 
   def self.WorkflowDescription

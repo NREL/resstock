@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 unless File.exist? resources_path
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
@@ -197,7 +199,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         end
       end
       if dist_removed
-        runner.registerInfo("Removed existing hot water distribution from space '#{dist_space.name.to_s}'.")
+        runner.registerInfo("Removed existing hot water distribution from space '#{dist_space.name}'.")
       end
 
       # Find which space the showers, sinks, and baths were previously assigned to and get the peak flow rates
@@ -514,14 +516,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
 
       # Add in an otherEquipment object for the monthly internal gain
       if ann_int_gain > 0
-        gain_hourly_sch = '0.00623, 0.00312, 0.00078, 0.00078, 0.00312, 0.02181, 0.07477, 0.07944, 0.07632, 0.06698, 0.06075, 0.04829, 0.04206, 0.03738, 0.03738, 0.03271, 0.04361, 0.05763, 0.06854, 0.06542, 0.05919, 0.04829, 0.04206, 0.02336'
-        gain_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
-        gain_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name_dist + ' schedule', gain_hourly_sch, gain_hourly_sch, gain_monthly_sch)
-        if not gain_sch.validated?
-          return false
-        end
-
-        dist_design_level = gain_sch.calcDesignLevelFromDailykWh(ann_int_gain / num_days_in_year)
+        dist_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: 'showers', daily_kwh: ann_int_gain / num_days_in_year)
         dist_oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
         dist_oe = OpenStudio::Model::OtherEquipment.new(dist_oe_def)
         dist_oe.setName(obj_name_dist)
@@ -531,7 +526,7 @@ class ResidentialHotWaterDistribution < OpenStudio::Measure::ModelMeasure
         dist_oe_def.setFractionRadiant(0)
         dist_oe_def.setFractionLatent(0)
         dist_oe_def.setFractionLost(0)
-        dist_oe.setSchedule(gain_sch.schedule)
+        dist_oe.setSchedule(sch_sh_schedule)
       end
 
       # Add in an electricEquipment object for the recirculation pump

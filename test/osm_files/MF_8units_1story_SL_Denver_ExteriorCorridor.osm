@@ -1,41 +1,49 @@
 !- NOTE: Auto-generated from /test/osw_files/MF_8units_1story_SL_Denver_ExteriorCorridor.osw
 
 OS:Version,
-  {b3ff9241-dbaf-4d77-a290-fc4dd5174e7b}, !- Handle
-  2.9.0;                                  !- Version Identifier
+  {4a46f663-bc1a-4710-90f0-c11da3b7ccd5}, !- Handle
+  3.2.1;                                  !- Version Identifier
 
 OS:SimulationControl,
-  {8533bc6a-7e1b-4283-865d-c05da560e25b}, !- Handle
+  {3ed69e83-46ea-4f57-a88b-6414cbc706fa}, !- Handle
   ,                                       !- Do Zone Sizing Calculation
   ,                                       !- Do System Sizing Calculation
   ,                                       !- Do Plant Sizing Calculation
   No;                                     !- Run Simulation for Sizing Periods
 
 OS:Timestep,
-  {9e9e18ce-fee6-42e9-b3cb-da0e0d922264}, !- Handle
+  {adef8d4d-ac00-4c4a-b06f-adfa431b1f17}, !- Handle
   6;                                      !- Number of Timesteps per Hour
 
 OS:ShadowCalculation,
-  {03c934f2-0d4f-40ed-89df-2f1b57486994}, !- Handle
-  20,                                     !- Calculation Frequency
-  200;                                    !- Maximum Figures in Shadow Overlap Calculations
+  {82063701-c555-4211-8fa9-7613e497eadc}, !- Handle
+  PolygonClipping,                        !- Shading Calculation Method
+  ,                                       !- Shading Calculation Update Frequency Method
+  20,                                     !- Shading Calculation Update Frequency
+  200,                                    !- Maximum Figures in Shadow Overlap Calculations
+  ,                                       !- Polygon Clipping Algorithm
+  512,                                    !- Pixel Counting Resolution
+  DetailedSkyDiffuseModeling,             !- Sky Diffuse Modeling Algorithm
+  No,                                     !- Output External Shading Calculation Results
+  No,                                     !- Disable Self-Shading Within Shading Zone Groups
+  No;                                     !- Disable Self-Shading From Shading Zone Groups to Other Zones
 
 OS:SurfaceConvectionAlgorithm:Outside,
-  {771d634a-ceb8-4df9-8a00-637b44def090}, !- Handle
+  {5275efb1-92cd-4455-b2a7-5cf7ef1e2d3f}, !- Handle
   DOE-2;                                  !- Algorithm
 
 OS:SurfaceConvectionAlgorithm:Inside,
-  {e3ca4b92-f161-4c8b-bbf9-b2172268ea61}, !- Handle
+  {9b204feb-cece-4efd-8eaf-ba3e90480252}, !- Handle
   TARP;                                   !- Algorithm
 
 OS:ZoneCapacitanceMultiplier:ResearchSpecial,
-  {2a4635bf-612b-4a47-9ff7-47d974e004e5}, !- Handle
+  {525c7738-8096-452c-ad7e-407edf7fefe5}, !- Handle
   ,                                       !- Temperature Capacity Multiplier
   15,                                     !- Humidity Capacity Multiplier
   ;                                       !- Carbon Dioxide Capacity Multiplier
 
 OS:RunPeriod,
-  {e84c9508-fe22-4237-9756-85a338241229}, !- Handle
+  {e7709942-d81e-44d8-b3aa-da6e801b633d}, !- Handle
   Run Period 1,                           !- Name
   1,                                      !- Begin Month
   1,                                      !- Begin Day of Month
@@ -49,13 +57,13 @@ OS:RunPeriod,
   ;                                       !- Number of Times Runperiod to be Repeated
 
 OS:YearDescription,
-  {7ceee984-fc66-4f62-a8b0-55fbcb365f15}, !- Handle
+  {8ff753a1-dfc1-4afc-8dad-9cd92e8b92c9}, !- Handle
   2007,                                   !- Calendar Year
   ,                                       !- Day of Week for Start Day
   ;                                       !- Is Leap Year
 
 OS:WeatherFile,
-  {9fe4d516-72f8-4882-ae0a-1846573c6eec}, !- Handle
+  {3752a826-badb-4206-a1d5-216545596e13}, !- Handle
   Denver Intl Ap,                         !- City
   CO,                                     !- State Province Region
   USA,                                    !- Country
@@ -65,12 +73,12 @@ OS:WeatherFile,
   -104.65,                                !- Longitude {deg}
   -7,                                     !- Time Zone {hr}
   1650,                                   !- Elevation {m}
-  file:../weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw, !- Url
+  /mnt/c/git/resstock/resources/measures/HPXMLtoOpenStudio/weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw, !- Url
   E23378AA;                               !- Checksum
 
 OS:AdditionalProperties,
-  {204211d9-a605-4c88-92c6-3219ce062a3b}, !- Handle
-  {9fe4d516-72f8-4882-ae0a-1846573c6eec}, !- Object Name
+  {2ab01e1a-f443-4259-9afd-3cbe333295bd}, !- Handle
+  {3752a826-badb-4206-a1d5-216545596e13}, !- Object Name
   EPWHeaderCity,                          !- Feature Name 1
   String,                                 !- Feature Data Type 1
   Denver Intl Ap,                         !- Feature Value 1
@@ -178,7 +186,7 @@ OS:AdditionalProperties,
   84;                                     !- Feature Value 35
 
 OS:Site,
-  {2ab36be9-ec9d-4240-bf04-6496edfa6264}, !- Handle
+  {02302699-2bb7-4007-8bbf-ad2700a9762d}, !- Handle
   Denver Intl Ap_CO_USA,                  !- Name
   39.83,                                  !- Latitude {deg}
   -104.65,                                !- Longitude {deg}
@@ -187,32 +195,26 @@ OS:Site,
   ;                                       !- Terrain
 
 OS:ClimateZones,
-  {b29bc207-9703-4f7d-8f60-23a9b1e719ae}, !- Handle
-  ,                                       !- Active Institution
-  ,                                       !- Active Year
-  ,                                       !- Climate Zone Institution Name 1
+  {ef73b099-1855-4e9d-917d-e7f7d2bbd5d2}, !- Handle
+  Building America,                       !- Climate Zone Institution Name 1
   ,                                       !- Climate Zone Document Name 1
-  ,                                       !- Climate Zone Document Year 1
-  ,                                       !- Climate Zone Value 1
-  Building America,                       !- Climate Zone Institution Name 2
-  ,                                       !- Climate Zone Document Name 2
-  0,                                      !- Climate Zone Document Year 2
-  Cold;                                   !- Climate Zone Value 2
+  0,                                      !- Climate Zone Document Year 1
+  Cold;                                   !- Climate Zone Value 1
 
 OS:Site:WaterMainsTemperature,
-  {af06576d-01c8-434e-8300-0839299d2beb}, !- Handle
+  {358bfb71-0cbc-47ad-a724-09ea7f831028}, !- Handle
   Correlation,                            !- Calculation Method
   ,                                       !- Temperature Schedule Name
   10.8753424657535,                       !- Annual Average Outdoor Air Temperature {C}
   23.1524007936508;                       !- Maximum Difference In Monthly Average Outdoor Air Temperatures {deltaC}
 
 OS:RunPeriodControl:DaylightSavingTime,
-  {14be3a27-6912-492b-ba7d-3f483393faac}, !- Handle
+  {c53e9de1-36ee-4c5d-bdf4-d6453a034446}, !- Handle
   3/12,                                   !- Start Date
   11/5;                                   !- End Date
 
 OS:Site:GroundTemperature:Deep,
-  {f23f003b-ec49-46b8-b2c8-659c059fb753}, !- Handle
+  {9a492e7f-ec5a-4574-a2d9-e6bb0e7ee422}, !- Handle
   10.8753424657535,                       !- January Deep Ground Temperature {C}
   10.8753424657535,                       !- February Deep Ground Temperature {C}
   10.8753424657535,                       !- March Deep Ground Temperature {C}
@@ -227,7 +229,7 @@ OS:Site:GroundTemperature:Deep,
   10.8753424657535;                       !- December Deep Ground Temperature {C}
 
 OS:Building,
-  {3094383b-90d0-4fc2-ad85-3996416e7288}, !- Handle
+  {239365d4-91cf-4ea7-8b2a-c77f7a1b0b3c}, !- Handle
   Building 1,                             !- Name
   ,                                       !- Building Sector Type
   0,                                      !- North Axis {deg}
@@ -242,8 +244,8 @@ OS:Building,
   8;                                      !- Standards Number of Living Units
 
 OS:AdditionalProperties,
-  {92522764-1812-4b43-bf17-da94c442b595}, !- Handle
-  {3094383b-90d0-4fc2-ad85-3996416e7288}, !- Object Name
+  {75360206-d6a8-47ca-8a57-2fdab7ccb0aa}, !- Handle
+  {239365d4-91cf-4ea7-8b2a-c77f7a1b0b3c}, !- Object Name
   num_units,                              !- Feature Name 1
   Integer,                                !- Feature Data Type 1
   8,                                      !- Feature Value 1
@@ -270,7 +272,7 @@ OS:AdditionalProperties,
   Single Exterior (Front);                !- Feature Value 8
 
 OS:ThermalZone,
-  {88b2a820-7730-4855-820b-b69df001dc29}, !- Handle
+  {fafb7f86-5e6e-4931-a8ea-a992dac80af1}, !- Handle
   living zone,                            !- Name
   ,                                       !- Multiplier
   ,                                       !- Ceiling Height {m}
@@ -279,10 +281,10 @@ OS:ThermalZone,
   ,                                       !- Zone Inside Convection Algorithm
   ,                                       !- Zone Outside Convection Algorithm
   ,                                       !- Zone Conditioning Equipment List Name
-  {538d92b2-9c60-4246-ae52-b9d1cfcbb976}, !- Zone Air Inlet Port List
-  {688cb869-a111-42a2-8240-835775f61a7f}, !- Zone Air Exhaust Port List
-  {81ff9ef0-4f7a-4340-8bce-e374a133b905}, !- Zone Air Node Name
-  {3a4c8dcf-9cb4-479a-aceb-9965f5f64d7a}, !- Zone Return Air Port List
+  {300d0228-79db-401f-86a3-c53de23ff18e}, !- Zone Air Inlet Port List
+  {a3dca3dc-d378-4b6b-9f92-ae64a0c179db}, !- Zone Air Exhaust Port List
+  {813a419e-71a0-4bcc-8518-044ff9c24a16}, !- Zone Air Node Name
+  {deda0894-a33e-4cef-b6c3-fdf5907df943}, !- Zone Return Air Port List
   ,                                       !- Primary Daylighting Control Name
   ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
   ,                                       !- Secondary Daylighting Control Name
@@ -293,37 +295,33 @@ OS:ThermalZone,
   No;                                     !- Use Ideal Air Loads
 
 OS:Node,
-  {1ce095a1-5cb8-4d8f-925a-666db2f413a8}, !- Handle
+  {fd8f05c4-3415-4934-8291-1a2364e6d60a}, !- Handle
   Node 1,                                 !- Name
-  {81ff9ef0-4f7a-4340-8bce-e374a133b905}, !- Inlet Port
+  {813a419e-71a0-4bcc-8518-044ff9c24a16}, !- Inlet Port
   ;                                       !- Outlet Port
 
 OS:Connection,
-  {81ff9ef0-4f7a-4340-8bce-e374a133b905}, !- Handle
-  {4bad64e4-0f9b-4450-b4a1-c2e7b43466d1}, !- Name
-  {88b2a820-7730-4855-820b-b69df001dc29}, !- Source Object
+  {813a419e-71a0-4bcc-8518-044ff9c24a16}, !- Handle
+  {fafb7f86-5e6e-4931-a8ea-a992dac80af1}, !- Source Object
   11,                                     !- Outlet Port
-  {1ce095a1-5cb8-4d8f-925a-666db2f413a8}, !- Target Object
+  {fd8f05c4-3415-4934-8291-1a2364e6d60a}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:PortList,
-  {538d92b2-9c60-4246-ae52-b9d1cfcbb976}, !- Handle
-  {68212b35-b59e-49ef-aa67-95e4219efbf5}, !- Name
-  {88b2a820-7730-4855-820b-b69df001dc29}; !- HVAC Component
+  {300d0228-79db-401f-86a3-c53de23ff18e}, !- Handle
+  {fafb7f86-5e6e-4931-a8ea-a992dac80af1}; !- HVAC Component
 
 OS:PortList,
-  {688cb869-a111-42a2-8240-835775f61a7f}, !- Handle
-  {6a9bbe07-5a9e-46bf-b1a6-d701eec8234f}, !- Name
-  {88b2a820-7730-4855-820b-b69df001dc29}; !- HVAC Component
+  {a3dca3dc-d378-4b6b-9f92-ae64a0c179db}, !- Handle
+  {fafb7f86-5e6e-4931-a8ea-a992dac80af1}; !- HVAC Component
 
 OS:PortList,
-  {3a4c8dcf-9cb4-479a-aceb-9965f5f64d7a}, !- Handle
-  {ff9992d7-31b4-42d4-a501-4dc8aa4cf6ac}, !- Name
-  {88b2a820-7730-4855-820b-b69df001dc29}; !- HVAC Component
+  {deda0894-a33e-4cef-b6c3-fdf5907df943}, !- Handle
+  {fafb7f86-5e6e-4931-a8ea-a992dac80af1}; !- HVAC Component
 
 OS:Sizing:Zone,
-  {69e2d700-e425-4269-b02d-a97864196c68}, !- Handle
-  {88b2a820-7730-4855-820b-b69df001dc29}, !- Zone or ZoneList Name
+  {08ce3ed0-e1e8-4d26-b7a1-da36bb8225c7}, !- Handle
+  {fafb7f86-5e6e-4931-a8ea-a992dac80af1}, !- Zone or ZoneList Name
   SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
   14,                                     !- Zone Cooling Design Supply Air Temperature {C}
   11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
@@ -344,22 +342,20 @@ OS:Sizing:Zone,
   ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
   ,                                       !- Heating Maximum Air Flow {m3/s}
   ,                                       !- Heating Maximum Air Flow Fraction
-  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
-  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
   No,                                     !- Account for Dedicated Outdoor Air System
   NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
   autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
   autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
 OS:ZoneHVAC:EquipmentList,
-  {eb000250-588b-4e1b-9842-4f18cba7c0a6}, !- Handle
+  {96e26e32-cf13-4af9-968a-0875bc4a29ad}, !- Handle
   Zone HVAC Equipment List 1,             !- Name
-  {88b2a820-7730-4855-820b-b69df001dc29}; !- Thermal Zone
+  {fafb7f86-5e6e-4931-a8ea-a992dac80af1}; !- Thermal Zone
 
 OS:Space,
-  {59e696ce-4c73-42bf-8849-42d9aca9e665}, !- Handle
+  {e60944eb-9c42-43e9-b3ff-007b88c8ebb9}, !- Handle
   living space,                           !- Name
-  {c9c8719f-7ac0-4084-acc5-2dbc33117d69}, !- Space Type Name
+  {acc91552-7a39-4ec6-9cc5-d5e74062dd75}, !- Space Type Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
   ,                                       !- Direction of Relative North {deg}
@@ -367,17 +363,17 @@ OS:Space,
   ,                                       !- Y Origin {m}
   ,                                       !- Z Origin {m}
   ,                                       !- Building Story Name
-  {88b2a820-7730-4855-820b-b69df001dc29}, !- Thermal Zone Name
+  {fafb7f86-5e6e-4931-a8ea-a992dac80af1}, !- Thermal Zone Name
   ,                                       !- Part of Total Floor Area
   ,                                       !- Design Specification Outdoor Air Object Name
-  {ac3bfdd0-4cec-44ae-8d8e-6c5baf883f01}; !- Building Unit Name
+  {9c631ecc-fd1e-47a2-8876-1e75fb2a7252}; !- Building Unit Name
 
 OS:Surface,
-  {ba588aae-cd0f-4eb3-b5ab-a8471a86106b}, !- Handle
+  {3a3ef4b5-69ec-4b0f-b4ae-17ee145e337a}, !- Handle
   Surface 1,                              !- Name
   Floor,                                  !- Surface Type
   ,                                       !- Construction Name
-  {59e696ce-4c73-42bf-8849-42d9aca9e665}, !- Space Name
+  {e60944eb-9c42-43e9-b3ff-007b88c8ebb9}, !- Space Name
   Foundation,                             !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
@@ -390,11 +386,11 @@ OS:Surface,
   6.46578440716979, -12.9315688143396, 0; !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {b647dc5c-f1fd-49f0-8bd9-fb5d4a7aff55}, !- Handle
+  {90298555-a074-43b9-9d7d-290f0067f561}, !- Handle
   Surface 2,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {59e696ce-4c73-42bf-8849-42d9aca9e665}, !- Space Name
+  {e60944eb-9c42-43e9-b3ff-007b88c8ebb9}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -407,11 +403,11 @@ OS:Surface,
   0, -12.9315688143396, 2.4384;           !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {13457033-5902-414b-836d-4e03f86a3f4f}, !- Handle
+  {62cc3d6e-f36f-4c64-a616-22241424afef}, !- Handle
   Surface 3,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {59e696ce-4c73-42bf-8849-42d9aca9e665}, !- Space Name
+  {e60944eb-9c42-43e9-b3ff-007b88c8ebb9}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -424,11 +420,11 @@ OS:Surface,
   0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {7a4dcf35-b9d4-47a6-a8c4-3135741af5ee}, !- Handle
+  {175a2fbc-9a5c-4483-be61-28c2d5e38052}, !- Handle
   Surface 4,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {59e696ce-4c73-42bf-8849-42d9aca9e665}, !- Space Name
+  {e60944eb-9c42-43e9-b3ff-007b88c8ebb9}, !- Space Name
   Adiabatic,                              !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
@@ -441,11 +437,11 @@ OS:Surface,
   6.46578440716979, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {33161520-908c-4292-9a10-b42ad2a90b17}, !- Handle
+  {75bee273-936d-438a-989b-061c9ae59214}, !- Handle
   Surface 5,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {59e696ce-4c73-42bf-8849-42d9aca9e665}, !- Space Name
+  {e60944eb-9c42-43e9-b3ff-007b88c8ebb9}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -458,11 +454,11 @@ OS:Surface,
   6.46578440716979, -12.9315688143396, 2.4384; !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {98be0937-2ae8-4b4d-b228-6c034dbd365c}, !- Handle
+  {1e31ae86-6e77-403f-965e-14198a42480b}, !- Handle
   Surface 6,                              !- Name
   RoofCeiling,                            !- Surface Type
   ,                                       !- Construction Name
-  {59e696ce-4c73-42bf-8849-42d9aca9e665}, !- Space Name
+  {e60944eb-9c42-43e9-b3ff-007b88c8ebb9}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -475,7 +471,7 @@ OS:Surface,
   0, -12.9315688143396, 2.4384;           !- X,Y,Z Vertex 4 {m}
 
 OS:SpaceType,
-  {c9c8719f-7ac0-4084-acc5-2dbc33117d69}, !- Handle
+  {acc91552-7a39-4ec6-9cc5-d5e74062dd75}, !- Handle
   Space Type 1,                           !- Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
@@ -486,10 +482,10 @@ OS:SpaceType,
   living;                                 !- Standards Space Type
 
 OS:ShadingSurface,
-  {1cd3e466-f2d0-47f2-a144-26f996fd4756}, !- Handle
+  {ca13954b-d4f6-487a-959e-134a6ac5e4b0}, !- Handle
   Corridor shading,                       !- Name
   ,                                       !- Construction Name
-  {fbedd977-ca16-4e8d-bc7c-6434c6a632a0}, !- Shading Surface Group Name
+  {f49a7b0c-3ae8-4dfe-8bea-718cbe650caf}, !- Shading Surface Group Name
   ,                                       !- Transmittance Schedule Name
   ,                                       !- Number of Vertices
   0, -15.9795688143396, 2.4384,           !- X,Y,Z Vertex 1 {m}
@@ -498,19 +494,19 @@ OS:ShadingSurface,
   0, -12.9315688143396, 2.4384;           !- X,Y,Z Vertex 4 {m}
 
 OS:ShadingSurfaceGroup,
-  {fbedd977-ca16-4e8d-bc7c-6434c6a632a0}, !- Handle
+  {f49a7b0c-3ae8-4dfe-8bea-718cbe650caf}, !- Handle
   Shading Surface Group 1,                !- Name
   Building;                               !- Shading Surface Type
 
 OS:BuildingUnit,
-  {ac3bfdd0-4cec-44ae-8d8e-6c5baf883f01}, !- Handle
+  {9c631ecc-fd1e-47a2-8876-1e75fb2a7252}, !- Handle
   unit 1,                                 !- Name
   ,                                       !- Rendering Color
   Residential;                            !- Building Unit Type
 
 OS:AdditionalProperties,
-  {94fdb593-1ef3-4394-a53c-180ffde729f3}, !- Handle
-  {ac3bfdd0-4cec-44ae-8d8e-6c5baf883f01}, !- Object Name
+  {f73f687c-6284-49d7-a9c2-10bb2db5825f}, !- Handle
+  {9c631ecc-fd1e-47a2-8876-1e75fb2a7252}, !- Object Name
   NumberOfBedrooms,                       !- Feature Name 1
   Integer,                                !- Feature Data Type 1
   3,                                      !- Feature Value 1
@@ -522,12 +518,12 @@ OS:AdditionalProperties,
   3.3900000000000001;                     !- Feature Value 3
 
 OS:External:File,
-  {03f4d9a2-f17b-42af-abfd-3ef5927ee916}, !- Handle
+  {42fec5a5-f2c2-49af-a133-d3a4490a3d5d}, !- Handle
   8760.csv,                               !- Name
   8760.csv;                               !- File Name
 
 OS:Schedule:Day,
-  {4dd2853a-fdb4-42c1-99ff-ffb7ef6979cf}, !- Handle
+  {e62416ca-05ee-4990-a7d7-ba2fb1187186}, !- Handle
   Schedule Day 1,                         !- Name
   ,                                       !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
@@ -536,7 +532,7 @@ OS:Schedule:Day,
   0;                                      !- Value Until Time 1
 
 OS:Schedule:Day,
-  {8590fdda-6050-4825-8ff8-4eaba6b717e3}, !- Handle
+  {da0b1bdd-0fc8-4069-8388-2af4fc1d1fce}, !- Handle
   Schedule Day 2,                         !- Name
   ,                                       !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
@@ -545,10 +541,10 @@ OS:Schedule:Day,
   1;                                      !- Value Until Time 1
 
 OS:Schedule:File,
-  {702b9caf-872a-49a9-8451-63d0c94a01e8}, !- Handle
+  {0326f795-7346-4290-b251-104b836279bd}, !- Handle
   occupants,                              !- Name
-  {b9803acd-6ee0-453a-8c27-e1da9418057e}, !- Schedule Type Limits Name
-  {03f4d9a2-f17b-42af-abfd-3ef5927ee916}, !- External File Name
+  {21113e06-429d-44ff-bafb-0375944de97d}, !- Schedule Type Limits Name
+  {42fec5a5-f2c2-49af-a133-d3a4490a3d5d}, !- External File Name
   1,                                      !- Column Number
   1,                                      !- Rows to Skip at Top
   8760,                                   !- Number of Hours of Data
@@ -556,23 +552,14 @@ OS:Schedule:File,
   ,                                       !- Interpolate to Timestep
   60;                                     !- Minutes per Item
 
-OS:Schedule:Ruleset,
-  {3fd6dab9-3f77-4581-bf17-cfe81db31ee2}, !- Handle
-  Schedule Ruleset 1,                     !- Name
-  {83d4fa89-c64d-4aed-b675-4b5ff9547a20}, !- Schedule Type Limits Name
-  {c9af4c3b-3e8b-4e0c-913f-98a0f6c7fae8}; !- Default Day Schedule Name
-
-OS:Schedule:Day,
-  {c9af4c3b-3e8b-4e0c-913f-98a0f6c7fae8}, !- Handle
-  Schedule Day 3,                         !- Name
-  {83d4fa89-c64d-4aed-b675-4b5ff9547a20}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  112.539290946133;                       !- Value Until Time 1
+OS:Schedule:Constant,
+  {3deb98d6-12f3-497c-ad1d-ea15c97fa4b5}, !- Handle
+  res occupants activity schedule,        !- Name
+  {70d821f8-d3d5-4d1b-8a53-a87d1079c079}, !- Schedule Type Limits Name
+  112.539290946133;                       !- Value
 
 OS:People:Definition,
-  {1b92ba15-cc91-4f2d-9539-a856d9871b54}, !- Handle
+  {2a3cef05-91de-46fc-914a-673201697284}, !- Handle
   res occupants|living space,             !- Name
   People,                                 !- Number of People Calculation Method
   3.39,                                   !- Number of People {people}
@@ -585,12 +572,12 @@ OS:People:Definition,
   ZoneAveraged;                           !- Mean Radiant Temperature Calculation Type
 
 OS:People,
-  {8f67e03b-a29f-41e7-a6b6-cff49b5cd520}, !- Handle
+  {02e8c44e-5723-4a45-bbd1-c1e53d3fe679}, !- Handle
   res occupants|living space,             !- Name
-  {1b92ba15-cc91-4f2d-9539-a856d9871b54}, !- People Definition Name
-  {59e696ce-4c73-42bf-8849-42d9aca9e665}, !- Space or SpaceType Name
-  {702b9caf-872a-49a9-8451-63d0c94a01e8}, !- Number of People Schedule Name
-  {3fd6dab9-3f77-4581-bf17-cfe81db31ee2}, !- Activity Level Schedule Name
+  {2a3cef05-91de-46fc-914a-673201697284}, !- People Definition Name
+  {e60944eb-9c42-43e9-b3ff-007b88c8ebb9}, !- Space or SpaceType Name
+  {0326f795-7346-4290-b251-104b836279bd}, !- Number of People Schedule Name
+  {3deb98d6-12f3-497c-ad1d-ea15c97fa4b5}, !- Activity Level Schedule Name
   ,                                       !- Surface Name/Angle Factor List Name
   ,                                       !- Work Efficiency Schedule Name
   ,                                       !- Clothing Insulation Schedule Name
@@ -598,7 +585,7 @@ OS:People,
   1;                                      !- Multiplier
 
 OS:ScheduleTypeLimits,
-  {83d4fa89-c64d-4aed-b675-4b5ff9547a20}, !- Handle
+  {70d821f8-d3d5-4d1b-8a53-a87d1079c079}, !- Handle
   ActivityLevel,                          !- Name
   0,                                      !- Lower Limit Value
   ,                                       !- Upper Limit Value
@@ -606,7 +593,7 @@ OS:ScheduleTypeLimits,
   ActivityLevel;                          !- Unit Type
 
 OS:ScheduleTypeLimits,
-  {b9803acd-6ee0-453a-8c27-e1da9418057e}, !- Handle
+  {21113e06-429d-44ff-bafb-0375944de97d}, !- Handle
   Fractional,                             !- Name
   0,                                      !- Lower Limit Value
   1,                                      !- Upper Limit Value

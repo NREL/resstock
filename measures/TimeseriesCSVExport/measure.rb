@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
@@ -40,7 +42,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments
+  def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make an argument for the frequency
@@ -116,8 +118,15 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    if not runner.validateUserArguments(arguments(), user_arguments)
+    if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
@@ -134,14 +143,6 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
       output_vars = output_vars.uniq
     end
 
-    # Get the last model and sql file
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError('Cannot find last model.')
-      return false
-    end
-    model = model.get
-
     sqlFile = runner.lastEnergyPlusSqlFile
     if sqlFile.empty?
       runner.registerError('Cannot find last sql file.')
@@ -155,6 +156,7 @@ class TimeseriesCSVExport < OpenStudio::Measure::ReportingMeasure
     sqlFile.availableEnvPeriods.each do |env_pd|
       env_type = sqlFile.environmentType(env_pd)
       next unless env_type.is_initialized
+
       if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
         ann_env_pd = env_pd
       end

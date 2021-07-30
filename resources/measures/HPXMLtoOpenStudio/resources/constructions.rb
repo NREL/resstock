@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 require_relative 'materials'
@@ -144,7 +146,7 @@ class WallConstructions
     stud_frac = 1.5 / framing_spacing
     misc_framing_factor = framing_factor - stud_frac
     if misc_framing_factor < 0
-      runner.registerError("Framing Factor (#{framing_factor.to_s}) is less than the framing solely provided by the studs (#{stud_frac.to_s}).")
+      runner.registerError("Framing Factor (#{framing_factor}) is less than the framing solely provided by the studs (#{stud_frac}).")
       return false
     end
     dsGapFactor = get_gap_factor(install_grade, framing_factor, cavity_r)
@@ -230,10 +232,10 @@ class WallConstructions
     end
 
     # Define materials
-    mat_cmu = Material.new(name = "WallCMU", thick_in = thick_in, mat_base = BaseMaterial.Concrete, k_in = conductivity, rho = density)
+    mat_cmu = Material.new(name = 'WallCMU', thick_in = thick_in, mat_base = BaseMaterial.Concrete, k_in = conductivity, rho = density)
 
     # If no exterior finish, use exterior finish absorptance values for CMU/Brick
-    if not mat_ext_finish.nil? and mat_ext_finish.name.include? "None"
+    if (not mat_ext_finish.nil?) && mat_ext_finish.name.include?('None')
       mat_cmu.tAbs, mat_cmu.sAbs, mat_cmu.vAbs = mat_ext_finish.tAbs, mat_ext_finish.sAbs, mat_ext_finish.vAbs
     end
 
@@ -272,7 +274,7 @@ class WallConstructions
     constr = Construction.new(constr_name, path_fracs)
     if not mat_ext_finish.nil?
       constr.add_layer(Material.AirFilmOutside)
-      if not mat_ext_finish.name.include? "None"
+      if not mat_ext_finish.name.include? 'None'
         constr.add_layer(mat_ext_finish)
       end
     else # interior wall
@@ -815,7 +817,7 @@ class WallConstructions
   def self.get_exterior_finish_materials
     mats = []
     mats << Material.ExtFinishStuccoMedDark
-    mats << Material.ExtFinishStuccoMedLight
+    mats << Material.ExtFinishStuccoLight
     mats << Material.ExtFinishBrickLight
     mats << Material.ExtFinishBrickMedDark
     mats << Material.ExtFinishWoodLight
@@ -1602,7 +1604,7 @@ class FoundationConstructions
     end
     if surface.outsideBoundaryCondition.downcase == 'foundation'
       if exposed_perimeter <= 0
-        runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name.to_s}'.")
+        runner.registerError("Calculated an exposed perimeter <= 0 for slab '#{surface.name}'.")
         return false
       end
       # Assign surface to Kiva foundation
@@ -1846,29 +1848,21 @@ class SubsurfaceConstructions
     return true
   end
 
-  def self.apply_window(runner, model, subsurfaces, constr_name, weather,
-                        cooling_season, ufactor, shgc, heat_shade_mult, cool_shade_mult)
-
-    success = apply_window_skylight(runner, model, 'Window', subsurfaces, constr_name, weather,
-                                    cooling_season, ufactor, shgc, heat_shade_mult, cool_shade_mult)
+  def self.apply_window(runner, model, subsurfaces, constr_name, ufactor, shgc)
+    success = apply_window_skylight(runner, model, 'Window', subsurfaces, constr_name, ufactor, shgc)
     return false if not success
 
     return true
   end
 
-  def self.apply_skylight(runner, model, subsurfaces, constr_name, weather,
-                          cooling_season, ufactor, shgc, heat_shade_mult, cool_shade_mult)
-
-    success = apply_window_skylight(runner, model, 'Skylight', subsurfaces, constr_name, weather,
-                                    cooling_season, ufactor, shgc, heat_shade_mult, cool_shade_mult)
+  def self.apply_skylight(runner, model, subsurfaces, constr_name, ufactor, shgc)
+    success = apply_window_skylight(runner, model, 'Skylight', subsurfaces, constr_name, ufactor, shgc)
     return false if not success
 
     return true
   end
 
-  def self.apply_window_skylight(runner, model, type, subsurfaces, constr_name, weather,
-                                 cooling_season, ufactor, shgc, heat_shade_mult, cool_shade_mult)
-
+  def self.apply_window_skylight(runner, model, type, subsurfaces, constr_name, ufactor, shgc)
     return true if subsurfaces.empty?
 
     # Validate Inputs
@@ -1880,64 +1874,17 @@ class SubsurfaceConstructions
       runner.registerError("#{type} SHGC must be greater than zero.")
       return false
     end
-    if (heat_shade_mult < 0) || (heat_shade_mult > 1)
-      runner.registerError('Heating Shade Multiplier must be greater than or equal to zero and less than or equal to one.')
-      return false
-    end
-    if (cool_shade_mult < 0) || (cool_shade_mult > 1)
-      runner.registerError('Cooling Shade Multiplier must be greater than or equal to zero and less than or equal to one.')
-      return false
-    end
-
-    # Define shade and schedule
-    sc = nil
-    if (cool_shade_mult < 1) || (heat_shade_mult < 1)
-      # EnergyPlus doesn't like shades that absorb no heat, transmit no heat or reflect no heat.
-      if cool_shade_mult == 1
-        cool_shade_mult = 0.999
-      end
-      if heat_shade_mult == 1
-        heat_shade_mult = 0.999
-      end
-
-      total_shade_trans = cool_shade_mult / heat_shade_mult * 0.999
-      total_shade_abs = 0.00001
-      total_shade_ref = 1 - total_shade_trans - total_shade_abs
-
-      # Interior Shading Schedule
-      sch = MonthWeekdayWeekendSchedule.new(model, runner, "#{type} shading schedule", Array.new(24, 1), Array.new(24, 1), cooling_season, mult_weekday = 1.0, mult_weekend = 1.0, normalized_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-      if not sch.validated?
-        return false
-      end
-
-      # CoolingShade
-      sm = OpenStudio::Model::Shade.new(model)
-      sm.setName('CoolingShade')
-      sm.setSolarTransmittance(total_shade_trans)
-      sm.setSolarReflectance(total_shade_ref)
-      sm.setVisibleTransmittance(total_shade_trans)
-      sm.setVisibleReflectance(total_shade_ref)
-      sm.setThermalHemisphericalEmissivity(total_shade_abs)
-      sm.setThermalTransmittance(total_shade_trans)
-      sm.setThickness(0.0001)
-      sm.setConductivity(10000)
-      sm.setShadetoGlassDistance(0.001)
-      sm.setTopOpeningMultiplier(0)
-      sm.setBottomOpeningMultiplier(0)
-      sm.setLeftSideOpeningMultiplier(0)
-      sm.setRightSideOpeningMultiplier(0)
-      sm.setAirflowPermeability(0)
-
-      # ShadingControl
-      sc = OpenStudio::Model::ShadingControl.new(sm)
-      sc.setName("#{type}ShadingControl")
-      sc.setShadingType('InteriorShade')
-      sc.setShadingControlType('OnIfScheduleAllows')
-      sc.setSchedule(sch.schedule)
-    end
 
     # Define materials
-    glaz_mat = GlazingMaterial.new(name = "#{type}Material", ufactor = ufactor, shgc *= heat_shade_mult)
+    if type == 'Skylight'
+      # As of 2004, NFRC skylights are rated at a 20-degree slope (instead of vertical), but
+      # the E+ SimpleGlazingSystem model accepts a U-factor that "is assumed to be for
+      # vertically mounted products". According to NFRC, "Ratings ... shall be converted to
+      # the 20-deg slope from the vertical position by multiplying the tested value at vertical
+      # by 1.20." Thus we divide by 1.2 to get the vertical position value.
+      ufactor /= 1.2
+    end
+    glaz_mat = GlazingMaterial.new(name = "#{type}Material", ufactor = ufactor, shgc = shgc)
 
     # Set paths
     path_fracs = [1]
@@ -1951,39 +1898,7 @@ class SubsurfaceConstructions
       return false
     end
 
-    sc_msg = ''
-    if sc.nil?
-      # Remove any existing shading controls
-      objects_to_remove = []
-      subsurfaces.each do |subsurface|
-        next if not subsurface.shadingControl.is_initialized
-
-        shade_control = subsurface.shadingControl.get
-        if shade_control.shadingMaterial.is_initialized
-          objects_to_remove << shade_control.shadingMaterial.get
-        end
-        if shade_control.schedule.is_initialized
-          objects_to_remove << shade_control.schedule.get
-        end
-        objects_to_remove << shade_control
-        subsurface.resetShadingControl
-      end
-      objects_to_remove.uniq.each do |object|
-        begin
-          object.remove
-        rescue
-          # no op
-        end
-      end
-    else
-      # Add shading controls
-      sc_msg = ' and interior shades'
-      subsurfaces.each do |subsurface|
-        subsurface.setShadingControl(sc)
-      end
-    end
-
-    runner.registerInfo("Construction#{sc_msg} added to #{subsurfaces.size.to_s} #{constr_name.gsub('Construction', '').downcase}(s).")
+    runner.registerInfo("Construction added to #{subsurfaces.size} #{constr_name.gsub('Construction', '').downcase}(s).")
 
     return true
   end
@@ -2068,7 +1983,7 @@ class ThermalMassConstructions
 
       # Remove any existing internal mass
       space.internalMass.each do |im|
-        runner.registerInfo("Removing internal mass object '#{im.name.to_s}' from space '#{space.name.to_s}'")
+        runner.registerInfo("Removing internal mass object '#{im.name}' from space '#{space.name}'")
         imdef = im.internalMassDefinition
         im.remove
         imdef.resetConstruction
@@ -2078,14 +1993,14 @@ class ThermalMassConstructions
       # Add partition walls within spaces (those without geometric representation)
       # as internal mass object.
       imdef = OpenStudio::Model::InternalMassDefinition.new(model)
-      imdef.setName("#{space.name.to_s} Partition")
+      imdef.setName("#{space.name} Partition")
       imdef.setSurfaceArea(part_surface_area)
       imdefs << imdef
 
       im = OpenStudio::Model::InternalMass.new(imdef)
-      im.setName("#{space.name.to_s} Partition")
+      im.setName("#{space.name} Partition")
       im.setSpace(space)
-      runner.registerInfo("Added internal mass object '#{im.name.to_s}' to space '#{space.name.to_s}'")
+      runner.registerInfo("Added internal mass object '#{im.name}' to space '#{space.name}'")
     end
 
     if not WallConstructions.apply_wood_stud(runner, model,
@@ -2142,9 +2057,9 @@ class ThermalMassConstructions
       next if furnAreaFraction <= 0
       next if space.floorArea <= 0
 
-      mat_obj_name_space = "#{Constants.ObjectNameFurniture} material #{space.name.to_s}"
-      constr_obj_name_space = "#{Constants.ObjectNameFurniture} construction #{space.name.to_s}"
-      mass_obj_name_space = "#{Constants.ObjectNameFurniture} mass #{space.name.to_s}"
+      mat_obj_name_space = "#{Constants.ObjectNameFurniture} material #{space.name}"
+      constr_obj_name_space = "#{Constants.ObjectNameFurniture} construction #{space.name}"
+      mass_obj_name_space = "#{Constants.ObjectNameFurniture} mass #{space.name}"
 
       furnThickness = UnitConversions.convert(furnMass / (furnDensity * furnAreaFraction), 'ft', 'in')
 
@@ -2246,7 +2161,7 @@ class Construction
   def assembly_absorptance(runner)
     # Calculate absorptance values for assembly
     if not validated?(runner)
-      return nil
+      return
     end
 
     tAbs, sAbs, vAbs = [0] * 3
@@ -2403,14 +2318,14 @@ class Construction
   def validated?(runner)
     # Check that sum of path fracs equal 1
     if (@sum_path_fracs <= 0.999) || (@sum_path_fracs >= 1.001)
-      runner.registerError("Invalid construction: Sum of path fractions (#{@sum_path_fracs.to_s}) is not 1.")
+      runner.registerError("Invalid construction: Sum of path fractions (#{@sum_path_fracs}) is not 1.")
       return false
     end
 
     # Check that all path fractions are not negative
     @path_fracs.each do |path_frac|
       if path_frac < 0
-        runner.registerError("Invalid construction: Path fraction (#{path_frac.to_s}) must be greater than or equal to 0.")
+        runner.registerError("Invalid construction: Path fraction (#{path_frac}) must be greater than or equal to 0.")
         return false
       end
     end
@@ -2549,7 +2464,7 @@ class Construction
         mat.setVisibleAbsorptance(material.vAbs)
       end
     end
-    runner.registerInfo("Material '#{mat.name.to_s}' was created.")
+    runner.registerInfo("Material '#{mat.name}' was created.")
     return mat
   end
 
@@ -2564,7 +2479,7 @@ class Construction
       mats_s += layer.name.to_s + ' | '
     end
     mats_s.chomp!(' | ')
-    runner.registerInfo("Construction '#{surface.construction.get.name.to_s}' was created with #{num_layers.to_s} material#{s.to_s} (#{mats_s.to_s}).")
+    runner.registerInfo("Construction '#{surface.construction.get.name}' was created with #{num_layers} material#{s} (#{mats_s}).")
   end
 
   def print_construction_assignment(runner, surface)
@@ -2575,7 +2490,7 @@ class Construction
     else
       type_s = 'Surface'
     end
-    runner.registerInfo("#{type_s.to_s} '#{surface.name.to_s}' has been assigned construction '#{surface.construction.get.name.to_s}'.")
+    runner.registerInfo("#{type_s} '#{surface.name}' has been assigned construction '#{surface.construction.get.name}'.")
   end
 end
 
@@ -2879,7 +2794,7 @@ def get_surface_ufactor(runner, surface, surface_type, register_error = false)
   else
     if not surface.construction.is_initialized
       if register_error
-        runner.registerError("Construction not assigned to '#{surface.name.to_s}'.")
+        runner.registerError("Construction not assigned to '#{surface.name}'.")
       end
       return
     end
@@ -2889,7 +2804,7 @@ def get_surface_ufactor(runner, surface, surface_type, register_error = false)
       # two different values for, e.g., floor vs adjacent roofceiling
       if not surface.adjacentSurface.get.construction.is_initialized
         if register_error
-          runner.registerError("Construction not assigned to '#{surface.adjacentSurface.get.name.to_s}'.")
+          runner.registerError("Construction not assigned to '#{surface.adjacentSurface.get.name}'.")
         end
         return
       end
@@ -2903,18 +2818,18 @@ end
 def get_window_simple_glazing(runner, surface, register_error = false)
   if not surface.construction.is_initialized
     if register_error
-      runner.registerError("Construction not assigned to '#{surface.name.to_s}'.")
+      runner.registerError("Construction not assigned to '#{surface.name}'.")
     end
     return
   end
   construction = surface.construction.get
   if not construction.to_LayeredConstruction.is_initialized
-    runner.registerError("Expected LayeredConstruction for '#{surface.name.to_s}'.")
+    runner.registerError("Expected LayeredConstruction for '#{surface.name}'.")
     return
   end
   window_layered_construction = construction.to_LayeredConstruction.get
   if not window_layered_construction.getLayer(0).to_SimpleGlazing.is_initialized
-    runner.registerError("Expected SimpleGlazing for '#{surface.name.to_s}'.")
+    runner.registerError("Expected SimpleGlazing for '#{surface.name}'.")
     return
   end
   simple_glazing = window_layered_construction.getLayer(0).to_SimpleGlazing.get

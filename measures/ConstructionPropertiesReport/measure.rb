@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # insert your copyright here
 
 # see the URL below for information on how to write OpenStudio measures
@@ -35,7 +37,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments
+  def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make an bool argument for whether to register to results csv or export to csv
@@ -109,21 +111,19 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    if !runner.validateUserArguments(arguments, user_arguments)
+    if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
     register_values = runner.getBoolArgumentValue('register_values', user_arguments)
-
-    # get the last model and sql file
-
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError('Cannot find last model.')
-      return false
-    end
-    model = model.get
 
     sqlFile = runner.lastEnergyPlusSqlFile
     if sqlFile.empty?

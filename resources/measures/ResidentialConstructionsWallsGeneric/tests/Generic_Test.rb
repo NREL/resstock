@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -235,8 +237,8 @@ class ProcessConstructionsWallsGenericTest < MiniTest::Test
 
   def test_argument_error_none_ext_finish
     args_hash = {}
-    args_hash["exterior_finish"] = "None, Brick"
-    result = _test_error("SFD_2000sqft_2story_SL_UA_CeilingIns.osm", args_hash)
+    args_hash['exterior_finish'] = 'None, Brick'
+    result = _test_error('SFD_2000sqft_2story_SL_UA_CeilingIns.osm', args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], "Generic wall type cannot have a 'None' exterior finish")
   end
 
