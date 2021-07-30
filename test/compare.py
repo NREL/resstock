@@ -18,7 +18,8 @@ enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family
                                                                   'Multi-Family with 2 - 4 Units': 'MF',
                                                                   'Multi-Family with 5+ Units': 'MF'} }
 
-cols_to_ignore = ['simulation_output_report.include_timeseries_end_use_consumptions']
+cols_to_ignore = ['simulation_output_report.include_timeseries_end_use_consumptions',
+                  'color_index']
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
