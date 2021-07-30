@@ -15,7 +15,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     all_results_characteristics = []
     all_results_output = []
-    [['project_testing', 100], ['project_national', 3000]].each do |scenario|
+    [['project_testing', 100], ['project_national', 3000]].each_with_index do |scenario, i|
       project_dir, num_samples = scenario
 
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
@@ -65,6 +65,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
           osw = "#{project_dir}-#{building_id.to_s.rjust(4, '0')}.osw"
           result_characteristics['OSW'] = osw
           result_output['OSW'] = osw
+          result_output['color_index'] = i
 
           all_results_characteristics << result_characteristics
           all_results_output << result_output

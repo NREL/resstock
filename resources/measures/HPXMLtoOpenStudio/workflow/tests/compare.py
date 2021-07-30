@@ -5,6 +5,7 @@ import pandas as pd
 import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 
 class BaseCompare:
     def __init__(self, base_folder, feature_folder, export_folder, export_file):
@@ -122,6 +123,8 @@ class BaseCompare:
                 self.export_file))
 
     def visualize(self, aggregate_column=None, aggregate_function=None, display_column=None, excludes=[], enum_maps={}, cols_to_ignore=[]):
+        colors = px.colors.qualitative.Light24
+
         aggregate_columns = []
         if aggregate_column:
             aggregate_columns.append(aggregate_column)
@@ -265,9 +268,13 @@ class BaseCompare:
                                                      showlegend=False),
                                           row=nrow, col=ncol)
                     else:
+                        color = [colors[0] for i in y[col]]
+                        if 'color_index' in y.columns.values:
+                            color = [colors[i] for i in y['color_index']]
                         fig.add_trace(go.Scatter(x=x[col],
                                                  y=y[col],
                                                  marker=dict(size=12,
+                                                             color=color,
                                                              line=dict(width=1.5,
                                                                        color='DarkSlateGrey')),
                                                  mode='markers',
