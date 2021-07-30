@@ -61,7 +61,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def peak_magnitude_timing
-    output_names = ['peak_magnitude_timing_kw']
+    output_names = ['peak_magnitude_timing_hour']
     return output_names
   end
 

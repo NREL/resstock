@@ -380,7 +380,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
 
       # Get existing building option name for the same parameter
       if past_results
-        segment_existing_option = values[segment_parameter]
+        segment_existing_option = values[OpenStudio::toUnderscoreCase(segment_parameter)]
       else
         segment_existing_option = get_value_from_runner(runner, segment_parameter)
       end
