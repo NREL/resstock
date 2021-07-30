@@ -18,7 +18,14 @@ enum_maps = {'geometry_building_type_recs': {'Single-Family Detached': 'SFD',
                                              'Multi-Family with 2 - 4 Units': 'MF',
                                              'Multi-Family with 5+ Units': 'MF'} }
 
-cols_to_ignore = ['include_', 'timeseries_', 'output_format_', 'completed_status_', 'applicable', 'upgrade_name_', 'upgrade_cost_']
+cols_to_ignore = ['include_',
+                  'timeseries_',
+                  'output_format_',
+                  'completed_status_',
+                  'applicable',
+                  'upgrade_name_',
+                  'upgrade_cost_',
+                  'color_index']
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
