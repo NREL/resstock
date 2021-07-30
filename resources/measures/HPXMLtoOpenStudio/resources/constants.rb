@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Constants
   # Numbers --------------------
 
@@ -1219,6 +1221,10 @@ class Constants
   end
 
   def self.SizingInfoWindowOverhangDepth
+    return __method__.to_s
+  end
+
+  def self.SizingInfoWindowSummerShadingFactor
     return __method__.to_s
   end
 

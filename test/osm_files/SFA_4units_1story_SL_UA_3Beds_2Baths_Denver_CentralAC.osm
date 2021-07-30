@@ -1,41 +1,49 @@
 !- NOTE: Auto-generated from /test/osw_files/SFA_4units_1story_SL_UA_3Beds_2Baths_Denver_CentralAC.osw
 
 OS:Version,
-  {5827eaef-00a5-4402-b850-8faf2e1a512d}, !- Handle
-  2.9.0;                                  !- Version Identifier
+  {4fa6c217-e64b-4b98-9cb2-12de19e6300c}, !- Handle
+  3.2.1;                                  !- Version Identifier
 
 OS:SimulationControl,
-  {162cde4d-9416-46ce-bcdb-16ce126aa8ac}, !- Handle
+  {0b7069cf-b2ab-4b4b-81b9-57cc9fe49855}, !- Handle
   ,                                       !- Do Zone Sizing Calculation
   ,                                       !- Do System Sizing Calculation
   ,                                       !- Do Plant Sizing Calculation
   No;                                     !- Run Simulation for Sizing Periods
 
 OS:Timestep,
-  {9a20988b-2050-4ec3-9ec4-91b524487aa2}, !- Handle
+  {aaa28d88-30ff-4ea4-af98-a203fd5d1728}, !- Handle
   6;                                      !- Number of Timesteps per Hour
 
 OS:ShadowCalculation,
-  {cd1664e8-a8a1-40a3-9056-06c5acf21f65}, !- Handle
-  20,                                     !- Calculation Frequency
-  200;                                    !- Maximum Figures in Shadow Overlap Calculations
+  {810c90e4-bef1-4514-9c1b-bebf326c2b4c}, !- Handle
+  PolygonClipping,                        !- Shading Calculation Method
+  ,                                       !- Shading Calculation Update Frequency Method
+  20,                                     !- Shading Calculation Update Frequency
+  200,                                    !- Maximum Figures in Shadow Overlap Calculations
+  ,                                       !- Polygon Clipping Algorithm
+  512,                                    !- Pixel Counting Resolution
+  DetailedSkyDiffuseModeling,             !- Sky Diffuse Modeling Algorithm
+  No,                                     !- Output External Shading Calculation Results
+  No,                                     !- Disable Self-Shading Within Shading Zone Groups
+  No;                                     !- Disable Self-Shading From Shading Zone Groups to Other Zones
 
 OS:SurfaceConvectionAlgorithm:Outside,
-  {91a94ae8-d188-427b-9b04-4a435a8054bb}, !- Handle
+  {435c13ea-3626-430d-bf88-bc9926ff1648}, !- Handle
   DOE-2;                                  !- Algorithm
 
 OS:SurfaceConvectionAlgorithm:Inside,
-  {ff332e0a-bae7-4e47-8dc7-33c0cd61cf99}, !- Handle
+  {15c0b210-efe4-4034-99af-e97927a132e3}, !- Handle
   TARP;                                   !- Algorithm
 
 OS:ZoneCapacitanceMultiplier:ResearchSpecial,
-  {8d9f126e-2759-4d79-ad4c-3e449a081c98}, !- Handle
+  {9ce18ce0-3a99-448e-ad0a-cfdf09322551}, !- Handle
   ,                                       !- Temperature Capacity Multiplier
   15,                                     !- Humidity Capacity Multiplier
   ;                                       !- Carbon Dioxide Capacity Multiplier
 
 OS:RunPeriod,
-  {706b552f-37e1-4c68-aad2-c9f2db0fde05}, !- Handle
+  {a3b0905b-e4fe-4b87-9132-fd9912a2eade}, !- Handle
   Run Period 1,                           !- Name
   1,                                      !- Begin Month
   1,                                      !- Begin Day of Month
@@ -49,13 +57,13 @@ OS:RunPeriod,
   ;                                       !- Number of Times Runperiod to be Repeated
 
 OS:YearDescription,
-  {42b1a0df-6b0f-47b8-9722-0b5988ea0885}, !- Handle
+  {6538c060-ed2e-42c2-b547-38c302fe019d}, !- Handle
   2007,                                   !- Calendar Year
   ,                                       !- Day of Week for Start Day
   ;                                       !- Is Leap Year
 
 OS:WeatherFile,
-  {78bdcc84-9764-437e-9f5f-9caecf77bff9}, !- Handle
+  {7f18f581-66cf-4217-a0be-9ac18be3de16}, !- Handle
   Denver Intl Ap,                         !- City
   CO,                                     !- State Province Region
   USA,                                    !- Country
@@ -65,12 +73,12 @@ OS:WeatherFile,
   -104.65,                                !- Longitude {deg}
   -7,                                     !- Time Zone {hr}
   1650,                                   !- Elevation {m}
-  file:../weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw, !- Url
+  C:/OpenStudio/resstock/resources/measures/HPXMLtoOpenStudio/weather/USA_CO_Denver.Intl.AP.725650_TMY3.epw, !- Url
   E23378AA;                               !- Checksum
 
 OS:AdditionalProperties,
-  {75f93a72-c58d-4ce6-bf73-9c6ecc687edf}, !- Handle
-  {78bdcc84-9764-437e-9f5f-9caecf77bff9}, !- Object Name
+  {a8c595ac-c8ee-4987-b590-96fb80d98067}, !- Handle
+  {7f18f581-66cf-4217-a0be-9ac18be3de16}, !- Object Name
   EPWHeaderCity,                          !- Feature Name 1
   String,                                 !- Feature Data Type 1
   Denver Intl Ap,                         !- Feature Value 1
@@ -178,7 +186,7 @@ OS:AdditionalProperties,
   84;                                     !- Feature Value 35
 
 OS:Site,
-  {acf854ae-f0dc-4dcf-a528-0ab72a037a56}, !- Handle
+  {d1364890-a021-4111-ad00-d2aa3ee294d0}, !- Handle
   Denver Intl Ap_CO_USA,                  !- Name
   39.83,                                  !- Latitude {deg}
   -104.65,                                !- Longitude {deg}
@@ -187,32 +195,26 @@ OS:Site,
   ;                                       !- Terrain
 
 OS:ClimateZones,
-  {8963ca2e-da81-40e6-9ded-f8d453775da7}, !- Handle
-  ,                                       !- Active Institution
-  ,                                       !- Active Year
-  ,                                       !- Climate Zone Institution Name 1
+  {8cb64419-87b2-4a78-8a38-5e46ab0ef56e}, !- Handle
+  Building America,                       !- Climate Zone Institution Name 1
   ,                                       !- Climate Zone Document Name 1
-  ,                                       !- Climate Zone Document Year 1
-  ,                                       !- Climate Zone Value 1
-  Building America,                       !- Climate Zone Institution Name 2
-  ,                                       !- Climate Zone Document Name 2
-  0,                                      !- Climate Zone Document Year 2
-  Cold;                                   !- Climate Zone Value 2
+  0,                                      !- Climate Zone Document Year 1
+  Cold;                                   !- Climate Zone Value 1
 
 OS:Site:WaterMainsTemperature,
-  {c2165378-d740-49f7-b5e7-b7cc44b58208}, !- Handle
+  {2a661500-1054-4707-b33a-b160bc266aba}, !- Handle
   Correlation,                            !- Calculation Method
   ,                                       !- Temperature Schedule Name
   10.8753424657535,                       !- Annual Average Outdoor Air Temperature {C}
   23.1524007936508;                       !- Maximum Difference In Monthly Average Outdoor Air Temperatures {deltaC}
 
 OS:RunPeriodControl:DaylightSavingTime,
-  {bd18a9cc-bc47-46ea-85cd-b9a7946cc6e6}, !- Handle
+  {9e0b0ade-f7e3-442e-ae11-cc4afc10bdc3}, !- Handle
   3/12,                                   !- Start Date
   11/5;                                   !- End Date
 
 OS:Site:GroundTemperature:Deep,
-  {e243f8d3-8226-41f4-afef-5625a24ea5fe}, !- Handle
+  {bac90605-9dfd-4a6a-a4c3-4436f4913268}, !- Handle
   10.8753424657535,                       !- January Deep Ground Temperature {C}
   10.8753424657535,                       !- February Deep Ground Temperature {C}
   10.8753424657535,                       !- March Deep Ground Temperature {C}
@@ -227,7 +229,7 @@ OS:Site:GroundTemperature:Deep,
   10.8753424657535;                       !- December Deep Ground Temperature {C}
 
 OS:Building,
-  {86a6454e-3d85-4a32-9381-f3ab1fa94b0c}, !- Handle
+  {4db2b03a-7a6b-4015-a6ef-0f93fdfa0577}, !- Handle
   Building 1,                             !- Name
   ,                                       !- Building Sector Type
   0,                                      !- North Axis {deg}
@@ -242,8 +244,8 @@ OS:Building,
   4;                                      !- Standards Number of Living Units
 
 OS:AdditionalProperties,
-  {4d5dd534-450a-4b5c-960b-754b8d6c7ead}, !- Handle
-  {86a6454e-3d85-4a32-9381-f3ab1fa94b0c}, !- Object Name
+  {faf90b6f-4e36-45c1-b2fa-389bf4df680c}, !- Handle
+  {4db2b03a-7a6b-4015-a6ef-0f93fdfa0577}, !- Object Name
   num_units,                              !- Feature Name 1
   Integer,                                !- Feature Data Type 1
   4,                                      !- Feature Value 1
@@ -258,7 +260,7 @@ OS:AdditionalProperties,
   1;                                      !- Feature Value 4
 
 OS:ThermalZone,
-  {45fc50fd-9e47-47a4-b638-cfd0daf53439}, !- Handle
+  {b06d7ea6-deb2-40b2-b92d-2f6a6f2c87d3}, !- Handle
   living zone,                            !- Name
   ,                                       !- Multiplier
   ,                                       !- Ceiling Height {m}
@@ -267,53 +269,49 @@ OS:ThermalZone,
   ,                                       !- Zone Inside Convection Algorithm
   ,                                       !- Zone Outside Convection Algorithm
   ,                                       !- Zone Conditioning Equipment List Name
-  {a94dc248-a810-4b3a-80ab-046ed25fb13f}, !- Zone Air Inlet Port List
-  {18fa2422-5439-4a2c-9883-009684c48200}, !- Zone Air Exhaust Port List
-  {654c96a8-398e-46ee-b0a7-3c9759a442e1}, !- Zone Air Node Name
-  {96f1aa61-c858-4752-92da-ef4a8df61d49}, !- Zone Return Air Port List
+  {de54ec43-e941-4072-8fb0-3ae2f085d3a4}, !- Zone Air Inlet Port List
+  {36f27af7-960a-4a57-adb6-50163ad16a12}, !- Zone Air Exhaust Port List
+  {58ffc172-9a3d-46e2-b3ba-556a6331a2ed}, !- Zone Air Node Name
+  {27b302dd-5cff-45f7-a996-dfa15062aa28}, !- Zone Return Air Port List
   ,                                       !- Primary Daylighting Control Name
   ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
   ,                                       !- Secondary Daylighting Control Name
   ,                                       !- Fraction of Zone Controlled by Secondary Daylighting Control
   ,                                       !- Illuminance Map Name
   ,                                       !- Group Rendering Name
-  {5ad99312-1efb-44ce-b920-5e1628a7b745}, !- Thermostat Name
+  {8fbbc126-e61d-4cb7-b067-3ff1ae59ef8d}, !- Thermostat Name
   No;                                     !- Use Ideal Air Loads
 
 OS:Node,
-  {78ff1827-0754-4958-93a0-0210bfbf89bc}, !- Handle
+  {8accc441-db89-4b7b-812f-a3922aecea42}, !- Handle
   Node 1,                                 !- Name
-  {654c96a8-398e-46ee-b0a7-3c9759a442e1}, !- Inlet Port
+  {58ffc172-9a3d-46e2-b3ba-556a6331a2ed}, !- Inlet Port
   ;                                       !- Outlet Port
 
 OS:Connection,
-  {654c96a8-398e-46ee-b0a7-3c9759a442e1}, !- Handle
-  {53c5edf1-cad2-4946-8376-a63c96a1cdd2}, !- Name
-  {45fc50fd-9e47-47a4-b638-cfd0daf53439}, !- Source Object
+  {58ffc172-9a3d-46e2-b3ba-556a6331a2ed}, !- Handle
+  {b06d7ea6-deb2-40b2-b92d-2f6a6f2c87d3}, !- Source Object
   11,                                     !- Outlet Port
-  {78ff1827-0754-4958-93a0-0210bfbf89bc}, !- Target Object
+  {8accc441-db89-4b7b-812f-a3922aecea42}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:PortList,
-  {a94dc248-a810-4b3a-80ab-046ed25fb13f}, !- Handle
-  {9997fa66-7fb6-44ee-abbb-e3c3c7dbdd76}, !- Name
-  {45fc50fd-9e47-47a4-b638-cfd0daf53439}, !- HVAC Component
-  {fe519453-0659-4f59-96b6-5349c5fe10e2}; !- Port 1
+  {de54ec43-e941-4072-8fb0-3ae2f085d3a4}, !- Handle
+  {b06d7ea6-deb2-40b2-b92d-2f6a6f2c87d3}, !- HVAC Component
+  {5ba8e442-c4af-4fda-875c-d2d39964d2da}; !- Port 1
 
 OS:PortList,
-  {18fa2422-5439-4a2c-9883-009684c48200}, !- Handle
-  {9cb61e90-ca9b-4746-a06b-db074aadeca9}, !- Name
-  {45fc50fd-9e47-47a4-b638-cfd0daf53439}; !- HVAC Component
+  {36f27af7-960a-4a57-adb6-50163ad16a12}, !- Handle
+  {b06d7ea6-deb2-40b2-b92d-2f6a6f2c87d3}; !- HVAC Component
 
 OS:PortList,
-  {96f1aa61-c858-4752-92da-ef4a8df61d49}, !- Handle
-  {1e6b6c7f-f673-4c41-8656-3e12f8683c7c}, !- Name
-  {45fc50fd-9e47-47a4-b638-cfd0daf53439}, !- HVAC Component
-  {ff474aee-1178-4742-8942-66a626f830f4}; !- Port 1
+  {27b302dd-5cff-45f7-a996-dfa15062aa28}, !- Handle
+  {b06d7ea6-deb2-40b2-b92d-2f6a6f2c87d3}, !- HVAC Component
+  {9d401791-99a7-4ad9-955d-4aa8c957fd71}; !- Port 1
 
 OS:Sizing:Zone,
-  {e577e302-cfd8-40fe-a885-1175b48e8d7d}, !- Handle
-  {45fc50fd-9e47-47a4-b638-cfd0daf53439}, !- Zone or ZoneList Name
+  {40eeead2-0350-4a9a-acf7-f05ab2f8415f}, !- Handle
+  {b06d7ea6-deb2-40b2-b92d-2f6a6f2c87d3}, !- Zone or ZoneList Name
   SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
   14,                                     !- Zone Cooling Design Supply Air Temperature {C}
   11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
@@ -334,28 +332,26 @@ OS:Sizing:Zone,
   ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
   ,                                       !- Heating Maximum Air Flow {m3/s}
   ,                                       !- Heating Maximum Air Flow Fraction
-  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
-  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
   No,                                     !- Account for Dedicated Outdoor Air System
   NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
   autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
   autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
 OS:ZoneHVAC:EquipmentList,
-  {29006121-a86c-4a58-882f-9dca9b85642d}, !- Handle
+  {74197362-cb9b-4295-ba35-5dfd4b43a542}, !- Handle
   Zone HVAC Equipment List 1,             !- Name
-  {45fc50fd-9e47-47a4-b638-cfd0daf53439}, !- Thermal Zone
+  {b06d7ea6-deb2-40b2-b92d-2f6a6f2c87d3}, !- Thermal Zone
   SequentialLoad,                         !- Load Distribution Scheme
-  {a001fc94-e757-4ca1-b053-716ce8fcc60c}, !- Zone Equipment 1
+  {60e0a4a1-8bd2-478b-8ef9-911170449007}, !- Zone Equipment 1
   1,                                      !- Zone Equipment Cooling Sequence 1
   1,                                      !- Zone Equipment Heating or No-Load Sequence 1
   ,                                       !- Zone Equipment Sequential Cooling Fraction Schedule Name 1
   ;                                       !- Zone Equipment Sequential Heating Fraction Schedule Name 1
 
 OS:Space,
-  {bc7e4a9d-b581-4716-98f7-e2a79a32624c}, !- Handle
+  {c6eaeab0-5021-4aec-9dcf-7fb0fa8a8b00}, !- Handle
   living space,                           !- Name
-  {4e94896f-f0d4-46ca-ad8b-3b9b5321fc1d}, !- Space Type Name
+  {e411c8a8-457f-4b54-b284-f2763a9a6e80}, !- Space Type Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
   ,                                       !- Direction of Relative North {deg}
@@ -363,17 +359,17 @@ OS:Space,
   ,                                       !- Y Origin {m}
   ,                                       !- Z Origin {m}
   ,                                       !- Building Story Name
-  {45fc50fd-9e47-47a4-b638-cfd0daf53439}, !- Thermal Zone Name
+  {b06d7ea6-deb2-40b2-b92d-2f6a6f2c87d3}, !- Thermal Zone Name
   ,                                       !- Part of Total Floor Area
   ,                                       !- Design Specification Outdoor Air Object Name
-  {7d4ef823-6f06-4aa3-8f6d-4c4690cf6fac}; !- Building Unit Name
+  {cc6ffeb2-218a-4cbc-acab-1f2e88b405b8}; !- Building Unit Name
 
 OS:Surface,
-  {66cbf323-d5b5-4036-824c-01a478fd932b}, !- Handle
+  {39b2c6c5-5369-4245-ada3-c0cb1a1430c8}, !- Handle
   Surface 1,                              !- Name
   Floor,                                  !- Surface Type
   ,                                       !- Construction Name
-  {bc7e4a9d-b581-4716-98f7-e2a79a32624c}, !- Space Name
+  {c6eaeab0-5021-4aec-9dcf-7fb0fa8a8b00}, !- Space Name
   Foundation,                             !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
@@ -386,11 +382,11 @@ OS:Surface,
   6.46578440716979, -12.9315688143396, 0; !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {cb84cfd0-111d-4d37-8457-071bb5cbe5cc}, !- Handle
+  {0e0673f6-a864-4490-9023-4034b124310c}, !- Handle
   Surface 2,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {bc7e4a9d-b581-4716-98f7-e2a79a32624c}, !- Space Name
+  {c6eaeab0-5021-4aec-9dcf-7fb0fa8a8b00}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -403,11 +399,11 @@ OS:Surface,
   0, -12.9315688143396, 2.4384;           !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {223767cb-609b-4fa2-a2a5-03568f1876c3}, !- Handle
+  {592317bc-11c4-44c3-8a6e-34bc4435a336}, !- Handle
   Surface 3,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {bc7e4a9d-b581-4716-98f7-e2a79a32624c}, !- Space Name
+  {c6eaeab0-5021-4aec-9dcf-7fb0fa8a8b00}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -420,11 +416,11 @@ OS:Surface,
   0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {ca0f0455-8d46-49a3-9d02-16c3be141fad}, !- Handle
+  {12df0099-36f1-413a-b84c-74abf8da8b3e}, !- Handle
   Surface 4,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {bc7e4a9d-b581-4716-98f7-e2a79a32624c}, !- Space Name
+  {c6eaeab0-5021-4aec-9dcf-7fb0fa8a8b00}, !- Space Name
   Adiabatic,                              !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
@@ -437,11 +433,11 @@ OS:Surface,
   6.46578440716979, 0, 2.4384;            !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {4204411b-9f35-4d2b-b40d-0ba5c5bb022c}, !- Handle
+  {c95bbd96-79ae-45c7-8ab6-a0550183874e}, !- Handle
   Surface 5,                              !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {bc7e4a9d-b581-4716-98f7-e2a79a32624c}, !- Space Name
+  {c6eaeab0-5021-4aec-9dcf-7fb0fa8a8b00}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -454,13 +450,13 @@ OS:Surface,
   6.46578440716979, -12.9315688143396, 2.4384; !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {5f8e5b10-c41a-4a17-b253-57c28afb60e5}, !- Handle
+  {0bf45fdd-aef2-414c-8c54-06510ba9a7d0}, !- Handle
   Surface 6,                              !- Name
   RoofCeiling,                            !- Surface Type
   ,                                       !- Construction Name
-  {bc7e4a9d-b581-4716-98f7-e2a79a32624c}, !- Space Name
+  {c6eaeab0-5021-4aec-9dcf-7fb0fa8a8b00}, !- Space Name
   Surface,                                !- Outside Boundary Condition
-  {2e08e66e-75f2-4c10-9cd1-07e64bdf45b3}, !- Outside Boundary Condition Object
+  {61e7dd02-7b82-4510-8f5c-1ad36be78ef2}, !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
   NoWind,                                 !- Wind Exposure
   ,                                       !- View Factor to Ground
@@ -471,7 +467,7 @@ OS:Surface,
   0, -12.9315688143396, 2.4384;           !- X,Y,Z Vertex 4 {m}
 
 OS:SpaceType,
-  {4e94896f-f0d4-46ca-ad8b-3b9b5321fc1d}, !- Handle
+  {e411c8a8-457f-4b54-b284-f2763a9a6e80}, !- Handle
   Space Type 1,                           !- Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
@@ -482,13 +478,13 @@ OS:SpaceType,
   living;                                 !- Standards Space Type
 
 OS:Surface,
-  {2e08e66e-75f2-4c10-9cd1-07e64bdf45b3}, !- Handle
+  {61e7dd02-7b82-4510-8f5c-1ad36be78ef2}, !- Handle
   Surface 7,                              !- Name
   Floor,                                  !- Surface Type
   ,                                       !- Construction Name
-  {9fbf9aec-4221-4395-9c34-ee2990210024}, !- Space Name
+  {c87aab3c-5d46-4335-a869-8d0691c4a7df}, !- Space Name
   Surface,                                !- Outside Boundary Condition
-  {5f8e5b10-c41a-4a17-b253-57c28afb60e5}, !- Outside Boundary Condition Object
+  {0bf45fdd-aef2-414c-8c54-06510ba9a7d0}, !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
   NoWind,                                 !- Wind Exposure
   ,                                       !- View Factor to Ground
@@ -499,11 +495,11 @@ OS:Surface,
   6.46578440716979, -12.9315688143396, 2.4384; !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {5cd3d187-9116-42fc-98d9-74480206d835}, !- Handle
+  {ef4c5b77-ec4d-4bab-aab8-b00548b305bf}, !- Handle
   Surface 8,                              !- Name
   RoofCeiling,                            !- Surface Type
   ,                                       !- Construction Name
-  {9fbf9aec-4221-4395-9c34-ee2990210024}, !- Space Name
+  {c87aab3c-5d46-4335-a869-8d0691c4a7df}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -516,11 +512,11 @@ OS:Surface,
   0, 0, 2.4384;                           !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {c94cca50-4125-4555-b776-1cfa9363ccb2}, !- Handle
+  {932ae4ec-70e4-429e-a09e-6fd98eea0b4a}, !- Handle
   Surface 9,                              !- Name
   RoofCeiling,                            !- Surface Type
   ,                                       !- Construction Name
-  {9fbf9aec-4221-4395-9c34-ee2990210024}, !- Space Name
+  {c87aab3c-5d46-4335-a869-8d0691c4a7df}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -533,11 +529,11 @@ OS:Surface,
   6.46578440716979, -12.9315688143396, 2.4384; !- X,Y,Z Vertex 4 {m}
 
 OS:Surface,
-  {a589fd46-b6f6-4cd7-a11d-427219562648}, !- Handle
+  {e812ac94-e806-4238-bad4-7b271e01608e}, !- Handle
   Surface 10,                             !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {9fbf9aec-4221-4395-9c34-ee2990210024}, !- Space Name
+  {c87aab3c-5d46-4335-a869-8d0691c4a7df}, !- Space Name
   Outdoors,                               !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   SunExposed,                             !- Sun Exposure
@@ -549,11 +545,11 @@ OS:Surface,
   0, -12.9315688143396, 2.4384;           !- X,Y,Z Vertex 3 {m}
 
 OS:Surface,
-  {5bc9a68f-0455-4559-ba20-981450446db9}, !- Handle
+  {031ae86f-cea9-4e47-b615-c351413c7546}, !- Handle
   Surface 11,                             !- Name
   Wall,                                   !- Surface Type
   ,                                       !- Construction Name
-  {9fbf9aec-4221-4395-9c34-ee2990210024}, !- Space Name
+  {c87aab3c-5d46-4335-a869-8d0691c4a7df}, !- Space Name
   Adiabatic,                              !- Outside Boundary Condition
   ,                                       !- Outside Boundary Condition Object
   NoSun,                                  !- Sun Exposure
@@ -565,9 +561,9 @@ OS:Surface,
   6.46578440716979, 0, 2.4384;            !- X,Y,Z Vertex 3 {m}
 
 OS:Space,
-  {9fbf9aec-4221-4395-9c34-ee2990210024}, !- Handle
+  {c87aab3c-5d46-4335-a869-8d0691c4a7df}, !- Handle
   unfinished attic space,                 !- Name
-  {629dc6ff-329f-40ca-8d14-f865c1ef40e1}, !- Space Type Name
+  {df9d5f69-cd90-4d22-a1a6-6590e4efb086}, !- Space Type Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
   ,                                       !- Direction of Relative North {deg}
@@ -575,10 +571,10 @@ OS:Space,
   ,                                       !- Y Origin {m}
   ,                                       !- Z Origin {m}
   ,                                       !- Building Story Name
-  {5e7f5113-787b-4846-8f1e-ee8169b59645}; !- Thermal Zone Name
+  {be65c667-b878-433c-8aa5-e25f526a7317}; !- Thermal Zone Name
 
 OS:ThermalZone,
-  {5e7f5113-787b-4846-8f1e-ee8169b59645}, !- Handle
+  {be65c667-b878-433c-8aa5-e25f526a7317}, !- Handle
   unfinished attic zone,                  !- Name
   ,                                       !- Multiplier
   ,                                       !- Ceiling Height {m}
@@ -587,10 +583,10 @@ OS:ThermalZone,
   ,                                       !- Zone Inside Convection Algorithm
   ,                                       !- Zone Outside Convection Algorithm
   ,                                       !- Zone Conditioning Equipment List Name
-  {5e1fa41b-d077-4c38-8708-0201349ea70c}, !- Zone Air Inlet Port List
-  {db16a982-cdf9-469e-bf67-0802a9a31468}, !- Zone Air Exhaust Port List
-  {f3f9983f-4200-4cdc-8868-fea95b1dd872}, !- Zone Air Node Name
-  {f591efc3-da6f-4732-8ba1-0e23f746da85}, !- Zone Return Air Port List
+  {61d31f9e-171f-45ca-bb7f-c9fb89531759}, !- Zone Air Inlet Port List
+  {72e759d0-4f33-440d-b680-6549712ec927}, !- Zone Air Exhaust Port List
+  {9b226048-94fb-487e-980c-656bdec497df}, !- Zone Air Node Name
+  {6f2c68fe-edfe-499e-8312-290de0d71de1}, !- Zone Return Air Port List
   ,                                       !- Primary Daylighting Control Name
   ,                                       !- Fraction of Zone Controlled by Primary Daylighting Control
   ,                                       !- Secondary Daylighting Control Name
@@ -601,37 +597,33 @@ OS:ThermalZone,
   No;                                     !- Use Ideal Air Loads
 
 OS:Node,
-  {3b4941a7-ccfa-4e07-baee-e4ee3680e3cb}, !- Handle
+  {a7a5db5e-ccc8-4a6d-877e-2ece1ea996f5}, !- Handle
   Node 2,                                 !- Name
-  {f3f9983f-4200-4cdc-8868-fea95b1dd872}, !- Inlet Port
+  {9b226048-94fb-487e-980c-656bdec497df}, !- Inlet Port
   ;                                       !- Outlet Port
 
 OS:Connection,
-  {f3f9983f-4200-4cdc-8868-fea95b1dd872}, !- Handle
-  {47ffb16a-3ae6-459b-8a78-188641e9cf39}, !- Name
-  {5e7f5113-787b-4846-8f1e-ee8169b59645}, !- Source Object
+  {9b226048-94fb-487e-980c-656bdec497df}, !- Handle
+  {be65c667-b878-433c-8aa5-e25f526a7317}, !- Source Object
   11,                                     !- Outlet Port
-  {3b4941a7-ccfa-4e07-baee-e4ee3680e3cb}, !- Target Object
+  {a7a5db5e-ccc8-4a6d-877e-2ece1ea996f5}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:PortList,
-  {5e1fa41b-d077-4c38-8708-0201349ea70c}, !- Handle
-  {a2a93d49-c971-4689-b999-f4e640ae9964}, !- Name
-  {5e7f5113-787b-4846-8f1e-ee8169b59645}; !- HVAC Component
+  {61d31f9e-171f-45ca-bb7f-c9fb89531759}, !- Handle
+  {be65c667-b878-433c-8aa5-e25f526a7317}; !- HVAC Component
 
 OS:PortList,
-  {db16a982-cdf9-469e-bf67-0802a9a31468}, !- Handle
-  {8c9f6595-398b-4c88-a213-af2857442b3a}, !- Name
-  {5e7f5113-787b-4846-8f1e-ee8169b59645}; !- HVAC Component
+  {72e759d0-4f33-440d-b680-6549712ec927}, !- Handle
+  {be65c667-b878-433c-8aa5-e25f526a7317}; !- HVAC Component
 
 OS:PortList,
-  {f591efc3-da6f-4732-8ba1-0e23f746da85}, !- Handle
-  {4a7895e8-9a5e-411e-811b-0e1d85a8397b}, !- Name
-  {5e7f5113-787b-4846-8f1e-ee8169b59645}; !- HVAC Component
+  {6f2c68fe-edfe-499e-8312-290de0d71de1}, !- Handle
+  {be65c667-b878-433c-8aa5-e25f526a7317}; !- HVAC Component
 
 OS:Sizing:Zone,
-  {c222e297-f1ee-4399-a8f0-bde2fd9278c9}, !- Handle
-  {5e7f5113-787b-4846-8f1e-ee8169b59645}, !- Zone or ZoneList Name
+  {0f86bdcd-4d64-4425-9949-a9620bad77f9}, !- Handle
+  {be65c667-b878-433c-8aa5-e25f526a7317}, !- Zone or ZoneList Name
   SupplyAirTemperature,                   !- Zone Cooling Design Supply Air Temperature Input Method
   14,                                     !- Zone Cooling Design Supply Air Temperature {C}
   11.11,                                  !- Zone Cooling Design Supply Air Temperature Difference {deltaC}
@@ -652,20 +644,18 @@ OS:Sizing:Zone,
   ,                                       !- Heating Maximum Air Flow per Zone Floor Area {m3/s-m2}
   ,                                       !- Heating Maximum Air Flow {m3/s}
   ,                                       !- Heating Maximum Air Flow Fraction
-  ,                                       !- Design Zone Air Distribution Effectiveness in Cooling Mode
-  ,                                       !- Design Zone Air Distribution Effectiveness in Heating Mode
   No,                                     !- Account for Dedicated Outdoor Air System
   NeutralSupplyAir,                       !- Dedicated Outdoor Air System Control Strategy
   autosize,                               !- Dedicated Outdoor Air Low Setpoint Temperature for Design {C}
   autosize;                               !- Dedicated Outdoor Air High Setpoint Temperature for Design {C}
 
 OS:ZoneHVAC:EquipmentList,
-  {0d4f0c13-e0a1-432c-a013-9129cdd15ec3}, !- Handle
+  {406e35a6-1044-4ed8-a8a0-c253f3e4aa12}, !- Handle
   Zone HVAC Equipment List 2,             !- Name
-  {5e7f5113-787b-4846-8f1e-ee8169b59645}; !- Thermal Zone
+  {be65c667-b878-433c-8aa5-e25f526a7317}; !- Thermal Zone
 
 OS:SpaceType,
-  {629dc6ff-329f-40ca-8d14-f865c1ef40e1}, !- Handle
+  {df9d5f69-cd90-4d22-a1a6-6590e4efb086}, !- Handle
   Space Type 2,                           !- Name
   ,                                       !- Default Construction Set Name
   ,                                       !- Default Schedule Set Name
@@ -676,14 +666,14 @@ OS:SpaceType,
   unfinished attic;                       !- Standards Space Type
 
 OS:BuildingUnit,
-  {7d4ef823-6f06-4aa3-8f6d-4c4690cf6fac}, !- Handle
+  {cc6ffeb2-218a-4cbc-acab-1f2e88b405b8}, !- Handle
   unit 1,                                 !- Name
   ,                                       !- Rendering Color
   Residential;                            !- Building Unit Type
 
 OS:AdditionalProperties,
-  {bd03ff58-8485-4c58-9aa6-f30e1975abed}, !- Handle
-  {7d4ef823-6f06-4aa3-8f6d-4c4690cf6fac}, !- Object Name
+  {f4d92008-6aa4-49b3-9bce-febbec7cd0ae}, !- Handle
+  {cc6ffeb2-218a-4cbc-acab-1f2e88b405b8}, !- Object Name
   NumberOfBedrooms,                       !- Feature Name 1
   Integer,                                !- Feature Data Type 1
   3,                                      !- Feature Value 1
@@ -695,15 +685,15 @@ OS:AdditionalProperties,
   3.3900000000000001;                     !- Feature Value 3
 
 OS:External:File,
-  {8db1c69f-b5a6-4a5a-8a0d-8d1e6cce3868}, !- Handle
+  {5d669693-3344-46ff-b238-bd2948c8d253}, !- Handle
   8760.csv,                               !- Name
   8760.csv;                               !- File Name
 
 OS:Schedule:File,
-  {69f2fa25-6764-4a6a-8848-cd701857144e}, !- Handle
+  {9a055ebd-bdf5-43c7-8254-eaffc8ec993f}, !- Handle
   occupants,                              !- Name
-  {c44c04c0-6669-4c9b-b5cb-cd6290b42abd}, !- Schedule Type Limits Name
-  {8db1c69f-b5a6-4a5a-8a0d-8d1e6cce3868}, !- External File Name
+  {4fc96d8b-75e0-4ad8-a738-a17b97eae3c0}, !- Schedule Type Limits Name
+  {5d669693-3344-46ff-b238-bd2948c8d253}, !- External File Name
   1,                                      !- Column Number
   1,                                      !- Rows to Skip at Top
   8760,                                   !- Number of Hours of Data
@@ -711,23 +701,14 @@ OS:Schedule:File,
   ,                                       !- Interpolate to Timestep
   60;                                     !- Minutes per Item
 
-OS:Schedule:Ruleset,
-  {783b3f27-3206-432b-bea1-f9b4ea9b2f6d}, !- Handle
-  Schedule Ruleset 1,                     !- Name
-  {621b4c09-a6fd-4795-84c9-90127be26d20}, !- Schedule Type Limits Name
-  {a4281e85-0588-4ea6-945b-a35faed8bdf1}; !- Default Day Schedule Name
-
-OS:Schedule:Day,
-  {a4281e85-0588-4ea6-945b-a35faed8bdf1}, !- Handle
-  Schedule Day 3,                         !- Name
-  {621b4c09-a6fd-4795-84c9-90127be26d20}, !- Schedule Type Limits Name
-  ,                                       !- Interpolate to Timestep
-  24,                                     !- Hour 1
-  0,                                      !- Minute 1
-  112.539290946133;                       !- Value Until Time 1
+OS:Schedule:Constant,
+  {1bd60362-e814-4ffe-9bdf-326fac5f95f7}, !- Handle
+  res occupants activity schedule,        !- Name
+  {01b31065-7dd5-4549-9e22-5aab4ffd5b85}, !- Schedule Type Limits Name
+  112.539290946133;                       !- Value
 
 OS:People:Definition,
-  {4a709a53-b4b9-40fa-8774-35fc9615e06d}, !- Handle
+  {8f1f3463-20e1-4569-91e3-91a8d44a0975}, !- Handle
   res occupants|living space,             !- Name
   People,                                 !- Number of People Calculation Method
   3.39,                                   !- Number of People {people}
@@ -740,12 +721,12 @@ OS:People:Definition,
   ZoneAveraged;                           !- Mean Radiant Temperature Calculation Type
 
 OS:People,
-  {b32a3a5b-ed07-4431-a259-a319ffb56dc8}, !- Handle
+  {1d97f83e-2825-4240-a12b-34bf403b827f}, !- Handle
   res occupants|living space,             !- Name
-  {4a709a53-b4b9-40fa-8774-35fc9615e06d}, !- People Definition Name
-  {bc7e4a9d-b581-4716-98f7-e2a79a32624c}, !- Space or SpaceType Name
-  {69f2fa25-6764-4a6a-8848-cd701857144e}, !- Number of People Schedule Name
-  {783b3f27-3206-432b-bea1-f9b4ea9b2f6d}, !- Activity Level Schedule Name
+  {8f1f3463-20e1-4569-91e3-91a8d44a0975}, !- People Definition Name
+  {c6eaeab0-5021-4aec-9dcf-7fb0fa8a8b00}, !- Space or SpaceType Name
+  {9a055ebd-bdf5-43c7-8254-eaffc8ec993f}, !- Number of People Schedule Name
+  {1bd60362-e814-4ffe-9bdf-326fac5f95f7}, !- Activity Level Schedule Name
   ,                                       !- Surface Name/Angle Factor List Name
   ,                                       !- Work Efficiency Schedule Name
   ,                                       !- Clothing Insulation Schedule Name
@@ -753,7 +734,7 @@ OS:People,
   1;                                      !- Multiplier
 
 OS:ScheduleTypeLimits,
-  {621b4c09-a6fd-4795-84c9-90127be26d20}, !- Handle
+  {01b31065-7dd5-4549-9e22-5aab4ffd5b85}, !- Handle
   ActivityLevel,                          !- Name
   0,                                      !- Lower Limit Value
   ,                                       !- Upper Limit Value
@@ -761,34 +742,20 @@ OS:ScheduleTypeLimits,
   ActivityLevel;                          !- Unit Type
 
 OS:ScheduleTypeLimits,
-  {c44c04c0-6669-4c9b-b5cb-cd6290b42abd}, !- Handle
+  {4fc96d8b-75e0-4ad8-a738-a17b97eae3c0}, !- Handle
   Fractional,                             !- Name
   0,                                      !- Lower Limit Value
   1,                                      !- Upper Limit Value
   Continuous;                             !- Numeric Type
 
 OS:Curve:Biquadratic,
-  {d818fadc-7937-49f0-a3ca-e0a6b9127370}, !- Handle
-  ConstantBiquadratic,                    !- Name
-  1,                                      !- Coefficient1 Constant
-  0,                                      !- Coefficient2 x
-  0,                                      !- Coefficient3 x**2
-  0,                                      !- Coefficient4 y
-  0,                                      !- Coefficient5 y**2
-  0,                                      !- Coefficient6 x*y
-  -100,                                   !- Minimum Value of x
-  100,                                    !- Maximum Value of x
-  -100,                                   !- Minimum Value of y
-  100;                                    !- Maximum Value of y
-
-OS:Curve:Biquadratic,
-  {26d42b6a-ec2d-4d6b-bd4a-c0f072bba470}, !- Handle
+  {19f5f932-3369-40d9-b1b8-f6c9233a9635}, !- Handle
   Cool-Cap-fT1,                           !- Name
   1.550902001,                            !- Coefficient1 Constant
   -0.0750500892,                          !- Coefficient2 x
   0.00309713544,                          !- Coefficient3 x**2
   0.00240111,                             !- Coefficient4 y
-  -5.0544e-005,                           !- Coefficient5 y**2
+  -5.0544e-05,                            !- Coefficient5 y**2
   -0.00042728148,                         !- Coefficient6 x*y
   13.88,                                  !- Minimum Value of x
   23.88,                                  !- Maximum Value of x
@@ -796,9 +763,9 @@ OS:Curve:Biquadratic,
   51.66;                                  !- Maximum Value of y
 
 OS:Curve:Biquadratic,
-  {c94eb096-75ad-424c-ad92-e11fb718a1cd}, !- Handle
+  {2ebfc111-d7ee-4325-803f-8d4adb0e73e0}, !- Handle
   Cool-EIR-fT1,                           !- Name
-  -0.304282997000001,                     !- Coefficient1 Constant
+  -0.304282997,                           !- Coefficient1 Constant
   0.1180477062,                           !- Coefficient2 x
   -0.00342466704,                         !- Coefficient3 x**2
   -0.0062619138,                          !- Coefficient4 y
@@ -810,7 +777,7 @@ OS:Curve:Biquadratic,
   51.66;                                  !- Maximum Value of y
 
 OS:Curve:Quadratic,
-  {9f76f2a9-5ecd-42a1-94ce-fe05749db1f0}, !- Handle
+  {d4596d4c-f47a-415c-ab9c-b5eb04ea97f8}, !- Handle
   Cool-PLF-fPLR1,                         !- Name
   0.93,                                   !- Coefficient1 Constant
   0.07,                                   !- Coefficient2 x
@@ -821,7 +788,7 @@ OS:Curve:Quadratic,
   1;                                      !- Maximum Curve Output
 
 OS:Curve:Quadratic,
-  {c5eb1807-fe3c-4d70-aa0f-b0c595fd5f5f}, !- Handle
+  {e98a18f9-e885-44fe-99da-e13c1bf68026}, !- Handle
   Cool-Cap-fFF1,                          !- Name
   0.718605468,                            !- Coefficient1 Constant
   0.410099989,                            !- Coefficient2 x
@@ -832,7 +799,7 @@ OS:Curve:Quadratic,
   2;                                      !- Maximum Curve Output
 
 OS:Curve:Quadratic,
-  {ee944468-0f10-4b47-84ed-59f98eda07e6}, !- Handle
+  {d06fea33-0da9-42dd-a36f-7700d080e0b5}, !- Handle
   Cool-EIR-fFF1,                          !- Name
   1.32299905,                             !- Coefficient1 Constant
   -0.477711207,                           !- Coefficient2 x
@@ -843,13 +810,13 @@ OS:Curve:Quadratic,
   2;                                      !- Maximum Curve Output
 
 OS:Schedule:Constant,
-  {4e08bd0f-b4e0-4842-8784-2db12f60b5fa}, !- Handle
+  {ee5ef065-6f20-4f03-af33-ee437496fab5}, !- Handle
   Always On Discrete,                     !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   1;                                      !- Value
 
 OS:ScheduleTypeLimits,
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Handle
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Handle
   OnOff,                                  !- Name
   0,                                      !- Lower Limit Value
   1,                                      !- Upper Limit Value
@@ -857,9 +824,9 @@ OS:ScheduleTypeLimits,
   Availability;                           !- Unit Type
 
 OS:Coil:Cooling:DX:SingleSpeed,
-  {1d6cd6d2-3061-4cde-ac70-caf7cb3c734a}, !- Handle
+  {e9a4ea5f-5da7-4ca4-a960-fd65cfd7d923}, !- Handle
   res ac cooling coil,                    !- Name
-  {4e08bd0f-b4e0-4842-8784-2db12f60b5fa}, !- Availability Schedule Name
+  {ee5ef065-6f20-4f03-af33-ee437496fab5}, !- Availability Schedule Name
   autosize,                               !- Rated Total Cooling Capacity {W}
   0.740402528813699,                      !- Rated Sensible Heat Ratio
   3.9505446283126,                        !- Rated COP {W/W}
@@ -867,11 +834,12 @@ OS:Coil:Cooling:DX:SingleSpeed,
   773.3912012006,                         !- Rated Evaporator Fan Power Per Volume Flow Rate {W/(m3/s)}
   ,                                       !- Air Inlet Node Name
   ,                                       !- Air Outlet Node Name
-  {26d42b6a-ec2d-4d6b-bd4a-c0f072bba470}, !- Total Cooling Capacity Function of Temperature Curve Name
-  {c5eb1807-fe3c-4d70-aa0f-b0c595fd5f5f}, !- Total Cooling Capacity Function of Flow Fraction Curve Name
-  {c94eb096-75ad-424c-ad92-e11fb718a1cd}, !- Energy Input Ratio Function of Temperature Curve Name
-  {ee944468-0f10-4b47-84ed-59f98eda07e6}, !- Energy Input Ratio Function of Flow Fraction Curve Name
-  {9f76f2a9-5ecd-42a1-94ce-fe05749db1f0}, !- Part Load Fraction Correlation Curve Name
+  {19f5f932-3369-40d9-b1b8-f6c9233a9635}, !- Total Cooling Capacity Function of Temperature Curve Name
+  {e98a18f9-e885-44fe-99da-e13c1bf68026}, !- Total Cooling Capacity Function of Flow Fraction Curve Name
+  {2ebfc111-d7ee-4325-803f-8d4adb0e73e0}, !- Energy Input Ratio Function of Temperature Curve Name
+  {d06fea33-0da9-42dd-a36f-7700d080e0b5}, !- Energy Input Ratio Function of Flow Fraction Curve Name
+  {d4596d4c-f47a-415c-ab9c-b5eb04ea97f8}, !- Part Load Fraction Correlation Curve Name
+  -25,                                    !- Minimum Outdoor Dry-Bulb Temperature for Compressor Operation {C}
   1000,                                   !- Nominal Time for Condensate Removal to Begin {s}
   1.5,                                    !- Ratio of Initial Moisture Evaporation Rate and Steady State Latent Capacity {dimensionless}
   3,                                      !- Maximum Cycling Rate {cycles/hr}
@@ -890,9 +858,9 @@ OS:Coil:Cooling:DX:SingleSpeed,
   ;                                       !- Basin Heater Operating Schedule Name
 
 OS:Fan:OnOff,
-  {469ed561-cfc2-4183-9398-60b23890d659}, !- Handle
+  {77b17460-3f06-424c-aa48-1cd2fbfca765}, !- Handle
   res ac clg supply fan,                  !- Name
-  {4e08bd0f-b4e0-4842-8784-2db12f60b5fa}, !- Availability Schedule Name
+  {ee5ef065-6f20-4f03-af33-ee437496fab5}, !- Availability Schedule Name
   0.75,                                   !- Fan Total Efficiency
   794.580001233493,                       !- Pressure Rise {Pa}
   autosize,                               !- Maximum Flow Rate {m3/s}
@@ -900,12 +868,12 @@ OS:Fan:OnOff,
   1,                                      !- Motor In Airstream Fraction
   ,                                       !- Air Inlet Node Name
   ,                                       !- Air Outlet Node Name
-  {a686667c-8ae5-4022-b8ac-62b809aa1950}, !- Fan Power Ratio Function of Speed Ratio Curve Name
-  {885f83eb-90ba-4edc-9c67-5ed737db7804}, !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
+  {2d461c0d-22ec-4919-a55f-0281e66a85d2}, !- Fan Power Ratio Function of Speed Ratio Curve Name
+  {c2ad3e51-31ae-4c47-9d12-edcfc9720d27}, !- Fan Efficiency Ratio Function of Speed Ratio Curve Name
   res ac clg supply fan;                  !- End-Use Subcategory
 
 OS:Curve:Exponent,
-  {a686667c-8ae5-4022-b8ac-62b809aa1950}, !- Handle
+  {2d461c0d-22ec-4919-a55f-0281e66a85d2}, !- Handle
   Fan On Off Power Curve,                 !- Name
   1,                                      !- Coefficient1 Constant
   0,                                      !- Coefficient2 Constant
@@ -918,7 +886,7 @@ OS:Curve:Exponent,
   ;                                       !- Output Unit Type
 
 OS:Curve:Cubic,
-  {885f83eb-90ba-4edc-9c67-5ed737db7804}, !- Handle
+  {c2ad3e51-31ae-4c47-9d12-edcfc9720d27}, !- Handle
   Fan On Off Efficiency Curve,            !- Name
   1,                                      !- Coefficient1 Constant
   0,                                      !- Coefficient2 x
@@ -928,26 +896,26 @@ OS:Curve:Cubic,
   1;                                      !- Maximum Value of x
 
 OS:AirLoopHVAC:UnitarySystem,
-  {f986e1da-7a02-4a14-8eb6-afc01ab00d14}, !- Handle
+  {3fdaa20b-97a9-4e21-a8e4-bbc7b82cf749}, !- Handle
   res ac unitary system,                  !- Name
   Load,                                   !- Control Type
-  {45fc50fd-9e47-47a4-b638-cfd0daf53439}, !- Controlling Zone or Thermostat Location
+  {b06d7ea6-deb2-40b2-b92d-2f6a6f2c87d3}, !- Controlling Zone or Thermostat Location
   None,                                   !- Dehumidification Control Type
-  {4e08bd0f-b4e0-4842-8784-2db12f60b5fa}, !- Availability Schedule Name
-  {45ba8102-9867-45c3-9f3c-b51b33c51f62}, !- Air Inlet Node Name
-  {6679c43a-791a-45be-b931-9de8223322df}, !- Air Outlet Node Name
-  {469ed561-cfc2-4183-9398-60b23890d659}, !- Supply Fan Name
+  {ee5ef065-6f20-4f03-af33-ee437496fab5}, !- Availability Schedule Name
+  {00bd2921-c2b2-4cbc-b7f6-e0c087149275}, !- Air Inlet Node Name
+  {75c99ef2-3ec9-42ba-98c5-6b26c6862791}, !- Air Outlet Node Name
+  {77b17460-3f06-424c-aa48-1cd2fbfca765}, !- Supply Fan Name
   BlowThrough,                            !- Fan Placement
-  {ba6a9688-3757-4103-955d-999e19a64f47}, !- Supply Air Fan Operating Mode Schedule Name
+  {88d57241-ff8b-44bd-8f88-e7d037a43ea8}, !- Supply Air Fan Operating Mode Schedule Name
   ,                                       !- Heating Coil Name
   1,                                      !- DX Heating Coil Sizing Ratio
-  {1d6cd6d2-3061-4cde-ac70-caf7cb3c734a}, !- Cooling Coil Name
+  {e9a4ea5f-5da7-4ca4-a960-fd65cfd7d923}, !- Cooling Coil Name
   No,                                     !- Use DOAS DX Cooling Coil
   2,                                      !- DOAS DX Cooling Coil Leaving Minimum Air Temperature {C}
   SensibleOnlyLoadControl,                !- Latent Load Control
   ,                                       !- Supplemental Heating Coil Name
   ,                                       !- Supply Air Flow Rate Method During Cooling Operation
-  autosize,                               !- Supply Air Flow Rate During Cooling Operation {m3/s}
+  Autosize,                               !- Supply Air Flow Rate During Cooling Operation {m3/s}
   ,                                       !- Supply Air Flow Rate Per Floor Area During Cooling Operation {m3/s-m2}
   ,                                       !- Fraction of Autosized Design Cooling Supply Air Flow Rate
   ,                                       !- Design Supply Air Flow Rate Per Unit of Capacity During Cooling Operation {m3/s-W}
@@ -974,13 +942,13 @@ OS:AirLoopHVAC:UnitarySystem,
   0;                                      !- Ancilliary Off-Cycle Electric Power {W}
 
 OS:Schedule:Constant,
-  {ba6a9688-3757-4103-955d-999e19a64f47}, !- Handle
+  {88d57241-ff8b-44bd-8f88-e7d037a43ea8}, !- Handle
   Always Off Discrete,                    !- Name
-  {0fd19ed8-171c-4fa9-aa8f-36ce9ba7ff3d}, !- Schedule Type Limits Name
+  {d8bd42ac-0c3a-4885-ba7b-81851350826b}, !- Schedule Type Limits Name
   0;                                      !- Value
 
 OS:ScheduleTypeLimits,
-  {0fd19ed8-171c-4fa9-aa8f-36ce9ba7ff3d}, !- Handle
+  {d8bd42ac-0c3a-4885-ba7b-81851350826b}, !- Handle
   OnOff 1,                                !- Name
   0,                                      !- Lower Limit Value
   1,                                      !- Upper Limit Value
@@ -988,119 +956,114 @@ OS:ScheduleTypeLimits,
   Availability;                           !- Unit Type
 
 OS:AirLoopHVAC,
-  {9c0e81d9-4d5c-4986-9968-a9b809567084}, !- Handle
+  {c553fa92-5d34-4414-8c6a-fbb729da3dd3}, !- Handle
   res ac asys,                            !- Name
   ,                                       !- Controller List Name
-  {4e08bd0f-b4e0-4842-8784-2db12f60b5fa}, !- Availability Schedule
-  {8755e236-2779-4b6f-9f66-3bc31293c5f9}, !- Availability Manager List Name
-  AutoSize,                               !- Design Supply Air Flow Rate {m3/s}
+  {ee5ef065-6f20-4f03-af33-ee437496fab5}, !- Availability Schedule
+  {2a3e73f1-799c-4b31-837b-ef1092b6c673}, !- Availability Manager List Name
+  autosize,                               !- Design Supply Air Flow Rate {m3/s}
+  1,                                      !- Design Return Air Flow Fraction of Supply Air Flow
   ,                                       !- Branch List Name
   ,                                       !- Connector List Name
-  {8a3bd97d-632a-44c1-ada6-550a55537d85}, !- Supply Side Inlet Node Name
-  {f84ec535-9696-47ff-bec0-3a0cd36b9ebe}, !- Demand Side Outlet Node Name
-  {666c8947-e085-4f48-aa29-753e1afc630c}, !- Demand Side Inlet Node A
-  {9851a5fe-47ca-4dfb-8596-d84845cdb604}, !- Supply Side Outlet Node A
+  {baa487fa-f14c-4e93-8b25-236a99a1eecf}, !- Supply Side Inlet Node Name
+  {3b4012b8-3822-43df-b1b6-40b2aafe6de3}, !- Demand Side Outlet Node Name
+  {d23682a9-1ce1-4552-ac9b-ba3058e6c01f}, !- Demand Side Inlet Node A
+  {fdbbe7e2-72c8-4358-ba41-69a0bbddc6d9}, !- Supply Side Outlet Node A
   ,                                       !- Demand Side Inlet Node B
   ,                                       !- Supply Side Outlet Node B
   ,                                       !- Return Air Bypass Flow Temperature Setpoint Schedule Name
-  {5816e59a-26fc-4d60-a4bb-28c5d2dcf0ef}, !- Demand Mixer Name
-  {083143ca-e0d1-4182-9f37-7d868d33085a}, !- Demand Splitter A Name
+  {f78c5699-be97-48b4-b729-e918321adc1e}, !- Demand Mixer Name
+  {ad950092-b070-441f-b4dd-5befc793b2e1}, !- Demand Splitter A Name
   ,                                       !- Demand Splitter B Name
   ;                                       !- Supply Splitter Name
 
 OS:Node,
-  {03bea45b-5c57-4922-b456-f7fff1817130}, !- Handle
+  {26ca563e-b98e-43d6-8035-a94cd4662172}, !- Handle
   Node 3,                                 !- Name
-  {8a3bd97d-632a-44c1-ada6-550a55537d85}, !- Inlet Port
-  {45ba8102-9867-45c3-9f3c-b51b33c51f62}; !- Outlet Port
+  {baa487fa-f14c-4e93-8b25-236a99a1eecf}, !- Inlet Port
+  {00bd2921-c2b2-4cbc-b7f6-e0c087149275}; !- Outlet Port
 
 OS:Node,
-  {a88b6991-7a54-43ea-a5c3-40dbbfc2a2a0}, !- Handle
+  {52079303-3324-42f2-9b12-88732cb146db}, !- Handle
   Node 4,                                 !- Name
-  {6679c43a-791a-45be-b931-9de8223322df}, !- Inlet Port
-  {9851a5fe-47ca-4dfb-8596-d84845cdb604}; !- Outlet Port
+  {75c99ef2-3ec9-42ba-98c5-6b26c6862791}, !- Inlet Port
+  {fdbbe7e2-72c8-4358-ba41-69a0bbddc6d9}; !- Outlet Port
 
 OS:Connection,
-  {8a3bd97d-632a-44c1-ada6-550a55537d85}, !- Handle
-  {b00f2518-dae9-42b0-8436-0aa0c293b776}, !- Name
-  {9c0e81d9-4d5c-4986-9968-a9b809567084}, !- Source Object
-  8,                                      !- Outlet Port
-  {03bea45b-5c57-4922-b456-f7fff1817130}, !- Target Object
+  {baa487fa-f14c-4e93-8b25-236a99a1eecf}, !- Handle
+  {c553fa92-5d34-4414-8c6a-fbb729da3dd3}, !- Source Object
+  9,                                      !- Outlet Port
+  {26ca563e-b98e-43d6-8035-a94cd4662172}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {9851a5fe-47ca-4dfb-8596-d84845cdb604}, !- Handle
-  {1cdbb90c-547f-4129-b0bf-1b4597535a8d}, !- Name
-  {a88b6991-7a54-43ea-a5c3-40dbbfc2a2a0}, !- Source Object
+  {fdbbe7e2-72c8-4358-ba41-69a0bbddc6d9}, !- Handle
+  {52079303-3324-42f2-9b12-88732cb146db}, !- Source Object
   3,                                      !- Outlet Port
-  {9c0e81d9-4d5c-4986-9968-a9b809567084}, !- Target Object
-  11;                                     !- Inlet Port
+  {c553fa92-5d34-4414-8c6a-fbb729da3dd3}, !- Target Object
+  12;                                     !- Inlet Port
 
 OS:Node,
-  {4ab9e6bb-b88b-411f-baaf-59da45208302}, !- Handle
+  {412979e9-2fd5-4dd1-b8ad-962f791e5858}, !- Handle
   Node 5,                                 !- Name
-  {666c8947-e085-4f48-aa29-753e1afc630c}, !- Inlet Port
-  {cc64327f-6dfd-4eda-8bd4-d48fcc11a333}; !- Outlet Port
+  {d23682a9-1ce1-4552-ac9b-ba3058e6c01f}, !- Inlet Port
+  {387bb27e-07ae-4504-8972-af85a371cf26}; !- Outlet Port
 
 OS:Node,
-  {4ac6770e-b9ca-4b07-b01b-0c27b23a096e}, !- Handle
+  {c741d1e7-f959-4ab9-b32d-f63e3f884f9b}, !- Handle
   Node 6,                                 !- Name
-  {4f7b1315-2b4a-4383-9a7d-b2be725a33ea}, !- Inlet Port
-  {f84ec535-9696-47ff-bec0-3a0cd36b9ebe}; !- Outlet Port
+  {07130524-5805-46d3-9d5d-ba137f0861f9}, !- Inlet Port
+  {3b4012b8-3822-43df-b1b6-40b2aafe6de3}; !- Outlet Port
 
 OS:Node,
-  {0fbfb481-f3f0-480b-99d3-104420e8b18c}, !- Handle
+  {dd8902dd-7a14-4ae4-934a-f820202e786e}, !- Handle
   Node 7,                                 !- Name
-  {014462a2-402c-49b7-bab0-85ef422f0aa8}, !- Inlet Port
-  {fe519453-0659-4f59-96b6-5349c5fe10e2}; !- Outlet Port
+  {62733312-ffda-4696-aa5d-7643bd9ab446}, !- Inlet Port
+  {5ba8e442-c4af-4fda-875c-d2d39964d2da}; !- Outlet Port
 
 OS:Connection,
-  {666c8947-e085-4f48-aa29-753e1afc630c}, !- Handle
-  {22955609-6c06-4a1f-ad95-628043c078bf}, !- Name
-  {9c0e81d9-4d5c-4986-9968-a9b809567084}, !- Source Object
-  10,                                     !- Outlet Port
-  {4ab9e6bb-b88b-411f-baaf-59da45208302}, !- Target Object
+  {d23682a9-1ce1-4552-ac9b-ba3058e6c01f}, !- Handle
+  {c553fa92-5d34-4414-8c6a-fbb729da3dd3}, !- Source Object
+  11,                                     !- Outlet Port
+  {412979e9-2fd5-4dd1-b8ad-962f791e5858}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {f84ec535-9696-47ff-bec0-3a0cd36b9ebe}, !- Handle
-  {60b06e41-3b12-403a-9669-e105ef9d8ad0}, !- Name
-  {4ac6770e-b9ca-4b07-b01b-0c27b23a096e}, !- Source Object
+  {3b4012b8-3822-43df-b1b6-40b2aafe6de3}, !- Handle
+  {c741d1e7-f959-4ab9-b32d-f63e3f884f9b}, !- Source Object
   3,                                      !- Outlet Port
-  {9c0e81d9-4d5c-4986-9968-a9b809567084}, !- Target Object
-  9;                                      !- Inlet Port
+  {c553fa92-5d34-4414-8c6a-fbb729da3dd3}, !- Target Object
+  10;                                     !- Inlet Port
 
 OS:AirLoopHVAC:ZoneSplitter,
-  {083143ca-e0d1-4182-9f37-7d868d33085a}, !- Handle
+  {ad950092-b070-441f-b4dd-5befc793b2e1}, !- Handle
   res ac zone splitter,                   !- Name
-  {cc64327f-6dfd-4eda-8bd4-d48fcc11a333}, !- Inlet Node Name
-  {e633d4a3-f04f-467c-b258-8053a453fbd7}; !- Outlet Node Name 1
+  {387bb27e-07ae-4504-8972-af85a371cf26}, !- Inlet Node Name
+  {6052727d-505f-4c76-aa8d-5b2ae49902ef}; !- Outlet Node Name 1
 
 OS:AirLoopHVAC:ZoneMixer,
-  {5816e59a-26fc-4d60-a4bb-28c5d2dcf0ef}, !- Handle
+  {f78c5699-be97-48b4-b729-e918321adc1e}, !- Handle
   res ac zone mixer,                      !- Name
-  {4f7b1315-2b4a-4383-9a7d-b2be725a33ea}, !- Outlet Node Name
-  {1845f41e-f0e2-4859-94f2-b89da25ff4d5}; !- Inlet Node Name 1
+  {07130524-5805-46d3-9d5d-ba137f0861f9}, !- Outlet Node Name
+  {799086d8-41df-40a5-9e54-51cf339c5936}; !- Inlet Node Name 1
 
 OS:Connection,
-  {cc64327f-6dfd-4eda-8bd4-d48fcc11a333}, !- Handle
-  {1f142ce7-ef06-4926-a36f-d63646353e0b}, !- Name
-  {4ab9e6bb-b88b-411f-baaf-59da45208302}, !- Source Object
+  {387bb27e-07ae-4504-8972-af85a371cf26}, !- Handle
+  {412979e9-2fd5-4dd1-b8ad-962f791e5858}, !- Source Object
   3,                                      !- Outlet Port
-  {083143ca-e0d1-4182-9f37-7d868d33085a}, !- Target Object
+  {ad950092-b070-441f-b4dd-5befc793b2e1}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {4f7b1315-2b4a-4383-9a7d-b2be725a33ea}, !- Handle
-  {04796b04-bef1-4eda-8496-29485ec20320}, !- Name
-  {5816e59a-26fc-4d60-a4bb-28c5d2dcf0ef}, !- Source Object
+  {07130524-5805-46d3-9d5d-ba137f0861f9}, !- Handle
+  {f78c5699-be97-48b4-b729-e918321adc1e}, !- Source Object
   2,                                      !- Outlet Port
-  {4ac6770e-b9ca-4b07-b01b-0c27b23a096e}, !- Target Object
+  {c741d1e7-f959-4ab9-b32d-f63e3f884f9b}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Sizing:System,
-  {652bcb69-af1c-4d1e-8b1d-10e7ff690c27}, !- Handle
-  {9c0e81d9-4d5c-4986-9968-a9b809567084}, !- AirLoop Name
+  {af885979-4d86-4345-b410-db54ca1487c2}, !- Handle
+  {c553fa92-5d34-4414-8c6a-fbb729da3dd3}, !- AirLoop Name
   Sensible,                               !- Type of Load to Size On
   Autosize,                               !- Design Outdoor Air Flow Rate {m3/s}
   0.3,                                    !- Central Heating Maximum System Air Flow Ratio
@@ -1123,11 +1086,11 @@ OS:Sizing:System,
   1,                                      !- Zone Maximum Outdoor Air Fraction {dimensionless}
   0.0099676501,                           !- Cooling Supply Air Flow Rate Per Floor Area {m3/s-m2}
   1,                                      !- Cooling Fraction of Autosized Cooling Supply Air Flow Rate
-  3.9475456e-005,                         !- Cooling Supply Air Flow Rate Per Unit Cooling Capacity {m3/s-W}
+  3.9475456e-05,                          !- Cooling Supply Air Flow Rate Per Unit Cooling Capacity {m3/s-W}
   0.0099676501,                           !- Heating Supply Air Flow Rate Per Floor Area {m3/s-m2}
   1,                                      !- Heating Fraction of Autosized Heating Supply Air Flow Rate
   1,                                      !- Heating Fraction of Autosized Cooling Supply Air Flow Rate
-  3.1588213e-005,                         !- Heating Supply Air Flow Rate Per Unit Heating Capacity {m3/s-W}
+  3.1588213e-05,                          !- Heating Supply Air Flow Rate Per Unit Heating Capacity {m3/s-W}
   CoolingDesignCapacity,                  !- Cooling Design Capacity Method
   autosize,                               !- Cooling Design Capacity {W}
   234.7,                                  !- Cooling Design Capacity Per Floor Area {W/m2}
@@ -1139,96 +1102,88 @@ OS:Sizing:System,
   OnOff;                                  !- Central Cooling Capacity Control Method
 
 OS:AvailabilityManagerAssignmentList,
-  {8755e236-2779-4b6f-9f66-3bc31293c5f9}, !- Handle
+  {2a3e73f1-799c-4b31-837b-ef1092b6c673}, !- Handle
   Air Loop HVAC 1 AvailabilityManagerAssignmentList; !- Name
 
 OS:Connection,
-  {45ba8102-9867-45c3-9f3c-b51b33c51f62}, !- Handle
-  {21844ec3-c6dc-421c-b205-abca375cc25e}, !- Name
-  {03bea45b-5c57-4922-b456-f7fff1817130}, !- Source Object
+  {00bd2921-c2b2-4cbc-b7f6-e0c087149275}, !- Handle
+  {26ca563e-b98e-43d6-8035-a94cd4662172}, !- Source Object
   3,                                      !- Outlet Port
-  {f986e1da-7a02-4a14-8eb6-afc01ab00d14}, !- Target Object
+  {3fdaa20b-97a9-4e21-a8e4-bbc7b82cf749}, !- Target Object
   6;                                      !- Inlet Port
 
 OS:Connection,
-  {6679c43a-791a-45be-b931-9de8223322df}, !- Handle
-  {23623eab-2328-48d9-ac54-4209807eb5a1}, !- Name
-  {f986e1da-7a02-4a14-8eb6-afc01ab00d14}, !- Source Object
+  {75c99ef2-3ec9-42ba-98c5-6b26c6862791}, !- Handle
+  {3fdaa20b-97a9-4e21-a8e4-bbc7b82cf749}, !- Source Object
   7,                                      !- Outlet Port
-  {a88b6991-7a54-43ea-a5c3-40dbbfc2a2a0}, !- Target Object
+  {52079303-3324-42f2-9b12-88732cb146db}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:AirTerminal:SingleDuct:ConstantVolume:NoReheat,
-  {a001fc94-e757-4ca1-b053-716ce8fcc60c}, !- Handle
+  {60e0a4a1-8bd2-478b-8ef9-911170449007}, !- Handle
   res ac living zone direct air,          !- Name
-  {4e08bd0f-b4e0-4842-8784-2db12f60b5fa}, !- Availability Schedule Name
-  {e2f2a44a-89ce-481c-b2bd-601f464947e8}, !- Air Inlet Node Name
-  {014462a2-402c-49b7-bab0-85ef422f0aa8}, !- Air Outlet Node Name
+  {ee5ef065-6f20-4f03-af33-ee437496fab5}, !- Availability Schedule Name
+  {a9e24c0a-9652-4475-aae5-465542e82da8}, !- Air Inlet Node Name
+  {62733312-ffda-4696-aa5d-7643bd9ab446}, !- Air Outlet Node Name
   AutoSize;                               !- Maximum Air Flow Rate {m3/s}
 
 OS:Node,
-  {f1cd901c-5c8e-4336-b578-0817fead280b}, !- Handle
+  {ac05f812-818a-4d3a-83a4-356c50cd1514}, !- Handle
   Node 8,                                 !- Name
-  {ff474aee-1178-4742-8942-66a626f830f4}, !- Inlet Port
-  {1845f41e-f0e2-4859-94f2-b89da25ff4d5}; !- Outlet Port
+  {9d401791-99a7-4ad9-955d-4aa8c957fd71}, !- Inlet Port
+  {799086d8-41df-40a5-9e54-51cf339c5936}; !- Outlet Port
 
 OS:Connection,
-  {fe519453-0659-4f59-96b6-5349c5fe10e2}, !- Handle
-  {6c50aac2-3922-4c25-ba15-9a450698f499}, !- Name
-  {0fbfb481-f3f0-480b-99d3-104420e8b18c}, !- Source Object
+  {5ba8e442-c4af-4fda-875c-d2d39964d2da}, !- Handle
+  {dd8902dd-7a14-4ae4-934a-f820202e786e}, !- Source Object
   3,                                      !- Outlet Port
-  {a94dc248-a810-4b3a-80ab-046ed25fb13f}, !- Target Object
-  3;                                      !- Inlet Port
-
-OS:Connection,
-  {ff474aee-1178-4742-8942-66a626f830f4}, !- Handle
-  {4413cc29-750d-408d-ad60-90c88077d9c2}, !- Name
-  {96f1aa61-c858-4752-92da-ef4a8df61d49}, !- Source Object
-  3,                                      !- Outlet Port
-  {f1cd901c-5c8e-4336-b578-0817fead280b}, !- Target Object
+  {de54ec43-e941-4072-8fb0-3ae2f085d3a4}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {1845f41e-f0e2-4859-94f2-b89da25ff4d5}, !- Handle
-  {8a94475c-6063-4441-ba47-c384ad71b25b}, !- Name
-  {f1cd901c-5c8e-4336-b578-0817fead280b}, !- Source Object
+  {9d401791-99a7-4ad9-955d-4aa8c957fd71}, !- Handle
+  {27b302dd-5cff-45f7-a996-dfa15062aa28}, !- Source Object
+  2,                                      !- Outlet Port
+  {ac05f812-818a-4d3a-83a4-356c50cd1514}, !- Target Object
+  2;                                      !- Inlet Port
+
+OS:Connection,
+  {799086d8-41df-40a5-9e54-51cf339c5936}, !- Handle
+  {ac05f812-818a-4d3a-83a4-356c50cd1514}, !- Source Object
   3,                                      !- Outlet Port
-  {5816e59a-26fc-4d60-a4bb-28c5d2dcf0ef}, !- Target Object
+  {f78c5699-be97-48b4-b729-e918321adc1e}, !- Target Object
   3;                                      !- Inlet Port
 
 OS:Node,
-  {fbcb500e-20f8-4dfc-9289-daba7f2fabc1}, !- Handle
+  {89898606-bfbf-41f4-b62a-5aefd9337f4b}, !- Handle
   Node 9,                                 !- Name
-  {e633d4a3-f04f-467c-b258-8053a453fbd7}, !- Inlet Port
-  {e2f2a44a-89ce-481c-b2bd-601f464947e8}; !- Outlet Port
+  {6052727d-505f-4c76-aa8d-5b2ae49902ef}, !- Inlet Port
+  {a9e24c0a-9652-4475-aae5-465542e82da8}; !- Outlet Port
 
 OS:Connection,
-  {e633d4a3-f04f-467c-b258-8053a453fbd7}, !- Handle
-  {1071d81b-6963-4cd2-b03f-f659cfac8621}, !- Name
-  {083143ca-e0d1-4182-9f37-7d868d33085a}, !- Source Object
+  {6052727d-505f-4c76-aa8d-5b2ae49902ef}, !- Handle
+  {ad950092-b070-441f-b4dd-5befc793b2e1}, !- Source Object
   3,                                      !- Outlet Port
-  {fbcb500e-20f8-4dfc-9289-daba7f2fabc1}, !- Target Object
+  {89898606-bfbf-41f4-b62a-5aefd9337f4b}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:Connection,
-  {e2f2a44a-89ce-481c-b2bd-601f464947e8}, !- Handle
-  {ffaa1cfb-ddfe-4750-a31e-e25ca5ecf903}, !- Name
-  {fbcb500e-20f8-4dfc-9289-daba7f2fabc1}, !- Source Object
+  {a9e24c0a-9652-4475-aae5-465542e82da8}, !- Handle
+  {89898606-bfbf-41f4-b62a-5aefd9337f4b}, !- Source Object
   3,                                      !- Outlet Port
-  {a001fc94-e757-4ca1-b053-716ce8fcc60c}, !- Target Object
+  {60e0a4a1-8bd2-478b-8ef9-911170449007}, !- Target Object
   3;                                      !- Inlet Port
 
 OS:Connection,
-  {014462a2-402c-49b7-bab0-85ef422f0aa8}, !- Handle
-  {564f79cf-1b45-4aab-98a7-49d7caf80afd}, !- Name
-  {a001fc94-e757-4ca1-b053-716ce8fcc60c}, !- Source Object
+  {62733312-ffda-4696-aa5d-7643bd9ab446}, !- Handle
+  {60e0a4a1-8bd2-478b-8ef9-911170449007}, !- Source Object
   4,                                      !- Outlet Port
-  {0fbfb481-f3f0-480b-99d3-104420e8b18c}, !- Target Object
+  {dd8902dd-7a14-4ae4-934a-f820202e786e}, !- Target Object
   2;                                      !- Inlet Port
 
 OS:AdditionalProperties,
-  {e7bcb082-58f3-4937-a5d8-1c14ea136a75}, !- Handle
-  {f986e1da-7a02-4a14-8eb6-afc01ab00d14}, !- Object Name
+  {94f2a7ff-3b1b-4200-a8e4-02ce7db44155}, !- Handle
+  {3fdaa20b-97a9-4e21-a8e4-bbc7b82cf749}, !- Object Name
   SizingInfoHVACCapacityDerateFactorEER,  !- Feature Name 1
   String,                                 !- Feature Data Type 1
   1.0&#441.0&#441.0&#441.0&#441.0,        !- Feature Value 1
@@ -1240,26 +1195,26 @@ OS:AdditionalProperties,
   1;                                      !- Feature Value 3
 
 OS:Schedule:Ruleset,
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Handle
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Handle
   res heating season,                     !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
-  {41fbb388-9fb6-4b20-9cfa-ae7aa5693530}; !- Default Day Schedule Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
+  {26ddbe6c-8691-4a35-bae4-6588de7a8584}; !- Default Day Schedule Name
 
 OS:Schedule:Day,
-  {41fbb388-9fb6-4b20-9cfa-ae7aa5693530}, !- Handle
-  Schedule Day 4,                         !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {26ddbe6c-8691-4a35-bae4-6588de7a8584}, !- Handle
+  Schedule Day 3,                         !- Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   0;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {dd4df5d1-544b-4e90-a22f-809bfbb215ee}, !- Handle
+  {541c1654-5040-4d62-9a33-b6f667f49c96}, !- Handle
   res heating season allday rule1,        !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   11,                                     !- Rule Order
-  {6497458d-63bb-4017-9ad0-2180d1b22784}, !- Day Schedule Name
+  {3635a67c-75dd-4a55-a1f4-69ddf43849d7}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1267,7 +1222,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   1,                                      !- Start Month
   1,                                      !- Start Day
@@ -1275,20 +1229,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {6497458d-63bb-4017-9ad0-2180d1b22784}, !- Handle
+  {3635a67c-75dd-4a55-a1f4-69ddf43849d7}, !- Handle
   res heating season allday1,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {f6fbf0f8-9cab-45a1-bad1-9652f74ce610}, !- Handle
+  {45fe53a8-2977-4c80-bc37-2b8783275af3}, !- Handle
   res heating season allday rule2,        !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   10,                                     !- Rule Order
-  {80146e75-f9b2-4042-a18f-555643872143}, !- Day Schedule Name
+  {77f1a7af-e3e9-4486-94e6-92ce0f8a5763}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1296,7 +1250,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   2,                                      !- Start Month
   1,                                      !- Start Day
@@ -1304,20 +1257,20 @@ OS:Schedule:Rule,
   28;                                     !- End Day
 
 OS:Schedule:Day,
-  {80146e75-f9b2-4042-a18f-555643872143}, !- Handle
+  {77f1a7af-e3e9-4486-94e6-92ce0f8a5763}, !- Handle
   res heating season allday2,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {315e39cc-555a-4040-a20f-5d3cff5e38ff}, !- Handle
+  {1192e86c-29ce-4548-9293-9d06bc7de529}, !- Handle
   res heating season allday rule3,        !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   9,                                      !- Rule Order
-  {d067ed5e-0410-4bc5-9bc0-3d5fc1ee0216}, !- Day Schedule Name
+  {f4d0fca0-9b26-456f-bb26-7cd8a8272fd9}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1325,7 +1278,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   3,                                      !- Start Month
   1,                                      !- Start Day
@@ -1333,20 +1285,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {d067ed5e-0410-4bc5-9bc0-3d5fc1ee0216}, !- Handle
+  {f4d0fca0-9b26-456f-bb26-7cd8a8272fd9}, !- Handle
   res heating season allday3,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {c3667790-2775-495c-9b22-f6d24ca4379b}, !- Handle
+  {b04b06e5-2e41-4cf0-9ad5-26cae287e996}, !- Handle
   res heating season allday rule4,        !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   8,                                      !- Rule Order
-  {45cb7298-8435-48bf-a7c1-380e695357ca}, !- Day Schedule Name
+  {8e057b4a-0d7a-4e19-9e73-15a68302d258}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1354,7 +1306,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   4,                                      !- Start Month
   1,                                      !- Start Day
@@ -1362,20 +1313,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {45cb7298-8435-48bf-a7c1-380e695357ca}, !- Handle
+  {8e057b4a-0d7a-4e19-9e73-15a68302d258}, !- Handle
   res heating season allday4,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {990d6a23-5132-4ab5-9198-5768dc7c393a}, !- Handle
+  {e39b9113-7303-470f-a33a-c660606d02b2}, !- Handle
   res heating season allday rule5,        !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   7,                                      !- Rule Order
-  {528e2a4b-4113-4bb3-9108-14c0f6948248}, !- Day Schedule Name
+  {e449f2de-2443-47fa-ae3b-7feac32bf007}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1383,7 +1334,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   5,                                      !- Start Month
   1,                                      !- Start Day
@@ -1391,20 +1341,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {528e2a4b-4113-4bb3-9108-14c0f6948248}, !- Handle
+  {e449f2de-2443-47fa-ae3b-7feac32bf007}, !- Handle
   res heating season allday5,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {e78cbb35-136c-418b-8cfa-7437b2e39cc5}, !- Handle
+  {72d5f47a-6e3c-4c7a-9ae5-7ff8c30925a7}, !- Handle
   res heating season allday rule6,        !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   6,                                      !- Rule Order
-  {81b3e8a3-874a-477c-83fd-b5f1b59273d9}, !- Day Schedule Name
+  {f461f020-97b8-4fdc-a145-71ac2c160517}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1412,7 +1362,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   6,                                      !- Start Month
   1,                                      !- Start Day
@@ -1420,20 +1369,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {81b3e8a3-874a-477c-83fd-b5f1b59273d9}, !- Handle
+  {f461f020-97b8-4fdc-a145-71ac2c160517}, !- Handle
   res heating season allday6,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {6845b0f1-2795-4ae3-8645-9b5f89ace34c}, !- Handle
+  {64cc89e6-215a-4341-8ff5-795955e77576}, !- Handle
   res heating season allday rule7,        !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   5,                                      !- Rule Order
-  {a2cc8279-bf00-4c84-8140-b165be6ea648}, !- Day Schedule Name
+  {976c618a-4126-43bb-abcc-c8b8bee5cc24}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1441,7 +1390,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   7,                                      !- Start Month
   1,                                      !- Start Day
@@ -1449,20 +1397,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {a2cc8279-bf00-4c84-8140-b165be6ea648}, !- Handle
+  {976c618a-4126-43bb-abcc-c8b8bee5cc24}, !- Handle
   res heating season allday7,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {61e1c358-de2c-43fd-b122-5b0a930d1de2}, !- Handle
+  {07712074-9361-4fa4-9085-857985c7c456}, !- Handle
   res heating season allday rule8,        !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   4,                                      !- Rule Order
-  {56b38ed4-376f-4670-b2d4-abd88d264aa1}, !- Day Schedule Name
+  {34db5468-dbfb-4dfe-8d0b-3b0970ee849b}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1470,7 +1418,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   8,                                      !- Start Month
   1,                                      !- Start Day
@@ -1478,20 +1425,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {56b38ed4-376f-4670-b2d4-abd88d264aa1}, !- Handle
+  {34db5468-dbfb-4dfe-8d0b-3b0970ee849b}, !- Handle
   res heating season allday8,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {9dacbca1-45b6-4893-8701-5cac25a7d72b}, !- Handle
+  {3e3f9f25-c33e-4bf9-86d0-b686095918b3}, !- Handle
   res heating season allday rule9,        !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   3,                                      !- Rule Order
-  {a7d68773-17e1-4889-86e3-81d1288d76e7}, !- Day Schedule Name
+  {1710ba39-ce07-434d-8dcb-373893169fab}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1499,7 +1446,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   9,                                      !- Start Month
   1,                                      !- Start Day
@@ -1507,20 +1453,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {a7d68773-17e1-4889-86e3-81d1288d76e7}, !- Handle
+  {1710ba39-ce07-434d-8dcb-373893169fab}, !- Handle
   res heating season allday9,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {b67f703d-0291-43e2-965a-21e2c89c6c50}, !- Handle
+  {7647723b-5342-43de-9c1a-91ff0abfc359}, !- Handle
   res heating season allday rule10,       !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   2,                                      !- Rule Order
-  {91ae2ce3-588c-4b1b-b0c5-95d3494ab476}, !- Day Schedule Name
+  {d461aa3d-ec49-45b6-9d74-5e78c7194dec}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1528,7 +1474,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   10,                                     !- Start Month
   1,                                      !- Start Day
@@ -1536,20 +1481,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {91ae2ce3-588c-4b1b-b0c5-95d3494ab476}, !- Handle
+  {d461aa3d-ec49-45b6-9d74-5e78c7194dec}, !- Handle
   res heating season allday10,            !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {ca181495-81c5-4d3d-aeb6-ae2f51685c1e}, !- Handle
+  {e05120ac-57d4-44f5-953d-f700743b14d9}, !- Handle
   res heating season allday rule11,       !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   1,                                      !- Rule Order
-  {d90bacf8-cb45-4acb-a06c-783dfa3be06c}, !- Day Schedule Name
+  {0b66b26b-bae6-4d06-a94a-c3069254a704}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1557,7 +1502,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   11,                                     !- Start Month
   1,                                      !- Start Day
@@ -1565,20 +1509,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {d90bacf8-cb45-4acb-a06c-783dfa3be06c}, !- Handle
+  {0b66b26b-bae6-4d06-a94a-c3069254a704}, !- Handle
   res heating season allday11,            !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {d065a9e0-274e-4dad-9422-f219d5638900}, !- Handle
+  {d2a7fe97-17e8-4fb5-bef4-31f85cd52b24}, !- Handle
   res heating season allday rule12,       !- Name
-  {c0f76db9-24d5-48c0-8ae4-2e7d368926b5}, !- Schedule Ruleset Name
+  {c17df60e-bd38-4881-b920-29ddb5f99f93}, !- Schedule Ruleset Name
   0,                                      !- Rule Order
-  {d4b69e55-0e78-4dbb-9367-55bc0822b542}, !- Day Schedule Name
+  {7c529052-e743-4e32-b70e-4d42c3a36b13}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1586,7 +1530,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   12,                                     !- Start Month
   1,                                      !- Start Day
@@ -1594,22 +1537,22 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {d4b69e55-0e78-4dbb-9367-55bc0822b542}, !- Handle
+  {7c529052-e743-4e32-b70e-4d42c3a36b13}, !- Handle
   res heating season allday12,            !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:ThermostatSetpoint:DualSetpoint,
-  {5ad99312-1efb-44ce-b920-5e1628a7b745}, !- Handle
+  {8fbbc126-e61d-4cb7-b067-3ff1ae59ef8d}, !- Handle
   living zone temperature setpoint,       !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Heating Setpoint Temperature Schedule Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}; !- Cooling Setpoint Temperature Schedule Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Heating Setpoint Temperature Schedule Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}; !- Cooling Setpoint Temperature Schedule Name
 
 OS:ScheduleTypeLimits,
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Handle
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Handle
   Temperature,                            !- Name
   ,                                       !- Lower Limit Value
   ,                                       !- Upper Limit Value
@@ -1617,8 +1560,8 @@ OS:ScheduleTypeLimits,
   Temperature;                            !- Unit Type
 
 OS:AdditionalProperties,
-  {4b8f5b02-dfc3-4357-86bd-297e2a0cc50d}, !- Handle
-  {5ad99312-1efb-44ce-b920-5e1628a7b745}, !- Object Name
+  {206bfc24-c78a-45d4-8e0c-c17aac42497e}, !- Handle
+  {8fbbc126-e61d-4cb7-b067-3ff1ae59ef8d}, !- Object Name
   htg_wkdy,                               !- Feature Name 1
   String,                                 !- Feature Data Type 1
   21.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668&#4421.666666666666668, !- Feature Value 1
@@ -1633,26 +1576,26 @@ OS:AdditionalProperties,
   24.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443&#4424.444444444444443; !- Feature Value 4
 
 OS:Schedule:Ruleset,
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Handle
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Handle
   res cooling season,                     !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
-  {de5168b5-29cd-4a75-86f5-42966faf78d0}; !- Default Day Schedule Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
+  {cd0f42b6-9f01-48e6-adba-e44d97134eda}; !- Default Day Schedule Name
 
 OS:Schedule:Day,
-  {de5168b5-29cd-4a75-86f5-42966faf78d0}, !- Handle
+  {cd0f42b6-9f01-48e6-adba-e44d97134eda}, !- Handle
   Schedule Day 1,                         !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   0;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {ec74827e-1fe0-4d9f-a54e-3c9f9a2e5cb9}, !- Handle
+  {af974d72-5ef8-4d51-bf73-5d3f87b4f3f3}, !- Handle
   res cooling season allday rule1,        !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   11,                                     !- Rule Order
-  {025d8631-7f2f-4f9c-bb20-61718aecfc96}, !- Day Schedule Name
+  {17ca50dc-6503-49aa-9e94-495f9b139302}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1660,7 +1603,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   1,                                      !- Start Month
   1,                                      !- Start Day
@@ -1668,20 +1610,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {025d8631-7f2f-4f9c-bb20-61718aecfc96}, !- Handle
+  {17ca50dc-6503-49aa-9e94-495f9b139302}, !- Handle
   res cooling season allday1,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {878f6a7f-73cc-40cb-a3ed-5edb28aa1d63}, !- Handle
+  {943173b1-4377-457d-bab5-c42df5c253c9}, !- Handle
   res cooling season allday rule2,        !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   10,                                     !- Rule Order
-  {3423adcc-6b44-4a23-80e0-5a4874c4e609}, !- Day Schedule Name
+  {8495f5ba-9b1f-4d17-8ace-0cb776bc9adc}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1689,7 +1631,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   2,                                      !- Start Month
   1,                                      !- Start Day
@@ -1697,20 +1638,20 @@ OS:Schedule:Rule,
   28;                                     !- End Day
 
 OS:Schedule:Day,
-  {3423adcc-6b44-4a23-80e0-5a4874c4e609}, !- Handle
+  {8495f5ba-9b1f-4d17-8ace-0cb776bc9adc}, !- Handle
   res cooling season allday2,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {6e38e721-4585-47fd-b0ee-10c2e99d26ca}, !- Handle
+  {bf16c80f-d14f-477f-9e26-6a03b4472a88}, !- Handle
   res cooling season allday rule3,        !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   9,                                      !- Rule Order
-  {913729d0-93ba-4c52-8f0e-e1433b9cc93b}, !- Day Schedule Name
+  {b716a80b-3ecd-4a2e-b4ef-6c2fd9f0e9ea}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1718,7 +1659,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   3,                                      !- Start Month
   1,                                      !- Start Day
@@ -1726,20 +1666,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {913729d0-93ba-4c52-8f0e-e1433b9cc93b}, !- Handle
+  {b716a80b-3ecd-4a2e-b4ef-6c2fd9f0e9ea}, !- Handle
   res cooling season allday3,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {ece65167-5984-4b8a-8fe3-a24a4d000ca9}, !- Handle
+  {15cac44e-f8c4-429f-a5ad-7a99f891ae44}, !- Handle
   res cooling season allday rule4,        !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   8,                                      !- Rule Order
-  {abd40ce2-fd75-4f08-8ff1-21585e36eaf3}, !- Day Schedule Name
+  {fdf6138f-0b79-4a29-a758-7ef011750558}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1747,7 +1687,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   4,                                      !- Start Month
   1,                                      !- Start Day
@@ -1755,20 +1694,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {abd40ce2-fd75-4f08-8ff1-21585e36eaf3}, !- Handle
+  {fdf6138f-0b79-4a29-a758-7ef011750558}, !- Handle
   res cooling season allday4,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {c02f27bf-1114-4ae7-8dd8-8fd0590cdd4b}, !- Handle
+  {ec8b7058-33d5-4923-b0cf-bb41ea2ec653}, !- Handle
   res cooling season allday rule5,        !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   7,                                      !- Rule Order
-  {24a46185-e3b6-4286-8d5d-badd5d91a095}, !- Day Schedule Name
+  {bcb6509d-6bd7-45fa-9087-4fb4d5a0209d}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1776,7 +1715,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   5,                                      !- Start Month
   1,                                      !- Start Day
@@ -1784,20 +1722,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {24a46185-e3b6-4286-8d5d-badd5d91a095}, !- Handle
+  {bcb6509d-6bd7-45fa-9087-4fb4d5a0209d}, !- Handle
   res cooling season allday5,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {65cba545-c7e2-47e6-b104-bac34845694b}, !- Handle
+  {2cd717dd-ce96-4392-bf65-749ca21fe084}, !- Handle
   res cooling season allday rule6,        !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   6,                                      !- Rule Order
-  {6dcdb5e4-6e4a-42d6-87e7-ee329eb24d3a}, !- Day Schedule Name
+  {5c722812-bcf2-4c02-96f0-5a9c8154eab4}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1805,7 +1743,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   6,                                      !- Start Month
   1,                                      !- Start Day
@@ -1813,20 +1750,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {6dcdb5e4-6e4a-42d6-87e7-ee329eb24d3a}, !- Handle
+  {5c722812-bcf2-4c02-96f0-5a9c8154eab4}, !- Handle
   res cooling season allday6,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {a461d909-6995-42d8-bddb-264560fb9008}, !- Handle
+  {5fa3ca2c-b683-4a87-b5b3-58c1c755849d}, !- Handle
   res cooling season allday rule7,        !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   5,                                      !- Rule Order
-  {f2437c9b-8a95-48ed-be8c-a2dd460c5d2f}, !- Day Schedule Name
+  {0e52c1a7-8ca0-4cee-a34c-bcb27348c486}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1834,7 +1771,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   7,                                      !- Start Month
   1,                                      !- Start Day
@@ -1842,20 +1778,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {f2437c9b-8a95-48ed-be8c-a2dd460c5d2f}, !- Handle
+  {0e52c1a7-8ca0-4cee-a34c-bcb27348c486}, !- Handle
   res cooling season allday7,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {24030410-64c1-42e6-a985-960c52a34b92}, !- Handle
+  {a537371f-d27a-4796-8cfe-8c6cd324f3b2}, !- Handle
   res cooling season allday rule8,        !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   4,                                      !- Rule Order
-  {bd0e05fe-7e01-40ee-96ba-c438756fdc3b}, !- Day Schedule Name
+  {98356b2f-7aa9-4388-8d08-5a67d1e22ceb}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1863,7 +1799,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   8,                                      !- Start Month
   1,                                      !- Start Day
@@ -1871,20 +1806,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {bd0e05fe-7e01-40ee-96ba-c438756fdc3b}, !- Handle
+  {98356b2f-7aa9-4388-8d08-5a67d1e22ceb}, !- Handle
   res cooling season allday8,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {5348e2c1-17dc-4e33-8c39-dcaa49fffffc}, !- Handle
+  {14454c84-ff13-456a-9d06-625fec2b5032}, !- Handle
   res cooling season allday rule9,        !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   3,                                      !- Rule Order
-  {b57f220a-b9a6-402d-bdd6-bb2564408bfd}, !- Day Schedule Name
+  {d58f5da9-8eab-4f3f-b6ec-f849c3af7ee2}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1892,7 +1827,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   9,                                      !- Start Month
   1,                                      !- Start Day
@@ -1900,20 +1834,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {b57f220a-b9a6-402d-bdd6-bb2564408bfd}, !- Handle
+  {d58f5da9-8eab-4f3f-b6ec-f849c3af7ee2}, !- Handle
   res cooling season allday9,             !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {8ce0c618-c516-4c29-a60b-9127f693d45a}, !- Handle
+  {dfb6395e-efce-4cf1-b0bb-dd9d3bfd63ad}, !- Handle
   res cooling season allday rule10,       !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   2,                                      !- Rule Order
-  {414b6fd0-b8b3-4289-a4d9-38a2a67ed234}, !- Day Schedule Name
+  {ab46c433-6647-43c0-886e-b6ae88bf9b90}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1921,7 +1855,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   10,                                     !- Start Month
   1,                                      !- Start Day
@@ -1929,20 +1862,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {414b6fd0-b8b3-4289-a4d9-38a2a67ed234}, !- Handle
+  {ab46c433-6647-43c0-886e-b6ae88bf9b90}, !- Handle
   res cooling season allday10,            !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {5a869b49-831a-44c8-98af-15bd7adad68b}, !- Handle
+  {65fa0ede-bc5a-4db1-b5eb-952291f3d21e}, !- Handle
   res cooling season allday rule11,       !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   1,                                      !- Rule Order
-  {bd2994ca-e303-4758-a3fd-48aa76a39c5a}, !- Day Schedule Name
+  {91ee517c-fe82-483b-a3be-38b0d746162b}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1950,7 +1883,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   11,                                     !- Start Month
   1,                                      !- Start Day
@@ -1958,20 +1890,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {bd2994ca-e303-4758-a3fd-48aa76a39c5a}, !- Handle
+  {91ee517c-fe82-483b-a3be-38b0d746162b}, !- Handle
   res cooling season allday11,            !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {2f243071-ad5b-43f5-96d9-10678dd6e91d}, !- Handle
+  {7390d308-1e54-4cf0-b4e4-89e3a2810e22}, !- Handle
   res cooling season allday rule12,       !- Name
-  {e0527b6e-ca40-47fa-abbb-d1a8eeef3e51}, !- Schedule Ruleset Name
+  {310af1df-2761-46ed-a162-7e4956e42052}, !- Schedule Ruleset Name
   0,                                      !- Rule Order
-  {cff6620f-1598-4227-95c0-0327af3081e9}, !- Day Schedule Name
+  {0906d002-8662-4ae5-9d8c-1b12bf9c4408}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -1979,7 +1911,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   12,                                     !- Start Month
   1,                                      !- Start Day
@@ -1987,37 +1918,37 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {cff6620f-1598-4227-95c0-0327af3081e9}, !- Handle
+  {0906d002-8662-4ae5-9d8c-1b12bf9c4408}, !- Handle
   res cooling season allday12,            !- Name
-  {55afb55b-08a6-4bae-ba7c-eee0d00b9a4e}, !- Schedule Type Limits Name
+  {3e033789-e948-4f53-86ee-cce15f5580fc}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   1;                                      !- Value Until Time 1
 
 OS:Schedule:Ruleset,
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Handle
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Handle
   res heating setpoint,                   !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
-  {8c499c79-4455-41ef-86da-884bd5c57c8c}, !- Default Day Schedule Name
-  {a8a26325-bc86-47c0-81c5-9ff8340c1578}, !- Summer Design Day Schedule Name
-  {80d1a414-130f-465a-838d-dda0a2ce0dea}; !- Winter Design Day Schedule Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
+  {3aca3416-ea19-4a59-aa1e-28a8897800b2}, !- Default Day Schedule Name
+  {b9ef392a-101b-4ffe-bfaf-c3b3893a9119}, !- Summer Design Day Schedule Name
+  {b12f5945-465c-433f-aa9a-4e1f93111cee}; !- Winter Design Day Schedule Name
 
 OS:Schedule:Day,
-  {8c499c79-4455-41ef-86da-884bd5c57c8c}, !- Handle
-  Schedule Day 6,                         !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {3aca3416-ea19-4a59-aa1e-28a8897800b2}, !- Handle
+  Schedule Day 5,                         !- Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   0;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {fd3f7378-88c2-41ce-b330-8187be652b37}, !- Handle
+  {996a5778-5b45-4c78-b5c3-7f469d0ac9c1}, !- Handle
   res heating setpoint allday rule1,      !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   11,                                     !- Rule Order
-  {276a54e0-64be-4a29-b710-6c0672fee5b5}, !- Day Schedule Name
+  {77a8a60b-5be3-4619-b1b0-1b9a1a1c5505}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2025,7 +1956,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   1,                                      !- Start Month
   1,                                      !- Start Day
@@ -2033,20 +1963,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {276a54e0-64be-4a29-b710-6c0672fee5b5}, !- Handle
+  {77a8a60b-5be3-4619-b1b0-1b9a1a1c5505}, !- Handle
   res heating setpoint allday1,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {b215924c-6c99-45ff-8408-b45c181ede8e}, !- Handle
+  {c2a80d88-f1e7-45ee-83d8-b4120555d379}, !- Handle
   res heating setpoint allday rule2,      !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   10,                                     !- Rule Order
-  {445ae52e-3b87-4c91-a4e6-ef05aaaa294b}, !- Day Schedule Name
+  {ce4c143d-642d-4b74-938e-464eea5ff70d}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2054,7 +1984,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   2,                                      !- Start Month
   1,                                      !- Start Day
@@ -2062,20 +1991,20 @@ OS:Schedule:Rule,
   28;                                     !- End Day
 
 OS:Schedule:Day,
-  {445ae52e-3b87-4c91-a4e6-ef05aaaa294b}, !- Handle
+  {ce4c143d-642d-4b74-938e-464eea5ff70d}, !- Handle
   res heating setpoint allday2,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {f612a7c0-e1b6-4f80-8bad-43f3a5547599}, !- Handle
+  {72a3b532-5df8-431c-a226-94d220cfe507}, !- Handle
   res heating setpoint allday rule3,      !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   9,                                      !- Rule Order
-  {09d4e3c5-cdf1-44a8-9331-50ebc1722b16}, !- Day Schedule Name
+  {5e083267-4d38-4dd8-994d-afaa1a47a62e}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2083,7 +2012,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   3,                                      !- Start Month
   1,                                      !- Start Day
@@ -2091,20 +2019,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {09d4e3c5-cdf1-44a8-9331-50ebc1722b16}, !- Handle
+  {5e083267-4d38-4dd8-994d-afaa1a47a62e}, !- Handle
   res heating setpoint allday3,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {628ed074-a586-4cf8-90c2-60a42142999b}, !- Handle
+  {e5fd6f7b-9c03-4ace-8039-081362aaa8e1}, !- Handle
   res heating setpoint allday rule4,      !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   8,                                      !- Rule Order
-  {8d710103-c137-4466-8e69-f8a118af0d5a}, !- Day Schedule Name
+  {5983a031-21d4-47af-a463-e050cbb0e34a}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2112,7 +2040,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   4,                                      !- Start Month
   1,                                      !- Start Day
@@ -2120,20 +2047,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {8d710103-c137-4466-8e69-f8a118af0d5a}, !- Handle
+  {5983a031-21d4-47af-a463-e050cbb0e34a}, !- Handle
   res heating setpoint allday4,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {ef2e2c73-e2e3-4525-84fd-84cae84a604c}, !- Handle
+  {83699380-2e34-42c7-b77b-acdb3963378d}, !- Handle
   res heating setpoint allday rule5,      !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   7,                                      !- Rule Order
-  {ede8c983-b010-45a7-b046-a1ee4ca6de67}, !- Day Schedule Name
+  {0b03b4f0-f95a-48d1-9532-1990516b08e8}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2141,7 +2068,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   5,                                      !- Start Month
   1,                                      !- Start Day
@@ -2149,20 +2075,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {ede8c983-b010-45a7-b046-a1ee4ca6de67}, !- Handle
+  {0b03b4f0-f95a-48d1-9532-1990516b08e8}, !- Handle
   res heating setpoint allday5,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {d73d68ea-348f-4458-85f8-33b06b8a0229}, !- Handle
+  {a3665587-7b28-497d-ae99-0df89b9264d5}, !- Handle
   res heating setpoint allday rule6,      !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   6,                                      !- Rule Order
-  {f7e872fe-e0fa-4a76-b4ef-1e1e46f455a4}, !- Day Schedule Name
+  {372bbe5a-0bc5-4e4d-9533-f196fa8bde4d}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2170,7 +2096,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   6,                                      !- Start Month
   1,                                      !- Start Day
@@ -2178,20 +2103,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {f7e872fe-e0fa-4a76-b4ef-1e1e46f455a4}, !- Handle
+  {372bbe5a-0bc5-4e4d-9533-f196fa8bde4d}, !- Handle
   res heating setpoint allday6,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {0db1ec35-c343-45eb-90b1-62612ea8b8a6}, !- Handle
+  {63ac7568-d437-4f50-ae46-df2be5c99c75}, !- Handle
   res heating setpoint allday rule7,      !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   5,                                      !- Rule Order
-  {0dceed20-d73b-4f80-aaa9-69978c985d46}, !- Day Schedule Name
+  {5fa9aa46-9ef1-4da8-bfe3-1032c3d97742}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2199,7 +2124,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   7,                                      !- Start Month
   1,                                      !- Start Day
@@ -2207,20 +2131,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {0dceed20-d73b-4f80-aaa9-69978c985d46}, !- Handle
+  {5fa9aa46-9ef1-4da8-bfe3-1032c3d97742}, !- Handle
   res heating setpoint allday7,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {8a7e502f-1fe0-433b-8212-33808b6be3b3}, !- Handle
+  {6ef253da-77e7-4392-9b52-88a06d6a830e}, !- Handle
   res heating setpoint allday rule8,      !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   4,                                      !- Rule Order
-  {6ce827c7-8cb5-49f4-8138-5f3511ab7b20}, !- Day Schedule Name
+  {b9a2bcaf-3907-42d2-919d-48ccf61ce5dd}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2228,7 +2152,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   8,                                      !- Start Month
   1,                                      !- Start Day
@@ -2236,20 +2159,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {6ce827c7-8cb5-49f4-8138-5f3511ab7b20}, !- Handle
+  {b9a2bcaf-3907-42d2-919d-48ccf61ce5dd}, !- Handle
   res heating setpoint allday8,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {25bc03b5-fe74-4c65-95c7-128a31cc702f}, !- Handle
+  {994cfda3-cc57-4f3b-ac1a-4f37ebdbc2d9}, !- Handle
   res heating setpoint allday rule9,      !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   3,                                      !- Rule Order
-  {c2ad6cae-5479-4120-940e-27c811907e97}, !- Day Schedule Name
+  {c96fec1d-10bd-4591-805d-2610fc025741}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2257,7 +2180,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   9,                                      !- Start Month
   1,                                      !- Start Day
@@ -2265,20 +2187,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {c2ad6cae-5479-4120-940e-27c811907e97}, !- Handle
+  {c96fec1d-10bd-4591-805d-2610fc025741}, !- Handle
   res heating setpoint allday9,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {8e1b403a-5654-46e4-bcf1-e5173faddf35}, !- Handle
+  {7ab8a1cc-375b-4c71-b065-a9bd479f1e33}, !- Handle
   res heating setpoint allday rule10,     !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   2,                                      !- Rule Order
-  {6850a6a4-c9fb-4fdf-b803-60a2f416f385}, !- Day Schedule Name
+  {fa926390-be0a-4e15-874b-78d1641a13bc}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2286,7 +2208,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   10,                                     !- Start Month
   1,                                      !- Start Day
@@ -2294,20 +2215,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {6850a6a4-c9fb-4fdf-b803-60a2f416f385}, !- Handle
+  {fa926390-be0a-4e15-874b-78d1641a13bc}, !- Handle
   res heating setpoint allday10,          !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {004a907c-4269-4065-8521-00311fb7dd11}, !- Handle
+  {f28d3d9c-d81e-4604-9fcf-d7741a0033d5}, !- Handle
   res heating setpoint allday rule11,     !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   1,                                      !- Rule Order
-  {c20dfb2b-86a3-4e0e-841b-e42287506b3d}, !- Day Schedule Name
+  {80e6a8b3-90f9-49e1-ac85-dfdb4e2feb4c}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2315,7 +2236,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   11,                                     !- Start Month
   1,                                      !- Start Day
@@ -2323,20 +2243,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {c20dfb2b-86a3-4e0e-841b-e42287506b3d}, !- Handle
+  {80e6a8b3-90f9-49e1-ac85-dfdb4e2feb4c}, !- Handle
   res heating setpoint allday11,          !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {32188194-b1ff-4452-b3e7-f02845081939}, !- Handle
+  {1614d42d-345e-4c8c-a52e-66ec34eaea29}, !- Handle
   res heating setpoint allday rule12,     !- Name
-  {69fd47b2-978a-4407-83f8-207fa4fd7a2e}, !- Schedule Ruleset Name
+  {49e1e587-ed21-40ba-946d-b0d7dfbcba72}, !- Schedule Ruleset Name
   0,                                      !- Rule Order
-  {1dafaf3d-d827-4848-9d8d-10ec11bfcfc6}, !- Day Schedule Name
+  {2ad4560e-5311-40aa-8acd-51e091ee7094}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2344,7 +2264,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   12,                                     !- Start Month
   1,                                      !- Start Day
@@ -2352,55 +2271,55 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {1dafaf3d-d827-4848-9d8d-10ec11bfcfc6}, !- Handle
+  {2ad4560e-5311-40aa-8acd-51e091ee7094}, !- Handle
   res heating setpoint allday12,          !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.6666666666667;                       !- Value Until Time 1
 
 OS:Schedule:Day,
-  {80d1a414-130f-465a-838d-dda0a2ce0dea}, !- Handle
+  {b12f5945-465c-433f-aa9a-4e1f93111cee}, !- Handle
   res heating setpoint winter design,     !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.1111111111111;                       !- Value Until Time 1
 
 OS:Schedule:Day,
-  {a8a26325-bc86-47c0-81c5-9ff8340c1578}, !- Handle
+  {b9ef392a-101b-4ffe-bfaf-c3b3893a9119}, !- Handle
   res heating setpoint summer design,     !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   23.8888888888889;                       !- Value Until Time 1
 
 OS:Schedule:Ruleset,
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Handle
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Handle
   res cooling setpoint,                   !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
-  {0c0ee514-a069-4273-8301-6f7bf0ce3b0a}, !- Default Day Schedule Name
-  {291c60bc-aa96-4807-92bc-407b8ec32326}, !- Summer Design Day Schedule Name
-  {c06c3e3f-0ba1-4810-ab4d-98dedefda2ee}; !- Winter Design Day Schedule Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
+  {22c30894-9630-49d3-bd97-9f4bd2ead1da}, !- Default Day Schedule Name
+  {5e553f5d-a170-476e-a45d-835a5ea79039}, !- Summer Design Day Schedule Name
+  {0faa9ce8-01e2-40d0-b9cd-70739ddcf0ac}; !- Winter Design Day Schedule Name
 
 OS:Schedule:Day,
-  {0c0ee514-a069-4273-8301-6f7bf0ce3b0a}, !- Handle
-  Schedule Day 7,                         !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {22c30894-9630-49d3-bd97-9f4bd2ead1da}, !- Handle
+  Schedule Day 6,                         !- Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   0;                                      !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {60665d50-6b33-4903-8357-682ef9fbcfe9}, !- Handle
+  {24f305a7-2722-42ec-9427-738ebcf262b9}, !- Handle
   res cooling setpoint allday rule1,      !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   11,                                     !- Rule Order
-  {a0d654d6-33a9-4346-b9be-4a2acd1c1f3c}, !- Day Schedule Name
+  {3dfad99b-ba0e-439e-adb7-59b271332ce9}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2408,7 +2327,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   1,                                      !- Start Month
   1,                                      !- Start Day
@@ -2416,20 +2334,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {a0d654d6-33a9-4346-b9be-4a2acd1c1f3c}, !- Handle
+  {3dfad99b-ba0e-439e-adb7-59b271332ce9}, !- Handle
   res cooling setpoint allday1,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {e01931cb-d8f7-4a3c-85da-ff06ae3ad4a5}, !- Handle
+  {3327eb90-e13d-4ad8-84d2-3129099d4118}, !- Handle
   res cooling setpoint allday rule2,      !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   10,                                     !- Rule Order
-  {dfec8343-3836-45d2-8fa3-dfbaeeb17681}, !- Day Schedule Name
+  {c323f139-2ed8-455d-b5cd-cbc4fc09b554}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2437,7 +2355,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   2,                                      !- Start Month
   1,                                      !- Start Day
@@ -2445,20 +2362,20 @@ OS:Schedule:Rule,
   28;                                     !- End Day
 
 OS:Schedule:Day,
-  {dfec8343-3836-45d2-8fa3-dfbaeeb17681}, !- Handle
+  {c323f139-2ed8-455d-b5cd-cbc4fc09b554}, !- Handle
   res cooling setpoint allday2,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {1dcefbf3-aaf5-426b-91f6-5b21ea0b0cb2}, !- Handle
+  {f11fd5fe-f559-4a77-b59f-3e5c7738be4a}, !- Handle
   res cooling setpoint allday rule3,      !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   9,                                      !- Rule Order
-  {db674e08-3493-40c2-a711-121a854b9baa}, !- Day Schedule Name
+  {8941ed7e-91e3-457d-8f16-ed3eee3a17ab}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2466,7 +2383,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   3,                                      !- Start Month
   1,                                      !- Start Day
@@ -2474,20 +2390,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {db674e08-3493-40c2-a711-121a854b9baa}, !- Handle
+  {8941ed7e-91e3-457d-8f16-ed3eee3a17ab}, !- Handle
   res cooling setpoint allday3,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {36652b28-5bb4-4e1c-829e-f2c6476237ca}, !- Handle
+  {4f5b7e0d-c8eb-4ecc-afae-a40012c3fe94}, !- Handle
   res cooling setpoint allday rule4,      !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   8,                                      !- Rule Order
-  {b47bc05a-ffa4-48a4-8bf2-aae352a90907}, !- Day Schedule Name
+  {60e52f68-ffa8-4e33-80a8-77c563cc1782}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2495,7 +2411,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   4,                                      !- Start Month
   1,                                      !- Start Day
@@ -2503,20 +2418,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {b47bc05a-ffa4-48a4-8bf2-aae352a90907}, !- Handle
+  {60e52f68-ffa8-4e33-80a8-77c563cc1782}, !- Handle
   res cooling setpoint allday4,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {6c9740bc-0f1a-41d9-b352-242987f96b0a}, !- Handle
+  {f35f5ba5-0e84-41d8-b47d-975b252c36b9}, !- Handle
   res cooling setpoint allday rule5,      !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   7,                                      !- Rule Order
-  {8d1f611b-5bd9-4bfb-b5a1-ad395ace7386}, !- Day Schedule Name
+  {6e59e298-2e7e-454e-af04-2935cbd6f1e7}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2524,7 +2439,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   5,                                      !- Start Month
   1,                                      !- Start Day
@@ -2532,20 +2446,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {8d1f611b-5bd9-4bfb-b5a1-ad395ace7386}, !- Handle
+  {6e59e298-2e7e-454e-af04-2935cbd6f1e7}, !- Handle
   res cooling setpoint allday5,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {7595f187-2c96-425f-b55d-58b910b3b49c}, !- Handle
+  {e0b04420-7680-4ffe-8aef-42bee335f80a}, !- Handle
   res cooling setpoint allday rule6,      !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   6,                                      !- Rule Order
-  {7d631a9d-89ac-4339-905a-6f09753f5e87}, !- Day Schedule Name
+  {82518e4c-5237-4b6f-b49c-b0c6483ae7f9}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2553,7 +2467,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   6,                                      !- Start Month
   1,                                      !- Start Day
@@ -2561,20 +2474,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {7d631a9d-89ac-4339-905a-6f09753f5e87}, !- Handle
+  {82518e4c-5237-4b6f-b49c-b0c6483ae7f9}, !- Handle
   res cooling setpoint allday6,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {f0d38453-f93a-4265-81c6-4d8deb786a93}, !- Handle
+  {9dc25ea6-1d9c-4f91-817d-2ce391ec18ef}, !- Handle
   res cooling setpoint allday rule7,      !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   5,                                      !- Rule Order
-  {51aa11e2-f4fa-45ba-8de2-d3ef082188cf}, !- Day Schedule Name
+  {2c5e6d95-8276-4342-a049-4f4154cf01bb}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2582,7 +2495,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   7,                                      !- Start Month
   1,                                      !- Start Day
@@ -2590,20 +2502,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {51aa11e2-f4fa-45ba-8de2-d3ef082188cf}, !- Handle
+  {2c5e6d95-8276-4342-a049-4f4154cf01bb}, !- Handle
   res cooling setpoint allday7,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {6c657819-d84e-4de1-b9d2-b9a01cea0736}, !- Handle
+  {6f78d18c-65f4-4a7f-8f58-d88d97676651}, !- Handle
   res cooling setpoint allday rule8,      !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   4,                                      !- Rule Order
-  {a3549858-8d52-4409-9913-174eca12f555}, !- Day Schedule Name
+  {cad05d11-dc7e-4375-a560-d310c1b12f3b}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2611,7 +2523,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   8,                                      !- Start Month
   1,                                      !- Start Day
@@ -2619,20 +2530,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {a3549858-8d52-4409-9913-174eca12f555}, !- Handle
+  {cad05d11-dc7e-4375-a560-d310c1b12f3b}, !- Handle
   res cooling setpoint allday8,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {ba4963bf-bb81-4373-b73d-2fc176d74332}, !- Handle
+  {e77132af-e221-4cf2-b493-738ef97e200f}, !- Handle
   res cooling setpoint allday rule9,      !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   3,                                      !- Rule Order
-  {3b09227d-a02f-4ef4-a85e-6f874dda29e4}, !- Day Schedule Name
+  {dd288790-6646-4e21-87c4-e54962c75c7f}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2640,7 +2551,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   9,                                      !- Start Month
   1,                                      !- Start Day
@@ -2648,20 +2558,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {3b09227d-a02f-4ef4-a85e-6f874dda29e4}, !- Handle
+  {dd288790-6646-4e21-87c4-e54962c75c7f}, !- Handle
   res cooling setpoint allday9,           !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {7a059aad-15bd-412a-8162-cb1ee02b3e28}, !- Handle
+  {f4ac7f62-8749-4128-b439-828438e865a0}, !- Handle
   res cooling setpoint allday rule10,     !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   2,                                      !- Rule Order
-  {afb8c742-5aa1-43bc-b05d-4c64d5761310}, !- Day Schedule Name
+  {46742f89-d3c2-4997-be0c-d390b8ea09fc}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2669,7 +2579,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   10,                                     !- Start Month
   1,                                      !- Start Day
@@ -2677,20 +2586,20 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {afb8c742-5aa1-43bc-b05d-4c64d5761310}, !- Handle
+  {46742f89-d3c2-4997-be0c-d390b8ea09fc}, !- Handle
   res cooling setpoint allday10,          !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {3fc859c4-3acd-4351-b8b4-3bf57507f7b9}, !- Handle
+  {77fa6cea-9a1c-453f-bdc5-c78a4a23a538}, !- Handle
   res cooling setpoint allday rule11,     !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   1,                                      !- Rule Order
-  {a8b65ad2-d289-4762-8934-2066a77c73ea}, !- Day Schedule Name
+  {c1ed3eb5-5205-41f3-8ce0-0699cc254509}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2698,7 +2607,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   11,                                     !- Start Month
   1,                                      !- Start Day
@@ -2706,20 +2614,20 @@ OS:Schedule:Rule,
   30;                                     !- End Day
 
 OS:Schedule:Day,
-  {a8b65ad2-d289-4762-8934-2066a77c73ea}, !- Handle
+  {c1ed3eb5-5205-41f3-8ce0-0699cc254509}, !- Handle
   res cooling setpoint allday11,          !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Rule,
-  {dcb96aaa-4f5a-4452-8519-ffae468c6391}, !- Handle
+  {8de9d0c7-53cf-41da-a0aa-8cfb1de553c0}, !- Handle
   res cooling setpoint allday rule12,     !- Name
-  {cacf687e-565c-4375-b320-ae762a0b7242}, !- Schedule Ruleset Name
+  {c1a95e3b-eec7-41e1-8d2b-f92be24fcb12}, !- Schedule Ruleset Name
   0,                                      !- Rule Order
-  {8d37ddef-225f-4b50-8469-3d17de1941ab}, !- Day Schedule Name
+  {fba759da-90bd-481f-a019-884cafe41f96}, !- Day Schedule Name
   Yes,                                    !- Apply Sunday
   Yes,                                    !- Apply Monday
   Yes,                                    !- Apply Tuesday
@@ -2727,7 +2635,6 @@ OS:Schedule:Rule,
   Yes,                                    !- Apply Thursday
   Yes,                                    !- Apply Friday
   Yes,                                    !- Apply Saturday
-  ,                                       !- Apply Holiday
   DateRange,                              !- Date Specification Type
   12,                                     !- Start Month
   1,                                      !- Start Day
@@ -2735,27 +2642,27 @@ OS:Schedule:Rule,
   31;                                     !- End Day
 
 OS:Schedule:Day,
-  {8d37ddef-225f-4b50-8469-3d17de1941ab}, !- Handle
+  {fba759da-90bd-481f-a019-884cafe41f96}, !- Handle
   res cooling setpoint allday12,          !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   24.4444444444444;                       !- Value Until Time 1
 
 OS:Schedule:Day,
-  {c06c3e3f-0ba1-4810-ab4d-98dedefda2ee}, !- Handle
+  {0faa9ce8-01e2-40d0-b9cd-70739ddcf0ac}, !- Handle
   res cooling setpoint winter design,     !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1
   21.1111111111111;                       !- Value Until Time 1
 
 OS:Schedule:Day,
-  {291c60bc-aa96-4807-92bc-407b8ec32326}, !- Handle
+  {5e553f5d-a170-476e-a45d-835a5ea79039}, !- Handle
   res cooling setpoint summer design,     !- Name
-  {5061c858-b518-4c95-b401-b9ca6b6d1ca0}, !- Schedule Type Limits Name
+  {9c06a7bb-486a-44dd-9d3a-d9439e4f1937}, !- Schedule Type Limits Name
   ,                                       !- Interpolate to Timestep
   24,                                     !- Hour 1
   0,                                      !- Minute 1

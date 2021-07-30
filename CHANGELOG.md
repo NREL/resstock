@@ -1,6 +1,7 @@
 ## ResStock v2.5.0 (pending)
 
 Features
+- Update to OpenStudio v3.2.1 ([#604](https://github.com/NREL/resstock/pull/604))
 - Model multifamily and single-family attached buildings as individual dwelling units ([#439](https://github.com/NREL/resstock/pull/439))
 - Reduce vacant unit heating setpoints to 55F ([#541](https://github.com/NREL/resstock/pull/541))
 - Introduce a CEC Building Climate Zone tag for samples in California ([#548](https://github.com/NREL/resstock/pull/548))
@@ -24,6 +25,8 @@ Features
 - Update tsv files for both the national and testing projects. Supports transition to ResStock-HPXML ([#559](https://github.com/NREL/resstock/pull/559))
 - Changes "Duct Surface Area (ft^2)" cost multiplier to "Duct Unconditioned Surface Area (ft^2)" ([#634](https://github.com/NREL/resstock/pull/634))
 - Update window type distributions using RECS 2015. Includes additional of frame material types (RECS 2015) and presence of storm windows (D&R International) ([#615](https://github.com/NREL/resstock/pull/615))
+- Reduces window interior shading during Winter to match ANSI/RESNET/ICC 301 assumption ([#649](https://github.com/NREL/resstock/pull/649))
+- Updates ceiling fan model based on ANSI/RESNET ICC 301 assumptions ([#652](https://github.com/NREL/resstock/pull/652))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
@@ -40,6 +43,7 @@ Fixes
 - Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
 - Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
 - Fixes bug related to heating/cooling setpoints during overlap seasons where "high" or "low" setpoints were being averaged with default values rather than specified values ([#633](https://github.com/NREL/resstock/pull/633))
+- Fixes hot water distribution internal gains not being zeroed out during vacancies ([#653](https://github.com/NREL/resstock/pull/653))
 
 ## ResStock v2.4.0
 
