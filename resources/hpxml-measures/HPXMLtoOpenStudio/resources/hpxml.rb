@@ -3060,7 +3060,7 @@ class HPXML < Object
              :fan_watts_per_cfm, :is_shared_system, :number_of_units_served, :shared_loop_watts,
              :shared_loop_motor_efficiency, :airflow_defect_ratio, :charge_defect_ratio,
              :heating_airflow_cfm, :cooling_airflow_cfm, :location,
-             :flex, :modulating, :dual_source, :ihp_grid_ac, :ihp_ice_storage, :ihp_pcm_storage]
+             :flex, :modulating, :dual_source, :ihp_grid_ac, :ihp_ice_storage, :ihp_pcm_storage, :grid_signal_schedule]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -3168,11 +3168,13 @@ class HPXML < Object
       if (not @flex.nil?) || (not @modulating.nil?) || (not @dual_source.nil?) || (not @ihp_grid_ac.nil?) || (not @ihp_ice_storage.nil?) || (not @ihp_pcm_storage.nil?)
         extension = XMLHelper.create_elements_as_needed(heat_pump, ['extension'])
         demand_flexibility = XMLHelper.add_element(extension, 'DemandFlexibility')
+        XMLHelper.add_element(demand_flexibility, 'GridConnected', @flex, :boolean) unless @flex.nil?
         XMLHelper.add_element(demand_flexibility, 'Modulating', @modulating, :boolean) unless @modulating.nil?
         XMLHelper.add_element(demand_flexibility, 'DualSource', @dual_source, :boolean) unless @dual_source.nil?
         XMLHelper.add_element(demand_flexibility, 'IHPGridAC', @ihp_grid_ac, :boolean) unless @ihp_grid_ac.nil?
         XMLHelper.add_element(demand_flexibility, 'IHPIceStorage', @ihp_ice_storage, :boolean) unless @ihp_ice_storage.nil?
         XMLHelper.add_element(demand_flexibility, 'IHPPcmStorage', @ihp_pcm_storage, :boolean) unless @ihp_pcm_storage.nil?
+        XMLHelper.add_element(demand_flexibility, 'GridSignalSchedule', @grid_signal_schedule, :string) unless @grid_signal_schedule.nil?
       end
     end
 
@@ -3224,7 +3226,8 @@ class HPXML < Object
       @ihp_grid_ac = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/IHPGridAC', :boolean)
       @ihp_ice_storage = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/IHPIceStorage', :boolean)
       @ihp_pcm_storage = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/IHPPcmStorage', :boolean)
-      @flex = XMLHelper.get_element(heat_pump, 'extension/DemandFlexibility')
+      @flex = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/GridConnected', :boolean)
+      @grid_signal_schedule = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/GridSignalSchedule', :string)
     end
   end
 

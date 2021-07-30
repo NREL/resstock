@@ -1181,8 +1181,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility', false)
-    arg.setDisplayName('Heat Pump: Demand Flexibility')
-    arg.setDescription('Use AirLoopHVACUnitaryHeatPumpAirToAir with VariableSpeed coils.')
+    arg.setDisplayName('Heat Pump: Demand Flexibility Grid Connected')
+    arg.setDescription('Whether equipment is grid connected.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility_modulating', false)
@@ -1208,6 +1208,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility_ihp_pcm_storage', false)
     arg.setDisplayName('Heat Pump: Demand Flexibility Integrated Heat Pump Modulating w/ Pcm Storage')
     arg.setDescription('')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('grid_signal_schedule', false)
+    arg.setDisplayName('Grid Signal Schedule for Demand Flexibility Measures')
+    arg.setDescription('Schedule can be 24 hour array or file location')
     args << arg
 
     heating_system_type_2_choices = OpenStudio::StringVector.new
@@ -4073,27 +4078,31 @@ class HPXMLFile
     end
 
     if args[:heat_pump_demand_flexibility].is_initialized
-      flex = true
+      flex = args[:heat_pump_demand_flexibility].get
     end
 
     if args[:heat_pump_demand_flexibility_modulating].is_initialized
-      modulating = true
+      modulating = args[:heat_pump_demand_flexibility_modulating].get
     end
 
     if args[:heat_pump_demand_flexibility_dual_source].is_initialized
-      dual_source = true
+      dual_source = args[:heat_pump_demand_flexibility_dual_source].get
     end
 
     if args[:heat_pump_demand_flexibility_ihp_grid_ac].is_initialized
-      ihp_grid_ac = true
+      ihp_grid_ac = args[:heat_pump_demand_flexibility_ihp_grid_ac].get
     end
 
     if args[:heat_pump_demand_flexibility_ihp_ice_storage].is_initialized
-      ihp_ice_storage = true
+      ihp_ice_storage = args[:heat_pump_demand_flexibility_ihp_ice_storage].get
     end
 
     if args[:heat_pump_demand_flexibility_ihp_pcm_storage].is_initialized
-      ihp_pcm_storage = true
+      ihp_pcm_storage = args[:heat_pump_demand_flexibility_ihp_pcm_storage].get
+    end
+
+    if args[:grid_signal_schedule].is_initialized
+      grid_signal_schedule = args[:grid_signal_schedule].get
     end
 
     hpxml.heat_pumps.add(id: 'HeatPump',
@@ -4118,6 +4127,7 @@ class HPXMLFile
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio,
                          flex: flex,
+                         grid_signal_schedule: grid_signal_schedule,
                          modulating: modulating,
                          dual_source: dual_source,
                          ihp_grid_ac: ihp_grid_ac,
