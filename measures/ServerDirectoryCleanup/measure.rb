@@ -12,97 +12,97 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
   def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('in_osm', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_in_osm', true)
     arg.setDisplayName('Retain in.osm')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('in_idf', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_in_idf', true)
     arg.setDisplayName('Retain in.idf')
     arg.setDefaultValue(true)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('pre_process_idf', true)
-    arg.setDisplayName('Retain eplusout.bnd')
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_pre_process_idf', true)
+    arg.setDisplayName('Retain pre_process.idf')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_audit', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_audit', true)
     arg.setDisplayName('Retain eplusout.audit')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_bnd', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_bnd', true)
     arg.setDisplayName('Retain eplusout.bnd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_eio', true)
-    arg.setDisplayName('Retain eplusout.bnd')
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_eio', true)
+    arg.setDisplayName('Retain eplusout.eio')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_end', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_end', true)
     arg.setDisplayName('Retain eplusout.end')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_err', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_err', true)
     arg.setDisplayName('Retain eplusout.err')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_eso', true)
-    arg.setDisplayName('Retain eplusout.bnd')
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_eso', true)
+    arg.setDisplayName('Retain eplusout.eso')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_mdd', true)
-    arg.setDisplayName('Retain eplusout.bnd')
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_mdd', true)
+    arg.setDisplayName('Retain eplusout.mdd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_mtd', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_mtd', true)
     arg.setDisplayName('Retain eplusout.mtd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_rdd', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_rdd', true)
     arg.setDisplayName('Retain eplusout.rdd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_shd', true)
-    arg.setDisplayName('Retain eplusout.bnd')
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_shd', true)
+    arg.setDisplayName('Retain eplusout.shd')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplusout_sql', true)
-    arg.setDisplayName('eplusout.sql')
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_sql', true)
+    arg.setDisplayName('Retain eplusout.sql')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('eplustbl_htm', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplustbl_htm', true)
     arg.setDisplayName('Retain eplustbl.htm')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('sqlite_err', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_sqlite_err', true)
     arg.setDisplayName('Retain sqlite.err.')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('stdout_energyplus', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_stdout_energyplus', true)
     arg.setDisplayName('Retain stdout-energyplus')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('stdout_expandobject', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_stdout_expandobject', true)
     arg.setDisplayName('Retain stdout-expandobject.')
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('schedules_csv', true)
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_schedules_csv', true)
     arg.setDisplayName('Retain schedules.csv.')
     arg.setDefaultValue(true)
     args << arg
@@ -126,25 +126,25 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    in_osm = runner.getBoolArgumentValue('in_osm', user_arguments)
-    in_idf = runner.getBoolArgumentValue('in_idf', user_arguments)
-    pre_process_idf = runner.getBoolArgumentValue('pre_process_idf', user_arguments)
-    eplusout_audit = runner.getBoolArgumentValue('eplusout_audit', user_arguments)
-    eplusout_bnd = runner.getBoolArgumentValue('eplusout_bnd', user_arguments)
-    eplusout_eio = runner.getBoolArgumentValue('eplusout_eio', user_arguments)
-    eplusout_end = runner.getBoolArgumentValue('eplusout_end', user_arguments)
-    eplusout_err = runner.getBoolArgumentValue('eplusout_err', user_arguments)
-    eplusout_eso = runner.getBoolArgumentValue('eplusout_eso', user_arguments)
-    eplusout_mdd = runner.getBoolArgumentValue('eplusout_mdd', user_arguments)
-    eplusout_mtd = runner.getBoolArgumentValue('eplusout_mtd', user_arguments)
-    eplusout_rdd = runner.getBoolArgumentValue('eplusout_rdd', user_arguments)
-    eplusout_shd = runner.getBoolArgumentValue('eplusout_shd', user_arguments)
-    eplusout_sql = runner.getBoolArgumentValue('eplusout_sql', user_arguments)
-    eplustbl_htm = runner.getBoolArgumentValue('eplustbl_htm', user_arguments)
-    sqlite_err = runner.getBoolArgumentValue('sqlite_err', user_arguments)
-    stdout_energyplus = runner.getBoolArgumentValue('stdout_energyplus', user_arguments)
-    stdout_expandobject = runner.getBoolArgumentValue('stdout_expandobject', user_arguments)
-    schedules_csv = runner.getBoolArgumentValue('schedules_csv', user_arguments)
+    in_osm = runner.getBoolArgumentValue('retain_in_osm', user_arguments)
+    in_idf = runner.getBoolArgumentValue('retain_in_idf', user_arguments)
+    pre_process_idf = runner.getBoolArgumentValue('retain_pre_process_idf', user_arguments)
+    eplusout_audit = runner.getBoolArgumentValue('retain_eplusout_audit', user_arguments)
+    eplusout_bnd = runner.getBoolArgumentValue('retain_eplusout_bnd', user_arguments)
+    eplusout_eio = runner.getBoolArgumentValue('retain_eplusout_eio', user_arguments)
+    eplusout_end = runner.getBoolArgumentValue('retain_eplusout_end', user_arguments)
+    eplusout_err = runner.getBoolArgumentValue('retain_eplusout_err', user_arguments)
+    eplusout_eso = runner.getBoolArgumentValue('retain_eplusout_eso', user_arguments)
+    eplusout_mdd = runner.getBoolArgumentValue('retain_eplusout_mdd', user_arguments)
+    eplusout_mtd = runner.getBoolArgumentValue('retain_eplusout_mtd', user_arguments)
+    eplusout_rdd = runner.getBoolArgumentValue('retain_eplusout_rdd', user_arguments)
+    eplusout_shd = runner.getBoolArgumentValue('retain_eplusout_shd', user_arguments)
+    eplusout_sql = runner.getBoolArgumentValue('retain_eplusout_sql', user_arguments)
+    eplustbl_htm = runner.getBoolArgumentValue('retain_eplustbl_htm', user_arguments)
+    sqlite_err = runner.getBoolArgumentValue('retain_sqlite_err', user_arguments)
+    stdout_energyplus = runner.getBoolArgumentValue('retain_stdout_energyplus', user_arguments)
+    stdout_expandobject = runner.getBoolArgumentValue('retain_stdout_expandobject', user_arguments)
+    schedules_csv = runner.getBoolArgumentValue('retain_schedules_csv', user_arguments)
 
     Dir.glob('./../in.osm').each do |f|
       File.delete(f) unless in_osm
@@ -182,10 +182,6 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       File.delete(f) unless eplusout_eso
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
-    Dir.glob('./../eplusout.sql').each do |f|
-      File.delete(f) unless eplusout_sql
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
     Dir.glob('./../eplusout.mdd').each do |f|
       File.delete(f) unless eplusout_mdd
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
@@ -202,8 +198,8 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       File.delete(f) unless eplusout_shd
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
-    Dir.glob('./../eplusout.shd').each do |f|
-      File.delete(f) unless eplusout_shd
+    Dir.glob('./../eplusout.sql').each do |f|
+      File.delete(f) unless eplusout_sql
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
     Dir.glob('./../eplustbl.htm').each do |f|

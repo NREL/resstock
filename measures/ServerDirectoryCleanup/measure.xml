@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>server_directory_cleanup</name>
   <uid>ec7d04ad-0b7b-495b-825a-e1b6d28d1d3f</uid>
-  <version_id>a0b572e3-fcb7-48a2-b1d7-a6ea68eef998</version_id>
-  <version_modified>20210729T235126Z</version_modified>
+  <version_id>790fb462-dc26-4a24-bd84-f0440ab6f031</version_id>
+  <version_modified>20210730T135936Z</version_modified>
   <xml_checksum>5F1EDF75</xml_checksum>
   <class_name>ServerDirectoryCleanup</class_name>
   <display_name>Server Directory Cleanup</display_name>
@@ -12,7 +12,7 @@
   <modeler_description>Use during large server runs, when individual sequel files and the like will not be needed.</modeler_description>
   <arguments>
     <argument>
-      <name>in_osm</name>
+      <name>retain_in_osm</name>
       <display_name>Retain in.osm</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -30,7 +30,7 @@
       </choices>
     </argument>
     <argument>
-      <name>in_idf</name>
+      <name>retain_in_idf</name>
       <display_name>Retain in.idf</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -48,8 +48,8 @@
       </choices>
     </argument>
     <argument>
-      <name>pre_process_idf</name>
-      <display_name>Retain eplusout.bnd</display_name>
+      <name>retain_pre_process_idf</name>
+      <display_name>Retain pre_process.idf</display_name>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -66,7 +66,7 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_audit</name>
+      <name>retain_eplusout_audit</name>
       <display_name>Retain eplusout.audit</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -84,7 +84,7 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_bnd</name>
+      <name>retain_eplusout_bnd</name>
       <display_name>Retain eplusout.bnd</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -102,8 +102,8 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_eio</name>
-      <display_name>Retain eplusout.bnd</display_name>
+      <name>retain_eplusout_eio</name>
+      <display_name>Retain eplusout.eio</display_name>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -120,7 +120,7 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_end</name>
+      <name>retain_eplusout_end</name>
       <display_name>Retain eplusout.end</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -138,7 +138,7 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_err</name>
+      <name>retain_eplusout_err</name>
       <display_name>Retain eplusout.err</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -156,8 +156,8 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_eso</name>
-      <display_name>Retain eplusout.bnd</display_name>
+      <name>retain_eplusout_eso</name>
+      <display_name>Retain eplusout.eso</display_name>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -174,8 +174,8 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_mdd</name>
-      <display_name>Retain eplusout.bnd</display_name>
+      <name>retain_eplusout_mdd</name>
+      <display_name>Retain eplusout.mdd</display_name>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -192,7 +192,7 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_mtd</name>
+      <name>retain_eplusout_mtd</name>
       <display_name>Retain eplusout.mtd</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -210,7 +210,7 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_rdd</name>
+      <name>retain_eplusout_rdd</name>
       <display_name>Retain eplusout.rdd</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -228,8 +228,8 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_shd</name>
-      <display_name>Retain eplusout.bnd</display_name>
+      <name>retain_eplusout_shd</name>
+      <display_name>Retain eplusout.shd</display_name>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -246,8 +246,8 @@
       </choices>
     </argument>
     <argument>
-      <name>eplusout_sql</name>
-      <display_name>eplusout.sql</display_name>
+      <name>retain_eplusout_sql</name>
+      <display_name>Retain eplusout.sql</display_name>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -264,7 +264,7 @@
       </choices>
     </argument>
     <argument>
-      <name>eplustbl_htm</name>
+      <name>retain_eplustbl_htm</name>
       <display_name>Retain eplustbl.htm</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -282,7 +282,7 @@
       </choices>
     </argument>
     <argument>
-      <name>sqlite_err</name>
+      <name>retain_sqlite_err</name>
       <display_name>Retain sqlite.err.</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -300,7 +300,7 @@
       </choices>
     </argument>
     <argument>
-      <name>stdout_energyplus</name>
+      <name>retain_stdout_energyplus</name>
       <display_name>Retain stdout-energyplus</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -318,7 +318,7 @@
       </choices>
     </argument>
     <argument>
-      <name>stdout_expandobject</name>
+      <name>retain_stdout_expandobject</name>
       <display_name>Retain stdout-expandobject.</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -336,7 +336,7 @@
       </choices>
     </argument>
     <argument>
-      <name>schedules_csv</name>
+      <name>retain_schedules_csv</name>
       <display_name>Retain schedules.csv.</display_name>
       <type>Boolean</type>
       <required>true</required>
@@ -381,7 +381,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>C0EA2E83</checksum>
+      <checksum>D0F1F149</checksum>
     </file>
   </files>
 </measure>
