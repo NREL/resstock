@@ -227,20 +227,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Report some additional location and model characteristics
     weather = WeatherProcess.new(model, runner)
     if !weather.error?
-      register_value(runner, 'location_city', weather.header.City)
-      register_value(runner, 'location_latitude', "#{weather.header.Latitude}")
-      register_value(runner, 'location_longitude', "#{weather.header.Longitude}")
-      climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)
-      climate_zone_iecc = Location.get_climate_zone_iecc(weather.header.Station)
-      unless climate_zone_ba.nil?
-        register_value(runner, 'climate_zone_ba', climate_zone_ba)
-      end
-      unless climate_zone_iecc.nil?
-        register_value(runner, 'climate_zone_iecc', climate_zone_iecc)
-      end
-      if climate_zone_ba.nil? && climate_zone_iecc.nil?
-        runner.registerInfo('The weather station WMO has not been set appropriately in the EPW weather file header.')
-      end
+      register_value(runner, 'weather_file_city', weather.header.City)
+      register_value(runner, 'weather_file_latitude', "#{weather.header.Latitude}")
+      register_value(runner, 'weather_file_longitude', "#{weather.header.Longitude}")
     end
 
     # Determine weight
