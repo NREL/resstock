@@ -21,7 +21,7 @@ class RunSampling
       lookup_file = File.join(resources_dir, 'options_lookup.tsv')
     end
 
-    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
     params = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data)
 

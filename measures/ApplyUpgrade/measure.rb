@@ -193,7 +193,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Check file/dir paths exist
     check_file_exists(lookup_file, runner)
 
-    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
@@ -203,7 +203,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     check_dir_exists(characteristics_dir, runner)
 
     # Retrieve workflow_json from BuildExistingModel measure if provided
-    workflow_json = get_value_from_runner_past_results(runner, 'workflow_json', 'build_existing_model', false)
+    values = get_values_from_runner_past_results(runner, 'build_existing_model')
+    workflow_json = values['workflow_json']
     if not workflow_json.nil?
       workflow_json = File.join(resources_dir, workflow_json)
     end
@@ -276,7 +277,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
       measures.keys.each do |measure_subdir|
         parameters.each do |parameter_name|
-          existing_option_name = get_value_from_runner_past_results(runner, parameter_name, 'build_existing_model')
+          existing_option_name = values[OpenStudio::toUnderscoreCase(parameter_name)]
 
           options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
           options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
@@ -365,17 +366,11 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['software_program_version'] = software_program_version
 
       # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
-      simulation_control_timestep = get_value_from_runner_past_results(runner, 'simulation_control_timestep', 'build_existing_model', false)
-      simulation_control_run_period_begin_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_begin_month', 'build_existing_model', false)
-      simulation_control_run_period_begin_day_of_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_begin_day_of_month', 'build_existing_model', false)
-      simulation_control_run_period_end_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_end_month', 'build_existing_model', false)
-      simulation_control_run_period_end_day_of_month = get_value_from_runner_past_results(runner, 'simulation_control_run_period_end_day_of_month', 'build_existing_model', false)
-      simulation_control_run_period_calendar_year = get_value_from_runner_past_results(runner, 'simulation_control_run_period_calendar_year', 'build_existing_model', false)
+      simulation_control_timestep = values['simulation_control_timestep']
+      simulation_control_run_period = values['simulation_control_run_period']
+      simulation_control_run_period_calendar_year = values['simulation_control_run_period_calendar_year']
       measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = simulation_control_timestep
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_month'] = simulation_control_run_period_begin_month
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_day_of_month'] = simulation_control_run_period_begin_day_of_month
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_month'] = simulation_control_run_period_end_month
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_day_of_month'] = simulation_control_run_period_end_day_of_month
+      measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = simulation_control_run_period
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = simulation_control_run_period_calendar_year
 
       # Remove the existing generated_files folder alongside the run folder; if not, getExternalFile returns false for some reason

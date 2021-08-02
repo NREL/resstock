@@ -13,15 +13,20 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../.
 from compare import BaseCompare
 
 enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family Detached': 'SFD',
+                                                                  'Mobile Home': 'SFD',
                                                                   'Single-Family Attached': 'SFA',
                                                                   'Multi-Family with 2 - 4 Units': 'MF',
                                                                   'Multi-Family with 5+ Units': 'MF'} }
 
+cols_to_ignore = ['simulation_output_report.include_timeseries_end_use_consumptions',
+                  'color_index']
+
 class MoreCompare(BaseCompare):
-  def __init__(self, base_folder, feature_folder, export_folder, map_results):
+  def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
     self.base_folder = base_folder
     self.feature_folder = feature_folder
     self.export_folder = export_folder
+    self.export_file = export_file
 
     if map_results:
       self.map_columns(map_results)
@@ -117,7 +122,6 @@ class MoreCompare(BaseCompare):
       df_to_map = base_df
 
     # Aggregate variables w/ multiple cols
-    del_cols_map = []
     for cols, map_to in map_dict.items():
       map_to_s = map_to.split(',')
       if len(map_to_s) > 1: # Sum columns and use first parameter as col name
@@ -132,26 +136,22 @@ class MoreCompare(BaseCompare):
 
       cols_s = cols.split(',')
       if len(cols_s)>1:
-        del_cols_map.append(cols)
         cols_s = [col.split('.')[1] for col in cols_s]
         try:
-          df_to_map[map_to] = df_to_map[cols_s].sum(axis=1)
+          df_to_map[cols] = df_to_map[cols_s].sum(axis=1)
         except:
           for col in cols_s:
             if col in df_to_map.columns:
               df_to_map[map_to] = df_to_map[col]
-
-    for col in del_cols_map:
-      del map_dict[col]
 
     # Convert units
     self.convert_units(df_to_map)
     self.convert_units(df_to_keep)
    
     # Map column headers
-    map_dict = {k.split('.')[1]:v for k,v in map_dict.items()}
+    map_dict = {k.split('.')[1] if ',' not in k else k:v for k,v in map_dict.items()}
     df_to_map.rename(columns=map_dict, inplace=True)
-    
+
     # Filter out aggregated and non-overlapping columns   
     mapped_cols = list(set(map_dict.values()).intersection(list(df_to_map.columns)))
     df_to_map = df_to_map[mapped_cols]
@@ -189,17 +189,19 @@ if __name__ == '__main__':
   parser.add_argument('-b', '--base_folder', default=default_base_folder, help='The path of the base folder.')
   parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='The path of the feature folder.')
   parser.add_argument('-e', '--export_folder', default=default_export_folder, help='The path of the export folder.')
+  parser.add_argument('-x', '--export_file', help='The path of the export file.')
   parser.add_argument('-a', '--actions', action='append', choices=actions, help='The method to call.')
   parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
   parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
   parser.add_argument('-dc', '--display_column', choices=display_columns, help='How to organize the subplots.')
-  parser.add_argument('-m', '--map_results', choices=map_result_choices, help="Which file's columns to map to")
+  parser.add_argument('-m', '--map_results', choices=map_result_choices, help='Map to columns of base or feature.')
   args = parser.parse_args()
+  print(args)
 
   if not os.path.exists(args.export_folder):
     os.makedirs(args.export_folder)
     
-  compare = MoreCompare(args.base_folder, args.feature_folder, args.export_folder, args.map_results)
+  compare = MoreCompare(args.base_folder, args.feature_folder, args.export_folder, args.export_file, args.map_results)
 
   if args.actions == None:
     args.actions = [] 
@@ -212,4 +214,4 @@ if __name__ == '__main__':
       compare.results(args.aggregate_column, args.aggregate_function, excludes, enum_maps)
     elif action == 'visualize':
       excludes = ['buildstock.csv', 'results_characteristics.csv']
-      compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps)
+      compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps, cols_to_ignore)

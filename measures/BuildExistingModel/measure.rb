@@ -156,10 +156,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     check_file_exists(lookup_file, runner)
     check_file_exists(buildstock_csv, runner)
 
-    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
+    buildstock_csv_data = CSV.open(buildstock_csv, headers: true).map(&:to_hash)
 
     # Retrieve all data associated with sample number
-    bldg_data = get_data_for_sample(buildstock_csv, args['building_id'], runner)
+    bldg_data = get_data_for_sample(buildstock_csv_data, args['building_id'], runner)
 
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
@@ -249,10 +250,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get simulation control timestep and run period
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args['simulation_control_timestep'].get if args['simulation_control_timestep'].is_initialized
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_month'] = args['simulation_control_run_period_begin_month'].get if args['simulation_control_run_period_begin_month'].is_initialized
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_begin_day_of_month'] = args['simulation_control_run_period_begin_day_of_month'].get if args['simulation_control_run_period_begin_day_of_month'].is_initialized
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_month'] = args['simulation_control_run_period_end_month'].get if args['simulation_control_run_period_end_month'].is_initialized
-    measures['BuildResidentialHPXML'][0]['simulation_control_run_period_end_day_of_month'] = args['simulation_control_run_period_end_day_of_month'].get if args['simulation_control_run_period_end_day_of_month'].is_initialized
+    if args['simulation_control_run_period_begin_month'].is_initialized && args['simulation_control_run_period_begin_day_of_month'].is_initialized && args['simulation_control_run_period_end_month'].is_initialized && args['simulation_control_run_period_end_day_of_month'].is_initialized
+      begin_month = "#{Date::ABBR_MONTHNAMES[args['simulation_control_run_period_begin_month'].get]}"
+      begin_day = args['simulation_control_run_period_begin_day_of_month'].get
+      end_month = "#{Date::ABBR_MONTHNAMES[args['simulation_control_run_period_end_month'].get]}"
+      end_day = args['simulation_control_run_period_end_day_of_month'].get
+      measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
+    end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
 
     # Get the schedules random seed

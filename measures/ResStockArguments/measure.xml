@@ -3,12 +3,12 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>e3da5a14-dfc8-4af2-a264-2909995f7898</version_id>
-  <version_modified>20210617T171218Z</version_modified>
+  <version_id>1d5ab72d-7728-4bf6-ac6c-834034ed9e10</version_id>
+  <version_modified>20210730T061423Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
-  <description>Measure that extends the arguments available for ResStock.</description>
+  <description>Measure that pre-processes the arguments passed to the BuildResidentialHPXML measure.</description>
   <modeler_description>Defines the set of arguments needed for ResStock that are not available in BuildResidentialHPXML.</modeler_description>
   <arguments>
     <argument>
@@ -21,38 +21,10 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>simulation_control_run_period_begin_month</name>
-      <display_name>Simulation Control: Run Period Begin Month</display_name>
-      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>simulation_control_run_period_begin_day_of_month</name>
-      <display_name>Simulation Control: Run Period Begin Day of Month</display_name>
-      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>simulation_control_run_period_end_month</name>
-      <display_name>Simulation Control: Run Period End Month</display_name>
-      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>simulation_control_run_period_end_day_of_month</name>
-      <display_name>Simulation Control: Run Period End Day of Month</display_name>
-      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.</description>
-      <type>Integer</type>
-      <units>#</units>
+      <name>simulation_control_run_period</name>
+      <display_name>Simulation Control: Run Period</display_name>
+      <description>Specifies the annual simulation run period. Enter a date like "Mar 15 - Sep 15".</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -84,38 +56,10 @@
       </choices>
     </argument>
     <argument>
-      <name>simulation_control_daylight_saving_begin_month</name>
-      <display_name>Simulation Control: Daylight Saving Begin Month</display_name>
-      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual daylight saving period desired.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>simulation_control_daylight_saving_begin_day_of_month</name>
-      <display_name>Simulation Control: Daylight Saving Begin Day of Month</display_name>
-      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the daylight saving period desired.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>simulation_control_daylight_saving_end_month</name>
-      <display_name>Simulation Control: Daylight Saving End Month</display_name>
-      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the daylight saving period desired.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>simulation_control_daylight_saving_end_day_of_month</name>
-      <display_name>Simulation Control: Daylight Saving End Day of Month</display_name>
-      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the daylight saving period desired.</description>
-      <type>Integer</type>
-      <units>#</units>
+      <name>simulation_control_daylight_saving_period</name>
+      <display_name>Simulation Control: Daylight Saving Period</display_name>
+      <description>Specifies the daylight saving period. Enter a date like "Mar 15 - Dec 15".</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -151,38 +95,10 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>schedules_vacancy_begin_month</name>
-      <display_name>Schedules: Vacancy Start Begin Month</display_name>
-      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>schedules_vacancy_begin_day_of_month</name>
-      <display_name>Schedules: Vacancy Begin Day of Month</display_name>
-      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>schedules_vacancy_end_month</name>
-      <display_name>Schedules: Vacancy Start End Month</display_name>
-      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>schedules_vacancy_end_day_of_month</name>
-      <display_name>Schedules: Vacancy End Day of Month</display_name>
-      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.</description>
-      <type>Integer</type>
-      <units>#</units>
+      <name>schedules_vacancy_period</name>
+      <display_name>Schedules: Vacancy Period</display_name>
+      <description>Specifies the vacancy period. Only applies if the schedules type is 'stochastic'. Enter a date like "Dec 15 - Jan 15".</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -701,9 +617,19 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>floor_assembly_r</name>
-      <display_name>Floor: Assembly R-value</display_name>
-      <description>Assembly R-value for the floor (foundation ceiling). Ignored if the building has a slab foundation.</description>
+      <name>floor_over_foundation_assembly_r</name>
+      <display_name>Floor: Over Foundation Assembly R-value</display_name>
+      <description>Assembly R-value for the floor over the foundation. Ignored if the building has a slab-on-grade foundation.</description>
+      <type>Double</type>
+      <units>h-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>30</default_value>
+    </argument>
+    <argument>
+      <name>floor_over_garage_assembly_r</name>
+      <display_name>Floor: Over Garage Assembly R-value</display_name>
+      <description>Assembly R-value for the floor over the garage. Ignored unless the building has a garage under conditioned space.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
@@ -724,11 +650,11 @@
       <name>foundation_wall_insulation_distance_to_top</name>
       <display_name>Foundation: Wall Insulation Distance To Top</display_name>
       <description>The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>foundation_wall_insulation_distance_to_bottom</name>
@@ -860,12 +786,32 @@
           <display_name>asphalt or fiberglass shingles</display_name>
         </choice>
         <choice>
+          <value>concrete</value>
+          <display_name>concrete</display_name>
+        </choice>
+        <choice>
+          <value>cool roof</value>
+          <display_name>cool roof</display_name>
+        </choice>
+        <choice>
           <value>slate or tile shingles</value>
           <display_name>slate or tile shingles</display_name>
         </choice>
         <choice>
+          <value>expanded polystyrene sheathing</value>
+          <display_name>expanded polystyrene sheathing</display_name>
+        </choice>
+        <choice>
           <value>metal surfacing</value>
           <display_name>metal surfacing</display_name>
+        </choice>
+        <choice>
+          <value>plastic/rubber/synthetic sheeting</value>
+          <display_name>plastic/rubber/synthetic sheeting</display_name>
+        </choice>
+        <choice>
+          <value>shingles</value>
+          <display_name>shingles</display_name>
         </choice>
         <choice>
           <value>wood shingles or shakes</value>
@@ -1104,16 +1050,36 @@
           <display_name>aluminum siding</display_name>
         </choice>
         <choice>
+          <value>asbestos siding</value>
+          <display_name>asbestos siding</display_name>
+        </choice>
+        <choice>
           <value>brick veneer</value>
           <display_name>brick veneer</display_name>
+        </choice>
+        <choice>
+          <value>composite shingle siding</value>
+          <display_name>composite shingle siding</display_name>
         </choice>
         <choice>
           <value>fiber cement siding</value>
           <display_name>fiber cement siding</display_name>
         </choice>
         <choice>
+          <value>masonite siding</value>
+          <display_name>masonite siding</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
           <value>stucco</value>
           <display_name>stucco</display_name>
+        </choice>
+        <choice>
+          <value>synthetic stucco</value>
+          <display_name>synthetic stucco</display_name>
         </choice>
         <choice>
           <value>vinyl siding</value>
@@ -1684,7 +1650,7 @@
     <argument>
       <name>cooling_system_cooling_efficiency_type</name>
       <display_name>Cooling System: Efficiency Type</display_name>
-      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER. System type room air conditioner uses EER. Ignored for system type evaporative cooler.</description>
+      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER. System type room air conditioner uses EER or CEER. Ignored for system type evaporative cooler.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1698,6 +1664,10 @@
           <value>EER</value>
           <display_name>EER</display_name>
         </choice>
+        <choice>
+          <value>CEER</value>
+          <display_name>CEER</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -1705,7 +1675,7 @@
       <display_name>Cooling System: Efficiency</display_name>
       <description>The rated efficiency value of the cooling system. Ignored for evaporative cooler.</description>
       <type>Double</type>
-      <units>SEER or EER</units>
+      <units>SEER or EER or CEER</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>13</default_value>
@@ -1852,6 +1822,10 @@
         <choice>
           <value>EER</value>
           <display_name>EER</display_name>
+        </choice>
+        <choice>
+          <value>CEER</value>
+          <display_name>CEER</display_name>
         </choice>
       </choices>
     </argument>
@@ -2136,100 +2110,25 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
-      <name>season_heating_begin_month</name>
-      <display_name>Heating Season: Begin Month</display_name>
-      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the heating season.</description>
-      <type>Integer</type>
-      <units>#</units>
+      <name>season_heating_period</name>
+      <display_name>Heating Season Period</display_name>
+      <description>Specifies the heating season. Enter a date like "Nov 1 - Jun 30".</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>season_heating_begin_day_of_month</name>
-      <display_name>Heating Season: Begin Day of Month</display_name>
-      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the heating season.</description>
-      <type>Integer</type>
-      <units>#</units>
+      <name>season_cooling_period</name>
+      <display_name>Cooling Season Period</display_name>
+      <description>Specifies the cooling season. Enter a date like "Jun 1 - Oct 31".</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>season_heating_end_month</name>
-      <display_name>Heating Season: End Month</display_name>
-      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the heating season.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>season_heating_end_day_of_month</name>
-      <display_name>Heating Season: End Day of Month</display_name>
-      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the heating season.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>season_cooling_begin_month</name>
-      <display_name>Cooling Season: Begin Month</display_name>
-      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the cooling season.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>season_cooling_begin_day_of_month</name>
-      <display_name>Cooling Season: Begin Day of Month</display_name>
-      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the cooling season.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>season_cooling_end_month</name>
-      <display_name>Cooling Season: End Month</display_name>
-      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the cooling season.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>season_cooling_end_day_of_month</name>
-      <display_name>Cooling Season: End Day of Month</display_name>
-      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the cooling season.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>ducts_supply_leakage_units</name>
-      <display_name>Ducts: Supply Leakage Units</display_name>
-      <description>The leakage units of the supply ducts.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>CFM25</default_value>
-      <choices>
-        <choice>
-          <value>CFM25</value>
-          <display_name>CFM25</display_name>
-        </choice>
-        <choice>
-          <value>Percent</value>
-          <display_name>Percent</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>ducts_return_leakage_units</name>
-      <display_name>Ducts: Return Leakage Units</display_name>
-      <description>The leakage units of the return ducts.</description>
+      <name>ducts_leakage_units</name>
+      <display_name>Ducts: Leakage Units</display_name>
+      <description>The leakage units of the ducts.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3940,44 +3839,12 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>holiday_lighting_period_begin_month</name>
-      <display_name>Holiday Lighting: Period Begin Month</display_name>
-      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the holiday lighting period desired.</description>
+      <name>holiday_lighting_period</name>
+      <display_name>Holiday Lighting: Period</display_name>
+      <description>Specifies the holiday lighting period. Enter a date like "Nov 25 - Jan 5".</description>
       <type>String</type>
-      <units>month</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>holiday_lighting_period_begin_day_of_month</name>
-      <display_name>Holiday Lighting: Period Begin Day of Month</display_name>
-      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the holiday lighting period desired.</description>
-      <type>String</type>
-      <units>day</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>holiday_lighting_period_end_month</name>
-      <display_name>Holiday Lighting: Period End Month</display_name>
-      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the holiday lighting period desired.</description>
-      <type>String</type>
-      <units>month</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>holiday_lighting_period_end_day_of_month</name>
-      <display_name>Holiday Lighting: Period End Day of Month</display_name>
-      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the holiday lighting period desired.</description>
-      <type>String</type>
-      <units>day</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>dehumidifier_type</name>
@@ -5723,7 +5590,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>F5C4FD13</checksum>
+      <checksum>0BAA26FD</checksum>
     </file>
   </files>
 </measure>

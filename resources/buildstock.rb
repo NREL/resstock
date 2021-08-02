@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-$VERBOSE = nil # Prevents ruby warnings, see https://github.com/NREL/OpenStudio/issues/4301
-
 require 'csv'
 require "#{File.dirname(__FILE__)}/meta_measure"
 
@@ -247,9 +245,9 @@ def get_value_from_workflow_step_value(step_value)
   end
 end
 
-def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_if_missing = true)
+def get_values_from_runner_past_results(runner, measure_name)
   require 'openstudio'
-  key_lookup = OpenStudio::toUnderscoreCase(key_lookup)
+  values = {}
   success_value = OpenStudio::StepResult.new('Success')
   runner.workflow.workflowSteps.each do |step|
     next if not step.result.is_initialized
@@ -260,15 +258,10 @@ def get_value_from_runner_past_results(runner, key_lookup, measure_name, error_i
     next if step_result.value != success_value
 
     step_result.stepValues.each do |step_value|
-      next if step_value.name != key_lookup
-
-      return get_value_from_workflow_step_value(step_value)
+      values["#{step_value.name}"] = get_value_from_workflow_step_value(step_value)
     end
   end
-  if error_if_missing
-    register_error("Could not find past value for '#{key_lookup}'.", runner)
-  end
-  return
+  return values
 end
 
 def get_value_from_runner(runner, key_lookup, error_if_missing = true)
@@ -354,6 +347,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
     return
   end
 
+  values = get_values_from_runner_past_results(runner, 'build_existing_model')
   ruby_eval_str = ''
   option_apply_logic.split('||').each do |or_segment|
     or_segment.split('&&').each do |segment|
@@ -386,7 +380,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
 
       # Get existing building option name for the same parameter
       if past_results
-        segment_existing_option = get_value_from_runner_past_results(runner, segment_parameter, 'build_existing_model')
+        segment_existing_option = values[OpenStudio::toUnderscoreCase(segment_parameter)]
       else
         segment_existing_option = get_value_from_runner(runner, segment_parameter)
       end
@@ -408,8 +402,8 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   return result
 end
 
-def get_data_for_sample(buildstock_csv, building_id, runner)
-  CSV.foreach(buildstock_csv, headers: true) do |sample|
+def get_data_for_sample(buildstock_csv_data, building_id, runner)
+  buildstock_csv_data.each do |sample|
     next if sample['Building'].to_i != building_id
 
     return sample
@@ -486,6 +480,7 @@ class RunOSWs
     result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
     result_output = get_measure_results(rows, result_output, 'SimulationOutputReport')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
+    result_output = get_measure_results(rows, result_output, 'QOIReport')
     return finished_job, result_characteristics, result_output
   end
 

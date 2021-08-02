@@ -712,9 +712,10 @@ class Geometry
   end
 
   def self.has_same_vertices(surface1, surface2)
-    if getSurfaceXValues([surface1]) == getSurfaceXValues([surface2]) &&
-       getSurfaceYValues([surface1]) == getSurfaceYValues([surface2]) &&
-       getSurfaceZValues([surface1]) == getSurfaceZValues([surface2])
+    if getSurfaceXValues([surface1]).sort == getSurfaceXValues([surface2]).sort &&
+       getSurfaceYValues([surface1]).sort == getSurfaceYValues([surface2]).sort &&
+       getSurfaceZValues([surface1]).sort == getSurfaceZValues([surface2]).sort &&
+       surface1.space.get.zOrigin.round(5) == surface2.space.get.zOrigin.round(5)
       return true
     end
 

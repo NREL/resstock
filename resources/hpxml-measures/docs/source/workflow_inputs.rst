@@ -489,7 +489,7 @@ If insulation layers are provided, additional information is entered in each ``F
 HPXML Frame Floors
 ******************
 
-Each horizontal floor/ceiling surface that is not in contact with the ground (Slab) nor adjacent to ambient conditions above (Roof) is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/FrameFloors/FrameFloor``.
+Each floor/ceiling surface that is not in contact with the ground (Slab) nor adjacent to ambient conditions above (Roof) is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/FrameFloors/FrameFloor``.
 
   ======================================  ========  ============  ===========  ========  ========  ============================
   Element                                 Type      Units         Constraints  Required  Default   Notes

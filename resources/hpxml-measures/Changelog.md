@@ -30,7 +30,7 @@ __New Features__
 
 __Bugfixes__
 - Improves ground reflectance when there is shading of windows/skylights.
-- Fixes heating fan power for single-stage systems that have different heating/cooling airflow rates.
+- Improves HVAC fan power for central forced air systems.
 - Negative `DistanceToTopOfInsulation` values are now disallowed in the EPvalidator schematron doc.
 
 ## OpenStudio-HPXML v1.2.0

@@ -69,28 +69,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Value must be a divisor of 60.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_begin_month', false)
-    arg.setDisplayName('Simulation Control: Run Period Begin Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_begin_day_of_month', false)
-    arg.setDisplayName('Simulation Control: Run Period Begin Day of Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_end_month', false)
-    arg.setDisplayName('Simulation Control: Run Period End Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_end_day_of_month', false)
-    arg.setDisplayName('Simulation Control: Run Period End Day of Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.')
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('simulation_control_run_period', false)
+    arg.setDisplayName('Simulation Control: Run Period')
+    arg.setDescription('Specifies the annual simulation run period. Enter a date like "Mar 15 - Sep 15".')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_run_period_calendar_year', false)
@@ -104,28 +85,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Whether to use daylight saving.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_daylight_saving_begin_month', false)
-    arg.setDisplayName('Simulation Control: Daylight Saving Begin Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual daylight saving period desired.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_daylight_saving_begin_day_of_month', false)
-    arg.setDisplayName('Simulation Control: Daylight Saving Begin Day of Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the daylight saving period desired.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_daylight_saving_end_month', false)
-    arg.setDisplayName('Simulation Control: Daylight Saving End Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the daylight saving period desired.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_daylight_saving_end_day_of_month', false)
-    arg.setDisplayName('Simulation Control: Daylight Saving End Day of Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the daylight saving period desired.')
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('simulation_control_daylight_saving_period', false)
+    arg.setDisplayName('Simulation Control: Daylight Saving Period')
+    arg.setDescription('Specifies the daylight saving period. Enter a date like "Mar 15 - Dec 15".')
     args << arg
 
     schedules_type_choices = OpenStudio::StringVector.new
@@ -144,28 +106,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute (or relative) path of the csv file containing user-specified occupancy schedules.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_vacancy_begin_month', false)
-    arg.setDisplayName('Schedules: Vacancy Start Begin Month')
-    arg.setUnits('#')
-    arg.setDescription("This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_vacancy_begin_day_of_month', false)
-    arg.setDisplayName('Schedules: Vacancy Begin Day of Month')
-    arg.setUnits('#')
-    arg.setDescription("This numeric field should contain the starting day of the starting month (must be valid for month) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_vacancy_end_month', false)
-    arg.setDisplayName('Schedules: Vacancy Start End Month')
-    arg.setUnits('#')
-    arg.setDescription("This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_vacancy_end_day_of_month', false)
-    arg.setDisplayName('Schedules: Vacancy End Day of Month')
-    arg.setUnits('#')
-    arg.setDescription("This numeric field should contain the ending day of the ending month (must be valid for month) for the vacancy period desired. Only applies if the schedules type is 'stochastic'.")
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_vacancy_period', false)
+    arg.setDisplayName('Schedules: Vacancy Period')
+    arg.setDescription("Specifies the vacancy period. Only applies if the schedules type is 'stochastic'. Enter a date like \"Dec 15 - Jan 15\".")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_random_seed', false)
@@ -471,10 +414,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription("The number of bedrooms in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment} units with shared PV systems.")
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_assembly_r', true)
-    arg.setDisplayName('Floor: Assembly R-value')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_over_foundation_assembly_r', true)
+    arg.setDisplayName('Floor: Over Foundation Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
-    arg.setDescription('Assembly R-value for the floor (foundation ceiling). Ignored if the building has a slab foundation.')
+    arg.setDescription('Assembly R-value for the floor over the foundation. Ignored if the building has a slab-on-grade foundation.')
+    arg.setDefaultValue(30)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('floor_over_garage_assembly_r', true)
+    arg.setDisplayName('Floor: Over Garage Assembly R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Assembly R-value for the floor over the garage. Ignored unless the building has a garage under conditioned space.')
     arg.setDefaultValue(30)
     args << arg
 
@@ -1311,52 +1261,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('76')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_heating_begin_month', false)
-    arg.setDisplayName('Heating Season: Begin Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the heating season.')
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('season_heating_period', false)
+    arg.setDisplayName('Heating Season Period')
+    arg.setDescription('Specifies the heating season. Enter a date like "Nov 1 - Jun 30".')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_heating_begin_day_of_month', false)
-    arg.setDisplayName('Heating Season: Begin Day of Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the heating season.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_heating_end_month', false)
-    arg.setDisplayName('Heating Season: End Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the heating season.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_heating_end_day_of_month', false)
-    arg.setDisplayName('Heating Season: End Day of Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the heating season.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_cooling_begin_month', false)
-    arg.setDisplayName('Cooling Season: Begin Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the cooling season.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_cooling_begin_day_of_month', false)
-    arg.setDisplayName('Cooling Season: Begin Day of Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the cooling season.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_cooling_end_month', false)
-    arg.setDisplayName('Cooling Season: End Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the cooling season.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('season_cooling_end_day_of_month', false)
-    arg.setDisplayName('Cooling Season: End Day of Month')
-    arg.setUnits('#')
-    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the cooling season.')
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('season_cooling_period', false)
+    arg.setDisplayName('Cooling Season Period')
+    arg.setDescription('Specifies the cooling season. Enter a date like "Jun 1 - Oct 31".')
     args << arg
 
     duct_leakage_units_choices = OpenStudio::StringVector.new
@@ -1382,15 +1294,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     duct_location_choices << HPXML::LocationOtherMultifamilyBufferSpace
     duct_location_choices << HPXML::LocationOtherNonFreezingSpace
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_supply_leakage_units', duct_leakage_units_choices, true)
-    arg.setDisplayName('Ducts: Supply Leakage Units')
-    arg.setDescription('The leakage units of the supply ducts.')
-    arg.setDefaultValue(HPXML::UnitsCFM25)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_return_leakage_units', duct_leakage_units_choices, true)
-    arg.setDisplayName('Ducts: Return Leakage Units')
-    arg.setDescription('The leakage units of the return ducts.')
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('ducts_leakage_units', duct_leakage_units_choices, true)
+    arg.setDisplayName('Ducts: Leakage Units')
+    arg.setDescription('The leakage units of the ducts.')
     arg.setDefaultValue(HPXML::UnitsCFM25)
     args << arg
 
@@ -2227,32 +2133,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period_begin_month', true)
-    arg.setDisplayName('Holiday Lighting: Period Begin Month')
-    arg.setUnits('month')
-    arg.setDescription('This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the holiday lighting period desired.')
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period_begin_day_of_month', true)
-    arg.setDisplayName('Holiday Lighting: Period Begin Day of Month')
-    arg.setUnits('day')
-    arg.setDescription('This numeric field should contain the starting day of the starting month (must be valid for month) for the holiday lighting period desired.')
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period_end_month', true)
-    arg.setDisplayName('Holiday Lighting: Period End Month')
-    arg.setUnits('month')
-    arg.setDescription('This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the holiday lighting period desired.')
-    arg.setDefaultValue(Constants.Auto)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period_end_day_of_month', true)
-    arg.setDisplayName('Holiday Lighting: Period End Day of Month')
-    arg.setUnits('day')
-    arg.setDescription('This numeric field should contain the ending day of the ending month (must be valid for month) for the holiday lighting period desired.')
-    arg.setDefaultValue(Constants.Auto)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('holiday_lighting_period', false)
+    arg.setDisplayName('Holiday Lighting: Period')
+    arg.setDescription('Specifies the holiday lighting period. Enter a date like "Nov 25 - Jan 5".')
     args << arg
 
     dehumidifier_type_choices = OpenStudio::StringVector.new
@@ -3052,16 +2935,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_building_num_units=#{args[:geometry_building_num_units].is_initialized} and geometry_level=#{args[:geometry_level].is_initialized} and geometry_horizontal_location=#{args[:geometry_horizontal_location].is_initialized}" if error
 
     # crawlspace or unconditioned basement with foundation wall and ceiling insulation
-    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || (args[:foundation_wall_assembly_r].is_initialized && (args[:foundation_wall_assembly_r].get > 0))) && (args[:floor_assembly_r] > 2.1)
-    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and foundation_wall_insulation_r=#{args[:foundation_wall_insulation_r]} and foundation_wall_assembly_r=#{args[:foundation_wall_assembly_r].is_initialized} and floor_assembly_r=#{args[:floor_assembly_r]}" if warning
+    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || (args[:foundation_wall_assembly_r].is_initialized && (args[:foundation_wall_assembly_r].get > 0))) && (args[:floor_over_foundation_assembly_r] > 2.1)
+    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and foundation_wall_insulation_r=#{args[:foundation_wall_insulation_r]} and foundation_wall_assembly_r=#{args[:foundation_wall_assembly_r].is_initialized} and floor_over_foundation_assembly_r=#{args[:floor_over_foundation_assembly_r]}" if warning
 
     # vented/unvented attic with floor and roof insulation
     warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1) && (args[:roof_assembly_r] > 2.3)
     warnings << "geometry_attic_type=#{args[:geometry_attic_type]} and ceiling_assembly_r=#{args[:ceiling_assembly_r]} and roof_assembly_r=#{args[:roof_assembly_r]}" if warning
 
     # conditioned basement with ceiling insulation
-    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_assembly_r] > 2.1)
-    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and floor_assembly_r=#{args[:floor_assembly_r]}" if warning
+    warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_over_foundation_assembly_r] > 2.1)
+    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and floor_over_foundation_assembly_r=#{args[:floor_over_foundation_assembly_r]}" if warning
 
     # conditioned attic with floor insulation
     warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1)
@@ -3116,25 +2999,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # single-family detached with shared system
     error = [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type]) && args[:heating_system_type].include?('Shared')
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and heating_system_type=#{args[:heating_system_type]}" if error
-
-    # heating season incomplete
-    error = [args[:season_heating_begin_month].is_initialized, args[:season_heating_begin_day_of_month].is_initialized, args[:season_heating_end_month].is_initialized, args[:season_heating_end_day_of_month].is_initialized].uniq.size == 2
-    errors << "season_heating_begin_month=#{args[:season_heating_begin_month].is_initialized} and season_heating_begin_day_of_month=#{args[:season_heating_begin_day_of_month].is_initialized} and season_heating_end_month=#{args[:season_heating_end_month].is_initialized} and seasons_heating_end_day_of_month=#{args[:season_heating_end_day_of_month].is_initialized}" if error
-
-    # cooling season incomplete
-    error = [args[:season_cooling_begin_month].is_initialized, args[:season_cooling_begin_day_of_month].is_initialized, args[:season_cooling_end_month].is_initialized, args[:season_cooling_end_day_of_month].is_initialized].uniq.size == 2
-    errors << "season_cooling_begin_month=#{args[:season_cooling_begin_month].is_initialized} and season_cooling_begin_day_of_month=#{args[:season_cooling_begin_day_of_month].is_initialized} and season_cooling_end_month=#{args[:season_cooling_end_month].is_initialized} and season_cooling_end_day_of_month=#{args[:season_cooling_end_day_of_month].is_initialized}" if error
-
-    # vacancy period incomplete
-    error = [args[:schedules_vacancy_begin_month].is_initialized, args[:schedules_vacancy_begin_day_of_month].is_initialized, args[:schedules_vacancy_end_month].is_initialized, args[:schedules_vacancy_end_day_of_month].is_initialized].uniq.size == 2
-    errors << "schedules_vacancy_begin_month=#{args[:schedules_vacancy_begin_month].is_initialized} and schedules_vacancy_begin_day_of_month=#{args[:schedules_vacancy_begin_day_of_month].is_initialized} and schedules_vacancy_end_month=#{args[:schedules_vacancy_end_month].is_initialized} and schedules_vacancy_end_day_of_month=#{args[:schedules_vacancy_end_day_of_month].is_initialized}" if error
-
-    # vacancy period invalid
-    if args[:schedules_vacancy_begin_month].is_initialized && args[:schedules_vacancy_begin_day_of_month].is_initialized && args[:schedules_vacancy_end_month].is_initialized && args[:schedules_vacancy_end_day_of_month].is_initialized
-      HPXML::check_dates('Vacancy Period', args[:schedules_vacancy_begin_month].get, args[:schedules_vacancy_begin_day_of_month].get, args[:schedules_vacancy_end_month].get, args[:schedules_vacancy_end_day_of_month].get).each do |error|
-        errors << error
-      end
-    end
 
     return warnings, errors
   end
@@ -3311,6 +3175,13 @@ class HPXMLFile
       args[:geometry_num_occupants] = Integer(args[:geometry_num_occupants])
     end
     args[:resources_path] = File.join(File.dirname(__FILE__), 'resources')
+    if args[:schedules_vacancy_period].is_initialized
+      begin_month, begin_day, end_month, end_day = parse_date_range(args[:schedules_vacancy_period].get)
+      args[:schedules_vacancy_begin_month] = begin_month
+      args[:schedules_vacancy_begin_day] = begin_day
+      args[:schedules_vacancy_end_month] = end_month
+      args[:schedules_vacancy_end_day] = end_day
+    end
     success = schedule_generator.create(args: args)
     return false if not success
 
@@ -3341,18 +3212,14 @@ class HPXMLFile
       hpxml.header.timestep = args[:simulation_control_timestep].get
     end
 
-    if args[:simulation_control_run_period_begin_month].is_initialized
-      hpxml.header.sim_begin_month = args[:simulation_control_run_period_begin_month].get
+    if args[:simulation_control_run_period].is_initialized
+      begin_month, begin_day, end_month, end_day = parse_date_range(args[:simulation_control_run_period].get)
+      hpxml.header.sim_begin_month = begin_month
+      hpxml.header.sim_begin_day = begin_day
+      hpxml.header.sim_end_month = end_month
+      hpxml.header.sim_end_day = end_day
     end
-    if args[:simulation_control_run_period_begin_day_of_month].is_initialized
-      hpxml.header.sim_begin_day = args[:simulation_control_run_period_begin_day_of_month].get
-    end
-    if args[:simulation_control_run_period_end_month].is_initialized
-      hpxml.header.sim_end_month = args[:simulation_control_run_period_end_month].get
-    end
-    if args[:simulation_control_run_period_end_day_of_month].is_initialized
-      hpxml.header.sim_end_day = args[:simulation_control_run_period_end_day_of_month].get
-    end
+
     if args[:simulation_control_run_period_calendar_year].is_initialized
       hpxml.header.sim_calendar_year = args[:simulation_control_run_period_calendar_year].get
     end
@@ -3360,17 +3227,12 @@ class HPXMLFile
     if args[:simulation_control_daylight_saving_enabled].is_initialized
       hpxml.header.dst_enabled = args[:simulation_control_daylight_saving_enabled].get
     end
-    if args[:simulation_control_daylight_saving_begin_month].is_initialized
-      hpxml.header.dst_begin_month = args[:simulation_control_daylight_saving_begin_month].get
-    end
-    if args[:simulation_control_daylight_saving_begin_day_of_month].is_initialized
-      hpxml.header.dst_begin_day = args[:simulation_control_daylight_saving_begin_day_of_month].get
-    end
-    if args[:simulation_control_daylight_saving_end_month].is_initialized
-      hpxml.header.dst_end_month = args[:simulation_control_daylight_saving_end_month].get
-    end
-    if args[:simulation_control_daylight_saving_end_day_of_month].is_initialized
-      hpxml.header.dst_end_day = args[:simulation_control_daylight_saving_end_day_of_month].get
+    if args[:simulation_control_daylight_saving_period].is_initialized
+      begin_month, begin_day, end_month, end_day = parse_date_range(args[:simulation_control_daylight_saving_period].get)
+      hpxml.header.dst_begin_month = begin_month
+      hpxml.header.dst_begin_day = begin_day
+      hpxml.header.dst_end_month = end_month
+      hpxml.header.dst_end_day = end_day
     end
 
     hpxml.header.building_id = 'MyBuilding'
@@ -3594,7 +3456,7 @@ class HPXMLFile
       hpxml.roofs.add(id: valid_attr(surface.name),
                       interior_adjacent_to: get_adjacent_to(surface),
                       azimuth: azimuth,
-                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
+                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(2),
                       roof_type: roof_type,
                       roof_color: roof_color,
                       pitch: args[:geometry_roof_pitch],
@@ -3645,7 +3507,7 @@ class HPXMLFile
       hpxml.rim_joists.add(id: valid_attr(surface.name),
                            exterior_adjacent_to: exterior_adjacent_to,
                            interior_adjacent_to: interior_adjacent_to,
-                           area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
+                           area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(2),
                            siding: siding,
                            color: color,
                            insulation_assembly_r_value: insulation_assembly_r_value)
@@ -3676,9 +3538,7 @@ class HPXMLFile
       next if surface == adjacent_surface
       next if adjacent_surface.surfaceType != adjacentSurfaceType
       next if adjacent_surface.outsideBoundaryCondition != 'Adiabatic'
-      next if Geometry.getSurfaceXValues([surface]).sort != Geometry.getSurfaceXValues([adjacent_surface]).sort
-      next if Geometry.getSurfaceYValues([surface]).sort != Geometry.getSurfaceYValues([adjacent_surface]).sort
-      next if Geometry.getSurfaceZValues([surface]).sort != Geometry.getSurfaceZValues([adjacent_surface]).sort
+      next unless Geometry.has_same_vertices(surface, adjacent_surface)
 
       return adjacent_surface
     end
@@ -3751,7 +3611,7 @@ class HPXMLFile
                       siding: siding,
                       color: color,
                       solar_absorptance: solar_absorptance,
-                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
+                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(2),
                       emittance: emittance)
 
       is_uncond_attic_roof_insulated = false
@@ -3822,7 +3682,7 @@ class HPXMLFile
                                  exterior_adjacent_to: exterior_adjacent_to,
                                  interior_adjacent_to: interior_adjacent_to,
                                  height: args[:geometry_foundation_height],
-                                 area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
+                                 area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(2),
                                  thickness: thickness,
                                  depth_below_grade: args[:geometry_foundation_height] - args[:geometry_foundation_height_above_grade],
                                  insulation_assembly_r_value: insulation_assembly_r_value,
@@ -3834,8 +3694,8 @@ class HPXMLFile
   end
 
   def self.set_frame_floors(hpxml, runner, model, args)
-    if [HPXML::FoundationTypeBasementConditioned].include?(args[:geometry_foundation_type]) && (args[:floor_assembly_r] > 2.1)
-      args[:floor_assembly_r] = 2.1 # Uninsulated
+    if [HPXML::FoundationTypeBasementConditioned].include?(args[:geometry_foundation_type]) && (args[:floor_over_foundation_assembly_r] > 2.1)
+      args[:floor_over_foundation_assembly_r] = 2.1 # Uninsulated
     end
 
     if [HPXML::AtticTypeConditioned].include?(args[:geometry_attic_type]) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1)
@@ -3868,14 +3728,16 @@ class HPXMLFile
       hpxml.frame_floors.add(id: valid_attr(surface.name),
                              exterior_adjacent_to: exterior_adjacent_to,
                              interior_adjacent_to: interior_adjacent_to,
-                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
+                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(2),
                              other_space_above_or_below: other_space_above_or_below)
 
       if hpxml.frame_floors[-1].is_thermal_boundary
-        if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented, HPXML::LocationGarage].include? exterior_adjacent_to
+        if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? exterior_adjacent_to
           hpxml.frame_floors[-1].insulation_assembly_r_value = args[:ceiling_assembly_r]
+        elsif [HPXML::LocationGarage].include? exterior_adjacent_to
+          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_over_garage_assembly_r]
         else
-          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_assembly_r]
+          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_over_foundation_assembly_r]
         end
       else
         hpxml.frame_floors[-1].insulation_assembly_r_value = 2.1 # Uninsulated
@@ -3930,7 +3792,7 @@ class HPXMLFile
 
       hpxml.slabs.add(id: valid_attr(surface.name),
                       interior_adjacent_to: interior_adjacent_to,
-                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(1),
+                      area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(2),
                       thickness: thickness,
                       exposed_perimeter: exposed_perimeter,
                       perimeter_insulation_depth: args[:slab_perimeter_depth],
@@ -4009,7 +3871,7 @@ class HPXMLFile
         end
 
         hpxml.windows.add(id: "#{valid_attr(sub_surface.name)}_#{sub_surface_facade}",
-                          area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2').round(1),
+                          area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2').round(2),
                           azimuth: azimuth,
                           ufactor: args[:window_ufactor],
                           shgc: args[:window_shgc],
@@ -4034,7 +3896,7 @@ class HPXMLFile
         sub_surface_facade = Geometry.get_facade_for_surface(sub_surface)
 
         hpxml.skylights.add(id: "#{valid_attr(sub_surface.name)}_#{sub_surface_facade}",
-                            area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2').round,
+                            area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2').round(2),
                             azimuth: UnitConversions.convert(sub_surface.azimuth, 'rad', 'deg').round,
                             ufactor: args[:skylight_ufactor],
                             shgc: args[:skylight_shgc],
@@ -4060,7 +3922,7 @@ class HPXMLFile
 
         hpxml.doors.add(id: "#{valid_attr(sub_surface.name)}_#{sub_surface_facade}",
                         wall_idref: valid_attr(adjacent_surface.name),
-                        area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2').round,
+                        area: UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2').round(2),
                         azimuth: args[:geometry_orientation],
                         r_value: args[:door_rvalue])
       end
@@ -4392,12 +4254,12 @@ class HPXMLFile
 
   def self.set_duct_leakages(args, hvac_distribution)
     hvac_distribution.duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
-                                                    duct_leakage_units: args[:ducts_supply_leakage_units],
+                                                    duct_leakage_units: args[:ducts_leakage_units],
                                                     duct_leakage_value: args[:ducts_supply_leakage_value],
                                                     duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
 
     hvac_distribution.duct_leakage_measurements.add(duct_type: HPXML::DuctTypeReturn,
-                                                    duct_leakage_units: args[:ducts_return_leakage_units],
+                                                    duct_leakage_units: args[:ducts_leakage_units],
                                                     duct_leakage_value: args[:ducts_return_leakage_value],
                                                     duct_leakage_total_or_to_outside: HPXML::DuctLeakageToOutside)
   end
@@ -4467,30 +4329,20 @@ class HPXMLFile
                             weekend_cooling_setpoints: weekend_cooling_setpoints,
                             ceiling_fan_cooling_setpoint_temp_offset: ceiling_fan_cooling_setpoint_temp_offset)
 
-    if args[:season_heating_begin_month].is_initialized
-      hpxml.hvac_controls[0].seasons_heating_begin_month = args[:season_heating_begin_month].get
-    end
-    if args[:season_heating_begin_day_of_month].is_initialized
-      hpxml.hvac_controls[0].seasons_heating_begin_day = args[:season_heating_begin_day_of_month].get
-    end
-    if args[:season_heating_end_month].is_initialized
-      hpxml.hvac_controls[0].seasons_heating_end_month = args[:season_heating_end_month].get
-    end
-    if args[:season_heating_end_day_of_month].is_initialized
-      hpxml.hvac_controls[0].seasons_heating_end_day = args[:season_heating_end_day_of_month].get
+    if args[:season_heating_period].is_initialized
+      begin_month, begin_day, end_month, end_day = parse_date_range(args[:season_heating_period].get)
+      hpxml.hvac_controls[0].seasons_heating_begin_month = begin_month
+      hpxml.hvac_controls[0].seasons_heating_begin_day = begin_day
+      hpxml.hvac_controls[0].seasons_heating_end_month = end_month
+      hpxml.hvac_controls[0].seasons_heating_end_day = end_day
     end
 
-    if args[:season_cooling_begin_month].is_initialized
-      hpxml.hvac_controls[0].seasons_cooling_begin_month = args[:season_cooling_begin_month].get
-    end
-    if args[:season_cooling_begin_day_of_month].is_initialized
-      hpxml.hvac_controls[0].seasons_cooling_begin_day = args[:season_cooling_begin_day_of_month].get
-    end
-    if args[:season_cooling_end_month].is_initialized
-      hpxml.hvac_controls[0].seasons_cooling_end_month = args[:season_cooling_end_month].get
-    end
-    if args[:season_cooling_end_day_of_month].is_initialized
-      hpxml.hvac_controls[0].seasons_cooling_end_day = args[:season_cooling_end_day_of_month].get
+    if args[:season_cooling_period].is_initialized
+      begin_month, begin_day, end_month, end_day = parse_date_range(args[:season_cooling_period].get)
+      hpxml.hvac_controls[0].seasons_cooling_begin_month = begin_month
+      hpxml.hvac_controls[0].seasons_cooling_begin_day = begin_day
+      hpxml.hvac_controls[0].seasons_cooling_end_month = end_month
+      hpxml.hvac_controls[0].seasons_cooling_end_day = end_day
     end
   end
 
@@ -5010,20 +4862,12 @@ class HPXMLFile
       hpxml.lighting.holiday_kwh_per_day = args[:holiday_lighting_daily_kwh]
     end
 
-    if args[:holiday_lighting_period_begin_month] != Constants.Auto
-      hpxml.lighting.holiday_period_begin_month = args[:holiday_lighting_period_begin_month]
-    end
-
-    if args[:holiday_lighting_period_begin_day_of_month] != Constants.Auto
-      hpxml.lighting.holiday_period_begin_day = args[:holiday_lighting_period_begin_day_of_month]
-    end
-
-    if args[:holiday_lighting_period_end_month] != Constants.Auto
-      hpxml.lighting.holiday_period_end_month = args[:holiday_lighting_period_end_month]
-    end
-
-    if args[:holiday_lighting_period_end_day_of_month] != Constants.Auto
-      hpxml.lighting.holiday_period_end_day = args[:holiday_lighting_period_end_day_of_month]
+    if args[:holiday_lighting_period].is_initialized
+      begin_month, begin_day, end_month, end_day = parse_date_range(args[:holiday_lighting_period].get)
+      hpxml.lighting.holiday_period_begin_month = begin_month
+      hpxml.lighting.holiday_period_begin_day = begin_day
+      hpxml.lighting.holiday_period_end_month = end_month
+      hpxml.lighting.holiday_period_end_day = end_day
     end
   end
 
@@ -5572,6 +5416,31 @@ class HPXMLFile
     else
       fail 'Unexpected facade.'
     end
+  end
+
+  def self.parse_date_range(date_range)
+    begin_end_dates = date_range.split('-').map { |v| v.strip }
+    if begin_end_dates.size != 2
+      fail "Invalid date format specified for '#{date_range}'."
+    end
+
+    begin_values = begin_end_dates[0].split(' ').map { |v| v.strip }
+    end_values = begin_end_dates[1].split(' ').map { |v| v.strip }
+
+    if (begin_values.size != 2) || (end_values.size != 2)
+      fail "Invalid date format specified for '#{date_range}'."
+    end
+
+    require 'date'
+    begin_month = Date::ABBR_MONTHNAMES.index(begin_values[0].capitalize)
+    end_month = Date::ABBR_MONTHNAMES.index(end_values[0].capitalize)
+    begin_day = begin_values[1].to_i
+    end_day = end_values[1].to_i
+    if begin_month.nil? || end_month.nil? || begin_day == 0 || end_day == 0
+      fail "Invalid date format specified for '#{date_range}'."
+    end
+
+    return begin_month, begin_day, end_month, end_day
   end
 end
 
