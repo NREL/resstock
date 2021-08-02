@@ -75,6 +75,16 @@ class MoreCompare(BaseCompare):
 
     return
 
+  def write_map_results(self, map_results, df_to_keep, df_to_map):
+    if map_results == 'base':
+      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
+      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
+    elif map_results == 'feature':
+      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
+      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
+      
+    return
+
   def map_columns(self, map_results):
     # Read in files
     ## Characteristics
@@ -99,6 +109,19 @@ class MoreCompare(BaseCompare):
     if not os.path.exists(self.feature_folder):
       os.makedirs(self.feature_folder)
 
+    # Map results_output columns
+    if map_results == 'base':
+      df_to_keep = base_df
+      df_to_map = feature_df
+    elif map_results == 'feature':
+      df_to_keep  = feature_df
+      df_to_map = base_df
+
+    # Skip mapping if not needed
+    if list(df_to_map.columns) == list(df_to_keep.columns):
+      self.write_map_results(map_results, df_to_keep, df_to_map)
+      return
+
     # Align results_charactersitics columns
     base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
     feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
@@ -112,14 +135,6 @@ class MoreCompare(BaseCompare):
 
     base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
     feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
-
-    # Map results_output columns
-    if map_results == 'base':
-      df_to_keep = base_df
-      df_to_map = feature_df
-    elif map_results == 'feature':
-      df_to_keep  = feature_df
-      df_to_map = base_df
 
     # Aggregate variables w/ multiple cols
     for cols, map_to in map_dict.items():
@@ -163,13 +178,7 @@ class MoreCompare(BaseCompare):
     df_to_map = df_to_map.reindex(sorted(df_to_map.columns), axis=1)
 
     # Store new mapped csvs
-    if map_results == 'base':
-      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
-      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
-    elif map_results == 'feature':
-      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
-      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
-
+    self.write_map_results(map_results, df_to_keep, df_to_map)
     return
 
 if __name__ == '__main__':
