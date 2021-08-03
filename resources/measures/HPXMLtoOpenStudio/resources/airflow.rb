@@ -1440,12 +1440,12 @@ class Airflow
     # Create the return air plenum zone, space
     ra_duct_zone = OpenStudio::Model::ThermalZone.new(model)
     ra_duct_zone.setName(obj_name_ducts + ' ret air zone')
-    ra_duct_zone.setVolume(0.25)
+    ra_duct_zone.setVolume(1.0)
 
     sw_point = OpenStudio::Point3d.new(0, 74, 0)
-    nw_point = OpenStudio::Point3d.new(0, 74.1, 0)
-    ne_point = OpenStudio::Point3d.new(0.1, 74.1, 0)
-    se_point = OpenStudio::Point3d.new(0.1, 74, 0)
+    nw_point = OpenStudio::Point3d.new(0, 75, 0)
+    ne_point = OpenStudio::Point3d.new(1, 75, 0)
+    se_point = OpenStudio::Point3d.new(1, 74, 0)
     ra_duct_polygon = Geometry.make_polygon(sw_point, nw_point, ne_point, se_point)
 
     ra_space = OpenStudio::Model::Space::fromFloorPrint(ra_duct_polygon, 1, model)
@@ -1461,7 +1461,7 @@ class Airflow
       surface_property_convection_coefficients = OpenStudio::Model::SurfacePropertyConvectionCoefficients.new(surface)
       surface_property_convection_coefficients.setConvectionCoefficient1Location('Inside')
       surface_property_convection_coefficients.setConvectionCoefficient1Type('Value')
-      surface_property_convection_coefficients.setConvectionCoefficient1(999)
+      surface_property_convection_coefficients.setConvectionCoefficient1(30)
     end
 
     return ra_duct_zone
@@ -2231,8 +2231,6 @@ class Airflow
       infil_program.addLine('Set Qdryer = 0.0')
     end
     infil_program.addLine("Set Qbath = #{bath_sch_sensor.name}*#{UnitConversions.convert(mv_output.bathroom_hour_avg_exhaust, 'cfm', 'm^3/s').round(4)}")
-    infil_program.addLine('Set QhpwhOut = 0')
-    infil_program.addLine('Set QhpwhIn = 0')
     infil_program.addLine('Set QductsOut = 0')
     infil_program.addLine('Set QductsIn = 0')
     duct_lks.each do |obj_name_ducts, value|
@@ -2241,19 +2239,19 @@ class Airflow
       infil_program.addLine("Set QductsIn = QductsIn+#{duct_lk_supply_fan_equiv_var.name}")
     end
     if mech_vent.type == Constants.VentTypeBalanced
-      infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut')
-      infil_program.addLine('Set Qin = QhpwhIn+QductsIn')
+      infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QductsOut')
+      infil_program.addLine('Set Qin = QductsIn')
       infil_program.addLine('Set Qu = (@Abs (Qout-Qin))')
       infil_program.addLine('Set Qb = QWHV + (@Min Qout Qin)')
     else
       if mech_vent.type == Constants.VentTypeExhaust
-        infil_program.addLine('Set Qout = QWHV+Qrange+Qbath+Qdryer+QhpwhOut+QductsOut')
-        infil_program.addLine('Set Qin = QhpwhIn+QductsIn')
+        infil_program.addLine('Set Qout = QWHV+Qrange+Qbath+Qdryer+QductsOut')
+        infil_program.addLine('Set Qin = QductsIn')
         infil_program.addLine('Set Qu = (@Abs (Qout-Qin))')
         infil_program.addLine('Set Qb = (@Min Qout Qin)')
       else # mech_vent.type == Constants.VentTypeSupply
-        infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut')
-        infil_program.addLine('Set Qin = QWHV+QhpwhIn+QductsIn')
+        infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QductsOut')
+        infil_program.addLine('Set Qin = QWHV+QductsIn')
         infil_program.addLine('Set Qu = @Abs (Qout- Qin)')
         infil_program.addLine('Set Qb = (@Min Qout Qin)')
       end
@@ -2275,8 +2273,7 @@ class Airflow
 
     infil_program.addLine("Set #{range_hood_fan_actuator.name} = (Qrange*300)/faneff_sp")
     infil_program.addLine("Set #{bath_exhaust_sch_fan_actuator.name} = (Qbath*300)/faneff_sp")
-    infil_program.addLine('Set Q_acctd_for_elsewhere = QhpwhOut+QhpwhIn+QductsOut+QductsIn')
-    infil_program.addLine("Set #{infil_flow_actuator.name} = (((Qu^2)+(Qn^2))^0.5)-Q_acctd_for_elsewhere")
+    infil_program.addLine("Set #{infil_flow_actuator.name} = (((Qu^2)+(Qn^2))^0.5)")
     infil_program.addLine("Set #{infil_flow_actuator.name} = (@Max #{infil_flow_actuator.name} 0)")
 
     return infil_program
