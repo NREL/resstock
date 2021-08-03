@@ -201,10 +201,7 @@ class HVAC
 
       # _processSystemFan
 
-      fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
-      fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
-
-      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + ' clg supply fan')
       fan.setEndUseSubcategory(obj_name + ' clg supply fan')
@@ -347,10 +344,7 @@ class HVAC
 
       # _processSystemFan
 
-      fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
-      fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
-
-      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + ' clg supply fan')
       fan.setEndUseSubcategory(obj_name + ' clg supply fan')
@@ -787,10 +781,7 @@ class HVAC
 
       # _processSystemFan
 
-      fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
-      fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
-
-      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + ' htg supply fan')
       fan.setEndUseSubcategory(obj_name + ' htg supply fan')
@@ -889,10 +880,7 @@ class HVAC
 
       # _processSystemFan
 
-      fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
-      fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
-
-      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + ' clg supply fan')
       fan.setEndUseSubcategory(obj_name + ' clg supply fan')
@@ -1078,10 +1066,7 @@ class HVAC
 
       # _processSystemFan
 
-      fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
-      fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
-
-      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + ' htg supply fan')
       fan.setEndUseSubcategory(obj_name + ' htg supply fan')
@@ -1180,10 +1165,7 @@ class HVAC
 
       # _processSystemFan
 
-      fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
-      fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
-
-      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + ' clg supply fan')
       fan.setEndUseSubcategory(obj_name + ' clg supply fan')
@@ -1384,10 +1366,7 @@ class HVAC
 
       # _processSystemFan
 
-      fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
-      fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
-
-      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = UnitConversions.convert(UnitConversions.convert(0.1, 'inH2O', 'Pa') / fan_power, 'cfm', 'm^3/s') # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + ' htg supply fan')
       fan.setEndUseSubcategory(obj_name + ' htg supply fan')
@@ -1542,10 +1521,7 @@ class HVAC
 
       # _processSystemFan
 
-      fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
-      fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
-
-      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
+      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = UnitConversions.convert(UnitConversions.convert(0.1, 'inH2O', 'Pa') / fan_power, 'cfm', 'm^3/s') # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + ' clg supply fan')
       fan.setEndUseSubcategory(obj_name + ' clg supply fan')
@@ -2151,14 +2127,7 @@ class HVAC
 
       # _processSystemFan
 
-      if attached_to_multispeed_ac
-        fan_power_curve = create_curve_exponent(model, [0, 1, 3], obj_name + ' fan power curve', -100, 100)
-        fan_eff_curve = create_curve_cubic(model, [0, 1, 0, 0], obj_name + ' fan eff curve', 0, 1, 0.01, 1)
-
-        fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule, fan_power_curve, fan_eff_curve)
-      else
-        fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
-      end
+      fan = OpenStudio::Model::FanOnOff.new(model, model.alwaysOnDiscreteSchedule)
       fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
       fan.setName(obj_name + ' htg supply fan')
       fan.setEndUseSubcategory(obj_name + ' htg supply fan')
