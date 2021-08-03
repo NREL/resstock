@@ -117,11 +117,6 @@ class MoreCompare(BaseCompare):
       df_to_keep  = feature_df
       df_to_map = base_df
 
-    # Skip mapping if not needed
-    if list(df_to_map.columns) == list(df_to_keep.columns):
-      self.write_map_results(map_results, df_to_keep, df_to_map)
-      return
-
     # Align results_charactersitics columns
     base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
     feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
@@ -135,6 +130,11 @@ class MoreCompare(BaseCompare):
 
     base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
     feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
+
+    # Skip mapping if not needed
+    if list(df_to_map.columns) == list(df_to_keep.columns):
+      self.write_map_results(map_results, df_to_keep, df_to_map)
+      return
 
     # Aggregate variables w/ multiple cols
     for cols, map_to in map_dict.items():
