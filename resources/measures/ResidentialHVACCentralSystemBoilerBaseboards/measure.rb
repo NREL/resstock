@@ -102,6 +102,7 @@ class ProcessCentralSystemBoilerBaseboards < OpenStudio::Measure::ModelMeasure
           # OS-Standards doesn't set correct fuel type, so we correct it here
           hot_water_loop.components.each do |plc|
             next unless plc.to_BoilerHotWater.is_initialized
+
             boiler = plc.to_BoilerHotWater.get
             boiler.setFuelType('Propane')
           end
