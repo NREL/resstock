@@ -115,9 +115,6 @@ jobs:
           
           python test/compare.py -m feature
           
-          cp -r base/map/results*.csv test/test_samples_osw/base
-          cp -r results/map/results*.csv test/test_samples_osw/results
-          
           python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map
           python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv
           
@@ -131,6 +128,18 @@ jobs:
         with:
           path: test/test_samples_osw/comparisons
           name: comparisons
+
+      - name: Upload base map
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/base/map
+          name: base_map
+
+      - name: Upload feature map
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/results/map
+          name: results_map
 
   update-results:
     runs-on: ubuntu-latest
