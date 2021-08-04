@@ -271,11 +271,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Report some additional location and model characteristics
     weather = WeatherProcess.new(model, runner)
-    if !weather.error?
-      register_value(runner, 'weather_file_city', weather.header.City)
-      register_value(runner, 'weather_file_latitude', "#{weather.header.Latitude}")
-      register_value(runner, 'weather_file_longitude', "#{weather.header.Longitude}")
-    end
+    register_value(runner, 'weather_file_city', weather.header.City)
+    register_value(runner, 'weather_file_latitude', "#{weather.header.Latitude}")
+    register_value(runner, 'weather_file_longitude', "#{weather.header.Longitude}")
 
     # Determine weight
     if args['number_of_buildings_represented'].is_initialized
