@@ -191,6 +191,7 @@ if __name__ == '__main__':
                        'build_existing_model.county']
   aggregate_functions = ['sum', 'mean']
   display_columns = ['build_existing_model.geometry_building_type_recs',
+                     'build_existing_model.geometry_foundation_type',
                      'build_existing_model.county']
   map_result_choices = ['base', 'feature']
 
