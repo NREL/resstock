@@ -10,6 +10,7 @@ require_relative '../resources/buildstock'
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
     @project_dir_baseline = { 'project_testing' => 100, 'project_national' => 3000 }
+    @project_dir_baseline_hes = { 'project_testing' => 100, 'project_national' => 200 }
     @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
@@ -55,6 +56,18 @@ class IntegrationWorkflowTest < MiniTest::Test
     end
   end
 
+  def test_baseline_hes
+    scenario_dir = File.join(@top_dir, 'baseline')
+    Dir.mkdir(scenario_dir + '_hes') unless File.exist?(scenario_dir + '_hes')
+
+    all_results_characteristics = []
+    all_results_output = []
+    @project_dir_baseline_hes.each_with_index do |(project_dir, num_samples), color_index|
+      next unless num_samples > 0
+      samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index, hes=true)
+    end
+  end
+
   def test_upgrades
     scenario_dir = File.join(@top_dir, 'upgrades')
     Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
@@ -86,8 +99,13 @@ class IntegrationWorkflowTest < MiniTest::Test
 
   private
 
-  def samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index)
-    parent_dir = File.join(scenario_dir, project_dir)
+  def samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index, hes=false)
+    
+    if hes
+      parent_dir = File.join(scenario_dir + '_hes', project_dir)
+    else
+      parent_dir = File.join(scenario_dir, project_dir)
+    end
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
     osw_dir = File.join(parent_dir, 'osw')
@@ -95,6 +113,9 @@ class IntegrationWorkflowTest < MiniTest::Test
 
     xml_dir = File.join(parent_dir, 'xml')
     Dir.mkdir(xml_dir) unless File.exist?(xml_dir)
+
+    in_xml_dir = File.join(parent_dir, 'in_xml')
+    Dir.mkdir(in_xml_dir) unless File.exist?(in_xml_dir)
 
     create_lib_folder(project_dir)
     create_buildstock_csv(parent_dir, project_dir, num_samples)
@@ -109,6 +130,7 @@ class IntegrationWorkflowTest < MiniTest::Test
       (1..num_samples).to_a.each do |building_id|
         bldg_data = get_data_for_sample(buildstock_csv_data, building_id, runner)
         next unless counties.include? bldg_data['County']
+        next if hes and bldg_data['Geometry Building Type RECS'].include? 'Multi-Family'
 
         workflow_and_building_ids << [workflow, building_id]
       end
@@ -127,28 +149,33 @@ class IntegrationWorkflowTest < MiniTest::Test
 
       change_building_id(osw, building_id)
 
-      finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, File.join(@top_dir, worker_folder))
+      if hes
+        cli_path = OpenStudio.getOpenStudioCLI
+        command = "cd #{File.join(@top_dir, worker_folder)} && \"#{cli_path}\" run -w #{osw} -m"
+        system(command)
+      else
+        finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, File.join(@top_dir, worker_folder))
 
-      osw = "#{project_dir}-#{building_id.to_s.rjust(4, '0')}.osw"
-      result_characteristics['OSW'] = osw
-      result_output['OSW'] = osw
-      result_output['color_index'] = color_index
+        osw = "#{project_dir}-#{building_id.to_s.rjust(4, '0')}.osw"
+        result_characteristics['OSW'] = osw
+        result_output['OSW'] = osw
+        result_output['color_index'] = color_index
 
-      check_finished_job(result_characteristics, finished_job)
-      check_finished_job(result_output, finished_job)
+        check_finished_job(result_characteristics, finished_job)
+        check_finished_job(result_output, finished_job)
 
-      all_results_characteristics << result_characteristics
-      all_results_output << result_output
+        all_results_characteristics << result_characteristics
+        all_results_output << result_output
+      end
 
       # Save existing/upgraded osws and xmls
-      ['existing', 'upgraded'].each do |scen|
+      ['existing', 'upgraded', 'in'].each do |scen|
         ['osw', 'xml'].each do |type|
           from = File.join(@top_dir, worker_folder, 'run', "#{scen}.#{type}")
-
           dir = osw_dir
           dir = xml_dir if type == 'xml'
+          dir = in_xml_dir if scen == 'in'
           to = File.join(dir, "#{building_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
-
           FileUtils.mv(from, to) if File.exist?(from)
         end
       end

@@ -115,8 +115,8 @@ jobs:
           
           python test/compare.py -m feature
 
-          cp -r base/map/results*.csv test/test_samples_osw/base
-          cp -r results/map/results*.csv test/test_samples_osw/results
+          cp -r base/map/*.csv test/test_samples_osw/base
+          cp -r results/map/results* test/test_samples_osw/results
           
           python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map
           python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv
