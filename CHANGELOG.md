@@ -44,6 +44,7 @@ Fixes
 - Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
 - Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
 - Fixes hot water distribution internal gains not being zeroed out during vacancies ([#653](https://github.com/NREL/resstock/pull/653))
+-Exclude adiabatic doors when outputting the door area cost multiplier ([#674](https://github.com/NREL/resstock/pull/674))
 
 ## ResStock v2.4.0
 
