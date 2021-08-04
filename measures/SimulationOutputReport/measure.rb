@@ -818,6 +818,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           # Door subsurfaces
           space.surfaces.each do |surface|
             next if surface.surfaceType.downcase != 'wall'
+            next if surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
             surface.subSurfaces.each do |sub_surface|
               next if not sub_surface.subSurfaceType.downcase.include? 'door'
@@ -946,6 +947,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         space = surface.space.get
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'wall'
+        next if surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
         surface.subSurfaces.each do |sub_surface|
           next if not sub_surface.subSurfaceType.downcase.include? 'door'
