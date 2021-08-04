@@ -188,6 +188,7 @@ if __name__ == '__main__':
                        'county']
   aggregate_functions = ['sum', 'mean']
   display_columns = ['geometry_building_type_recs',
+                     'geometry_foundation_type',
                      'county']
   map_result_choices = ['base', 'feature']
 
