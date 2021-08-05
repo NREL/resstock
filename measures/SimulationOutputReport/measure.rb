@@ -821,6 +821,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             surface.subSurfaces.each do |sub_surface|
               next if not sub_surface.subSurfaceType.downcase.include? 'door'
+              next if sub_surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
               cost_mult += UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2')
             end
@@ -949,6 +950,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         surface.subSurfaces.each do |sub_surface|
           next if not sub_surface.subSurfaceType.downcase.include? 'door'
+          next if sub_surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
           cost_mult += UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2')
         end
