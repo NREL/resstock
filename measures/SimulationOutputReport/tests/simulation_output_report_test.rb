@@ -201,7 +201,7 @@ class SimulationOutputReportTest < MiniTest::Test
     cost_multipliers = {
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 2111.89,
-      'Wall Area, Above-Grade, Exterior (ft^2)' => 2778.75,
+      'Wall Area, Above-Grade, Exterior (ft^2)' => 2250.78,
       'Wall Area, Below-Grade (ft^2)' => 0,
       'Floor Area, Conditioned (ft^2)' => 2000,
       'Floor Area, Attic (ft^2)' => 1000,

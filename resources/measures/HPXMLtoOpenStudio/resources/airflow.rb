@@ -522,7 +522,7 @@ class Airflow
       building.garage.inf_method = @infMethodSG
       building.garage.hor_lk_frac = 0.4 # DOE-2 Default
       building.garage.neutral_level = 0.5 # DOE-2 Default
-      building.garage.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.garage_ach50, 0.67, building.garage.area, building.garage.volume)
+      building.garage.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.garage_ach50, 0.65, building.garage.area, building.garage.volume)
       building.garage.ACH = Airflow.get_infiltration_ACH_from_SLA(building.garage.SLA, 1.0, weather)
       building.garage.inf_flow = building.garage.ACH / UnitConversions.convert(1.0, 'hr', 'min') * building.garage.volume # cfm
     end
@@ -583,7 +583,7 @@ class Airflow
       # Wind Driven Air Infiltration Calculations" by Walker and Wilson (1998)
 
       # Pressure Exponent
-      n_i = 0.67
+      n_i = 0.65
 
       # Calculate SLA for above-grade portion of the building
       building.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.living_ach50, n_i, building.ag_ffa, building.above_grade_volume)
