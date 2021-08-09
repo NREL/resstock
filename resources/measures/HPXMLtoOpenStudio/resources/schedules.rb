@@ -1505,56 +1505,65 @@ class ScheduleGenerator
     sink_activity_sch = sink_activity_sch.rotate(-4 * 60 + random_offset) # 4 am shifting
     sink_activity_sch = apply_monthly_offsets(sink_activity_sch)
     sink_activity_sch = aggregate_array(sink_activity_sch, @minutes_per_step)
-    @schedules['sinks'] = sink_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    sink_peak_flow = sink_activity_sch.max
+    @schedules['sinks'] = sink_activity_sch.map { |flow| flow / sink_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_activity_sch = dw_activity_sch.rotate(random_offset)
     dw_activity_sch = apply_monthly_offsets(dw_activity_sch)
     dw_activity_sch = aggregate_array(dw_activity_sch, @minutes_per_step)
-    @schedules['dishwasher'] = dw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    dw_peak_flow = dw_activity_sch.max
+    @schedules['dishwasher'] = dw_activity_sch.map { |flow| flow / dw_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_activity_sch = cw_activity_sch.rotate(random_offset)
     cw_activity_sch = apply_monthly_offsets(cw_activity_sch)
     cw_activity_sch = aggregate_array(cw_activity_sch, @minutes_per_step)
-    @schedules['clothes_washer'] = cw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    cw_peak_flow = cw_activity_sch.max
+    @schedules['clothes_washer'] = cw_activity_sch.map { |flow| flow / cw_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     shower_activity_sch = shower_activity_sch.rotate(random_offset)
     shower_activity_sch = apply_monthly_offsets(shower_activity_sch)
     shower_activity_sch = aggregate_array(shower_activity_sch, @minutes_per_step)
-    @schedules['showers'] = shower_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    shower_peak_flow = shower_activity_sch.max
+    @schedules['showers'] = shower_activity_sch.map { |flow| flow / shower_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     bath_activity_sch = bath_activity_sch.rotate(random_offset)
     bath_activity_sch = apply_monthly_offsets(bath_activity_sch)
     bath_activity_sch = aggregate_array(bath_activity_sch, @minutes_per_step)
-    @schedules['baths'] = bath_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    bath_peak_flow = bath_activity_sch.max
+    @schedules['baths'] = bath_activity_sch.map { |flow| flow / bath_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cooking_power_sch = cooking_power_sch.rotate(random_offset)
     cooking_power_sch = apply_monthly_offsets(cooking_power_sch)
     cooking_power_sch = aggregate_array(cooking_power_sch, @minutes_per_step)
-    @schedules['cooking_range'] = cooking_power_sch.map { |power| power / Constants.PeakPower }
+    cooking_peak_power = cooking_power_sch.max
+    @schedules['cooking_range'] = cooking_power_sch.map { |power| power / cooking_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_power_sch = cw_power_sch.rotate(random_offset)
     cw_power_sch = apply_monthly_offsets(cw_power_sch)
     cw_power_sch = aggregate_array(cw_power_sch, @minutes_per_step)
-    @schedules['clothes_washer_power'] = cw_power_sch.map { |power| power / Constants.PeakPower }
+    cw_peak_power = cw_power_sch.max
+    @schedules['clothes_washer_power'] = cw_power_sch.map { |power| power / cw_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cd_power_sch = cd_power_sch.rotate(random_offset)
     cd_power_sch = apply_monthly_offsets(cd_power_sch)
     cd_power_sch = aggregate_array(cd_power_sch, @minutes_per_step)
-    @schedules['clothes_dryer'] = cd_power_sch.map { |power| power / Constants.PeakPower }
+    cd_peak_power = cd_power_sch.max
+    @schedules['clothes_dryer'] = cd_power_sch.map { |power| power / cd_peak_power }
     @schedules['clothes_dryer_exhaust'] = @schedules['clothes_dryer']
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_power_sch = dw_power_sch.rotate(random_offset)
     dw_power_sch = apply_monthly_offsets(dw_power_sch)
     dw_power_sch = aggregate_array(dw_power_sch, @minutes_per_step)
-    @schedules['dishwasher_power'] = dw_power_sch.map { |power| power / Constants.PeakPower }
+    dw_peak_power = dw_power_sch.max
+    @schedules['dishwasher_power'] = dw_power_sch.map { |power| power / dw_peak_power }
 
     @schedules['occupants'] = away_schedule.map { |i| 1.0 - i }
 
