@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
@@ -25,7 +27,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments
+  def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
     return args
@@ -68,7 +70,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def peak_magnitude_timing
-    output_names = ['peak_magnitude_timing_kw']
+    output_names = ['peak_magnitude_timing_hour']
     return output_names
   end
 
@@ -138,18 +140,17 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
-    # use the built-in error checking
-    if !runner.validateUserArguments(arguments, user_arguments)
-      return false
-    end
-
-    # get the last model and sql file
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError('Cannot find last model.')
+      runner.registerError('Cannot find OpenStudio model.')
       return false
     end
     model = model.get
+
+    # use the built-in error checking
+    if !runner.validateUserArguments(arguments(model), user_arguments)
+      return false
+    end
 
     sqlFile = runner.lastEnergyPlusSqlFile
     if sqlFile.empty?
@@ -199,7 +200,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     report_sim_output(runner, 'peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
 
     # Timing of peak magnitude (1)
-    report_sim_output(runner, 'peak_magnitude_timing_kw', timing(timeseries, [-1e9, 1e9], 'max'), '', '')
+    report_sim_output(runner, 'peak_magnitude_timing_hour', timing(timeseries, [-1e9, 1e9], 'max'), '', '')
 
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|

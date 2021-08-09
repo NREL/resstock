@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openstudio'
 if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
@@ -32,7 +34,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments
+  def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     # make an argument for including optional end use subcategories
@@ -78,7 +80,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       'Roof Area (ft^2)' => 'roof_area_ft_2',
       'Window Area (ft^2)' => 'window_area_ft_2',
       'Door Area (ft^2)' => 'door_area_ft_2',
-      'Duct Surface Area (ft^2)' => 'duct_surface_area_ft_2',
+      'Duct Unconditioned Surface Area (ft^2)' => 'duct_unconditioned_surface_area_ft_2',
       'Size, Heating System (kBtu/h)' => 'size_heating_system_kbtu_h',
       'Size, Cooling System (kBtu/h)' => 'size_cooling_system_kbtu_h',
       'Size, Water Heater (gal)' => 'size_water_heater_gal'
@@ -89,21 +91,20 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    if not runner.validateUserArguments(arguments(), user_arguments)
+    if not runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
     # Assign the user inputs to variables
     include_enduse_subcategories = runner.getBoolArgumentValue('include_enduse_subcategories', user_arguments)
-
-    # get the last model and sql file
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError('Cannot find last model.')
-      return false
-    end
-    model = model.get
 
     sqlFile = runner.lastEnergyPlusSqlFile
     if sqlFile.empty?
@@ -367,7 +368,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # WEIGHT
 
-    weight = get_value_from_runner_past_results(runner, 'weight', 'build_existing_model', false)
+    values = get_values_from_runner_past_results(runner, 'build_existing_model')
+    weight = values['weight']
     if not weight.nil?
       register_value(runner, 'weight', weight.to_f)
       runner.registerInfo("Registering #{weight} for weight.")
@@ -381,7 +383,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # UPGRADE NAME
-    upgrade_name = get_value_from_runner_past_results(runner, 'upgrade_name', 'apply_upgrade', false)
+    values = get_values_from_runner_past_results(runner, 'apply_upgrade')
+    upgrade_name = values['upgrade_name']
     if upgrade_name.nil?
       register_value(runner, 'upgrade_name', '')
       runner.registerInfo('Registering (blank) for upgrade_name.')
@@ -402,16 +405,16 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       option_cost_pairs[option_num] = []
       option_lifetimes[option_num] = nil
       for cost_num in 1..num_costs_per_option # Sync with ApplyUpgrade measure
-        cost_value = get_value_from_runner_past_results(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, 'apply_upgrade', false)
+        cost_value = values["option_%02d_cost_#{cost_num}_value_to_apply" % option_num]
         next if cost_value.nil?
 
-        cost_mult_type = get_value_from_runner_past_results(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, 'apply_upgrade', false)
+        cost_mult_type = values["option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num]
         next if cost_mult_type.nil?
 
         has_costs = true
         option_cost_pairs[option_num] << [cost_value.to_f, cost_mult_type]
       end
-      lifetime = get_value_from_runner_past_results(runner, 'option_%02d_lifetime_to_apply' % option_num, 'apply_upgrade', false)
+      lifetime = values['option_%02d_lifetime_to_apply' % option_num]
       next if lifetime.nil?
 
       option_lifetimes[option_num] = lifetime.to_f
@@ -486,15 +489,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       if cost_mult_type == 'Fixed (1)'
         cost_mult += 1.0
 
-      elsif cost_mult_type == 'Duct Surface Area (ft^2)'
+      elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
         # Duct supply+return surface area
-        supply_area = unit.getFeatureAsDouble('SizingInfoDuctsSupplySurfaceArea')
-        if supply_area.is_initialized
-          cost_mult += supply_area.get
-        end
-        return_area = unit.getFeatureAsDouble('SizingInfoDuctsReturnSurfaceArea')
-        if return_area.is_initialized
-          cost_mult += return_area.get
+        location_zone_name = unit.getFeatureAsString('SizingInfoDuctsLocationZone').to_s
+        if not ["#{Constants.SpaceTypeLiving} zone", "#{Constants.SpaceTypeFinishedBasement} zone"].include? location_zone_name
+          supply_area = unit.getFeatureAsDouble('SizingInfoDuctsSupplySurfaceArea')
+          return_area = unit.getFeatureAsDouble('SizingInfoDuctsReturnSurfaceArea')
+          if supply_area.is_initialized
+            cost_mult += supply_area.get
+          end
+          if return_area.is_initialized
+            cost_mult += return_area.get
+          end
         end
 
       end
@@ -815,6 +821,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             surface.subSurfaces.each do |sub_surface|
               next if not sub_surface.subSurfaceType.downcase.include? 'door'
+              next if sub_surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
               cost_mult += UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2')
             end
@@ -851,6 +858,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'wall'
         next if surface.outsideBoundaryCondition.downcase != 'outdoors'
+        next if Geometry.is_pier_beam_surface(surface)
 
         cost_mult += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
@@ -942,6 +950,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         surface.subSurfaces.each do |sub_surface|
           next if not sub_surface.subSurfaceType.downcase.include? 'door'
+          next if sub_surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
           cost_mult += UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2')
         end

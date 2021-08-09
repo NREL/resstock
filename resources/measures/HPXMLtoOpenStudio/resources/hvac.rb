@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'geometry'
 require_relative 'util'
@@ -508,7 +510,7 @@ class HVAC
       end
       htg_coil.setMaximumOutdoorDryBulbTemperatureforCrankcaseHeaterOperation(UnitConversions.convert(crankcase_temp, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
 
       supp_htg_coil = OpenStudio::Model::CoilHeatingElectric.new(model, model.alwaysOnDiscreteSchedule)
       supp_htg_coil.setName(obj_name + ' supp heater')
@@ -768,7 +770,7 @@ class HVAC
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
       htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(40.0, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
       htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       htg_coil.setFuelType('Electricity')
 
@@ -1059,7 +1061,7 @@ class HVAC
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
       htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(40.0, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
       htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       htg_coil.setFuelType('Electricity')
 
@@ -1365,7 +1367,7 @@ class HVAC
       htg_coil.setDefrostEnergyInputRatioFunctionofTemperatureCurve(defrost_eir_curve)
       htg_coil.setMaximumOutdoorDryBulbTemperatureforDefrostOperation(UnitConversions.convert(max_defrost_temp, 'F', 'C'))
       htg_coil.setDefrostStrategy('ReverseCycle')
-      htg_coil.setDefrostControl('OnDemand')
+      htg_coil.setDefrostControl('Timed')
       htg_coil.setApplyPartLoadFractiontoSpeedsGreaterthan1(false)
       htg_coil.setFuelType('Electricity')
 
@@ -1468,7 +1470,7 @@ class HVAC
 
       if pan_heater_power > 0
 
-        mshp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating Coil Electric Energy')
+        mshp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating Coil Electricity Energy')
         mshp_sensor.setName("#{obj_name} vrf energy sensor".gsub('|', '_'))
         mshp_sensor.setKeyName(obj_name + ' htg coil')
 
@@ -1483,7 +1485,7 @@ class HVAC
         equip.setSchedule(model.alwaysOnDiscreteSchedule)
         equip.setEndUseSubcategory(obj_name + ' pan heater')
 
-        pan_heater_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electric Power Level')
+        pan_heater_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electricity Rate')
         pan_heater_actuator.setName("#{obj_name} pan heater actuator".gsub('|', '_'))
 
         tout_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Outdoor Air Drybulb Temperature')
@@ -1751,7 +1753,7 @@ class HVAC
     pump.setPumpControlType('Intermittent')
     pump.addToNode(plant_loop.supplyInletNode)
 
-    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
     pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
     pump_sensor.setKeyName(pump.name.to_s)
 
@@ -1777,24 +1779,30 @@ class HVAC
       gshp_HEAT_CAP_fT_coeff = convert_curve_gshp(hEAT_CAP_FT_SEC, false)
       gshp_HEAT_POWER_fT_coeff = convert_curve_gshp(hEAT_POWER_FT_SPEC, false)
 
-      htg_coil = OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit.new(model)
+      htg_cap_curve = OpenStudio::Model::CurveQuadLinear.new(model)
+      htg_cap_curve.setName(obj_name + ' htg cap curve')
+      htg_cap_curve.setCoefficient1Constant(gshp_HEAT_CAP_fT_coeff[0])
+      htg_cap_curve.setCoefficient2w(gshp_HEAT_CAP_fT_coeff[1])
+      htg_cap_curve.setCoefficient3x(gshp_HEAT_CAP_fT_coeff[2])
+      htg_cap_curve.setCoefficient4y(gshp_HEAT_CAP_fT_coeff[3])
+      htg_cap_curve.setCoefficient5z(gshp_HEAT_CAP_fT_coeff[4])
+
+      htg_power_curve = OpenStudio::Model::CurveQuadLinear.new(model)
+      htg_power_curve.setName(obj_name + ' htg power curve')
+      htg_power_curve.setCoefficient1Constant(gshp_HEAT_POWER_fT_coeff[0])
+      htg_power_curve.setCoefficient2w(gshp_HEAT_POWER_fT_coeff[1])
+      htg_power_curve.setCoefficient3x(gshp_HEAT_POWER_fT_coeff[2])
+      htg_power_curve.setCoefficient4y(gshp_HEAT_POWER_fT_coeff[3])
+      htg_power_curve.setCoefficient5z(gshp_HEAT_POWER_fT_coeff[4])
+
+      htg_coil = OpenStudio::Model::CoilHeatingWaterToAirHeatPumpEquationFit.new(model, htg_cap_curve, htg_power_curve)
       htg_coil.setName(obj_name + ' heating coil')
       if heat_pump_capacity != Constants.SizingAuto
         htg_coil.setRatedHeatingCapacity(OpenStudio::OptionalDouble.new(UnitConversions.convert(heat_pump_capacity, 'Btu/hr', 'W'))) # Used by HVACSizing measure
       end
       htg_coil.setRatedHeatingCoefficientofPerformance(dse / heatingEIR)
-      htg_coil.setHeatingCapacityCoefficient1(gshp_HEAT_CAP_fT_coeff[0])
-      htg_coil.setHeatingCapacityCoefficient2(gshp_HEAT_CAP_fT_coeff[1])
-      htg_coil.setHeatingCapacityCoefficient3(gshp_HEAT_CAP_fT_coeff[2])
-      htg_coil.setHeatingCapacityCoefficient4(gshp_HEAT_CAP_fT_coeff[3])
-      htg_coil.setHeatingCapacityCoefficient5(gshp_HEAT_CAP_fT_coeff[4])
-      htg_coil.setHeatingPowerConsumptionCoefficient1(gshp_HEAT_POWER_fT_coeff[0])
-      htg_coil.setHeatingPowerConsumptionCoefficient2(gshp_HEAT_POWER_fT_coeff[1])
-      htg_coil.setHeatingPowerConsumptionCoefficient3(gshp_HEAT_POWER_fT_coeff[2])
-      htg_coil.setHeatingPowerConsumptionCoefficient4(gshp_HEAT_POWER_fT_coeff[3])
-      htg_coil.setHeatingPowerConsumptionCoefficient5(gshp_HEAT_POWER_fT_coeff[4])
 
-      htg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating Coil Electric Energy')
+      htg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating Coil Electricity Energy')
       htg_coil_sensor.setName("#{htg_coil.name.to_s.gsub('|', '_')} s")
       htg_coil_sensor.setKeyName(htg_coil.name.to_s)
 
@@ -1875,32 +1883,41 @@ class HVAC
       gshp_COOL_POWER_fT_coeff = convert_curve_gshp(cOOL_POWER_FT_SPEC, false)
       gshp_COOL_SH_fT_coeff = convert_curve_gshp(cOOL_SH_FT_SPEC, false)
 
-      clg_coil = OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit.new(model)
+      clg_total_cap_curve = OpenStudio::Model::CurveQuadLinear.new(model)
+      clg_total_cap_curve.setName(obj_name + ' clg total cap curve')
+      clg_total_cap_curve.setCoefficient1Constant(gshp_COOL_CAP_fT_coeff[0])
+      clg_total_cap_curve.setCoefficient2w(gshp_COOL_CAP_fT_coeff[1])
+      clg_total_cap_curve.setCoefficient3x(gshp_COOL_CAP_fT_coeff[2])
+      clg_total_cap_curve.setCoefficient4y(gshp_COOL_CAP_fT_coeff[3])
+      clg_total_cap_curve.setCoefficient5z(gshp_COOL_CAP_fT_coeff[4])
+
+      clg_sens_cap_curve = OpenStudio::Model::CurveQuintLinear.new(model)
+      clg_sens_cap_curve.setName(obj_name + ' clg sens cap curve')
+      clg_sens_cap_curve.setCoefficient1Constant(gshp_COOL_SH_fT_coeff[0])
+      clg_sens_cap_curve.setCoefficient2v(0)
+      clg_sens_cap_curve.setCoefficient3w(gshp_COOL_SH_fT_coeff[1])
+      clg_sens_cap_curve.setCoefficient4x(gshp_COOL_SH_fT_coeff[2])
+      clg_sens_cap_curve.setCoefficient5y(gshp_COOL_SH_fT_coeff[3])
+      clg_sens_cap_curve.setCoefficient6z(gshp_COOL_SH_fT_coeff[4])
+
+      clg_power_curve = OpenStudio::Model::CurveQuadLinear.new(model)
+      clg_power_curve.setName(obj_name + ' clg power curve')
+      clg_power_curve.setCoefficient1Constant(gshp_COOL_POWER_fT_coeff[0])
+      clg_power_curve.setCoefficient2w(gshp_COOL_POWER_fT_coeff[1])
+      clg_power_curve.setCoefficient3x(gshp_COOL_POWER_fT_coeff[2])
+      clg_power_curve.setCoefficient4y(gshp_COOL_POWER_fT_coeff[3])
+      clg_power_curve.setCoefficient5z(gshp_COOL_POWER_fT_coeff[4])
+
+      clg_coil = OpenStudio::Model::CoilCoolingWaterToAirHeatPumpEquationFit.new(model, clg_total_cap_curve, clg_sens_cap_curve, clg_power_curve)
       clg_coil.setName(obj_name + ' cooling coil')
       if heat_pump_capacity != Constants.SizingAuto
         clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(heat_pump_capacity, 'Btu/hr', 'W')) # Used by HVACSizing measure
       end
       clg_coil.setRatedCoolingCoefficientofPerformance(dse / coolingEIR)
-      clg_coil.setTotalCoolingCapacityCoefficient1(gshp_COOL_CAP_fT_coeff[0])
-      clg_coil.setTotalCoolingCapacityCoefficient2(gshp_COOL_CAP_fT_coeff[1])
-      clg_coil.setTotalCoolingCapacityCoefficient3(gshp_COOL_CAP_fT_coeff[2])
-      clg_coil.setTotalCoolingCapacityCoefficient4(gshp_COOL_CAP_fT_coeff[3])
-      clg_coil.setTotalCoolingCapacityCoefficient5(gshp_COOL_CAP_fT_coeff[4])
-      clg_coil.setSensibleCoolingCapacityCoefficient1(gshp_COOL_SH_fT_coeff[0])
-      clg_coil.setSensibleCoolingCapacityCoefficient2(0)
-      clg_coil.setSensibleCoolingCapacityCoefficient3(gshp_COOL_SH_fT_coeff[1])
-      clg_coil.setSensibleCoolingCapacityCoefficient4(gshp_COOL_SH_fT_coeff[2])
-      clg_coil.setSensibleCoolingCapacityCoefficient5(gshp_COOL_SH_fT_coeff[3])
-      clg_coil.setSensibleCoolingCapacityCoefficient6(gshp_COOL_SH_fT_coeff[4])
-      clg_coil.setCoolingPowerConsumptionCoefficient1(gshp_COOL_POWER_fT_coeff[0])
-      clg_coil.setCoolingPowerConsumptionCoefficient2(gshp_COOL_POWER_fT_coeff[1])
-      clg_coil.setCoolingPowerConsumptionCoefficient3(gshp_COOL_POWER_fT_coeff[2])
-      clg_coil.setCoolingPowerConsumptionCoefficient4(gshp_COOL_POWER_fT_coeff[3])
-      clg_coil.setCoolingPowerConsumptionCoefficient5(gshp_COOL_POWER_fT_coeff[4])
       clg_coil.setNominalTimeforCondensateRemovaltoBegin(1000)
       clg_coil.setRatioofInitialMoistureEvaporationRateandSteadyStateLatentCapacity(1.5)
 
-      clg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Cooling Coil Electric Energy')
+      clg_coil_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Cooling Coil Electricity Energy')
       clg_coil_sensor.setName("#{clg_coil.name.to_s.gsub('|', '_')} s")
       clg_coil_sensor.setKeyName(clg_coil.name.to_s)
 
@@ -2020,21 +2037,24 @@ class HVAC
 
     return true if frac_cool_load_served <= 0
 
-    # Performance curves
-    # From Frigidaire 10.7 EER unit in Winkler et. al. Lab Testing of Window ACs (2013)
-    # NOTE: These coefficients are in SI UNITS
-    cOOL_CAP_FT_SPEC = [0.6405, 0.01568, 0.0004531, 0.001615, -0.0001825, 0.00006614]
-    cOOL_EIR_FT_SPEC = [2.287, -0.1732, 0.004745, 0.01662, 0.000484, -0.001306]
-    cOOL_CAP_FFLOW_SPEC = [0.887, 0.1128, 0]
-    cOOL_EIR_FFLOW_SPEC = [1.763, -0.6081, 0]
-    cOOL_PLF_FPLR = [0.78, 0.22, 0]
+    # From "Improved Modeling of Residential Air Conditioners and Heat Pumps for Energy Calculations", Cutler at al
+    # https://www.nrel.gov/docs/fy13osti/56354.pdf
+    cOOL_CAP_FT_SPEC = [[3.68637657, -0.098352478, 0.000956357, 0.005838141, -0.0000127, -0.000131702]]
+    cOOL_EIR_FT_SPEC = [[-3.437356399, 0.136656369, -0.001049231, -0.0079378, 0.000185435, -0.0001441]]
+    cOOL_CAP_FFLOW_SPEC = [[1, 0, 0]]
+    cOOL_EIR_FFLOW_SPEC = [[1, 0, 0]]
+    cOOL_PLF_FPLR = [[0.78, 0.22, 0]]
     cfms_ton_rated = [312] # medium speed
 
-    roomac_cap_ft_curve = create_curve_biquadratic(model, cOOL_CAP_FT_SPEC, 'RoomAC-Cap-fT', 0, 100, 0, 100)
-    roomac_cap_fff_curve = create_curve_quadratic(model, cOOL_CAP_FFLOW_SPEC, 'RoomAC-Cap-fFF', 0, 2, 0, 2)
-    roomac_eir_ft_curve = create_curve_biquadratic(model, cOOL_EIR_FT_SPEC, 'RoomAC-EIR-fT', 0, 100, 0, 100)
-    roomcac_eir_fff_curve = create_curve_quadratic(model, cOOL_EIR_FFLOW_SPEC, 'RoomAC-EIR-fFF', 0, 2, 0, 2)
-    roomac_plf_fplr_curve = create_curve_quadratic(model, cOOL_PLF_FPLR, 'RoomAC-PLF-fPLR', 0, 1, 0, 1)
+    # Performance curves
+    cOOL_CAP_FT_SPEC_SI = convert_curve_biquadratic(cOOL_CAP_FT_SPEC[0])
+    cOOL_EIR_FT_SPEC_SI = convert_curve_biquadratic(cOOL_EIR_FT_SPEC[0])
+
+    roomac_cap_ft_curve = create_curve_biquadratic(model, cOOL_CAP_FT_SPEC_SI, 'RoomAC-Cap-fT', 0, 100, 0, 100)
+    roomac_cap_fff_curve = create_curve_quadratic(model, cOOL_CAP_FFLOW_SPEC[0], 'RoomAC-Cap-fFF', 0, 2, 0, 2)
+    roomac_eir_ft_curve = create_curve_biquadratic(model, cOOL_EIR_FT_SPEC_SI, 'RoomAC-EIR-fT', 0, 100, 0, 100)
+    roomcac_eir_fff_curve = create_curve_quadratic(model, cOOL_EIR_FFLOW_SPEC[0], 'RoomAC-EIR-fFF', 0, 2, 0, 2)
+    roomac_plf_fplr_curve = create_curve_quadratic(model, cOOL_PLF_FPLR[0], 'RoomAC-PLF-fPLR', 0, 1, 0, 1)
 
     obj_name = Constants.ObjectNameRoomAirConditioner(unit.name.to_s)
 
@@ -2051,7 +2071,7 @@ class HVAC
           clg_coil.setRatedTotalCoolingCapacity(UnitConversions.convert(capacity, 'Btu/hr', 'W')) # Used by HVACSizing measure
         end
         clg_coil.setRatedSensibleHeatRatio(shr)
-        clg_coil.setRatedCOP(OpenStudio::OptionalDouble.new(UnitConversions.convert(eer, 'Btu/hr', 'W')))
+        clg_coil.setRatedCOP(UnitConversions.convert(calc_ceer_from_eer(eer), 'Btu/hr', 'W'))
         clg_coil.setRatedEvaporatorFanPowerPerVolumeFlowRate(OpenStudio::OptionalDouble.new(773.3))
         clg_coil.setEvaporativeCondenserEffectiveness(OpenStudio::OptionalDouble.new(0.9))
         clg_coil.setMaximumOutdoorDryBulbTemperatureForCrankcaseHeaterOperation(OpenStudio::OptionalDouble.new(10))
@@ -2084,6 +2104,11 @@ class HVAC
     end # control_zone
 
     return true
+  end
+
+  def self.calc_ceer_from_eer(eer)
+    # Reference: http://documents.dps.ny.gov/public/Common/ViewDoc.aspx?DocRefId=%7BB6A57FC0-6376-4401-92BD-D66EC1930DCF%7D
+    return eer / 1.01
   end
 
   def self.apply_furnace(model, unit, runner, fuel_type, afue,
@@ -2265,7 +2290,7 @@ class HVAC
     pump.setCoefficient4ofthePartLoadPerformanceCurve(0)
     pump.setPumpControlType('Intermittent')
 
-    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+    pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
     pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
     pump_sensor.setKeyName(pump.name.to_s)
 
@@ -2292,7 +2317,7 @@ class HVAC
       boiler.setEfficiencyCurveTemperatureEvaluationVariable('LeavingBoiler')
     end
     boiler.setNormalizedBoilerEfficiencyCurve(boiler_eff_curve)
-    boiler.setDesignWaterOutletTemperature(UnitConversions.convert(design_temp - 32.0, 'R', 'K'))
+    boiler.setWaterOutletUpperTemperatureLimit(UnitConversions.convert(design_temp - 32.0, 'R', 'K'))
     boiler.setMinimumPartLoadRatio(0.0)
     boiler.setMaximumPartLoadRatio(1.0)
     boiler.setBoilerFlowMode('LeavingSetpointModulated')
@@ -3146,98 +3171,47 @@ class HVAC
     end
   end
 
-  def self.apply_ceiling_fans(model, unit, runner, coverage, specified_num, power,
-                              control, use_benchmark_energy, cooling_setpoint_offset,
-                              mult, sch, schedules_file)
-
-    # check for valid inputs
-    if mult < 0
-      runner.registerError('Multiplier must be greater than or equal to 0.')
-      return false
-    end
+  def self.apply_ceiling_fans(model, unit, runner, weather, specified_num, power,
+                              cooling_setpoint_offset, sch, schedules_file)
 
     obj_name = Constants.ObjectNameCeilingFan(unit.name.to_s)
 
-    num_bedrooms, num_bathrooms = Geometry.get_unit_beds_baths(model, unit, runner)
-    if num_bedrooms.nil? || num_bathrooms.nil?
-      return false
-    end
-
-    above_grade_finished_floor_area = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
-    finished_floor_area = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
-
-    # Determine geometry for spaces and zones that are unit specific
     living_zone = nil
-    finished_basement_zone = nil
     Geometry.get_thermal_zones_from_spaces(unit.spaces).each do |thermal_zone|
       if Geometry.is_living(thermal_zone)
         living_zone = thermal_zone
-      elsif Geometry.is_finished_basement(thermal_zone)
-        finished_basement_zone = thermal_zone
       end
     end
 
-    # Determine the number of ceiling fans
-    ceiling_fan_num = 0
-    if not coverage.nil?
-      # User has chosen to specify the number of fans by indicating
-      # % coverage, where it is assumed that 100% coverage requires 1 fan
-      # per 300 square feet.
-      ceiling_fan_num = (above_grade_finished_floor_area * coverage / 300.0).round(1)
-    elsif not specified_num.nil?
-      ceiling_fan_num = specified_num
-    else
-      ceiling_fan_num = 0
+    # Ceiling fan applies only when monthly average outdoor temperature > 63F
+    ceiling_fan_season = [0] * 12
+    weather.data.MonthlyAvgDrybulbs.each_with_index do |val, m|
+      next unless val > 63.0 # deg-F
+
+      ceiling_fan_season[m] = 1
     end
 
-    # Adjust the power consumption based on the occupancy control.
-    # The default assumption is that when the fans are "on" half of the
-    # fans will be used. This is consistent with the results from an FSEC
-    # survey (described in FSEC-PF-306-96) and approximates the reasonable
-    # assumption that during the night the bedroom fans will be on and all
-    # of the other fans will be off while during the day the reverse will
-    # be true. "Smart" occupancy control indicates that fans are used more
-    # sparingly; in other words, fans are frequently turned off when rooms
-    # are vacant. To approximate this kind of control, the overall fan
-    # power consumption is reduced by 50%.Note that although the idea here
-    # is that in reality "smart" control means that fans will be run for
-    # fewer hours, it is modeled as a reduction in power consumption.
-
-    if control == Constants.CeilingFanControlSmart
-      ceiling_fan_control_factor = 0.25
-    else
-      ceiling_fan_control_factor = 0.5
+    # Apply electrical consumption
+    hrs_per_day = 10.5
+    annual_kwh = UnitConversions.convert(specified_num * power * hrs_per_day * 365.0 * (ceiling_fan_season.sum / 12.0), 'Wh', 'kWh')
+    col_name = 'ceiling_fan'
+    if sch.nil?
+      sch = schedules_file.create_schedule_file(col_name: col_name)
     end
+    space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: annual_kwh)
+    mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
+    mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
+    mel.setName(obj_name)
+    mel.setEndUseSubcategory(obj_name)
+    mel.setSpace(living_zone.spaces[0])
+    mel_def.setName(obj_name)
+    mel_def.setDesignLevel(space_design_level)
+    mel_def.setFractionRadiant(0.558)
+    mel_def.setFractionLatent(0.0)
+    mel_def.setFractionLost(0.0)
+    mel.setSchedule(sch)
 
-    # Determine the power draw for the ceiling fans.
-    # The power consumption depends on the number of fans, the "standard"
-    # power consumption per fan, the fan efficiency, and the fan occupancy
-    # control. Rather than specifying usage via a schedule, as for most
-    # other electrical uses, the fans will be modeled as "on" with a
-    # constant power consumption whenever the interior space temperature
-    # exceeds the cooling setpoint and "off" at all other times (this
-    # on/off behavior is accomplished in DOE2.bmi using EQUIP-PWR-FT - see
-    # comments there). Note that there is also a fan schedule that accounts
-    # for cooling setpoint setups (it is assumed that fans will always be
-    # off during the setup period).
-
-    if ceiling_fan_num > 0
-      ceiling_fans_max_power = ceiling_fan_num * power * ceiling_fan_control_factor / UnitConversions.convert(1.0, 'kW', 'W') # kW
-    else
-      ceiling_fans_max_power = 0
-    end
-
-    # Determine ceiling fan schedule.
-    # In addition to turning the fans off when the interior space
-    # temperature falls below the cooling setpoint (handled in DOE2.bmi by
-    # EQUIP-PWR-FT), the fans should be turned off during any setup of the
-    # cooling setpoint (based on the assumption that the occupants leave
-    # the house at those times). Therefore the fan schedule specifies zero
-    # power during the setup period and full power outside of the setup
-    # period. Determine the lowest value of all of the hourly cooling setpoints.
-
-    clg_wkdy_monthly = nil
-    clg_wked_monthly = nil
+    # Adjust thermostat setpoint
     thermostatsetpointdualsetpoint = living_zone.thermostatSetpointDualSetpoint
     if thermostatsetpointdualsetpoint.is_initialized
 
@@ -3248,6 +3222,7 @@ class HVAC
 
       thermostatsetpointdualsetpoint.get.coolingSetpointTemperatureSchedule.get.to_Schedule.get.to_ScheduleRuleset.get.scheduleRules.each do |rule|
         month = rule.startDate.get.monthOfYear.value.to_i - 1
+        next unless ceiling_fan_season[month] > 0
         next if htg_wkdy_monthly[month].zip(clg_wkdy_monthly[month]).any? { |h, c| c < h }
         next if htg_wked_monthly[month].zip(clg_wked_monthly[month]).any? { |h, c| c < h }
 
@@ -3268,129 +3243,6 @@ class HVAC
         end
       end
     end
-
-    if clg_wkdy_monthly.nil? && clg_wked_monthly.nil?
-      runner.registerWarning("No cooling setpoint schedule found. Assuming #{Constants.DefaultCoolingSetpoint} F for ceiling fan operation.")
-      clg_wkdy_monthly = [[Constants.DefaultCoolingSetpoint] * 24] * 12
-      clg_wked_monthly = [[Constants.DefaultCoolingSetpoint] * 24] * 12
-    end
-
-    cooling_setpoint_min = [clg_wkdy_monthly.min, clg_wked_monthly.min].min.min
-
-    ceiling_fans_hourly_weekday = []
-    ceiling_fans_hourly_weekend = []
-
-    (0..23).to_a.each do |hour|
-      if clg_wkdy_monthly[6][hour] > cooling_setpoint_min # july
-        ceiling_fans_hourly_weekday << 0
-      else
-        ceiling_fans_hourly_weekday << 1
-      end
-      if clg_wked_monthly[6][hour] > cooling_setpoint_min # july
-        ceiling_fans_hourly_weekend << 0
-      else
-        ceiling_fans_hourly_weekend << 1
-      end
-    end
-
-    ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, runner, obj_name + ' schedule', ceiling_fans_hourly_weekday, ceiling_fans_hourly_weekend, Array.new(12, 1), mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = false, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
-
-    unless ceiling_fan_sch.validated?
-      return false
-    end
-
-    schedule_type_limits = OpenStudio::Model::ScheduleTypeLimits.new(model)
-    schedule_type_limits.setName('OnOff')
-    schedule_type_limits.setLowerLimitValue(0)
-    schedule_type_limits.setUpperLimitValue(1)
-    schedule_type_limits.setNumericType('Discrete')
-
-    ceiling_fan_master_sch = OpenStudio::Model::ScheduleConstant.new(model)
-    ceiling_fan_master_sch.setName(obj_name + ' master')
-    ceiling_fan_master_sch.setScheduleTypeLimits(schedule_type_limits)
-    ceiling_fan_master_sch.setValue(1)
-
-    # Ceiling Fans
-    # As described in more detail in the schedules section, ceiling fans are controlled by two schedules, CeilingFan and CeilingFansMaster.
-    # The program CeilingFanScheduleProgram checks to see if a cooling setpoint setup is in effect (by checking the sensor CeilingFan_sch) and
-    # it checks the indoor temperature to see if it is less than the normal cooling setpoint. In either case, it turns the fans off.
-    # Otherwise it turns the fans on.
-
-    equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-    equip_def.setName(obj_name + ' non benchmark equip')
-    equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
-    equip.setName(equip_def.name.to_s)
-    equip.setEndUseSubcategory(obj_name)
-    equip.setSpace(living_zone.spaces[0])
-    equip_def.setDesignLevel(UnitConversions.convert(ceiling_fans_max_power, 'kW', 'W'))
-    equip_def.setFractionRadiant(0.558)
-    equip_def.setFractionLatent(0)
-    equip_def.setFractionLost(0.07)
-    equip.setSchedule(ceiling_fan_master_sch)
-
-    # Sensor that reports the value of the schedule CeilingFan (0 if cooling setpoint setup is in effect, 1 otherwise).
-    sched_val_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-    sched_val_sensor.setName("#{obj_name} sched val sensor".gsub('|', '_'))
-    sched_val_sensor.setKeyName(obj_name + ' schedule')
-
-    tin_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Mean Air Temperature')
-    tin_sensor.setName("#{obj_name} tin sensor".gsub('|', '_'))
-    tin_sensor.setKeyName(living_zone.name.to_s)
-
-    # Actuator that overrides the master ceiling fan schedule.
-    sched_override_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(ceiling_fan_master_sch, 'Schedule:Constant', 'Schedule Value')
-    sched_override_actuator.setName("#{obj_name} sched override".gsub('|', '_'))
-
-    # Program that turns the ceiling fans off in the situations described above.
-    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-    program.setName(obj_name + ' schedule program')
-    program.addLine("If #{sched_val_sensor.name} == 0")
-    program.addLine("Set #{sched_override_actuator.name} = 0")
-    # Subtract 0.1 from cooling setpoint to avoid fans cycling on and off with minor temperature variations.
-    program.addLine("ElseIf #{tin_sensor.name} < #{UnitConversions.convert(cooling_setpoint_min - 0.1 - 32.0, 'R', 'K').round(3)}")
-    program.addLine("Set #{sched_override_actuator.name} = 0")
-    program.addLine('Else')
-    program.addLine("Set #{sched_override_actuator.name} = 1")
-    program.addLine('EndIf')
-
-    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-    program_calling_manager.setName(obj_name + ' program calling manager')
-    program_calling_manager.setCallingPoint('BeginTimestepBeforePredictor')
-    program_calling_manager.addProgram(program)
-
-    mel_ann_no_ceiling_fan = (1108.1 + 180.2 * num_bedrooms + 0.2785 * finished_floor_area) * mult
-    mel_ann_with_ceiling_fan = (1185.4 + 180.2 * num_bedrooms + 0.3188 * finished_floor_area) * mult
-    mel_ann = mel_ann_with_ceiling_fan - mel_ann_no_ceiling_fan
-
-    unit.spaces.each do |space|
-      next if Geometry.space_is_unfinished(space)
-
-      space_obj_name = "#{obj_name} benchmark|#{space.name.to_s}"
-
-      next unless (mel_ann > 0) && use_benchmark_energy
-
-      col_name = 'ceiling_fan'
-      if sch.nil?
-        sch = schedules_file.create_schedule_file(col_name: col_name)
-      end
-
-      space_mel_ann = mel_ann * UnitConversions.convert(space.floorArea, 'm^2', 'ft^2') / finished_floor_area
-      space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: space_mel_ann)
-
-      mel_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
-      mel = OpenStudio::Model::ElectricEquipment.new(mel_def)
-      mel.setName(space_obj_name)
-      mel.setEndUseSubcategory(obj_name)
-      mel.setSpace(space)
-      mel_def.setName(space_obj_name)
-      mel_def.setDesignLevel(space_design_level)
-      mel_def.setFractionRadiant(0.558)
-      mel_def.setFractionLatent(0.0)
-      mel_def.setFractionLost(0.07)
-      mel.setSchedule(sch)
-
-      # benchmark
-    end # unit spaces
 
     return true, sch
   end
@@ -3440,7 +3292,7 @@ class HVAC
         equip.electricEquipmentDefinition.remove
       end
 
-      space_obj_name = "#{obj_name} benchmark|#{space.name.to_s}"
+      space_obj_name = "#{obj_name} benchmark|#{space.name}"
 
       space.electricEquipment.each do |equip|
         next unless equip.name.to_s == space_obj_name
@@ -3654,7 +3506,7 @@ class HVAC
     return constant_cubic
   end
 
-  def self.convert_curve_biquadratic(coeff, ip_to_si)
+  def self.convert_curve_biquadratic(coeff, ip_to_si = true)
     if ip_to_si
       # Convert IP curves to SI curves
       si_coeff = []
@@ -3789,8 +3641,8 @@ class HVAC
     clg_coil_stage_data = []
     speeds.each_with_index do |speed, i|
       if curves_in_ip
-        cOOL_CAP_FT_SPEC_ip = convert_curve_biquadratic(cOOL_CAP_FT_SPEC[speed], true)
-        cOOL_EIR_FT_SPEC_ip = convert_curve_biquadratic(cOOL_EIR_FT_SPEC[speed], true)
+        cOOL_CAP_FT_SPEC_ip = convert_curve_biquadratic(cOOL_CAP_FT_SPEC[speed])
+        cOOL_EIR_FT_SPEC_ip = convert_curve_biquadratic(cOOL_EIR_FT_SPEC[speed])
       else
         cOOL_CAP_FT_SPEC_ip = cOOL_CAP_FT_SPEC[speed]
         cOOL_EIR_FT_SPEC_ip = cOOL_EIR_FT_SPEC[speed]
@@ -3830,8 +3682,8 @@ class HVAC
     # Loop through speeds to create curves for each speed
     speeds.each_with_index do |speed, i|
       if curves_in_ip
-        hEAT_CAP_FT_SPEC_ip = convert_curve_biquadratic(hEAT_CAP_FT_SPEC[speed], true)
-        hEAT_EIR_FT_SPEC_ip = convert_curve_biquadratic(hEAT_EIR_FT_SPEC[speed], true)
+        hEAT_CAP_FT_SPEC_ip = convert_curve_biquadratic(hEAT_CAP_FT_SPEC[speed])
+        hEAT_EIR_FT_SPEC_ip = convert_curve_biquadratic(hEAT_EIR_FT_SPEC[speed])
       else
         hEAT_CAP_FT_SPEC_ip = hEAT_CAP_FT_SPEC[speed]
         hEAT_EIR_FT_SPEC_ip = hEAT_EIR_FT_SPEC[speed]

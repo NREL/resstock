@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
@@ -248,6 +250,11 @@ class ProcessConstructionsWallsGeneric < OpenStudio::Measure::ModelMeasure
     osb_thick_in = runner.getDoubleArgumentValue('osb_thick_in', user_arguments)
     rigid_r = runner.getDoubleArgumentValue('rigid_r', user_arguments)
     mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue('exterior_finish', user_arguments))
+
+    if mat_ext_finish.name.include?('None')
+      runner.registerError("Generic wall type cannot have a 'None' exterior finish")
+      return false
+    end
 
     if thick_in2.empty? then thick_in2 = nil else thick_in2 = thick_in2.get end
     if thick_in3.empty? then thick_in3 = nil else thick_in3 = thick_in3.get end

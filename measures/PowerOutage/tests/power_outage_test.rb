@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -57,7 +59,7 @@ class OutageTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRule" => 8, "ScheduleDay" => 8, "ScheduleFixedInterval" => 1 }
     expected_values = { "NumThermalComfortModelTypes" => 0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 28)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
   def test_outage_one_day_dst
@@ -68,7 +70,7 @@ class OutageTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRule" => 16, "ScheduleDay" => 16, "ScheduleFixedInterval" => 1 }
     expected_values = { "NumThermalComfortModelTypes" => 0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 28)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
   def test_outage_more_than_one_day_dst
@@ -79,7 +81,7 @@ class OutageTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRule" => 24, "ScheduleDay" => 24, "ScheduleFixedInterval" => 1 }
     expected_values = { "NumThermalComfortModelTypes" => 0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 28)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
   def test_outage_less_than_one_day
@@ -90,7 +92,7 @@ class OutageTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRule" => 8, "ScheduleDay" => 8, "ScheduleFixedInterval" => 1 }
     expected_values = { "NumThermalComfortModelTypes" => 0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 28)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
   def test_outage_one_day
@@ -101,7 +103,7 @@ class OutageTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRule" => 16, "ScheduleDay" => 16, "ScheduleFixedInterval" => 1 }
     expected_values = { "NumThermalComfortModelTypes" => 0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 28)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
   def test_outage_more_than_one_day
@@ -112,7 +114,7 @@ class OutageTest < MiniTest::Test
     expected_num_del_objects = {}
     expected_num_new_objects = { "ScheduleRule" => 24, "ScheduleDay" => 24, "ScheduleFixedInterval" => 1 }
     expected_values = { "NumThermalComfortModelTypes" => 0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 28)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
   def test_outage_less_than_one_day_dst_mf

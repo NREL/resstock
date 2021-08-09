@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'constants'
 require_relative 'unit_conversions'
 require_relative 'schedules'
@@ -42,7 +44,11 @@ class Airflow
     building.crawlspace = []
     building.unfinished_basement = []
     building.unfinished_attic = []
-    building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
+    if Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
+      building.stories = 1
+    else
+      building.stories = model.getBuilding.standardsNumberOfAboveGroundStories.get
+    end
 
     building.ag_ext_wall_area = 0
     building.ag_ffa = 0
@@ -516,7 +522,7 @@ class Airflow
       building.garage.inf_method = @infMethodSG
       building.garage.hor_lk_frac = 0.4 # DOE-2 Default
       building.garage.neutral_level = 0.5 # DOE-2 Default
-      building.garage.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.garage_ach50, 0.67, building.garage.area, building.garage.volume)
+      building.garage.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.garage_ach50, 0.65, building.garage.area, building.garage.volume)
       building.garage.ACH = Airflow.get_infiltration_ACH_from_SLA(building.garage.SLA, 1.0, weather)
       building.garage.inf_flow = building.garage.ACH / UnitConversions.convert(1.0, 'hr', 'min') * building.garage.volume # cfm
     end
@@ -577,7 +583,7 @@ class Airflow
       # Wind Driven Air Infiltration Calculations" by Walker and Wilson (1998)
 
       # Pressure Exponent
-      n_i = 0.67
+      n_i = 0.65
 
       # Calculate SLA for above-grade portion of the building
       building.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.living_ach50, n_i, building.ag_ffa, building.above_grade_volume)
@@ -912,7 +918,7 @@ class Airflow
     end
 
     if (not has_dryer) && (mech_vent.dryer_exhaust > 0)
-      runner.registerWarning("No clothes dryer object was found in #{unit.name.to_s} but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
+      runner.registerWarning("No clothes dryer object was found in #{unit.name} but the clothes dryer exhaust specified is non-zero. Overriding clothes dryer exhaust to be zero.")
     end
 
     n_whole_baths = nbaths.to_i.to_f # round down to nearest integer
@@ -2115,7 +2121,7 @@ class Airflow
     equip_def.setFractionLost(1.0 - mv_output.frac_fan_heat)
     equip.setSchedule(model.alwaysOnDiscreteSchedule)
     equip.setEndUseSubcategory(obj_name_mech_vent + ' house fan')
-    whole_house_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electric Power Level')
+    whole_house_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electricity Rate')
     whole_house_fan_actuator.setName("#{equip.name} act")
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -2128,7 +2134,7 @@ class Airflow
     equip_def.setFractionLost(1)
     equip.setSchedule(model.alwaysOnDiscreteSchedule)
     equip.setEndUseSubcategory(obj_name_mech_vent + ' range fan')
-    range_hood_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electric Power Level')
+    range_hood_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electricity Rate')
     range_hood_fan_actuator.setName("#{equip.name} act")
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -2141,7 +2147,7 @@ class Airflow
     equip_def.setFractionLost(1)
     equip.setSchedule(model.alwaysOnDiscreteSchedule)
     equip.setEndUseSubcategory(obj_name_mech_vent + ' bath fan')
-    bath_exhaust_sch_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electric Power Level')
+    bath_exhaust_sch_fan_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(equip, 'ElectricEquipment', 'Electricity Rate')
     bath_exhaust_sch_fan_actuator.setName("#{equip.name} act")
 
     infil_flow = OpenStudio::Model::SpaceInfiltrationDesignFlowRate.new(model)
@@ -2170,7 +2176,7 @@ class Airflow
         infil_program.addLine("Set Cs = #{(infil_output.stack_coef * (UnitConversions.convert(1.0, 'inH2O/R', 'Pa/K')**infil_output.n_i)).round(4)}")
         infil_program.addLine("Set Cw = #{(infil_output.wind_coef * (UnitConversions.convert(1.0, 'inH2O/mph^2', 'Pa*s^2/m^2')**infil_output.n_i)).round(4)}")
         infil_program.addLine("Set n = #{infil_output.n_i}")
-        infil_program.addLine("Set sft = (f_t*#{(((wind_speed.S_wo * (1.0 - infil_output.y_i)) + (infil_output.s_wflue * (1.5 * infil_output.y_i))))})")
+        infil_program.addLine("Set sft = (f_t*#{(wind_speed.S_wo * (1.0 - infil_output.y_i)) + (infil_output.s_wflue * (1.5 * infil_output.y_i))})")
         infil_program.addLine("Set temp1 = ((c*Cw)*((sft*#{vwind_sensor.name})^(2*n)))^2")
         infil_program.addLine('Set Qn = (((c*Cs*(dT^n))^2)+temp1)^0.5')
       else

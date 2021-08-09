@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -302,19 +304,13 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
 
     # Split any surfaces that have doors so that we can ignore them when adding windows
     facades.each do |facade|
-      surfaces_to_add = []
       wall_surfaces[facade].each do |surface|
         next if surface.subSurfaces.size == 0
 
         new_surfaces = surface.splitSurfaceForSubSurfaces
         new_surfaces.each do |new_surface|
-          next if new_surface.subSurfaces.size > 0
-
-          surfaces_to_add << new_surface
+          wall_surfaces[facade] << new_surface
         end
-      end
-      surfaces_to_add.each do |surface_to_add|
-        wall_surfaces[facade] << surface_to_add
       end
     end
 
@@ -337,7 +333,6 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
         if not surface_avail_area.include? surface
           surface_avail_area[surface] = 0
         end
-        next if surface.subSurfaces.size > 0
 
         area = get_wall_area_for_windows(surface, min_wall_height_for_window, min_window_width, runner)
         surface_avail_area[surface] += area
@@ -567,7 +562,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
         sub_surface.setName("#{surface.name} - Skylight")
         sub_surface.setSurface(surface)
 
-        runner.registerInfo("Added a skylight, totaling #{skylight_area.round(1).to_s} ft^2, to #{surface.name}.")
+        runner.registerInfo("Added a skylight, totaling #{skylight_area.round(1)} ft^2, to #{surface.name}.")
 
         if not constructions[facade].nil?
           sub_surface.setConstruction(constructions[facade])
@@ -595,6 +590,11 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
   end
 
   def get_wall_area_for_windows(surface, min_wall_height_for_window, min_window_width, runner)
+    # Skip surfaces with doors
+    if surface.subSurfaces.size > 0
+      return 0.0
+    end
+
     # Only allow on gable and rectangular walls
     if not (Geometry.is_rectangular_wall(surface) || Geometry.is_gable_wall(surface))
       return 0.0
@@ -634,7 +634,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
     window_height = (window_area / num_windows.to_f) / window_width
     width_for_windows = window_width * num_windows.to_f + window_gap_x * num_window_gaps.to_f
     if width_for_windows > wall_width
-      runner.registerError("Could not fit windows on #{surface.name.to_s}.")
+      runner.registerError("Could not fit windows on #{surface.name}.")
       return false
     end
 
@@ -665,7 +665,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
         add_window_to_wall(surface, window_width, window_height, group_cx, group_cy, win_num, facade, constructions, model, runner)
       end
     end
-    runner.registerInfo("Added #{num_windows.to_s} window(s), totaling #{window_area.round(1).to_s} ft^2, to #{surface.name}.")
+    runner.registerInfo("Added #{num_windows} window(s), totaling #{window_area.round(1)} ft^2, to #{surface.name}.")
     return true
   end
 
@@ -707,7 +707,7 @@ class SetResidentialWindowSkylightArea < OpenStudio::Measure::ModelMeasure
       window_polygon << window_vertex
     end
     sub_surface = OpenStudio::Model::SubSurface.new(window_polygon, model)
-    sub_surface.setName("#{surface.name} - Window #{win_num.to_s}")
+    sub_surface.setName("#{surface.name} - Window #{win_num}")
     sub_surface.setSurface(surface)
     sub_surface.setSubSurfaceType('FixedWindow')
     if not constructions[facade].nil?

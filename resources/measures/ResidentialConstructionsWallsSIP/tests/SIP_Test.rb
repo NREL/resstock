@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
@@ -161,6 +163,13 @@ class ProcessConstructionsWallsSIPTest < MiniTest::Test
     args_hash['sheathing_thick_in'] = 0
     result = _test_error('SFD_2000sqft_2story_SL_UA_CeilingIns.osm', args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], 'Interior Sheathing Thickness must be greater than 0.')
+  end
+
+  def test_argument_error_none_ext_finish
+    args_hash = {}
+    args_hash['exterior_finish'] = 'None, Brick'
+    result = _test_error('SFD_2000sqft_2story_SL_UA_CeilingIns.osm', args_hash)
+    assert_equal(result.errors.map { |x| x.logMessage }[0], "SIP walls cannot have a 'None' exterior finish")
   end
 
   private

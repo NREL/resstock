@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
@@ -61,6 +63,9 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
     require 'openstudio-standards'
 
     central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue('central_boiler_fuel_type', user_arguments))
+    if central_boiler_fuel_type == 'Propane'
+      central_boiler_fuel_type = 'PropaneGas' # OS-Standards is still using the old E+ string; prevent error
+    end
     model.getBuilding.additionalProperties.setFeature('has_hvac_flue', runner.getBoolArgumentValue('has_hvac_flue', user_arguments))
 
     std = Standard.build('90.1-2013')
@@ -83,6 +88,15 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
 
       if hot_water_loop.nil?
         hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
+        if central_boiler_fuel_type == 'PropaneGas'
+          # OS-Standards doesn't set correct fuel type, so we correct it here
+          hot_water_loop.components.each do |plc|
+            next unless plc.to_BoilerHotWater.is_initialized
+
+            boiler = plc.to_BoilerHotWater.get
+            boiler.setFuelType('Propane')
+          end
+        end
         runner.registerInfo("Added '#{hot_water_loop.name}' to model.")
       end
 
@@ -97,7 +111,7 @@ class ProcessCentralSystemPTAC < OpenStudio::Measure::ModelMeasure
       pump = supply_component.to_PumpVariableSpeed.get
       pump.setName('Central pump')
 
-      pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electric Energy')
+      pump_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Pump Electricity Energy')
       pump_sensor.setName("#{pump.name.to_s.gsub('|', '_')} s")
       pump_sensor.setKeyName(pump.name.to_s)
 

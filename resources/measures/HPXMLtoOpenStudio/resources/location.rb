@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'weather'
 require_relative 'constants'
 require_relative 'unit_conversions'
@@ -122,7 +124,7 @@ class Location
         dst.setStartDate(dst_start_date_month, dst_start_date_day)
         dst.setEndDate(dst_end_date_month, dst_end_date_day)
 
-        runner.registerInfo("Set daylight saving time from #{dst.startDate.to_s} to #{dst.endDate.to_s}.")
+        runner.registerInfo("Set daylight saving time from #{dst.startDate} to #{dst.endDate}.")
       rescue
         runner.registerError('Invalid daylight saving date(s) specified.')
         return false
@@ -160,18 +162,6 @@ class Location
     require 'csv'
     CSV.foreach(zones_csv) do |row|
       return row[5].to_s if row[0].to_s == wmo.to_s
-    end
-
-    return
-  end
-
-  def self.get_climate_zone_iecc(wmo)
-    zones_csv = get_climate_zones
-    return if zones_csv.nil?
-
-    require 'csv'
-    CSV.foreach(zones_csv) do |row|
-      return row[6].to_s if row[0].to_s == wmo.to_s
     end
 
     return

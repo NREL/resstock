@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -111,10 +113,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     check_file_exists(lookup_file, runner)
     check_file_exists(buildstock_csv, runner)
 
-    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
+    buildstock_csv_data = CSV.open(buildstock_csv, headers: true).map(&:to_hash)
 
     # Retrieve all data associated with sample number
-    bldg_data = get_data_for_sample(buildstock_csv, building_id, runner)
+    bldg_data = get_data_for_sample(buildstock_csv_data, building_id, runner)
 
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
@@ -171,6 +174,34 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures.delete('ResidentialGeometryCreateSingleFamilyAttached')
     end
 
+    # FIXME: Hack to run the correct ResStock foundation construction measure
+    if ['Ambient'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    elsif ['Unheated Basement'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    elsif ['Heated Basement'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+    elsif ['Vented Crawlspace', 'Unvented Crawlspace'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsSlab')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    elsif ['Slab'].include? bldg_data['Geometry Foundation Type']
+      measures.delete('ResidentialConstructionsPierBeam')
+      measures.delete('ResidentialConstructionsCrawlspace')
+      measures.delete('ResidentialConstructionsUnfinishedBasement')
+      measures.delete('ResidentialConstructionsFinishedBasement')
+    end
+
     # Remove any measures_to_ignore from the list of measures to run
     if measures_to_ignore.is_initialized
       measures_to_ignore = measures_to_ignore.get
@@ -196,20 +227,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Report some additional location and model characteristics
     weather = WeatherProcess.new(model, runner)
     if !weather.error?
-      register_value(runner, 'location_city', weather.header.City)
-      register_value(runner, 'location_latitude', "#{weather.header.Latitude}")
-      register_value(runner, 'location_longitude', "#{weather.header.Longitude}")
-      climate_zone_ba = Location.get_climate_zone_ba(weather.header.Station)
-      climate_zone_iecc = Location.get_climate_zone_iecc(weather.header.Station)
-      unless climate_zone_ba.nil?
-        register_value(runner, 'climate_zone_ba', climate_zone_ba)
-      end
-      unless climate_zone_iecc.nil?
-        register_value(runner, 'climate_zone_iecc', climate_zone_iecc)
-      end
-      if climate_zone_ba.nil? && climate_zone_iecc.nil?
-        runner.registerInfo('The weather station WMO has not been set appropriately in the EPW weather file header.')
-      end
+      register_value(runner, 'weather_file_city', weather.header.City)
+      register_value(runner, 'weather_file_latitude', "#{weather.header.Latitude}")
+      register_value(runner, 'weather_file_longitude', "#{weather.header.Longitude}")
     end
 
     # Determine weight

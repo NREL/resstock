@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
@@ -131,6 +133,11 @@ class ProcessConstructionsWallsWoodStud < OpenStudio::Measure::ModelMeasure
     osb_thick_in = runner.getDoubleArgumentValue('osb_thick_in', user_arguments)
     rigid_r = runner.getDoubleArgumentValue('rigid_r', user_arguments)
     mat_ext_finish = WallConstructions.get_exterior_finish_material(runner.getStringArgumentValue('exterior_finish', user_arguments))
+
+    if mat_ext_finish.name.include?('None')
+      runner.registerError("Wood stud walls cannot have a 'None' exterior finish")
+      return false
+    end
 
     # Apply constructions
     if not WallConstructions.apply_wood_stud(runner, model,

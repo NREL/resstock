@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # TODO: Need to handle vacations
 require_relative 'unit_conversions'
 require 'csv'
@@ -55,7 +57,7 @@ class HourlyByMonthSchedule
   private
 
   def validateValues(vals, num_outter_values, num_inner_values)
-    err_msg = "A #{num_outter_values.to_s}-element array with #{num_inner_values.to_s}-element arrays of numbers must be entered for the schedule."
+    err_msg = "A #{num_outter_values}-element array with #{num_inner_values}-element arrays of numbers must be entered for the schedule."
     if not vals.is_a?(Array)
       @runner.registerError(err_msg)
       @validated = false
@@ -90,7 +92,7 @@ class HourlyByMonthSchedule
   def calcMaxval()
     maxval = [@weekday_month_by_hour_values.flatten.max, @weekend_month_by_hour_values.flatten.max].max
     if maxval == 0.0
-      maxval == 1.0 # Prevent divide by zero
+      maxval = 1.0 # Prevent divide by zero
     end
     return maxval
   end
@@ -250,7 +252,7 @@ class MonthWeekdayWeekendSchedule
   private
 
   def validateValues(values, num_values, sch_name)
-    err_msg = "A comma-separated string of #{num_values.to_s} numbers must be entered for the #{sch_name} schedule."
+    err_msg = "A comma-separated string of #{num_values} numbers must be entered for the #{sch_name} schedule."
     if values.is_a?(Array)
       if values.length != num_values
         @runner.registerError(err_msg)
@@ -323,7 +325,7 @@ class MonthWeekdayWeekendSchedule
       maxval = @monthly_values.max * @weekend_hourly_values.max * @mult_weekend
     end
     if maxval == 0.0
-      maxval == 1.0 # Prevent divide by zero
+      maxval = 1.0 # Prevent divide by zero
     end
     return maxval
   end
@@ -443,7 +445,7 @@ end
 
 # Generic class for handling an hourly schedule (saved as a csv) with 8760 values. Currently used by water heater models.
 class HourlySchedule
-  def initialize(model, runner, sch_name, file, offset, convert_temp, validation_values)
+  def initialize(model, runner, sch_name, file, offset, convert_temp, validation_values, fill_value = nil)
     @validated = true
     @model = model
     @runner = runner
@@ -452,7 +454,7 @@ class HourlySchedule
     @offset = offset
     @convert_temp = convert_temp
     @validation_values = validation_values
-    @schedule, @schedule_array = createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values)
+    @schedule, @schedule_array = createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values, fill_value)
 
     if @schedule.nil?
       @validated = false
@@ -465,6 +467,10 @@ class HourlySchedule
     return @validated
   end
 
+  def name
+    return @sch_name
+  end
+
   def schedule
     return @schedule
   end
@@ -473,9 +479,17 @@ class HourlySchedule
     return @schedule_array
   end
 
+  def offset
+    return @offset
+  end
+
+  def validation_values
+    return @validation_values
+  end
+
   private
 
-  def createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values)
+  def createHourlyScheduleFromFile(runner, file, offset, convert_temp, validation_values, fill_value = nil)
     data = []
 
     # Get appropriate file
@@ -502,17 +516,30 @@ class HourlySchedule
           value = validation_values.find_index(linedata[0]).to_f / (validation_values.length.to_f - 1.0)
           data[hour] = value
         else
-          runner.registerError("Invalid value included in the hourly schedule file. The invalid data occurs at hour #{hour}")
+          runner.registerError("Invalid value included in the hourly schedule file #{file}. The invalid data occurs at hour #{hour}")
         end
       end
       hour += 1
     end
 
     year_description = @model.getYearDescription
-    start_date = year_description.makeDate(1, 1)
     interval = OpenStudio::Time.new(0, 1, 0, 0)
+    start_date = year_description.makeDate(1, 1)
 
-    time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), '')
+    if (data.length != 24 * Constants.NumDaysInYear(year_description.isLeapYear)) && (not fill_value.nil?)
+      # Fill hourly values for full year - allows for schedules shorter than a full year that are the same length as the simulation period
+      assumed_year = year_description.assumedYear
+      run_period = @model.getRunPeriod
+      run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+      start_hr = (run_period_start.yday - 1) * 24
+      end_hr = start_hr + data.length
+
+      data_yr = [UnitConversions.convert(fill_value, 'F', 'C')] * Constants.NumDaysInYear(year_description.isLeapYear) * 24
+      data_yr[start_hr...end_hr] = data
+      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data_yr), '')
+    else
+      time_series = OpenStudio::TimeSeries.new(start_date, interval, OpenStudio::createVector(data), '')
+    end
 
     schedule = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(time_series, @model).get
     schedule.setName(@sch_name)
@@ -1478,56 +1505,65 @@ class ScheduleGenerator
     sink_activity_sch = sink_activity_sch.rotate(-4 * 60 + random_offset) # 4 am shifting
     sink_activity_sch = apply_monthly_offsets(sink_activity_sch)
     sink_activity_sch = aggregate_array(sink_activity_sch, @minutes_per_step)
-    @schedules['sinks'] = sink_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    sink_peak_flow = sink_activity_sch.max
+    @schedules['sinks'] = sink_activity_sch.map { |flow| flow / sink_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_activity_sch = dw_activity_sch.rotate(random_offset)
     dw_activity_sch = apply_monthly_offsets(dw_activity_sch)
     dw_activity_sch = aggregate_array(dw_activity_sch, @minutes_per_step)
-    @schedules['dishwasher'] = dw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    dw_peak_flow = dw_activity_sch.max
+    @schedules['dishwasher'] = dw_activity_sch.map { |flow| flow / dw_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_activity_sch = cw_activity_sch.rotate(random_offset)
     cw_activity_sch = apply_monthly_offsets(cw_activity_sch)
     cw_activity_sch = aggregate_array(cw_activity_sch, @minutes_per_step)
-    @schedules['clothes_washer'] = cw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    cw_peak_flow = cw_activity_sch.max
+    @schedules['clothes_washer'] = cw_activity_sch.map { |flow| flow / cw_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     shower_activity_sch = shower_activity_sch.rotate(random_offset)
     shower_activity_sch = apply_monthly_offsets(shower_activity_sch)
     shower_activity_sch = aggregate_array(shower_activity_sch, @minutes_per_step)
-    @schedules['showers'] = shower_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    shower_peak_flow = shower_activity_sch.max
+    @schedules['showers'] = shower_activity_sch.map { |flow| flow / shower_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     bath_activity_sch = bath_activity_sch.rotate(random_offset)
     bath_activity_sch = apply_monthly_offsets(bath_activity_sch)
     bath_activity_sch = aggregate_array(bath_activity_sch, @minutes_per_step)
-    @schedules['baths'] = bath_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
+    bath_peak_flow = bath_activity_sch.max
+    @schedules['baths'] = bath_activity_sch.map { |flow| flow / bath_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cooking_power_sch = cooking_power_sch.rotate(random_offset)
     cooking_power_sch = apply_monthly_offsets(cooking_power_sch)
     cooking_power_sch = aggregate_array(cooking_power_sch, @minutes_per_step)
-    @schedules['cooking_range'] = cooking_power_sch.map { |power| power / Constants.PeakPower }
+    cooking_peak_power = cooking_power_sch.max
+    @schedules['cooking_range'] = cooking_power_sch.map { |power| power / cooking_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_power_sch = cw_power_sch.rotate(random_offset)
     cw_power_sch = apply_monthly_offsets(cw_power_sch)
     cw_power_sch = aggregate_array(cw_power_sch, @minutes_per_step)
-    @schedules['clothes_washer_power'] = cw_power_sch.map { |power| power / Constants.PeakPower }
+    cw_peak_power = cw_power_sch.max
+    @schedules['clothes_washer_power'] = cw_power_sch.map { |power| power / cw_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cd_power_sch = cd_power_sch.rotate(random_offset)
     cd_power_sch = apply_monthly_offsets(cd_power_sch)
     cd_power_sch = aggregate_array(cd_power_sch, @minutes_per_step)
-    @schedules['clothes_dryer'] = cd_power_sch.map { |power| power / Constants.PeakPower }
+    cd_peak_power = cd_power_sch.max
+    @schedules['clothes_dryer'] = cd_power_sch.map { |power| power / cd_peak_power }
     @schedules['clothes_dryer_exhaust'] = @schedules['clothes_dryer']
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_power_sch = dw_power_sch.rotate(random_offset)
     dw_power_sch = apply_monthly_offsets(dw_power_sch)
     dw_power_sch = aggregate_array(dw_power_sch, @minutes_per_step)
-    @schedules['dishwasher_power'] = dw_power_sch.map { |power| power / Constants.PeakPower }
+    dw_peak_power = dw_power_sch.max
+    @schedules['dishwasher_power'] = dw_power_sch.map { |power| power / dw_peak_power }
 
     @schedules['occupants'] = away_schedule.map { |i| 1.0 - i }
 
@@ -2008,7 +2044,7 @@ class SchedulesFile
     schedule_file.setColumnNumber(col_index + 1)
     schedule_file.setRowstoSkipatTop(rows_to_skip)
     schedule_file.setNumberofHoursofData(num_hrs_in_year.to_i)
-    schedule_file.setMinutesperItem("#{min_per_item.to_i}")
+    schedule_file.setMinutesperItem(min_per_item.to_i)
 
     return schedule_file
   end
