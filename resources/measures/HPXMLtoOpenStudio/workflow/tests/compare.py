@@ -206,8 +206,8 @@ class BaseCompare:
 
             groups = [None]
             if display_columns:
-                base_df = base_characteristics_df.join(base_df)
-                feature_df = feature_characteristics_df.join(feature_df)
+                base_df = base_characteristics_df.join(base_df, how='right')
+                feature_df = feature_characteristics_df.join(feature_df, how='right')
 
                 for col, enum_map in enum_maps.items():
                     if col in display_columns:
