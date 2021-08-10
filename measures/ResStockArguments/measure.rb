@@ -70,6 +70,16 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('2000')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('vintage', false)
+    arg.setDisplayName('Building Construction: Vintage')
+    arg.setDescription('The building vintage, used for informational purposes only')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('fips_code', false)
+    arg.setDisplayName('County FIPS Code')
+    arg.setDescription('County FIPS Code - used to calculate Home Energy Scores from ResStock-generated files')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_usage_multiplier_2', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
@@ -267,6 +277,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
+    # Zip Code
+    ### FIXME: map fips -> zip
+    args['zip_code'] = '00000'
+
     # Conditioned floor area
     if args['geometry_cfa'] == Constants.Auto
       cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 328,
@@ -304,6 +318,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['geometry_cfa'] = Float(cfa)
     else
       args['geometry_cfa'] = Float(args['geometry_cfa'])
+    end
+
+    # Vintage
+    if args['vintage'].is_initialized
+      args['year_built'] = args['vintage'].get.gsub(/[^0-9]/, '').to_i # strip non-numeric
     end
 
     # Num Occupants

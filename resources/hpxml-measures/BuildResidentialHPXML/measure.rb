@@ -137,7 +137,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The type of site.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('year_built', false)
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('year_built', false)
     arg.setDisplayName('Building Construction: Year Built')
     arg.setDescription('The year the building was built')
     args << arg
