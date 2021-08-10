@@ -1,13 +1,8 @@
 # frozen_string_literal: true
 
 class Geometry
-  def self.get_abs_azimuth(azimuth_type, relative_azimuth, building_orientation, offset = 180.0)
-    azimuth = nil
-    if azimuth_type == Constants.CoordRelative
-      azimuth = relative_azimuth + building_orientation + offset
-    elsif azimuth_type == Constants.CoordAbsolute
-      azimuth = relative_azimuth + offset
-    end
+  def self.get_abs_azimuth(relative_azimuth, building_orientation)
+    azimuth = relative_azimuth + building_orientation
 
     # Ensure azimuth is >=0 and <=360
     while azimuth < 0.0

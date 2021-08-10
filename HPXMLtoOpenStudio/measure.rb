@@ -32,8 +32,6 @@ require_relative 'resources/version'
 require_relative 'resources/waterheater'
 require_relative 'resources/weather'
 require_relative 'resources/xmlhelper'
-require_relative '../BuildResidentialHPXML/resources/constants'
-require_relative '../BuildResidentialHPXML/resources/schedules'
 
 # start the measure
 class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
@@ -223,8 +221,8 @@ class OSModel
     add_simulation_params(model)
 
     @schedules_file = nil
-    unless @hpxml.header.schedules_path.nil?
-      @schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_path, col_names: ScheduleGenerator.col_names.keys)
+    unless @hpxml.header.schedules_filepath.nil?
+      @schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: @hpxml.header.schedules_filepath, col_names: Constants.ScheduleColNames.keys)
     end
 
     # Conditioned space/zone
@@ -288,11 +286,6 @@ class OSModel
     add_output_control_files(runner, model)
     # Uncomment to debug EMS
     # add_ems_debug_output(runner, model)
-
-    # Vacancy
-    unless @schedules_file.nil?
-      @schedules_file.set_vacancy
-    end
 
     if debug
       osm_output_path = File.join(output_dir, 'in.osm')
@@ -548,7 +541,7 @@ class OSModel
     num_occ = @hpxml.building_occupancy.number_of_residents
     return if num_occ <= 0
 
-    Geometry.apply_occupants(model, num_occ, @cfa, spaces[HPXML::LocationLivingSpace], @schedules_file)
+    Geometry.apply_occupants(model, @hpxml, num_occ, @cfa, spaces[HPXML::LocationLivingSpace], @schedules_file)
   end
 
   def self.create_or_get_space(model, spaces, spacetype)

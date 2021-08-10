@@ -15,10 +15,33 @@ class Constants
     return 1e-9
   end
 
+  def self.NumDaysInMonths(model)
+    is_leap_year = !model.nil? && model.getYearDescription.isLeapYear
+    num_days_in_months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    num_days_in_months[1] += 1 if is_leap_year
+    return num_days_in_months
+  end
+
+  def self.NumDaysInYear(model)
+    num_days_in_months = NumDaysInMonths(model)
+    num_days_in_year = num_days_in_months.sum
+    return num_days_in_year.to_f
+  end
+
+  def self.NumHoursInYear(model)
+    num_days_in_year = NumDaysInYear(model)
+    num_hours_in_year = num_days_in_year * 24
+    return num_hours_in_year.to_f
+  end
+
   # Strings --------------------
 
   def self.AirFilm
     return 'AirFilm'
+  end
+
+  def self.Auto
+    return 'auto'
   end
 
   def self.CalcTypeERIRatedHome
@@ -43,6 +66,22 @@ class Constants
 
   def self.ERIVersions
     return ['2014', '2014A', '2014AD', '2014ADE', '2014ADEG', '2014ADEGL', '2019', '2019A', '2019AB']
+  end
+
+  def self.FacadeFront
+    return 'front'
+  end
+
+  def self.FacadeBack
+    return 'back'
+  end
+
+  def self.FacadeLeft
+    return 'left'
+  end
+
+  def self.FacadeRight
+    return 'right'
   end
 
   def self.FluidWater
@@ -399,5 +438,39 @@ class Constants
 
   def self.ScheduleTypeLimitsTemperature
     return 'Temperature'
+  end
+
+  def self.ScheduleColNames
+    # col_name => affected_by_vacancy
+    return {
+      'occupants' => true,
+      'lighting_interior' => true,
+      'lighting_exterior' => true,
+      'lighting_garage' => true,
+      'lighting_exterior_holiday' => true,
+      'cooking_range' => true,
+      'refrigerator' => false,
+      'extra_refrigerator' => false,
+      'freezer' => false,
+      'dishwasher' => true,
+      'clothes_washer' => true,
+      'clothes_dryer' => true,
+      'ceiling_fan' => true,
+      'plug_loads_other' => true,
+      'plug_loads_tv' => true,
+      'plug_loads_vehicle' => true,
+      'plug_loads_well_pump' => true,
+      'fuel_loads_grill' => true,
+      'fuel_loads_lighting' => true,
+      'fuel_loads_fireplace' => true,
+      'pool_pump' => false,
+      'pool_heater' => false,
+      'hot_tub_pump' => false,
+      'hot_tub_heater' => false,
+      'hot_water_dishwasher' => true,
+      'hot_water_clothes_washer' => true,
+      'hot_water_fixtures' => true,
+      'vacancy' => nil,
+    }
   end
 end

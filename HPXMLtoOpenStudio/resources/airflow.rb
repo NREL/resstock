@@ -150,6 +150,47 @@ class Airflow
     end
   end
 
+  def self.get_default_mech_vent_flow_rate(hpxml, vent_fan, infil_measurements, weather, infil_a_ext, cfa, nbeds)
+    # Calculates Qfan cfm requirement per ASHRAE 62.2-2019
+    infil_volume = infil_measurements[0].infiltration_volume
+    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+
+    infil_a_ext = 1.0
+    if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? hpxml.building_construction.residential_facility_type
+      tot_cb_area, ext_cb_area = hpxml.compartmentalization_boundary_areas()
+      infil_a_ext = ext_cb_area / tot_cb_area
+    end
+
+    sla = nil
+    infil_measurements.each do |infil_measurement|
+      if (infil_measurement.unit_of_measure == HPXML::UnitsACHNatural) && infil_measurement.house_pressure.nil?
+        nach = infil_measurement.air_leakage
+        sla = get_infiltration_SLA_from_ACH(nach, infil_height, weather)
+      elsif (infil_measurement.unit_of_measure == HPXML::UnitsACH) && (infil_measurement.house_pressure == 50)
+        ach50 = infil_measurement.air_leakage
+        sla = get_infiltration_SLA_from_ACH50(ach50, 0.65, cfa, infil_volume)
+      elsif (infil_measurement.unit_of_measure == HPXML::UnitsCFM) && (infil_measurement.house_pressure == 50)
+        ach50 = infil_measurement.air_leakage * 60.0 / infil_volume
+        sla = get_infiltration_SLA_from_ACH50(ach50, 0.65, cfa, infil_volume)
+      end
+      break unless ach50.nil?
+    end
+
+    nl = get_infiltration_NL_from_SLA(sla, infil_height)
+    q_inf = nl * weather.data.WSF * cfa / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
+
+    q_tot = get_mech_vent_qtot_cfm(nbeds, cfa)
+
+    if vent_fan.is_balanced?
+      phi = 1.0
+    else
+      phi = q_inf / q_tot
+    end
+    q_fan = q_tot - phi * (q_inf * infil_a_ext)
+
+    return [q_fan, 0].max
+  end
+
   private
 
   def self.set_wind_speed_correction(model, site)
@@ -342,7 +383,7 @@ class Airflow
     vent_program.addLine('If (Wout < MaxHR) && (Phiout < MaxRH) && (Tin > Tout) && (Tin > Tnvsp) && (ClgSsnAvail > 0)')
     vent_program.addLine('  Set WHF_Flow = 0')
     vent_fans_whf.each do |vent_whf|
-      vent_program.addLine("  Set WHF_Flow = WHF_Flow + #{UnitConversions.convert(vent_whf.rated_flow_rate, 'cfm', 'm^3/s')} * #{whf_avail_sensors[vent_whf.id].name}")
+      vent_program.addLine("  Set WHF_Flow = WHF_Flow + #{UnitConversions.convert(vent_whf.flow_rate, 'cfm', 'm^3/s')} * #{whf_avail_sensors[vent_whf.id].name}")
     end
     vent_program.addLine('  Set Adj = (Tin-Tnvsp)/(Tin-Tout)')
     vent_program.addLine('  Set Adj = (@Min Adj 1)')
@@ -1218,11 +1259,13 @@ class Airflow
       obj_name = "#{obj_type_name} #{index}"
 
       if not schedules_file.nil?
-        obj_sch = schedules_file.create_schedule_file(col_name: 'clothes_dryer_exhaust')
-        obj_sch_name = 'clothes_dryer_exhaust'
+        obj_sch = schedules_file.create_schedule_file(col_name: 'clothes_dryer')
+        obj_sch_name = 'clothes_dryer'
       else
-        days_shift = -1.0 / 24.0 # Shift by 1 hour relative to clothes washer
-        obj_sch = HotWaterSchedule.new(model, obj_type_name, @nbeds, days_shift, 24)
+        # Assume 11am-12pm every day per BA HSP
+        day_sch = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        month_sch = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        obj_sch = MonthWeekdayWeekendSchedule.new(model, "#{obj_name} schedule", day_sch, day_sch, month_sch, Constants.ScheduleTypeLimitsFraction)
         obj_sch = obj_sch.schedule
         obj_sch_name = obj_sch.name.to_s
       end
@@ -1433,12 +1476,12 @@ class Airflow
                                          infil_flow_actuator, range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map)
     infil_program.addLine('Set Qrange = 0')
     vent_fans_kitchen.each do |vent_kitchen|
-      infil_program.addLine("Set Qrange = Qrange + #{UnitConversions.convert(vent_kitchen.rated_flow_rate * vent_kitchen.quantity, 'cfm', 'm^3/s').round(4)} * #{range_sch_sensors_map[vent_kitchen.id].name}")
+      infil_program.addLine("Set Qrange = Qrange + #{UnitConversions.convert(vent_kitchen.flow_rate * vent_kitchen.quantity, 'cfm', 'm^3/s').round(4)} * #{range_sch_sensors_map[vent_kitchen.id].name}")
     end
 
     infil_program.addLine('Set Qbath = 0')
     vent_fans_bath.each do |vent_bath|
-      infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.rated_flow_rate * vent_bath.quantity, 'cfm', 'm^3/s').round(4)} * #{bath_sch_sensors_map[vent_bath.id].name}")
+      infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.flow_rate * vent_bath.quantity, 'cfm', 'm^3/s').round(4)} * #{bath_sch_sensors_map[vent_bath.id].name}")
     end
 
     infil_program.addLine('Set Qdryer = 0')
@@ -1897,13 +1940,9 @@ class Airflow
     end
   end
 
-  def self.get_mech_vent_whole_house_cfm(frac622, num_beds, cfa, std)
-    # Returns the ASHRAE 62.2 whole house mechanical ventilation rate, excluding any infiltration credit.
-    if std == '2013'
-      return frac622 * ((num_beds + 1.0) * 7.5 + 0.03 * cfa)
-    end
-
-    return frac622 * ((num_beds + 1.0) * 7.5 + 0.01 * cfa)
+  def self.get_mech_vent_qtot_cfm(nbeds, cfa)
+    # Returns Qtot cfm per ASHRAE 62.2-2019
+    return (nbeds + 1.0) * 7.5 + 0.03 * cfa
   end
 end
 

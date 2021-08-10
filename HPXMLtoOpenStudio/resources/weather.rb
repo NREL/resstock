@@ -312,7 +312,7 @@ class WeatherProcess
 
     first_day = 0
     for month in 1..12
-      month_num_days = Schedule.get_num_days_per_month(@model)
+      month_num_days = Constants.NumDaysInMonths(@model)
       ndays = month_num_days[month - 1] # Number of days in current month
       if month > 1
         first_day += month_num_days[month - 2] # Number of days in previous month
