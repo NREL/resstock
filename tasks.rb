@@ -307,9 +307,6 @@ def create_osws
     'base-simcontrol-runperiod-1-month.osw' => 'base.osw',
     'base-simcontrol-timestep-10-mins.osw' => 'base.osw',
     'base-schedules-simple.osw' => 'base.osw',
-    'base-schedules-detailed-stochastic.osw' => 'base.osw',
-    'base-schedules-detailed-stochastic-vacancy.osw' => 'base-schedules-detailed-stochastic.osw',
-    'base-schedules-detailed-smooth.osw' => 'base.osw',
 
     # Extra test files that don't correspond with sample files
     'extra-auto.osw' => 'base.osw',
@@ -327,7 +324,6 @@ def create_osws
     'extra-enclosure-garage-atticroof-conditioned.osw' => 'base-enclosure-garage.osw',
     'extra-enclosure-atticroof-conditioned-eaves-gable.osw' => 'base-foundation-slab.osw',
     'extra-enclosure-atticroof-conditioned-eaves-hip.osw' => 'extra-enclosure-atticroof-conditioned-eaves-gable.osw',
-    'extra-schedules-random-seed.osw' => 'base-schedules-detailed-stochastic.osw',
     'extra-zero-refrigerator-kwh.osw' => 'base.osw',
     'extra-zero-extra-refrigerator-kwh.osw' => 'base.osw',
     'extra-zero-freezer-kwh.osw' => 'base.osw',
@@ -536,7 +532,6 @@ def get_values(osw_file, step)
 
   if ['base.osw'].include? osw_file
     step.setArgument('simulation_control_timestep', '60')
-    step.setArgument('schedules_type', 'default')
     step.setArgument('weather_station_epw_filepath', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     step.setArgument('site_type', HPXML::SiteTypeSuburban)
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFD)
@@ -2177,16 +2172,6 @@ def get_values(osw_file, step)
     step.setArgument('simulation_control_timestep', '10')
   end
 
-  # Schedules
-  if ['base-schedules-detailed-stochastic.osw'].include? osw_file
-    step.setArgument('schedules_type', 'stochastic')
-  elsif ['base-schedules-detailed-stochastic-vacancy.osw'].include? osw_file
-    step.setArgument('schedules_vacancy_period', 'Dec 1 - Jan 31')
-  elsif ['base-schedules-detailed-smooth.osw'].include? osw_file
-    step.setArgument('schedules_type', 'user-specified')
-    step.setArgument('schedules_path', 'HPXMLtoOpenStudio/resources/schedule_files/smooth.csv')
-  end
-
   # Extras
   if ['extra-auto.osw'].include? osw_file
     step.setArgument('geometry_num_occupants', Constants.Auto)
@@ -2265,8 +2250,6 @@ def get_values(osw_file, step)
     step.setArgument('geometry_eaves_depth', 2)
   elsif ['extra-enclosure-atticroof-conditioned-eaves-hip.osw'].include? osw_file
     step.setArgument('geometry_roof_type', 'hip')
-  elsif ['extra-schedules-random-seed.osw'].include? osw_file
-    step.setArgument('schedules_random_seed', 123)
   elsif ['extra-zero-refrigerator-kwh.osw'].include? osw_file
     step.setArgument('refrigerator_rated_annual_kwh', '0')
   elsif ['extra-zero-extra-refrigerator-kwh.osw'].include? osw_file

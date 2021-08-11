@@ -11,10 +11,20 @@ require_relative '../HPXMLtoOpenStudio/resources/version'
 basedir = File.expand_path(File.dirname(__FILE__))
 
 def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, add_comp_loads,
-                 output_format, building_id, ep_input_format)
+                 output_format, building_id, ep_input_format, schedules_type)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
+
+  # Optionally add schedule file measure to workflow
+  unless schedules_type.nil?
+    measure_subdir = 'BuildResidentialScheduleFile'
+    args = {}
+    args['hpxml_path'] = hpxml
+    args['schedules_type'] = schedules_type
+    args['output_csv_path'] = "workflow/sample_files/run/#{schedules_type}.csv"
+    update_args_hash(measures, measure_subdir, args)
+  end
 
   # Add HPXML translator measure to workflow
   measure_subdir = 'HPXMLtoOpenStudio'
@@ -56,6 +66,10 @@ OptionParser.new do |opts|
 
   opts.on('-x', '--xml <FILE>', 'HPXML file') do |t|
     options[:hpxml] = t
+  end
+
+  opts.on('--schedules-type TYPE', ['smooth', 'stochastic'], 'Schedules type (smooth, stochastic)') do |t|
+    options[:schedules_type] = t
   end
 
   opts.on('-o', '--output-dir <DIR>', 'Output directory') do |t|
@@ -185,7 +199,7 @@ rundir = File.join(options[:output_dir], 'run')
 puts "HPXML: #{options[:hpxml]}"
 success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
                        options[:skip_validation], options[:add_comp_loads], options[:output_format], options[:building_id],
-                       options[:ep_input_format])
+                       options[:ep_input_format], options[:schedules_type])
 
 if not success
   exit! 1

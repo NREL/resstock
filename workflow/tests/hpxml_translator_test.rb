@@ -195,7 +195,7 @@ class HPXMLTest < MiniTest::Test
   end
 
   def test_template2_osw
-    # Check that simulation works using template.osw
+    # Check that simulation works using template2.osw
     require 'json'
 
     os_cli = OpenStudio.getOpenStudioCLI
@@ -207,7 +207,7 @@ class HPXMLTest < MiniTest::Test
 
     # Turn on debug mode
     json = JSON.parse(File.read(osw_path_test), symbolize_names: true)
-    json[:steps][1][:arguments][:debug] = true
+    json[:steps][2][:arguments][:debug] = true
 
     if Dir.exist? File.join(File.dirname(__FILE__), '..', '..', 'project')
       # CI checks out the repo as "project", so update dir name
