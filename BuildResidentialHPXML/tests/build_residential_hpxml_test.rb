@@ -210,7 +210,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.header.xml_type = nil
       hpxml.header.xml_generated_by = nil
       hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z')
-      hpxml.header.schedules_path = nil
+      hpxml.header.schedules_filepath = 'SCHEDULES_FILE' unless hpxml.header.schedules_filepath.nil?
       hpxml.site.fuels = [] # Not used by model
       hpxml.climate_and_risk_zones.weather_station_name = nil
       hpxml.building_construction.conditioned_building_volume = nil
@@ -218,6 +218,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.air_infiltration_measurements[0].infiltration_volume = nil
       hpxml.foundations.clear
       hpxml.attics.clear
+      hpxml.building_occupancy.weekday_fractions = nil
+      hpxml.building_occupancy.weekend_fractions = nil
+      hpxml.building_occupancy.monthly_multipliers = nil
       hpxml.foundation_walls.each do |foundation_wall|
         foundation_wall.interior_finish_type = nil
         foundation_wall.length = nil
@@ -302,12 +305,17 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         heat_pump.backup_heating_efficiency_afue = nil
       end
       hpxml.ventilation_fans.each do |ventilation_fan|
-        next unless ventilation_fan.used_for_whole_building_ventilation
-        next if ventilation_fan.tested_flow_rate.nil?
-
-        # These are treated the same in the model, so allow tested/rated comparison
-        ventilation_fan.rated_flow_rate = ventilation_fan.tested_flow_rate
-        ventilation_fan.tested_flow_rate = nil
+        # These are all treated the same in the model
+        if not ventilation_fan.tested_flow_rate.nil?
+          ventilation_fan.rated_flow_rate = ventilation_fan.tested_flow_rate
+          ventilation_fan.tested_flow_rate = nil
+        elsif not ventilation_fan.calculated_flow_rate.nil?
+          ventilation_fan.rated_flow_rate = ventilation_fan.calculated_flow_rate
+          ventilation_fan.calculated_flow_rate = nil
+        elsif not ventilation_fan.delivered_ventilation.nil?
+          ventilation_fan.rated_flow_rate = ventilation_fan.delivered_ventilation
+          ventilation_fan.delivered_ventilation = nil
+        end
       end
       hpxml.hvac_controls.each do |hvac_control|
         hvac_control.control_type = nil # Not used by model
@@ -333,24 +341,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.refrigerators.each do |refrigerator|
         refrigerator.primary_indicator = nil
         refrigerator.adjusted_annual_kwh = nil
-        refrigerator.weekday_fractions = nil
-        refrigerator.weekend_fractions = nil
-        refrigerator.monthly_multipliers = nil
       end
       if hpxml.freezers.length > 0
         (1..hpxml.freezers.length).to_a.reverse.each do |i|
           hpxml.freezers.delete_at(i) # Only compare first freezer
         end
-      end
-      hpxml.freezers.each do |freezer|
-        freezer.weekday_fractions = nil
-        freezer.weekend_fractions = nil
-        freezer.monthly_multipliers = nil
-      end
-      hpxml.cooking_ranges.each do |cooking_range|
-        cooking_range.weekday_fractions = nil
-        cooking_range.weekend_fractions = nil
-        cooking_range.monthly_multipliers = nil
       end
       hpxml.pools.each do |pool|
         pool.pump_weekday_fractions = nil
@@ -368,6 +363,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         hot_tub.heater_weekend_fractions = nil
         hot_tub.heater_monthly_multipliers = nil
       end
+      hpxml.water_heating.water_fixtures_weekday_fractions = nil
+      hpxml.water_heating.water_fixtures_weekend_fractions = nil
+      hpxml.water_heating.water_fixtures_monthly_multipliers = nil
       hpxml.lighting.interior_weekday_fractions = nil
       hpxml.lighting.interior_weekend_fractions = nil
       hpxml.lighting.interior_monthly_multipliers = nil
@@ -379,18 +377,21 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.lighting.garage_monthly_multipliers = nil
       hpxml.lighting.holiday_weekday_fractions = nil
       hpxml.lighting.holiday_weekend_fractions = nil
-      hpxml.plug_loads.each do |plug_load|
-        plug_load.weekday_fractions = nil
-        plug_load.weekend_fractions = nil
-        plug_load.monthly_multipliers = nil
-      end
-      hpxml.fuel_loads.each do |fuel_load|
-        fuel_load.weekday_fractions = nil
-        fuel_load.weekend_fractions = nil
-        fuel_load.monthly_multipliers = nil
-      end
       hpxml.pv_systems.each do |pv_system|
         pv_system.year_modules_manufactured = nil
+      end
+      (hpxml.fuel_loads +
+       hpxml.plug_loads +
+       hpxml.dishwashers +
+       hpxml.clothes_dryers +
+       hpxml.clothes_washers +
+       hpxml.cooking_ranges +
+       hpxml.refrigerators +
+       hpxml.freezers +
+       hpxml.ceiling_fans).each do |obj|
+        obj.weekday_fractions = nil
+        obj.weekend_fractions = nil
+        obj.monthly_multipliers = nil
       end
       hpxml.collapse_enclosure_surfaces()
 
