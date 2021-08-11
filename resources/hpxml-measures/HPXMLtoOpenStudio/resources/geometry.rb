@@ -510,28 +510,8 @@ class Geometry
     end
   end
 
-  def self.apply_occupants(model, num_occ, cfa, space, schedules_file)
+  def self.apply_occupants(model, hpxml, num_occ, cfa, space, schedules_file)
     occ_gain, hrs_per_day, sens_frac, lat_frac = Geometry.get_occupancy_default_values()
-    weekday_sch = Schedule.OccupantsWeekdayFractions
-    weekday_sch_sum = weekday_sch.split(',').map(&:to_f).sum(0.0)
-    if (weekday_sch_sum - hrs_per_day).abs > 0.1
-      fail 'Occupancy schedule inconsistent with hrs_per_day.'
-    end
-
-    weekend_sch = Schedule.OccupantsWeekendFractions
-    monthly_sch = Schedule.OccupantsMonthlyMultipliers
-
-    # Error checking
-    if (sens_frac < 0) || (sens_frac > 1)
-      fail 'Sensible fraction must be greater than or equal to 0 and less than or equal to 1.'
-    end
-    if (lat_frac < 0) || (lat_frac > 1)
-      fail 'Latent fraction must be greater than or equal to 0 and less than or equal to 1.'
-    end
-    if lat_frac + sens_frac > 1
-      fail 'Sum of sensible and latent fractions must be less than or equal to 1.'
-    end
-
     activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
 
     # Hard-coded convective, radiative, latent, and lost fractions
@@ -548,6 +528,11 @@ class Geometry
     if not schedules_file.nil?
       people_sch = schedules_file.create_schedule_file(col_name: 'occupants')
     else
+      weekday_sch = hpxml.building_occupancy.weekday_fractions.split(',').map(&:to_f)
+      weekday_sch = weekday_sch.map { |v| v / weekday_sch.max }.join(',')
+      weekend_sch = hpxml.building_occupancy.weekend_fractions.split(',').map(&:to_f)
+      weekend_sch = weekend_sch.map { |v| v / weekend_sch.max }.join(',')
+      monthly_sch = hpxml.building_occupancy.monthly_multipliers
       people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
       people_sch = people_sch.schedule
     end
