@@ -377,7 +377,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
 
-      # Get registered values and pass them to HPXMLtoOpenStudio 
+      # Get registered values and pass them to HPXMLtoOpenStudio
       measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
       measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
       measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
