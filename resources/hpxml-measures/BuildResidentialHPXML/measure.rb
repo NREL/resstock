@@ -3252,10 +3252,10 @@ class HPXMLFile
       hpxml.site.site_type = args[:site_type].get
     end
 
-    surroundings_hash = {'Left' => 'attached on one side',
-                        'Right' => 'attached on one side',
-                        'Middle' => 'attached on two sides',
-                        'None' => 'stand-alone'}
+    surroundings_hash = { 'Left' => 'attached on one side',
+                          'Right' => 'attached on one side',
+                          'Middle' => 'attached on two sides',
+                          'None' => 'stand-alone' }
 
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
       hpxml.site.surroundings = surroundings_hash[args[:geometry_horizontal_location].get]
@@ -3361,14 +3361,17 @@ class HPXMLFile
   def self.set_attics(hpxml, runner, model, args)
     return if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
 
-    surf_ids = {"roofs"=> {"surfaces"=> hpxml.roofs, "ids"=> []},
-                "walls"=> {"surfaces"=> hpxml.walls, "ids"=> []},
-                "frame_floors"=> {"surfaces"=> hpxml.frame_floors, "ids"=> []}}
+    surf_ids = { 'roofs' => { 'surfaces' => hpxml.roofs, 'ids' => [] },
+                 'walls' => { 'surfaces' => hpxml.walls, 'ids' => [] },
+                 'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] } }
 
+    attic_locations = [HPXML::LocationAtticUnconditioned, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented]
     surf_ids.each do |surf_type, surf_hash|
-      surf_hash["surfaces"].each do |surface|
-        next if not surface.interior_adjacent_to.include?('attic') and not surface.exterior_adjacent_to.include?('attic')
-        surf_hash["ids"] << surface.id
+      surf_hash['surfaces'].each do |surface|
+        next if (not attic_locations.include? surface.interior_adjacent_to) &&
+                (not attic_locations.include? surface.exterior_adjacent_to)
+
+        surf_hash['ids'] << surface.id
       end
     end
 
@@ -3378,41 +3381,42 @@ class HPXMLFile
     else
       hpxml.attics.add(id: args[:geometry_attic_type],
                        attic_type: args[:geometry_attic_type],
-                       attached_to_roof_idrefs: surf_ids["roofs"]["ids"],
-                       attached_to_wall_idrefs: surf_ids["walls"]["ids"],
-                       attached_to_frame_floor_idrefs: surf_ids["frame_floors"]["ids"])
+                       attached_to_roof_idrefs: surf_ids['roofs']['ids'],
+                       attached_to_wall_idrefs: surf_ids['walls']['ids'],
+                       attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'])
     end
   end
 
   def self.set_foundations(hpxml, runner, model, args)
     return if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
 
-    surf_ids = {"slabs"=> {"surfaces"=> hpxml.slabs, "ids"=> []},
-                "frame_floors"=> {"surfaces"=> hpxml.frame_floors, "ids"=> []},
-                "foundation_walls"=> {"surfaces"=> hpxml.foundation_walls, "ids"=> []},
-                "walls"=> {"surfaces"=> hpxml.walls, "ids"=> []},
-                "rim_joists"=> {"surfaces"=> hpxml.rim_joists, "ids"=> []},}
- 
-    foundation_locations = [HPXML::LocationBasementConditioned, HPXML::LocationBasementUnconditioned, 
+    surf_ids = { 'slabs' => { 'surfaces' => hpxml.slabs, 'ids' => [] },
+                 'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] },
+                 'foundation_walls' => { 'surfaces' => hpxml.foundation_walls, 'ids' => [] },
+                 'walls' => { 'surfaces' => hpxml.walls, 'ids' => [] },
+                 'rim_joists' => { 'surfaces' => hpxml.rim_joists, 'ids' => [] }, }
+
+    foundation_locations = [HPXML::LocationBasementConditioned, HPXML::LocationBasementUnconditioned,
                             HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented]
-                     
+
     surf_ids.each do |surf_type, surf_hash|
-      surf_hash["surfaces"].each do |surface|
-        next if not foundation_locations.include? surface.interior_adjacent_to and
-                not foundation_locations.include? surface.exterior_adjacent_to and
-                surf_type != "slabs" and
-                surf_type != "foundation_walls"
-        surf_hash["ids"] << surface.id
+      surf_hash['surfaces'].each do |surface|
+        next if (not foundation_locations.include? surface.interior_adjacent_to) &&
+                (not foundation_locations.include? surface.exterior_adjacent_to) &&
+                (surf_type != 'slabs') &&
+                (surf_type != 'foundation_walls')
+
+        surf_hash['ids'] << surface.id
       end
     end
 
     hpxml.foundations.add(id: args[:geometry_foundation_type],
                           foundation_type: args[:geometry_foundation_type],
-                          attached_to_slab_idrefs: surf_ids["slabs"]["ids"],
-                          attached_to_frame_floor_idrefs: surf_ids["frame_floors"]["ids"],
-                          attached_to_foundation_wall_idrefs: surf_ids["foundation_walls"]["ids"],
-                          attached_to_wall_idrefs: surf_ids["walls"]["ids"],
-                          attached_to_rim_joist_idrefs: surf_ids["rim_joists"]["ids"])
+                          attached_to_slab_idrefs: surf_ids['slabs']['ids'],
+                          attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'],
+                          attached_to_foundation_wall_idrefs: surf_ids['foundation_walls']['ids'],
+                          attached_to_wall_idrefs: surf_ids['walls']['ids'],
+                          attached_to_rim_joist_idrefs: surf_ids['rim_joists']['ids'])
   end
 
   def self.set_roofs(hpxml, runner, model, args)

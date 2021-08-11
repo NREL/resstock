@@ -1330,13 +1330,13 @@ class HPXML < Object
           wall_attached = XMLHelper.add_element(attic, 'AttachedToWall')
           XMLHelper.add_attribute(wall_attached, 'idref', wall)
         end
-      end 
+      end
       if not @attached_to_frame_floor_idrefs.nil?
         @attached_to_frame_floor_idrefs.each do |floor|
           floor_attached = XMLHelper.add_element(attic, 'AttachedToFrameFloor')
           XMLHelper.add_attribute(floor_attached, 'idref', floor)
         end
-      end 
+      end
     end
 
     def from_oga(attic)
