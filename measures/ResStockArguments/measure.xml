@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>1d5ab72d-7728-4bf6-ac6c-834034ed9e10</version_id>
-  <version_modified>20210730T061423Z</version_modified>
+  <version_id>803ed537-0645-4e04-895e-0206355697c9</version_id>
+  <version_modified>20210811T191240Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -64,54 +64,6 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>schedules_type</name>
-      <display_name>Schedules: Type</display_name>
-      <description>The type of occupant-related schedules to use. Schedules corresponding to 'default' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>default</default_value>
-      <choices>
-        <choice>
-          <value>default</value>
-          <display_name>default</display_name>
-        </choice>
-        <choice>
-          <value>stochastic</value>
-          <display_name>stochastic</display_name>
-        </choice>
-        <choice>
-          <value>user-specified</value>
-          <display_name>user-specified</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>schedules_path</name>
-      <display_name>Schedules: Path</display_name>
-      <description>Absolute (or relative) path of the csv file containing user-specified occupancy schedules.</description>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>schedules_vacancy_period</name>
-      <display_name>Schedules: Vacancy Period</display_name>
-      <description>Specifies the vacancy period. Only applies if the schedules type is 'stochastic'. Enter a date like "Dec 15 - Jan 15".</description>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>schedules_random_seed</name>
-      <display_name>Schedules: Random Seed</display_name>
-      <description>This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
       <name>weather_station_epw_filepath</name>
       <display_name>EnergyPlus Weather (EPW) Filepath</display_name>
       <description>Path of the EPW file.</description>
@@ -119,6 +71,14 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>USA_CO_Denver.Intl.AP.725650_TMY3.epw</default_value>
+    </argument>
+    <argument>
+      <name>site_state_code</name>
+      <display_name>Site: State Code</display_name>
+      <description>The house location. May be different than the EPW state.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>site_type</name>
@@ -2413,11 +2373,11 @@
       <name>mech_vent_flow_rate</name>
       <display_name>Mechanical Ventilation: Flow Rate</display_name>
       <description>The flow rate of the mechanical ventilation.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>CFM</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>110</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>mech_vent_hours_in_operation</name>
@@ -2812,21 +2772,21 @@
       <name>whole_house_fan_flow_rate</name>
       <display_name>Whole House Fan: Flow Rate</display_name>
       <description>The flow rate of the whole house fan.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>CFM</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>4500</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>whole_house_fan_power</name>
       <display_name>Whole House Fan: Fan Power</display_name>
       <description>The fan power of the whole house fan.</description>
-      <type>Double</type>
+      <type>String</type>
       <units>W</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>300</default_value>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>water_heater_type</name>
@@ -5271,6 +5231,42 @@
       <default_value>1</default_value>
     </argument>
     <argument>
+      <name>schedules_type</name>
+      <display_name>Schedules: Type</display_name>
+      <description>The type of occupant-related schedules to use. Schedules corresponding to 'smooth' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>smooth</default_value>
+      <choices>
+        <choice>
+          <value>smooth</value>
+          <display_name>smooth</display_name>
+        </choice>
+        <choice>
+          <value>stochastic</value>
+          <display_name>stochastic</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>schedules_vacancy_period</name>
+      <display_name>Schedules: Vacancy Period</display_name>
+      <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_random_seed</name>
+      <display_name>Schedules: Random Seed</display_name>
+      <description>This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>geometry_cfa_bin</name>
       <display_name>Geometry: Conditioned Floor Area Bin</display_name>
       <description>E.g., '2000-2499'</description>
@@ -5579,7 +5575,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>A81BB72E</checksum>
+      <checksum>DC88D251</checksum>
     </file>
     <file>
       <version>
@@ -5590,7 +5586,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>0BAA26FD</checksum>
+      <checksum>FDB8BC53</checksum>
     </file>
   </files>
 </measure>
