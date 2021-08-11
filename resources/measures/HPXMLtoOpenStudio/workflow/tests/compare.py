@@ -123,7 +123,7 @@ class BaseCompare:
                 self.export_file))
 
     def visualize(self, aggregate_column=None, aggregate_function=None, display_column=None, excludes=[], enum_maps={}, cols_to_ignore=[]):
-        colors = px.colors.qualitative.Light24
+        colors = px.colors.qualitative.Dark24
 
         aggregate_columns = []
         if aggregate_column:
