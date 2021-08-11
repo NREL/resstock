@@ -1202,12 +1202,16 @@ class SchedulesFile
   end
 
   # the equivalent number of hours in the year, if the schedule was at full load (1.0)
-  def annual_equivalent_full_load_hrs(col_name:)
-    num_hrs_in_year = Constants.NumHoursInYear(@model)
-    schedule_length = @schedules[col_name].length
-    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+  def annual_equivalent_full_load_hrs(col_name:,
+                                      schedules: nil)
+    if schedules.nil?
+      schedules = @schedules # the schedules before vacancy is applied
+    end
 
-    ann_equiv_full_load_hrs = @schedules[col_name].reduce(:+) / (60.0 / min_per_item)
+    num_hrs_in_year = Constants.NumHoursInYear(@model)
+    schedule_length = schedules[col_name].length
+    min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
+    ann_equiv_full_load_hrs = schedules[col_name].reduce(:+) / (60.0 / min_per_item)
 
     return ann_equiv_full_load_hrs
   end
