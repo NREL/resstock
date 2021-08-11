@@ -40,13 +40,15 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
   # define the arguments that the user will input
   def arguments(model)
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
-    measure_subdir = 'BuildResidentialHPXML'
-    full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
+    args = OpenStudio::Measure::OSArgumentVector.new
+
+    # BuildResidentialHPXML
+
+    full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
     measure = get_measure_instance(full_measure_path)
 
-    args = OpenStudio::Measure::OSArgumentVector.new
     measure.arguments(model).each do |arg|
-      next if Constants.excludes.include? arg.name
+      next if Constants.build_residential_hpxml_excludes.include? arg.name
 
       # Exclude the geometry_cfa arg from BuildResHPXML in lieu of the one below.
       # We can't add it to Constants.excludes because a geometry_cfa value will still
@@ -55,6 +57,19 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       args << arg
     end
+
+    # BuildResidentialScheduleFile
+
+    full_measure_path = File.join(measures_dir, 'BuildResidentialScheduleFile', 'measure.rb')
+    measure = get_measure_instance(full_measure_path)
+
+    measure.arguments(model).each do |arg|
+      next if Constants.build_residential_schedule_file_excludes.include? arg.name
+
+      args << arg
+    end
+
+    # Additional arguments
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_cfa_bin', true)
     arg.setDisplayName('Geometry: Conditioned Floor Area Bin')
@@ -254,13 +269,26 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args = get_argument_values(runner, arguments(model), user_arguments)
 
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
-    measure_subdir = 'BuildResidentialHPXML'
-    full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
+    arg_names = []
+
+    # BuildResidentialHPXML
+
+    full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
     measure = get_measure_instance(full_measure_path)
 
-    arg_names = []
     measure.arguments(model).each do |arg|
-      next if Constants.excludes.include? arg.name
+      next if Constants.build_residential_hpxml_excludes.include? arg.name
+
+      arg_names << arg.name
+    end
+
+    # BuildResidentialScheduleFile
+
+    full_measure_path = File.join(measures_dir, 'BuildResidentialScheduleFile', 'measure.rb')
+    measure = get_measure_instance(full_measure_path)
+
+    measure.arguments(model).each do |arg|
+      next if Constants.build_residential_schedule_file_excludes.include? arg.name
 
       arg_names << arg.name
     end
@@ -548,7 +576,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
 
       if args_to_delete.include? arg_name
-        arg_value = '' # don't assign these to BuildResidentialHPXML
+        arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 
       runner.registerValue(arg_name, arg_value)
