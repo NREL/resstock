@@ -364,8 +364,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       report_sim_output(runner, 'electricity_vehicle_kwh', electricity.vehicle[0], 'GJ', elec_site_units)
     end
 
-    sqlFile.close
-
     # WEIGHT
 
     values = get_values_from_runner_past_results(runner, 'build_existing_model')
@@ -459,6 +457,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
     runner.registerFinalCondition('Report generated successfully.')
+
+    sqlFile.close
 
     return true
   end # end the run method
@@ -607,10 +607,17 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               next if components.include? component
 
               components << component
-              next if not component.nominalCapacity.is_initialized
-              next if component.nominalCapacity.get <= max_value
 
-              max_value = component.nominalCapacity.get
+              nominal_capacity = nil
+              if component.nominalCapacity.is_initialized
+                nominal_capacity = component.nominalCapacity.get
+              elsif component.autosizedNominalCapacity.is_initialized
+                nominal_capacity = component.autosizedNominalCapacity.get
+              end
+              next if nominal_capacity.nil?
+              next if nominal_capacity <= max_value
+
+              max_value = nominal_capacity
               cost_mult += UnitConversions.convert(max_value, 'W', 'kBtu/hr')
             end
           end
@@ -638,6 +645,29 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
           # Cooling system capacity
+
+          # Chiller?
+          max_value = 0.0
+          model.getPlantLoops.each do |pl|
+            pl.components.each do |plc|
+              next if not plc.to_ChillerElectricEIR.is_initialized
+
+              component = plc.to_ChillerElectricEIR.get
+              next if components.include? component
+
+              components << component
+
+              nominal_capacity = nil
+              if component.autosizedReferenceCapacity.is_initialized
+                nominal_capacity = component.autosizedReferenceCapacity.get
+              end
+              next if nominal_capacity.nil?
+              next if nominal_capacity <= max_value
+
+              max_value = nominal_capacity
+              cost_mult += UnitConversions.convert(max_value, 'W', 'kBtu/hr')
+            end
+          end
 
           # Unitary system?
           model.getAirLoopHVACUnitarySystems.each do |sys|
