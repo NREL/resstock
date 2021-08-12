@@ -108,6 +108,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     success = create_schedules(runner, hpxml, model, epw_file, args)
     return false if not success
 
+    # modify the hpxml with the schedules path
     hpxml.header.schedules_filepath = args[:output_csv_path]
     hpxml_doc = hpxml.to_oga()
     XMLHelper.write_file(hpxml_doc, hpxml_path)
@@ -139,13 +140,14 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     info_msgs << "NumberOfTimestepsPerHour=#{timestep.numberOfTimestepsPerHour}"
 
     # get generator inputs
-    state = epw_file.stateProvinceRegion
+    state = 'CO'
+    state = epw_file.stateProvinceRegion unless epw_file.stateProvinceRegion.empty?
     state = hpxml.header.state_code unless hpxml.header.state_code.nil?
     random_seed = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
     if hpxml.building_occupancy.number_of_residents.nil?
-      args[:geometry_num_occupants] = hpxml.building_occupancy.number_of_residents
-    else
       args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml.building_construction.number_of_bedrooms)
+    else
+      args[:geometry_num_occupants] = hpxml.building_occupancy.number_of_residents
     end
     if args[:schedules_vacancy_period].is_initialized
       begin_month, begin_day, end_month, end_day = parse_date_range(args[:schedules_vacancy_period].get)
