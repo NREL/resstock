@@ -308,7 +308,10 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml') }]
+      # Initialize measure keys with hpxml_path arguments
+      hpxml_path = File.expand_path('../upgraded.xml')
+      measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
+      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
 
       new_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
@@ -316,8 +319,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
-
-      measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => File.expand_path('../upgraded.xml'), 'output_dir' => File.expand_path('..') }]
 
       # Use generated schedules from the base building
       schedules_type = measures['BuildResidentialHPXML'][0]['schedules_type']
@@ -365,16 +366,21 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
       measures['BuildResidentialHPXML'][0]['software_program_version'] = software_program_version
 
-      # Get registered values from ResidentialSimulationControls and pass them to BuildResidentialHPXML
-      simulation_control_timestep = values['simulation_control_timestep']
-      simulation_control_run_period = values['simulation_control_run_period']
-      simulation_control_run_period_calendar_year = values['simulation_control_run_period_calendar_year']
-      measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = simulation_control_timestep
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = simulation_control_run_period
-      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = simulation_control_run_period_calendar_year
+      # Get registered values and pass them to BuildResidentialHPXML
+      measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = values['simulation_control_timestep']
+      if !values['simulation_control_run_period_begin_month'].nil? && !values['simulation_control_run_period_begin_day_of_month'].nil? && !values['simulation_control_run_period_end_month'].nil? && !values['simulation_control_run_period_end_day_of_month'].nil?
+        begin_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_begin_month']]}"
+        begin_day = values['simulation_control_run_period_begin_day_of_month']
+        end_month = "#{Date::ABBR_MONTHNAMES[values['simulation_control_run_period_end_month']]}"
+        end_day = values['simulation_control_run_period_end_day_of_month']
+        measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
+      end
+      measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
 
-      # Remove the existing generated_files folder alongside the run folder; if not, getExternalFile returns false for some reason
-      FileUtils.rm_rf(File.expand_path('../../generated_files')) if File.exist?(File.expand_path('../../generated_files'))
+      # Get registered values and pass them to HPXMLtoOpenStudio
+      measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
+      measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
+      measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
 
       if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'upgraded.osw', true, { 'ApplyUpgrade' => runner })
         new_runner.result.errors.each do |error|
