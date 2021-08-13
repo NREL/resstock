@@ -83,6 +83,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       'Duct Unconditioned Surface Area (ft^2)' => 'duct_unconditioned_surface_area_ft_2',
       'Size, Heating System (kBtu/h)' => 'size_heating_system_kbtu_h',
       'Size, Cooling System (kBtu/h)' => 'size_cooling_system_kbtu_h',
+      'Size, Heating Supplemental System (kBtu/h)' => 'size_heating_supplemental_system_kbtu_h',
       'Size, Water Heater (gal)' => 'size_water_heater_gal'
     }
   end
