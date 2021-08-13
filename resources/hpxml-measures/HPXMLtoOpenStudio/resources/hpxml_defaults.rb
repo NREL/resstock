@@ -246,7 +246,7 @@ class HPXMLDefaults
     end
 
     if hpxml.building_construction.number_of_bathrooms.nil?
-      hpxml.building_construction.number_of_bathrooms = Float(Waterheater.get_default_num_bathrooms(nbeds))
+      hpxml.building_construction.number_of_bathrooms = Float(Waterheater.get_default_num_bathrooms(nbeds)).to_i
       hpxml.building_construction.number_of_bathrooms_isdefaulted = true
     end
 
