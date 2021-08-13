@@ -304,7 +304,7 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     # Calculates the volume of a water heater
     if vol == Constants.Auto
       # Source: Table 8. Benchmark DHW Storage and Burner Capacity in 2014 BA HSP
-      if fuel == Constants.FuelTypeElectric
+      if fuel != Constants.FuelTypeElectric
         if num_beds <= 2
           return 30.0
         elsif num_beds == 3
