@@ -13,7 +13,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -27,7 +27,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 9.97, 'ThermalEfficiency' => 0.789, 'TankUA' => 4.503, 'Setpoint' => 125, 'OnCycle' => 165, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.91 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 9.97, 'ThermalEfficiency' => 0.789, 'TankUA' => 4.503, 'Setpoint' => 125, 'OnCycle' => 165, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.91 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -38,7 +38,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 10.55, 'ThermalEfficiency' => 0.774, 'TankUA' => 8.897, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 10.55, 'ThermalEfficiency' => 0.774, 'TankUA' => 7.706, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -49,7 +49,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['capacity'] = '15.35'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 4.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 2.21, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 4.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 2.21, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -60,7 +60,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['capacity'] = '18.77'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 1.34, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 1.34, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -72,7 +72,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['tank_model_type'] = 'stratified'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 4.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.233, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 4.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.205, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -84,7 +84,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['tank_model_type'] = 'stratified'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -99,7 +99,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -110,7 +110,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['capacity'] = Constants.Auto
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 2.29, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 2.69, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -122,7 +122,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeOil
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 26.38, 'ThermalEfficiency' => 0.785, 'TankUA' => 6.753, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeOil, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 26.38, 'ThermalEfficiency' => 0.785, 'TankUA' => 6.753, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeOil, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -136,7 +136,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeOil
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 30.48, 'ThermalEfficiency' => 0.905, 'TankUA' => 8.410, 'Setpoint' => 125, 'OnCycle' => 165, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypeOil, 'SkinLossFrac' => 0.91 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 30.48, 'ThermalEfficiency' => 0.905, 'TankUA' => 8.410, 'Setpoint' => 125, 'OnCycle' => 165, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypeOil, 'SkinLossFrac' => 0.91 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -148,7 +148,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeOil
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 10.55, 'ThermalEfficiency' => 0.807, 'TankUA' => 16.157, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeOil, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 10.55, 'ThermalEfficiency' => 0.807, 'TankUA' => 14.465, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeOil, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -158,7 +158,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypePropane
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 13.78, 'ThermalEfficiency' => 0.771, 'TankUA' => 7.790, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypePropane, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 13.78, 'ThermalEfficiency' => 0.771, 'TankUA' => 7.790, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypePropane, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -172,7 +172,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypePropane
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 13.78, 'ThermalEfficiency' => 0.786, 'TankUA' => 4.404, 'Setpoint' => 125, 'OnCycle' => 140, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypePropane, 'SkinLossFrac' => 0.91 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 13.78, 'ThermalEfficiency' => 0.786, 'TankUA' => 4.404, 'Setpoint' => 125, 'OnCycle' => 140, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypePropane, 'SkinLossFrac' => 0.91 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -183,7 +183,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypePropane
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 10.55, 'ThermalEfficiency' => 0.774, 'TankUA' => 8.897, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypePropane, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 10.55, 'ThermalEfficiency' => 0.774, 'TankUA' => 7.706, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypePropane, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -193,7 +193,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -203,7 +203,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 130, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 130, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -225,7 +225,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['tank_model_type'] = 'stratified'
     expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_Stratified_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -237,7 +237,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['tank_model_type'] = 'stratified'
     expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -252,7 +252,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
     expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_Stratified_WHTank.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -264,7 +264,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['tank_model_type'] = 'stratified'
     expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 6, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemProgramCallingManager' => 1, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemActuator' => 7, 'EnergyManagementSystemSensor' => 10, 'EnergyManagementSystemTrendVariable' => 3 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -279,7 +279,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
     expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 6, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemProgramCallingManager' => 1, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemActuator' => 7, 'EnergyManagementSystemSensor' => 10, 'EnergyManagementSystemTrendVariable' => 3 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -294,7 +294,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
     expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 3, 'ScheduleConstant' => 4, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemSensor' => 10, 'EnergyManagementSystemActuator' => 7, 'EnergyManagementSystemTrendVariable' => 3, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemProgramCallingManager' => 1 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH_scheduled_SP.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -309,7 +309,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
     expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 2 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_Stratified_WHTank_scheduled_SP.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -318,7 +318,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTankless.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -330,7 +330,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
     expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTankless.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -345,7 +345,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
     expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTankless.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -357,7 +357,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['tank_model_type'] = 'stratified'
     expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0, 'StorageTankSetpoint1' => 125, 'StorageTankSetpoint2' => 125 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0, 'StorageTankSetpoint1' => 125, 'StorageTankSetpoint2' => 125 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_SHW.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -372,7 +372,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
     expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0, 'StorageTankSetpoint1' => 126, 'StorageTankSetpoint2' => 126 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0, 'StorageTankSetpoint1' => 126, 'StorageTankSetpoint2' => 126 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_SHW.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -381,7 +381,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     model = _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
     args_hash = {}
     args_hash['energy_factor'] = '0.67'
@@ -393,7 +393,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 9.97, 'ThermalEfficiency' => 0.789, 'TankUA' => 4.503, 'Setpoint' => 130, 'OnCycle' => 165, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.91 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 9.97, 'ThermalEfficiency' => 0.789, 'TankUA' => 4.503, 'Setpoint' => 130, 'OnCycle' => 165, 'OffCycle' => 1, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.91 }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -402,7 +402,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['fuel_type'] = Constants.FuelTypeGas
     expected_num_del_objects = { 'WaterHeaterStratified' => 1, 'ScheduleConstant' => 6, 'CoilWaterHeatingAirToWaterHeatPumpWrapped' => 1, 'FanOnOff' => 1, 'WaterHeaterHeatPumpWrappedCondenser' => 1, 'OtherEquipment' => 2, 'OtherEquipmentDefinition' => 2, 'EnergyManagementSystemProgramCallingManager' => 1, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemActuator' => 7, 'EnergyManagementSystemSensor' => 10, 'EnergyManagementSystemTrendVariable' => 3 }
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_HPWH.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -412,7 +412,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_temp'] = '130'
     expected_num_del_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => args_hash['setpoint_temp'].to_f, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64, 'StorageTankSetpoint1' => args_hash['setpoint_temp'].to_f, 'StorageTankSetpoint2' => args_hash['setpoint_temp'].to_f }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => args_hash['setpoint_temp'].to_f, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64, 'StorageTankSetpoint1' => args_hash['setpoint_temp'].to_f, 'StorageTankSetpoint2' => args_hash['setpoint_temp'].to_f }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver_WHTank_SHW.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -450,7 +450,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_schedule_high_above_140.csv'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1, 2)
   end
 
@@ -470,7 +470,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_schedule_low_below_110.csv'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleFixedInterval' => 2 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1, 2)
   end
 
@@ -481,7 +481,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule_feb.csv'
     expected_num_del_objects = {   'ScheduleConstant' => 2, 'WaterHeaterMixed' => 1 }
     expected_num_new_objects = { 'ScheduleFixedInterval' => 2, 'WaterHeaterMixed' => 1 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY_February.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -492,7 +492,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_schedule'] = 'hourly_setpoint_schedule.csv'
     expected_num_del_objects = {   'ScheduleConstant' => 2, 'WaterHeaterMixed' => 1 }
     expected_num_new_objects = { 'ScheduleFixedInterval' => 2, 'WaterHeaterMixed' => 1 }
-    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
+    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 11.72, 'ThermalEfficiency' => 0.773, 'TankUA' => 7.88, 'Setpoint' => 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => 0.64 }
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY_February.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1)
   end
 
@@ -534,7 +534,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_temp'] = 100
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1, 1)
   end
 
@@ -555,7 +555,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['setpoint_temp'] = 150
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterStratified' => 1, 'PlantLoop' => 1, 'PumpVariableSpeed' => 1, 'ScheduleConstant' => 2 }
-    expected_values = { 'TankVolume' => 40, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.141, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
+    expected_values = { 'TankVolume' => 50, 'InputCapacity' => 5.5, 'ThermalEfficiency' => 1.0, 'TankUA' => 0.124, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeElectric, 'SkinLossFrac' => 1.0 }
     _test_measure('SFD_2000sqft_2story_FB_GRG_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 1, 1)
   end
 
@@ -653,7 +653,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => num_units, 'PlantLoop' => num_units, 'PumpVariableSpeed' => num_units, 'ScheduleConstant' => 2 * num_units }
-    expected_values = { 'TankVolume' => num_units * 50, 'InputCapacity' => num_units * 11.72, 'ThermalEfficiency' => num_units * 0.773, 'TankUA' => num_units * 7.88, 'Setpoint' => num_units * 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => num_units * 0.64 }
+    expected_values = { 'TankVolume' => num_units * 40, 'InputCapacity' => num_units * 11.72, 'ThermalEfficiency' => num_units * 0.773, 'TankUA' => num_units * 7.88, 'Setpoint' => num_units * 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => num_units * 0.64 }
     _test_measure('SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
 
@@ -663,7 +663,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash['location'] = Constants.SpaceTypeLiving
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => num_units, 'PlantLoop' => num_units, 'PumpVariableSpeed' => num_units, 'ScheduleConstant' => 2 * num_units }
-    expected_values = { 'TankVolume' => num_units * 50, 'InputCapacity' => num_units * 11.72, 'ThermalEfficiency' => num_units * 0.773, 'TankUA' => num_units * 7.88, 'Setpoint' => num_units * 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => num_units * 0.64 }
+    expected_values = { 'TankVolume' => num_units * 40, 'InputCapacity' => num_units * 11.72, 'ThermalEfficiency' => num_units * 0.773, 'TankUA' => num_units * 7.88, 'Setpoint' => num_units * 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => num_units * 0.64 }
     _test_measure('SFA_4units_1story_FB_UA_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
 
@@ -672,7 +672,7 @@ class ResidentialHotWaterHeaterTankTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'WaterHeaterMixed' => num_units, 'PlantLoop' => num_units, 'PumpVariableSpeed' => num_units, 'ScheduleConstant' => 2 * num_units }
-    expected_values = { 'TankVolume' => num_units * 50, 'InputCapacity' => num_units * 11.72, 'ThermalEfficiency' => num_units * 0.773, 'TankUA' => num_units * 7.88, 'Setpoint' => num_units * 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => num_units * 0.64 }
+    expected_values = { 'TankVolume' => num_units * 40, 'InputCapacity' => num_units * 11.72, 'ThermalEfficiency' => num_units * 0.773, 'TankUA' => num_units * 7.88, 'Setpoint' => num_units * 125, 'OnCycle' => 0, 'OffCycle' => 0, 'FuelType' => Constants.FuelTypeGas, 'SkinLossFrac' => num_units * 0.64 }
     _test_measure('MF_8units_1story_SL_3Beds_2Baths_Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, num_units)
   end
 

@@ -255,7 +255,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
-      'Size, Water Heater (gal)' => 40,
+      'Size, Water Heater (gal)' => 30,
     }
     _test_cost_multipliers('SFA_2story_UB_Furnace_RoomAC_FuelTankWH.osm', cost_multipliers)
   end
@@ -276,7 +276,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 40,
+      'Size, Water Heater (gal)' => 30,
     }
     _test_cost_multipliers('MF_2story_UB_Furnace_AC1_FuelTankWH.osm', cost_multipliers)
   end
@@ -297,7 +297,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 40,
+      'Size, Water Heater (gal)' => 30,
     }
     _test_cost_multipliers('MF_2story_UB_Furnace_AC1_FuelTankWH_TopLevel.osm', cost_multipliers)
   end
@@ -318,7 +318,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
-      'Size, Water Heater (gal)' => 40,
+      'Size, Water Heater (gal)' => 30,
     }
     _test_cost_multipliers('SFA_2story_UB_FuelBoiler_RoomAC_FuelTankWH.osm', cost_multipliers)
   end
@@ -339,7 +339,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
-      'Size, Water Heater (gal)' => 40,
+      'Size, Water Heater (gal)' => 30,
     }
     _test_cost_multipliers('MF_2story_UB_FuelBoiler_AC1_FuelTankWH.osm', cost_multipliers)
   end
@@ -381,7 +381,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating System (kBtu/h)' => 100,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
-      'Size, Water Heater (gal)' => 40 * 1,
+      'Size, Water Heater (gal)' => 30 * 1,
     }
     _test_cost_multipliers('SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH.osm', cost_multipliers)
   end
@@ -423,7 +423,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating System (kBtu/h)' => 100 * 1,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60 * 1,
-      'Size, Water Heater (gal)' => 40 * 1,
+      'Size, Water Heater (gal)' => 30 * 1,
     }
     _test_cost_multipliers('MF_1story_UB_Furnace_AC1_FuelTankWH.osm', cost_multipliers)
   end
@@ -444,7 +444,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating System (kBtu/h)' => 100 * 1,
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60 * 1,
-      'Size, Water Heater (gal)' => 40 * 1,
+      'Size, Water Heater (gal)' => 30 * 1,
     }
     _test_cost_multipliers('MF_1story_UB_Furnace_AC1_FuelTankWH_MiddleUnit.osm', cost_multipliers)
   end
