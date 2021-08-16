@@ -259,7 +259,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                       propane.total_end_uses[0] +
                       wood.total_end_uses[0]
 
-    report_sim_output(runner, 'total_site_energy_mbtu', totalSiteEnergy + electricity.photovoltaics[0], 'GJ', total_site_units)
+    report_sim_output(runner, 'total_site_energy_mbtu', totalSiteEnergy, 'GJ', total_site_units)
+    report_sim_output(runner, 'net_site_energy_mbtu', totalSiteEnergy + electricity.photovoltaics[0], 'GJ', total_site_units)
 
     # LOADS NOT MET
 
