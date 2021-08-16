@@ -8,7 +8,7 @@ weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 5
+    n_datapoints: 4
     logic:
       - not: Lighting|None
     resample: false
@@ -30,6 +30,11 @@ workflow_generator:
     timeseries_csv_export:
       reporting_frequency: Hourly
       include_enduse_subcategories: true
+
+    server_directory_cleanup:
+      retain_in_osm: true
+      retain_eplusout_rdd: true
+      retain_eplusout_err: true
 
 baseline:
   n_buildings_represented: 80000000
