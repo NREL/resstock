@@ -171,7 +171,7 @@ class Airflow
       success, infil_output = process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ag_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
       return false if not success
 
-      success, mv_output = process_mech_vent_for_unit(model, runner, obj_name_mech_vent, unit, infil_output.a_o, mech_vent, building, nbeds, nbaths, weather, unit_ffa, unit_living, units.size, has_forced_air_equipment)
+      success, mv_output = process_mech_vent_for_unit(model, runner, obj_name_mech_vent, unit, mech_vent, building, nbeds, nbaths, weather, unit_ffa, unit_living, units.size, has_forced_air_equipment)
       return false if not success
 
       cfis_programs = {}
@@ -847,7 +847,7 @@ class Airflow
     end
   end
 
-  def self.process_mech_vent_for_unit(model, runner, obj_name_mech_vent, unit, ela, mech_vent, building, nbeds, nbaths, weather, unit_ffa, unit_living, num_units, has_forced_air_equipment)
+  def self.process_mech_vent_for_unit(model, runner, obj_name_mech_vent, unit, mech_vent, building, nbeds, nbaths, weather, unit_ffa, unit_living, num_units, has_forced_air_equipment)
     if mech_vent.type == Constants.VentTypeCFIS
       if not has_forced_air_equipment
         runner.registerError('A CFIS ventilation system has been selected but the building does not have central, forced air equipment.')
@@ -858,7 +858,7 @@ class Airflow
     whole_house_vent_rate = 0.0
     if mech_vent.type != Constants.VentTypeNone
       building_type = Geometry.get_building_type(model)
-      whole_house_vent_rate = Airflow.get_mech_vent_whole_house_cfm(nbeds, unit_ffa, mech_vent, ela, unit_living, weather, unit, building_type)
+      whole_house_vent_rate = Airflow.get_mech_vent_whole_house_cfm(nbeds, unit_ffa, mech_vent, unit_living, weather, unit, building_type, building)
     end
 
     # Spot Ventilation
@@ -2445,7 +2445,7 @@ class Airflow
     return num_returns.to_i
   end
 
-  def self.get_mech_vent_whole_house_cfm(num_beds, ffa, mech_vent, ela, unit_living, weather, unit, building_type)
+  def self.get_mech_vent_whole_house_cfm(num_beds, ffa, mech_vent, unit_living, weather, unit, building_type, building)
     # Returns the ASHRAE 62.2 whole house mechanical ventilation rate.
     q_tot = (num_beds + 1.0) * 7.5 + 0.03 * ffa
 
@@ -2454,7 +2454,7 @@ class Airflow
       infil_a_ext = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces) / Geometry.calculate_above_grade_wall_area(unit.spaces)
     end
 
-    nl = 1000.0 * ela / ffa * (unit_living.height / 8.2)**0.4 # Normalized leakage, eq. 4.4
+    nl = 1000.0 * building.SLA * (unit_living.height / 8.2)**0.4 # Normalized leakage, eq. 4.4
     q_inf = nl * weather.data.WSF * ffa / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
 
     if mech_vent.type == Constants.VentTypeBalanced
