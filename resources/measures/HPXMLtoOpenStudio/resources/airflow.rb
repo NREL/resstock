@@ -2451,10 +2451,10 @@ class Airflow
 
     infil_a_ext = 1.0
     if [Constants.BuildingTypeSingleFamilyAttached, Constants.BuildingTypeMultifamily].include? building_type
-      infil_a_ext = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces) / Geometry.calculate_above_grade_wall_area(unit.spaces)
+      infil_a_ext = Geometry.calculate_exterior_wall_area(unit.spaces) / Geometry.calculate_wall_area(unit.spaces)
     end
 
-    nl = 1000.0 * building.SLA * (unit_living.height / 8.2)**0.4 # Normalized leakage, eq. 4.4
+    nl = 1000.0 * unit_living.SLA * (unit_living.height / 8.2)**0.4 # Normalized leakage, eq. 4.4
     q_inf = nl * weather.data.WSF * ffa / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
 
     if mech_vent.type == Constants.VentTypeBalanced

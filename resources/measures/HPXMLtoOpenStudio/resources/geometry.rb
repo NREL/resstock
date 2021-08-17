@@ -645,6 +645,32 @@ class Geometry
     return wall_area.round(5)
   end
 
+  def self.calculate_wall_area(spaces)
+    wall_area = 0
+    spaces.each do |space|
+      space.surfaces.each do |surface|
+        next if surface.surfaceType.downcase != 'wall'
+
+        wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
+      end
+    end
+    return wall_area.round(5)
+  end
+
+  def self.calculate_exterior_wall_area(spaces)
+    wall_area = 0
+    spaces.each do |space|
+      space.surfaces.each do |surface|
+        next if surface.surfaceType.downcase != 'wall'
+        next if (surface.outsideBoundaryCondition.downcase != 'outdoors' && surface.outsideBoundaryCondition.downcase != 'foundation')
+        next unless space_is_finished(surface.space.get)
+
+        wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
+      end
+    end
+    return wall_area.round(5)
+  end
+
   def self.get_roof_pitch(surfaces)
     tilts = []
     surfaces.each do |surface|
