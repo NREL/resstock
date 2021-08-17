@@ -3166,7 +3166,7 @@ class HPXMLFile
     end
     args[:resources_path] = File.join(File.dirname(__FILE__), 'resources')
     if args[:schedules_vacancy_period].is_initialized
-      begin_month, begin_day, end_month, end_day = parse_date_range(args[:schedules_vacancy_period].get)
+      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:schedules_vacancy_period].get)
       args[:schedules_vacancy_begin_month] = begin_month
       args[:schedules_vacancy_begin_day] = begin_day
       args[:schedules_vacancy_end_month] = end_month
@@ -3203,7 +3203,7 @@ class HPXMLFile
     end
 
     if args[:simulation_control_run_period].is_initialized
-      begin_month, begin_day, end_month, end_day = parse_date_range(args[:simulation_control_run_period].get)
+      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:simulation_control_run_period].get)
       hpxml.header.sim_begin_month = begin_month
       hpxml.header.sim_begin_day = begin_day
       hpxml.header.sim_end_month = end_month
@@ -3218,7 +3218,7 @@ class HPXMLFile
       hpxml.header.dst_enabled = args[:simulation_control_daylight_saving_enabled].get
     end
     if args[:simulation_control_daylight_saving_period].is_initialized
-      begin_month, begin_day, end_month, end_day = parse_date_range(args[:simulation_control_daylight_saving_period].get)
+      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:simulation_control_daylight_saving_period].get)
       hpxml.header.dst_begin_month = begin_month
       hpxml.header.dst_begin_day = begin_day
       hpxml.header.dst_end_month = end_month
@@ -3253,7 +3253,7 @@ class HPXMLFile
       distance, neighbor_height = data
       next if distance == 0
 
-      azimuth = get_azimuth_from_facade(facade, args)
+      azimuth = Geometry.get_azimuth_from_facade(facade: facade, orientation: args[:geometry_orientation])
 
       if (distance > 0) && (neighbor_height != Constants.Auto)
         height = Float(neighbor_height)
@@ -3364,7 +3364,7 @@ class HPXMLFile
       next unless ['Outdoors'].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != 'RoofCeiling'
 
-      interior_adjacent_to = get_adjacent_to(surface)
+      interior_adjacent_to = Geometry.get_adjacent_to(surface: surface)
       next if [HPXML::LocationOtherHousingUnit].include? interior_adjacent_to
 
       if args[:roof_material_type].is_initialized
@@ -3383,11 +3383,11 @@ class HPXMLFile
       if args[:geometry_roof_type] == 'flat'
         azimuth = nil
       else
-        azimuth = get_surface_azimuth(surface, args)
+        azimuth = Geometry.get_surface_azimuth(surface: surface, orientation: args[:geometry_orientation])
       end
 
       hpxml.roofs.add(id: valid_attr(surface.name),
-                      interior_adjacent_to: get_adjacent_to(surface),
+                      interior_adjacent_to: Geometry.get_adjacent_to(surface: surface),
                       azimuth: azimuth,
                       area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(2),
                       roof_type: roof_type,
@@ -3405,12 +3405,12 @@ class HPXMLFile
       next unless ['Outdoors', 'Adiabatic'].include? surface.outsideBoundaryCondition
       next unless Geometry.surface_is_rim_joist(surface, args[:geometry_rim_joist_height])
 
-      interior_adjacent_to = get_adjacent_to(surface)
+      interior_adjacent_to = Geometry.get_adjacent_to(surface: surface)
       next unless [HPXML::LocationBasementConditioned, HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? interior_adjacent_to
 
       exterior_adjacent_to = HPXML::LocationOutside
       if surface.outsideBoundaryCondition == 'Adiabatic' # can be adjacent to foundation space
-        adjacent_surface = get_adiabatic_adjacent_surface(model, surface)
+        adjacent_surface = Geometry.get_adiabatic_adjacent_surface(model: model, surface: surface)
         if adjacent_surface.nil? # adjacent to a space that is not explicitly in the model
           unless [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
             exterior_adjacent_to = interior_adjacent_to
@@ -3419,7 +3419,7 @@ class HPXMLFile
             end
           end
         else # adjacent to a space that is explicitly in the model, e.g., corridor
-          exterior_adjacent_to = get_adjacent_to(adjacent_surface)
+          exterior_adjacent_to = Geometry.get_adjacent_to(surface: adjacent_surface)
         end
       end
 
@@ -3447,57 +3447,26 @@ class HPXMLFile
     end
   end
 
-  def self.get_unexposed_garage_perimeter(hpxml, args)
-    # this is perimeter adjacent to a 100% protruding garage that is not exposed
-    # we need this because it's difficult to set this surface to Adiabatic using our geometry methods
-    if (args[:geometry_garage_protrusion] == 1.0) && (args[:geometry_garage_width] * args[:geometry_garage_depth] > 0)
-      return args[:geometry_garage_width]
-    end
-
-    return 0
-  end
-
-  def self.get_adiabatic_adjacent_surface(model, surface)
-    return if surface.outsideBoundaryCondition != 'Adiabatic'
-
-    adjacentSurfaceType = 'Wall'
-    if surface.surfaceType == 'RoofCeiling'
-      adjacentSurfaceType = 'Floor'
-    elsif surface.surfaceType == 'Floor'
-      adjacentSurfaceType = 'RoofCeiling'
-    end
-
-    model.getSurfaces.sort.each do |adjacent_surface|
-      next if surface == adjacent_surface
-      next if adjacent_surface.surfaceType != adjacentSurfaceType
-      next if adjacent_surface.outsideBoundaryCondition != 'Adiabatic'
-      next unless Geometry.has_same_vertices(surface, adjacent_surface)
-
-      return adjacent_surface
-    end
-    return
-  end
-
   def self.set_walls(hpxml, runner, model, args)
     model.getSurfaces.sort.each do |surface|
       next if surface.surfaceType != 'Wall'
       next if Geometry.surface_is_rim_joist(surface, args[:geometry_rim_joist_height])
 
-      interior_adjacent_to = get_adjacent_to(surface)
+      interior_adjacent_to = Geometry.get_adjacent_to(surface: surface)
       next unless [HPXML::LocationLivingSpace, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented, HPXML::LocationGarage].include? interior_adjacent_to
 
       exterior_adjacent_to = HPXML::LocationOutside
       if surface.adjacentSurface.is_initialized
-        exterior_adjacent_to = get_adjacent_to(surface.adjacentSurface.get)
+        exterior_adjacent_to = Geometry.get_adjacent_to(surface: surface.adjacentSurface.get)
       elsif surface.outsideBoundaryCondition == 'Adiabatic' # can be adjacent to living space, attic, corridor
-        adjacent_surface = get_adiabatic_adjacent_surface(model, surface)
+        adjacent_surface = Geometry.get_adiabatic_adjacent_surface(model: model, surface: surface)
         if adjacent_surface.nil? # adjacent to a space that is not explicitly in the model
           exterior_adjacent_to = interior_adjacent_to
           if exterior_adjacent_to == HPXML::LocationLivingSpace # living adjacent to living
             exterior_adjacent_to = HPXML::LocationOtherHousingUnit
           end
         else # adjacent to a space that is explicitly in the model, e.g., corridor
-          exterior_adjacent_to = get_adjacent_to(adjacent_surface)
+          exterior_adjacent_to = Geometry.get_adjacent_to(surface: adjacent_surface)
         end
       end
 
@@ -3516,7 +3485,7 @@ class HPXMLFile
         color = args[:wall_color]
       end
 
-      azimuth = get_surface_azimuth(surface, args)
+      azimuth = Geometry.get_surface_azimuth(surface: surface, orientation: args[:geometry_orientation])
 
       hpxml.walls.add(id: valid_attr(surface.name),
                       exterior_adjacent_to: exterior_adjacent_to,
@@ -3550,12 +3519,12 @@ class HPXMLFile
       next unless ['Foundation', 'Adiabatic'].include? surface.outsideBoundaryCondition
       next if Geometry.surface_is_rim_joist(surface, args[:geometry_rim_joist_height])
 
-      interior_adjacent_to = get_adjacent_to(surface)
+      interior_adjacent_to = Geometry.get_adjacent_to(surface: surface)
       next unless [HPXML::LocationBasementConditioned, HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? interior_adjacent_to
 
       exterior_adjacent_to = HPXML::LocationGround
       if surface.outsideBoundaryCondition == 'Adiabatic' # can be adjacent to foundation space
-        adjacent_surface = get_adiabatic_adjacent_surface(model, surface)
+        adjacent_surface = Geometry.get_adiabatic_adjacent_surface(model: model, surface: surface)
         if adjacent_surface.nil? # adjacent to a space that is not explicitly in the model
           unless [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type])
             exterior_adjacent_to = interior_adjacent_to
@@ -3564,7 +3533,7 @@ class HPXMLFile
             end
           end
         else # adjacent to a space that is explicitly in the model, e.g., corridor
-          exterior_adjacent_to = get_adjacent_to(adjacent_surface)
+          exterior_adjacent_to = Geometry.get_adjacent_to(surface: adjacent_surface)
         end
       end
 
@@ -3619,12 +3588,12 @@ class HPXMLFile
       next if surface.outsideBoundaryCondition == 'Foundation'
       next unless ['Floor', 'RoofCeiling'].include? surface.surfaceType
 
-      interior_adjacent_to = get_adjacent_to(surface)
+      interior_adjacent_to = Geometry.get_adjacent_to(surface: surface)
       next unless [HPXML::LocationLivingSpace, HPXML::LocationGarage].include? interior_adjacent_to
 
       exterior_adjacent_to = HPXML::LocationOutside
       if surface.adjacentSurface.is_initialized
-        exterior_adjacent_to = get_adjacent_to(surface.adjacentSurface.get)
+        exterior_adjacent_to = Geometry.get_adjacent_to(surface: surface.adjacentSurface.get)
       elsif surface.outsideBoundaryCondition == 'Adiabatic'
         exterior_adjacent_to = HPXML::LocationOtherHousingUnit
         if surface.surfaceType == 'Floor'
@@ -3663,7 +3632,7 @@ class HPXMLFile
       next unless ['Foundation'].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != 'Floor'
 
-      interior_adjacent_to = get_adjacent_to(surface)
+      interior_adjacent_to = Geometry.get_adjacent_to(surface: surface)
       next if [HPXML::LocationOutside, HPXML::LocationOtherHousingUnit].include? interior_adjacent_to
 
       has_foundation_walls = false
@@ -3674,7 +3643,7 @@ class HPXMLFile
       next if exposed_perimeter == 0 # this could be, e.g., the foundation floor of an interior corridor
 
       if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned, HPXML::LocationBasementConditioned].include? interior_adjacent_to
-        exposed_perimeter -= get_unexposed_garage_perimeter(hpxml, args)
+        exposed_perimeter -= Geometry.get_unexposed_garage_perimeter(**args)
       end
 
       if [HPXML::LocationLivingSpace, HPXML::LocationGarage].include? interior_adjacent_to
@@ -3759,7 +3728,7 @@ class HPXMLFile
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         end
 
-        azimuth = get_azimuth_from_facade(sub_surface_facade, args)
+        azimuth = Geometry.get_azimuth_from_facade(facade: sub_surface_facade, orientation: args[:geometry_orientation])
 
         if args[:window_interior_shading_winter].is_initialized
           interior_shading_factor_winter = args[:window_interior_shading_winter].get
@@ -3818,11 +3787,11 @@ class HPXMLFile
 
   def self.set_doors(hpxml, runner, model, args)
     model.getSurfaces.sort.each do |surface|
-      interior_adjacent_to = get_adjacent_to(surface)
+      interior_adjacent_to = Geometry.get_adjacent_to(surface: surface)
 
       adjacent_surface = surface
       if [HPXML::LocationOtherHousingUnit].include?(interior_adjacent_to)
-        adjacent_surface = get_adiabatic_adjacent_surface(model, surface)
+        adjacent_surface = Geometry.get_adiabatic_adjacent_surface(model: model, surface: surface)
         next if adjacent_surface.nil?
       end
 
@@ -4240,7 +4209,7 @@ class HPXMLFile
                             ceiling_fan_cooling_setpoint_temp_offset: ceiling_fan_cooling_setpoint_temp_offset)
 
     if args[:season_heating_period].is_initialized
-      begin_month, begin_day, end_month, end_day = parse_date_range(args[:season_heating_period].get)
+      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:season_heating_period].get)
       hpxml.hvac_controls[0].seasons_heating_begin_month = begin_month
       hpxml.hvac_controls[0].seasons_heating_begin_day = begin_day
       hpxml.hvac_controls[0].seasons_heating_end_month = end_month
@@ -4248,7 +4217,7 @@ class HPXMLFile
     end
 
     if args[:season_cooling_period].is_initialized
-      begin_month, begin_day, end_month, end_day = parse_date_range(args[:season_cooling_period].get)
+      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:season_cooling_period].get)
       hpxml.hvac_controls[0].seasons_cooling_begin_month = begin_month
       hpxml.hvac_controls[0].seasons_cooling_begin_day = begin_day
       hpxml.hvac_controls[0].seasons_cooling_end_month = end_month
@@ -4631,18 +4600,6 @@ class HPXMLFile
     end
   end
 
-  def self.get_absolute_tilt(tilt_str, roof_pitch, epw_file)
-    tilt_str = tilt_str.downcase
-    if tilt_str.start_with? 'roofpitch'
-      roof_angle = Math.atan(roof_pitch / 12.0) * 180.0 / Math::PI
-      return Float(eval(tilt_str.gsub('roofpitch', roof_angle.to_s)))
-    elsif tilt_str.start_with? 'latitude'
-      return Float(eval(tilt_str.gsub('latitude', epw_file.latitude.to_s)))
-    else
-      return Float(tilt_str)
-    end
-  end
-
   def self.set_solar_thermal(hpxml, runner, args, epw_file)
     return if args[:solar_thermal_system_type] == 'none'
 
@@ -4653,7 +4610,7 @@ class HPXMLFile
       collector_loop_type = args[:solar_thermal_collector_loop_type]
       collector_type = args[:solar_thermal_collector_type]
       collector_azimuth = args[:solar_thermal_collector_azimuth]
-      collector_tilt = get_absolute_tilt(args[:solar_thermal_collector_tilt], args[:geometry_roof_pitch], epw_file)
+      collector_tilt = Geometry.get_absolute_tilt(args[:solar_thermal_collector_tilt], args[:geometry_roof_pitch], epw_file)
       collector_frta = args[:solar_thermal_collector_rated_optical_efficiency]
       collector_frul = args[:solar_thermal_collector_rated_thermal_losses]
 
@@ -4717,7 +4674,7 @@ class HPXMLFile
                            module_type: module_type,
                            tracking: tracking,
                            array_azimuth: [args[:pv_system_array_azimuth_1], args[:pv_system_array_azimuth_2]][i],
-                           array_tilt: get_absolute_tilt([args[:pv_system_array_tilt_1], args[:pv_system_array_tilt_2]][i], args[:geometry_roof_pitch], epw_file),
+                           array_tilt: Geometry.get_absolute_tilt([args[:pv_system_array_tilt_1], args[:pv_system_array_tilt_2]][i], args[:geometry_roof_pitch], epw_file),
                            max_power_output: max_power_output,
                            inverter_efficiency: inverter_efficiency,
                            system_losses_fraction: system_losses_fraction,
@@ -4785,7 +4742,7 @@ class HPXMLFile
     end
 
     if args[:holiday_lighting_period].is_initialized
-      begin_month, begin_day, end_month, end_day = parse_date_range(args[:holiday_lighting_period].get)
+      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:holiday_lighting_period].get)
       hpxml.lighting.holiday_period_begin_month = begin_month
       hpxml.lighting.holiday_period_begin_day = begin_day
       hpxml.lighting.holiday_period_end_month = end_month
@@ -5311,58 +5268,6 @@ class HPXMLFile
     attr = attr.gsub(' ', '_')
     attr = attr.gsub('|', '_')
     return attr
-  end
-
-  def self.get_adjacent_to(surface)
-    space = surface.space.get
-    st = space.spaceType.get
-    space_type = st.standardsSpaceType.get
-
-    return space_type
-  end
-
-  def self.get_surface_azimuth(surface, args)
-    facade = Geometry.get_facade_for_surface(surface)
-    return get_azimuth_from_facade(facade, args)
-  end
-
-  def self.get_azimuth_from_facade(facade, args)
-    if facade == Constants.FacadeFront
-      azimuth = Geometry.get_abs_azimuth(0, args[:geometry_orientation])
-    elsif facade == Constants.FacadeBack
-      azimuth = Geometry.get_abs_azimuth(180, args[:geometry_orientation])
-    elsif facade == Constants.FacadeLeft
-      azimuth = Geometry.get_abs_azimuth(90, args[:geometry_orientation])
-    elsif facade == Constants.FacadeRight
-      azimuth = Geometry.get_abs_azimuth(270, args[:geometry_orientation])
-    else
-      fail 'Unexpected facade.'
-    end
-  end
-
-  def self.parse_date_range(date_range)
-    begin_end_dates = date_range.split('-').map { |v| v.strip }
-    if begin_end_dates.size != 2
-      fail "Invalid date format specified for '#{date_range}'."
-    end
-
-    begin_values = begin_end_dates[0].split(' ').map { |v| v.strip }
-    end_values = begin_end_dates[1].split(' ').map { |v| v.strip }
-
-    if (begin_values.size != 2) || (end_values.size != 2)
-      fail "Invalid date format specified for '#{date_range}'."
-    end
-
-    require 'date'
-    begin_month = Date::ABBR_MONTHNAMES.index(begin_values[0].capitalize)
-    end_month = Date::ABBR_MONTHNAMES.index(end_values[0].capitalize)
-    begin_day = begin_values[1].to_i
-    end_day = end_values[1].to_i
-    if begin_month.nil? || end_month.nil? || begin_day == 0 || end_day == 0
-      fail "Invalid date format specified for '#{date_range}'."
-    end
-
-    return begin_month, begin_day, end_month, end_day
   end
 end
 

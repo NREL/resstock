@@ -56,6 +56,8 @@ class Airflow
     vent_fans_bath = []
     vent_fans_whf = []
     hpxml.ventilation_fans.each do |vent_fan|
+      next unless vent_fan.flow_rate > 0
+
       if vent_fan.used_for_whole_building_ventilation
         vent_fans_mech << vent_fan
       elsif vent_fan.used_for_seasonal_cooling_load_reduction
