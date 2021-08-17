@@ -287,11 +287,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_rim_joist_height', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_rim_joist_height', false)
     arg.setDisplayName('Geometry: Rim Joist Height')
     arg.setUnits('in')
     arg.setDescription('The height of the rim joists. Only applies to basements/crawlspaces.')
-    arg.setDefaultValue(9.25)
     args << arg
 
     roof_type_choices = OpenStudio::StringVector.new
@@ -450,11 +449,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_r', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_r', false)
     arg.setDisplayName('Rim Joist: Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Assembly R-value for the rim joists. Only applies to basements/crawlspaces.')
-    arg.setDefaultValue(23)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('slab_perimeter_insulation_r', true)
@@ -2787,8 +2785,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
     args = Hash[args.collect { |k, v| [k.to_sym, v] }]
-    args[:geometry_rim_joist_height] /= 12.0
-    args[:geometry_roof_pitch] = { '1:12' => 1.0 / 12.0, '2:12' => 2.0 / 12.0, '3:12' => 3.0 / 12.0, '4:12' => 4.0 / 12.0, '5:12' => 5.0 / 12.0, '6:12' => 6.0 / 12.0, '7:12' => 7.0 / 12.0, '8:12' => 8.0 / 12.0, '9:12' => 9.0 / 12.0, '10:12' => 10.0 / 12.0, '11:12' => 11.0 / 12.0, '12:12' => 12.0 / 12.0 }[args[:geometry_roof_pitch]]
 
     # Argument error checks
     warnings, errors = validate_arguments(args)
@@ -2917,15 +2913,48 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     # single-family attached and num units, horizontal location not specified
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_horizontal_location].is_initialized)
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_building_num_units=#{args[:geometry_building_num_units].is_initialized} and geometry_horizontal_location=#{args[:geometry_horizontal_location].is_initialized}" if error
+    if error
+      error = "geometry_unit_type=#{args[:geometry_unit_type]}"
+      if !args[:geometry_building_num_units].is_initialized
+        error += ' and geometry_building_num_units=not provided'
+      end
+      if !args[:geometry_horizontal_location].is_initialized
+        error += ' and geometry_horizontal_location=not provided'
+      end
+      errors << error
+    end
 
     # apartment unit and num units, level, horizontal location not specified
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_level].is_initialized || !args[:geometry_horizontal_location].is_initialized)
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_building_num_units=#{args[:geometry_building_num_units].is_initialized} and geometry_level=#{args[:geometry_level].is_initialized} and geometry_horizontal_location=#{args[:geometry_horizontal_location].is_initialized}" if error
+    if error
+      error = "geometry_unit_type=#{args[:geometry_unit_type]}"
+      if !args[:geometry_building_num_units].is_initialized
+        error += ' and geometry_building_num_units=not provided'
+      end
+      if !args[:geometry_level].is_initialized
+        error += ' and geometry_level=not provided'
+      end
+      if !args[:geometry_horizontal_location].is_initialized
+        error += ' and geometry_horizontal_location=not provided'
+      end
+      errors << error
+    end
 
     # crawlspace or unconditioned basement with foundation wall and ceiling insulation
-    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || (args[:foundation_wall_assembly_r].is_initialized && (args[:foundation_wall_assembly_r].get > 0))) && (args[:floor_over_foundation_assembly_r] > 2.1)
-    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and foundation_wall_insulation_r=#{args[:foundation_wall_insulation_r]} and foundation_wall_assembly_r=#{args[:foundation_wall_assembly_r].is_initialized} and floor_over_foundation_assembly_r=#{args[:floor_over_foundation_assembly_r]}" if warning
+    warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > 2.1)
+    if warning
+      warning = "geometry_foundation_type=#{args[:geometry_foundation_type]}"
+      if args[:foundation_wall_insulation_r] > 0
+        warning += " and foundation_wall_insulation_r=#{args[:foundation_wall_insulation_r]}"
+      end
+      if args[:foundation_wall_assembly_r].is_initialized
+        warning += " and foundation_wall_assembly_r=#{args[:foundation_wall_assembly_r].get}"
+      end
+      if args[:floor_over_foundation_assembly_r] > 2.1
+        warning += " and floor_over_foundation_assembly_r=#{args[:floor_over_foundation_assembly_r]}"
+      end
+      warnings << warning
+    end
 
     # vented/unvented attic with floor and roof insulation
     warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1) && (args[:roof_assembly_r] > 2.3)
@@ -2988,6 +3017,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # single-family detached with shared system
     error = [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type]) && args[:heating_system_type].include?('Shared')
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and heating_system_type=#{args[:heating_system_type]}" if error
+
+    # rim joist height but no rim joist assembly r
+    error = args[:geometry_rim_joist_height].is_initialized && !args[:rim_joist_assembly_r].is_initialized
+    errors << "geometry_rim_joist_height=#{args[:geometry_rim_joist_height].get} and rim_joist_assembly_r=not provided" if error
+
+    # rim joist assembly r but no rim joist height
+    error = args[:rim_joist_assembly_r].is_initialized && !args[:geometry_rim_joist_height].is_initialized
+    errors << "rim_joist_assembly_r=#{args[:rim_joist_assembly_r].get} and geometry_rim_joist_height=not provided" if error
 
     return warnings, errors
   end
@@ -3093,6 +3130,25 @@ class HPXMLFile
   end
 
   def self.create_geometry_envelope(runner, model, args)
+    args[:geometry_roof_pitch] = { '1:12' => 1.0 / 12.0,
+                                   '2:12' => 2.0 / 12.0,
+                                   '3:12' => 3.0 / 12.0,
+                                   '4:12' => 4.0 / 12.0,
+                                   '5:12' => 5.0 / 12.0,
+                                   '6:12' => 6.0 / 12.0,
+                                   '7:12' => 7.0 / 12.0,
+                                   '8:12' => 8.0 / 12.0,
+                                   '9:12' => 9.0 / 12.0,
+                                   '10:12' => 10.0 / 12.0,
+                                   '11:12' => 11.0 / 12.0,
+                                   '12:12' => 12.0 / 12.0 }[args[:geometry_roof_pitch]]
+
+    if args[:geometry_rim_joist_height].is_initialized
+      args[:geometry_rim_joist_height] = args[:geometry_rim_joist_height].get / 12.0
+    else
+      args[:geometry_rim_joist_height] = 0.0
+    end
+
     if args[:geometry_foundation_type] == HPXML::FoundationTypeSlab
       args[:geometry_foundation_height] = 0.0
       args[:geometry_foundation_height_above_grade] = 0.0
@@ -3434,7 +3490,7 @@ class HPXMLFile
       if interior_adjacent_to == exterior_adjacent_to
         insulation_assembly_r_value = 4.0 # Uninsulated
       else
-        insulation_assembly_r_value = args[:rim_joist_assembly_r]
+        insulation_assembly_r_value = args[:rim_joist_assembly_r].get
       end
 
       hpxml.rim_joists.add(id: valid_attr(surface.name),
