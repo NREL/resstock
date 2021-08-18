@@ -6953,6 +6953,21 @@ def set_hpxml_ventilation_fans(hpxml_file, hpxml)
                                fan_power: 37.5,
                                used_for_whole_building_ventilation: true,
                                distribution_system_idref: 'HVACDistribution2')
+    # Test ventilation system w/ zero airflow and hours
+    hpxml.ventilation_fans.add(id: 'HRV_NoAirflow',
+                               fan_type: HPXML::MechVentTypeHRV,
+                               tested_flow_rate: 0,
+                               hours_in_operation: 24,
+                               sensible_recovery_efficiency: 0.72,
+                               fan_power: 7.5,
+                               used_for_whole_building_ventilation: true)
+    hpxml.ventilation_fans.add(id: 'HRV_NoHours',
+                               fan_type: HPXML::MechVentTypeHRV,
+                               tested_flow_rate: 15,
+                               hours_in_operation: 0,
+                               sensible_recovery_efficiency: 0.72,
+                               fan_power: 7.5,
+                               used_for_whole_building_ventilation: true)
   end
 end
 
