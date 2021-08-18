@@ -37,7 +37,9 @@ __New Features__
 __Bugfixes__
 - Improves ground reflectance when there is shading of windows/skylights.
 - Improves HVAC fan power for central forced air systems.
+- Fixes mechanical ventilation compartmentalization area calculation for SFA/MF homes with surfaces with InteriorAdjacentTo==ExteriorAdjacentTo.
 - Negative `DistanceToTopOfInsulation` values are now disallowed.
+- Fixes workflow errors if a `VentilationFan` has zero airflow rate or zero hours of operation.
 
 ## OpenStudio-HPXML v1.2.0
 
