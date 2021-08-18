@@ -9,7 +9,7 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = { 'project_testing' => 100, 'project_national' => 3000 }
+    @project_dir_baseline = { 'project_testing' => 100 }
     @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
@@ -109,6 +109,7 @@ class IntegrationWorkflowTest < MiniTest::Test
       (1..num_samples).to_a.each do |building_id|
         bldg_data = get_data_for_sample(buildstock_csv_data, building_id, runner)
         next unless counties.include? bldg_data['County']
+        next unless building_id == 26
 
         workflow_and_building_ids << [workflow, building_id]
       end
