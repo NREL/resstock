@@ -267,7 +267,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
       'Size, Water Heater (gal)' => 30,
-      'Flow Rate, Mechanical Ventilation (cfm)' => 40.3,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 34.5,
     }
     _test_cost_multipliers('SFA_2story_UB_Furnace_RoomAC_FuelTankWH.osm', cost_multipliers)
   end
@@ -333,7 +333,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
       'Size, Water Heater (gal)' => 30,
-      'Flow Rate, Mechanical Ventilation (cfm)' => 40.3,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 34.5,
     }
     _test_cost_multipliers('SFA_2story_UB_FuelBoiler_RoomAC_FuelTankWH.osm', cost_multipliers)
   end
@@ -377,7 +377,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 50,
-      'Flow Rate, Mechanical Ventilation (cfm)' => 40.3,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 34.5,
     }
     _test_cost_multipliers('SFA_2story_UB_ASHP2_HPWH.osm', cost_multipliers)
   end
@@ -399,7 +399,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
       'Size, Water Heater (gal)' => 30 * 1,
-      'Flow Rate, Mechanical Ventilation (cfm)' => 38.8,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 35.0,
     }
     _test_cost_multipliers('SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH.osm', cost_multipliers)
   end
@@ -443,7 +443,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60 * 1,
       'Size, Water Heater (gal)' => 30 * 1,
-      'Flow Rate, Mechanical Ventilation (cfm)' => 40.0,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 37.3,
     }
     _test_cost_multipliers('MF_1story_UB_Furnace_AC1_FuelTankWH.osm', cost_multipliers)
   end

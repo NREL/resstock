@@ -649,6 +649,8 @@ class Geometry
     bndry_area = 0
     spaces.each do |space|
       space.surfaces.each do |surface|
+        next if surface.adjacentSurface.is_initialized && space_is_finished(surface.adjacentSurface.get.space.get)
+
         bndry_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
     end
@@ -659,7 +661,9 @@ class Geometry
     bndry_area = 0
     spaces.each do |space|
       space.surfaces.each do |surface|
-        next unless ['outdoors', 'foundation'].include? surface.outsideBoundaryCondition.downcase
+        next if surface.adjacentSurface.is_initialized && space_is_finished(surface.adjacentSurface.get.space.get)
+        next if surface.adjacentSurface.is_initialized && is_garage(surface.adjacentSurface.get.space.get)
+        next if surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
         bndry_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
