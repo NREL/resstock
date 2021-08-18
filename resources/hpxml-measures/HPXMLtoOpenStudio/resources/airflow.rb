@@ -57,6 +57,7 @@ class Airflow
     vent_fans_whf = []
     hpxml.ventilation_fans.each do |vent_fan|
       next unless vent_fan.flow_rate > 0
+      next unless vent_fan.hours_in_operation.nil? || vent_fan.hours_in_operation > 0
 
       if vent_fan.used_for_whole_building_ventilation
         vent_fans_mech << vent_fan
