@@ -2451,7 +2451,7 @@ class Airflow
 
     infil_a_ext = 1.0
     if [Constants.BuildingTypeSingleFamilyAttached, Constants.BuildingTypeMultifamily].include? building_type
-      infil_a_ext = Geometry.calculate_exterior_wall_area(unit.spaces) / Geometry.calculate_wall_area(unit.spaces)
+      infil_a_ext = Geometry.calculate_exterior_boundary_area(unit.spaces) / Geometry.calculate_boundary_area(unit.spaces)
     end
 
     nl = 1000.0 * unit_living.SLA * (unit_living.height / 8.2)**0.4 # Normalized leakage, eq. 4.4

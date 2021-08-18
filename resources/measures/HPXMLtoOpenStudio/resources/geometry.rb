@@ -645,30 +645,26 @@ class Geometry
     return wall_area.round(5)
   end
 
-  def self.calculate_wall_area(spaces)
-    wall_area = 0
+  def self.calculate_boundary_area(spaces)
+    bndry_area = 0
     spaces.each do |space|
       space.surfaces.each do |surface|
-        next if surface.surfaceType.downcase != 'wall'
-
-        wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
+        bndry_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
     end
-    return wall_area.round(5)
+    return bndry_area.round(5)
   end
 
-  def self.calculate_exterior_wall_area(spaces)
-    wall_area = 0
+  def self.calculate_exterior_boundary_area(spaces)
+    bndry_area = 0
     spaces.each do |space|
       space.surfaces.each do |surface|
-        next if surface.surfaceType.downcase != 'wall'
-        next if (surface.outsideBoundaryCondition.downcase != 'outdoors' && surface.outsideBoundaryCondition.downcase != 'foundation')
-        next unless space_is_finished(surface.space.get)
+        next unless ['outdoors', 'foundation'].include? surface.outsideBoundaryCondition.downcase
 
-        wall_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
+        bndry_area += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
     end
-    return wall_area.round(5)
+    return bndry_area.round(5)
   end
 
   def self.get_roof_pitch(surfaces)
