@@ -84,7 +84,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       'Size, Heating System (kBtu/h)' => 'size_heating_system_kbtu_h',
       'Size, Cooling System (kBtu/h)' => 'size_cooling_system_kbtu_h',
       'Size, Heating Supplemental System (kBtu/h)' => 'size_heating_supplemental_system_kbtu_h',
-      'Size, Water Heater (gal)' => 'size_water_heater_gal'
+      'Size, Water Heater (gal)' => 'size_water_heater_gal',
+      'Flow Rate, Mechanical Ventilation (cfm)' => 'flow_rate_mechanical_ventilation_cfm'
     }
   end
 
@@ -987,6 +988,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         end
       end
 
+    elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
+      # Whole-house mechanical ventilation flow rate
+      model.getEnergyManagementSystemPrograms.each do |ems_program|
+        next unless ems_program.name.to_s.start_with? 'res_infil'
+
+        ems_program.lines.each do |ems_line|
+          next unless ems_line.strip.start_with? 'Set QWHV = '
+
+          qwhv = Float(ems_line.split('*')[1])
+          cost_mult += UnitConversions.convert(qwhv, 'm^3/s', 'cfm')
+        end
+      end
     end
 
     return cost_mult
