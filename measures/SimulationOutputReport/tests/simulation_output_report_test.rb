@@ -25,6 +25,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 0,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 77.3,
     }
     _test_cost_multipliers('SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH.osm', cost_multipliers)
   end
@@ -46,6 +47,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
       'Size, Water Heater (gal)' => 0,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 54.0,
     }
     _test_cost_multipliers('SFD_1story_FB_UA_GRG_RoomAC_ElecBoiler_FuelTanklessWH.osm', cost_multipliers)
   end
@@ -67,6 +69,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 50,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 70.3,
     }
     _test_cost_multipliers('SFD_1story_UB_UA_ASHP2_HPWH.osm', cost_multipliers)
   end
@@ -88,6 +91,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 50,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 77.3,
     }
     _test_cost_multipliers('SFD_1story_UB_UA_GRG_ACV_FuelFurnace_HPWH.osm', cost_multipliers)
   end
@@ -109,6 +113,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 40,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 27.3,
     }
     _test_cost_multipliers('SFD_2story_CS_UA_AC2_FuelBoiler_FuelTankWH.osm', cost_multipliers)
   end
@@ -130,6 +135,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 0,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 27.8,
     }
     _test_cost_multipliers('SFD_2story_CS_UA_GRG_ASHPV_FuelTanklessWH.osm', cost_multipliers)
   end
@@ -151,6 +157,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 40,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 6.8,
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_AC1_ElecBaseboard_FuelTankWH.osm', cost_multipliers)
   end
@@ -172,6 +179,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 40,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 6.8,
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_AC1_UnitHeater_FuelTankWH.osm', cost_multipliers)
   end
@@ -193,6 +201,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 0,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 6.8,
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH.osm', cost_multipliers)
   end
@@ -214,6 +223,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 0,
       'Size, Water Heater (gal)' => 66,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 27.3,
     }
     _test_cost_multipliers('SFD_2story_PB_UA_ElecFurnace_ElecTankWH.osm', cost_multipliers)
   end
@@ -235,6 +245,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 0,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 27.8,
     }
     _test_cost_multipliers('SFD_2story_S_UA_GRG_ASHP1_FuelTanklessWH.osm', cost_multipliers)
   end
@@ -256,6 +267,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
       'Size, Water Heater (gal)' => 30,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 34.5,
     }
     _test_cost_multipliers('SFA_2story_UB_Furnace_RoomAC_FuelTankWH.osm', cost_multipliers)
   end
@@ -277,6 +289,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 30,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 42.8,
     }
     _test_cost_multipliers('MF_2story_UB_Furnace_AC1_FuelTankWH.osm', cost_multipliers)
   end
@@ -298,6 +311,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 30,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 42.8,
     }
     _test_cost_multipliers('MF_2story_UB_Furnace_AC1_FuelTankWH_TopLevel.osm', cost_multipliers)
   end
@@ -319,6 +333,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
       'Size, Water Heater (gal)' => 30,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 34.5,
     }
     _test_cost_multipliers('SFA_2story_UB_FuelBoiler_RoomAC_FuelTankWH.osm', cost_multipliers)
   end
@@ -340,6 +355,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 30,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 42.8,
     }
     _test_cost_multipliers('MF_2story_UB_FuelBoiler_AC1_FuelTankWH.osm', cost_multipliers)
   end
@@ -361,6 +377,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 50,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 34.5,
     }
     _test_cost_multipliers('SFA_2story_UB_ASHP2_HPWH.osm', cost_multipliers)
   end
@@ -382,6 +399,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 36,
       'Size, Water Heater (gal)' => 30 * 1,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 35.0,
     }
     _test_cost_multipliers('SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH.osm', cost_multipliers)
   end
@@ -403,6 +421,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 100, # backup
       'Size, Cooling System (kBtu/h)' => 60,
       'Size, Water Heater (gal)' => 50,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 42.8,
     }
     _test_cost_multipliers('MF_2story_UB_ASHP2_HPWH.osm', cost_multipliers)
   end
@@ -424,6 +443,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60 * 1,
       'Size, Water Heater (gal)' => 30 * 1,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 37.3,
     }
     _test_cost_multipliers('MF_1story_UB_Furnace_AC1_FuelTankWH.osm', cost_multipliers)
   end
@@ -445,6 +465,7 @@ class SimulationOutputReportTest < MiniTest::Test
       'Size, Heating Supplemental System (kBtu/h)' => 0, # backup
       'Size, Cooling System (kBtu/h)' => 60 * 1,
       'Size, Water Heater (gal)' => 30 * 1,
+      'Flow Rate, Mechanical Ventilation (cfm)' => 44.7,
     }
     _test_cost_multipliers('MF_1story_UB_Furnace_AC1_FuelTankWH_MiddleUnit.osm', cost_multipliers)
   end
