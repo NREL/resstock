@@ -122,6 +122,20 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     args << arg
 
+    site_state_code_choices = OpenStudio::StringVector.new
+    ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
+     'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
+     'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
+     'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX',
+     'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY'].each do |sc|
+      site_state_code_choices << sc
+    end
+
+    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('site_state_code', site_state_code_choices, false)
+    arg.setDisplayName('Site: State Code')
+    arg.setDescription('State code of the home address. If not provided, uses the EPW weather file state code.')
+    args << arg
+
     site_type_choices = OpenStudio::StringVector.new
     site_type_choices << HPXML::SiteTypeSuburban
     site_type_choices << HPXML::SiteTypeUrban
@@ -3061,6 +3075,12 @@ class HPXMLFile
     success = create_geometry_envelope(runner, model, args)
     return false if not success
 
+    if args[:site_state_code].is_initialized
+      args[:site_state_code] = args[:site_state_code].get
+    else
+      args[:site_state_code] = epw_file.stateProvinceRegion
+    end
+
     success = create_schedules(runner, model, epw_file, args)
     return false if not success
 
@@ -3212,7 +3232,7 @@ class HPXMLFile
     random_seed = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
 
     # instantiate the generator
-    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, epw_file: epw_file, random_seed: random_seed)
+    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, epw_file: epw_file, state_code: args[:site_state_code], random_seed: random_seed)
 
     # create the schedule
     if args[:geometry_num_occupants] == Constants.Auto
@@ -3282,7 +3302,7 @@ class HPXMLFile
     end
 
     hpxml.header.building_id = 'MyBuilding'
-    hpxml.header.state_code = epw_file.stateProvinceRegion
+    hpxml.header.state_code = args[:site_state_code]
     hpxml.header.event_type = 'proposed workscope'
     hpxml.header.schedules_filepath = args[:schedules_path]
   end

@@ -8,15 +8,13 @@ class ScheduleGenerator
   def initialize(runner:,
                  model:,
                  epw_file:,
+                 state_code:,
                  building_id: nil,
                  random_seed: nil)
     @runner = runner
     @model = model
     @epw_file = epw_file
-    @state = 'CO'
-    unless epw_file.stateProvinceRegion.empty?
-      @state = epw_file.stateProvinceRegion
-    end
+    @state = state_code
     @building_id = building_id
     @random_seed = random_seed
   end
