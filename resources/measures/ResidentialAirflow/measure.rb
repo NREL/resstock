@@ -142,40 +142,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     mech_vent_sensible_efficiency.setDefaultValue(0)
     args << mech_vent_sensible_efficiency
 
-    # make a double argument for fraction of ashrae
-    mech_vent_frac_62_2 = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_frac_62_2', true)
-    mech_vent_frac_62_2.setDisplayName('Mechanical Ventilation: Fraction of ASHRAE 62.2')
-    mech_vent_frac_62_2.setUnits('frac')
-    mech_vent_frac_62_2.setDescription('Fraction of the ventilation rate (including any infiltration credit) specified by ASHRAE 62.2 that is desired in the building.')
-    mech_vent_frac_62_2.setDefaultValue(1.0)
-    args << mech_vent_frac_62_2
-
-    # make a choice argument for ashrae standard
-    standard_types_names = OpenStudio::StringVector.new
-    standard_types_names << '2010'
-    standard_types_names << '2013'
-
-    # make a double argument for ashrae standard
-    mech_vent_ashrae_std = OpenStudio::Measure::OSArgument::makeChoiceArgument('mech_vent_ashrae_std', standard_types_names, true)
-    mech_vent_ashrae_std.setDisplayName('Mechanical Ventilation: ASHRAE 62.2 Standard')
-    mech_vent_ashrae_std.setDescription('Specifies which version (year) of the ASHRAE 62.2 Standard should be used.')
-    mech_vent_ashrae_std.setDefaultValue('2010')
-    args << mech_vent_ashrae_std
-
-    # make a bool argument for infiltration credit
-    mech_vent_infil_credit = OpenStudio::Measure::OSArgument::makeBoolArgument('mech_vent_infil_credit', true)
-    mech_vent_infil_credit.setDisplayName('Mechanical Ventilation: Allow Infiltration Credit')
-    mech_vent_infil_credit.setDescription('Defines whether the infiltration credit allowed per the ASHRAE 62.2 Standard will be included in the calculation of the mechanical ventilation rate. If True, the infiltration credit will apply 1) to new/existing single-family detached homes for 2013 ASHRAE 62.2, or 2) to existing single-family detached or multi-family homes for 2010 ASHRAE 62.2.')
-    mech_vent_infil_credit.setDefaultValue(true)
-    args << mech_vent_infil_credit
-
-    # make a boolean argument for if an existing home
-    is_existing_home = OpenStudio::Measure::OSArgument::makeBoolArgument('is_existing_home', true)
-    is_existing_home.setDisplayName('Mechanical Ventilation: Is Existing Home')
-    is_existing_home.setDescription('Specifies whether the building is an existing home or new construction.')
-    is_existing_home.setDefaultValue(false)
-    args << is_existing_home
-
     # make a double argument for cfis open time
     mech_vent_cfis_open_time = OpenStudio::Measure::OSArgument::makeDoubleArgument('mech_vent_cfis_open_time', true)
     mech_vent_cfis_open_time.setDisplayName('Mechanical Ventilation: CFIS Damper Open Time')
@@ -441,16 +407,12 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
 
     # Mechanical Ventilation
     mech_vent_type = runner.getStringArgumentValue('mech_vent_type', user_arguments)
-    mech_vent_infil_credit = runner.getBoolArgumentValue('mech_vent_infil_credit', user_arguments)
     mech_vent_total_efficiency = runner.getDoubleArgumentValue('mech_vent_total_efficiency', user_arguments)
     mech_vent_sensible_efficiency = runner.getDoubleArgumentValue('mech_vent_sensible_efficiency', user_arguments)
     mech_vent_fan_power = runner.getDoubleArgumentValue('mech_vent_fan_power', user_arguments)
-    mech_vent_frac_62_2 = runner.getDoubleArgumentValue('mech_vent_frac_62_2', user_arguments)
-    mech_vent_ashrae_std = runner.getStringArgumentValue('mech_vent_ashrae_std', user_arguments)
     mech_vent_cfis_open_time = runner.getDoubleArgumentValue('mech_vent_cfis_open_time', user_arguments)
     mech_vent_cfis_airflow_frac = runner.getDoubleArgumentValue('mech_vent_cfis_airflow_frac', user_arguments)
     if mech_vent_type == Constants.VentTypeNone
-      mech_vent_frac_62_2 = 0.0
       mech_vent_fan_power = 0.0
       mech_vent_total_efficiency = 0.0
       mech_vent_sensible_efficiency = 0.0
@@ -460,7 +422,6 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
     range_exhaust_hour = runner.getIntegerArgumentValue('range_exhaust_hour', user_arguments)
     bathroom_exhaust = 50.0 # cfm per HSP
     bathroom_exhaust_hour = runner.getIntegerArgumentValue('bathroom_exhaust_hour', user_arguments)
-    is_existing_home = runner.getBoolArgumentValue('is_existing_home', user_arguments)
 
     # Natural Ventilation
     nat_vent_htg_offset = runner.getDoubleArgumentValue('nat_vent_htg_offset', user_arguments)
@@ -505,8 +466,8 @@ class ResidentialAirflow < OpenStudio::Measure::ModelMeasure
 
     # Create the airflow objects
     has_flue_chimney = (has_hvac_flue || has_water_heater_flue || has_fireplace_chimney)
-    infil = Infiltration.new(living_ach50, nil, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, nil, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, is_existing_home, terrain)
-    mech_vent = MechanicalVentilation.new(mech_vent_type, mech_vent_infil_credit, mech_vent_total_efficiency, mech_vent_frac_62_2, nil, mech_vent_fan_power, mech_vent_sensible_efficiency, mech_vent_ashrae_std, clothes_dryer_exhaust, range_exhaust, range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour)
+    infil = Infiltration.new(living_ach50, nil, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, nil, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, terrain)
+    mech_vent = MechanicalVentilation.new(mech_vent_type, mech_vent_total_efficiency, mech_vent_fan_power, mech_vent_sensible_efficiency, clothes_dryer_exhaust, range_exhaust, range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour)
     cfis = CFIS.new(mech_vent_cfis_open_time, mech_vent_cfis_airflow_frac)
     nat_vent = NaturalVentilation.new(nat_vent_htg_offset, nat_vent_clg_offset, nat_vent_ovlp_offset, nat_vent_htg_season, nat_vent_clg_season, nat_vent_ovlp_season, nat_vent_num_weekdays, nat_vent_num_weekends, nat_vent_frac_windows_open, nat_vent_frac_window_area_openable, nat_vent_max_oa_hr, nat_vent_max_oa_rh)
     ducts = Ducts.new(duct_total_leakage, duct_norm_leakage_25pa, duct_supply_area_mult, duct_return_area_mult, duct_r, duct_supply_frac, duct_return_frac, duct_ah_supply_frac, duct_ah_return_frac, duct_location_frac, duct_num_returns, duct_location)
