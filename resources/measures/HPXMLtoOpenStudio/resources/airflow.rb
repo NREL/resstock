@@ -633,7 +633,7 @@ class Airflow
           num_units_per_floor = n_units
         end
 
-        if (num_units_per_floor == 1) || (num_units_per_floor == 2) || ((num_units_per_floor == 4) && has_rear_units) # No middle unit(s)
+        if (num_units_per_floor <= 2) || ((num_units_per_floor == 4) && has_rear_units) # No middle unit(s)
           a_o_frac = 1 / num_floors / num_units_per_floor # all units have same exterior wall area
           a_o = mf_building_ELA * a_o_frac
         else # Has middle unit(s)
