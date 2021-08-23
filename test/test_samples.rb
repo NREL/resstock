@@ -109,6 +109,8 @@ class IntegrationWorkflowTest < MiniTest::Test
       (1..num_samples).to_a.each do |building_id|
         bldg_data = get_data_for_sample(buildstock_csv_data, building_id, runner)
         next unless counties.include? bldg_data['County']
+        next if bldg_data['Hot Water Distribution'].include? 'Timer'
+        next if bldg_data['HVAC Has Shared System'] != 'None'
 
         workflow_and_building_ids << [workflow, building_id]
       end
