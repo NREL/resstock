@@ -2001,12 +2001,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('year_modules_manufactured', false)
-    arg.setDisplayName('Photovoltaics: Year Modules Manufactored')
-    arg.setDescription('Year the PV modules were manufactored')
-    arg.setUnits('year')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('pv_system_module_type_2', pv_system_module_type_choices, true)
     arg.setDisplayName('Photovoltaics 2: Module Type')
     arg.setDescription("Module type of the PV system 2. Use 'none' if there is no PV system 2.")
@@ -4818,10 +4812,6 @@ class HPXMLFile
         system_losses_fraction = [args[:pv_system_system_losses_fraction_1], args[:pv_system_system_losses_fraction_2]][i].get
       end
 
-      if args[:year_modules_manufactured].is_initialized
-        year_modules_manufactured = args[:year_modules_manufactured].get
-      end
-
       num_units_served = [args[:pv_system_num_units_served_1], args[:pv_system_num_units_served_2]][i]
       if num_units_served > 1
         is_shared_system = true
@@ -4837,7 +4827,6 @@ class HPXMLFile
                            max_power_output: max_power_output,
                            inverter_efficiency: inverter_efficiency,
                            system_losses_fraction: system_losses_fraction,
-                           year_modules_manufactured: year_modules_manufactured,
                            is_shared_system: is_shared_system,
                            number_of_bedrooms_served: number_of_bedrooms_served)
     end
