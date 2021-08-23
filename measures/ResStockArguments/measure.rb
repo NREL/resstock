@@ -75,11 +75,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The building vintage, used for informational purposes only')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('fips_code', false)
-    arg.setDisplayName('County FIPS Code')
-    arg.setDescription('County FIPS Code - used to calculate Home Energy Scores from ResStock-generated files')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_usage_multiplier_2', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
@@ -276,10 +271,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
-
-    # Zip Code
-    ### FIXME: map fips -> zip
-    args['zip_code'] = '00000'
 
     # Conditioned floor area
     if args['geometry_cfa'] == Constants.Auto
