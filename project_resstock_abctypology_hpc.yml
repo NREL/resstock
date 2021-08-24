@@ -5144,6 +5144,14 @@ upgrades:
             - Insulation Floor|Ceiling R-38 
       
       #Baseline Wall Insulation Upgrade
+      - option: Insulation Foundation Wall|Uninsulated
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+            - ASHRAE IECC Climate Zone 2004|2B
+          - not: 
+            - Insulation Slab|None
       - option: Insulation Foundation Wall|Wall R-5, Exterior
         apply_logic: 
           - or: 
