@@ -57,8 +57,8 @@ class OutageTest < MiniTest::Test
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 8, "ScheduleDay" => 8, "ScheduleFixedInterval" => 1 }
-    expected_values = { "NumThermalComfortModelTypes" => 0 }
+    expected_num_new_objects = { 'ScheduleRule' => 7, 'ScheduleDay' => 7, 'ScheduleFixedInterval' => 1 }
+    expected_values = {}
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
@@ -68,8 +68,8 @@ class OutageTest < MiniTest::Test
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 24
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 16, "ScheduleDay" => 16, "ScheduleFixedInterval" => 1 }
-    expected_values = { "NumThermalComfortModelTypes" => 0 }
+    expected_num_new_objects = { 'ScheduleRule' => 14, 'ScheduleDay' => 14, 'ScheduleFixedInterval' => 1 }
+    expected_values = {}
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
@@ -79,8 +79,8 @@ class OutageTest < MiniTest::Test
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 48
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 24, "ScheduleDay" => 24, "ScheduleFixedInterval" => 1 }
-    expected_values = { "NumThermalComfortModelTypes" => 0 }
+    expected_num_new_objects = { 'ScheduleRule' => 21, 'ScheduleDay' => 21, 'ScheduleFixedInterval' => 1 }
+    expected_values = {}
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
@@ -90,8 +90,8 @@ class OutageTest < MiniTest::Test
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 8, "ScheduleDay" => 8, "ScheduleFixedInterval" => 1 }
-    expected_values = { "NumThermalComfortModelTypes" => 0 }
+    expected_num_new_objects = { 'ScheduleRule' => 7, 'ScheduleDay' => 7, 'ScheduleFixedInterval' => 1 }
+    expected_values = {}
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
@@ -101,8 +101,8 @@ class OutageTest < MiniTest::Test
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 24
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 16, "ScheduleDay" => 16, "ScheduleFixedInterval" => 1 }
-    expected_values = { "NumThermalComfortModelTypes" => 0 }
+    expected_num_new_objects = { 'ScheduleRule' => 14, 'ScheduleDay' => 14, 'ScheduleFixedInterval' => 1 }
+    expected_values = {}
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
@@ -112,8 +112,8 @@ class OutageTest < MiniTest::Test
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 48
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 24, "ScheduleDay" => 24, "ScheduleFixedInterval" => 1 }
-    expected_values = { "NumThermalComfortModelTypes" => 0 }
+    expected_num_new_objects = { 'ScheduleRule' => 21, 'ScheduleDay' => 21, 'ScheduleFixedInterval' => 1 }
+    expected_values = {}
     _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
   end
 
@@ -124,9 +124,9 @@ class OutageTest < MiniTest::Test
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 6, "ScheduleDay" => 6, "ScheduleFixedInterval" => 1 }
-    expected_values = { "NumThermalComfortModelTypes" => 0 }
-    _test_measure("MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 22)
+    expected_num_new_objects = { 'ScheduleRule' => 6, 'ScheduleDay' => 6, 'ScheduleFixedInterval' => 1 }
+    expected_values = {}
+    _test_measure('MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 28)
   end
 
   def test_outage_short_run_period
@@ -135,21 +135,9 @@ class OutageTest < MiniTest::Test
     args_hash['otg_hr'] = 20
     args_hash['otg_len'] = 8
     expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 12, "ScheduleDay" => 12, "ScheduleFixedInterval" => 1 }
-    expected_values = { "NumThermalComfortModelTypes" => 0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 26)
-  end
-
-  def test_thermal_comfort_model
-    args_hash = {}
-    args_hash["otg_date"] = "January 23"
-    args_hash["otg_hr"] = 20
-    args_hash["otg_len"] = 8
-    args_hash["comfort_model_1"] = "Pierce"
-    expected_num_del_objects = {}
-    expected_num_new_objects = { "ScheduleRule" => 14, "ScheduleDay" => 15, "ScheduleFixedInterval" => 1, "ScheduleConstant" => 3, "ScheduleTypeLimits" => 2, "ScheduleRuleset" => 1 }
-    expected_values = { "NumThermalComfortModelTypes" => 1 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 26)
+    expected_num_new_objects = { 'ScheduleRule' => 12, 'ScheduleDay' => 12, 'ScheduleFixedInterval' => 1 }
+    expected_values = {}
+    _test_measure('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 32)
   end
 
   private
@@ -244,11 +232,6 @@ class OutageTest < MiniTest::Test
     # check we have the expected number of new/deleted objects
     check_num_objects(all_new_objects, expected_num_new_objects, 'added')
     check_num_objects(all_del_objects, expected_num_del_objects, 'deleted')
-
-    model.getPeoples.each do |people|
-      people_definition = people.peopleDefinition
-      assert_equal(expected_values["NumThermalComfortModelTypes"], people_definition.numThermalComfortModelTypes)
-    end
 
     return model
   end

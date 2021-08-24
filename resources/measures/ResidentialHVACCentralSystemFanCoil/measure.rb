@@ -72,7 +72,7 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     fan_coil_heating = runner.getBoolArgumentValue('fan_coil_heating', user_arguments)
     central_boiler_fuel_type = HelperMethods.eplus_fuel_map(runner.getStringArgumentValue('central_boiler_fuel_type', user_arguments))
     if central_boiler_fuel_type == 'Propane'
-      central_boiler_fuel_type = 'PropaneGas' # OS-Standards is still using the old E+ string; prevent error
+      central_boiler_fuel_type = 'PropaneGas' # OS-Standards is still using the old string
     end
     if fan_coil_heating
       model.getBuilding.additionalProperties.setFeature('has_hvac_flue', runner.getBoolArgumentValue('has_hvac_flue', user_arguments))
@@ -102,15 +102,6 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
       if fan_coil_heating
         if hot_water_loop.nil?
           hot_water_loop = std.model_get_or_add_hot_water_loop(model, central_boiler_fuel_type)
-          if central_boiler_fuel_type == 'PropaneGas'
-            # OS-Standards doesn't set correct fuel type, so we correct it here
-            hot_water_loop.components.each do |plc|
-              next unless plc.to_BoilerHotWater.is_initialized
-
-              boiler = plc.to_BoilerHotWater.get
-              boiler.setFuelType('Propane')
-            end
-          end
           runner.registerInfo("Added '#{hot_water_loop.name}' to model.")
         end
       end

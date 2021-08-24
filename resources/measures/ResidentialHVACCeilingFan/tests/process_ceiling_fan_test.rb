@@ -166,16 +166,7 @@ class ProcessCeilingFanTest < MiniTest::Test
         new_object = new_object.public_send("to_#{obj_type}").get
         next unless obj_type == 'ElectricEquipment'
 
-<<<<<<< HEAD
-        if new_object.name.to_s.start_with? Constants.ObjectNameCeilingFan + ' non benchmark'
-          assert_in_epsilon(expected_values['ceiling_fans_design_level'], new_object.designLevel.get, 0.01)
-        end
-        if new_object.name.to_s.start_with? Constants.ObjectNameCeilingFan + ' benchmark'
-          assert_in_epsilon(expected_values['misc_elec_load_design_level'], new_object.designLevel.get, 0.01)
-        end
-=======
         assert_in_epsilon(expected_values['ceiling_fans_design_level'], new_object.designLevel.get, 0.01)
->>>>>>> develop
       end
     end
 

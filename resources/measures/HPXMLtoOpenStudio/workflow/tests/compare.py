@@ -18,14 +18,6 @@ class BaseCompare:
     def intersect_rows(df1, df2):
           return df1[df1.index.isin(df2.index)]
 
-    @staticmethod
-    def union_columns(df1, df2):
-          cols = sorted(list(set(df1.columns) | set(df2.columns)))
-          for col in cols:
-              if not col in df1.columns:
-                  df1[col] = np.nan
-          return df1[cols]
-
     def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}):
         aggregate_columns = []
         if aggregate_column:
@@ -50,8 +42,6 @@ class BaseCompare:
             try:
                 df = feature_df - base_df
             except BaseException:
-                base_df = self.union_columns(base_df, feature_df)
-                feature_df = self.union_columns(feature_df, base_df)
                 df = feature_df != base_df
                 df = df.astype(int)
 

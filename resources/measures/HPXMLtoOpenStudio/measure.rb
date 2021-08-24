@@ -1124,11 +1124,7 @@ class OSModel
       addtl_ffa = floor_area - ceiling_area
       next unless addtl_ffa > 0
 
-<<<<<<< HEAD
-      runner.registerWarning("Adding finished basement adiabatic ceiling with #{addtl_ffa.to_s} ft^2.")
-=======
       runner.registerWarning("Adding finished basement adiabatic ceiling with #{addtl_ffa} ft^2.")
->>>>>>> develop
 
       finishedfloor_width = Math::sqrt(addtl_ffa)
       finishedfloor_length = addtl_ffa / finishedfloor_width

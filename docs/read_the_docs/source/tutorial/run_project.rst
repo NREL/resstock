@@ -1,4 +1,4 @@
 Run the Project
 ===============
 
-See the `buildstockbatch documentation <https://nrel.github.io/buildstockbatch>`_ for information on running projects.
+See the `buildstockbatch documentation <http://buildstock-batch.s3-website-us-west-2.amazonaws.com>`_ for information on running projects.

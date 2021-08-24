@@ -17,7 +17,6 @@ class TestResStockMeasuresOSW < MiniTest::Test
     all_results_output = []
     [['project_testing', 100], ['project_national', 3000]].each_with_index do |scenario, i|
       project_dir, num_samples = scenario
-      next if num_samples == 0
 
       buildstock_csv = create_buildstock_csv(project_dir, num_samples)
       lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
