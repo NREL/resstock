@@ -19,7 +19,14 @@ class TestResStockMeasuresOSW < MiniTest::Test
       project_dir, num_samples = scenario
       next if num_samples == 0
 
-      buildstock_csv = create_buildstock_csv(project_dir, num_samples)
+      buildstock_csv = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
+      if project_dir == 'project_national'
+        create_buildstock_csv(project_dir, num_samples, buildstock_csv)
+      elsif project_dir == 'project_testing'
+        src = File.expand_path(File.join(parent_dir, '../..', project_dir, 'housing_characteristics/buildstock.csv'))
+        des = File.join(parent_dir, 'buildstock.csv')
+        FileUtils.cp(src, des)
+      end
       lib_dir = create_lib_folder(parent_dir, project_dir, buildstock_csv)
 
       runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
@@ -110,12 +117,9 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
   private
 
-  def create_buildstock_csv(project_dir, num_samples)
-    outfile = File.join('..', 'test', 'test_samples_osw', 'buildstock.csv')
+  def create_buildstock_csv(project_dir, num_samples, outfile)
     r = RunSampling.new
     r.run(project_dir, num_samples, outfile)
-
-    return outfile
   end
 
   def create_lib_folder(parent_dir, project_dir, buildstock_csv)
