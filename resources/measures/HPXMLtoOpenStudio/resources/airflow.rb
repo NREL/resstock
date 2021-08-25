@@ -131,7 +131,6 @@ class Airflow
       end
 
       unit_ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces)
-      unit_ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
       unit_ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
       unit_window_area = Geometry.get_window_area_from_spaces(unit.spaces)
 
@@ -168,7 +167,7 @@ class Airflow
       tout_sensor.setName("#{obj_name_airflow} tt s")
       tout_sensor.setKeyName(unit_living.zone.name.to_s)
 
-      success, infil_output = process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ag_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
+      success, infil_output = process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
       return false if not success
 
       success, mv_output = process_mech_vent_for_unit(model, runner, obj_name_mech_vent, unit, mech_vent, building, nbeds, nbaths, weather, unit_ffa, unit_living, units.size, has_forced_air_equipment)
@@ -566,7 +565,7 @@ class Airflow
     return true
   end
 
-  def self.process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ag_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
+  def self.process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
     spaces = []
     spaces << unit_living
     spaces << unit_finished_basement if not unit_finished_basement.nil?
@@ -623,8 +622,7 @@ class Airflow
           end
         end
 
-        building_ag_ffa = unit_ag_ffa * n_units
-        mf_building_ELA = building_ag_ffa * building.SLA
+        building_ffa = unit_ffa * n_units
 
         if building_type == Constants.BuildingTypeMultifamily
           num_units_per_floor = n_units / num_floors
@@ -635,6 +633,7 @@ class Airflow
 
         if (num_units_per_floor <= 2) || ((num_units_per_floor == 4) && has_rear_units) # No middle unit(s)
           a_o_frac = 1 / num_floors / num_units_per_floor # all units have same exterior wall area
+          mf_building_ELA = building_ffa * building.SLA
           a_o = mf_building_ELA * a_o_frac
         else # Has middle unit(s)
           if has_rear_units
@@ -652,17 +651,15 @@ class Airflow
             ext_wall_area_building = (n_end_units * ext_wall_area_end) + (n_mid_units * ext_wall_area_mid)
             ext_wall_area_building = UnitConversions.convert(ext_wall_area_building, 'm^2', 'ft^2')
           end
-          a_o = building.SLA * building_ag_ffa * (unit_ag_ext_wall_area / ext_wall_area_building) # Effective Leakage Area (ft^2) - Unit
+          a_o = building.SLA * building_ffa * (unit_ag_ext_wall_area / ext_wall_area_building) # Effective Leakage Area (ft^2) - Unit
         end
       else # SFD
         num_floors = building.stories
-        a_o = building.SLA * building.ag_ffa * (unit_ag_ext_wall_area / building.ag_ext_wall_area) # Effective Leakage Area (ft^2) - Unit
-        building_ag_ffa = building.ag_ffa
-        ext_wall_area_building = building.ag_ext_wall_area
+        a_o = building.SLA * unit_ffa * (unit_ag_ext_wall_area / building.ag_ext_wall_area) # Effective Leakage Area (ft^2) - Unit
       end
 
       # Calculate SLA for unit
-      unit_living.SLA = a_o / unit_ag_ffa
+      unit_living.SLA = a_o / unit_ffa
 
       # Flow Coefficient (cfm/inH2O^n) (based on ASHRAE HoF)
       c_i = a_o * (2.0 / outside_air_density)**0.5 * delta_pref**(0.5 - n_i) * inf_conv_factor
