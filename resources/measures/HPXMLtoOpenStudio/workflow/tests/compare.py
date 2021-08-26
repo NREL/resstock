@@ -113,7 +113,7 @@ class BaseCompare:
                 self.export_file))
 
     def visualize(self, aggregate_column=None, aggregate_function=None, display_column=None, excludes=[], enum_maps={}, cols_to_ignore=[]):
-        colors = px.colors.qualitative.Light24
+        colors = px.colors.qualitative.Dark24
 
         aggregate_columns = []
         if aggregate_column:
@@ -196,8 +196,8 @@ class BaseCompare:
 
             groups = [None]
             if display_columns:
-                base_df = base_characteristics_df.join(base_df)
-                feature_df = feature_characteristics_df.join(feature_df)
+                base_df = base_characteristics_df.join(base_df, how='right')
+                feature_df = feature_characteristics_df.join(feature_df, how='right')
 
                 for col, enum_map in enum_maps.items():
                     if col in display_columns:
