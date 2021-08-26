@@ -1,8 +1,8 @@
 schema_version: '0.3'
 buildstock_directory: /home/pwhite/GitHub/resstock
 project_directory: project_national
-output_directory: /projects/resilience/testing/la_2018_hot_short_testv5
-weather_files_path: resilience_weather/la_2018.zip
+output_directory: /projects/resilience/testing/la_2018_hot_short_testv6
+weather_files_path: /home/pwhite/GitHub/resstock/resilience/resilience_weather/la_2018.zip
 
 eagle:
   n_jobs: 1
@@ -30,10 +30,10 @@ workflow_generator:
     residential_simulation_controls:
       calendar_year: 2018
       timesteps_per_hr: 4
-      begin_month: 1
-      begin_day_of_month: 1
-      end_month: 12
-      end_day_of_month: 31
+      begin_month: 6
+      begin_day_of_month: 16
+      end_month: 7
+      end_day_of_month: 24
     measures:
       - measure_dir_name: PowerOutage
         arguments:
@@ -41,8 +41,8 @@ workflow_generator:
           otg_hr: 0
           otg_len: 96
           comfort_model_1: Pierce
-    reporting_measures:
-      - measure_dir_name: ResilienceMetricsReport
+    # reporting_measures:
+    #   - measure_dir_name: ResilienceMetricsReport
 
 baseline:
   n_buildings_represented: 133172057
@@ -54,7 +54,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-resilience
-      prefix: testing/la_2018_hot_short_testv5
+      prefix: testing/la_2018_hot_short_testv6
 
 
 upgrades:
