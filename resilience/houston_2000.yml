@@ -5089,8 +5089,6 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-
-    options:
       - option: Infiltration|18.5 ACH50
         apply_logic: Infiltration|25 ACH50
         costs:
@@ -5157,12 +5155,14 @@ upgrades:
           - value: 0
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
-      # - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
-      #   apply_logic: Mechanical Ventilation|None
-      #   costs:
-      #     - value: 0
-      #       multiplier: Floor Area, Conditioned (ft^2)
-      #   lifetime: 999
+      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+        apply_logic:
+          - Mechanical Ventilation|None
+          - Infiltration|8 ACH50||Infiltration|7 ACH50||Infiltration|6 ACH50||Infiltration|5 ACH50||Infiltration|4 ACH50||Infiltration|3 ACH50||Infiltration|2 ACH50
+        costs:
+          - value: 0
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
     # package_apply_logic: Infiltration|8 ACH50||Infiltration|7 ACH50||Infiltration|6 ACH50||Infiltration|5 ACH50||Infiltration|4 ACH50||Infiltration|3 ACH50||Infiltration|2 ACH50
       - option: Insulation Unfinished Attic|Ceiling R-60, Vented
         apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
