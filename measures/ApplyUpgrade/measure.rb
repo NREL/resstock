@@ -202,12 +202,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     check_dir_exists(resources_dir, runner)
     check_dir_exists(characteristics_dir, runner)
 
-    # Retrieve workflow_json from BuildExistingModel measure if provided
+    # Retrieve values from BuildExistingModel
     values = get_values_from_runner_past_results(runner, 'build_existing_model')
-    workflow_json = values['workflow_json']
-    if not workflow_json.nil?
-      workflow_json = File.join(resources_dir, workflow_json)
-    end
 
     # Process package apply logic if provided
     apply_package_upgrade = true
@@ -304,8 +300,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
       # Get the absolute paths relative to this meta measure in the run directory
       new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-
-      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, nil, true, { 'ApplyUpgrade' => runner })
+      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, nil, true, { 'ApplyUpgrade' => runner })
         return false
       end
 
@@ -385,7 +380,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
       measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
 
-      if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'upgraded.osw', true, { 'ApplyUpgrade' => runner })
+      if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, 'upgraded.osw', true, { 'ApplyUpgrade' => runner })
         new_runner.result.errors.each do |error|
           runner.registerError(error.logMessage)
         end

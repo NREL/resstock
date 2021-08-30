@@ -2,41 +2,8 @@
 
 # Helper methods related to having a meta-measure
 
-def get_measures(workflow_json, include_only = nil)
-  result = []
-  JSON.parse(File.read(workflow_json), symbolize_names: true).each do |group|
-    group[:group_steps].each do |step|
-      step[:measures].each do |measure_dir|
-        if (not include_only.nil?) && (not include_only.include? measure_dir)
-          next
-        end
-
-        result << measure_dir
-      end
-    end
-  end
-  return result
-end
-
-def apply_child_measures(measures_dir, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
+def apply_child_measures(measures_dir, measures, runner, model, osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
   require 'openstudio'
-
-  workflow_order = []
-  if workflow_json.nil?
-    measures.keys.each do |measure_subdir|
-      workflow_order << measure_subdir
-    end
-  else
-    # Run measures in the order dictated by the json instead
-    workflow_order = get_measures(workflow_json, include_only = measures.keys)
-
-    # Tack additional measure not found in workflow_json on the end
-    measures.keys.each do |measure_subdir|
-      next if workflow_order.include? measure_subdir
-
-      workflow_order << measure_subdir
-    end
-  end
 
   if not osw_out.nil?
     # Create a workflow based on the measures we're going to call. Convenient for debugging.
@@ -45,8 +12,8 @@ def apply_child_measures(measures_dir, measures, runner, model, workflow_json = 
     workflowJSON.addMeasurePath('measures')
     workflowJSON.addMeasurePath('resources/hpxml-measures')
     steps = OpenStudio::WorkflowStepVector.new
-    workflow_order.each do |measure_subdir|
-      measures[measure_subdir].each do |args|
+    measures.each do |measure_subdir, args_array|
+      args_array.each do |args|
         step = OpenStudio::MeasureStep.new(measure_subdir)
         args.each do |k, v|
           next if v.nil?
@@ -61,12 +28,12 @@ def apply_child_measures(measures_dir, measures, runner, model, workflow_json = 
   end
 
   # Call each measure in the specified order
-  workflow_order.each do |measure_subdir|
+  measures.each do |measure_subdir, args_array|
     # Gather measure arguments and call measure
     full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
     check_file_exists(full_measure_path, runner)
     measure_instance = get_measure_instance(full_measure_path)
-    measures[measure_subdir].each do |args|
+    args_array.each do |args|
       argument_map = get_argument_map(model, measure_instance, args, nil, measure_subdir, runner)
       if show_measure_calls
         print_measure_call(args, measure_subdir, runner)
