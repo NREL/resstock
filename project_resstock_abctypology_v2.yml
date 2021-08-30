@@ -1186,8 +1186,9 @@ upgrades:
         lifetime: 30
 
       # Attic Air Insulation Upgrade
-      - &R-30_attic
-        option: Insulation Ceiling|R-30
+      # Applying attic insulation derate https://www.greenbuildingadvisor.com/question/effects-of-tapering-insulation-at-eaves
+      - &R-29_attic
+        option: Insulation Ceiling|R-29
         apply_logic: &attic_insulation_1
           - and:
             - or: 
@@ -1202,8 +1203,8 @@ upgrades:
           - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-      - &R-49_attic
-        option: Insulation Ceiling|R-49
+      - &R-44_attic
+        option: Insulation Ceiling|R-44
         apply_logic: &attic_insulation_2
           - and: 
             - or: 
@@ -1224,8 +1225,8 @@ upgrades:
           - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-      - &R-60_attic
-        option: Insulation Ceiling|R-60
+      - &R-51_attic
+        option: Insulation Ceiling|R-51
         apply_logic: &attic_insulation_3
           - or: 
             - ASHRAE IECC Climate Zone 2004|4A
@@ -5426,7 +5427,8 @@ upgrades:
 
       ## Insulation upgrade
       # Ceiling Insulation upgrade
-      - option: Insulation Ceiling|R-30
+      # Applying attic insulation derate https://www.greenbuildingadvisor.com/question/effects-of-tapering-insulation-at-eaves
+      - option: Insulation Ceiling|R-29
         apply_logic: 
           - or: 
             - ASHRAE IECC Climate Zone 2004|1A
@@ -5435,7 +5437,7 @@ upgrades:
             - Insulation Ceiling|R-38
             - Insulation Ceiling|R-49
             - Insulation Ceiling|R-60
-      - option: Insulation Ceiling|R-49
+      - option: Insulation Ceiling|R-44
         apply_logic: 
           - or: 
             - ASHRAE IECC Climate Zone 2004|2A
@@ -5446,7 +5448,7 @@ upgrades:
           - not: 
             - Insulation Ceiling|R-49
             - Insulation Ceiling|R-60
-      - option: Insulation Ceiling|R-60
+      - option: Insulation Ceiling|R-51
         apply_logic: 
           - or: 
             - ASHRAE IECC Climate Zone 2004|4A
