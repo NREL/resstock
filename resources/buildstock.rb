@@ -450,6 +450,9 @@ class RunOSWs
     if rows.keys.include? 'BuildExistingModel'
       result_characteristics = get_build_existing_model(result_characteristics, rows)
     end
+    if rows.keys.include? 'ApplyUpgrade'
+      result_output = get_apply_upgrade(result_output, rows)
+    end
     if rows.keys.include? 'SimulationOutputReport'
       result_output = get_simulation_output_report(result_output, rows)
     end
@@ -466,6 +469,14 @@ class RunOSWs
   def self.get_build_existing_model(result, rows)
     result = result.merge(rows['BuildExistingModel'])
     result.delete('applicable')
+    return result
+  end
+
+  def self.get_apply_upgrade(result, rows)
+    if rows.keys.include?('ApplyUpgrade')
+      result = result.merge(rows['ApplyUpgrade'])
+      result.delete('applicable')
+    end
     return result
   end
 
@@ -534,6 +545,9 @@ class RunOSWs
         csv << csv_row
       end
     end
+
+    puts "\nWrote: #{csv_out}\n"
+    return csv_out
   end
 
   def self._rm_path(path)

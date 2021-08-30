@@ -83,7 +83,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       'Duct Unconditioned Surface Area (ft^2)' => 'duct_unconditioned_surface_area_ft_2',
       'Size, Heating System (kBtu/h)' => 'size_heating_system_kbtu_h',
       'Size, Cooling System (kBtu/h)' => 'size_cooling_system_kbtu_h',
-      'Size, Water Heater (gal)' => 'size_water_heater_gal'
+      'Size, Heating Supplemental System (kBtu/h)' => 'size_heating_supplemental_system_kbtu_h',
+      'Size, Water Heater (gal)' => 'size_water_heater_gal',
+      'Flow Rate, Mechanical Ventilation (cfm)' => 'flow_rate_mechanical_ventilation_cfm'
     }
   end
 
@@ -155,7 +157,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # ELECTRICITY
 
-    report_sim_output(runner, 'total_site_electricity_kwh', electricity.total_end_uses[0] + electricity.photovoltaics[0], 'GJ', elec_site_units)
+    report_sim_output(runner, 'total_site_electricity_kwh', electricity.total_end_uses[0], 'GJ', elec_site_units)
+    report_sim_output(runner, 'net_site_electricity_kwh', electricity.total_end_uses[0] + electricity.photovoltaics[0], 'GJ', elec_site_units)
     report_sim_output(runner, 'electricity_heating_kwh', electricity.heating[0], 'GJ', elec_site_units)
     report_sim_output(runner, 'electricity_heating_supplemental_kwh', electricity.heating_supplemental[0], 'GJ', elec_site_units)
     report_sim_output(runner, 'electricity_cooling_kwh', electricity.cooling[0], 'GJ', elec_site_units)
@@ -257,7 +260,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                       propane.total_end_uses[0] +
                       wood.total_end_uses[0]
 
-    report_sim_output(runner, 'total_site_energy_mbtu', totalSiteEnergy + electricity.photovoltaics[0], 'GJ', total_site_units)
+    report_sim_output(runner, 'total_site_energy_mbtu', totalSiteEnergy, 'GJ', total_site_units)
+    report_sim_output(runner, 'net_site_energy_mbtu', totalSiteEnergy + electricity.photovoltaics[0], 'GJ', total_site_units)
 
     # LOADS NOT MET
 
@@ -364,8 +368,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       report_sim_output(runner, 'electricity_vehicle_kwh', electricity.vehicle[0], 'GJ', elec_site_units)
     end
 
-    sqlFile.close
-
     # WEIGHT
 
     values = get_values_from_runner_past_results(runner, 'build_existing_model')
@@ -459,6 +461,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
     runner.registerFinalCondition('Report generated successfully.')
+
+    sqlFile.close
 
     return true
   end # end the run method
@@ -607,10 +611,17 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
               next if components.include? component
 
               components << component
-              next if not component.nominalCapacity.is_initialized
-              next if component.nominalCapacity.get <= max_value
 
-              max_value = component.nominalCapacity.get
+              nominal_capacity = nil
+              if component.nominalCapacity.is_initialized
+                nominal_capacity = component.nominalCapacity.get
+              elsif component.autosizedNominalCapacity.is_initialized
+                nominal_capacity = component.autosizedNominalCapacity.get
+              end
+              next if nominal_capacity.nil?
+              next if nominal_capacity <= max_value
+
+              max_value = nominal_capacity
               cost_mult += UnitConversions.convert(max_value, 'W', 'kBtu/hr')
             end
           end
@@ -638,6 +649,29 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
           # Cooling system capacity
+
+          # Chiller?
+          max_value = 0.0
+          model.getPlantLoops.each do |pl|
+            pl.components.each do |plc|
+              next if not plc.to_ChillerElectricEIR.is_initialized
+
+              component = plc.to_ChillerElectricEIR.get
+              next if components.include? component
+
+              components << component
+
+              nominal_capacity = nil
+              if component.autosizedReferenceCapacity.is_initialized
+                nominal_capacity = component.autosizedReferenceCapacity.get
+              end
+              next if nominal_capacity.nil?
+              next if nominal_capacity <= max_value
+
+              max_value = nominal_capacity
+              cost_mult += UnitConversions.convert(max_value, 'W', 'kBtu/hr')
+            end
+          end
 
           # Unitary system?
           model.getAirLoopHVACUnitarySystems.each do |sys|
@@ -821,6 +855,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
             surface.subSurfaces.each do |sub_surface|
               next if not sub_surface.subSurfaceType.downcase.include? 'door'
+              next if sub_surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
               cost_mult += UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2')
             end
@@ -857,6 +892,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         next if space.buildingUnit.is_initialized
         next if surface.surfaceType.downcase != 'wall'
         next if surface.outsideBoundaryCondition.downcase != 'outdoors'
+        next if Geometry.is_pier_beam_surface(surface)
 
         cost_mult += UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2')
       end
@@ -948,11 +984,24 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
         surface.subSurfaces.each do |sub_surface|
           next if not sub_surface.subSurfaceType.downcase.include? 'door'
+          next if sub_surface.outsideBoundaryCondition.downcase == 'adiabatic'
 
           cost_mult += UnitConversions.convert(sub_surface.grossArea, 'm^2', 'ft^2')
         end
       end
 
+    elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
+      # Whole-house mechanical ventilation flow rate
+      model.getEnergyManagementSystemPrograms.each do |ems_program|
+        next unless ems_program.name.to_s.start_with? 'res_infil'
+
+        ems_program.lines.each do |ems_line|
+          next unless ems_line.strip.start_with? 'Set QWHV = '
+
+          qwhv = Float(ems_line.split('*')[1])
+          cost_mult += UnitConversions.convert(qwhv, 'm^3/s', 'cfm')
+        end
+      end
     end
 
     return cost_mult

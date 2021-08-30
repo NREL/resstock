@@ -55,7 +55,7 @@ jobs:
       - name: Upload integration results
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_samples_osw/results
+          path: test/test_samples_osw/baseline/results
           name: results
 
       - name: Upload schedules
@@ -127,6 +127,7 @@ jobs:
           python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv
           
           python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html
+          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html
           python test/compare.py -a visualize -dc county -x results_output_county.html
           python test/compare.py -a visualize -dc geometry_building_type_recs -ac county -af sum -x results_output_county_sum.html
 
