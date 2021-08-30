@@ -2,41 +2,10 @@
 
 # Helper methods related to having a meta-measure
 
-def get_measures(workflow_json, include_only = nil)
-  result = []
-  JSON.parse(File.read(workflow_json), symbolize_names: true).each do |group|
-    group[:group_steps].each do |step|
-      step[:measures].each do |measure_dir|
-        if (not include_only.nil?) && (not include_only.include? measure_dir)
-          next
-        end
-
-        result << measure_dir
-      end
-    end
-  end
-  return result
-end
-
-def apply_child_measures(measures_dir, measures, runner, model, workflow_json = nil, osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
+def apply_child_measures(measures_dir, measures, runner, model, osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
   require 'openstudio'
 
-  workflow_order = []
-  if workflow_json.nil?
-    measures.keys.each do |measure_subdir|
-      workflow_order << measure_subdir
-    end
-  else
-    # Run measures in the order dictated by the json instead
-    workflow_order = get_measures(workflow_json, include_only = measures.keys)
-
-    # Tack additional measure not found in workflow_json on the end
-    measures.keys.each do |measure_subdir|
-      next if workflow_order.include? measure_subdir
-
-      workflow_order << measure_subdir
-    end
-  end
+  workflow_order = ['ResStockArguments', 'BuildResidentialHPXML', 'HPXMLtoOpenStudio']
 
   if not osw_out.nil?
     # Create a workflow based on the measures we're going to call. Convenient for debugging.
