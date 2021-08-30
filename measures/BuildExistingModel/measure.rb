@@ -232,13 +232,18 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Initialize measure keys with hpxml_path arguments
     hpxml_path = File.expand_path('../existing.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
+    measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
     measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
 
-      measures['BuildResidentialHPXML'][0][step_value.name] = value
+      if ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
+        measures['BuildResidentialScheduleFile'][0][step_value.name] = value
+      else
+        measures['BuildResidentialHPXML'][0][step_value.name] = value
+      end
     end
 
     # Get software program used and version
@@ -255,14 +260,17 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
     end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
-    measures['BuildResidentialHPXML'][0]['schedules_random_seed'] = args['building_id']
+
+    # Get the random seed, schedules output path
+    measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
+    measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # Get output dir, debug, component loads
     measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
     measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
 
-    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'existing.osw', true, { 'BuildExistingModel' => runner })
+    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'existing.osw', true, { 'BuildExistingModel' => runner })
       new_runner.result.errors.each do |error|
         runner.registerError(error.logMessage)
       end
