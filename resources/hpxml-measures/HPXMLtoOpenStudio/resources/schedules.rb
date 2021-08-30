@@ -7,6 +7,7 @@ class HourlyByMonthSchedule
   def initialize(model, sch_name, weekday_month_by_hour_values, weekend_month_by_hour_values,
                  schedule_type_limits_name = nil, normalize_values = true)
     @model = model
+    @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
     @schedule = nil
     @weekday_month_by_hour_values = validateValues(weekday_month_by_hour_values, 12, 24)
@@ -69,8 +70,8 @@ class HourlyByMonthSchedule
   end
 
   def createSchedule()
-    day_startm = Schedule.day_start_months(@model)
-    day_endm = Schedule.day_end_months(@model)
+    day_startm = Schedule.day_start_months(@year)
+    day_endm = Schedule.day_end_months(@year)
 
     time = []
     for h in 1..24
@@ -80,15 +81,13 @@ class HourlyByMonthSchedule
     schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
     schedule.setName(@sch_name)
 
-    assumedYear = @model.getYearDescription.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
-
     prev_wkdy_vals = nil
     prev_wkdy_rule = nil
     prev_wknd_vals = nil
     prev_wknd_rule = nil
     for m in 1..12
-      date_s = OpenStudio::Date::fromDayOfYear(day_startm[m - 1], assumedYear)
-      date_e = OpenStudio::Date::fromDayOfYear(day_endm[m - 1], assumedYear)
+      date_s = OpenStudio::Date::fromDayOfYear(day_startm[m - 1], @year)
+      date_e = OpenStudio::Date::fromDayOfYear(day_endm[m - 1], @year)
 
       wkdy_vals = []
       wknd_vals = []
@@ -173,9 +172,10 @@ class HourlyByDaySchedule
   def initialize(model, sch_name, weekday_day_by_hour_values, weekend_day_by_hour_values,
                  schedule_type_limits_name = nil, normalize_values = true)
     @model = model
+    @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
     @schedule = nil
-    @num_days = Constants.NumDaysInYear(model)
+    @num_days = Constants.NumDaysInYear(@year)
     @weekday_day_by_hour_values = validateValues(weekday_day_by_hour_values, @num_days, 24)
     @weekend_day_by_hour_values = validateValues(weekend_day_by_hour_values, @num_days, 24)
     @schedule_type_limits_name = schedule_type_limits_name
@@ -236,8 +236,6 @@ class HourlyByDaySchedule
   end
 
   def createSchedule()
-    year_description = @model.getYearDescription
-
     time = []
     for h in 1..24
       time[h] = OpenStudio::Time.new(0, h, 0, 0)
@@ -246,15 +244,13 @@ class HourlyByDaySchedule
     schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
     schedule.setName(@sch_name)
 
-    assumedYear = year_description.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
-
     prev_wkdy_vals = nil
     prev_wkdy_rule = nil
     prev_wknd_vals = nil
     prev_wknd_rule = nil
     for d in 1..@num_days
-      date_s = OpenStudio::Date::fromDayOfYear(d, assumedYear)
-      date_e = OpenStudio::Date::fromDayOfYear(d, assumedYear)
+      date_s = OpenStudio::Date::fromDayOfYear(d, @year)
+      date_e = OpenStudio::Date::fromDayOfYear(d, @year)
 
       wkdy_vals = []
       wknd_vals = []
@@ -341,6 +337,7 @@ class MonthWeekdayWeekendSchedule
                  schedule_type_limits_name = nil, normalize_values = true, begin_month = 1,
                  begin_day = 1, end_month = 12, end_day = 31)
     @model = model
+    @year = model.getYearDescription.assumedYear
     @sch_name = sch_name
     @schedule = nil
     @weekday_hourly_values = validateValues(weekday_hourly_values, 24, 'weekday')
@@ -471,12 +468,12 @@ class MonthWeekdayWeekendSchedule
   end
 
   def createSchedule()
-    month_num_days = Constants.NumDaysInMonths(@model)
+    month_num_days = Constants.NumDaysInMonths(@year)
     month_num_days[@end_month - 1] = @end_day
 
-    day_startm = Schedule.day_start_months(@model)
+    day_startm = Schedule.day_start_months(@year)
     day_startm[@begin_month - 1] += @begin_day - 1
-    day_endm = [Schedule.day_start_months(@model), month_num_days].transpose.map { |i| i.reduce(:+) - 1 }
+    day_endm = [Schedule.day_start_months(@year), month_num_days].transpose.map { |i| i.reduce(:+) - 1 }
 
     time = []
     for h in 1..24
@@ -485,8 +482,6 @@ class MonthWeekdayWeekendSchedule
 
     schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
     schedule.setName(@sch_name)
-
-    assumedYear = @model.getYearDescription.assumedYear # prevent excessive OS warnings about 'UseWeatherFile'
 
     prev_wkdy_vals = nil
     prev_wkdy_rule = nil
@@ -502,8 +497,8 @@ class MonthWeekdayWeekendSchedule
 
     periods.each do |period|
       for m in period[0]..period[1]
-        date_s = OpenStudio::Date::fromDayOfYear(day_startm[m - 1], assumedYear)
-        date_e = OpenStudio::Date::fromDayOfYear(day_endm[m - 1], assumedYear)
+        date_s = OpenStudio::Date::fromDayOfYear(day_startm[m - 1], @year)
+        date_e = OpenStudio::Date::fromDayOfYear(day_endm[m - 1], @year)
 
         wkdy_vals = []
         wknd_vals = []
@@ -1004,10 +999,10 @@ class Schedule
     return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
   end
 
-  def self.get_day_num_from_month_day(model, month, day)
+  def self.get_day_num_from_month_day(year, month, day)
     # Returns a value between 1 and 365 (or 366 for a leap year)
     # Returns e.g. 32 for month=2 and day=1 (Feb 1)
-    month_num_days = Constants.NumDaysInMonths(model)
+    month_num_days = Constants.NumDaysInMonths(year)
     day_num = day
     for m in 0..month - 2
       day_num += month_num_days[m]
@@ -1015,11 +1010,11 @@ class Schedule
     return day_num
   end
 
-  def self.get_daily_season(model, start_month, start_day, end_month, end_day)
-    start_day_num = get_day_num_from_month_day(model, start_month, start_day)
-    end_day_num = get_day_num_from_month_day(model, end_month, end_day)
+  def self.get_daily_season(year, start_month, start_day, end_month, end_day)
+    start_day_num = get_day_num_from_month_day(year, start_month, start_day)
+    end_day_num = get_day_num_from_month_day(year, end_month, end_day)
 
-    season = Array.new(Constants.NumDaysInYear(model), 0)
+    season = Array.new(Constants.NumDaysInYear(year), 0)
     if end_day_num >= start_day_num
       season.fill(1, start_day_num - 1, end_day_num - start_day_num + 1) # Fill between start/end days
     else # Wrap around year
@@ -1029,8 +1024,8 @@ class Schedule
     return season
   end
 
-  def self.months_to_days(model, months)
-    month_num_days = Constants.NumDaysInMonths(model)
+  def self.months_to_days(year, months)
+    month_num_days = Constants.NumDaysInMonths(year)
     days = []
     for m in 0..11
       days.concat([months[m]] * month_num_days[m])
@@ -1038,14 +1033,14 @@ class Schedule
     return days
   end
 
-  def self.day_start_months(model)
-    month_num_days = Constants.NumDaysInMonths(model)
-    return month_num_days.each_with_index.map { |n, i| get_day_num_from_month_day(model, i + 1, 1) }
+  def self.day_start_months(year)
+    month_num_days = Constants.NumDaysInMonths(year)
+    return month_num_days.each_with_index.map { |n, i| get_day_num_from_month_day(year, i + 1, 1) }
   end
 
-  def self.day_end_months(model)
-    month_num_days = Constants.NumDaysInMonths(model)
-    return month_num_days.each_with_index.map { |n, i| get_day_num_from_month_day(model, i + 1, n) }
+  def self.day_end_months(year)
+    month_num_days = Constants.NumDaysInMonths(year)
+    return month_num_days.each_with_index.map { |n, i| get_day_num_from_month_day(year, i + 1, n) }
   end
 
   def self.create_ruleset_from_daily_season(model, values)
@@ -1103,15 +1098,16 @@ end
 class SchedulesFile
   def initialize(runner: nil,
                  model: nil,
+                 year: nil,
                  schedules_path:,
-                 col_names:,
                  **remainder)
 
     @runner = runner
     @model = model
+    @year = year
     @schedules_path = schedules_path
 
-    import(col_names: col_names)
+    import(col_names: Constants.ScheduleColNames.keys)
 
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy
@@ -1140,7 +1136,7 @@ class SchedulesFile
   def validate_schedule(col_name:,
                         values:)
 
-    num_hrs_in_year = Constants.NumHoursInYear(@model)
+    num_hrs_in_year = Constants.NumHoursInYear(@year)
     schedule_length = values.length
 
     begin
@@ -1212,7 +1208,7 @@ class SchedulesFile
     end
 
     col_index = get_col_index(col_name: col_name)
-    num_hrs_in_year = Constants.NumHoursInYear(@model)
+    num_hrs_in_year = Constants.NumHoursInYear(@year)
     schedule_length = @schedules[col_name].length
     min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
 
@@ -1233,7 +1229,7 @@ class SchedulesFile
       schedules = @schedules # the schedules before vacancy is applied
     end
 
-    num_hrs_in_year = Constants.NumHoursInYear(@model)
+    num_hrs_in_year = Constants.NumHoursInYear(@year)
     schedule_length = schedules[col_name].length
     min_per_item = 60.0 / (schedule_length / num_hrs_in_year)
     ann_equiv_full_load_hrs = schedules[col_name].reduce(:+) / (60.0 / min_per_item)
@@ -1268,7 +1264,7 @@ class SchedulesFile
   def calc_design_level_from_daily_kwh(col_name:,
                                        daily_kwh:)
     full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
-    num_days_in_year = Constants.NumDaysInYear(@model)
+    num_days_in_year = Constants.NumDaysInYear(@year)
     daily_full_load_hrs = full_load_hrs / num_days_in_year
     design_level = UnitConversions.convert(daily_kwh / daily_full_load_hrs, 'kW', 'W')
 
@@ -1278,7 +1274,7 @@ class SchedulesFile
   # similar to calc_design_level_from_daily_kwh but for water usage
   def calc_peak_flow_from_daily_gpm(col_name:, daily_water:)
     ann_equiv_full_load_hrs = annual_equivalent_full_load_hrs(col_name: col_name)
-    num_days_in_year = Constants.NumDaysInYear(@model)
+    num_days_in_year = Constants.NumDaysInYear(@year)
     daily_full_load_hrs = ann_equiv_full_load_hrs / num_days_in_year
     peak_flow = daily_water / daily_full_load_hrs # gallons_per_hour
     peak_flow /= 60 # convert to gallons per minute

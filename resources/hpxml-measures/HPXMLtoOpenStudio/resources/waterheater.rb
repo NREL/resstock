@@ -126,16 +126,12 @@ class Waterheater
     min_temp = 42.0 # F
     max_temp = 120.0 # F
 
-    # WaterHeater:HeatPump:WrappedCondenser
-    hpwh = setup_hpwh_wrapped_condenser(model, obj_name_hpwh, tset_C, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp)
-    dhw_map[water_heating_system.id] << hpwh
-
     # Coil:WaterHeating:AirToWaterHeatPump:Wrapped
-    coil = setup_hpwh_dxcoil(model, hpwh, water_heating_system, weather, obj_name_hpwh, airflow_rate)
+    coil = setup_hpwh_dxcoil(model, water_heating_system, weather, obj_name_hpwh, airflow_rate)
     dhw_map[water_heating_system.id] << coil
 
     # WaterHeater:Stratified
-    tank = setup_hpwh_stratified_tank(hpwh, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp)
+    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp)
     loop.addSupplyBranchForComponent(tank)
 
     if water_heating_system.uses_desuperheater
@@ -143,9 +139,13 @@ class Waterheater
     end
     dhw_map[water_heating_system.id] << tank
 
-    # Fan:OnOff
-    fan = setup_hpwh_fan(hpwh, obj_name_hpwh, airflow_rate)
+    # Fan:SystemModel
+    fan = setup_hpwh_fan(model, obj_name_hpwh, airflow_rate)
     dhw_map[water_heating_system.id] << fan
+
+    # WaterHeater:HeatPump:WrappedCondenser
+    hpwh = setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, tset_C, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp)
+    dhw_map[water_heating_system.id] << hpwh
 
     # Amb temp & RH sensors, temp sensor shared across programs
     amb_temp_sensor, amb_rh_sensors = get_loc_temp_rh_sensors(model, obj_name_hpwh, loc_schedule, loc_space, living_zone)
@@ -678,17 +678,18 @@ class Waterheater
 
   private
 
-  def self.setup_hpwh_wrapped_condenser(model, obj_name_hpwh, tset_C, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp)
+  def self.setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, tset_C, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp)
     h_condtop = (1.0 - (5.5 / 12.0)) * h_tank # in the 6th node of the tank (counting from top)
     h_condbot = 0.01 # bottom node
     h_hpctrl_up = (1.0 - (2.5 / 12.0)) * h_tank # in the 3rd node of the tank
     h_hpctrl_low = (1.0 - (8.5 / 12.0)) * h_tank # in the 9th node of the tank
+
     hp_setpoint = OpenStudio::Model::ScheduleConstant.new(model)
     hp_setpoint.setName("#{obj_name_hpwh} WaterHeaterHPSchedule")
     hp_setpoint.setValue(tset_C)
-    hpwh = OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser.new(model)
+
+    hpwh = OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser.new(model, coil, tank, fan, hp_setpoint, model.alwaysOnDiscreteSchedule)
     hpwh.setName("#{obj_name_hpwh} hpwh")
-    hpwh.setCompressorSetpointTemperatureSchedule(hp_setpoint)
     hpwh.setDeadBandTemperatureDifference(3.89)
     hpwh.setCondenserBottomLocation(h_condbot)
     hpwh.setCondenserTopLocation(h_condtop)
@@ -712,7 +713,7 @@ class Waterheater
     return hpwh
   end
 
-  def self.setup_hpwh_dxcoil(model, hpwh, water_heating_system, weather, obj_name_hpwh, airflow_rate)
+  def self.setup_hpwh_dxcoil(model, water_heating_system, weather, obj_name_hpwh, airflow_rate)
     # Curves
     hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
     hpwh_cap.setName('HPWH-Cap-fT')
@@ -772,7 +773,7 @@ class Waterheater
       end
     end
 
-    coil = hpwh.dXCoil.to_CoilWaterHeatingAirToWaterHeatPumpWrapped.get
+    coil = OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped.new(model)
     coil.setName("#{obj_name_hpwh} coil")
     coil.setRatedHeatingCapacity(UnitConversions.convert(cap, 'kW', 'W') * cop)
     coil.setRatedCOP(cop)
@@ -790,7 +791,7 @@ class Waterheater
     return coil
   end
 
-  def self.setup_hpwh_stratified_tank(hpwh, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp)
+  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp)
     # Calculate some geometry parameters for UA, the location of sensors and heat sources in the tank
     v_actual = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type) # gal
     a_tank, a_side = calc_tank_areas(v_actual, UnitConversions.convert(h_tank, 'm', 'ft')) # sqft
@@ -811,17 +812,19 @@ class Waterheater
     h_UE = (1.0 - (3.5 / 12.0)) * h_tank # in the 3rd node of the tank (counting from top)
     h_LE = (1.0 - (9.5 / 12.0)) * h_tank # in the 10th node of the tank (counting from top)
 
-    tank = hpwh.tank.to_WaterHeaterStratified.get
+    tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     tank.setName("#{obj_name_hpwh} tank")
     tank.setEndUseSubcategory('Domestic Hot Water')
     tank.setTankVolume(UnitConversions.convert(v_actual, 'gal', 'm^3'))
     tank.setTankHeight(h_tank)
     tank.setMaximumTemperatureLimit(90)
     tank.setHeaterPriorityControl('MasterSlave')
+    tank.heater1SetpointTemperatureSchedule.remove
     tank.setHeater1SetpointTemperatureSchedule(hpwh_top_element_sp) # Overwritten later by EMS
     tank.setHeater1Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
     tank.setHeater1Height(h_UE)
     tank.setHeater1DeadbandTemperatureDifference(18.5)
+    tank.heater2SetpointTemperatureSchedule.remove
     tank.setHeater2SetpointTemperatureSchedule(hpwh_bottom_element_sp)
     tank.setHeater2Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
     tank.setHeater2Height(h_LE)
@@ -833,6 +836,7 @@ class Waterheater
     tank.setOnCycleParasiticFuelConsumptionRate(parasitics)
     tank.setOnCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(u_tank)
+    tank.ambientTemperatureSchedule.get.remove
     tank.setAmbientTemperatureSchedule(hpwh_tamb)
     tank.setNumberofNodes(6)
     tank.setAdditionalDestratificationConductivity(0)
@@ -851,16 +855,19 @@ class Waterheater
     return tank
   end
 
-  def self.setup_hpwh_fan(hpwh, obj_name_hpwh, airflow_rate)
+  def self.setup_hpwh_fan(model, obj_name_hpwh, airflow_rate)
     fan_power = 0.0462 # W/cfm, Based on 1st gen AO Smith HPWH, could be updated but pretty minor impact
-    fan = hpwh.fan.to_FanOnOff.get # TOOD: Update reporting measure if this changes to FanSystemModel per https://github.com/NREL/OpenStudio/issues/4334
-    fan.setName("#{obj_name_hpwh} fan")
-    fan.setFanEfficiency(65.0 / fan_power * UnitConversions.convert(1.0, 'ft^3/min', 'm^3/s'))
-    fan.setPressureRise(65.0)
-    fan.setMaximumFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
-    fan.setMotorEfficiency(1.0)
-    fan.setMotorInAirstreamFraction(1.0)
+    fan = OpenStudio::Model::FanSystemModel.new(model)
+    fan.setSpeedControlMethod('Discrete')
+    fan.setDesignPowerSizingMethod('PowerPerFlow')
+    fan.setElectricPowerPerUnitFlowRate(fan_power / UnitConversions.convert(1.0, 'cfm', 'm^3/s'))
+    fan.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
+    fan.setName(obj_name_hpwh + ' fan')
     fan.setEndUseSubcategory('Domestic Hot Water')
+    fan.setMotorEfficiency(1.0)
+    fan.setMotorInAirStreamFraction(1.0)
+    fan.setDesignMaximumAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
+
     return fan
   end
 

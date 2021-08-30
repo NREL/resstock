@@ -312,7 +312,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Initialize measure keys with hpxml_path arguments
       hpxml_path = File.expand_path('../upgraded.xml')
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
-      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path }]
+      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
       measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
 
       new_runner.result.stepValues.each do |step_value|

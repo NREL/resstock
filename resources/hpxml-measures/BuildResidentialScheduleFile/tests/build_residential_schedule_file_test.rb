@@ -17,6 +17,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     @args_hash = {}
     @args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+    @args_hash['hpxml_output_path'] = @args_hash['hpxml_path']
   end
 
   def teardown
@@ -29,9 +30,20 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth.csv'))
-    model, hpxml = _test_measure()
+    model, hpxml, result = _test_measure()
 
-    sf = SchedulesFile.new(model: model, schedules_path: @args_hash['output_csv_path'], col_names: Constants.ScheduleColNames.keys)
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('smooth schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+    assert(!warn_msgs.any? { |warn_msg| warn_msg.include?('Overwriting') })
+
+    sf = SchedulesFile.new(model: model, year: 2007, schedules_path: @args_hash['output_csv_path'])
 
     assert_in_epsilon(6020, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(3321, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
@@ -69,40 +81,51 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     @args_hash['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth-vacancy.csv'))
-    model, hpxml = _test_measure()
+    model, hpxml, result = _test_measure()
 
-    sf = SchedulesFile.new(model: model, schedules_path: @args_hash['output_csv_path'], col_names: Constants.ScheduleColNames.keys)
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('smooth schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod=Dec 1 - Jan 31') })
+    assert(!warn_msgs.any? { |warn_msg| warn_msg.include?('Overwriting') })
 
-    vacancy_hrs = 31 * 2 * 24
-    occupied_ratio = (1 - vacancy_hrs / 8760)
+    sf = SchedulesFile.new(model: model, year: 2007, schedules_path: @args_hash['output_csv_path'])
 
-    assert_in_epsilon(4997 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2763 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2176 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2176 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_garage', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(19 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior_holiday', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(1810 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'cooking_range', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(6673 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'refrigerator', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(6673 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'extra_refrigerator', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(6673 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'freezer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2436 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'dishwasher', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(3444 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_washer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(3738 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_dryer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(5342 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'ceiling_fan', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(4308 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_other', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(1844 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_tv', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(7272 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_vehicle', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2951 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_well_pump', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(1688 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_grill', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2951 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_lighting', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2951 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_fireplace', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2471 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'pool_pump', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2471 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'pool_heater', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2502 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_pump', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2650 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_heater', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2436 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_dishwasher', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(3444 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(3490 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
+    vacancy_hrs = 31.0 * 2.0 * 24.0
+    occupied_ratio = (1.0 - vacancy_hrs / 8760.0)
+
+    assert_in_epsilon(6020 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3321 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2763 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2763 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_garage', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(19, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior_holiday', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2224 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'cooking_range', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'extra_refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'freezer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2994 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4158 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4503 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_dryer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6020 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'ceiling_fan', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(5468 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_other', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2288 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_tv', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_vehicle', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_well_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2074 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_grill', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_lighting', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_fireplace', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2471, sf.annual_equivalent_full_load_hrs(col_name: 'pool_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2471, sf.annual_equivalent_full_load_hrs(col_name: 'pool_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2502, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2650, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2994 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4158 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4204 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(vacancy_hrs, sf.annual_equivalent_full_load_hrs(col_name: 'vacancy', schedules: sf.tmp_schedules), 0.1)
   end
 
@@ -112,9 +135,20 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     @args_hash['schedules_type'] = 'stochastic'
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'stochastic.csv'))
-    model, hpxml = _test_measure()
+    model, hpxml, result = _test_measure()
 
-    sf = SchedulesFile.new(model: model, schedules_path: @args_hash['output_csv_path'], col_names: Constants.ScheduleColNames.keys)
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('stochastic schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+    assert(!warn_msgs.any? { |warn_msg| warn_msg.include?('Overwriting') })
+
+    sf = SchedulesFile.new(model: model, year: 2007, schedules_path: @args_hash['output_csv_path'])
 
     assert_in_epsilon(6689, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
@@ -153,53 +187,75 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     @args_hash['schedules_type'] = 'stochastic'
     @args_hash['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'stochastic-vacancy.csv'))
-    model, hpxml = _test_measure()
+    model, hpxml, result = _test_measure()
 
-    sf = SchedulesFile.new(model: model, schedules_path: @args_hash['output_csv_path'], col_names: Constants.ScheduleColNames.keys)
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('stochastic schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod=Dec 1 - Jan 31') })
+    assert(!warn_msgs.any? { |warn_msg| warn_msg.include?('Overwriting') })
 
-    vacancy_hrs = 31 * 2 * 24
-    occupied_ratio = (1 - vacancy_hrs / 8760)
+    sf = SchedulesFile.new(model: model, year: 2007, schedules_path: @args_hash['output_csv_path'])
 
-    assert_in_epsilon(5548 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(1675 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(3222 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(3222 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_garage', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(11 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior_holiday', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(439 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'cooking_range', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(6673 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'refrigerator', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(6673 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'extra_refrigerator', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(6673 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'freezer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(179 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'dishwasher', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(111 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_washer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(126 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_dryer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2620 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'ceiling_fan', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(3912 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_other', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(1844 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_tv', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(7272 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_vehicle', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2951 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_well_pump', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(1688 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_grill', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2951 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_lighting', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2951 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_fireplace', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2471 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'pool_pump', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2471 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'pool_heater', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2502 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_pump', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(2650 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_heater', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(264 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_dishwasher', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(273 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(832 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
+    vacancy_hrs = 31.0 * 2.0 * 24.0
+    occupied_ratio = (1.0 - vacancy_hrs / 8760.0)
+
+    assert_in_epsilon(6689 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2086 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4090 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4090 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_garage', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(11, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior_holiday', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(534 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'cooking_range', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'extra_refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'freezer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(213 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(134 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(151 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_dryer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3250 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'ceiling_fan', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4840 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_other', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2288 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_tv', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_vehicle', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_well_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2074 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_grill', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_lighting', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_fireplace', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2471, sf.annual_equivalent_full_load_hrs(col_name: 'pool_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2471, sf.annual_equivalent_full_load_hrs(col_name: 'pool_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2502, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2650, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(298 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(325 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(1009 * occupied_ratio, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(vacancy_hrs, sf.annual_equivalent_full_load_hrs(col_name: 'vacancy', schedules: sf.tmp_schedules), 0.1)
   end
 
   def test_random_seed
-    hpxml = _create_hpxml('base.xml')
+    hpxml = _create_hpxml('base-location-baltimore-md.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
     @args_hash['schedules_type'] = 'stochastic'
     @args_hash['schedules_random_seed'] = 1
     @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'stochastic.csv'))
-    model, hpxml = _test_measure()
+    model, hpxml, result = _test_measure()
 
-    sf = SchedulesFile.new(model: model, schedules_path: @args_hash['output_csv_path'], col_names: Constants.ScheduleColNames.keys)
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('stochastic schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=MD') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('RandomSeed=1') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+    assert(!warn_msgs.any? { |warn_msg| warn_msg.include?('Overwriting') })
+
+    sf = SchedulesFile.new(model: model, year: 2007, schedules_path: @args_hash['output_csv_path'])
 
     assert_in_epsilon(6689, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2086, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
@@ -227,13 +283,24 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(2650, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_heater', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(298, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_dishwasher', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(325, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(1009, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(898, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?('vacancy'))
 
     @args_hash['schedules_random_seed'] = 2
-    model, hpxml = _test_measure()
+    model, hpxml, result = _test_measure()
 
-    sf = SchedulesFile.new(model: model, schedules_path: @args_hash['output_csv_path'], col_names: Constants.ScheduleColNames.keys)
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('stochastic schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=MD') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('RandomSeed=2') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+    assert(warn_msgs.any? { |warn_msg| warn_msg.include?('Overwriting') })
+
+    sf = SchedulesFile.new(model: model, year: 2007, schedules_path: @args_hash['output_csv_path'])
 
     assert_in_epsilon(6072, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(1765, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
@@ -260,8 +327,161 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert_in_epsilon(2502, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_pump', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(2650, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_heater', schedules: sf.tmp_schedules), 0.1)
     assert_in_epsilon(226, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_dishwasher', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(244, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
-    assert_in_epsilon(1126, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(274, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(975, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
+    assert(!sf.schedules.keys.include?('vacancy'))
+  end
+
+  def test_AMY_2012_vacancy
+    hpxml = _create_hpxml('base-location-AMY-2012.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+
+    @args_hash['schedules_vacancy_period'] = 'Jan 1 - Dec 31'
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth.csv'))
+    model, hpxml, result = _test_measure()
+
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('smooth schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2012') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod=Jan 1 - Dec 31') })
+    assert(!warn_msgs.any? { |warn_msg| warn_msg.include?('Overwriting') })
+
+    sf = SchedulesFile.new(model: model, year: 2012, schedules_path: @args_hash['output_csv_path'])
+
+    vacancy_hrs = 366.0 * 24.0
+
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_garage', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior_holiday', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'cooking_range', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6688, sf.annual_equivalent_full_load_hrs(col_name: 'refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6688, sf.annual_equivalent_full_load_hrs(col_name: 'extra_refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6688, sf.annual_equivalent_full_load_hrs(col_name: 'freezer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_dryer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'ceiling_fan', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_other', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_tv', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_vehicle', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_well_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_grill', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_lighting', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_fireplace', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2479, sf.annual_equivalent_full_load_hrs(col_name: 'pool_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2479, sf.annual_equivalent_full_load_hrs(col_name: 'pool_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2508, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2656, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(0, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(vacancy_hrs, sf.annual_equivalent_full_load_hrs(col_name: 'vacancy', schedules: sf.tmp_schedules), 0.1)
+  end
+
+  def test_10_min_timestep_vacancy
+    hpxml = _create_hpxml('base-simcontrol-timestep-10-mins.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth.csv'))
+    model, hpxml, result = _test_measure()
+
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('smooth schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=10') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+    assert(!warn_msgs.any? { |warn_msg| warn_msg.include?('Overwriting') })
+
+    sf = SchedulesFile.new(model: model, year: 2007, schedules_path: @args_hash['output_csv_path'])
+
+    assert_in_epsilon(6020, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3321, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2763, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2763, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_garage', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(150, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior_holiday', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2224, sf.annual_equivalent_full_load_hrs(col_name: 'cooking_range', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'extra_refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'freezer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2994, sf.annual_equivalent_full_load_hrs(col_name: 'dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4158, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4503, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_dryer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6020, sf.annual_equivalent_full_load_hrs(col_name: 'ceiling_fan', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(5468, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_other', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2288, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_tv', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_vehicle', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_well_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2074, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_grill', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_lighting', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_fireplace', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2471, sf.annual_equivalent_full_load_hrs(col_name: 'pool_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2471, sf.annual_equivalent_full_load_hrs(col_name: 'pool_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2502, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2650, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2994, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4158, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4204, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
+    assert(!sf.schedules.keys.include?('vacancy'))
+  end
+
+  def test_overwrite_schedules_filepath
+    hpxml = _create_hpxml('base-schedules-detailed-smooth.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'stochastic.csv'))
+    model, hpxml, result = _test_measure()
+
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('smooth schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+    assert(warn_msgs.any? { |warn_msg| warn_msg.include?('Overwriting') })
+
+    sf = SchedulesFile.new(model: model, year: 2007, schedules_path: @args_hash['output_csv_path'])
+
+    assert_in_epsilon(6020, sf.annual_equivalent_full_load_hrs(col_name: 'occupants', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3321, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_interior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2763, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2763, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_garage', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(150, sf.annual_equivalent_full_load_hrs(col_name: 'lighting_exterior_holiday', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2224, sf.annual_equivalent_full_load_hrs(col_name: 'cooking_range', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'extra_refrigerator', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6673, sf.annual_equivalent_full_load_hrs(col_name: 'freezer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2994, sf.annual_equivalent_full_load_hrs(col_name: 'dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4158, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4503, sf.annual_equivalent_full_load_hrs(col_name: 'clothes_dryer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(6020, sf.annual_equivalent_full_load_hrs(col_name: 'ceiling_fan', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(5468, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_other', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2288, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_tv', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(8760, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_vehicle', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671, sf.annual_equivalent_full_load_hrs(col_name: 'plug_loads_well_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2074, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_grill', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_lighting', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(3671, sf.annual_equivalent_full_load_hrs(col_name: 'fuel_loads_fireplace', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2471, sf.annual_equivalent_full_load_hrs(col_name: 'pool_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2471, sf.annual_equivalent_full_load_hrs(col_name: 'pool_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2502, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_pump', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2650, sf.annual_equivalent_full_load_hrs(col_name: 'hot_tub_heater', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(2994, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_dishwasher', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4158, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_clothes_washer', schedules: sf.tmp_schedules), 0.1)
+    assert_in_epsilon(4204, sf.annual_equivalent_full_load_hrs(col_name: 'hot_water_fixtures', schedules: sf.tmp_schedules), 0.1)
     assert(!sf.schedules.keys.include?('vacancy'))
   end
 
@@ -297,7 +517,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     hpxml = HPXML.new(hpxml_path: @tmp_hpxml_path)
 
-    return model, hpxml
+    return model, hpxml, result
   end
 
   def _create_hpxml(hpxml_name)

@@ -15,14 +15,15 @@ For more information on running simulations, generating HPXML files, etc., pleas
 ## Workflows
 
 A simple [run_simulation.rb script](https://github.com/NREL/OpenStudio-HPXML/blob/master/workflow/run_simulation.rb) is provided to run a residential EnergyPlus simulation from an HPXML file.
-See the [Getting Started](https://openstudio-hpxml.readthedocs.io/en/latest/getting_started.html#getting-started) section of the documentation for running simulations.
+See the [Usage Instructions](https://openstudio-hpxml.readthedocs.io/en/latest/usage_instructions.html) for documentation on running the workflow.
 
-Since [OpenStudio measures](http://nrel.github.io/OpenStudio-user-documentation/getting_started/about_measures/) are used for model generation, additional OpenStudio-based workflows and interfaces can be used instead if desired.
+Since [OpenStudio measures](http://nrel.github.io/OpenStudio-user-documentation/getting_started/about_measures/) are used for model generation, additional OpenStudio-based workflows and interfaces can instead be used if desired.
 
 ## Measures
 
-This repository contains three OpenStudio measures:
+This repository contains four OpenStudio measures:
 - `BuildResidentialHPXML`: A measure that translates a set of building unit argument values to an HPXML file.
+- `BuildResidentialScheduleFile`: A measure that generates a CSV of detailed schedules (e.g., stochastic occupancy) for use in the simulation.
 - `HPXMLtoOpenStudio`: A measure that translates an HPXML file to an OpenStudio model.
 - `SimulationOutputReport`: A reporting measure that generates a variety of annual/timeseries CSV or JSON outputs for a residential HPXML-based model.
 

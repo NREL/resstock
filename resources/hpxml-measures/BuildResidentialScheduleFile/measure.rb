@@ -30,7 +30,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return ''
+    return "Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Schedules corresponding to 'smooth' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data."
   end
 
   # define the arguments that the user will input
@@ -48,7 +48,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('schedules_type', schedules_type_choices, true)
     arg.setDisplayName('Schedules: Type')
-    arg.setDescription("The type of occupant-related schedules to use. Schedules corresponding to 'smooth' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.")
+    arg.setDescription('The type of occupant-related schedules to use.')
     arg.setDefaultValue('smooth')
     args << arg
 
@@ -64,8 +64,13 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_csv_path', true)
-    arg.setDisplayName('Schedules: Path')
+    arg.setDisplayName('Schedules: Output CSV Path')
     arg.setDescription('Absolute (or relative) path of the csv file containing user-specified occupancy schedules.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_output_path', true)
+    arg.setDisplayName('HPXML Output File Path')
+    arg.setDescription('Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path.')
     args << arg
 
     return args
@@ -94,7 +99,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     hpxml = HPXML.new(hpxml_path: hpxml_path)
 
-    # Create EpwFile object
+    # create EpwFile object
     epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
     if not File.exist? epw_path
       epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
@@ -105,62 +110,42 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     end
     epw_file = OpenStudio::EpwFile.new(epw_path)
 
-    success = create_schedules(runner, hpxml, model, epw_file, args)
+    # create the schedules
+    success = create_schedules(runner, hpxml, epw_file, args)
     return false if not success
 
     # modify the hpxml with the schedules path
-    hpxml.header.schedules_filepath = args[:output_csv_path]
-    hpxml_doc = hpxml.to_oga()
-    XMLHelper.write_file(hpxml_doc, hpxml_path)
-    runner.registerInfo("Wrote file: #{hpxml_path}")
+    doc = XMLHelper.parse_file(hpxml_path)
+    extension = XMLHelper.create_elements_as_needed(XMLHelper.get_element(doc, '/HPXML'), ['SoftwareInfo', 'extension'])
+    schedules_filepath = XMLHelper.get_value(extension, 'SchedulesFilePath', :string)
+    if !schedules_filepath.nil?
+      runner.registerWarning("Overwriting existing SchedulesFilePath element: #{schedules_filepath}")
+      XMLHelper.delete_element(extension, 'SchedulesFilePath')
+    end
+    XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
+
+    # write out the modified hpxml
+    hpxml_output_path = args[:hpxml_output_path]
+    unless (Pathname.new hpxml_output_path).absolute?
+      hpxml_output_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_output_path))
+    end
+
+    if (hpxml_path != hpxml_output_path) || (schedules_filepath != args[:output_csv_path])
+      XMLHelper.write_file(doc, hpxml_output_path)
+      runner.registerInfo("Wrote file: #{hpxml_output_path}")
+    end
 
     return true
   end
 
-  def create_schedules(runner, hpxml, model, epw_file, args)
+  def create_schedules(runner, hpxml, epw_file, args)
     info_msgs = []
 
-    # set the calendar year
-    year_description = model.getYearDescription
-    year_description.setCalendarYear(2007) # default to TMY
-    unless hpxml.header.sim_calendar_year.nil?
-      year_description.setCalendarYear(hpxml.header.sim_calendar_year)
-    end
-    if epw_file.startDateActualYear.is_initialized # AMY
-      year_description.setCalendarYear(epw_file.startDateActualYear.get)
-    end
-    info_msgs << "CalendarYear=#{year_description.calendarYear}"
-
-    # set the timestep
-    timestep = model.getTimestep
-    timestep.setNumberOfTimestepsPerHour(1)
-    unless hpxml.header.timestep.nil?
-      timestep.setNumberOfTimestepsPerHour(60 / hpxml.header.timestep)
-    end
-    info_msgs << "NumberOfTimestepsPerHour=#{timestep.numberOfTimestepsPerHour}"
-
-    # get generator inputs
-    state = 'CO'
-    state = epw_file.stateProvinceRegion unless epw_file.stateProvinceRegion.empty?
-    state = hpxml.header.state_code unless hpxml.header.state_code.nil?
-    random_seed = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
-    if hpxml.building_occupancy.number_of_residents.nil?
-      args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml.building_construction.number_of_bedrooms)
-    else
-      args[:geometry_num_occupants] = hpxml.building_occupancy.number_of_residents
-    end
-    if args[:schedules_vacancy_period].is_initialized
-      begin_month, begin_day, end_month, end_day = parse_date_range(args[:schedules_vacancy_period].get)
-      args[:schedules_vacancy_begin_month] = begin_month
-      args[:schedules_vacancy_begin_day] = begin_day
-      args[:schedules_vacancy_end_month] = end_month
-      args[:schedules_vacancy_end_day] = end_day
-    end
-
-    # generate the schedule
-    schedule_generator = ScheduleGenerator.new(runner: runner, model: model, epw_file: epw_file, state: state, random_seed: random_seed)
+    get_simulation_parameters(hpxml, epw_file, args)
+    get_generator_inputs(hpxml, epw_file, args)
 
     args[:resources_path] = File.join(File.dirname(__FILE__), 'resources')
+    schedule_generator = ScheduleGenerator.new(runner: runner, epw_file: epw_file, **args)
 
     success = schedule_generator.create(args: args)
     return false if not success
@@ -168,34 +153,59 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     success = schedule_generator.export(schedules_path: File.expand_path(args[:output_csv_path]))
     return false if not success
 
-    runner.registerInfo("Created schedule with #{info_msgs.join(', ')}")
+    info_msgs << "SimYear=#{args[:sim_year]}"
+    info_msgs << "MinutesPerStep=#{args[:minutes_per_step]}"
+    info_msgs << "State=#{args[:state]}"
+    info_msgs << "RandomSeed=#{args[:random_seed]}" if args[:schedules_random_seed].is_initialized
+    info_msgs << "GeometryNumOccupants=#{args[:geometry_num_occupants]}"
+    info_msgs << "VacancyPeriod=#{args[:schedules_vacancy_period].get}" if args[:schedules_vacancy_period].is_initialized
+
+    runner.registerInfo("Created #{args[:schedules_type]} schedule with #{info_msgs.join(', ')}")
 
     return true
   end
 
-  def parse_date_range(date_range)
-    begin_end_dates = date_range.split('-').map { |v| v.strip }
-    if begin_end_dates.size != 2
-      fail "Invalid date format specified for '#{date_range}'."
+  def get_simulation_parameters(hpxml, epw_file, args)
+    args[:minutes_per_step] = 60
+    if !hpxml.header.timestep.nil?
+      args[:minutes_per_step] = hpxml.header.timestep
+    end
+    args[:steps_in_day] = 24 * 60 / args[:minutes_per_step]
+    args[:mkc_ts_per_day] = 96
+    args[:mkc_ts_per_hour] = args[:mkc_ts_per_day] / 24
+
+    calendar_year = 2007 # default to TMY
+    if !hpxml.header.sim_calendar_year.nil?
+      calendar_year = hpxml.header.sim_calendar_year
+    end
+    if epw_file.startDateActualYear.is_initialized # AMY
+      calendar_year = epw_file.startDateActualYear.get
+    end
+    args[:sim_year] = calendar_year
+    args[:sim_start_day] = DateTime.new(args[:sim_year], 1, 1)
+    args[:total_days_in_year] = Constants.NumDaysInYear(calendar_year)
+  end
+
+  def get_generator_inputs(hpxml, epw_file, args)
+    args[:state] = 'CO'
+    args[:state] = epw_file.stateProvinceRegion unless epw_file.stateProvinceRegion.empty?
+    args[:state] = hpxml.header.state_code unless hpxml.header.state_code.nil?
+
+    args[:random_seed] = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
+
+    if hpxml.building_occupancy.number_of_residents.nil?
+      args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml.building_construction.number_of_bedrooms)
+    else
+      args[:geometry_num_occupants] = hpxml.building_occupancy.number_of_residents
     end
 
-    begin_values = begin_end_dates[0].split(' ').map { |v| v.strip }
-    end_values = begin_end_dates[1].split(' ').map { |v| v.strip }
-
-    if (begin_values.size != 2) || (end_values.size != 2)
-      fail "Invalid date format specified for '#{date_range}'."
+    if args[:schedules_vacancy_period].is_initialized
+      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:schedules_vacancy_period].get)
+      args[:schedules_vacancy_begin_month] = begin_month
+      args[:schedules_vacancy_begin_day] = begin_day
+      args[:schedules_vacancy_end_month] = end_month
+      args[:schedules_vacancy_end_day] = end_day
     end
-
-    require 'date'
-    begin_month = Date::ABBR_MONTHNAMES.index(begin_values[0].capitalize)
-    end_month = Date::ABBR_MONTHNAMES.index(end_values[0].capitalize)
-    begin_day = begin_values[1].to_i
-    end_day = end_values[1].to_i
-    if begin_month.nil? || end_month.nil? || begin_day == 0 || end_day == 0
-      fail "Invalid date format specified for '#{date_range}'."
-    end
-
-    return begin_month, begin_day, end_month, end_day
   end
 end
 

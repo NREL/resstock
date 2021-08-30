@@ -170,7 +170,7 @@
         "hot_tub_present": false,
         "hot_tub_pump_annual_kwh": "auto",
         "hot_tub_pump_usage_multiplier": 1.0,
-        "hpxml_path": "../workflow/sample_files/test.xml",
+        "hpxml_path": "../workflow/built.xml",
         "kitchen_fans_quantity": "0",
         "lighting_fraction_cfl_exterior": 0.4,
         "lighting_fraction_cfl_garage": 0.4,
@@ -331,15 +331,16 @@
     },
     {
       "arguments": {
-        "hpxml_path": "../workflow/sample_files/test.xml",
-        "schedules_type": "smooth",
-        "output_csv_path": "../smooth.csv"
+        "hpxml_path": "../workflow/built.xml",
+        "schedules_type": "stochastic",
+        "output_csv_path": "../stochastic.csv",
+        "hpxml_output_path": "../workflow/built-stochastic-schedules.xml"
       },
       "measure_dir_name": "BuildResidentialScheduleFile"
     },
     {
       "arguments": {
-        "hpxml_path": "../workflow/sample_files/test.xml",
+        "hpxml_path": "../workflow/built-stochastic-schedules.xml",
         "output_dir": "../workflow/run",
         "debug": false,
         "add_component_loads": false,

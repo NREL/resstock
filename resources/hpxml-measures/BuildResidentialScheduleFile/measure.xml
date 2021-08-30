@@ -3,13 +3,13 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_schedule_file</name>
   <uid>f770b2db-1a9f-4e99-99a7-7f3161a594b1</uid>
-  <version_id>db9f3049-7c49-46dd-a6a5-0016e06e6826</version_id>
-  <version_modified>20210811T170020Z</version_modified>
+  <version_id>59aa7c55-b3ee-4862-8509-a3c0951c05b6</version_id>
+  <version_modified>20210827T230918Z</version_modified>
   <xml_checksum>03F02484</xml_checksum>
   <class_name>BuildResidentialScheduleFile</class_name>
   <display_name>Schedule File Builder</display_name>
   <description>Builds a residential schedule file.</description>
-  <modeler_description></modeler_description>
+  <modeler_description>Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Schedules corresponding to 'smooth' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.</modeler_description>
   <arguments>
     <argument>
       <name>hpxml_path</name>
@@ -22,7 +22,7 @@
     <argument>
       <name>schedules_type</name>
       <display_name>Schedules: Type</display_name>
-      <description>The type of occupant-related schedules to use. Schedules corresponding to 'smooth' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.</description>
+      <description>The type of occupant-related schedules to use.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -57,8 +57,16 @@
     </argument>
     <argument>
       <name>output_csv_path</name>
-      <display_name>Schedules: Path</display_name>
+      <display_name>Schedules: Output CSV Path</display_name>
       <description>Absolute (or relative) path of the csv file containing user-specified occupancy schedules.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>hpxml_output_path</name>
+      <display_name>HPXML Output File Path</display_name>
+      <description>Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -786,12 +794,6 @@
       <checksum>5FC694CF</checksum>
     </file>
     <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E7D8632C</checksum>
-    </file>
-    <file>
       <filename>schedules_config.json</filename>
       <filetype>json</filetype>
       <usage_type>resource</usage_type>
@@ -870,10 +872,10 @@
       <checksum>419E598E</checksum>
     </file>
     <file>
-      <filename>build_residential_schedule_file_test.rb</filename>
+      <filename>schedules.rb</filename>
       <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7DCA50E2</checksum>
+      <usage_type>resource</usage_type>
+      <checksum>BD0D49A4</checksum>
     </file>
     <file>
       <version>
@@ -884,7 +886,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8839B5FA</checksum>
+      <checksum>35C51CBB</checksum>
+    </file>
+    <file>
+      <filename>build_residential_schedule_file_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A18C70F9</checksum>
     </file>
   </files>
 </measure>
