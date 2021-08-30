@@ -985,8 +985,8 @@ class HVAC
     equip.setSchedule(ceiling_fan_sch)
   end
 
-  def self.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, heating_days, cooling_days)
-    num_days = Constants.NumDaysInYear(model)
+  def self.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, heating_days, cooling_days, year)
+    num_days = Constants.NumDaysInYear(year)
 
     if hvac_control.weekday_heating_setpoints.nil? || hvac_control.weekend_heating_setpoints.nil?
       # Base heating setpoint
@@ -1045,7 +1045,7 @@ class HVAC
       clg_ceiling_fan_offset = hvac_control.ceiling_fan_cooling_setpoint_temp_offset
       if not clg_ceiling_fan_offset.nil?
         months = get_default_ceiling_fan_months(weather)
-        Schedule.months_to_days(model, months).each_with_index do |operation, d|
+        Schedule.months_to_days(year, months).each_with_index do |operation, d|
           next if operation != 1
 
           clg_weekday_setpoints[d] = [clg_weekday_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
