@@ -198,9 +198,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Remove any measures_to_ignore from the list of measures to run
     if args['measures_to_ignore'].is_initialized
       measures_to_ignore = args['measures_to_ignore'].get
-      # core ResStock measures are those specified in the default workflow json
+      # core ResStock measures are those specified below
       # those should not be ignored ...
-      core_measures = ['ResStockArguments', 'BuildResidentialHPXML', 'HPXMLtoOpenStudio']
+      core_measures = ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
       measures_to_ignore.split('|').each do |measure_dir|
         if core_measures.include? measure_dir
           # fail if core ResStock measure is ignored
