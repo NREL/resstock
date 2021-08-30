@@ -12,40 +12,44 @@ def apply_child_measures(measures_dir, measures, runner, model, osw_out = nil, s
     workflowJSON.addMeasurePath('measures')
     workflowJSON.addMeasurePath('resources/hpxml-measures')
     steps = OpenStudio::WorkflowStepVector.new
-    measures.each do |measure_subdir, args|
-      step = OpenStudio::MeasureStep.new(measure_subdir)
-      args.each do |k, v|
-        next if v.nil?
+    measures.each do |measure_subdir, args_array|
+      args_array.each do |args|
+        step = OpenStudio::MeasureStep.new(measure_subdir)
+        args.each do |k, v|
+          next if v.nil?
 
-        step.setArgument(k, "#{v}")
+          step.setArgument(k, "#{v}")
+        end
+        steps.push(step)
       end
-      steps.push(step)
     end
     workflowJSON.setWorkflowSteps(steps)
     workflowJSON.save
   end
 
   # Call each measure in the specified order
-  measures.each do |measure_subdir, args|
+  measures.each do |measure_subdir, args_array|
     # Gather measure arguments and call measure
     full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
     check_file_exists(full_measure_path, runner)
     measure_instance = get_measure_instance(full_measure_path)
-    argument_map = get_argument_map(model, measure_instance, args, nil, measure_subdir, runner)
-    if show_measure_calls
-      print_measure_call(args, measure_subdir, runner)
+    args_array.each do |args|
+      argument_map = get_argument_map(model, measure_instance, args, nil, measure_subdir, runner)
+      if show_measure_calls
+        print_measure_call(args, measure_subdir, runner)
+      end
+
+      measure_start = Time.now
+      if not run_measure(model, measure_instance, argument_map, runner)
+        return false
+      end
+
+      next if parent_measure_runner.empty?
+
+      measure_time = (Time.now - measure_start).round(1)
+      parent_measure = parent_measure_runner.keys[0]
+      parent_runner = parent_measure_runner[parent_measure]
     end
-
-    measure_start = Time.now
-    if not run_measure(model, measure_instance, argument_map, runner)
-      return false
-    end
-
-    next if parent_measure_runner.empty?
-
-    measure_time = (Time.now - measure_start).round(1)
-    parent_measure = parent_measure_runner.keys[0]
-    parent_runner = parent_measure_runner[parent_measure]
   end
 
   return true
