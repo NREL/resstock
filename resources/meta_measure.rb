@@ -2,14 +2,8 @@
 
 # Helper methods related to having a meta-measure
 
-def apply_child_measures(measures_dir, measures, runner, model, workflow_order = [], osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
+def apply_child_measures(measures_dir, measures, runner, model, osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
   require 'openstudio'
-
-  if workflow_order.empty?
-    measures.keys.each do |measure_subdir|
-      workflow_order << measure_subdir
-    end
-  end
 
   if not osw_out.nil?
     # Create a workflow based on the measures we're going to call. Convenient for debugging.
@@ -18,44 +12,40 @@ def apply_child_measures(measures_dir, measures, runner, model, workflow_order =
     workflowJSON.addMeasurePath('measures')
     workflowJSON.addMeasurePath('resources/hpxml-measures')
     steps = OpenStudio::WorkflowStepVector.new
-    workflow_order.each do |measure_subdir|
-      measures[measure_subdir].each do |args|
-        step = OpenStudio::MeasureStep.new(measure_subdir)
-        args.each do |k, v|
-          next if v.nil?
+    measures.each do |measure_subdir, args|
+      step = OpenStudio::MeasureStep.new(measure_subdir)
+      args.each do |k, v|
+        next if v.nil?
 
-          step.setArgument(k, "#{v}")
-        end
-        steps.push(step)
+        step.setArgument(k, "#{v}")
       end
+      steps.push(step)
     end
     workflowJSON.setWorkflowSteps(steps)
     workflowJSON.save
   end
 
   # Call each measure in the specified order
-  workflow_order.each do |measure_subdir|
+  measures.each do |measure_subdir, args|
     # Gather measure arguments and call measure
     full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
     check_file_exists(full_measure_path, runner)
     measure_instance = get_measure_instance(full_measure_path)
-    measures[measure_subdir].each do |args|
-      argument_map = get_argument_map(model, measure_instance, args, nil, measure_subdir, runner)
-      if show_measure_calls
-        print_measure_call(args, measure_subdir, runner)
-      end
-
-      measure_start = Time.now
-      if not run_measure(model, measure_instance, argument_map, runner)
-        return false
-      end
-
-      next if parent_measure_runner.empty?
-
-      measure_time = (Time.now - measure_start).round(1)
-      parent_measure = parent_measure_runner.keys[0]
-      parent_runner = parent_measure_runner[parent_measure]
+    argument_map = get_argument_map(model, measure_instance, args, nil, measure_subdir, runner)
+    if show_measure_calls
+      print_measure_call(args, measure_subdir, runner)
     end
+
+    measure_start = Time.now
+    if not run_measure(model, measure_instance, argument_map, runner)
+      return false
+    end
+
+    next if parent_measure_runner.empty?
+
+    measure_time = (Time.now - measure_start).round(1)
+    parent_measure = parent_measure_runner.keys[0]
+    parent_runner = parent_measure_runner[parent_measure]
   end
 
   return true
