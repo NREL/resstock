@@ -157,174 +157,86 @@ class SimulationOutputReportTest < MiniTest::Test
     'Hot Water: Distribution Waste (gal)',
   ]
 
-  TimeseriesColsFuels = [
+  BaseHPXMLTimeseriesColsFuels = [
     'Fuel Use: Electricity: Total',
     'Fuel Use: Natural Gas: Total',
-    'Fuel Use: Fuel Oil: Total',
-    'Fuel Use: Propane: Total',
-    'Fuel Use: Wood Cord: Total',
-    'Fuel Use: Wood Pellets: Total',
-    'Fuel Use: Coal: Total',
   ]
 
-  TimeseriesColsEndUses = [
-    'End Use: Electricity: Heating',
-    'End Use: Electricity: Heating Fans/Pumps',
+  BaseHPXMLTimeseriesColsEndUses = [
+    'End Use: Electricity: Clothes Dryer',
+    'End Use: Electricity: Clothes Washer',
     'End Use: Electricity: Cooling',
     'End Use: Electricity: Cooling Fans/Pumps',
-    'End Use: Electricity: Hot Water',
-    'End Use: Electricity: Hot Water Recirc Pump',
-    'End Use: Electricity: Hot Water Solar Thermal Pump',
-    'End Use: Electricity: Lighting Interior',
-    'End Use: Electricity: Lighting Garage',
-    'End Use: Electricity: Lighting Exterior',
-    'End Use: Electricity: Mech Vent',
-    'End Use: Electricity: Whole House Fan',
-    'End Use: Electricity: Refrigerator',
-    'End Use: Electricity: Freezer',
-    'End Use: Electricity: Dehumidifier',
     'End Use: Electricity: Dishwasher',
-    'End Use: Electricity: Clothes Washer',
-    'End Use: Electricity: Clothes Dryer',
-    'End Use: Electricity: Range/Oven',
-    'End Use: Electricity: Ceiling Fan',
-    'End Use: Electricity: Television',
+    'End Use: Electricity: Heating Fans/Pumps',
+    'End Use: Electricity: Hot Water',
+    'End Use: Electricity: Lighting Exterior',
+    'End Use: Electricity: Lighting Interior',
     'End Use: Electricity: Plug Loads',
-    'End Use: Electricity: Electric Vehicle Charging',
-    'End Use: Electricity: Well Pump',
-    'End Use: Electricity: Pool Heater',
-    'End Use: Electricity: Pool Pump',
-    'End Use: Electricity: Hot Tub Heater',
-    'End Use: Electricity: Hot Tub Pump',
-    'End Use: Electricity: PV',
-    'End Use: Electricity: Generator',
+    'End Use: Electricity: Range/Oven',
+    'End Use: Electricity: Refrigerator',
+    'End Use: Electricity: Television',
     'End Use: Natural Gas: Heating',
-    'End Use: Natural Gas: Hot Water',
-    'End Use: Natural Gas: Clothes Dryer',
-    'End Use: Natural Gas: Range/Oven',
-    'End Use: Natural Gas: Pool Heater',
-    'End Use: Natural Gas: Hot Tub Heater',
-    'End Use: Natural Gas: Grill',
-    'End Use: Natural Gas: Lighting',
-    'End Use: Natural Gas: Fireplace',
-    'End Use: Natural Gas: Generator',
-    'End Use: Fuel Oil: Heating',
-    'End Use: Fuel Oil: Hot Water',
-    'End Use: Fuel Oil: Clothes Dryer',
-    'End Use: Fuel Oil: Range/Oven',
-    'End Use: Fuel Oil: Grill',
-    'End Use: Fuel Oil: Lighting',
-    'End Use: Fuel Oil: Fireplace',
-    'End Use: Fuel Oil: Generator',
-    'End Use: Propane: Heating',
-    'End Use: Propane: Hot Water',
-    'End Use: Propane: Clothes Dryer',
-    'End Use: Propane: Range/Oven',
-    'End Use: Propane: Grill',
-    'End Use: Propane: Lighting',
-    'End Use: Propane: Fireplace',
-    'End Use: Propane: Generator',
-    'End Use: Wood Cord: Heating',
-    'End Use: Wood Cord: Hot Water',
-    'End Use: Wood Cord: Clothes Dryer',
-    'End Use: Wood Cord: Range/Oven',
-    'End Use: Wood Cord: Grill',
-    'End Use: Wood Cord: Lighting',
-    'End Use: Wood Cord: Fireplace',
-    'End Use: Wood Cord: Generator',
-    'End Use: Wood Pellets: Heating',
-    'End Use: Wood Pellets: Hot Water',
-    'End Use: Wood Pellets: Clothes Dryer',
-    'End Use: Wood Pellets: Range/Oven',
-    'End Use: Wood Pellets: Grill',
-    'End Use: Wood Pellets: Lighting',
-    'End Use: Wood Pellets: Fireplace',
-    'End Use: Wood Pellets: Generator',
-    'End Use: Coal: Heating',
-    'End Use: Coal: Hot Water',
-    'End Use: Coal: Clothes Dryer',
-    'End Use: Coal: Range/Oven',
-    'End Use: Coal: Grill',
-    'End Use: Coal: Lighting',
-    'End Use: Coal: Fireplace',
-    'End Use: Coal: Generator',
   ]
 
-  TimeseriesColsWaterUses = [
+  BaseHPXMLTimeseriesColsWaterUses = [
     'Hot Water: Clothes Washer',
     'Hot Water: Dishwasher',
-    'Hot Water: Fixtures',
     'Hot Water: Distribution Waste',
+    'Hot Water: Fixtures',
   ]
 
-  TimeseriesColsTotalLoads = [
+  BaseHPXMLTimeseriesColsTotalLoads = [
     'Load: Heating',
     'Load: Cooling',
     'Load: Hot Water: Delivered',
   ]
 
-  TimeseriesColsComponentLoads = [
-    'Component Load: Heating: Roofs',
-    'Component Load: Heating: Ceilings',
-    'Component Load: Heating: Walls',
-    'Component Load: Heating: Rim Joists',
-    'Component Load: Heating: Foundation Walls',
-    'Component Load: Heating: Doors',
-    'Component Load: Heating: Windows',
-    'Component Load: Heating: Skylights',
-    'Component Load: Heating: Floors',
-    'Component Load: Heating: Slabs',
-    'Component Load: Heating: Internal Mass',
-    'Component Load: Heating: Infiltration',
-    'Component Load: Heating: Natural Ventilation',
-    'Component Load: Heating: Mechanical Ventilation',
-    'Component Load: Heating: Whole House Fan',
-    'Component Load: Heating: Ducts',
-    'Component Load: Heating: Internal Gains',
-    'Component Load: Cooling: Roofs',
+  BaseHPXMLTimeseriesColsComponentLoads = [
     'Component Load: Cooling: Ceilings',
-    'Component Load: Cooling: Walls',
-    'Component Load: Cooling: Rim Joists',
-    'Component Load: Cooling: Foundation Walls',
     'Component Load: Cooling: Doors',
-    'Component Load: Cooling: Windows',
-    'Component Load: Cooling: Skylights',
-    'Component Load: Cooling: Floors',
-    'Component Load: Cooling: Slabs',
-    'Component Load: Cooling: Internal Mass',
-    'Component Load: Cooling: Infiltration',
-    'Component Load: Cooling: Natural Ventilation',
-    'Component Load: Cooling: Mechanical Ventilation',
-    'Component Load: Cooling: Whole House Fan',
     'Component Load: Cooling: Ducts',
+    'Component Load: Cooling: Foundation Walls',
+    'Component Load: Cooling: Infiltration',
     'Component Load: Cooling: Internal Gains',
+    'Component Load: Cooling: Internal Mass',
+    'Component Load: Cooling: Mechanical Ventilation',
+    'Component Load: Cooling: Natural Ventilation',
+    'Component Load: Cooling: Rim Joists',
+    'Component Load: Cooling: Slabs',
+    'Component Load: Cooling: Walls',
+    'Component Load: Cooling: Windows',
+    'Component Load: Heating: Ceilings',
+    'Component Load: Heating: Doors',
+    'Component Load: Heating: Ducts',
+    'Component Load: Heating: Foundation Walls',
+    'Component Load: Heating: Infiltration',
+    'Component Load: Heating: Internal Gains',
+    'Component Load: Heating: Internal Mass',
+    'Component Load: Heating: Mechanical Ventilation',
+    'Component Load: Heating: Rim Joists',
+    'Component Load: Heating: Slabs',
+    'Component Load: Heating: Walls',
+    'Component Load: Heating: Windows',
   ]
 
-  TimeseriesColsUnmetLoads = [
+  BaseHPXMLTimeseriesColsUnmetLoads = [
     'Unmet Load: Heating',
     'Unmet Load: Cooling',
   ]
 
-  TimeseriesColsZoneTemps = [
+  BaseHPXMLTimeseriesColsZoneTemps = [
     'Temperature: Attic - Unvented',
     'Temperature: Living Space',
   ]
 
-  TimeseriesColsTempsOtherSide = [
-    'Temperature: Other Multifamily Buffer Space',
-    'Temperature: Other Non-freezing Space',
-    'Temperature: Other Housing Unit',
-    'Temperature: Other Heated Space'
-  ]
-
-  TimeseriesColsAirflows = [
+  BaseHPXMLTimeseriesColsAirflows = [
     'Airflow: Infiltration',
     'Airflow: Mechanical Ventilation',
     'Airflow: Natural Ventilation',
-    'Airflow: Whole House Fan',
   ]
 
-  TimeseriesColsWeather = [
+  BaseHPXMLTimeseriesColsWeather = [
     'Weather: Drybulb Temperature',
     'Weather: Wetbulb Temperature',
     'Weather: Relative Humidity',
@@ -425,15 +337,14 @@ class SimulationOutputReportTest < MiniTest::Test
   ]
 
   def all_timeseries_cols
-    return (TimeseriesColsFuels +
-            TimeseriesColsEndUses +
-            TimeseriesColsWaterUses +
-            TimeseriesColsTotalLoads +
-            TimeseriesColsComponentLoads +
-            TimeseriesColsUnmetLoads +
-            TimeseriesColsZoneTemps +
-            TimeseriesColsAirflows +
-            TimeseriesColsWeather)
+    return (BaseHPXMLTimeseriesColsFuels +
+            BaseHPXMLTimeseriesColsEndUses +
+            BaseHPXMLTimeseriesColsWaterUses +
+            BaseHPXMLTimeseriesColsTotalLoads +
+            BaseHPXMLTimeseriesColsUnmetLoads +
+            BaseHPXMLTimeseriesColsZoneTemps +
+            BaseHPXMLTimeseriesColsAirflows +
+            BaseHPXMLTimeseriesColsWeather)
   end
 
   def test_annual_only
@@ -493,7 +404,7 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsFuels
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsFuels
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
@@ -515,7 +426,7 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsEndUses
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsEndUses
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
@@ -537,11 +448,11 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsWaterUses
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsWaterUses
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
-    _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsWaterUses)
+    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsWaterUses)
   end
 
   def test_timeseries_hourly_total_loads
@@ -559,11 +470,11 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsTotalLoads
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsTotalLoads
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
-    _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsTotalLoads)
+    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsTotalLoads)
   end
 
   def test_timeseries_hourly_component_loads
@@ -582,7 +493,7 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsComponentLoads
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsComponentLoads
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
@@ -604,11 +515,11 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsUnmetLoads
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsUnmetLoads
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
-    _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsUnmetLoads)
+    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsUnmetLoads)
   end
 
   def test_timeseries_hourly_zone_temperatures
@@ -626,11 +537,11 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsZoneTemps
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsZoneTemps
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
-    _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsZoneTemps)
+    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsZoneTemps)
   end
 
   def test_timeseries_hourly_zone_temperatures_mf_space
@@ -649,11 +560,17 @@ class SimulationOutputReportTest < MiniTest::Test
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
-    TimeseriesColsTempsOtherSide.each do |expected_col|
+    cols_temps_other_side = [
+      'Temperature: Other Multifamily Buffer Space',
+      'Temperature: Other Non-freezing Space',
+      'Temperature: Other Housing Unit',
+      'Temperature: Other Heated Space'
+    ]
+    cols_temps_other_side.each do |expected_col|
       assert(actual_timeseries_cols.include? expected_col)
     end
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
-    _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsTempsOtherSide)
+    _check_for_nonzero_timeseries_value(timeseries_csv, cols_temps_other_side)
   end
 
   def test_timeseries_hourly_airflows_with_exhaust_mechvent
@@ -671,11 +588,11 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsAirflows
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsAirflows
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
-    _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsAirflows.select { |t| t != 'Airflow: Whole House Fan' })
+    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsAirflows.select { |t| t != 'Airflow: Whole House Fan' })
   end
 
   def test_timeseries_hourly_airflows_with_whf
@@ -693,11 +610,13 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsAirflows
+    add_cols = ['Airflow: Whole House Fan']
+    remove_cols = ['Airflow: Natural Ventilation']
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsAirflows + add_cols - remove_cols
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
-    _check_for_nonzero_timeseries_value(timeseries_csv, ['Airflow: Whole House Fan'])
+    _check_for_nonzero_timeseries_value(timeseries_csv, add_cols)
   end
 
   def test_timeseries_hourly_airflows_with_clothes_dryer_exhaust
@@ -715,7 +634,7 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsAirflows
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsAirflows
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
@@ -737,7 +656,7 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsAirflows
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsAirflows
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
@@ -759,7 +678,7 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsAirflows
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsAirflows
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
@@ -781,11 +700,11 @@ class SimulationOutputReportTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + TimeseriesColsWeather
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsWeather
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     assert_equal(8760, File.readlines(timeseries_csv).size - 2)
-    _check_for_nonzero_timeseries_value(timeseries_csv, TimeseriesColsWeather)
+    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsWeather)
   end
 
   def test_timeseries_hourly_ALL

@@ -695,9 +695,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       if include_timeseries_end_use_consumptions
         end_use.timeseries_output = get_report_variable_data_timeseries(keys, end_use.variable_names, UnitConversions.convert(1.0, 'J', end_use.timeseries_units), 0, timeseries_frequency)
       end
-    else
-      end_use.annual_output = 0
-      end_use.timeseries_output = [0.0] * @timestamps.size
     end
 
     # Water Heating (by System)
@@ -1169,47 +1166,47 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     if include_timeseries_fuel_consumptions
-      fuel_data = @fuels.values.select { |x| !x.timeseries_output.empty? }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      fuel_data = @fuels.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
       fuel_data = []
     end
     if include_timeseries_end_use_consumptions
-      end_use_data = @end_uses.values.select { |x| !x.timeseries_output.empty? }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      end_use_data = @end_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
       end_use_data = []
     end
     if include_timeseries_hot_water_uses
-      hot_water_use_data = @hot_water_uses.values.select { |x| !x.timeseries_output.empty? }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      hot_water_use_data = @hot_water_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
       hot_water_use_data = []
     end
     if include_timeseries_total_loads
-      total_loads_data = @loads.values.select { |x| !x.timeseries_output.empty? }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      total_loads_data = @loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
       total_loads_data = {}
     end
     if include_timeseries_component_loads
-      comp_loads_data = @component_loads.values.select { |x| !x.timeseries_output.empty? }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      comp_loads_data = @component_loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
       comp_loads_data = []
     end
     if include_timeseries_unmet_loads
-      unmet_loads_data = @unmet_loads.values.select { |x| !x.timeseries_output.empty? }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      unmet_loads_data = @unmet_loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
       unmet_loads_data = []
     end
     if include_timeseries_zone_temperatures
-      zone_temps_data = @zone_temps.values.select { |x| !x.timeseries_output.empty? }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      zone_temps_data = @zone_temps.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
       zone_temps_data = []
     end
     if include_timeseries_airflows
-      airflows_data = @airflows.values.select { |x| !x.timeseries_output.empty? }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      airflows_data = @airflows.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
       airflows_data = []
     end
     if include_timeseries_weather
-      weather_data = @weather.values.select { |x| !x.timeseries_output.empty? }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      weather_data = @weather.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
       weather_data = []
     end
@@ -1599,6 +1596,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_report_meter_data_annual(meter_names, unit_conv = UnitConversions.convert(1.0, 'J', 'MBtu'))
+    return 0.0 if meter_names.empty?
+
     vars = "'" + meter_names.join("','") + "'"
     query = "SELECT SUM(VariableValue*#{unit_conv}) FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableName IN (#{vars}) AND ReportingFrequency='Run Period' AND VariableUnits='J')"
     value = @sqlFile.execAndReturnFirstDouble(query)
@@ -1608,6 +1607,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_report_variable_data_annual(key_values, variable_names, unit_conv = UnitConversions.convert(1.0, 'J', 'MBtu'), not_key: false)
+    return 0.0 if variable_names.empty?
+
     keys = "'" + key_values.join("','") + "'"
     vars = "'" + variable_names.join("','") + "'"
     if not_key
@@ -1623,6 +1624,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_report_meter_data_timeseries(meter_names, unit_conv, unit_adder, timeseries_frequency)
+    return [0.0] * @timestamps.size if meter_names.empty?
+
     vars = "'" + meter_names.join("','") + "'"
     query = "SELECT SUM(VariableValue*#{unit_conv}+#{unit_adder}) FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableName IN (#{vars}) AND ReportingFrequency='#{reporting_frequency_map[timeseries_frequency]}' AND VariableUnits='J') GROUP BY TimeIndex ORDER BY TimeIndex"
     values = @sqlFile.execAndReturnVectorOfDouble(query)
@@ -1634,6 +1637,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_report_variable_data_timeseries(key_values, variable_names, unit_conv, unit_adder, timeseries_frequency, disable_ems_shift = false)
+    return [0.0] * @timestamps.size if variable_names.empty?
+
     keys = "'" + key_values.join("','") + "'"
     vars = "'" + variable_names.join("','") + "'"
     query = "SELECT SUM(VariableValue*#{unit_conv}+#{unit_adder}) FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE KeyValue IN (#{keys}) AND VariableName IN (#{vars}) AND ReportingFrequency='#{reporting_frequency_map[timeseries_frequency]}') GROUP BY TimeIndex ORDER BY TimeIndex"
@@ -1686,11 +1691,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     end
 
     return
-  end
-
-  def get_combi_water_system_ec(hx_load, htg_load, htg_energy)
-    water_sys_frac = hx_load / htg_load
-    return htg_energy * water_sys_frac
   end
 
   def get_dfhp_loads(outputs)
@@ -2437,7 +2437,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       return { 'OpenStudio::Model::WaterHeaterMixed' => ["Water Heater #{fuel} Energy", "Water Heater Off Cycle Parasitic #{fuel} Energy", "Water Heater On Cycle Parasitic #{fuel} Energy"],
                'OpenStudio::Model::WaterHeaterStratified' => ["Water Heater #{fuel} Energy", "Water Heater Off Cycle Parasitic #{fuel} Energy", "Water Heater On Cycle Parasitic #{fuel} Energy"],
                'OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped' => ["Cooling Coil Water Heating #{fuel} Energy"],
-               'OpenStudio::Model::FanOnOff' => ["Fan #{fuel} Energy"] } # TOOD: Update if this changes to FanSystemModel per https://github.com/NREL/OpenStudio/issues/4334
+               'OpenStudio::Model::FanSystemModel' => ["Fan #{fuel} Energy"] }
     end
 
     def self.WaterHeatingLoad
