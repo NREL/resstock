@@ -40,7 +40,7 @@ class Lighting
       if not lighting.interior_weekday_fractions.nil?
         interior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameInteriorLighting + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
       else
-        lighting_sch = get_schedule(model, epw_file)
+        lighting_sch = get_schedule(epw_file)
         # Create schedule
         interior_sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction)
       end
@@ -227,7 +227,7 @@ class Lighting
     return int_kwh, ext_kwh, grg_kwh
   end
 
-  def self.get_schedule(model, epw_file)
+  def self.get_schedule(epw_file)
     # Sunrise and sunset hours
     sunrise_hour = []
     sunset_hour = []
@@ -267,7 +267,7 @@ class Lighting
     stdDevCons2 = 2.36567663279954
 
     monthly_kwh_per_day = []
-    days_m = Constants.NumDaysInMonths(nil) # Intentionally excluding leap year designation
+    days_m = Constants.NumDaysInMonths(1999) # Intentionally excluding leap year designation
     wtd_avg_monthly_kwh_per_day = 0
     for monthNum in 1..12
       month = monthNum - 1

@@ -3,29 +3,29 @@
 class MiscLoads
   def self.apply_plug(model, plug_load, obj_name, living_space, apply_ashrae140_assumptions, schedules_file)
     kwh = 0
-
     if not plug_load.nil?
       kwh = plug_load.kWh_per_year * plug_load.usage_multiplier
-      if not schedules_file.nil?
-        if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
-          col_name = 'plug_loads_other'
-        elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
-          col_name = 'plug_loads_tv'
-        elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
-          col_name = 'plug_loads_vehicle'
-        elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
-          col_name = 'plug_loads_well_pump'
-        end
-        space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: kwh)
-        sch = schedules_file.create_schedule_file(col_name: col_name)
-      else
-        sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
-        space_design_level = sch.calcDesignLevelFromDailykWh(kwh / 365.0)
-        sch = sch.schedule
-      end
     end
 
     return if kwh <= 0
+
+    if not schedules_file.nil?
+      if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
+        col_name = 'plug_loads_other'
+      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
+        col_name = 'plug_loads_tv'
+      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
+        col_name = 'plug_loads_vehicle'
+      elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
+        col_name = 'plug_loads_well_pump'
+      end
+      space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: kwh)
+      sch = schedules_file.create_schedule_file(col_name: col_name)
+    else
+      sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+      space_design_level = sch.calcDesignLevelFromDailykWh(kwh / 365.0)
+      sch = sch.schedule
+    end
 
     sens_frac = plug_load.frac_sensible
     lat_frac = plug_load.frac_latent

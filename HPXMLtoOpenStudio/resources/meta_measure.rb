@@ -48,11 +48,29 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
     om.setReportingFrequency(output_meter[1])
   end
 
+  # Remove unused objects automatically added by OpenStudio?
+  remove_objects = []
+  if model.alwaysOnContinuousSchedule.directUseCount == 0
+    remove_objects << ['Schedule:Constant', model.alwaysOnContinuousSchedule.name.to_s]
+  end
+  if model.alwaysOnDiscreteSchedule.directUseCount == 0
+    remove_objects << ['Schedule:Constant', model.alwaysOnDiscreteSchedule.name.to_s]
+  end
+  if model.alwaysOffDiscreteSchedule.directUseCount == 0
+    remove_objects << ['Schedule:Constant', model.alwaysOffDiscreteSchedule.name.to_s]
+  end
+
   # Translate model to workspace
   forward_translator = OpenStudio::EnergyPlus::ForwardTranslator.new
   forward_translator.setExcludeLCCObjects(true)
   workspace = forward_translator.translateModel(model)
   success = report_ft_errors_warnings(forward_translator, rundir)
+
+  # Remove objects
+  workspace.getObjectByTypeAndName('LifeCycleCost:NonrecurringCost'.to_IddObjectType, 'Default Cost').get.remove # FUTURE: Can remove this code if https://github.com/NREL/OpenStudio/issues/4404 is fixed
+  remove_objects.each do |remove_object|
+    workspace.getObjectByTypeAndName(remove_object[0].to_IddObjectType, remove_object[1]).get.remove
+  end
 
   if not success
     print "#{print_prefix}Creating input unsuccessful.\n"
