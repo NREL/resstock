@@ -23,6 +23,7 @@ class Constants
   def self.build_residential_schedule_file_excludes
     # don't make these BuildResidentialScheduleFile arguments into ResStockArguments arguments
     return ['hpxml_path',
-            'output_csv_path']
+            'output_csv_path',
+            'hpxml_output_path']
   end
 end
