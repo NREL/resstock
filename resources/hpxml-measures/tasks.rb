@@ -332,6 +332,8 @@ def create_osws
     'extra-bldgtype-single-family-attached-atticroof-flat.osw' => 'base-bldgtype-single-family-attached.osw',
     'extra-gas-pool-heater-with-zero-kwh.osw' => 'base.osw',
     'extra-gas-hot-tub-heater-with-zero-kwh.osw' => 'base.osw',
+    'extra-no-rim-joists.osw' => 'base.osw',
+    'extra-state-code-different-than-epw.osw' => 'base.osw',
 
     'extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw' => 'extra-bldgtype-single-family-attached-slab.osw',
     'extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-hip.osw' => 'extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw',
@@ -456,6 +458,8 @@ def create_osws
     'invalid_files/conditioned-attic-with-one-floor-above-grade.osw' => 'base.osw',
     'invalid_files/zero-number-of-bedrooms.osw' => 'base.osw',
     'invalid_files/single-family-detached-with-shared-system.osw' => 'base.osw',
+    'invalid_files/rim-joist-height-but-no-assembly-r.osw' => 'base.osw',
+    'invalid_files/rim-joist-assembly-r-but-no-height.osw' => 'base.osw',
   }
 
   puts "Generating #{osws_files.size} OSW files..."
@@ -1322,8 +1326,9 @@ def get_values(osw_file, step)
   if ['base-foundation-ambient.osw'].include? osw_file
     step.setArgument('geometry_cfa', 1350.0)
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeAmbient)
-    step.setArgument('geometry_rim_joist_height', 0)
+    step.removeArgument('geometry_rim_joist_height')
     step.setArgument('floor_over_foundation_assembly_r', 18.7)
+    step.removeArgument('rim_joist_assembly_r')
     step.setArgument('ducts_number_of_return_registers', '1')
     step.setArgument('plug_loads_other_annual_kwh', '1228.5')
   elsif ['base-foundation-conditioned-basement-slab-insulation.osw'].include? osw_file
@@ -2275,6 +2280,11 @@ def get_values(osw_file, step)
     step.setArgument('hot_tub_present', true)
     step.setArgument('hot_tub_heater_type', HPXML::HeaterTypeGas)
     step.setArgument('hot_tub_heater_annual_kwh', 0)
+  elsif ['extra-no-rim-joists.osw'].include? osw_file
+    step.removeArgument('geometry_rim_joist_height')
+    step.removeArgument('rim_joist_assembly_r')
+  elsif ['extra-state-code-different-than-epw.osw'].include? osw_file
+    step.setArgument('site_state_code', 'WY')
 
   elsif ['extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw'].include? osw_file
     step.setArgument('geometry_num_floors_above_grade', 2)
@@ -2459,7 +2469,8 @@ def get_values(osw_file, step)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', Constants.Auto)
   elsif ['invalid_files/single-family-attached-ambient.osw'].include? osw_file
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeAmbient)
-    step.setArgument('geometry_rim_joist_height', 0)
+    step.removeArgument('geometry_rim_joist_height')
+    step.removeArgument('rim_joist_assembly_r')
   elsif ['invalid_files/multifamily-bottom-slab-non-zero-foundation-height.osw'].include? osw_file
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeSlab)
     step.setArgument('geometry_foundation_height_above_grade', 0.0)
@@ -2497,14 +2508,17 @@ def get_values(osw_file, step)
     step.setArgument('geometry_foundation_height', 3.0)
     step.setArgument('floor_over_foundation_assembly_r', 10)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', '0.0')
+    step.setArgument('foundation_wall_assembly_r', 10)
   elsif ['invalid_files/unvented-crawlspace-with-wall-and-ceiling-insulation.osw'].include? osw_file
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeCrawlspaceUnvented)
     step.setArgument('geometry_foundation_height', 3.0)
     step.setArgument('floor_over_foundation_assembly_r', 10)
     step.setArgument('foundation_wall_insulation_distance_to_bottom', '0.0')
+    step.setArgument('foundation_wall_assembly_r', 10)
   elsif ['invalid_files/unconditioned-basement-with-wall-and-ceiling-insulation.osw'].include? osw_file
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeBasementUnconditioned)
     step.setArgument('floor_over_foundation_assembly_r', 10)
+    step.setArgument('foundation_wall_assembly_r', 10)
   elsif ['invalid_files/vented-attic-with-floor-and-roof-insulation.osw'].include? osw_file
     step.setArgument('geometry_attic_type', HPXML::AtticTypeVented)
     step.setArgument('roof_assembly_r', 10)
@@ -2547,6 +2561,10 @@ def get_values(osw_file, step)
     step.setArgument('geometry_num_bedrooms', 0)
   elsif ['invalid_files/single-family-detached-with-shared-system.osw'].include? osw_file
     step.setArgument('heating_system_type', "Shared #{HPXML::HVACTypeBoiler} w/ Baseboard")
+  elsif ['invalid_files/rim-joist-height-but-no-assembly-r.osw'].include? osw_file
+    step.removeArgument('rim_joist_assembly_r')
+  elsif ['invalid_files/rim-joist-assembly-r-but-no-height.osw'].include? osw_file
+    step.removeArgument('geometry_rim_joist_height')
   end
   return step
 end
@@ -6921,6 +6939,21 @@ def set_hpxml_ventilation_fans(hpxml_file, hpxml)
                                fan_power: 37.5,
                                used_for_whole_building_ventilation: true,
                                distribution_system_idref: 'HVACDistribution2')
+    # Test ventilation system w/ zero airflow and hours
+    hpxml.ventilation_fans.add(id: 'HRV_NoAirflow',
+                               fan_type: HPXML::MechVentTypeHRV,
+                               tested_flow_rate: 0,
+                               hours_in_operation: 24,
+                               sensible_recovery_efficiency: 0.72,
+                               fan_power: 7.5,
+                               used_for_whole_building_ventilation: true)
+    hpxml.ventilation_fans.add(id: 'HRV_NoHours',
+                               fan_type: HPXML::MechVentTypeHRV,
+                               tested_flow_rate: 15,
+                               hours_in_operation: 0,
+                               sensible_recovery_efficiency: 0.72,
+                               fan_power: 7.5,
+                               used_for_whole_building_ventilation: true)
   end
 end
 

@@ -33,7 +33,7 @@ class IntegrationWorkflowTest < MiniTest::Test
     all_results_characteristics = []
     all_results_output = []
     @project_dir_baseline.each_with_index do |(project_dir, num_samples), color_index|
-      next unless num_samples > 0
+      next if num_samples == 0
 
       samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index)
     end

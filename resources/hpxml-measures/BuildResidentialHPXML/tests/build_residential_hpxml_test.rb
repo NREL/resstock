@@ -102,9 +102,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'multifamily-bottom-slab-non-zero-foundation-height.osw' => 'geometry_unit_type=apartment unit and geometry_level=Bottom and geometry_foundation_type=SlabOnGrade and geometry_foundation_height=8.0',
       'slab-non-zero-foundation-height-above-grade.osw' => 'geometry_foundation_type=SlabOnGrade and geometry_foundation_height_above_grade=1.0',
       'second-heating-system-serves-majority-heat.osw' => 'heating_system_type_2=Fireplace and heating_system_fraction_heat_load_served_2=0.6',
-      'vented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=VentedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_over_foundation_assembly_r=10.0',
-      'unvented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=UnventedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_over_foundation_assembly_r=10.0',
-      'unconditioned-basement-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=UnconditionedBasement and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=false and floor_over_foundation_assembly_r=10.0',
+      'vented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=VentedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=10.0 and floor_over_foundation_assembly_r=10.0',
+      'unvented-crawlspace-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=UnventedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=10.0 and floor_over_foundation_assembly_r=10.0',
+      'unconditioned-basement-with-wall-and-ceiling-insulation.osw' => 'geometry_foundation_type=UnconditionedBasement and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=10.0 and floor_over_foundation_assembly_r=10.0',
       'vented-attic-with-floor-and-roof-insulation.osw' => 'geometry_attic_type=VentedAttic and ceiling_assembly_r=39.3 and roof_assembly_r=10.0',
       'unvented-attic-with-floor-and-roof-insulation.osw' => 'geometry_attic_type=UnventedAttic and ceiling_assembly_r=39.3 and roof_assembly_r=10.0',
       'conditioned-basement-with-ceiling-insulation.osw' => 'geometry_foundation_type=ConditionedBasement and floor_over_foundation_assembly_r=10.0',
@@ -113,7 +113,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'multipliers-without-other-plug-loads.osw' => 'plug_loads_other_annual_kwh=0.0 and plug_loads_other_usage_multiplier=1.0',
       'multipliers-without-well-pump-plug-loads.osw' => 'plug_loads_well_pump_annual_kwh=0.0 and plug_loads_well_pump_usage_multiplier=1.0',
       'multipliers-without-vehicle-plug-loads.osw' => 'plug_loads_vehicle_annual_kwh=0.0 and plug_loads_vehicle_usage_multiplier=1.0',
-      'multipliers-without-fuel-loads.osw' => 'fuel_loads_grill_present=false and fuel_loads_grill_usage_multiplier=1.0 and fuel_loads_lighting_present=false and fuel_loads_lighting_usage_multiplier=1.0 and fuel_loads_fireplace_present=false and fuel_loads_fireplace_usage_multiplier=1.0'
+      'multipliers-without-fuel-loads.osw' => 'fuel_loads_grill_present=false and fuel_loads_grill_usage_multiplier=1.0 and fuel_loads_lighting_present=false and fuel_loads_lighting_usage_multiplier=1.0 and fuel_loads_fireplace_present=false and fuel_loads_fireplace_usage_multiplier=1.0',
     }
 
     expected_error_msgs = {
@@ -127,13 +127,15 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'ducts-location-and-areas-not-same-type.osw' => 'ducts_supply_location=auto and ducts_supply_surface_area=150.0 and ducts_return_location=attic - unvented and ducts_return_surface_area=50.0',
       'second-heating-system-serves-total-heat-load.osw' => 'heating_system_type_2=Fireplace and heating_system_fraction_heat_load_served_2=1.0',
       'second-heating-system-but-no-primary-heating.osw' => 'heating_system_type=none and heat_pump_type=none and heating_system_type_2=Fireplace',
-      'single-family-attached-no-building-orientation.osw' => 'geometry_unit_type=single-family attached and geometry_building_num_units=false and geometry_horizontal_location=false',
-      'multifamily-no-building-orientation.osw' => 'geometry_unit_type=apartment unit and geometry_building_num_units=false and geometry_level=false and geometry_horizontal_location=false',
+      'single-family-attached-no-building-orientation.osw' => 'geometry_unit_type=single-family attached and geometry_building_num_units=not provided and geometry_horizontal_location=not provided',
+      'multifamily-no-building-orientation.osw' => 'geometry_unit_type=apartment unit and geometry_building_num_units=not provided and geometry_level=not provided and geometry_horizontal_location=not provided',
       'dhw-indirect-without-boiler.osw' => 'water_heater_type=space-heating boiler with storage tank and heating_system_type=Furnace',
       'foundation-wall-insulation-greater-than-height.osw' => 'foundation_wall_insulation_distance_to_bottom=6.0 and geometry_foundation_height=4.0',
       'conditioned-attic-with-one-floor-above-grade.osw' => 'geometry_num_floors_above_grade=1 and geometry_attic_type=ConditionedAttic',
       'zero-number-of-bedrooms.osw' => 'geometry_num_bedrooms=0',
       'single-family-detached-with-shared-system.osw' => 'geometry_unit_type=single-family detached and heating_system_type=Shared Boiler w/ Baseboard',
+      'rim-joist-height-but-no-assembly-r.osw' => 'geometry_rim_joist_height=9.25 and rim_joist_assembly_r=not provided',
+      'rim-joist-assembly-r-but-no-height.osw' => 'rim_joist_assembly_r=23.0 and geometry_rim_joist_height=not provided',
     }
 
     measures = {}

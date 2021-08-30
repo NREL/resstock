@@ -515,17 +515,21 @@ class HPXML < Object
     # Get surfaces bounding infiltration volume
     spaces_within_infil_volume.each do |space_type|
       (@roofs + @rim_joists + @walls + @foundation_walls + @frame_floors + @slabs).each do |surface|
+        is_adiabatic_surface = (surface.interior_adjacent_to == surface.exterior_adjacent_to)
         next unless [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? space_type
 
-        # Exclude surfaces between two spaces that are both within infiltration volume
-        next if spaces_within_infil_volume.include?(surface.interior_adjacent_to) && spaces_within_infil_volume.include?(surface.exterior_adjacent_to)
+        if not is_adiabatic_surface
+          # Exclude surfaces between two different spaces that are both within infiltration volume
+          next if spaces_within_infil_volume.include?(surface.interior_adjacent_to) && spaces_within_infil_volume.include?(surface.exterior_adjacent_to)
+        end
 
         # Update Compartmentalization Boundary areas
         total_area += surface.area
-        if not [LocationGarage, LocationOtherHousingUnit, LocationOtherHeatedSpace,
-                LocationOtherMultifamilyBufferSpace, LocationOtherNonFreezingSpace].include? surface.exterior_adjacent_to
-          exterior_area += surface.area
-        end
+        next unless (not [LocationGarage, LocationOtherHousingUnit, LocationOtherHeatedSpace,
+                          LocationOtherMultifamilyBufferSpace, LocationOtherNonFreezingSpace].include? surface.exterior_adjacent_to) &&
+                    (not is_adiabatic_surface)
+
+        exterior_area += surface.area
       end
     end
 

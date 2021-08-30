@@ -16,6 +16,85 @@ class Geometry
     return azimuth
   end
 
+  def self.get_absolute_tilt(tilt_str, roof_pitch, epw_file)
+    tilt_str = tilt_str.downcase
+    if tilt_str.start_with? 'roofpitch'
+      roof_angle = Math.atan(roof_pitch / 12.0) * 180.0 / Math::PI
+      return Float(eval(tilt_str.gsub('roofpitch', roof_angle.to_s)))
+    elsif tilt_str.start_with? 'latitude'
+      return Float(eval(tilt_str.gsub('latitude', epw_file.latitude.to_s)))
+    else
+      return Float(tilt_str)
+    end
+  end
+
+  def self.get_surface_azimuth(surface:,
+                               orientation:)
+    facade = get_facade_for_surface(surface)
+    return get_azimuth_from_facade(facade: facade, orientation: orientation)
+  end
+
+  def self.get_azimuth_from_facade(facade:,
+                                   orientation:)
+    if facade == Constants.FacadeFront
+      azimuth = get_abs_azimuth(0, orientation)
+    elsif facade == Constants.FacadeBack
+      azimuth = get_abs_azimuth(180, orientation)
+    elsif facade == Constants.FacadeLeft
+      azimuth = get_abs_azimuth(90, orientation)
+    elsif facade == Constants.FacadeRight
+      azimuth = get_abs_azimuth(270, orientation)
+    else
+      fail 'Unexpected facade.'
+    end
+  end
+
+  def self.get_unexposed_garage_perimeter(geometry_garage_protrusion:,
+                                          geometry_garage_width:,
+                                          geometry_garage_depth:,
+                                          **remainder)
+    protrusion = geometry_garage_protrusion
+    width = geometry_garage_width
+    depth = geometry_garage_depth
+    # this is perimeter adjacent to a 100% protruding garage that is not exposed
+    # we need this because it's difficult to set this surface to Adiabatic using our geometry methods
+    if (protrusion == 1.0) && (width * depth > 0)
+      return width
+    end
+
+    return 0
+  end
+
+  def self.get_adiabatic_adjacent_surface(model:,
+                                          surface:)
+    return if surface.outsideBoundaryCondition != 'Adiabatic'
+
+    adjacentSurfaceType = 'Wall'
+    if surface.surfaceType == 'RoofCeiling'
+      adjacentSurfaceType = 'Floor'
+    elsif surface.surfaceType == 'Floor'
+      adjacentSurfaceType = 'RoofCeiling'
+    end
+
+    model.getSurfaces.sort.each do |adjacent_surface|
+      next if surface == adjacent_surface
+      next if adjacent_surface.surfaceType != adjacentSurfaceType
+      next if adjacent_surface.outsideBoundaryCondition != 'Adiabatic'
+      next unless Geometry.has_same_vertices(surface, adjacent_surface)
+
+      return adjacent_surface
+    end
+    return
+  end
+
+  def self.get_adjacent_to(surface:)
+    space = surface.space.get
+    st = space.spaceType.get
+    space_type = st.standardsSpaceType.get
+
+    return space_type
+  end
+
   def self.add_rim_joist(model, polygon, space, rim_joist_height, z)
     if rim_joist_height > 0
       # make polygons
