@@ -45,11 +45,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The building unit number (between 1 and the number of samples).')
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('workflow_json', false)
-    arg.setDisplayName('Workflow JSON')
-    arg.setDescription('The name of the JSON file (in the resources dir) that dictates the order in which measures are to be run. If not provided, the order specified in resources/options_lookup.tsv will be used.')
-    args << arg
-
     arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('number_of_buildings_represented', false)
     arg.setDisplayName('Number of Buildings Represented')
     arg.setDescription('The total number of buildings represented by the existing building models.')
@@ -139,11 +134,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     hpxml_measures_dir = File.join(File.dirname(__FILE__), '../../resources/hpxml-measures')
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
     buildstock_csv = File.absolute_path(File.join(characteristics_dir, 'buildstock.csv'))
-    if args['workflow_json'].is_initialized
-      workflow_json = File.join(resources_dir, args['workflow_json'].get)
-    else
-      workflow_json = nil
-    end
 
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
@@ -210,7 +200,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures_to_ignore = args['measures_to_ignore'].get
       # core ResStock measures are those specified in the default workflow json
       # those should not be ignored ...
-      core_measures = get_measures(File.join(resources_dir, 'measure-info.json'))
+      core_measures = ['ResStockArguments', 'BuildResidentialHPXML', 'HPXMLtoOpenStudio']
       measures_to_ignore.split('|').each do |measure_dir|
         if core_measures.include? measure_dir
           # fail if core ResStock measure is ignored
@@ -225,7 +215,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get the absolute paths relative to this meta measure in the run directory
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, nil, true, { 'BuildExistingModel' => runner })
+    if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, nil, true, { 'BuildExistingModel' => runner })
       return false
     end
 
@@ -262,7 +252,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
 
-    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'existing.osw', true, { 'BuildExistingModel' => runner })
+    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, 'existing.osw', true, { 'BuildExistingModel' => runner })
       new_runner.result.errors.each do |error|
         runner.registerError(error.logMessage)
       end
