@@ -215,7 +215,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get the absolute paths relative to this meta measure in the run directory
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, nil, true, { 'BuildExistingModel' => runner })
+    workflow_order = ['ResStockArguments']
+    if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_order, nil, true, { 'BuildExistingModel' => runner })
       return false
     end
 
@@ -240,7 +241,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
     measures['BuildResidentialHPXML'][0]['software_program_version'] = software_program_version
 
-    # Get simulation control timestep and run period
+    # Get registered values and pass them to BuildResidentialHPXML
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args['simulation_control_timestep'].get if args['simulation_control_timestep'].is_initialized
     if args['simulation_control_run_period_begin_month'].is_initialized && args['simulation_control_run_period_begin_day_of_month'].is_initialized && args['simulation_control_run_period_end_month'].is_initialized && args['simulation_control_run_period_end_day_of_month'].is_initialized
       begin_month = "#{Date::ABBR_MONTHNAMES[args['simulation_control_run_period_begin_month'].get]}"
@@ -251,16 +252,17 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
 
-    # Get the random seed, schedules output path
+    # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
-    # Get output dir, debug, component loads
+    # Get registered values and pass them to HPXMLtoOpenStudio
     measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
     measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
 
-    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, 'existing.osw', true, { 'BuildExistingModel' => runner })
+    workflow_order = ['BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
+    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_order, 'existing.osw', true, { 'BuildExistingModel' => runner })
       new_runner.result.errors.each do |error|
         runner.registerError(error.logMessage)
       end

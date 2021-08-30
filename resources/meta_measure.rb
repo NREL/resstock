@@ -2,10 +2,14 @@
 
 # Helper methods related to having a meta-measure
 
-def apply_child_measures(measures_dir, measures, runner, model, osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
+def apply_child_measures(measures_dir, measures, runner, model, workflow_order = [], osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
   require 'openstudio'
 
-  workflow_order = ['ResStockArguments', 'BuildResidentialHPXML', 'HPXMLtoOpenStudio']
+  if workflow_order.empty?
+    measures.keys.each do |measure_subdir|
+      workflow_order << measure_subdir
+    end
+  end
 
   if not osw_out.nil?
     # Create a workflow based on the measures we're going to call. Convenient for debugging.
