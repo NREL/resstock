@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+ 
 # Require all gems up front; this is much faster than multiple resource
 # files lazy loading as needed, as it prevents multiple lookups for the
 # same gem.
