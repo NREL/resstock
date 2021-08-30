@@ -258,7 +258,7 @@ class OSModel
     add_heating_system(runner, model, spaces)
     add_heat_pump(runner, model, weather, spaces)
     add_dehumidifiers(runner, model, spaces)
-    add_residual_ideal_system(runner, model, spaces)
+    #add_residual_ideal_system(runner, model, spaces)
     add_ceiling_fans(runner, model, weather, spaces)
 
     # Hot Water
