@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# Helper methods related to having a meta-measure
-
 def apply_child_measures(measures_dir, measures, runner, model, osw_out = nil, show_measure_calls = true, parent_measure_runner = {})
   require 'openstudio'
 
@@ -53,35 +51,6 @@ def apply_child_measures(measures_dir, measures, runner, model, osw_out = nil, s
   end
 
   return true
-end
-
-def print_measure_call(measure_args, measure_dir, runner)
-  if measure_args.nil? || measure_dir.nil?
-    return
-  end
-
-  args_s = hash_to_string(measure_args, delim = ' -> ', separator = ' \n')
-  if args_s.size > 0
-    runner.registerInfo("Calling #{measure_dir} measure with arguments:\n#{args_s}")
-  else
-    runner.registerInfo("Calling #{measure_dir} measure with no arguments.")
-  end
-end
-
-def get_measure_instance(measure_rb_path)
-  # Parse XML file for class name
-  # Avoid REXML for performance reasons
-  measure_class = nil
-  File.readlines(measure_rb_path.sub('.rb', '.xml')).each do |xml_line|
-    next unless xml_line.include? '<class_name>'
-
-    measure_class = xml_line.gsub('<class_name>', '').gsub('</class_name>', '').strip
-    break
-  end
-  # Create new instance
-  require File.absolute_path(measure_rb_path)
-  measure = eval(measure_class).new
-  return measure
 end
 
 def validate_measure_args(measure_args, provided_args, lookup_file, measure_name, runner = nil)
@@ -141,23 +110,6 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
   return provided_args
 end
 
-def get_argument_map(model, measure, provided_args, lookup_file, measure_name, runner = nil)
-  require 'openstudio'
-  measure_args = measure.arguments(model)
-  provided_args = validate_measure_args(measure_args, provided_args, lookup_file, measure_name, runner)
-
-  # Convert to argument map needed by OS
-  argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(measure_args)
-  measure_args.each do |arg|
-    temp_arg_var = arg.clone
-    if !provided_args[arg.name].nil?
-      temp_arg_var.setValue(provided_args[arg.name])
-    end
-    argument_map[arg.name] = temp_arg_var
-  end
-  return argument_map
-end
-
 def run_measure(model, measure, argument_map, runner)
   require 'openstudio'
   begin
@@ -206,65 +158,4 @@ def run_measure(model, measure, argument_map, runner)
     return false
   end
   return true
-end
-
-def hash_to_string(hash, delim = '=', separator = ',')
-  hash_s = ''
-  hash.each do |k, v|
-    hash_s += "#{k}#{delim}#{v}#{separator}"
-  end
-  if hash_s.size > 0
-    hash_s = hash_s.chomp(separator.to_s)
-  end
-  return hash_s
-end
-
-def register_error(msg, runner = nil)
-  if not runner.nil?
-    runner.registerError(msg)
-    fail msg # OS 2.0 will handle this more gracefully
-  else
-    raise "ERROR: #{msg}"
-  end
-end
-
-def check_file_exists(full_path, runner = nil)
-  if not File.exist?(full_path)
-    register_error("Cannot find file #{full_path}.", runner)
-  end
-end
-
-def check_dir_exists(full_path, runner = nil)
-  if not Dir.exist?(full_path)
-    register_error("Cannot find directory #{full_path}.", runner)
-  end
-end
-
-def update_args_hash(hash, key, args, add_new = true)
-  if not hash.keys.include? key
-    hash[key] = [args]
-  elsif add_new
-    hash[key] << args
-  else # merge new arguments into existing
-    args.each do |k, v|
-      hash[key][0][k] = v
-    end
-  end
-end
-
-class String
-  def is_number?
-    true if Float(self) rescue false
-  end
-
-  def is_integer?
-    if not is_number?
-      return false
-    end
-    if Integer(Float(self)).to_f != Float(self)
-      return false
-    end
-
-    return true
-  end
 end
