@@ -163,7 +163,29 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
   return { success: true, runner: runner, sim_time: sim_time }
 end
 
-def apply_measures(measures_dir, measures, runner, model, show_measure_calls = true, measure_type = 'OpenStudio::Measure::ModelMeasure')
+def apply_measures(measures_dir, measures, runner, model, show_measure_calls = true, measure_type = 'OpenStudio::Measure::ModelMeasure', osw_out = nil, parent_measure_runner = {})
+  if not osw_out.nil?
+    # Create a workflow based on the measures we're going to call. Convenient for debugging.
+    workflowJSON = OpenStudio::WorkflowJSON.new
+    workflowJSON.setOswPath(File.expand_path("../#{osw_out}"))
+    workflowJSON.addMeasurePath('measures')
+    workflowJSON.addMeasurePath('resources/hpxml-measures')
+    steps = OpenStudio::WorkflowStepVector.new
+    measures.each do |measure_subdir, args_array|
+      args_array.each do |args|
+        step = OpenStudio::MeasureStep.new(measure_subdir)
+        args.each do |k, v|
+          next if v.nil?
+
+          step.setArgument(k, "#{v}")
+        end
+        steps.push(step)
+      end
+    end
+    workflowJSON.setWorkflowSteps(steps)
+    workflowJSON.save
+  end
+
   # Call each measure in the specified order
   measures.keys.each do |measure_subdir|
     # Gather measure arguments and call measure
@@ -178,9 +200,16 @@ def apply_measures(measures_dir, measures, runner, model, show_measure_calls = t
         print_measure_call(args, measure_subdir, runner)
       end
 
+      measure_start = Time.now
       if not run_measure(model, measure, argument_map, runner)
         return false
       end
+
+      next if parent_measure_runner.empty?
+
+      measure_time = (Time.now - measure_start).round(1)
+      parent_measure = parent_measure_runner.keys[0]
+      parent_runner = parent_measure_runner[parent_measure]
     end
   end
 
@@ -248,6 +277,7 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
   measure_args.each do |arg|
     next if provided_args.keys.include?(arg.name)
     next if not arg.required
+    next if arg.name.include?('hpxml_path')
 
     register_error("Required argument '#{arg.name}' not provided#{lookup_file_str} for measure '#{measure_name}'.", runner)
   end
@@ -261,6 +291,8 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
     # Get measure provided arg
     if provided_args[arg.name].nil?
       if arg.required
+        next if arg.name.include?('hpxml_path')
+
         register_error("Required argument '#{arg.name}' for measure '#{measure_name}' must have a value provided.", runner)
       else
         next
