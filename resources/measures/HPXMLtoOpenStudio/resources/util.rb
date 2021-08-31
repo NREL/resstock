@@ -1148,7 +1148,7 @@ class OutputMeters
     end
     @model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
       if ems_output_var.name.to_s.include? 'htg fan:Fans:Electricity'
-        custom_meter_infos["#{unit.name}:ElectricityFansHeating"]['key_var_group'] << ['', "#{ems_output_var.name}"]
+        custom_meter_infos["#{unit.name}:ElectricityFansHeating"]['key_var_groups'] << ['', "#{ems_output_var.name}"]
       end
     end
   end
@@ -1168,7 +1168,7 @@ class OutputMeters
     end
     @model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
       if ems_output_var.name.to_s.include? 'clg fan:Fans:Electricity'
-        custom_meter_infos["#{unit.name}:ElectricityFansCooling"]['key_var_group'] << ['', "#{ems_output_var.name}"]
+        custom_meter_infos["#{unit.name}:ElectricityFansCooling"]['key_var_groups'] << ['', "#{ems_output_var.name}"]
       end
     end
   end
