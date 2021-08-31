@@ -430,7 +430,9 @@ class OutputMeters
       electricityFansHeating = add_unit(sql_file, electricityFansHeating, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       electricityFansCooling = add_unit(sql_file, electricityFansCooling, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYFANSCOOLING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
       electricityPumpsHeating = add_unit(sql_file, electricityPumpsHeating, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSHEATING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+      electricityPumpsHeating = apportion_central(electricityPumpsHeating, modeledCentralElectricityPumpsHeating, units.length)
       electricityPumpsCooling = add_unit(sql_file, electricityPumpsCooling, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYPUMPSCOOLING') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
+      electricityPumpsCooling = apportion_central(electricityPumpsCooling, modeledCentralElectricityPumpsCooling, units.length)
       electricityWaterSystems = add_unit(sql_file, electricityWaterSystems, "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('#{unit_name}:ELECTRICITYWATERSYSTEMS') AND ReportingFrequency='#{@reporting_frequency_eplus}' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')")
 
       next unless @include_enduse_subcategories
@@ -1146,6 +1148,11 @@ class OutputMeters
         custom_meter_infos["#{unit.name}:ElectricityFansHeating"]['key_var_groups'] << ["#{water_heater.fan.name}", 'Fan Electricity Energy']
       end
     end
+    @model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+      if ems_output_var.name.to_s.include? 'htg fan:Fans:Electricity'
+        custom_meter_infos["#{unit.name}:ElectricityFansHeating"]['key_var_groups'] << ['', "#{ems_output_var.name}"]
+      end
+    end
   end
 
   def electricity_fans_cooling(custom_meter_infos, unit, thermal_zones)
@@ -1156,9 +1163,14 @@ class OutputMeters
         clg_coil, htg_coil, supp_htg_coil = HVAC.get_coils_from_hvac_equip(clg_equip)
         if clg_equip.is_a? OpenStudio::Model::AirLoopHVACUnitarySystem
           custom_meter_infos["#{unit.name}:ElectricityFansCooling"]['key_var_groups'] << ["#{clg_equip.supplyFan.get.name}", 'Fan Electricity Energy']
-        elsif clg_equip.is_a?(OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner) || clg_equip.is_a?(OpenStudio::Model::ZoneHVACFourPipeFanCoil)
-          custom_meter_infos["#{unit.name}:ElectricityFansCooling"]['key_var_groups'] << ["#{clg_equip.supplyAirFan.name}", 'Fan Electricity Energy'] # FIXME: all fan coil fan energy is assigned to fan cooling
+        elsif clg_equip.is_a?(OpenStudio::Model::ZoneHVACPackagedTerminalAirConditioner)
+          custom_meter_infos["#{unit.name}:ElectricityFansCooling"]['key_var_groups'] << ["#{clg_equip.supplyAirFan.name}", 'Fan Electricity Energy']
         end
+      end
+    end
+    @model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
+      if ems_output_var.name.to_s.include? 'clg fan:Fans:Electricity'
+        custom_meter_infos["#{unit.name}:ElectricityFansCooling"]['key_var_groups'] << ['', "#{ems_output_var.name}"]
       end
     end
   end
@@ -1168,7 +1180,7 @@ class OutputMeters
     custom_meter_infos['Central:ElectricityPumpsHeating'] = { 'fuel_type' => 'Electricity', 'key_var_groups' => [] }
     @model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
       if ems_output_var.name.to_s.include? 'Central htg pump:Pumps:Electricity'
-        custom_meter_infos["#{unit.name}:ElectricityPumpsHeating"]['key_var_groups'] << ['', "#{ems_output_var.name}"]
+        custom_meter_infos['Central:ElectricityPumpsHeating']['key_var_groups'] << ['', "#{ems_output_var.name}"]
       elsif ems_output_var.name.to_s.include?('htg pump:Pumps:Electricity') && (ems_output_var.emsVariableName.to_s == "#{unit.name}_pumps_h".gsub(' ', '_'))
         custom_meter_infos["#{unit.name}:ElectricityPumpsHeating"]['key_var_groups'] << ['', "#{ems_output_var.name}"]
       end
@@ -1187,7 +1199,7 @@ class OutputMeters
     custom_meter_infos['Central:ElectricityPumpsCooling'] = { 'fuel_type' => 'Electricity', 'key_var_groups' => [] }
     @model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
       if ems_output_var.name.to_s.include? 'Central clg pump:Pumps:Electricity'
-        custom_meter_infos["#{unit.name}:ElectricityPumpsCooling"]['key_var_groups'] << ['', "#{ems_output_var.name}"]
+        custom_meter_infos['Central:ElectricityPumpsCooling']['key_var_groups'] << ['', "#{ems_output_var.name}"]
       elsif ems_output_var.name.to_s.include?('clg pump:Pumps:Electricity') && (ems_output_var.emsVariableName.to_s == "#{unit.name}_pumps_c".gsub(' ', '_'))
         custom_meter_infos["#{unit.name}:ElectricityPumpsCooling"]['key_var_groups'] << ['', "#{ems_output_var.name}"]
       end
