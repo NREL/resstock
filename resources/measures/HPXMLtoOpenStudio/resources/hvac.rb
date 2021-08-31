@@ -4497,7 +4497,7 @@ class HVAC
       next unless system.name.to_s.start_with? Constants.ObjectNameGroundSourceHeatPumpVerticalBore
 
       unless htg_coil.nil?
-        runner.a("Removed '#{htg_coil.name}' from '#{air_loop.name}'.")
+        runner.registerInfo("Removed '#{htg_coil.name}' from '#{air_loop.name}'.")
         system.resetHeatingCoil
         htg_coil.remove
       end
