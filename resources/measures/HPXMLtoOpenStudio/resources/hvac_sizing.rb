@@ -2967,7 +2967,7 @@ class HVACSizing
           if htg_equip.airLoopHVAC.is_initialized
             hvac.HasDuctedHeating = true
           end
-          if hvac.HasAirSourceHeatPump
+          if hvac.HasAirSourceHeatPump || hvac.HasMiniSplitHeatPump
             hvac.HPSizedForMaxLoad = get_feature(runner, htg_equip, Constants.SizingInfoHPSizedForMaxLoad, 'boolean', true)
             return nil if hvac.HPSizedForMaxLoad.nil?
           end
