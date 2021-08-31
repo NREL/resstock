@@ -3625,7 +3625,11 @@ class HPXMLFile
       end
 
       if exterior_adjacent_to == HPXML::LocationOutside && args[:wall_siding_type].is_initialized
-        siding = args[:wall_siding_type].get
+        if ([HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to) && (args[:wall_siding_type].get == HPXML:SidingTypeNone)
+          siding = HPXML::SidingTypeVinyl
+        else
+          siding = args[:wall_siding_type].get
+        end
       end
 
       if args[:wall_color] != Constants.Auto
