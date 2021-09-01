@@ -1266,7 +1266,6 @@ class SchedulesFile
     @runner = runner
     @model = model
     @schedules_path = schedules_path
-    puts(@schedules_path)
     @external_file = get_external_file
     import(col_names: col_names)
   end
@@ -1479,8 +1478,6 @@ class SchedulesFile
   def import(col_names:)
     @schedules = {}
     col_names += ['vacancy']
-    puts(@schedules_path)
-    puts(File.dirname(__FILE__))
     columns = CSV.read(@schedules_path).transpose
     columns.each do |col|
       next if not col_names.include? col[0]

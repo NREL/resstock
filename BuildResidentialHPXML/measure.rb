@@ -1185,6 +1185,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Whether equipment is grid connected.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('max_flex_speed', false)
+    arg.setDisplayName('Heat Pump: Demand Flexibility Maximum Speed During Grid Response')
+    arg.setDescription('Set the maximum speed of the heat pump during grid response.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('heat_pump_demand_flexibility_modulating', false)
     arg.setDisplayName('Heat Pump: Demand Flexibility Modulating')
     arg.setDescription('')
@@ -4105,6 +4110,10 @@ class HPXMLFile
       grid_signal_schedule = args[:grid_signal_schedule].get
     end
 
+    if args[:max_flex_speed].is_initialized
+      max_flex_speed = args[:max_flex_speed].get
+    end
+
     hpxml.heat_pumps.add(id: 'HeatPump',
                          heat_pump_type: heat_pump_type,
                          heat_pump_fuel: HPXML::FuelTypeElectricity,
@@ -4132,7 +4141,8 @@ class HPXMLFile
                          dual_source: dual_source,
                          ihp_grid_ac: ihp_grid_ac,
                          ihp_ice_storage: ihp_ice_storage,
-                         ihp_pcm_storage: ihp_pcm_storage)
+                         ihp_pcm_storage: ihp_pcm_storage,
+                         max_flex_speed: max_flex_speed)
   end
 
   def self.set_secondary_heating_systems(hpxml, runner, args)
