@@ -229,7 +229,7 @@ class HVAC
 
   def self.apply_central_air_to_air_heat_pump(model, runner, heat_pump,
                                               sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                              control_zone, hvac_map)
+                                              control_zone, hvac_map, year)
 
     hvac_map[heat_pump.id] = []
     obj_name = Constants.ObjectNameAirSourceHeatPump
@@ -243,7 +243,7 @@ class HVAC
         grid_signal_schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedules_path, col_names: Constants.GridSignalRegions)
         grid_signal_schedule = grid_signal_schedules_file.create_schedule_file(col_name: model.getWeatherFile.stateProvinceRegion)
       else # 24-hours schedule
-        num_days = Schedule.get_num_days_in_year(model)
+        num_days = Constants.NumDaysInYear(year)
         grid_signal_schedule = heat_pump.grid_signal_schedule.split(',').map { |i| Float(i) }
         grid_signal_schedule = [grid_signal_schedule] * num_days
         grid_signal_schedule = HourlyByDaySchedule.new(model, 'Grid signal schedule', grid_signal_schedule, grid_signal_schedule, nil, false).schedule

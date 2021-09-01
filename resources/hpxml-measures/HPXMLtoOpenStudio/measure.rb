@@ -258,7 +258,7 @@ class OSModel
     add_heating_system(runner, model, spaces)
     add_heat_pump(runner, model, weather, spaces)
     add_dehumidifiers(runner, model, spaces)
-    # add_residual_ideal_system(runner, model, spaces)
+    # add_residual_ideal_system(runner, model, spaces) # FIXME
     add_ceiling_fans(runner, model, weather, spaces)
 
     # Hot Water
@@ -1733,7 +1733,7 @@ class OSModel
 
         HVAC.apply_central_air_to_air_heat_pump(model, runner, heat_pump,
                                                 sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                living_zone, @hvac_map)
+                                                living_zone, @hvac_map, @hpxml.header.sim_calendar_year)
 
       elsif [HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
 
