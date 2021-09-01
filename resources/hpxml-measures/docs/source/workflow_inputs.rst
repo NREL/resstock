@@ -196,6 +196,8 @@ The columns in the schedule CSV are:
 
 A couple schedule CSV file examples are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
 
+A detailed stochastic or smooth schedule CSV file can also be automatically generated for you; see the :ref:`usage_instructions` for the commands.
+
 Default Schedules
 ~~~~~~~~~~~~~~~~~
 

@@ -202,12 +202,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     check_dir_exists(resources_dir, runner)
     check_dir_exists(characteristics_dir, runner)
 
-    # Retrieve workflow_json from BuildExistingModel measure if provided
+    # Retrieve values from BuildExistingModel
     values = get_values_from_runner_past_results(runner, 'build_existing_model')
-    workflow_json = values['workflow_json']
-    if not workflow_json.nil?
-      workflow_json = File.join(resources_dir, workflow_json)
-    end
 
     # Process package apply logic if provided
     apply_package_upgrade = true
@@ -250,6 +246,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         print_option_assignment(parameter_name, option_name, runner)
 
         # Register cost values/multipliers/lifetime for applied options; used by the SimulationOutputReport measure
+        register_value(runner, 'option_%02d_name_applied' % option_num, option)
         for cost_num in 1..num_costs_per_option
           cost_value = runner.getOptionalDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value", user_arguments)
           if cost_value.nil?
@@ -302,29 +299,26 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Get the absolute paths relative to this meta measure in the run directory
-      new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-
-      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, workflow_json, nil, true, { 'ApplyUpgrade' => runner })
+      new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
+      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         return false
       end
 
       # Initialize measure keys with hpxml_path arguments
       hpxml_path = File.expand_path('../upgraded.xml')
       measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
+      measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
       measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
 
       new_runner.result.stepValues.each do |step_value|
         value = get_value_from_workflow_step_value(step_value)
         next if value == ''
 
-        measures['BuildResidentialHPXML'][0][step_value.name] = value
-      end
-
-      # Use generated schedules from the base building
-      schedules_type = measures['BuildResidentialHPXML'][0]['schedules_type']
-      if schedules_type == 'stochastic' # avoid re-running the stochastic schedule generator
-        measures['BuildResidentialHPXML'][0]['schedules_type'] = 'user-specified'
-        measures['BuildResidentialHPXML'][0]['schedules_path'] = File.expand_path('../existing_schedules.csv')
+        if ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
+          measures['BuildResidentialScheduleFile'][0][step_value.name] = value
+        else
+          measures['BuildResidentialHPXML'][0][step_value.name] = value
+        end
       end
 
       # Retain HVAC capacities
@@ -377,12 +371,22 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
 
+      # Get registered values and pass them to BuildResidentialScheduleFile
+      measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
+      measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
+
       # Get registered values and pass them to HPXMLtoOpenStudio
       measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
       measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
       measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
 
-      if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, workflow_json, 'upgraded.osw', true, { 'ApplyUpgrade' => runner })
+      if not apply_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+        new_runner.result.warnings.each do |warning|
+          runner.registerWarning(warning.logMessage)
+        end
+        new_runner.result.info.each do |info|
+          runner.registerInfo(info.logMessage)
+        end
         new_runner.result.errors.each do |error|
           runner.registerError(error.logMessage)
         end

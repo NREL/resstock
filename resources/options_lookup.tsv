@@ -1,5 +1,5 @@
 Parameter Name	Option Name	Measure Dir	Measure Arg 1	Measure Arg 2	...																						
-Schedules	Default	ResStockArguments	schedules_type=default																								
+Schedules	Default	ResStockArguments	schedules_type=smooth																								
 Schedules	Stochastic	ResStockArguments	schedules_type=stochastic																								
 Location Region	CR02																										
 Location Region	CR03																										
@@ -870,12 +870,6 @@ Cooling Setpoint Offset Period	Day Setup and Night Setback -2h	ResStockArguments
 Cooling Setpoint Offset Period	Day Setup and Night Setback -3h	ResStockArguments	"setpoint_cooling_weekday_schedule=-1,-1,-1,-1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,-1,-1,-1,-1,-1"	"setpoint_cooling_weekend_schedule=-1,-1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1"																							
 Cooling Setpoint Offset Period	Day Setup and Night Setback -4h	ResStockArguments	"setpoint_cooling_weekday_schedule=-1,-1,-1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,-1,-1,-1,-1,-1,-1"	"setpoint_cooling_weekend_schedule=-1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1"																							
 Cooling Setpoint Offset Period	Day Setup and Night Setback -5h	ResStockArguments	"setpoint_cooling_weekday_schedule=-1,-1,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1"	"setpoint_cooling_weekend_schedule=-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1"																							
-Setpoint Demand Response	None																										
-Setpoint Demand Response	6F Precool Daily	ResStockArguments																									
-Setpoint Demand Response	6F Preheat Daily	ResStockArguments																									
-Setpoint Demand Response	6F Cooling Setup Daily	ResStockArguments																									
-Setpoint Demand Response	6F Heating Setback Daily	ResStockArguments																									
-Setpoint Demand Response	6F Heating Setback with Cooling Setup	ResStockArguments																									
 Ceiling Fan	None	ResStockArguments	ceiling_fan_present=false	ceiling_fan_efficiency=0	ceiling_fan_quantity=0	ceiling_fan_cooling_setpoint_temp_offset=0																					
 Ceiling Fan	Standard Efficiency	ResStockArguments	ceiling_fan_present=true	ceiling_fan_efficiency=70.4	ceiling_fan_quantity=1	ceiling_fan_cooling_setpoint_temp_offset=0																					
 Ceiling Fan	"Standard Efficiency, No usage"	ResStockArguments	ceiling_fan_present=false	ceiling_fan_efficiency=0	ceiling_fan_quantity=0	ceiling_fan_cooling_setpoint_temp_offset=0																					
@@ -1144,8 +1138,7 @@ Ducts	"6% Leakage, R-4"	ResStockArguments	ducts_leakage_units=Percent	ducts_supp
 Ducts	"6% Leakage, R-6"	ResStockArguments	ducts_leakage_units=Percent	ducts_supply_leakage_value=0.040	ducts_return_leakage_value=0.020	ducts_supply_insulation_r=6	ducts_return_insulation_r=6	ducts_supply_location=auto	ducts_return_location=auto	ducts_supply_surface_area=auto	ducts_return_surface_area=auto	ducts_number_of_return_registers=auto															
 Ducts	"6% Leakage, R-8"	ResStockArguments	ducts_leakage_units=Percent	ducts_supply_leakage_value=0.040	ducts_return_leakage_value=0.020	ducts_supply_insulation_r=8	ducts_return_insulation_r=8	ducts_supply_location=auto	ducts_return_location=auto	ducts_supply_surface_area=auto	ducts_return_surface_area=auto	ducts_number_of_return_registers=auto															
 Ducts	"0% Leakage, Uninsulated"	ResStockArguments	ducts_leakage_units=Percent	ducts_supply_leakage_value=0	ducts_return_leakage_value=0	ducts_supply_insulation_r=0	ducts_return_insulation_r=0	ducts_supply_location=auto	ducts_return_location=auto	ducts_supply_surface_area=auto	ducts_return_surface_area=auto	ducts_number_of_return_registers=auto															
-Ducts	"15% Leakage, R-6, 50% Surface Area, 1 return"	ResStockArguments	ducts_leakage_units=Percent	ducts_supply_leakage_value=0.100	ducts_return_leakage_value=0.050	ducts_supply_insulation_r=6	ducts_return_insulation_r=6	ducts_supply_location=auto	ducts_return_location=auto	ducts_supply_surface_area=auto	ducts_return_surface_area=auto	ducts_number_of_return_registers=1															
-Ducts	None	ResStockArguments	ducts_leakage_units=Percent	ducts_supply_leakage_value=0	ducts_return_leakage_value=0	ducts_supply_insulation_r=0	ducts_return_insulation_r=0	ducts_supply_location=auto	ducts_return_location=auto	ducts_supply_surface_area=auto	ducts_return_surface_area=auto	ducts_number_of_return_registers=auto															
+Ducts	None	ResStockArguments	ducts_leakage_units=Percent	ducts_supply_leakage_value=0	ducts_return_leakage_value=0	ducts_supply_insulation_r=0	ducts_return_insulation_r=0	ducts_supply_location=living space	ducts_return_location=living space	ducts_supply_surface_area=1	ducts_return_surface_area=1	ducts_number_of_return_registers=0															
 Infiltration	50 ACH50	ResStockArguments	air_leakage_units=ACH	air_leakage_house_pressure=50	air_leakage_value=50	air_leakage_shielding_of_home=auto																					
 Infiltration	40 ACH50	ResStockArguments	air_leakage_units=ACH	air_leakage_house_pressure=50	air_leakage_value=40	air_leakage_shielding_of_home=auto																					
 Infiltration	30 ACH50	ResStockArguments	air_leakage_units=ACH	air_leakage_house_pressure=50	air_leakage_value=30	air_leakage_shielding_of_home=auto																					
@@ -1228,25 +1221,25 @@ Range Spot Vent Hour	Hour20	ResStockArguments	kitchen_fans_quantity=auto	kitchen
 Range Spot Vent Hour	Hour21	ResStockArguments	kitchen_fans_quantity=auto	kitchen_fans_start_hour=21																							
 Range Spot Vent Hour	Hour22	ResStockArguments	kitchen_fans_quantity=auto	kitchen_fans_start_hour=22																							
 Range Spot Vent Hour	Hour23	ResStockArguments	kitchen_fans_quantity=auto	kitchen_fans_start_hour=23																							
-Has PV	No	ResStockArguments	pv_system_module_type_1=none	pv_system_location_1=auto	pv_system_tracking_1=auto	pv_system_array_tilt_1=roofpitch	pv_system_num_units_served_1=1	pv_system_module_type_2=none	pv_system_location_2=auto	pv_system_tracking_2=auto	pv_system_array_tilt_2=roofpitch	pv_system_num_units_served_2=1															
+Has PV	No	ResStockArguments	pv_system_module_type_1=none	pv_system_location_1=roof	pv_system_tracking_1=auto	pv_system_array_tilt_1=roofpitch	pv_system_num_units_served_1=1	pv_system_module_type_2=none	pv_system_location_2=auto	pv_system_tracking_2=auto	pv_system_array_tilt_2=roofpitch	pv_system_num_units_served_2=1															
 Has PV	Yes	ResStockArguments	pv_system_module_type_1=auto	pv_system_location_1=roof	pv_system_tracking_1=auto	pv_system_array_tilt_1=roofpitch	pv_system_num_units_served_1=1	pv_system_module_type_2=none	pv_system_location_2=auto	pv_system_tracking_2=auto	pv_system_array_tilt_2=roofpitch	pv_system_num_units_served_2=1															
 PV System Size	None	ResStockArguments	pv_system_max_power_output_1=0	pv_system_max_power_output_2=0																							
-PV System Size	1.0 kWDC	ResStockArguments	pv_system_max_power_output_1=1000	pv_system_max_power_output_2=1000																							
-PV System Size	3.0 kWDC	ResStockArguments	pv_system_max_power_output_1=3000	pv_system_max_power_output_2=3000																							
-PV System Size	5.0 kWDC	ResStockArguments	pv_system_max_power_output_1=5000	pv_system_max_power_output_2=5000																							
-PV System Size	7.0 kWDC	ResStockArguments	pv_system_max_power_output_1=7000	pv_system_max_power_output_2=7000																							
-PV System Size	9.0 kWDC	ResStockArguments	pv_system_max_power_output_1=9000	pv_system_max_power_output_2=9000																							
-PV System Size	11.0 kWDC	ResStockArguments	pv_system_max_power_output_1=11000	pv_system_max_power_output_2=11000																							
-PV System Size	13.0 kWDC	ResStockArguments	pv_system_max_power_output_1=13000	pv_system_max_power_output_2=13000																							
-PV Orientation	None	ResStockArguments	pv_system_array_azimuth_1=180	pv_system_array_azimuth_2=180																							
-PV Orientation	South	ResStockArguments	pv_system_array_azimuth_1=180	pv_system_array_azimuth_2=180																							
-PV Orientation	Southwest	ResStockArguments	pv_system_array_azimuth_1=225	pv_system_array_azimuth_2=180																							
-PV Orientation	West	ResStockArguments	pv_system_array_azimuth_1=270	pv_system_array_azimuth_2=180																							
-PV Orientation	Northwest	ResStockArguments	pv_system_array_azimuth_1=315	pv_system_array_azimuth_2=180																							
-PV Orientation	North	ResStockArguments	pv_system_array_azimuth_1=0	pv_system_array_azimuth_2=180																							
-PV Orientation	Northeast	ResStockArguments	pv_system_array_azimuth_1=45	pv_system_array_azimuth_2=180																							
-PV Orientation	East	ResStockArguments	pv_system_array_azimuth_1=90	pv_system_array_azimuth_2=180																							
-PV Orientation	Southeast	ResStockArguments	pv_system_array_azimuth_1=135	pv_system_array_azimuth_2=180																							
+PV System Size	1.0 kWDC	ResStockArguments	pv_system_max_power_output_1=1000	pv_system_max_power_output_2=0																							
+PV System Size	3.0 kWDC	ResStockArguments	pv_system_max_power_output_1=3000	pv_system_max_power_output_2=0																							
+PV System Size	5.0 kWDC	ResStockArguments	pv_system_max_power_output_1=5000	pv_system_max_power_output_2=0																							
+PV System Size	7.0 kWDC	ResStockArguments	pv_system_max_power_output_1=7000	pv_system_max_power_output_2=0																							
+PV System Size	9.0 kWDC	ResStockArguments	pv_system_max_power_output_1=9000	pv_system_max_power_output_2=0																							
+PV System Size	11.0 kWDC	ResStockArguments	pv_system_max_power_output_1=11000	pv_system_max_power_output_2=0																							
+PV System Size	13.0 kWDC	ResStockArguments	pv_system_max_power_output_1=13000	pv_system_max_power_output_2=0																							
+PV Orientation	None	ResStockArguments	pv_system_array_azimuth_1=180	pv_system_array_azimuth_2=0																							
+PV Orientation	South	ResStockArguments	pv_system_array_azimuth_1=180	pv_system_array_azimuth_2=0																							
+PV Orientation	Southwest	ResStockArguments	pv_system_array_azimuth_1=225	pv_system_array_azimuth_2=0																							
+PV Orientation	West	ResStockArguments	pv_system_array_azimuth_1=270	pv_system_array_azimuth_2=0																							
+PV Orientation	Northwest	ResStockArguments	pv_system_array_azimuth_1=315	pv_system_array_azimuth_2=0																							
+PV Orientation	North	ResStockArguments	pv_system_array_azimuth_1=0	pv_system_array_azimuth_2=0																							
+PV Orientation	Northeast	ResStockArguments	pv_system_array_azimuth_1=45	pv_system_array_azimuth_2=0																							
+PV Orientation	East	ResStockArguments	pv_system_array_azimuth_1=90	pv_system_array_azimuth_2=0																							
+PV Orientation	Southeast	ResStockArguments	pv_system_array_azimuth_1=135	pv_system_array_azimuth_2=0																							
 AHS Region	"CBSA Atlanta-Sandy Springs-Roswell, GA"																										
 AHS Region	"CBSA Boston-Cambridge-Newton, MA-NH"																										
 AHS Region	"CBSA Chicago-Naperville-Elgin, IL-IN-WI"																										

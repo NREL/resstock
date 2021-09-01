@@ -1,7 +1,6 @@
 {
-  "run_directory": "run",
   "measure_paths": [
-    ".."
+    "../.."
   ],
   "steps": [
     {
@@ -12,10 +11,10 @@
         "air_leakage_value": 3,
         "bathroom_fans_quantity": "0",
         "ceiling_assembly_r": 39.3,
-        "ceiling_fan_cooling_setpoint_temp_offset": 0.5,
-        "ceiling_fan_efficiency": "100.0",
-        "ceiling_fan_present": true,
-        "ceiling_fan_quantity": "4",
+        "ceiling_fan_cooling_setpoint_temp_offset": 0,
+        "ceiling_fan_efficiency": "auto",
+        "ceiling_fan_present": false,
+        "ceiling_fan_quantity": "auto",
         "clothes_dryer_efficiency": "3.73",
         "clothes_dryer_efficiency_type": "CombinedEnergyFactor",
         "clothes_dryer_fuel_type": "electricity",
@@ -44,7 +43,7 @@
         "cooling_system_cooling_sensible_heat_fraction": 0.73,
         "cooling_system_fraction_cool_load_served": 1,
         "cooling_system_is_ducted": false,
-        "cooling_system_type": "central air conditioner",
+        "cooling_system_type": "none",
         "dehumidifier_capacity": 40,
         "dehumidifier_efficiency": 1.8,
         "dehumidifier_efficiency_type": "EnergyFactor",
@@ -136,21 +135,21 @@
         "geometry_roof_type": "gable",
         "geometry_unit_type": "single-family detached",
         "geometry_wall_height": 8.0,
-        "heat_pump_backup_fuel": "none",
-        "heat_pump_backup_heating_capacity": "36000.0",
+        "heat_pump_backup_fuel": "electricity",
+        "heat_pump_backup_heating_capacity": "auto",
         "heat_pump_backup_heating_efficiency": 1,
-        "heat_pump_cooling_capacity": "36000.0",
-        "heat_pump_cooling_compressor_type": "single stage",
-        "heat_pump_cooling_efficiency": 13.0,
+        "heat_pump_cooling_capacity": "auto",
+        "heat_pump_cooling_compressor_type": "two stage",
+        "heat_pump_cooling_efficiency": 18.0,
         "heat_pump_cooling_efficiency_type": "SEER",
         "heat_pump_cooling_sensible_heat_fraction": 0.73,
         "heat_pump_fraction_cool_load_served": 1,
         "heat_pump_fraction_heat_load_served": 1,
-        "heat_pump_heating_capacity": "36000.0",
+        "heat_pump_heating_capacity": "auto",
         "heat_pump_heating_capacity_17_f": "auto",
-        "heat_pump_heating_efficiency": 7.7,
+        "heat_pump_heating_efficiency": 9.3,
         "heat_pump_heating_efficiency_type": "HSPF",
-        "heat_pump_type": "none",
+        "heat_pump_type": "air-to-air",
         "heating_system_fraction_heat_load_served": 1,
         "heating_system_fraction_heat_load_served_2": 0.25,
         "heating_system_fuel": "natural gas",
@@ -159,7 +158,7 @@
         "heating_system_heating_capacity_2": "auto",
         "heating_system_heating_efficiency": 0.92,
         "heating_system_heating_efficiency_2": 1.0,
-        "heating_system_type": "Furnace",
+        "heating_system_type": "none",
         "heating_system_type_2": "none",
         "holiday_lighting_daily_kwh": "auto",
         "holiday_lighting_present": false,
@@ -170,7 +169,7 @@
         "hot_tub_present": false,
         "hot_tub_pump_annual_kwh": "auto",
         "hot_tub_pump_usage_multiplier": 1.0,
-        "hpxml_path": "../workflow/sample_files/test.xml",
+        "hpxml_path": "../BuildResidentialHPXML/tests/built_residential_hpxml/base-hvac-autosize-air-to-air-heat-pump-2-speed-manual-s-oversize-allowances.xml",
         "kitchen_fans_quantity": "0",
         "lighting_fraction_cfl_exterior": 0.4,
         "lighting_fraction_cfl_garage": 0.4,
@@ -261,8 +260,6 @@
         "roof_material_type": "asphalt or fiberglass shingles",
         "roof_radiant_barrier": false,
         "roof_radiant_barrier_grade": "1",
-        "schedules_type": "stochastic",
-        "schedules_vacancy_period": "Dec 1 - Jan 31",
         "setpoint_cooling_weekday": "78",
         "setpoint_cooling_weekend": "78",
         "setpoint_heating_weekday": "68",
@@ -330,37 +327,6 @@
         "window_ufactor": 0.33
       },
       "measure_dir_name": "BuildResidentialHPXML"
-    },
-    {
-      "arguments": {
-        "hpxml_path": "../workflow/sample_files/test.xml",
-        "output_dir": "../workflow/run",
-        "debug": false,
-        "add_component_loads": false,
-        "skip_validation": false
-      },
-      "measure_dir_name": "HPXMLtoOpenStudio"
-    },
-    {
-      "arguments": {
-        "output_format": "csv",
-        "timeseries_frequency": "none",
-        "include_timeseries_fuel_consumptions": false,
-        "include_timeseries_end_use_consumptions": false,
-        "include_timeseries_hot_water_uses": false,
-        "include_timeseries_total_loads": false,
-        "include_timeseries_component_loads": false,
-        "include_timeseries_unmet_loads": false,
-        "include_timeseries_zone_temperatures": false,
-        "include_timeseries_airflows": false,
-        "include_timeseries_weather": false
-      },
-      "measure_dir_name": "SimulationOutputReport"
     }
-  ],
-  "run_options": {
-    "fast": true,
-    "skip_expand_objects": true,
-    "skip_energyplus_preprocess": true
-  }
+  ]
 }

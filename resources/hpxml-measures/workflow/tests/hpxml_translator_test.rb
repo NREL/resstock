@@ -194,12 +194,12 @@ class HPXMLTest < MiniTest::Test
     File.delete(osw_path_test)
   end
 
-  def test_template2_osw
+  def test_template_osw_with_schedule
     # Check that simulation works using template.osw
     require 'json'
 
     os_cli = OpenStudio.getOpenStudioCLI
-    osw_path = File.join(File.dirname(__FILE__), '..', 'template2.osw')
+    osw_path = File.join(File.dirname(__FILE__), '..', 'template-stochastic-schedules.osw')
 
     # Create derivative OSW for testing
     osw_path_test = osw_path.gsub('.osw', '_test.osw')
@@ -235,7 +235,55 @@ class HPXMLTest < MiniTest::Test
 
     # Cleanup
     File.delete(osw_path_test)
-    File.delete(File.join(File.dirname(__FILE__), '..', 'sample_files', 'test.xml'))
+    xml_path_test = File.join(File.dirname(__FILE__), '..', 'base-stochastic-schedules.xml')
+    File.delete(xml_path_test)
+  end
+
+  def test_template_osw_with_build_hpxml_and_schedule
+    # Check that simulation works using template2.osw
+    require 'json'
+
+    os_cli = OpenStudio.getOpenStudioCLI
+    osw_path = File.join(File.dirname(__FILE__), '..', 'template-build-hpxml-and-stocastic-schedules.osw')
+
+    # Create derivative OSW for testing
+    osw_path_test = osw_path.gsub('.osw', '_test.osw')
+    FileUtils.cp(osw_path, osw_path_test)
+
+    # Turn on debug mode
+    json = JSON.parse(File.read(osw_path_test), symbolize_names: true)
+    json[:steps][2][:arguments][:debug] = true
+
+    if Dir.exist? File.join(File.dirname(__FILE__), '..', '..', 'project')
+      # CI checks out the repo as "project", so update dir name
+      json[:steps][1][:measure_dir_name] = 'project'
+    end
+
+    File.open(osw_path_test, 'w') do |f|
+      f.write(JSON.pretty_generate(json))
+    end
+
+    command = "#{os_cli} run -w #{osw_path_test}"
+    system(command, err: File::NULL)
+
+    # Check for output files
+    sql_path = File.join(File.dirname(osw_path_test), 'run', 'eplusout.sql')
+    assert(File.exist? sql_path)
+    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv')
+    assert(File.exist? csv_output_path)
+
+    # Check for debug files
+    osm_path = File.join(File.dirname(osw_path_test), 'run', 'in.osm')
+    assert(File.exist? osm_path)
+    hpxml_defaults_path = File.join(File.dirname(osw_path_test), 'run', 'in.xml')
+    assert(File.exist? hpxml_defaults_path)
+
+    # Cleanup
+    File.delete(osw_path_test)
+    xml_path_test = File.join(File.dirname(__FILE__), '..', 'built.xml')
+    File.delete(xml_path_test)
+    xml_path_test = File.join(File.dirname(__FILE__), '..', 'built-stochastic-schedules.xml')
+    File.delete(xml_path_test)
   end
 
   def test_weather_cache
@@ -767,6 +815,23 @@ class HPXMLTest < MiniTest::Test
 
       flunk "Unexpected warning found: #{err_line}"
     end
+
+    # Check for unused objects/schedules/constructions
+    num_unused_objects = 0
+    num_unused_schedules = 0
+    num_unused_constructions = 0
+    File.readlines(File.join(rundir, 'eplusout.err')).each do |err_line|
+      if err_line.include? 'unused objects in input'
+        num_unused_objects = Integer(err_line.split(' ')[3])
+      elsif err_line.include? 'unused schedules in input'
+        num_unused_schedules = Integer(err_line.split(' ')[3])
+      elsif err_line.include? 'unused constructions in input'
+        num_unused_constructions = Integer(err_line.split(' ')[6])
+      end
+    end
+    assert_equal(0, num_unused_objects)
+    assert_equal(0, num_unused_schedules)
+    assert_equal(0, num_unused_constructions)
 
     # Timestep
     timestep = hpxml.header.timestep
