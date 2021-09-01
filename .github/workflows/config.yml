@@ -125,6 +125,7 @@ jobs:
           python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv
           
           python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html
+          python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html
           python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.county -x results_output_county.html
           python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.county -af sum -x results_output_county_sum.html
 
@@ -133,6 +134,18 @@ jobs:
         with:
           path: test/test_samples_osw/comparisons
           name: comparisons
+
+      - name: Upload base map
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/base/map
+          name: base_map
+
+      - name: Upload feature map
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/results/map
+          name: results_map
 
   update-results:
     runs-on: ubuntu-latest

@@ -174,7 +174,7 @@ class XMLHelper
   end
 
   def self.write_file(doc, out_path)
-    doc_s = doc.to_xml
+    doc_s = doc.to_xml.delete("\r")
 
     # Manually apply pretty-printing (indentation and newlines)
     # Can remove if https://gitlab.com/yorickpeterse/oga/-/issues/75 is implemented
@@ -204,6 +204,8 @@ class XMLHelper
       end
     end
     indents.reverse_each do |pos, level|
+      next if doc_s[pos - 1] == ' '
+
       doc_s.insert(pos, "\n#{'  ' * level}")
     end
     # Retain REXML-styling
@@ -243,7 +245,7 @@ def to_integer(value, parent, element_name)
   end
 end
 
-def to_boolean(value, parent = nil, element_name = nil)
+def to_boolean(value, parent, element_name)
   if value.is_a? TrueClass
     return true
   elsif value.is_a? FalseClass
@@ -254,9 +256,7 @@ def to_boolean(value, parent = nil, element_name = nil)
     return false
   end
 
-  if (not parent.nil?) && (not element_name.nil?)
-    fail "Cannot convert '#{value}' to boolean for #{parent.name}/#{element_name}."
-  end
+  fail "Cannot convert '#{value}' to boolean for #{parent.name}/#{element_name}."
 end
 
 def to_float_or_nil(value, parent, element_name)

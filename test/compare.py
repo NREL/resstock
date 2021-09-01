@@ -18,7 +18,11 @@ enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family
                                                                   'Multi-Family with 2 - 4 Units': 'MF',
                                                                   'Multi-Family with 5+ Units': 'MF'} }
 
-cols_to_ignore = ['simulation_output_report.include_timeseries_end_use_consumptions']
+cols_to_ignore = ['applicable',
+                  'output_format',
+                  'timeseries_frequency',
+                  'completed_status',
+                  'color_index']
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
@@ -74,6 +78,16 @@ class MoreCompare(BaseCompare):
 
     return
 
+  def write_map_results(self, map_results, df_to_keep, df_to_map):
+    if map_results == 'base':
+      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
+      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
+    elif map_results == 'feature':
+      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
+      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
+      
+    return
+
   def map_columns(self, map_results):
     # Read in files
     ## Characteristics
@@ -98,6 +112,14 @@ class MoreCompare(BaseCompare):
     if not os.path.exists(self.feature_folder):
       os.makedirs(self.feature_folder)
 
+    # Map results_output columns
+    if map_results == 'base':
+      df_to_keep = base_df
+      df_to_map = feature_df
+    elif map_results == 'feature':
+      df_to_keep  = feature_df
+      df_to_map = base_df
+
     # Align results_charactersitics columns
     base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
     feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
@@ -112,13 +134,10 @@ class MoreCompare(BaseCompare):
     base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
     feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
 
-    # Map results_output columns
-    if map_results == 'base':
-      df_to_keep = base_df
-      df_to_map = feature_df
-    elif map_results == 'feature':
-      df_to_keep  = feature_df
-      df_to_map = base_df
+    # Skip mapping if not needed
+    if list(df_to_map.columns) == list(df_to_keep.columns):
+      self.write_map_results(map_results, df_to_keep, df_to_map)
+      return
 
     # Aggregate variables w/ multiple cols
     for cols, map_to in map_dict.items():
@@ -162,13 +181,7 @@ class MoreCompare(BaseCompare):
     df_to_map = df_to_map.reindex(sorted(df_to_map.columns), axis=1)
 
     # Store new mapped csvs
-    if map_results == 'base':
-      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
-      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
-    elif map_results == 'feature':
-      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
-      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
-
+    self.write_map_results(map_results, df_to_keep, df_to_map)
     return
 
 if __name__ == '__main__':
@@ -181,6 +194,7 @@ if __name__ == '__main__':
                        'build_existing_model.county']
   aggregate_functions = ['sum', 'mean']
   display_columns = ['build_existing_model.geometry_building_type_recs',
+                     'build_existing_model.geometry_foundation_type',
                      'build_existing_model.county']
   map_result_choices = ['base', 'feature']
 

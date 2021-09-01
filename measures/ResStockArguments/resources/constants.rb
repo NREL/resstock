@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Constants
-  def self.excludes
+  def self.build_residential_hpxml_excludes
     # don't make these BuildResidentialHPXML arguments into ResStockArguments arguments
     return ['hpxml_path',
             'software_program_used',
@@ -18,5 +18,12 @@ class Constants
             'heat_pump_charge_defect_ratio',
             'plug_loads_television_annual_kwh',
             'plug_loads_television_usage_multiplier']
+  end
+
+  def self.build_residential_schedule_file_excludes
+    # don't make these BuildResidentialScheduleFile arguments into ResStockArguments arguments
+    return ['hpxml_path',
+            'output_csv_path',
+            'hpxml_output_path']
   end
 end
