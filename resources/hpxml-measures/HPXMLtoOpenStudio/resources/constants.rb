@@ -43,6 +43,10 @@ class Constants
     return 'auto'
   end
 
+  def self.AutoMaxLoad
+    return 'auto using max load'
+  end
+
   def self.CalcTypeERIRatedHome
     return 'ERI Rated Home'
   end

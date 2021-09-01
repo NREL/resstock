@@ -160,11 +160,11 @@ def create_osws
     'base-hvac-autosize-air-to-air-heat-pump-1-speed.osw' => 'base-hvac-air-to-air-heat-pump-1-speed.osw',
     'base-hvac-autosize-air-to-air-heat-pump-1-speed-cooling-only.osw' => 'base-hvac-air-to-air-heat-pump-1-speed-cooling-only.osw',
     'base-hvac-autosize-air-to-air-heat-pump-1-speed-heating-only.osw' => 'base-hvac-air-to-air-heat-pump-1-speed-heating-only.osw',
-    # 'base-hvac-autosize-air-to-air-heat-pump-1-speed-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-air-to-air-heat-pump-1-speed.osw',
+    'base-hvac-autosize-air-to-air-heat-pump-1-speed-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-air-to-air-heat-pump-1-speed.osw',
     'base-hvac-autosize-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
-    # 'base-hvac-autosize-air-to-air-heat-pump-2-speed-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-air-to-air-heat-pump-2-speed.osw',
+    'base-hvac-autosize-air-to-air-heat-pump-2-speed-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-air-to-air-heat-pump-2-speed.osw',
     'base-hvac-autosize-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
-    # 'base-hvac-autosize-air-to-air-heat-pump-var-speed-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-autosize-air-to-air-heat-pump-var-speed-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-air-to-air-heat-pump-var-speed.osw',
     'base-hvac-autosize-boiler-elec-only.osw' => 'base-hvac-boiler-elec-only.osw',
     'base-hvac-autosize-boiler-gas-central-ac-1-speed.osw' => 'base-hvac-boiler-gas-central-ac-1-speed.osw',
     'base-hvac-autosize-boiler-gas-only.osw' => 'base-hvac-boiler-gas-only.osw',
@@ -185,11 +185,11 @@ def create_osws
     'base-hvac-autosize-ground-to-air-heat-pump.osw' => 'base-hvac-ground-to-air-heat-pump.osw',
     'base-hvac-autosize-ground-to-air-heat-pump-cooling-only.osw' => 'base-hvac-ground-to-air-heat-pump-cooling-only.osw',
     'base-hvac-autosize-ground-to-air-heat-pump-heating-only.osw' => 'base-hvac-ground-to-air-heat-pump-heating-only.osw',
-    # 'base-hvac-autosize-ground-to-air-heat-pump-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-ground-to-air-heat-pump.osw',
+    'base-hvac-autosize-ground-to-air-heat-pump-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-ground-to-air-heat-pump.osw',
     'base-hvac-autosize-mini-split-heat-pump-ducted.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
     'base-hvac-autosize-mini-split-heat-pump-ducted-cooling-only.osw' => 'base-hvac-mini-split-heat-pump-ducted-cooling-only.osw',
     'base-hvac-autosize-mini-split-heat-pump-ducted-heating-only.osw' => 'base-hvac-mini-split-heat-pump-ducted-heating-only.osw',
-    # 'base-hvac-autosize-mini-split-heat-pump-ducted-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-mini-split-heat-pump-ducted.osw',
+    'base-hvac-autosize-mini-split-heat-pump-ducted-manual-s-oversize-allowances.osw' => 'base-hvac-autosize-mini-split-heat-pump-ducted.osw',
     'base-hvac-autosize-mini-split-air-conditioner-only-ducted.osw' => 'base-hvac-mini-split-air-conditioner-only-ducted.osw',
     'base-hvac-autosize-room-ac-only.osw' => 'base-hvac-room-ac-only.osw',
     'base-hvac-autosize-stove-oil-only.osw' => 'base-hvac-stove-oil-only.osw',
@@ -1457,17 +1457,17 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_heating_capacity', Constants.Auto)
     step.setArgument('cooling_system_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-air-to-air-heat-pump-1-speed.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-air-to-air-heat-pump-1-speed-cooling-only.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-air-to-air-heat-pump-1-speed-heating-only.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
@@ -1477,7 +1477,7 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-air-to-air-heat-pump-2-speed.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
@@ -1487,7 +1487,7 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-air-to-air-heat-pump-var-speed.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
@@ -1517,17 +1517,17 @@ def get_values(osw_file, step)
   elsif ['base-hvac-autosize-central-ac-plus-air-to-air-heat-pump-heating.osw'].include? osw_file
     step.setArgument('heating_system_heating_capacity', Constants.Auto)
     step.setArgument('cooling_system_cooling_capacity', Constants.Auto)
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-dual-fuel-mini-split-heat-pump-ducted.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
@@ -1556,37 +1556,37 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_heating_capacity', Constants.Auto)
     step.setArgument('cooling_system_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-ground-to-air-heat-pump.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-ground-to-air-heat-pump-cooling-only.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-ground-to-air-heat-pump-heating-only.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
-  elsif ['base-hvac-autosize-ground-to-air-heat-pump-s-oversize-allowances.osw'].include? osw_file
+  elsif ['base-hvac-autosize-ground-to-air-heat-pump-manual-s-oversize-allowances.osw'].include? osw_file
     step.setArgument('heat_pump_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-mini-split-heat-pump-ducted.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-mini-split-heat-pump-ducted-cooling-only.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
   elsif ['base-hvac-autosize-mini-split-heat-pump-ducted-heating-only.osw'].include? osw_file
-    step.setArgument('heat_pump_heating_capacity', Constants.Auto)
+    step.setArgument('heat_pump_heating_capacity', Constants.AutoMaxLoad)
     step.setArgument('heat_pump_heating_capacity_17_f', Constants.Auto)
     step.setArgument('heat_pump_backup_heating_capacity', Constants.Auto)
     step.setArgument('heat_pump_cooling_capacity', Constants.Auto)
