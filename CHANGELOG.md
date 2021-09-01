@@ -47,6 +47,7 @@ Fixes
 - Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
 - Fixes hot water distribution internal gains not being zeroed out during vacancies ([#653](https://github.com/NREL/resstock/pull/653))
 - Exclude adiabatic doors when outputting the door area cost multiplier ([#674](https://github.com/NREL/resstock/pull/674))
+- Disaggregate the shared fan coil's fan energy use into heating and cooling ([#694](https://github.com/NREL/resstock/pull/694))
 
 ## ResStock v2.4.0
 
