@@ -163,7 +163,29 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
   return { success: true, runner: runner, sim_time: sim_time }
 end
 
-def apply_measures(measures_dir, measures, runner, model, show_measure_calls = true, measure_type = 'OpenStudio::Measure::ModelMeasure')
+def apply_measures(measures_dir, measures, runner, model, show_measure_calls = true, measure_type = 'OpenStudio::Measure::ModelMeasure', osw_out = nil)
+  if not osw_out.nil?
+    # Create a workflow based on the measures we're going to call. Convenient for debugging.
+    workflowJSON = OpenStudio::WorkflowJSON.new
+    workflowJSON.setOswPath(File.expand_path("../#{osw_out}"))
+    workflowJSON.addMeasurePath('measures')
+    workflowJSON.addMeasurePath('resources/hpxml-measures')
+    steps = OpenStudio::WorkflowStepVector.new
+    measures.each do |measure_subdir, args_array|
+      args_array.each do |args|
+        step = OpenStudio::MeasureStep.new(measure_subdir)
+        args.each do |k, v|
+          next if v.nil?
+
+          step.setArgument(k, "#{v}")
+        end
+        steps.push(step)
+      end
+    end
+    workflowJSON.setWorkflowSteps(steps)
+    workflowJSON.save
+  end
+
   # Call each measure in the specified order
   measures.keys.each do |measure_subdir|
     # Gather measure arguments and call measure

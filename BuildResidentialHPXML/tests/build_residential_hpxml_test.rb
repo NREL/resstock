@@ -213,6 +213,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.header.xml_generated_by = nil
       hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z')
       hpxml.header.schedules_filepath = 'SCHEDULES_FILE' unless hpxml.header.schedules_filepath.nil?
+      hpxml.header.use_max_load_for_heat_pumps = true if hpxml.header.use_max_load_for_heat_pumps.nil?
       hpxml.site.fuels = [] # Not used by model
       hpxml.climate_and_risk_zones.weather_station_name = nil
       hpxml.building_construction.conditioned_building_volume = nil
@@ -349,21 +350,13 @@ class BuildResidentialHPXMLTest < MiniTest::Test
           hpxml.freezers.delete_at(i) # Only compare first freezer
         end
       end
-      hpxml.pools.each do |pool|
-        pool.pump_weekday_fractions = nil
-        pool.pump_weekend_fractions = nil
-        pool.pump_monthly_multipliers = nil
-        pool.heater_weekday_fractions = nil
-        pool.heater_weekend_fractions = nil
-        pool.heater_monthly_multipliers = nil
-      end
-      hpxml.hot_tubs.each do |hot_tub|
-        hot_tub.pump_weekday_fractions = nil
-        hot_tub.pump_weekend_fractions = nil
-        hot_tub.pump_monthly_multipliers = nil
-        hot_tub.heater_weekday_fractions = nil
-        hot_tub.heater_weekend_fractions = nil
-        hot_tub.heater_monthly_multipliers = nil
+      (hpxml.pools + hpxml.hot_tubs).each do |object|
+        object.pump_weekday_fractions = nil
+        object.pump_weekend_fractions = nil
+        object.pump_monthly_multipliers = nil
+        object.heater_weekday_fractions = nil
+        object.heater_weekend_fractions = nil
+        object.heater_monthly_multipliers = nil
       end
       hpxml.water_heating.water_fixtures_weekday_fractions = nil
       hpxml.water_heating.water_fixtures_weekend_fractions = nil
