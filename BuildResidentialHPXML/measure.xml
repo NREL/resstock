@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>311a1132-e405-486b-831b-e1472bcfbcf7</version_id>
-  <version_modified>20210901T150657Z</version_modified>
+  <version_id>48b609c3-3473-4e87-90a7-41560f349ecd</version_id>
+  <version_modified>20210901T151502Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -2246,6 +2246,130 @@
       <description>The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the heat pump per ANSI/RESNET/ACCA Standard 310. A value of zero means no refrigerant charge defect. Applies to all heat pump types.</description>
       <type>Double</type>
       <units>Frac</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility</name>
+      <display_name>Heat Pump: Demand Flexibility Grid Connected</display_name>
+      <description>Whether equipment is grid connected.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>max_flex_speed</name>
+      <display_name>Heat Pump: Demand Flexibility Maximum Speed During Grid Response</display_name>
+      <description>Set the maximum speed of the heat pump during grid response.</description>
+      <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_modulating</name>
+      <display_name>Heat Pump: Demand Flexibility Modulating</display_name>
+      <description></description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_dual_source</name>
+      <display_name>Heat Pump: Demand Flexibility Dual-Source</display_name>
+      <description></description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_ihp_grid_ac</name>
+      <display_name>Heat Pump: Demand Flexibility Integrated Heat Pump Modulating</display_name>
+      <description></description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_ihp_ice_storage</name>
+      <display_name>Heat Pump: Demand Flexibility Integrated Heat Pump Modulating w/ Ice Storage</display_name>
+      <description></description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_demand_flexibility_ihp_pcm_storage</name>
+      <display_name>Heat Pump: Demand Flexibility Integrated Heat Pump Modulating w/ Pcm Storage</display_name>
+      <description></description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>grid_signal_schedule</name>
+      <display_name>Grid Signal Schedule for Demand Flexibility Measures</display_name>
+      <description>Schedule can be 24 hour array or file location</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -7612,17 +7736,6 @@
       <checksum>A6E26590</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>2.9.0</identifier>
-        <min_compatible>2.9.0</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>FA40B754</checksum>
-    </file>
-    <file>
       <filename>base-hvac-autosize-air-to-air-heat-pump-1-speed-manual-s-oversize-allowances.osw</filename>
       <filetype>osw</filetype>
       <usage_type>test</usage_type>
@@ -7659,16 +7772,75 @@
       <checksum>4E9A9F01</checksum>
     </file>
     <file>
-      <filename>test_measure.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>FF9C8EF5</checksum>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.9.0</identifier>
+        <min_compatible>2.9.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>E0439DC6</checksum>
     </file>
     <file>
-      <filename>test_rakefile.xml</filename>
-      <filetype>xml</filetype>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source-not-grid-connected.osw</filename>
+      <filetype>osw</filetype>
       <usage_type>test</usage_type>
-      <checksum>A208C7E4</checksum>
+      <checksum>53C6DDE8</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>5F051854</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac-not-grid-connected.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4C9C7213</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>68C96EA1</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage-not-grid-connected.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>8D43DAE7</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>99ED9D86</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage-not-grid-connected.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E3971A5E</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1835A8D9</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating-not-grid-connected.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>31666E17</checksum>
+    </file>
+    <file>
+      <filename>base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.osw</filename>
+      <filetype>osw</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFDF4304</checksum>
     </file>
   </files>
 </measure>
