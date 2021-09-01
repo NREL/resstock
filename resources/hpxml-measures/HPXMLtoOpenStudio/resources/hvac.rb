@@ -1092,24 +1092,24 @@ class HVAC
 
   def self.apply_ceiling_fans(model, runner, weather, ceiling_fan, living_space, schedules_file)
     obj_name = Constants.ObjectNameCeilingFan
-    monthly_sch = Schedule.CeilingFanMonthlyMultipliers(weather: weather).split(',').map { |i| i.to_f }
-    medium_cfm = 3000.0
-    weekday_sch = Schedule.CeilingFanWeekdayFractions.split(',').map { |i| i.to_f }
-    weekend_sch = Schedule.CeilingFanWeekendFractions.split(',').map { |i| i.to_f }
-    hrs_per_day = weekday_sch.sum(0.0)
+    medium_cfm = 3000.0 # From ANSI 301-2019
+    hrs_per_day = 10.5 # From ANSI 301-2019
     cfm_per_w = ceiling_fan.efficiency
     quantity = ceiling_fan.quantity
     annual_kwh = UnitConversions.convert(quantity * medium_cfm / cfm_per_w * hrs_per_day * 365.0, 'Wh', 'kWh')
-    annual_kwh *= monthly_sch.sum(0.0) / 12.0
-
-    ceiling_fan_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
 
     if not schedules_file.nil?
-      space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'ceiling_fan', annual_kwh: annual_kwh)
+      annual_kwh *= Schedule.CeilingFanMonthlyMultipliers(weather: weather).split(',').map(&:to_f).sum(0.0) / 12.0
+      ceiling_fan_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'ceiling_fan', annual_kwh: annual_kwh)
       ceiling_fan_sch = schedules_file.create_schedule_file(col_name: 'ceiling_fan')
     else
-      space_design_level = ceiling_fan_sch.calcDesignLevelFromDailykWh(annual_kwh / 365.0)
-      ceiling_fan_sch = ceiling_fan_sch.schedule
+      annual_kwh *= ceiling_fan.monthly_multipliers.split(',').map(&:to_f).sum(0.0) / 12.0
+      weekday_sch = ceiling_fan.weekday_fractions
+      weekend_sch = ceiling_fan.weekend_fractions
+      monthly_sch = ceiling_fan.monthly_multipliers
+      ceiling_fan_sch_obj = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
+      ceiling_fan_design_level = ceiling_fan_sch_obj.calcDesignLevelFromDailykWh(annual_kwh / 365.0)
+      ceiling_fan_sch = ceiling_fan_sch_obj.schedule
     end
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
@@ -1117,7 +1117,7 @@ class HVAC
     equip = OpenStudio::Model::ElectricEquipment.new(equip_def)
     equip.setName(equip_def.name.to_s)
     equip.setSpace(living_space)
-    equip_def.setDesignLevel(space_design_level)
+    equip_def.setDesignLevel(ceiling_fan_design_level)
     equip_def.setFractionRadiant(0.558)
     equip_def.setFractionLatent(0)
     equip_def.setFractionLost(0)
@@ -1125,8 +1125,8 @@ class HVAC
     equip.setSchedule(ceiling_fan_sch)
   end
 
-  def self.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, heating_days, cooling_days)
-    num_days = Schedule.get_num_days_in_year(model)
+  def self.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, heating_days, cooling_days, year)
+    num_days = Constants.NumDaysInYear(year)
 
     if hvac_control.weekday_heating_setpoints.nil? || hvac_control.weekend_heating_setpoints.nil?
       # Base heating setpoint
@@ -1185,7 +1185,7 @@ class HVAC
       clg_ceiling_fan_offset = hvac_control.ceiling_fan_cooling_setpoint_temp_offset
       if not clg_ceiling_fan_offset.nil?
         months = get_default_ceiling_fan_months(weather)
-        Schedule.months_to_days(model, months).each_with_index do |operation, d|
+        Schedule.months_to_days(year, months).each_with_index do |operation, d|
           next if operation != 1
 
           clg_weekday_setpoints[d] = [clg_weekday_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }

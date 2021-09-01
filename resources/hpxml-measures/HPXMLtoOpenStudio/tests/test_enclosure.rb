@@ -530,6 +530,41 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     end
   end
 
+  def test_compartmentaliztion_area
+    # Test single-family detached
+    hpxml = _create_hpxml('base.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_equal(1.0, a_ext_ratio)
+
+    hpxml = _create_hpxml('base-foundation-unconditioned-basement.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_equal(1.0, a_ext_ratio)
+
+    hpxml = _create_hpxml('base-atticroof-cathedral.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_equal(1.0, a_ext_ratio)
+
+    # Test single-family attached
+    hpxml = _create_hpxml('base-bldgtype-single-family-attached.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_in_delta(0.840, a_ext_ratio, 0.001)
+
+    hpxml.attics[0].within_infiltration_volume = true
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_in_delta(0.817, a_ext_ratio, 0.001)
+
+    # Test multifamily
+    hpxml = _create_hpxml('base-bldgtype-multifamily.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_in_delta(0.247, a_ext_ratio, 0.001)
+  end
+
   def _check_surface(hpxml_surface, os_surface, expected_layer_names)
     os_construction = os_surface.construction.get.to_LayeredConstruction.get
 

@@ -32,10 +32,10 @@ class IntegrationWorkflowTest < MiniTest::Test
 
     all_results_characteristics = []
     all_results_output = []
-    @project_dir_baseline.each do |project_dir, num_samples|
-      next unless num_samples > 0
+    @project_dir_baseline.each_with_index do |(project_dir, num_samples), color_index|
+      next if num_samples == 0
 
-      samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output)
+      samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index)
     end
 
     results_dir = File.join(scenario_dir, 'results')
@@ -61,10 +61,10 @@ class IntegrationWorkflowTest < MiniTest::Test
 
     all_results_characteristics = []
     all_results_output = []
-    @project_dir_upgrades.each do |project_dir, num_samples|
+    @project_dir_upgrades.each_with_index do |(project_dir, num_samples), color_index|
       next unless num_samples > 0
 
-      samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output)
+      samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index)
     end
 
     results_dir = File.join(scenario_dir, 'results')
@@ -86,7 +86,7 @@ class IntegrationWorkflowTest < MiniTest::Test
 
   private
 
-  def samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output)
+  def samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index)
     parent_dir = File.join(scenario_dir, project_dir)
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
@@ -132,6 +132,7 @@ class IntegrationWorkflowTest < MiniTest::Test
       osw = "#{project_dir}-#{building_id.to_s.rjust(4, '0')}.osw"
       result_characteristics['OSW'] = osw
       result_output['OSW'] = osw
+      result_output['color_index'] = color_index
 
       check_finished_job(result_characteristics, finished_job)
       check_finished_job(result_output, finished_job)
