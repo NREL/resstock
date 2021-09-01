@@ -299,8 +299,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Get the absolute paths relative to this meta measure in the run directory
-      new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-      if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, nil, true, { 'ApplyUpgrade' => runner })
+      new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
+      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         return false
       end
 
@@ -380,7 +380,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
       measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
 
-      if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, 'upgraded.osw', true, { 'ApplyUpgrade' => runner })
+      if not apply_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+        new_runner.result.warnings.each do |warning|
+          runner.registerWarning(warning.logMessage)
+        end
+        new_runner.result.info.each do |info|
+          runner.registerInfo(info.logMessage)
+        end
         new_runner.result.errors.each do |error|
           runner.registerError(error.logMessage)
         end

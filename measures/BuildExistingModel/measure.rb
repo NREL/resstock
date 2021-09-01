@@ -11,8 +11,6 @@ elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../re
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
 elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
-else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
 require File.join(resources_path, 'meta_measure')
 
@@ -214,8 +212,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Get the absolute paths relative to this meta measure in the run directory
-    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    if not apply_child_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, nil, true, { 'BuildExistingModel' => runner })
+    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
+    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
       return false
     end
 
@@ -260,7 +258,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
 
-    if not apply_child_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, 'existing.osw', true, { 'BuildExistingModel' => runner })
+    if not apply_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
+      new_runner.result.warnings.each do |warning|
+        runner.registerWarning(warning.logMessage)
+      end
+      new_runner.result.info.each do |info|
+        runner.registerInfo(info.logMessage)
+      end
       new_runner.result.errors.each do |error|
         runner.registerError(error.logMessage)
       end
