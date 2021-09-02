@@ -2,7 +2,7 @@
 
 class HPXMLDefaults
   # Note: Each HPXML object (e.g., HPXML::Wall) has an additional_properties
-  # child object where # custom information can be attached to the object without
+  # child object where custom information can be attached to the object without
   # being written to the HPXML file. This is useful to associate additional values
   # with the HPXML objects that will ultimately get passed around.
 
@@ -11,7 +11,7 @@ class HPXMLDefaults
     nbeds = hpxml.building_construction.number_of_bedrooms
     ncfl = hpxml.building_construction.number_of_conditioned_floors
     ncfl_ag = hpxml.building_construction.number_of_conditioned_floors_above_grade
-    has_uncond_bsmnt = hpxml.has_space_type(HPXML::LocationBasementUnconditioned)
+    has_uncond_bsmnt = hpxml.has_location(HPXML::LocationBasementUnconditioned)
 
     infil_volume = nil
     infil_measurements = []
@@ -291,7 +291,7 @@ class HPXMLDefaults
   end
 
   def self.apply_attics(hpxml)
-    return unless hpxml.has_space_type(HPXML::LocationAtticVented)
+    return unless hpxml.has_location(HPXML::LocationAtticVented)
 
     vented_attics = []
     default_sla = Airflow.get_default_vented_attic_sla()
@@ -324,7 +324,7 @@ class HPXMLDefaults
   end
 
   def self.apply_foundations(hpxml)
-    return unless hpxml.has_space_type(HPXML::LocationCrawlspaceVented)
+    return unless hpxml.has_location(HPXML::LocationCrawlspaceVented)
 
     vented_crawls = []
     default_sla = Airflow.get_default_vented_crawl_sla()
@@ -1721,7 +1721,7 @@ class HPXMLDefaults
     default_exterior_lighting_weekday_fractions = Schedule.LightingExteriorWeekdayFractions
     default_exterior_lighting_weekend_fractions = Schedule.LightingExteriorWeekendFractions
     default_exterior_lighting_monthly_multipliers = Schedule.LightingExteriorMonthlyMultipliers
-    if hpxml.has_space_type(HPXML::LocationGarage)
+    if hpxml.has_location(HPXML::LocationGarage)
       if hpxml.lighting.garage_weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
         hpxml.lighting.garage_weekday_fractions = default_exterior_lighting_weekday_fractions
         hpxml.lighting.garage_weekday_fractions_isdefaulted = true

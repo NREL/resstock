@@ -3232,10 +3232,10 @@ class HPXMLFile
       hpxml.site.site_type = args[:site_type].get
     end
 
-    surroundings_hash = { 'Left' => 'attached on one side',
-                          'Right' => 'attached on one side',
-                          'Middle' => 'attached on two sides',
-                          'None' => 'stand-alone' }
+    surroundings_hash = { 'Left' => HPXML::SurroundingsOneSide,
+                          'Right' => HPXML::SurroundingsOneSide,
+                          'Middle' => HPXML::SurroundingsTwoSides,
+                          'None' => HPXML::SurroundingsStandAlone }
 
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
       hpxml.site.surroundings = surroundings_hash[args[:geometry_horizontal_location].get]
@@ -3299,7 +3299,10 @@ class HPXMLFile
     hpxml.building_construction.conditioned_building_volume = conditioned_building_volume
     hpxml.building_construction.average_ceiling_height = args[:geometry_wall_height]
     hpxml.building_construction.residential_facility_type = args[:geometry_unit_type]
-    hpxml.building_construction.year_built = args[:year_built]
+
+    if args[:year_built].is_initialized
+      hpxml.building_construction.year_built = args[:year_built].get
+    end
     if args[:geometry_has_flue_or_chimney] != Constants.Auto
       hpxml.building_construction.has_flue_or_chimney = args[:geometry_has_flue_or_chimney]
     end
@@ -3520,7 +3523,7 @@ class HPXMLFile
 
       attic_wall_type = nil
       if ([HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to) && (exterior_adjacent_to == HPXML::LocationOutside)
-        attic_wall_type = 'gable'
+        attic_wall_type = HPXML::AtticWallTypeGable
       end
 
       wall_type = args[:wall_type]
