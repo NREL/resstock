@@ -2,7 +2,7 @@
 
 class Airflow
   def self.apply(model, runner, weather, spaces, hpxml, cfa, nbeds,
-                 ncfl_ag, duct_systems, clg_ssn_sensor, hvac_map, eri_version,
+                 ncfl_ag, duct_systems, airloop_map, clg_ssn_sensor, eri_version,
                  frac_windows_operable, apply_ashrae140_assumptions, schedules_file)
 
     # Global variables
@@ -71,7 +71,7 @@ class Airflow
     vented_dryers = hpxml.clothes_dryers.select { |cd| cd.is_vented && cd.vented_flow_rate.to_f > 0 && [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(cd.location) }
 
     # Initialization
-    initialize_cfis(model, vent_fans_mech, hvac_map)
+    initialize_cfis(model, vent_fans_mech, airloop_map)
     model.getAirLoopHVACs.each do |air_loop|
       initialize_fan_objects(model, air_loop)
     end
@@ -107,7 +107,7 @@ class Airflow
     apply_natural_ventilation_and_whole_house_fan(model, weather, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor)
     apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
-                                            vented_attic, vented_crawl, hvac_map, clg_ssn_sensor, schedules_file)
+                                            vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
   end
 
   def self.get_default_fraction_of_windows_operable()
@@ -508,7 +508,7 @@ class Airflow
     return actuator
   end
 
-  def self.initialize_cfis(model, vent_fans_mech, hvac_map)
+  def self.initialize_cfis(model, vent_fans_mech, airloop_map)
     # Get AirLoop associated with CFIS
     @cfis_airloop = {}
     @cfis_t_sum_open_var = {}
@@ -520,19 +520,10 @@ class Airflow
     vent_fans_mech.each do |vent_mech|
       next unless (vent_mech.fan_type == HPXML::MechVentTypeCFIS)
 
-      cfis_sys_ids = vent_mech.distribution_system.hvac_systems.map { |system| system.id }
-      # Get AirLoopHVACs associated with these HVAC systems
-      hvac_map.each do |sys_id, hvacs|
-        next unless cfis_sys_ids.include? sys_id
+      vent_mech.distribution_system.hvac_systems.map { |system| system.id }.each do |cfis_id|
+        next if airloop_map[cfis_id].nil?
 
-        hvacs.each do |loop|
-          next unless loop.is_a? OpenStudio::Model::AirLoopHVAC
-          next if (not @cfis_airloop[vent_mech.id].nil?) && (@cfis_airloop[vent_mech.id] == loop) # already assigned
-
-          fail 'Two airloops found for CFIS.' unless @cfis_airloop[vent_mech.id].nil?
-
-          @cfis_airloop[vent_mech.id] = loop
-        end
+        @cfis_airloop[vent_mech.id] = airloop_map[cfis_id]
       end
 
       @cfis_t_sum_open_var[vent_mech.id] = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "#{Constants.ObjectNameMechanicalVentilation.gsub(' ', '_')}_cfis_t_sum_open_#{index}") # Sums the time during an hour the CFIS damper has been open
@@ -1570,7 +1561,7 @@ class Airflow
     end
   end
 
-  def self.calculate_precond_loads(model, infil_program, vent_mech_preheat, vent_mech_precool, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, hvac_map, clg_ssn_sensor)
+  def self.calculate_precond_loads(model, infil_program, vent_mech_preheat, vent_mech_precool, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, clg_ssn_sensor)
     # Preconditioning
     # Assume introducing no sensible loads to zone if preconditioned
     if not vent_mech_preheat.empty?
@@ -1587,8 +1578,8 @@ class Airflow
     end
     vent_mech_preheat.each_with_index do |f_preheat, i|
       infil_program.addLine("If (OASupInTemp < HtgStp) && (#{clg_ssn_sensor.name} < 1)")
-      htg_energy_actuator = create_other_equipment_object_and_actuator(model: model, name: "shared mech vent preheating energy #{i}", space: @living_space, frac_lat: 0.0, frac_lost: 1.0, hpxml_fuel_type: f_preheat.preheating_fuel, end_use: Constants.ObjectNameMechanicalVentilationPreconditioning)
-      hvac_map["#{f_preheat.id}_preheat"] = [htg_energy_actuator.actuatedComponent.get]
+      htg_energy_actuator = create_other_equipment_object_and_actuator(model: model, name: "shared mech vent preheating energy #{i}", space: @living_space, frac_lat: 0.0, frac_lost: 1.0, hpxml_fuel_type: f_preheat.preheating_fuel, end_use: Constants.ObjectNameMechanicalVentilationPreheating)
+      htg_energy_actuator.actuatedComponent.get.additionalProperties.setFeature('HPXML_ID', f_preheat.id) # Used by reporting measure
       infil_program.addLine("  Set Qpreheat = #{UnitConversions.convert(f_preheat.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)}")
       if [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? f_preheat.fan_type
         vent_mech_erv_hrv_tot = [f_preheat]
@@ -1612,8 +1603,8 @@ class Airflow
     end
     vent_mech_precool.each_with_index do |f_precool, i|
       infil_program.addLine("If (OASupInTemp > ClgStp) && (#{clg_ssn_sensor.name} > 0)")
-      clg_energy_actuator = create_other_equipment_object_and_actuator(model: model, name: "shared mech vent precooling energy #{i}", space: @living_space, frac_lat: 0.0, frac_lost: 1.0, hpxml_fuel_type: f_precool.precooling_fuel, end_use: Constants.ObjectNameMechanicalVentilationPreconditioning)
-      hvac_map["#{f_precool.id}_precool"] = [clg_energy_actuator.actuatedComponent.get]
+      clg_energy_actuator = create_other_equipment_object_and_actuator(model: model, name: "shared mech vent precooling energy #{i}", space: @living_space, frac_lat: 0.0, frac_lost: 1.0, hpxml_fuel_type: f_precool.precooling_fuel, end_use: Constants.ObjectNameMechanicalVentilationPrecooling)
+      clg_energy_actuator.actuatedComponent.get.additionalProperties.setFeature('HPXML_ID', f_precool.id) # Used by reporting measure
       infil_program.addLine("  Set Qprecool = #{UnitConversions.convert(f_precool.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)}")
       if [HPXML::MechVentTypeERV, HPXML::MechVentTypeHRV].include? f_precool.fan_type
         vent_mech_erv_hrv_tot = [f_precool]
@@ -1638,7 +1629,7 @@ class Airflow
   end
 
   def self.apply_infiltration_and_mechanical_ventilation(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                         range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map, clg_ssn_sensor)
+                                                         range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, clg_ssn_sensor)
     # Categorize fans into different types
     vent_mech_preheat = vent_fans_mech.select { |vent_mech| (not vent_mech.preheating_efficiency_cop.nil?) }
     vent_mech_precool = vent_fans_mech.select { |vent_mech| (not vent_mech.precooling_efficiency_cop.nil?) }
@@ -1713,7 +1704,7 @@ class Airflow
     calculate_fan_loads(model, infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qload')
 
     # Address preconditioning
-    calculate_precond_loads(model, infil_program, vent_mech_preheat, vent_mech_precool, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, hvac_map, clg_ssn_sensor)
+    calculate_precond_loads(model, infil_program, vent_mech_preheat, vent_mech_precool, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, clg_ssn_sensor)
 
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{infil_program.name} calling manager")
@@ -1722,7 +1713,7 @@ class Airflow
   end
 
   def self.apply_infiltration_and_ventilation_fans(model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                   has_flue_chimney, air_infils, vented_attic, vented_crawl, hvac_map, clg_ssn_sensor, schedules_file)
+                                                   has_flue_chimney, air_infils, vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
     # Get living space infiltration
     living_ach50 = nil
     living_const_ach = nil
@@ -1760,7 +1751,7 @@ class Airflow
 
     # Get mechanical ventilation
     apply_infiltration_and_mechanical_ventilation(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
-                                                  range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, hvac_map, clg_ssn_sensor)
+                                                  range_sch_sensors_map, bath_sch_sensors_map, dryer_exhaust_sch_sensors_map, has_flue_chimney, clg_ssn_sensor)
   end
 
   def self.apply_infiltration_to_living(site, living_ach50, living_const_ach, infil_program, weather, has_flue_chimney)

@@ -35,6 +35,7 @@ __New Features__
 - Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
 - Removes timeseries CSV output columns that are all zeroes to reduce file size and processing time.
 - Adds an `--ep-input-format` argument to run_simulation.rb to choose epJSON as the EnergyPlus input file format instead of IDF.
+- Eliminates EnergyPlus warnings related to unused objects or invalid output meters/variables.
 
 __Bugfixes__
 - Improves ground reflectance when there is shading of windows/skylights.
