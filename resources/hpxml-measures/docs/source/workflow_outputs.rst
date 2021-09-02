@@ -28,7 +28,7 @@ The file includes the following sections of output:
 Annual Energy Consumption by Fuel Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Current fuel uses are listed below.
+Fuel uses are listed below.
 
    ==================================== ===========================
    Type                                 Notes
@@ -46,7 +46,7 @@ Current fuel uses are listed below.
 Annual Energy Consumption By End Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Current end uses are listed below.
+End uses are listed below.
 
 Note that all end uses are mutually exclusive -- the "Electricity: Heating" end use, for example, excludes energy reported in the "Electricity: Heating Fans/Pumps" end use.
 So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural Gas: \*") equal the above reported fuel use (e.g., "Fuel Use: Natural Gas: Total").
@@ -149,7 +149,7 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
 
-Current annual building loads are listed below.
+Annual building loads are listed below.
 
    ===================================== ==================================================================
    Type                                  Notes
@@ -162,29 +162,26 @@ Current annual building loads are listed below.
    Load: Hot Water: Solar Thermal (MBtu) Load served by the solar thermal system.
    ===================================== ==================================================================
 
-Annual Unmet Building Loads
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Note that heating and cooling loads represent the delivered energy by the HVAC system; if the HVAC system is significantly undersized, there will be unmet load not reflected by these values.
 
-Current annual unmet building loads are listed below.
+Annual Unmet Hours
+~~~~~~~~~~~~~~~~~~
+
+Annual unmet hours are listed below.
 
    ========================== =====
    Type                       Notes
    ========================== =====
-   Unmet Load: Heating (MBtu)
-   Unmet Load: Cooling (MBtu)
+   Unmet Hours: Heating (hr)  Number of hours where the heating setpoint is not maintained.
+   Unmet Hours: Cooling (hr)  Number of hours where the cooling setpoint is not maintained.
    ========================== =====
 
-These numbers reflect the amount of heating/cooling load that is not met by the HVAC system, indicating the degree to which the HVAC system is undersized.
-An HVAC system with sufficient capacity to perfectly maintain the thermostat setpoints will report an unmet load of zero.
-
-Note that if a building has partial (or no) HVAC system, the unserved load will not be included in the unmet load outputs.
-For example, if a building has a room air conditioner that meets 33% of the cooling load, the remaining 67% of the load is not included in the unmet load.
-Rather, the unmet load is only the amount of load that the room AC *should* be serving but is not.
+These numbers reflect the number of hours of the year when the conditioned space temperature is more than 0.2 deg-C (0.36 deg-F) from the setpoint during heating/cooling.
 
 Peak Building Electricity
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Current peak building electricity outputs are listed below.
+Peak building electricity outputs are listed below.
 
    ================================== =========================================================
    Type                               Notes
@@ -196,7 +193,7 @@ Current peak building electricity outputs are listed below.
 Peak Building Loads
 ~~~~~~~~~~~~~~~~~~~
 
-Current peak building loads are listed below.
+Peak building loads are listed below.
 
    ========================== ==================================
    Type                       Notes
@@ -214,7 +211,7 @@ The argument is not used by default for faster performance.
 Component loads represent the estimated contribution of different building components to the annual heating/cooling building loads.
 The sum of component loads for heating (or cooling) will roughly equal the annual heating (or cooling) building load reported above.
 
-Current component loads disaggregated by Heating/Cooling are listed below.
+Component loads disaggregated by Heating/Cooling are listed below.
    
    ================================================= =========================================================================================================
    Type                                              Notes
@@ -241,7 +238,7 @@ Current component loads disaggregated by Heating/Cooling are listed below.
 Annual Hot Water Uses
 ~~~~~~~~~~~~~~~~~~~~~
 
-Current annual hot water uses are listed below.
+Annual hot water uses are listed below.
 
    =================================== ====================
    Type                                Notes
