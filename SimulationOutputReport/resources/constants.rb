@@ -89,6 +89,24 @@ class CLT
   InternalGains = 'Internal Gains'
 end
 
+class UHT
+  # Unmet Hours Types
+  Heating = 'Heating'
+  Cooling = 'Cooling'
+end
+
+class ILT
+  # Ideal Load Types
+  Heating = 'Heating'
+  Cooling = 'Cooling'
+end
+
+class PLT
+  # Peak Load Types
+  Heating = 'Heating'
+  Cooling = 'Cooling'
+end
+
 class PFT
   # Peak Fuel Types
   Summer = 'Summer'

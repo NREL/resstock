@@ -746,17 +746,14 @@ class HPXMLTest < MiniTest::Test
       # General
       next if err_line.include? 'Schedule:Constant="ALWAYS ON CONTINUOUS", Blank Schedule Type Limits Name input'
       next if err_line.include? 'Schedule:Constant="ALWAYS OFF DISCRETE", Blank Schedule Type Limits Name input'
-      next if err_line.include? 'Output:Meter: invalid Key Name'
       next if err_line.include? 'Entered Zone Volumes differ from calculated zone volume'
       next if err_line.include?('CalculateZoneVolume') && err_line.include?('not fully enclosed')
       next if err_line.include?('GetInputViewFactors') && err_line.include?('not enough values')
       next if err_line.include? 'Pump nominal power or motor efficiency is set to 0'
       next if err_line.include? 'volume flow rate per watt of rated total cooling capacity is out of range'
       next if err_line.include? 'volume flow rate per watt of rated total heating capacity is out of range'
-      next if err_line.include? 'The following Report Variables were requested but not generated'
       next if err_line.include? 'Timestep: Requested number'
       next if err_line.include? 'The Standard Ratings is calculated for'
-      next if err_line.include?('CheckUsedConstructions') && err_line.include?('nominally unused constructions')
       next if err_line.include?('WetBulb not converged after') && err_line.include?('iterations(PsyTwbFnTdbWPb)')
       next if err_line.include? 'Inside surface heat balance did not converge with Max Temp Difference'
       next if err_line.include? 'Missing temperature setpoint for LeavingSetpointModulated mode' # These warnings are fine, simulation continues with assigning plant loop setpoint to boiler, which is the expected one
@@ -816,7 +813,7 @@ class HPXMLTest < MiniTest::Test
       flunk "Unexpected warning found: #{err_line}"
     end
 
-    # Check for unused objects/schedules/constructions
+    # Check for unused objects/schedules/constructions warnings
     num_unused_objects = 0
     num_unused_schedules = 0
     num_unused_constructions = 0
@@ -832,6 +829,19 @@ class HPXMLTest < MiniTest::Test
     assert_equal(0, num_unused_objects)
     assert_equal(0, num_unused_schedules)
     assert_equal(0, num_unused_constructions)
+
+    # Check for Output:Meter and Output:Variable warnings
+    num_invalid_output_meters = 0
+    num_invalid_output_variables = 0
+    File.readlines(File.join(rundir, 'eplusout.err')).each do |err_line|
+      if err_line.include? 'Output:Meter: invalid Key Name'
+        num_invalid_output_meters += 1
+      elsif err_line.include?('Key=') && err_line.include?('VarName=')
+        num_invalid_output_variables += 1
+      end
+    end
+    assert_equal(0, num_invalid_output_meters)
+    assert_equal(0, num_invalid_output_variables)
 
     # Timestep
     timestep = hpxml.header.timestep
@@ -1407,15 +1417,15 @@ class HPXMLTest < MiniTest::Test
       end
     end
 
-    # Check unmet loads
-    unmet_htg_load = results.select { |k, v| k.include? 'Unmet Load: Heating' }.map { |k, v| v }.sum(0.0)
-    unmet_clg_load = results.select { |k, v| k.include? 'Unmet Load: Cooling' }.map { |k, v| v }.sum(0.0)
+    # Check unmet hours
+    unmet_hours_htg = results.select { |k, v| k.include? 'Unmet Hours: Heating' }.map { |k, v| v }.sum(0.0)
+    unmet_hours_clg = results.select { |k, v| k.include? 'Unmet Hours: Cooling' }.map { |k, v| v }.sum(0.0)
     if hpxml_path.include? 'base-hvac-undersized.xml'
-      assert_operator(unmet_htg_load, :>, 0.5)
-      assert_operator(unmet_clg_load, :>, 0.5)
+      assert_operator(unmet_hours_htg, :>, 1000)
+      assert_operator(unmet_hours_clg, :>, 1000)
     else
-      assert_operator(unmet_htg_load, :<, 0.5)
-      assert_operator(unmet_clg_load, :<, 0.5)
+      assert_operator(unmet_hours_htg, :<, 100)
+      assert_operator(unmet_hours_clg, :<, 100)
     end
 
     sqlFile.close

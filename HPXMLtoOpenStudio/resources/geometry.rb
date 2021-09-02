@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
 class Geometry
-  def self.create_space_and_zone(model, spaces, space_type)
-    if not spaces.keys.include? space_type
+  def self.create_space_and_zone(model, spaces, location)
+    if not spaces.keys.include? location
       thermal_zone = OpenStudio::Model::ThermalZone.new(model)
-      thermal_zone.setName(space_type)
+      thermal_zone.setName(location)
 
       space = OpenStudio::Model::Space.new(model)
-      space.setName(space_type)
+      space.setName(location)
 
       st = OpenStudio::Model::SpaceType.new(model)
-      st.setStandardsSpaceType(space_type)
+      st.setStandardsSpaceType(location)
       space.setSpaceType(st)
 
       space.setThermalZone(thermal_zone)
-      spaces[space_type] = space
+      spaces[location] = space
     end
   end
 
@@ -335,18 +335,18 @@ class Geometry
     end
   end
 
-  def self.calculate_zone_volume(hpxml, space_type)
-    if [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? space_type
-      floor_area = hpxml.slabs.select { |s| s.interior_adjacent_to == space_type }.map { |s| s.area }.sum(0.0)
-      if space_type == HPXML::LocationGarage
+  def self.calculate_zone_volume(hpxml, location)
+    if [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? location
+      floor_area = hpxml.slabs.select { |s| s.interior_adjacent_to == location }.map { |s| s.area }.sum(0.0)
+      if location == HPXML::LocationGarage
         height = 8.0
       else
-        height = hpxml.foundation_walls.select { |w| w.interior_adjacent_to == space_type }.map { |w| w.height }.max
+        height = hpxml.foundation_walls.select { |w| w.interior_adjacent_to == location }.map { |w| w.height }.max
       end
       return floor_area * height
-    elsif [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? space_type
-      floor_area = hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? space_type }.map { |s| s.area }.sum(0.0)
-      roofs = hpxml.roofs.select { |r| r.interior_adjacent_to == space_type }
+    elsif [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? location
+      floor_area = hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? location }.map { |s| s.area }.sum(0.0)
+      roofs = hpxml.roofs.select { |r| r.interior_adjacent_to == location }
       avg_pitch = roofs.map { |r| r.pitch }.sum(0.0) / roofs.size
       # Assume square hip roof for volume calculation
       length = floor_area**0.5
@@ -360,64 +360,64 @@ class Geometry
     spaces[HPXML::LocationLivingSpace].thermalZone.get.setVolume(UnitConversions.convert(hpxml.building_construction.conditioned_building_volume, 'ft^3', 'm^3'))
 
     # Basement, crawlspace, garage
-    spaces.keys.each do |space_type|
-      next unless [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? space_type
+    spaces.keys.each do |location|
+      next unless [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? location
 
-      volume = calculate_zone_volume(hpxml, space_type)
-      spaces[space_type].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
+      volume = calculate_zone_volume(hpxml, location)
+      spaces[location].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
     end
 
     # Attic
-    spaces.keys.each do |space_type|
-      next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? space_type
+    spaces.keys.each do |location|
+      next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? location
 
       if apply_ashrae140_assumptions
         volume = 3463 # Hardcode the attic volume to match ASHRAE 140 Table 7-2 specification
       else
-        volume = calculate_zone_volume(hpxml, space_type)
+        volume = calculate_zone_volume(hpxml, location)
       end
 
-      spaces[space_type].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
+      spaces[location].thermalZone.get.setVolume(UnitConversions.convert(volume, 'ft^3', 'm^3'))
     end
   end
 
-  def self.get_temperature_scheduled_space_values(space_type)
-    if space_type == HPXML::LocationOtherHeatedSpace
+  def self.get_temperature_scheduled_space_values(location)
+    if location == HPXML::LocationOtherHeatedSpace
       # Average of indoor/outdoor temperatures with minimum of heating setpoint
       return { temp_min: 68,
                indoor_weight: 0.5,
                outdoor_weight: 0.5,
                ground_weight: 0.0,
                f_regain: 0.0 }
-    elsif space_type == HPXML::LocationOtherMultifamilyBufferSpace
+    elsif location == HPXML::LocationOtherMultifamilyBufferSpace
       # Average of indoor/outdoor temperatures with minimum of 50 deg-F
       return { temp_min: 50,
                indoor_weight: 0.5,
                outdoor_weight: 0.5,
                ground_weight: 0.0,
                f_regain: 0.0 }
-    elsif space_type == HPXML::LocationOtherNonFreezingSpace
+    elsif location == HPXML::LocationOtherNonFreezingSpace
       # Floating with outdoor air temperature with minimum of 40 deg-F
       return { temp_min: 40,
                indoor_weight: 0.0,
                outdoor_weight: 1.0,
                ground_weight: 0.0,
                f_regain: 0.0 }
-    elsif space_type == HPXML::LocationOtherHousingUnit
+    elsif location == HPXML::LocationOtherHousingUnit
       # Indoor air temperature
       return { temp_min: nil,
                indoor_weight: 1.0,
                outdoor_weight: 0.0,
                ground_weight: 0.0,
                f_regain: 0.0 }
-    elsif space_type == HPXML::LocationExteriorWall
+    elsif location == HPXML::LocationExteriorWall
       # Average of indoor/outdoor temperatures
       return { temp_min: nil,
                indoor_weight: 0.5,
                outdoor_weight: 0.5,
                ground_weight: 0.0,
                f_regain: 0.5 } # From LBNL's "Technical Background for default values used for Forced Air Systems in Proposed ASHRAE Standard 152P"
-    elsif space_type == HPXML::LocationUnderSlab
+    elsif location == HPXML::LocationUnderSlab
       # Ground temperature
       return { temp_min: nil,
                indoor_weight: 0.0,
@@ -425,7 +425,7 @@ class Geometry
                ground_weight: 1.0,
                f_regain: 0.83 } # From LBNL's "Technical Background for default values used for Forced Air Systems in Proposed ASHRAE Standard 152P"
     end
-    fail "Unhandled space type: #{space_type}."
+    fail "Unhandled location: #{location}."
   end
 
   def self.get_height_of_spaces(spaces)
@@ -485,28 +485,28 @@ class Geometry
     return space_or_zone_is_of_type(space_or_zone, HPXML::LocationGarage)
   end
 
-  def self.space_or_zone_is_of_type(space_or_zone, space_type)
+  def self.space_or_zone_is_of_type(space_or_zone, location)
     if space_or_zone.is_a? OpenStudio::Model::Space
-      return space_is_of_type(space_or_zone, space_type)
+      return space_is_of_type(space_or_zone, location)
     elsif space_or_zone.is_a? OpenStudio::Model::ThermalZone
-      return zone_is_of_type(space_or_zone, space_type)
+      return zone_is_of_type(space_or_zone, location)
     end
   end
 
-  def self.space_is_of_type(space, space_type)
+  def self.space_is_of_type(space, location)
     unless space.isPlenum
       if space.spaceType.is_initialized
         if space.spaceType.get.standardsSpaceType.is_initialized
-          return true if space.spaceType.get.standardsSpaceType.get == space_type
+          return true if space.spaceType.get.standardsSpaceType.get == location
         end
       end
     end
     return false
   end
 
-  def self.zone_is_of_type(zone, space_type)
+  def self.zone_is_of_type(zone, location)
     zone.spaces.each do |space|
-      return space_is_of_type(space, space_type)
+      return space_is_of_type(space, location)
     end
   end
 

@@ -373,11 +373,11 @@ class HPXML < Object
     return (@heating_systems + @cooling_systems + @heat_pumps)
   end
 
-  def has_space_type(space_type)
-    # Look for surfaces attached to this space type
+  def has_location(location)
+    # Search for surfaces attached to this location
     (@roofs + @rim_joists + @walls + @foundation_walls + @frame_floors + @slabs).each do |surface|
-      return true if surface.interior_adjacent_to == space_type
-      return true if surface.exterior_adjacent_to == space_type
+      return true if surface.interior_adjacent_to == location
+      return true if surface.exterior_adjacent_to == location
     end
     return false
   end
@@ -450,7 +450,7 @@ class HPXML < Object
   end
 
   def has_walkout_basement()
-    has_conditioned_basement = has_space_type(LocationBasementConditioned)
+    has_conditioned_basement = has_location(LocationBasementConditioned)
     ncfl = @building_construction.number_of_conditioned_floors
     ncfl_ag = @building_construction.number_of_conditioned_floors_above_grade
     return (has_conditioned_basement && (ncfl == ncfl_ag))
@@ -513,10 +513,10 @@ class HPXML < Object
     end
 
     # Get surfaces bounding infiltration volume
-    spaces_within_infil_volume.each do |space_type|
+    spaces_within_infil_volume.each do |location|
       (@roofs + @rim_joists + @walls + @foundation_walls + @frame_floors + @slabs).each do |surface|
         is_adiabatic_surface = (surface.interior_adjacent_to == surface.exterior_adjacent_to)
-        next unless [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? space_type
+        next unless [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? location
 
         if not is_adiabatic_surface
           # Exclude surfaces between two different spaces that are both within infiltration volume
@@ -2786,6 +2786,15 @@ class HPXML < Object
       return
     end
 
+    def related_water_heating_system
+      @hpxml_object.water_heating_systems.each do |water_heating_system|
+        next unless water_heating_system.related_hvac_idref == @id
+
+        return water_heating_system
+      end
+      return
+    end
+
     def delete
       @hpxml_object.heating_systems.delete(self)
       @hpxml_object.water_heating_systems.each do |water_heating_system|
@@ -3085,6 +3094,17 @@ class HPXML < Object
         return hvac_distribution
       end
       fail "Attached HVAC distribution system '#{@distribution_system_idref}' not found for HVAC system '#{@id}'."
+    end
+
+    def is_dual_fuel
+      if @backup_heating_fuel.nil?
+        return false
+      end
+      if @backup_heating_fuel.to_s == @heat_pump_fuel.to_s
+        return false
+      end
+
+      return true
     end
 
     def delete
