@@ -2,12 +2,12 @@
 
 class HotWaterAndAppliances
   def self.apply(model, runner, hpxml, weather, spaces, hot_water_distribution,
-                 solar_thermal_system, eri_version, dhw_map, schedules_file)
+                 solar_thermal_system, eri_version, schedules_file, plantloop_map)
 
     cfa = hpxml.building_construction.conditioned_floor_area
     nbeds = hpxml.building_construction.number_of_bedrooms
     ncfl = hpxml.building_construction.number_of_conditioned_floors
-    has_uncond_bsmnt = hpxml.has_space_type(HPXML::LocationBasementUnconditioned)
+    has_uncond_bsmnt = hpxml.has_location(HPXML::LocationBasementUnconditioned)
     fixtures_usage_multiplier = hpxml.water_heating.water_fixtures_usage_multiplier
     living_space = spaces[HPXML::LocationLivingSpace]
 
@@ -28,23 +28,25 @@ class HotWaterAndAppliances
       oven = hpxml.ovens[0]
     end
 
-    # For each water heater (plant loop):
-    # 1. Create WaterUseConnections object
-    # 2. Obtain setpoint schedule
+    # Create WaterUseConnections object for each water heater (plant loop)
+    # Get water heater setpoint schedule for each water heater (plant loop)
     water_use_connections = {}
     setpoint_scheds = {}
-    dhw_map.each do |sys_id, dhw_objects|
-      dhw_objects.each do |dhw_object|
-        if dhw_object.is_a? OpenStudio::Model::PlantLoop
-          water_use_connections[sys_id] = OpenStudio::Model::WaterUseConnections.new(model)
-          dhw_map[sys_id] << water_use_connections[sys_id]
-          dhw_object.addDemandBranchForComponent(water_use_connections[sys_id])
-        else
-          # Get water heater setpoint schedule
-          if dhw_object.is_a? OpenStudio::Model::WaterHeaterMixed
-            setpoint_scheds[sys_id] = dhw_object.setpointTemperatureSchedule.get
-          elsif dhw_object.is_a? OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser
-            setpoint_scheds[sys_id] = dhw_object.compressorSetpointTemperatureSchedule
+    hpxml.water_heating_systems.each do |water_heating_system|
+      plant_loop = plantloop_map[water_heating_system.id]
+      wuc = OpenStudio::Model::WaterUseConnections.new(model)
+      wuc.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
+      plant_loop.addDemandBranchForComponent(wuc)
+      water_use_connections[water_heating_system.id] = wuc
+
+      plant_loop.components.each do |c|
+        if c.to_WaterHeaterMixed.is_initialized
+          setpoint_scheds[water_heating_system.id] = c.to_WaterHeaterMixed.get.setpointTemperatureSchedule.get
+        elsif c.to_WaterHeaterStratified.is_initialized
+          model.getWaterHeaterHeatPumpWrappedCondensers.each do |hpwhc|
+            next unless hpwhc.tank.handle.to_s == c.handle.to_s
+
+            setpoint_scheds[water_heating_system.id] = hpwhc.compressorSetpointTemperatureSchedule
           end
         end
       end
@@ -257,7 +259,9 @@ class HotWaterAndAppliances
             dist_pump_design_level = fixtures_schedule_obj.calcDesignLevelFromDailykWh(dist_pump_annual_kwh / 365.0)
           end
           dist_pump = add_electric_equipment(model, Constants.ObjectNameHotWaterRecircPump, living_space, dist_pump_design_level * gpd_frac, 0.0, 0.0, fixtures_schedule)
-          dhw_map[water_heating_system.id] << dist_pump unless dist_pump.nil?
+          if not dist_pump.nil?
+            dist_pump.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
+          end
         end
       end
 
@@ -983,9 +987,9 @@ class HotWaterAndAppliances
                                              HPXML::LocationLivingSpace]
 
     extra_refrigerator_location = nil
-    extra_refrigerator_location_hierarchy.each do |space_type|
-      if hpxml.has_space_type(space_type)
-        extra_refrigerator_location = space_type
+    extra_refrigerator_location_hierarchy.each do |location|
+      if hpxml.has_location(location)
+        extra_refrigerator_location = location
         break
       end
     end
