@@ -718,12 +718,18 @@ class OutputMeters
       end
 
       thermal_zones.each do |thermal_zone|
+        next unless Geometry.is_living(thermal_zone)
+
         thermal_zone_name = thermal_zone.name.to_s.upcase
 
-        hours_heating_setpoint_not_met_query = "SELECT Value FROM TabularDataWithStrings WHERE (ReportName='SystemSummary') AND (ReportForString='Entire Facility') AND (TableName='Time Setpoint Not Met') AND (RowName = '#{thermal_zone_name}') AND (ColumnName='During Heating') AND (Units = 'hr')"
-        unless sql_file.execAndReturnFirstDouble(hours_heating_setpoint_not_met_query).empty?
-          hoursHeatingSetpointNotMet += sql_file.execAndReturnFirstDouble(hours_heating_setpoint_not_met_query).get
+        if not HVAC.existing_heating_equipment(@model, @runner, thermal_zone).empty?
+          hours_heating_setpoint_not_met_query = "SELECT Value FROM TabularDataWithStrings WHERE (ReportName='SystemSummary') AND (ReportForString='Entire Facility') AND (TableName='Time Setpoint Not Met') AND (RowName = '#{thermal_zone_name}') AND (ColumnName='During Heating') AND (Units = 'hr')"
+          unless sql_file.execAndReturnFirstDouble(hours_heating_setpoint_not_met_query).empty?
+            hoursHeatingSetpointNotMet += sql_file.execAndReturnFirstDouble(hours_heating_setpoint_not_met_query).get
+          end
         end
+
+        next unless not HVAC.existing_cooling_equipment(@model, @runner, thermal_zone).empty?
 
         hours_cooling_setpoint_not_met_query = "SELECT Value FROM TabularDataWithStrings WHERE (ReportName='SystemSummary') AND (ReportForString='Entire Facility') AND (TableName='Time Setpoint Not Met') AND (RowName = '#{thermal_zone_name}') AND (ColumnName='During Cooling') AND (Units = 'hr')"
         unless sql_file.execAndReturnFirstDouble(hours_cooling_setpoint_not_met_query).empty?
