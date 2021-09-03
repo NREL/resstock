@@ -116,89 +116,89 @@ class HVACSizing
     @cool_design_temps = {}
     @heat_design_temps = {}
 
-    space_types = []
+    locations = []
     (@hpxml.roofs + @hpxml.rim_joists + @hpxml.walls + @hpxml.foundation_walls + @hpxml.frame_floors + @hpxml.slabs).each do |surface|
-      space_types << surface.interior_adjacent_to
-      space_types << surface.exterior_adjacent_to
+      locations << surface.interior_adjacent_to
+      locations << surface.exterior_adjacent_to
     end
     @hpxml.hvac_distributions.each do |hvac_dist|
       hvac_dist.ducts.each do |duct|
-        space_types << duct.duct_location
+        locations << duct.duct_location
       end
     end
 
-    space_types.uniq.each do |space_type|
-      next if [HPXML::LocationGround].include? space_type
+    locations.uniq.each do |location|
+      next if [HPXML::LocationGround].include? location
 
       if [HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
-          HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].include? space_type
-        @cool_design_temps[space_type] = calculate_scheduled_space_design_temps(space_type, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max)
-        @heat_design_temps[space_type] = calculate_scheduled_space_design_temps(space_type, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
-      elsif [HPXML::LocationOutside, HPXML::LocationRoofDeck].include? space_type
-        @cool_design_temps[space_type] = weather.design.CoolingDrybulb
-        @heat_design_temps[space_type] = weather.design.HeatingDrybulb
-      elsif space_type == HPXML::LocationBasementConditioned
-        @cool_design_temps[space_type] = process_design_temp_cooling(weather, HPXML::LocationLivingSpace)
-        @heat_design_temps[space_type] = process_design_temp_heating(weather, HPXML::LocationLivingSpace)
+          HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].include? location
+        @cool_design_temps[location] = calculate_scheduled_space_design_temps(location, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max)
+        @heat_design_temps[location] = calculate_scheduled_space_design_temps(location, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
+      elsif [HPXML::LocationOutside, HPXML::LocationRoofDeck].include? location
+        @cool_design_temps[location] = weather.design.CoolingDrybulb
+        @heat_design_temps[location] = weather.design.HeatingDrybulb
+      elsif location == HPXML::LocationBasementConditioned
+        @cool_design_temps[location] = process_design_temp_cooling(weather, HPXML::LocationLivingSpace)
+        @heat_design_temps[location] = process_design_temp_heating(weather, HPXML::LocationLivingSpace)
       else
-        @cool_design_temps[space_type] = process_design_temp_cooling(weather, space_type)
-        @heat_design_temps[space_type] = process_design_temp_heating(weather, space_type)
+        @cool_design_temps[location] = process_design_temp_cooling(weather, location)
+        @heat_design_temps[location] = process_design_temp_heating(weather, location)
       end
     end
   end
 
-  def self.process_design_temp_heating(weather, space_type)
-    if space_type == HPXML::LocationLivingSpace
+  def self.process_design_temp_heating(weather, location)
+    if location == HPXML::LocationLivingSpace
       heat_temp = @heat_setpoint
 
-    elsif space_type == HPXML::LocationGarage
+    elsif location == HPXML::LocationGarage
       heat_temp = weather.design.HeatingDrybulb + 13.0
 
-    elsif (space_type == HPXML::LocationAtticUnvented) || (space_type == HPXML::LocationAtticVented)
+    elsif (location == HPXML::LocationAtticUnvented) || (location == HPXML::LocationAtticVented)
 
-      attic_floors = @hpxml.frame_floors.select { |f| f.is_ceiling && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(space_type) }
+      attic_floors = @hpxml.frame_floors.select { |f| f.is_ceiling && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(location) }
       avg_floor_rvalue = calculate_average_r_value(attic_floors)
 
-      attic_roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == space_type }
+      attic_roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == location }
       avg_roof_rvalue = calculate_average_r_value(attic_roofs)
 
       if avg_floor_rvalue < avg_roof_rvalue
         # Attic is considered to be encapsulated. MJ8 says to use an attic
         # temperature of 95F, however alternative approaches are permissible
-        if space_type == HPXML::LocationAtticVented
+        if location == HPXML::LocationAtticVented
           heat_temp = weather.design.HeatingDrybulb
         else
-          heat_temp = calculate_space_design_temps(space_type, weather, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
+          heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
         end
       else
         heat_temp = weather.design.HeatingDrybulb
       end
 
-    elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? space_type
-      heat_temp = calculate_space_design_temps(space_type, weather, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
+    elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? location
+      heat_temp = calculate_space_design_temps(location, weather, @heat_setpoint, weather.design.HeatingDrybulb, weather.data.GroundMonthlyTemps.min)
 
     end
 
-    fail "Design temp heating not calculated for #{space_type}." if heat_temp.nil?
+    fail "Design temp heating not calculated for #{location}." if heat_temp.nil?
 
     return heat_temp
   end
 
-  def self.process_design_temp_cooling(weather, space_type)
-    if space_type == HPXML::LocationLivingSpace
+  def self.process_design_temp_cooling(weather, location)
+    if location == HPXML::LocationLivingSpace
       cool_temp = @cool_setpoint
 
-    elsif space_type == HPXML::LocationGarage
+    elsif location == HPXML::LocationGarage
       # Calculate fraction of garage under conditioned space
       area_total = 0.0
       area_conditioned = 0.0
       @hpxml.roofs.each do |roof|
-        next unless roof.interior_adjacent_to == space_type
+        next unless roof.interior_adjacent_to == location
 
         area_total += roof.area
       end
       @hpxml.frame_floors.each do |frame_floor|
-        next unless [frame_floor.interior_adjacent_to, frame_floor.exterior_adjacent_to].include? space_type
+        next unless [frame_floor.interior_adjacent_to, frame_floor.exterior_adjacent_to].include? location
 
         area_total += frame_floor.area
         area_conditioned += frame_floor.area if frame_floor.is_thermal_boundary
@@ -225,21 +225,21 @@ class HVACSizing
                      (12.0 * (1.0 - garage_frac_under_conditioned)))
       end
 
-    elsif (space_type == HPXML::LocationAtticUnvented) || (space_type == HPXML::LocationAtticVented)
+    elsif (location == HPXML::LocationAtticUnvented) || (location == HPXML::LocationAtticVented)
 
-      attic_floors = @hpxml.frame_floors.select { |f| f.is_ceiling && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(space_type) }
+      attic_floors = @hpxml.frame_floors.select { |f| f.is_ceiling && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(location) }
       avg_floor_rvalue = calculate_average_r_value(attic_floors)
 
-      attic_roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == space_type }
+      attic_roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == location }
       avg_roof_rvalue = calculate_average_r_value(attic_roofs)
 
       if avg_floor_rvalue < avg_roof_rvalue
         # Attic is considered to be encapsulated. MJ8 says to use an attic
         # temperature of 95F, however alternative approaches are permissible
-        if space_type == HPXML::LocationAtticVented
+        if location == HPXML::LocationAtticVented
           cool_temp = weather.design.CoolingDrybulb + 40.0 # This is the number from a California study with dark shingle roof and similar ventilation.
         else
-          cool_temp = calculate_space_design_temps(space_type, weather, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max, true)
+          cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max, true)
         end
 
       else
@@ -249,11 +249,11 @@ class HVACSizing
         cool_temp = 0.0
 
         @hpxml.roofs.each do |roof|
-          next unless roof.interior_adjacent_to == space_type
+          next unless roof.interior_adjacent_to == location
 
           tot_roof_area += roof.net_area
 
-          if space_type == HPXML::LocationAtticUnvented
+          if location == HPXML::LocationAtticUnvented
             if not roof.radiant_barrier
               cool_temp += (150.0 + (weather.design.CoolingDrybulb - 95.0) + @daily_range_temp_adjust[@daily_range_num]) * roof.net_area
             else
@@ -322,12 +322,12 @@ class HVACSizing
         cool_temp += (weather.design.CoolingDrybulb - 95.0) + @daily_range_temp_adjust[@daily_range_num]
       end
 
-    elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? space_type
-      cool_temp = calculate_space_design_temps(space_type, weather, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max)
+    elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented].include? location
+      cool_temp = calculate_space_design_temps(location, weather, @cool_setpoint, weather.design.CoolingDrybulb, weather.data.GroundMonthlyTemps.max)
 
     end
 
-    fail "Design temp cooling not calculated for #{space_type}." if cool_temp.nil?
+    fail "Design temp cooling not calculated for #{location}." if cool_temp.nil?
 
     return cool_temp
   end
@@ -2547,8 +2547,8 @@ class HVACSizing
     return true_az
   end
 
-  def self.get_space_ua_values(space_type, weather)
-    if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? space_type
+  def self.get_space_ua_values(location, weather)
+    if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? location
       fail 'Method should not be called for a conditioned space.'
     end
 
@@ -2558,8 +2558,8 @@ class HVACSizing
 
     # Surface UAs
     (@hpxml.roofs + @hpxml.frame_floors + @hpxml.walls + @hpxml.foundation_walls).each do |surface|
-      next unless ((space_type == surface.interior_adjacent_to && space_UAs.keys.include?(surface.exterior_adjacent_to)) ||
-                   (space_type == surface.exterior_adjacent_to && space_UAs.keys.include?(surface.interior_adjacent_to)))
+      next unless ((location == surface.interior_adjacent_to && space_UAs.keys.include?(surface.exterior_adjacent_to)) ||
+                   (location == surface.exterior_adjacent_to && space_UAs.keys.include?(surface.interior_adjacent_to)))
 
       if [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationOutside
         space_UAs[HPXML::LocationOutside] += (1.0 / surface.insulation_assembly_r_value) * surface.area
@@ -2578,9 +2578,9 @@ class HVACSizing
     # Infiltration UA
     infiltration_cfm = nil
     ach = nil
-    if [HPXML::LocationCrawlspaceVented, HPXML::LocationAtticVented].include? space_type
+    if [HPXML::LocationCrawlspaceVented, HPXML::LocationAtticVented].include? location
       # Vented space
-      if space_type == HPXML::LocationCrawlspaceVented
+      if location == HPXML::LocationCrawlspaceVented
         vented_crawl = @hpxml.foundations.select { |f| f.foundation_type == HPXML::FoundationTypeCrawlspaceVented }[0]
         sla = vented_crawl.vented_crawlspace_sla
       else
@@ -2595,7 +2595,7 @@ class HVACSizing
     else # Unvented space
       ach = Airflow.get_default_unvented_space_ach()
     end
-    volume = Geometry.calculate_zone_volume(@hpxml, space_type)
+    volume = Geometry.calculate_zone_volume(@hpxml, location)
     infiltration_cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     outside_air_density = UnitConversions.convert(weather.header.LocalPressure, 'atm', 'Btu/ft^3') / (Gas.Air.r * (weather.data.AnnualAvgDrybulb + 460.0))
     space_UAs['infil'] = infiltration_cfm * outside_air_density * Gas.Air.cp * UnitConversions.convert(1.0, 'hr', 'min')
@@ -2609,8 +2609,8 @@ class HVACSizing
     return space_UAs
   end
 
-  def self.calculate_space_design_temps(space_type, weather, conditioned_design_temp, design_db, ground_db, is_cooling_for_unvented_attic_roof_insulation = false)
-    space_UAs = get_space_ua_values(space_type, weather)
+  def self.calculate_space_design_temps(location, weather, conditioned_design_temp, design_db, ground_db, is_cooling_for_unvented_attic_roof_insulation = false)
+    space_UAs = get_space_ua_values(location, weather)
 
     # Calculate space design temp from space UAs
     design_temp = nil
@@ -2668,8 +2668,8 @@ class HVACSizing
     return design_temp
   end
 
-  def self.calculate_scheduled_space_design_temps(space_type, setpoint, oa_db, gnd_db)
-    space_values = Geometry.get_temperature_scheduled_space_values(space_type)
+  def self.calculate_scheduled_space_design_temps(location, setpoint, oa_db, gnd_db)
+    space_values = Geometry.get_temperature_scheduled_space_values(location)
     design_temp = setpoint * space_values[:indoor_weight] + oa_db * space_values[:outdoor_weight] + gnd_db * space_values[:ground_weight]
     if not space_values[:temp_min].nil?
       design_temp = [design_temp, space_values[:temp_min]].max
