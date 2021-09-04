@@ -29,7 +29,7 @@ class TsvFile
 
     full_header = nil
     rows = []
-    CSV.foreach(@full_path, { col_sep: "\t" }) do |row|
+    CSV.foreach(@full_path, col_sep: "\t") do |row|
       next if row[0].start_with? "\#"
 
       row.delete_if { |x| x.nil? || (x.size == 0) } # purge trailing empty fields

@@ -19,7 +19,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
   last_size = -1
 
   parameter_names = []
-  lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+  lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
   get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data).each do |parameter_name|
     tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
     next if not File.exist?(tsvpath) # Not every parameter used by every project
@@ -226,7 +226,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
   model = OpenStudio::Model::Model.new
 
   # Gather all options/arguments
-  lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+  lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
   parameter_names = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data)
   parameter_names.each do |parameter_name|
     check_for_illegal_chars(parameter_name, 'parameter')
