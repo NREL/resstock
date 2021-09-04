@@ -3172,11 +3172,11 @@ class HPXMLFile
     hpxml.header.transaction = 'create'
 
     if args[:software_info_program_used].is_initialized
-      hpxml.header.software_info_program_used = args[:software_info_program_used].get
+      hpxml.header.software_program_used = args[:software_info_program_used].get
     end
 
     if args[:software_info_program_version].is_initialized
-      hpxml.header.software_info_program_version = args[:software_info_program_version].get
+      hpxml.header.software_program_version = args[:software_info_program_version].get
     end
 
     if args[:simulation_control_timestep].is_initialized
