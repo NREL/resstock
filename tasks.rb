@@ -854,6 +854,8 @@ def get_values(osw_file, step)
     step.setArgument('hot_tub_heater_annual_kwh', Constants.Auto)
     step.setArgument('hot_tub_heater_annual_therm', Constants.Auto)
     step.setArgument('hot_tub_heater_usage_multiplier', 1.0)
+    step.setArgument('software_info_program_used', 'Test')
+    step.setArgument('software_info_program_version', 'Test')
   end
 
   # Appliances

@@ -212,6 +212,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.header.xml_type = nil
       hpxml.header.xml_generated_by = nil
       hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z')
+      hpxml.header.software_program_used = nil
+      hpxml.header.software_program_version = nil
       hpxml.header.schedules_filepath = 'SCHEDULES_FILE' unless hpxml.header.schedules_filepath.nil?
       hpxml.header.use_max_load_for_heat_pumps = true if hpxml.header.use_max_load_for_heat_pumps.nil?
       hpxml.site.fuels = [] # Not used by model
