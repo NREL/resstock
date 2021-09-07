@@ -1758,7 +1758,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       # End uses
 
-      if object.to_CoilHeatingDXSingleSpeed.is_initialized || object.to_CoilHeatingDXMultiSpeed.is_initialized
+      if object.to_CoilHeatingDXSingleSpeed.is_initialized || object.to_CoilHeatingDXMultiSpeed.is_initialized || object.to_CoilHeatingDXVariableSpeed.is_initialized
         return { [FT::Elec, EUT::Heating] => ["Heating Coil #{EPlus::FuelTypeElectricity} Energy", "Heating Coil Crankcase Heater #{EPlus::FuelTypeElectricity} Energy", "Heating Coil Defrost #{EPlus::FuelTypeElectricity} Energy"] }
 
       elsif object.to_CoilHeatingElectric.is_initialized
@@ -1784,7 +1784,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           return { [to_ft[fuel], EUT::Heating] => ["Boiler #{fuel} Energy"] }
         end
 
-      elsif object.to_CoilCoolingDXSingleSpeed.is_initialized || object.to_CoilCoolingDXMultiSpeed.is_initialized
+      elsif object.to_CoilCoolingDXSingleSpeed.is_initialized || object.to_CoilCoolingDXMultiSpeed.is_initialized || object.to_CoilCoolingDXVariableSpeed.is_initialized
         vars = { [FT::Elec, EUT::Cooling] => ["Cooling Coil #{EPlus::FuelTypeElectricity} Energy"] }
         parent = model.getAirLoopHVACUnitarySystems.select { |u| u.coolingCoil.is_initialized && u.coolingCoil.get.handle.to_s == object.handle.to_s }
         if (not parent.empty?) && parent[0].heatingCoil.is_initialized
@@ -1797,10 +1797,28 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           end
         end
         if parent.empty?
+          parent = model.getAirLoopHVACUnitaryHeatPumpAirToAirs.select { |u| u.coolingCoil.handle.to_s == object.handle.to_s }
+          if not parent.empty?
+            htg_coil = parent[0].heatingCoil
+          end
+        end
+        if parent.empty?
+          parent = model.getCoilSystemIntegratedHeatPumpAirSources.select { |u| u.spaceCoolingCoil.handle.to_s == object.handle.to_s }
+          if not parent.empty?
+            htg_coil = parent[0].spaceHeatingCoil
+          end
+        end
+        if parent.empty?
+          parent = model.getCoilSystemIntegratedHeatPumpAirSources.select { |u| u.gridResponseCoolingCoil.is_initialized && u.gridResponseCoolingCoil.get.handle.to_s == object.handle.to_s }
+          if not parent.empty?
+            htg_coil = parent[0].spaceHeatingCoil
+          end
+        end
+        if parent.empty?
           fail 'Could not find parent object.'
         end
 
-        if htg_coil.nil? || (not (htg_coil.to_CoilHeatingDXSingleSpeed.is_initialized || htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized))
+        if htg_coil.nil? || (not (htg_coil.to_CoilHeatingDXSingleSpeed.is_initialized || htg_coil.to_CoilHeatingDXMultiSpeed.is_initialized || htg_coil.to_CoilHeatingDXVariableSpeed.is_initialized))
           # Crankcase variable only available if no DX heating coil on parent
           vars[[FT::Elec, EUT::Cooling]] << "Cooling Coil Crankcase Heater #{EPlus::FuelTypeElectricity} Energy"
         end
@@ -1910,6 +1928,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
           return { ems: [object.name.to_s] }
         end
 
+      elsif object.to_CoilChillerAirSourceVariableSpeed.is_initialized
+        return { [FT::Elec, EUT::Cooling] => ["Cooling Coil #{EPlus::FuelTypeElectricity} Energy"] }
+
+      elsif object.to_ThermalStorageIceDetailed.is_initialized
+        return { [FT::Elec, EUT::Cooling] => ["Ice Thermal Storage Ancillary #{EPlus::FuelTypeElectricity} Energy"] }
+
+      elsif object.to_HeaderedPumpsConstantSpeed.is_initialized
+        return { [FT::Elec, EUT::Cooling] => ["Pump #{EPlus::FuelTypeElectricity} Energy"] }
+
       end
 
     elsif class_name == HWT
@@ -1951,7 +1978,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       elsif object.to_CoilWaterHeatingDesuperheater.is_initialized
         return { LT::HotWaterDesuperheater => ['Water Heater Heating Energy'] }
 
-      elsif object.to_CoilHeatingDXSingleSpeed.is_initialized || object.to_CoilHeatingDXMultiSpeed.is_initialized || object.to_CoilHeatingGas.is_initialized
+      elsif object.to_CoilHeatingDXSingleSpeed.is_initialized || object.to_CoilHeatingDXMultiSpeed.is_initialized || object.to_CoilHeatingGas.is_initialized || object.to_CoilHeatingDXVariableSpeed.is_initialized
         # Needed to apportion heating loads for dual-fuel heat pumps
         return { LT::Heating => ['Heating Coil Heating Energy'] }
 
