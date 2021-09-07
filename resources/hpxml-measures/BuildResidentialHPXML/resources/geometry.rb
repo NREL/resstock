@@ -130,10 +130,10 @@ class Geometry
 
   def self.create_single_family_detached(runner:,
                                          model:,
-                                         geometry_cfa:,
+                                         geometry_unit_cfa:,
                                          geometry_wall_height:,
                                          geometry_num_floors_above_grade:,
-                                         geometry_aspect_ratio:,
+                                         geometry_unit_aspect_ratio:,
                                          geometry_garage_width:,
                                          geometry_garage_depth:,
                                          geometry_garage_protrusion:,
@@ -145,10 +145,10 @@ class Geometry
                                          geometry_roof_type:,
                                          geometry_roof_pitch:,
                                          **remainder)
-    cfa = geometry_cfa
+    cfa = geometry_unit_cfa
     wall_height = geometry_wall_height
     num_floors = geometry_num_floors_above_grade
-    aspect_ratio = geometry_aspect_ratio
+    aspect_ratio = geometry_unit_aspect_ratio
     garage_width = geometry_garage_width
     garage_depth = geometry_garage_depth
     garage_protrusion = geometry_garage_protrusion
@@ -1642,12 +1642,12 @@ class Geometry
 
   def self.create_single_family_attached(runner:,
                                          model:,
-                                         geometry_cfa:,
+                                         geometry_unit_cfa:,
                                          geometry_wall_height:,
                                          geometry_building_num_units:,
                                          geometry_num_floors_above_grade:,
-                                         geometry_aspect_ratio:,
-                                         geometry_horizontal_location:,
+                                         geometry_unit_aspect_ratio:,
+                                         geometry_unit_horizontal_location:,
                                          geometry_corridor_position:,
                                          geometry_foundation_type:,
                                          geometry_foundation_height:,
@@ -1657,12 +1657,12 @@ class Geometry
                                          geometry_roof_pitch:,
                                          **remainder)
 
-    cfa = geometry_cfa
+    cfa = geometry_unit_cfa
     wall_height = geometry_wall_height
     num_units = geometry_building_num_units.get
     num_floors = geometry_num_floors_above_grade
-    aspect_ratio = geometry_aspect_ratio
-    horizontal_location = geometry_horizontal_location.get
+    aspect_ratio = geometry_unit_aspect_ratio
+    horizontal_location = geometry_unit_horizontal_location.get
     corridor_position = geometry_corridor_position
     foundation_type = geometry_foundation_type
     foundation_height = geometry_foundation_height
@@ -2077,13 +2077,13 @@ class Geometry
 
   def self.create_multifamily(runner:,
                               model:,
-                              geometry_cfa:,
+                              geometry_unit_cfa:,
                               geometry_wall_height:,
                               geometry_building_num_units:,
                               geometry_num_floors_above_grade:,
-                              geometry_aspect_ratio:,
-                              geometry_level:,
-                              geometry_horizontal_location:,
+                              geometry_unit_aspect_ratio:,
+                              geometry_unit_level:,
+                              geometry_unit_horizontal_location:,
                               geometry_corridor_position:,
                               geometry_corridor_width:,
                               geometry_inset_width:,
@@ -2095,13 +2095,13 @@ class Geometry
                               geometry_rim_joist_height:,
                               **remainder)
 
-    cfa = geometry_cfa
+    cfa = geometry_unit_cfa
     wall_height = geometry_wall_height
     num_units = geometry_building_num_units.get
     num_floors = geometry_num_floors_above_grade
-    aspect_ratio = geometry_aspect_ratio
-    level = geometry_level.get
-    horz_location = geometry_horizontal_location.get
+    aspect_ratio = geometry_unit_aspect_ratio
+    level = geometry_unit_level.get
+    horz_location = geometry_unit_horizontal_location.get
     corridor_position = geometry_corridor_position
     corridor_width = geometry_corridor_width
     inset_width = geometry_inset_width
