@@ -3082,7 +3082,8 @@ class HPXML < Object
              :heating_efficiency_cop, :third_party_certification, :seed_id, :pump_watts_per_ton,
              :fan_watts_per_cfm, :is_shared_system, :number_of_units_served, :shared_loop_watts,
              :shared_loop_motor_efficiency, :airflow_defect_ratio, :charge_defect_ratio,
-             :heating_airflow_cfm, :cooling_airflow_cfm, :location]
+             :heating_airflow_cfm, :cooling_airflow_cfm, :location,
+             :flex, :modulating, :dual_source, :ihp_grid_ac, :ihp_ice_storage, :ihp_pcm_storage, :grid_signal_schedule, :max_flex_speed]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -3198,6 +3199,18 @@ class HPXML < Object
       XMLHelper.add_extension(heat_pump, 'SharedLoopWatts', @shared_loop_watts, :float) unless @shared_loop_watts.nil?
       XMLHelper.add_extension(heat_pump, 'SharedLoopMotorEfficiency', @shared_loop_motor_efficiency, :float) unless @shared_loop_motor_efficiency.nil?
       XMLHelper.add_extension(heat_pump, 'SeedId', @seed_id, :string) unless @seed_id.nil?
+      if (not @flex.nil?) || (not @modulating.nil?) || (not @dual_source.nil?) || (not @ihp_grid_ac.nil?) || (not @ihp_ice_storage.nil?) || (not @ihp_pcm_storage.nil?)
+        extension = XMLHelper.create_elements_as_needed(heat_pump, ['extension'])
+        demand_flexibility = XMLHelper.add_element(extension, 'DemandFlexibility')
+        XMLHelper.add_element(demand_flexibility, 'GridConnected', @flex, :boolean) unless @flex.nil?
+        XMLHelper.add_element(demand_flexibility, 'Modulating', @modulating, :boolean) unless @modulating.nil?
+        XMLHelper.add_element(demand_flexibility, 'DualSource', @dual_source, :boolean) unless @dual_source.nil?
+        XMLHelper.add_element(demand_flexibility, 'IHPGridAC', @ihp_grid_ac, :boolean) unless @ihp_grid_ac.nil?
+        XMLHelper.add_element(demand_flexibility, 'IHPIceStorage', @ihp_ice_storage, :boolean) unless @ihp_ice_storage.nil?
+        XMLHelper.add_element(demand_flexibility, 'IHPPcmStorage', @ihp_pcm_storage, :boolean) unless @ihp_pcm_storage.nil?
+        XMLHelper.add_element(demand_flexibility, 'GridSignalSchedule', @grid_signal_schedule, :string) unless @grid_signal_schedule.nil?
+        XMLHelper.add_element(demand_flexibility, 'MaxGridResponseSpeed', @max_flex_speed, :integer) unless @max_flex_speed.nil?
+      end
     end
 
     def from_oga(heat_pump)
@@ -3243,6 +3256,14 @@ class HPXML < Object
       @shared_loop_watts = XMLHelper.get_value(heat_pump, 'extension/SharedLoopWatts', :float)
       @shared_loop_motor_efficiency = XMLHelper.get_value(heat_pump, 'extension/SharedLoopMotorEfficiency', :float)
       @seed_id = XMLHelper.get_value(heat_pump, 'extension/SeedId', :string)
+      @modulating = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/Modulating', :boolean)
+      @dual_source = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/DualSource', :boolean)
+      @ihp_grid_ac = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/IHPGridAC', :boolean)
+      @ihp_ice_storage = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/IHPIceStorage', :boolean)
+      @ihp_pcm_storage = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/IHPPcmStorage', :boolean)
+      @flex = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/GridConnected', :boolean)
+      @grid_signal_schedule = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/GridSignalSchedule', :string)
+      @max_flex_speed = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/MaxGridResponseSpeed', :integer)
     end
   end
 
