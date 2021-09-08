@@ -12,7 +12,7 @@ class ApplyUpgradeTest < MiniTest::Test
     args_hash = {}
     expected_capacities = {
       'heating_system_heating_capacity' => nil,
-      'heating_system_heating_capacity_2' => nil,
+      'heating_system_2_heating_capacity' => nil,
       'cooling_system_cooling_capacity' => nil,
       'heat_pump_heating_capacity' => 60000.0,
       'heat_pump_cooling_capacity' => 60000.0,
@@ -39,7 +39,7 @@ class ApplyUpgradeTest < MiniTest::Test
     args_hash = {}
     expected_capacities = {
       'heating_system_heating_capacity' => 100000.0,
-      'heating_system_heating_capacity_2' => 20000.0,
+      'heating_system_2_heating_capacity' => 20000.0,
       'cooling_system_cooling_capacity' => 60000.0,
       'heat_pump_heating_capacity' => nil,
       'heat_pump_cooling_capacity' => nil,
@@ -53,8 +53,8 @@ class ApplyUpgradeTest < MiniTest::Test
     _test_retaining_capacities('SFD_1story_UB_UA_GRG_ACV_FuelFurnace_PortableHeater_HPWH.xml', args_hash, expected_capacities)
 
     # Don't retain the second heating system capacity because you are upgrading the second heating system
-    args_hash['heating_system_type_2'] = 'Fireplace'
-    expected_capacities['heating_system_heating_capacity_2'] = nil
+    args_hash['heating_system_2_type'] = 'Fireplace'
+    expected_capacities['heating_system_2_heating_capacity'] = nil
     _test_retaining_capacities('SFD_1story_UB_UA_GRG_ACV_FuelFurnace_PortableHeater_HPWH.xml', args_hash, expected_capacities)
 
     # Don't retain the cooling system capacity because you are upgrading the cooling system
@@ -65,7 +65,7 @@ class ApplyUpgradeTest < MiniTest::Test
     # Don't retain the heating system, second heating system, cooling system capacities, but inputs are ignored anyway
     args_hash['heat_pump_type'] = 'mini-split'
     args_hash['heating_system_type'] = 'none'
-    args_hash['heating_system_type_2'] = 'none'
+    args_hash['heating_system_2_type'] = 'none'
     args_hash['cooling_system_type'] = 'none'
     _test_retaining_capacities('SFD_1story_UB_UA_GRG_ACV_FuelFurnace_PortableHeater_HPWH.xml', args_hash, expected_capacities)
   end

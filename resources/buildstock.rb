@@ -29,7 +29,7 @@ class TsvFile
 
     full_header = nil
     rows = []
-    CSV.foreach(@full_path, { col_sep: "\t" }) do |row|
+    CSV.foreach(@full_path, col_sep: "\t") do |row|
       next if row[0].start_with? "\#"
 
       row.delete_if { |x| x.nil? || (x.size == 0) } # purge trailing empty fields
@@ -411,14 +411,16 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   return result
 end
 
-def get_data_for_sample(buildstock_csv_data, building_id, runner)
-  buildstock_csv_data.each do |sample|
-    next if sample['Building'].to_i != building_id
+def get_data_for_sample(buildstock_csv_path, building_id, runner)
+  buildstock_csv = CSV.open(buildstock_csv_path, headers: true)
 
-    return sample
+  buildstock_csv.each do |row|
+    next if row['Building'].to_i != building_id.to_i
+
+    return row.to_hash
   end
   # If we got this far, couldn't find the sample #
-  msg = "Could not find row for #{building_id} in #{File.basename(buildstock_csv)}."
+  msg = "Could not find row for #{building_id} in #{buildstock_csv_path}."
   runner.registerError(msg)
   fail msg
 end

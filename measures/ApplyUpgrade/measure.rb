@@ -336,8 +336,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']
       end
 
-      unless capacities['heating_system_heating_capacity_2'].nil?
-        measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity_2'] = capacities['heating_system_heating_capacity_2']
+      unless capacities['heating_system_2_heating_capacity'].nil?
+        measures['BuildResidentialHPXML'][0]['heating_system_2_heating_capacity'] = capacities['heating_system_2_heating_capacity']
       end
 
       unless capacities['cooling_system_cooling_capacity'].nil?
@@ -357,8 +357,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Get software program used and version
-      measures['BuildResidentialHPXML'][0]['software_program_used'] = software_program_used
-      measures['BuildResidentialHPXML'][0]['software_program_version'] = software_program_version
+      measures['BuildResidentialHPXML'][0]['software_info_program_used'] = software_program_used
+      measures['BuildResidentialHPXML'][0]['software_info_program_version'] = software_program_version
 
       # Get registered values and pass them to BuildResidentialHPXML
       measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = values['simulation_control_timestep']
@@ -406,7 +406,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Detect whether we are upgrading the secondary heating system
-      if arg.include?('heating_system_type_2') || arg.include?('heating_system_fuel_2') || arg.include?('heating_system_heating_efficiency_2') || arg.include?('heating_system_fraction_heat_load_served_2')
+      if arg.include?('heating_system_2_type') || arg.include?('heating_system_2_fuel') || arg.include?('heating_system_2_heating_efficiency') || arg.include?('heating_system_2_fraction_heat_load_served')
         system_upgrades << Constants.second_heating_system_id
       end
 
@@ -438,7 +438,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       next if system_upgrades.include?(Constants.second_heating_system_id)
       next if heating_system.id != Constants.second_heating_system_id
 
-      capacities['heating_system_heating_capacity_2'] = heating_system.heating_capacity
+      capacities['heating_system_2_heating_capacity'] = heating_system.heating_capacity
     end
 
     hpxml.cooling_systems.each do |cooling_system|
