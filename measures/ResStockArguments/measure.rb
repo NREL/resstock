@@ -384,7 +384,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['hvac_control_cooling_weekday_setpoint'] = weekday_cooling_setpoints.join(', ')
     args['hvac_control_cooling_weekend_setpoint'] = weekend_cooling_setpoints.join(', ')
 
-    # Energy and hot water adjustments based on # occupants and # bedrooms
+    # Energy and hot water adjustments based on # occupants for Appliances/Fixtures
     occ_to_nbr_ratio = Float(args['geometry_unit_num_occupants']) / Float(args['geometry_unit_num_bedrooms'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       occ_factor = occ_to_nbr_ratio**0.51
@@ -397,7 +397,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['dishwasher_usage_multiplier'] *= occ_factor
     args['water_fixtures_usage_multiplier'] *= occ_factor
 
-    # Energy adjustments based on # occupants, # bedrooms, and floor area
+    # Energy adjustments based on # occupants for Misc LULs
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       c = [-0.68, 1.09]
     elsif [HPXML::ResidentialTypeSFD].include? args['geometry_unit_type']
