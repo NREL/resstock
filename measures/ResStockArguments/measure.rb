@@ -384,7 +384,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['hvac_control_cooling_weekday_setpoint'] = weekday_cooling_setpoints.join(', ')
     args['hvac_control_cooling_weekend_setpoint'] = weekend_cooling_setpoints.join(', ')
 
-    # Energy and hot water adjustments based on # occupants
+    # Energy and hot water adjustments based on # occupants and # bedrooms
     occ_to_nbr_ratio = Float(args['geometry_unit_num_occupants']) / Float(args['geometry_unit_num_bedrooms'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       occ_factor = occ_to_nbr_ratio**0.51
@@ -396,14 +396,23 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['clothes_dryer_usage_multiplier'] *= occ_factor
     args['dishwasher_usage_multiplier'] *= occ_factor
     args['water_fixtures_usage_multiplier'] *= occ_factor
-    args['misc_plug_loads_well_pump_usage_multiplier'] *= occ_factor
-    args['misc_fuel_loads_grill_usage_multiplier'] *= occ_factor
-    args['misc_fuel_loads_lighting_usage_multiplier'] *= occ_factor
-    args['misc_fuel_loads_fireplace_usage_multiplier'] *= occ_factor
-    args['pool_pump_usage_multiplier'] *= occ_factor
-    args['pool_heater_usage_multiplier'] *= occ_factor
-    args['hot_tub_pump_usage_multiplier'] *= occ_factor
-    args['hot_tub_heater_usage_multiplier'] *= occ_factor
+
+    # Energy adjustments based on # occupants, # bedrooms, and floor area
+    if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
+      c = [-0.68, 1.09]
+    elsif [HPXML::ResidentialTypeSFD].include? args['geometry_unit_type']
+      c = [-1.47, 1.69]
+    end
+    adj_factor = (0.5 + 0.25 * (c[0] + c[1] * Float(args['geometry_unit_num_occupants'])) / 3.0 + 0.25 * Float(args['geometry_unit_cfa']) / 1920.0) /
+                 (0.5 + 0.25 * Float(args['geometry_unit_num_bedrooms']) / 3.0 + 0.25 * Float(args['geometry_unit_cfa']) / 1920.0)
+    args['misc_plug_loads_well_pump_usage_multiplier'] *= adj_factor
+    args['misc_fuel_loads_grill_usage_multiplier'] *= adj_factor
+    args['misc_fuel_loads_lighting_usage_multiplier'] *= adj_factor
+    args['misc_fuel_loads_fireplace_usage_multiplier'] *= adj_factor
+    args['pool_pump_usage_multiplier'] *= adj_factor
+    args['pool_heater_usage_multiplier'] *= adj_factor
+    args['hot_tub_pump_usage_multiplier'] *= adj_factor
+    args['hot_tub_heater_usage_multiplier'] *= adj_factor
 
     # Seasons
     if args['use_auto_heating_season'] || args['use_auto_cooling_season']
