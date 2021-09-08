@@ -356,58 +356,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Misc LULs
-    constant = 1.0 / 2
-    nbr_coef = 1.0 / 4 / 3
-    ffa_coef = 1.0 / 4 / 1920
-
-    ['misc_plug_loads_well_pump_annual_kwh',
-     'misc_fuel_loads_grill_annual_therm',
-     'misc_fuel_loads_lighting_annual_therm',
-     'misc_fuel_loads_fireplace_annual_therm',
-     'pool_pump_annual_kwh',
-     'pool_heater_annual_kwh',
-     'pool_heater_annual_therm',
-     'hot_tub_pump_annual_kwh',
-     'hot_tub_heater_annual_kwh',
-     'hot_tub_heater_annual_therm'].each do |annual_energy|
-      next if args[annual_energy] != Constants.Auto
-
-      if annual_energy == 'misc_plug_loads_well_pump_annual_kwh'
-        args[annual_energy] = 50.8 / 0.127
-      elsif annual_energy == 'misc_fuel_loads_grill_annual_therm'
-        args[annual_energy] = 0.87 / 0.029
-      elsif annual_energy == 'misc_fuel_loads_lighting_annual_therm'
-        args[annual_energy] = 0.22 / 0.012
-      elsif annual_energy == 'misc_fuel_loads_fireplace_annual_therm'
-        args[annual_energy] = 1.95 / 0.032
-      elsif annual_energy == 'pool_pump_annual_kwh'
-        args[annual_energy] = 158.6 / 0.070
-      elsif annual_energy == 'pool_heater_annual_kwh'
-        args[annual_energy] = 8.3 / 0.004
-      elsif annual_energy == 'pool_heater_annual_therm'
-        args[annual_energy] = 3.0 / 0.014
-      elsif annual_energy == 'hot_tub_pump_annual_kwh'
-        args[annual_energy] = 59.5 / 0.059
-      elsif annual_energy == 'hot_tub_heater_annual_kwh'
-        args[annual_energy] = 49.0 / 0.048
-      elsif annual_energy == 'hot_tub_heater_annual_therm'
-        args[annual_energy] = 0.87 / 0.011
-      end
-
-      if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
-        args[annual_energy] *= (constant + nbr_coef * (-1.47 + 1.69 * args['geometry_unit_num_occupants']) + ffa_coef * args['geometry_unit_cfa'])
-      elsif [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
-        args[annual_energy] *= (constant + nbr_coef * (-0.68 + 1.09 * args['geometry_unit_num_occupants']) + ffa_coef * args['geometry_unit_cfa'])
-      end
-
-      if annual_energy == 'pool_heater_annual_kwh' && args['pool_heater_type'] == HPXML::HeaterTypeHeatPump
-        args[annual_energy] /= 5.0
-      elsif annual_energy == 'hot_tub_heater_annual_kwh' && args['hot_tub_heater_type'] == HPXML::HeaterTypeHeatPump
-        args[annual_energy] /= 5.0
-      end
-    end
-
     # Setpoints
     weekday_heating_setpoints = [args['hvac_control_heating_weekday_setpoint_temp']] * 24
     weekend_heating_setpoints = [args['hvac_control_heating_weekend_setpoint_temp']] * 24
@@ -436,7 +384,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['hvac_control_cooling_weekday_setpoint'] = weekday_cooling_setpoints.join(', ')
     args['hvac_control_cooling_weekend_setpoint'] = weekend_cooling_setpoints.join(', ')
 
-    # Energy and hot water adjustments based on # occupants
+    # Energy and hot water adjustments based on # occupants for Appliances/Fixtures
     occ_to_nbr_ratio = Float(args['geometry_unit_num_occupants']) / Float(args['geometry_unit_num_bedrooms'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       occ_factor = occ_to_nbr_ratio**0.51
@@ -448,6 +396,23 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['clothes_dryer_usage_multiplier'] *= occ_factor
     args['dishwasher_usage_multiplier'] *= occ_factor
     args['water_fixtures_usage_multiplier'] *= occ_factor
+
+    # Energy adjustments based on # occupants for Misc LULs
+    if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
+      c = [-0.68, 1.09]
+    elsif [HPXML::ResidentialTypeSFD].include? args['geometry_unit_type']
+      c = [-1.47, 1.69]
+    end
+    adj_factor = (0.5 + 0.25 * (c[0] + c[1] * Float(args['geometry_unit_num_occupants'])) / 3.0 + 0.25 * Float(args['geometry_unit_cfa']) / 1920.0) /
+                 (0.5 + 0.25 * Float(args['geometry_unit_num_bedrooms']) / 3.0 + 0.25 * Float(args['geometry_unit_cfa']) / 1920.0)
+    args['misc_plug_loads_well_pump_usage_multiplier'] *= adj_factor
+    args['misc_fuel_loads_grill_usage_multiplier'] *= adj_factor
+    args['misc_fuel_loads_lighting_usage_multiplier'] *= adj_factor
+    args['misc_fuel_loads_fireplace_usage_multiplier'] *= adj_factor
+    args['pool_pump_usage_multiplier'] *= adj_factor
+    args['pool_heater_usage_multiplier'] *= adj_factor
+    args['hot_tub_pump_usage_multiplier'] *= adj_factor
+    args['hot_tub_heater_usage_multiplier'] *= adj_factor
 
     # Seasons
     if args['use_auto_heating_season'] || args['use_auto_cooling_season']
