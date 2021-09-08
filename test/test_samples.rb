@@ -103,11 +103,12 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     workflow_and_building_ids = []
     buildstock_csv_data = CSV.open(File.join(@lib_dir, 'housing_characteristics/buildstock.csv'), headers: true).map(&:to_hash)
+    buildstock_map = Hash[buildstock_csv_data.map {|x| [x['Building'].to_i, x]}]
     Dir["#{@top_dir}/workflow*.osw"].each do |workflow|
       next unless workflow.include?(File.basename(scenario_dir))
 
       (1..num_samples).to_a.each do |building_id|
-        bldg_data = get_data_for_sample(buildstock_csv_data, building_id, runner)
+        bldg_data = buildstock_map[building_id]
         next unless counties.include? bldg_data['County']
 
         workflow_and_building_ids << [workflow, building_id]
