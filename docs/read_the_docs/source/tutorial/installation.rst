@@ -4,7 +4,7 @@ Installation
 Download ResStock
 =================
 
-The are two options for downloading `ResStock <https://github.com/NREL/resstock>`_:
+There are two options for downloading `ResStock <https://github.com/NREL/resstock>`_:
 
 1. download a released version
 2. clone the repository
