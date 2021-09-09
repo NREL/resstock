@@ -43,6 +43,7 @@ __Bugfixes__
 - Fixes mechanical ventilation compartmentalization area calculation for SFA/MF homes with surfaces with InteriorAdjacentTo==ExteriorAdjacentTo.
 - Negative `DistanceToTopOfInsulation` values are now disallowed.
 - Fixes workflow errors if a `VentilationFan` has zero airflow rate or zero hours of operation.
+- Fixes duct design load calculations for HPXML files with multiple ducted HVAC systems.
 
 ## OpenStudio-HPXML v1.2.0
 
