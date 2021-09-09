@@ -407,6 +407,7 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
 
   buildstock_csv.each do |row|
     next if row['Building'].to_i != building_id.to_i
+
     return row.to_hash
   end
   # If we got this far, couldn't find the sample #
