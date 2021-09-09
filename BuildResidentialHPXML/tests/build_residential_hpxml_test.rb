@@ -288,6 +288,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         heating_system.fan_watts_per_cfm = nil # Detailed input not offered
         heating_system.shared_loop_watts = nil # Always defaulted
         heating_system.fan_coil_watts = nil # Always defaulted
+        heating_system.primary_system = nil
         unless hpxml_objs['Rakefile'].heating_systems[0].year_installed.nil?
           heating_system.heating_efficiency_afue = nil
           heating_system.year_installed = nil
@@ -295,6 +296,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       end
       hpxml.cooling_systems.each do |cooling_system|
         cooling_system.fan_watts_per_cfm = nil # Detailed input not offered
+        cooling_system.primary_system = nil
         unless hpxml_objs['Rakefile'].cooling_systems[0].year_installed.nil?
           cooling_system.cooling_efficiency_seer = nil
           cooling_system.year_installed = nil
@@ -303,6 +305,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.heat_pumps.each do |heat_pump|
         heat_pump.fan_watts_per_cfm = nil # Detailed input not offered
         heat_pump.pump_watts_per_ton = nil # Detailed input not offered
+        heat_pump.primary_heating_system = nil
+        heat_pump.primary_cooling_system = nil
         next if heat_pump.backup_heating_efficiency_afue.nil?
 
         # These are treated the same in the model, so allow AFUE/percent comparison

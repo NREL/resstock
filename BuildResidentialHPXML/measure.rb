@@ -2885,7 +2885,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = ((args[:ducts_supply_location] == Constants.Auto) && (args[:ducts_supply_surface_area] != Constants.Auto)) || ((args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area] == Constants.Auto)) || ((args[:ducts_return_location] == Constants.Auto) && (args[:ducts_return_surface_area] != Constants.Auto)) || ((args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto))
     errors << "ducts_supply_location=#{args[:ducts_supply_location]} and ducts_supply_surface_area=#{args[:ducts_supply_surface_area]} and ducts_return_location=#{args[:ducts_return_location]} and ducts_return_surface_area=#{args[:ducts_return_surface_area]}" if error
 
-    # second heating system fraction heat load served non less than 50%
+    # second heating system fraction heat load served not less than 50%
     warning = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] >= 0.5) && (args[:heating_system_2_fraction_heat_load_served] < 1.0)
     warnings << "heating_system_2_type=#{args[:heating_system_2_type]} and heating_system_2_fraction_heat_load_served=#{args[:heating_system_2_fraction_heat_load_served]}" if warning
 
@@ -3840,7 +3840,8 @@ class HPXMLFile
                               heating_efficiency_percent: heating_efficiency_percent,
                               airflow_defect_ratio: airflow_defect_ratio,
                               is_shared_system: is_shared_system,
-                              number_of_units_served: number_of_units_served)
+                              number_of_units_served: number_of_units_served,
+                              primary_system: true)
   end
 
   def self.set_cooling_systems(hpxml, runner, args)
@@ -3895,7 +3896,8 @@ class HPXMLFile
                               cooling_efficiency_eer: cooling_efficiency_eer,
                               cooling_efficiency_ceer: cooling_efficiency_ceer,
                               airflow_defect_ratio: airflow_defect_ratio,
-                              charge_defect_ratio: charge_defect_ratio)
+                              charge_defect_ratio: charge_defect_ratio,
+                              primary_system: true)
   end
 
   def self.set_heat_pumps(hpxml, runner, args)
@@ -3973,8 +3975,18 @@ class HPXMLFile
     end
 
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
+    fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
+
     if args[:heating_system_2_type] != 'none' && fraction_heat_load_served + args[:heating_system_2_fraction_heat_load_served] > 1.0
       fraction_heat_load_served = 1.0 - args[:heating_system_2_fraction_heat_load_served]
+    end
+
+    if fraction_heat_load_served > 0
+      primary_heating_system = true
+    end
+
+    if fraction_cool_load_served > 0
+      primary_cooling_system = true
     end
 
     hpxml.heat_pumps.add(id: 'HeatPump',
@@ -3986,7 +3998,7 @@ class HPXMLFile
                          cooling_shr: cooling_shr,
                          cooling_capacity: cooling_capacity,
                          fraction_heat_load_served: fraction_heat_load_served,
-                         fraction_cool_load_served: args[:heat_pump_fraction_cool_load_served],
+                         fraction_cool_load_served: fraction_cool_load_served,
                          backup_heating_fuel: backup_heating_fuel,
                          backup_heating_capacity: backup_heating_capacity,
                          backup_heating_efficiency_afue: backup_heating_efficiency_afue,
@@ -3997,7 +4009,9 @@ class HPXMLFile
                          heating_efficiency_cop: heating_efficiency_cop,
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
-                         charge_defect_ratio: charge_defect_ratio)
+                         charge_defect_ratio: charge_defect_ratio,
+                         primary_heating_system: primary_heating_system,
+                         primary_cooling_system: primary_cooling_system)
   end
 
   def self.set_secondary_heating_systems(hpxml, runner, args)

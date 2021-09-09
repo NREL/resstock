@@ -251,6 +251,7 @@ def create_osws
     'base-hvac-mini-split-heat-pump-ducted-heating-only.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
     'base-hvac-mini-split-heat-pump-ductless.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
     # 'base-hvac-multiple.osw' => 'base.osw', # Not supporting multiple heating/cooling systems for now
+    # 'base-hvac-multiple2.osw' => 'base-hvac-multiple.osw', # Not supporting multiple heating/cooling systems for now
     'base-hvac-none.osw' => 'base.osw',
     'base-hvac-portable-heater-gas-only.osw' => 'base.osw',
     # 'base-hvac-programmable-thermostat.osw' => 'base.osw',
@@ -2968,6 +2969,7 @@ def create_hpxmls
     'base-hvac-mini-split-heat-pump-ducted-heating-only.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-multiple.xml' => 'base.xml',
+    'base-hvac-multiple2.xml' => 'base-hvac-multiple.xml',
     'base-hvac-none.xml' => 'base.xml',
     'base-hvac-portable-heater-gas-only.xml' => 'base.xml',
     'base-hvac-programmable-thermostat.xml' => 'base.xml',
@@ -5723,6 +5725,9 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems << hpxml.heating_systems[0].dup
     hpxml.heating_systems[1].id = 'HeatingSystem2'
     hpxml.heating_systems[1].distribution_system_idref = 'HVACDistribution2'
+  elsif ['base-hvac-multiple2.xml'].include? hpxml_file
+    hpxml.heating_systems[1].primary_system = true
+    hpxml.cooling_systems[-1].primary_system = true
   elsif ['invalid_files/hvac-frac-load-served.xml'].include? hpxml_file
     hpxml.heating_systems[0].fraction_heat_load_served += 0.1
   elsif ['base-hvac-fireplace-wood-only.xml'].include? hpxml_file
@@ -8500,6 +8505,8 @@ if ARGV[0].to_sym == :create_release_zips
            'SimulationOutputReport/resources/*.*',
            'BuildResidentialHPXML/measure.*',
            'BuildResidentialHPXML/resources/*.*',
+           'HPXMLOutputReport/measure.*',
+           'HPXMLOutputReport/resources/*.*',
            'weather/*.*',
            'workflow/*.*',
            'workflow/sample_files/*.xml',
