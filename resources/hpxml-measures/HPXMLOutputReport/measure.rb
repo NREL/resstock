@@ -15,12 +15,12 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
 
   # human readable description
   def description
-    return 'Reports HPXML outputs for residential HPXML-based models'
+    return 'Reports HPXML outputs for residential HPXML-based models.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'TODO'
+    return 'Parses the HPXML file and reports pre-defined outputs.'
   end
 
   # define the arguments that the user will input
@@ -116,6 +116,7 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Cost multipliers
     cost_multipliers.each do |cost_mult_type, cost_mult|
+      cost_mult.name = "Building Summary: #{cost_mult_type}"
       cost_mult.output = get_cost_multiplier(hpxml, cost_mult_type)
     end
 
@@ -126,31 +127,12 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Units
     cost_multipliers.each do |cost_mult_type, cost_mult|
-      cost_mult.name = "Building Summary: #{cost_mult_type}"
-      if cost_mult_type.include?('Area')
-        cost_mult.units = 'ft^2'
-      elsif cost_mult_type.include?('Perimeter')
-        cost_mult.units = 'ft'
-      elsif cost_mult_type.include?('Size')
-        if cost_mult_type.include?('Heating') || cost_mult_type.include?('Cooling') || cost_mult_type.include?('Heat Pump')
-          cost_mult.units = 'kBtu/h'
-        else
-          cost_mult.units = 'gal'
-        end
-      elsif cost_mult_type.include?('Flow')
-        cost_mult.units = 'cfm'
-      elsif cost_mult_type == 'Fixed'
-        cost_mult.units = '1'
-      else
-        fail "Unable to assign units to: #{cost_mult_type}"
-      end
+      cost_mult.units = BS.get_units(cost_mult_type)
     end
 
     # Report results
     cost_multipliers.each do |cost_mult_type, cost_mult|
-      next if cost_mult_type.include?('Fixed')
-
-      cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
+      cost_mult_type_str = OpenStudio::toUnderscoreCase("#{cost_mult_type} #{cost_mult.units}")
       cost_mult = cost_mult.output.round(2)
       runner.registerValue(cost_mult_type_str, cost_mult)
     end
@@ -364,6 +346,10 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
       cost_mult.output = cost_multipliers["#{BS::SizeHeatingSystem}: #{heat_pump.id}"].output
       cost_multipliers["#{BS::SizeHeatingSystem}: Primary"] = cost_mult
 
+      cost_mult = BaseOutput.new
+      cost_mult.output = cost_multipliers["#{BS::SizeHeatPumpBackup}: #{heat_pump.id}"].output
+      cost_multipliers["#{BS::SizeHeatPumpBackup}: Primary"] = cost_mult
+
       hpxml.heat_pumps.each do |heat_pump2|
         next if heat_pump == heat_pump2
 
@@ -375,6 +361,15 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
 
         cost_mult = cost_multipliers["#{BS::SizeHeatingSystem}: Secondary"]
         cost_mult.output += cost_multipliers["#{BS::SizeHeatingSystem}: #{heat_pump2.id}"].output
+
+        if not cost_multipliers.keys.include?("#{BS::SizeHeatPumpBackup}: Secondary")
+          cost_mult = BaseOutput.new
+          cost_mult.output = 0
+          cost_multipliers["#{BS::SizeHeatPumpBackup}: Secondary"] = cost_mult
+        end
+
+        cost_mult = cost_multipliers["#{BS::SizeHeatPumpBackup}: Secondary"]
+        cost_mult.output += cost_multipliers["#{BS::SizeHeatPumpBackup}: #{heat_pump2.id}"].output
       end
     end
   end

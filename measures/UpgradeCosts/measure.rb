@@ -49,10 +49,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     return Constants.NumApplyUpgradesCostsPerOption # Synced with ApplyUpgrade measure
   end
 
-  def cost_multiplier_choices
-    return Constants.CostMultiplierChoices # Synced with ApplyUpgrade measure
-  end
-
   # define what happens when the measure is run
   def run(runner, user_arguments)
     super(runner, user_arguments)
@@ -70,23 +66,13 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    # Retrieve the hpxml
-    hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
-    hpxml = HPXML.new(hpxml_path: hpxml_path)
+    # Retrieve values from HPXMLOutputReport
+    hpxml = get_values_from_runner_past_results(runner, 'hpxml_output_report')
 
-    # Report cost multipliers
-    cost_multiplier_choices.each do |cost_mult_type|
-      next if cost_mult_type.empty?
-      next if cost_mult_type.include?('Fixed')
-
-      cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(cost_mult_type, hpxml, runner)
-      cost_mult = cost_mult.round(2)
-      register_value(runner, cost_mult_type_str, cost_mult)
-    end
+    # Retrieve values from ApplyUpgrade
+    values = get_values_from_runner_past_results(runner, 'apply_upgrade')
 
     # UPGRADE NAME
-    values = get_values_from_runner_past_results(runner, 'apply_upgrade')
     upgrade_name = values['upgrade_name']
     if upgrade_name.nil?
       register_value(runner, 'upgrade_name', '')
@@ -97,7 +83,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     # UPGRADE COSTS
-
     upgrade_cost_name = 'upgrade_cost_usd'
 
     # Get upgrade cost value/multiplier pairs and lifetimes from the upgrade measure
@@ -134,7 +119,11 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     option_cost_pairs.keys.each do |option_num|
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
-        cost_mult = get_cost_multiplier(cost_mult_type, hpxml, runner)
+        next if cost_mult_type.empty?
+
+        cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
+        cost_mult_type_str = cost_mult_type_str[0..-2]
+        cost_mult = hpxml[cost_mult_type_str]
         total_cost = cost_value * cost_mult
         next if total_cost == 0
 
@@ -163,123 +152,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
     return true
   end
-
-  def get_cost_multiplier(cost_mult_type, hpxml, runner)
-    cost_mult = 0.0
-    if cost_mult_type == 'Fixed (1)'
-      cost_mult += 1.0
-    elsif cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
-      hpxml.walls.each do |wall|
-        next unless wall.is_thermal_boundary
-
-        cost_mult += wall.area
-      end
-    elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'
-      hpxml.walls.each do |wall|
-        next unless wall.is_exterior
-
-        cost_mult += wall.area
-      end
-    elsif cost_mult_type == 'Wall Area, Below-Grade (ft^2)'
-      hpxml.foundation_walls.each do |foundation_wall|
-        next unless foundation_wall.is_exterior
-
-        cost_mult += foundation_wall.area
-      end
-    elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
-      cost_mult += hpxml.building_construction.conditioned_floor_area
-    elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
-      hpxml.frame_floors.each do |frame_floor|
-        next unless frame_floor.is_thermal_boundary
-        next unless frame_floor.is_interior
-        next unless frame_floor.is_ceiling
-        next unless [HPXML::LocationAtticVented, HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
-
-        cost_mult += frame_floor.area
-      end
-    elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
-      if hpxml.lighting.interior_usage_multiplier != 0
-        cost_mult += hpxml.building_construction.conditioned_floor_area
-      end
-      hpxml.slabs.each do |slab|
-        next unless [HPXML::LocationGarage].include?(slab.interior_adjacent_to)
-        next if hpxml.lighting.garage_usage_multiplier == 0
-
-        cost_mult += slab.area
-      end
-    elsif cost_mult_type == 'Roof Area (ft^2)'
-      hpxml.roofs.each do |roof|
-        cost_mult += roof.area
-      end
-    elsif cost_mult_type == 'Window Area (ft^2)'
-      hpxml.windows.each do |window|
-        cost_mult += window.area
-      end
-    elsif cost_mult_type == 'Door Area (ft^2)'
-      hpxml.doors.each do |door|
-        cost_mult += door.area
-      end
-    elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
-      hpxml.hvac_distributions.each do |hvac_distribution|
-        hvac_distribution.ducts.each do |duct|
-          next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include?(duct.duct_location)
-
-          cost_mult += duct.duct_surface_area
-        end
-      end
-    elsif cost_mult_type == 'Size, Heating System (kBtu/h)'
-      hpxml.heating_systems.each do |heating_system|
-        next if heating_system.id != 'HeatingSystem'
-
-        cost_mult += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
-      end
-
-      hpxml.heat_pumps.each do |heat_pump|
-        cost_mult += UnitConversions.convert(heat_pump.heating_capacity, 'btu/hr', 'kbtu/hr')
-      end
-    elsif cost_mult_type == 'Size, Secondary Heating System (kBtu/h)'
-      hpxml.heating_systems.each do |heating_system|
-        next if heating_system.id != 'SecondHeatingSystem'
-
-        cost_mult += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
-      end
-    elsif cost_mult_type == 'Size, Heat Pump Backup (kBtu/h)'
-      hpxml.heat_pumps.each do |heat_pump|
-        cost_mult += UnitConversions.convert(heat_pump.backup_heating_capacity, 'btu/hr', 'kbtu/hr')
-      end
-    elsif cost_mult_type == 'Size, Cooling System (kBtu/h)'
-      hpxml.cooling_systems.each do |cooling_system|
-        cost_mult += UnitConversions.convert(cooling_system.cooling_capacity, 'btu/hr', 'kbtu/hr')
-      end
-
-      hpxml.heat_pumps.each do |heat_pump|
-        cost_mult += UnitConversions.convert(heat_pump.cooling_capacity, 'btu/hr', 'kbtu/hr')
-      end
-    elsif cost_mult_type == 'Size, Water Heater (gal)'
-      hpxml.water_heating_systems.each do |water_heating_system|
-        next if water_heating_system.tank_volume.nil?
-
-        cost_mult += water_heating_system.tank_volume
-      end
-    elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
-      hpxml.ventilation_fans.each do |ventilation_fan|
-        next unless ventilation_fan.used_for_whole_building_ventilation
-
-        cost_mult += ventilation_fan.rated_flow_rate
-      end
-    elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
-      hpxml.slabs.each do |slab|
-        next unless slab.is_exterior_thermal_boundary
-
-        cost_mult += slab.exposed_perimeter
-      end
-    elsif cost_mult_type == 'Rim Joist Area, Above-Grade, Exterior (ft^2)'
-      hpxml.rim_joists.each do |rim_joist|
-        cost_mult += rim_joist.area
-      end
-    end
-    return cost_mult
-  end # end get_cost_multiplier
 end
 
 # register the measure to be used by the application

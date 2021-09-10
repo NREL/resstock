@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class BS
-  # Cost multiplier types
   Fixed = 'Fixed'
   WallAreaAboveGradeConditioned = 'Wall Area Above-Grade Conditioned'
   WallAreaAboveGradeExterior = 'Wall Area Above-Grade Exterior'
@@ -20,4 +19,24 @@ class BS
   FlowRateMechanicalVentilation = 'Flow Rate Mechanical Ventilation'
   SlabPerimeterExposedConditioned = 'Slab Perimeter Exposed Conditioned'
   RimJoistAreaAboveGradeExterior = 'Rim Joist Area Above-Grade Exterior'
+
+  def self.get_units(cost_mult_type)
+    if cost_mult_type.include?('Area')
+      return 'ft^2'
+    elsif cost_mult_type.include?('Perimeter')
+      return 'ft'
+    elsif cost_mult_type.include?('Size')
+      if cost_mult_type.include?('Heating') || cost_mult_type.include?('Cooling') || cost_mult_type.include?('Heat Pump')
+        return 'kBtu/h'
+      else
+        return 'gal'
+      end
+    elsif cost_mult_type.include?('Flow')
+      return 'cfm'
+    elsif cost_mult_type == 'Fixed'
+      return '1'
+    end
+
+    fail "Unable to assign units to: #{cost_mult_type}"
+  end
 end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # see the URL below for information on how to write OpenStudio measures
-# http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
+# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
 
@@ -36,7 +36,28 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   end
 
   def cost_multiplier_choices
-    return Constants.CostMultiplierChoices # Synced with UpgradeCosts measure
+    return [
+      '',
+      'Fixed (1)',
+      'Wall Area, Above-Grade, Conditioned (ft^2)',
+      'Wall Area, Above-Grade, Exterior (ft^2)',
+      'Wall Area, Below-Grade (ft^2)',
+      'Floor Area, Conditioned (ft^2)',
+      'Floor Area, Attic (ft^2)',
+      'Floor Area, Lighting (ft^2)',
+      'Roof Area (ft^2)',
+      'Window Area (ft^2)',
+      'Door Area (ft^2)',
+      'Duct Unconditioned Surface Area (ft^2)',
+      'Size Heating System: Primary (kBtu/h)',
+      'Size Heating System: Secondary (kBtu/h)',
+      'Size Cooling System: Primary (kBtu/h)',
+      'Size Heat Pump Backup: Primary (kBtu/h)',
+      'Size Water Heater (gal)',
+      'Flow Rate, Mechanical Ventilation (cfm)',
+      'Slab Perimeter, Exposed, Conditioned (ft)',
+      'Rim Joist Area, Above-Grade, Exterior (ft^2)'
+    ]
   end
 
   # define the arguments that the user will input
@@ -252,9 +273,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
           if cost_value.nil?
             cost_value = 0.0
           end
-          cost_mult = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier", user_arguments)
+          cost_mult_type = runner.getStringArgumentValue("option_#{option_num}_cost_#{cost_num}_multiplier", user_arguments)
           register_value(runner, "option_%02d_cost_#{cost_num}_value_to_apply" % option_num, cost_value.to_s)
-          register_value(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, cost_mult)
+          register_value(runner, "option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num, cost_mult_type)
         end
         lifetime = runner.getOptionalDoubleArgumentValue("option_#{option_num}_lifetime", user_arguments)
         if lifetime.nil?
