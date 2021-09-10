@@ -578,7 +578,11 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     end
 
     # Check interior finish solar absorptance and emittance
-    if hpxml_surface.respond_to?(:interior_finish_type) && hpxml_surface.interior_finish_type != HPXML::InteriorFinishNone
+    if expected_layer_names[-1] == 'radiant barrier'
+      interior_layer = os_construction.getLayer(os_construction.numLayers - 1).to_OpaqueMaterial.get
+      assert_operator(interior_layer.solarAbsorptance, :<, 0.1)
+      assert_operator(interior_layer.thermalAbsorptance, :<, 0.1)
+    elsif hpxml_surface.respond_to?(:interior_finish_type) && hpxml_surface.interior_finish_type != HPXML::InteriorFinishNone
       interior_layer = os_construction.getLayer(os_construction.numLayers - 1).to_OpaqueMaterial.get
       assert_equal(0.6, interior_layer.solarAbsorptance)
       assert_equal(0.9, interior_layer.thermalAbsorptance)
