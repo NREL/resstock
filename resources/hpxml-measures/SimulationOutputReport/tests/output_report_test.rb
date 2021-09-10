@@ -105,8 +105,8 @@ class SimulationOutputReportTest < MiniTest::Test
     'End Use: Coal: Fireplace (MBtu)',
     'End Use: Coal: Mech Vent Preheating (MBtu)',
     'End Use: Coal: Generator (MBtu)',
-    'Load: Heating (MBtu)',
-    'Load: Cooling (MBtu)',
+    'Load: Heating: Delivered (MBtu)',
+    'Load: Cooling: Delivered (MBtu)',
     'Load: Hot Water: Delivered (MBtu)',
     'Load: Hot Water: Tank Losses (MBtu)',
     'Load: Hot Water: Desuperheater (MBtu)',
@@ -115,8 +115,8 @@ class SimulationOutputReportTest < MiniTest::Test
     'Unmet Hours: Cooling (hr)',
     'Peak Electricity: Winter Total (W)',
     'Peak Electricity: Summer Total (W)',
-    'Peak Load: Heating (kBtu)',
-    'Peak Load: Cooling (kBtu)',
+    'Peak Load: Heating: Delivered (kBtu)',
+    'Peak Load: Cooling: Delivered (kBtu)',
     'Component Load: Heating: Roofs (MBtu)',
     'Component Load: Heating: Ceilings (MBtu)',
     'Component Load: Heating: Walls (MBtu)',
@@ -187,8 +187,8 @@ class SimulationOutputReportTest < MiniTest::Test
   ]
 
   BaseHPXMLTimeseriesColsTotalLoads = [
-    'Load: Heating',
-    'Load: Cooling',
+    'Load: Heating: Delivered',
+    'Load: Cooling: Delivered',
     'Load: Hot Water: Delivered',
   ]
 
@@ -322,8 +322,8 @@ class SimulationOutputReportTest < MiniTest::Test
     'enduseCoalRangeOven',
     'enduseCoalMechVentPreheating',
     'enduseCoalGenerator',
-    'loadHeating',
-    'loadCooling',
+    'loadHeatingDelivered',
+    'loadCoolingDelivered',
     'loadHotWaterDelivered',
     'hpxml_cfa',
     'hpxml_nbr',

@@ -1652,7 +1652,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @component_loads.each do |key, comp_load|
       load_type, comp_load_type = key
-      comp_load.name = "Component Load: #{load_type}: #{comp_load_type}"
+      comp_load.name = "Component Load: #{load_type.gsub(': Delivered', '')}: #{comp_load_type}"
       comp_load.annual_units = 'MBtu'
       comp_load.timeseries_units = 'kBtu'
     end

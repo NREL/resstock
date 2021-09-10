@@ -3,6 +3,7 @@
 __New Features__
 - Updates to OpenStudio 3.2.1/EnergyPlus 9.5.0.
 - **Breaking change**: Replaces Unmet Load (MBtu) with Unmet Hours (hr) for space heating/cooling outputs.
+- **Breaking change**: Renames "Load: Heating" (and Cooling) and "Peak Load: Heating" (and Cooling) outputs to include "Delivered".
 - **Breaking change**: Replaces ClothesDryer `extension/IsVented` and `extension/VentedFlowRate` with `Vented` and `VentedFlowRate`.
 - Expanded capabilities for scheduling:
   - Allows modeling detailed occupancy via a schedule CSV file.

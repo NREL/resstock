@@ -60,8 +60,8 @@ end
 
 class LT
   # Load Types
-  Heating = 'Heating'
-  Cooling = 'Cooling'
+  Heating = 'Heating: Delivered'
+  Cooling = 'Cooling: Delivered'
   HotWaterDelivered = 'Hot Water: Delivered'
   HotWaterTankLosses = 'Hot Water: Tank Losses'
   HotWaterDesuperheater = 'Hot Water: Desuperheater'
@@ -103,8 +103,8 @@ end
 
 class PLT
   # Peak Load Types
-  Heating = 'Heating'
-  Cooling = 'Cooling'
+  Heating = 'Heating: Delivered'
+  Cooling = 'Cooling: Delivered'
 end
 
 class PFT
