@@ -15,7 +15,7 @@ import os
 # sys.path.insert(0, os.path.abspath('.'))
 
 metadata = {}
-with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', '..', '..', '__version__.py'), 'r') as f:
+with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', '..', '..', 'resources', '__version__.py'), 'r') as f:
     exec(f.read(), metadata)
 
 # -- Project information -----------------------------------------------------
