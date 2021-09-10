@@ -582,7 +582,7 @@ class Constructions
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to roof surfaces
     constr.create_and_assign_constructions(runner, surfaces, model)
@@ -652,7 +652,7 @@ class Constructions
     constr.add_layer(inside_film)
 
     constr.set_exterior_material_properties(solar_absorptance, emittance)
-    constr.set_interior_material_properties()
+    constr.set_interior_material_properties() unless has_radiant_barrier
 
     # Create and assign construction to surfaces
     constr.create_and_assign_constructions(runner, surfaces, model)

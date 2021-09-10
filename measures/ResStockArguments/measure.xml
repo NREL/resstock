@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>2635b489-dddf-4efd-af84-b4e6de74acba</version_id>
-  <version_modified>20210831T195650Z</version_modified>
+  <version_id>31d273f5-8c61-4380-8d8f-e1c018aaec15</version_id>
+  <version_modified>20210908T214602Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -23,7 +23,7 @@
     <argument>
       <name>simulation_control_run_period</name>
       <display_name>Simulation Control: Run Period</display_name>
-      <description>Specifies the annual simulation run period. Enter a date like "Mar 15 - Sep 15".</description>
+      <description>Enter a date like "Jan 1 - Dec 31".</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -58,19 +58,59 @@
     <argument>
       <name>simulation_control_daylight_saving_period</name>
       <display_name>Simulation Control: Daylight Saving Period</display_name>
-      <description>Specifies the daylight saving period. Enter a date like "Mar 15 - Dec 15".</description>
+      <description>Enter a date like "Mar 15 - Dec 15".</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>weather_station_epw_filepath</name>
-      <display_name>EnergyPlus Weather (EPW) Filepath</display_name>
-      <description>Path of the EPW file.</description>
-      <type>String</type>
+      <name>site_type</name>
+      <display_name>Site: Type</display_name>
+      <description>The type of site.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>suburban</value>
+          <display_name>suburban</display_name>
+        </choice>
+        <choice>
+          <value>urban</value>
+          <display_name>urban</display_name>
+        </choice>
+        <choice>
+          <value>rural</value>
+          <display_name>rural</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>site_shielding_of_home</name>
+      <display_name>Site: Shielding of Home</display_name>
+      <description>Presence of nearby buildings, trees, obstructions for infiltration model.  A value of 'auto' will use 'normal'.</description>
+      <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>USA_CO_Denver.Intl.AP.725650_TMY3.epw</default_value>
+      <default_value>auto</default_value>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>exposed</value>
+          <display_name>exposed</display_name>
+        </choice>
+        <choice>
+          <value>normal</value>
+          <display_name>normal</display_name>
+        </choice>
+        <choice>
+          <value>well-shielded</value>
+          <display_name>well-shielded</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>site_state_code</name>
@@ -287,31 +327,18 @@
       </choices>
     </argument>
     <argument>
-      <name>site_type</name>
-      <display_name>Site: Type</display_name>
-      <description>The type of site.</description>
-      <type>Choice</type>
-      <required>false</required>
+      <name>weather_station_epw_filepath</name>
+      <display_name>Weather Station: EnergyPlus Weather (EPW) Filepath</display_name>
+      <description>Path of the EPW file.</description>
+      <type>String</type>
+      <required>true</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>suburban</value>
-          <display_name>suburban</display_name>
-        </choice>
-        <choice>
-          <value>urban</value>
-          <display_name>urban</display_name>
-        </choice>
-        <choice>
-          <value>rural</value>
-          <display_name>rural</display_name>
-        </choice>
-      </choices>
+      <default_value>USA_CO_Denver.Intl.AP.725650_TMY3.epw</default_value>
     </argument>
     <argument>
       <name>geometry_unit_type</name>
       <display_name>Geometry: Unit Type</display_name>
-      <description>The type of unit.</description>
+      <description>The type of dwelling unit. Use single-family attached for a dwelling unit with 1 or more stories, attached units to one or both sides, and no units above/below. Use apartment unit for a dwelling unit with 1 story, attached units to one, two, or three sides, and units above and/or below.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -332,14 +359,130 @@
       </choices>
     </argument>
     <argument>
+      <name>geometry_unit_level</name>
+      <display_name>Geometry: Unit Level</display_name>
+      <description>The level of the unit. This is required for apartment units.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>Bottom</value>
+          <display_name>Bottom</display_name>
+        </choice>
+        <choice>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Top</value>
+          <display_name>Top</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_unit_horizontal_location</name>
+      <display_name>Geometry: Unit Horizontal Location</display_name>
+      <description>The horizontal location of the unit when viewing the front of the building. This is required for single-family attached and apartment units.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+        <choice>
+          <value>Left</value>
+          <display_name>Left</display_name>
+        </choice>
+        <choice>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Right</value>
+          <display_name>Right</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>geometry_num_floors_above_grade</name>
-      <display_name>Geometry: Number of Floors</display_name>
+      <display_name>Geometry: Number of Floors Above Grade</display_name>
       <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>2</default_value>
+    </argument>
+    <argument>
+      <name>geometry_unit_aspect_ratio</name>
+      <display_name>Geometry: Unit Aspect Ratio</display_name>
+      <description>The ratio of front/back wall length to left/right wall length for the unit, excluding any protruding garage wall area.</description>
+      <type>Double</type>
+      <units>FB/LR</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2</default_value>
+    </argument>
+    <argument>
+      <name>geometry_unit_orientation</name>
+      <display_name>Geometry: Unit Orientation</display_name>
+      <description>The unit's orientation is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
+      <type>Double</type>
+      <units>degrees</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>180</default_value>
+    </argument>
+    <argument>
+      <name>geometry_unit_num_bedrooms</name>
+      <display_name>Geometry: Unit Number of Bedrooms</display_name>
+      <description>The number of bedrooms in the unit. Used to determine the energy usage of appliances and plug loads, hot water usage, etc.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>3</default_value>
+    </argument>
+    <argument>
+      <name>geometry_unit_num_bathrooms</name>
+      <display_name>Geometry: Unit Number of Bathrooms</display_name>
+      <description>The number of bathrooms in the unit.  A value of 'auto' will default the value based on the number of bedrooms.</description>
+      <type>String</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>geometry_unit_num_occupants</name>
+      <display_name>Geometry: Unit Number of Occupants</display_name>
+      <description>The number of occupants in the unit. A value of 'auto' will default the value based on the number of bedrooms. Used to specify the internal gains from people only.</description>
+      <type>String</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>geometry_building_num_units</name>
+      <display_name>Geometry: Building Number of Units</display_name>
+      <description>The number of units in the building. This is required for single-family attached and apartment units.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>geometry_building_num_bedrooms</name>
+      <display_name>Geometry: Building Number of Bedrooms</display_name>
+      <description>The number of bedrooms in the building. This is required for single-family attached and apartment units with shared PV systems.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>geometry_wall_height</name>
@@ -350,112 +493,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>8</default_value>
-    </argument>
-    <argument>
-      <name>geometry_orientation</name>
-      <display_name>Geometry: Orientation</display_name>
-      <description>The unit's orientation is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
-      <type>Double</type>
-      <units>degrees</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>180</default_value>
-    </argument>
-    <argument>
-      <name>geometry_aspect_ratio</name>
-      <display_name>Geometry: Aspect Ratio</display_name>
-      <description>The ratio of the front/back wall length to the left/right wall length, excluding any protruding garage wall area.</description>
-      <type>Double</type>
-      <units>FB/LR</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>2</default_value>
-    </argument>
-    <argument>
-      <name>geometry_corridor_position</name>
-      <display_name>Geometry: Corridor Position</display_name>
-      <description>The position of the corridor. Only applies to single-family attached and apartment unit units. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Double-Loaded Interior</default_value>
-      <choices>
-        <choice>
-          <value>Double-Loaded Interior</value>
-          <display_name>Double-Loaded Interior</display_name>
-        </choice>
-        <choice>
-          <value>Single Exterior (Front)</value>
-          <display_name>Single Exterior (Front)</display_name>
-        </choice>
-        <choice>
-          <value>Double Exterior</value>
-          <display_name>Double Exterior</display_name>
-        </choice>
-        <choice>
-          <value>None</value>
-          <display_name>None</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_corridor_width</name>
-      <display_name>Geometry: Corridor Width</display_name>
-      <description>The width of the corridor. Only applies to apartment unit units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>10</default_value>
-    </argument>
-    <argument>
-      <name>geometry_inset_width</name>
-      <display_name>Geometry: Inset Width</display_name>
-      <description>The width of the inset. Only applies to apartment unit units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>geometry_inset_depth</name>
-      <display_name>Geometry: Inset Depth</display_name>
-      <description>The depth of the inset. Only applies to apartment unit units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>geometry_inset_position</name>
-      <display_name>Geometry: Inset Position</display_name>
-      <description>The position of the inset. Only applies to apartment unit units.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Right</default_value>
-      <choices>
-        <choice>
-          <value>Right</value>
-          <display_name>Right</display_name>
-        </choice>
-        <choice>
-          <value>Left</value>
-          <display_name>Left</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_balcony_depth</name>
-      <display_name>Geometry: Balcony Depth</display_name>
-      <description>The depth of the balcony. Only applies to apartment unit units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
     </argument>
     <argument>
       <name>geometry_garage_width</name>
@@ -505,6 +542,92 @@
           <display_name>Left</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>geometry_corridor_position</name>
+      <display_name>Geometry: Corridor Position</display_name>
+      <description>The position of the corridor. Only applies to single-family attached and apartment units. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Double-Loaded Interior</default_value>
+      <choices>
+        <choice>
+          <value>Double-Loaded Interior</value>
+          <display_name>Double-Loaded Interior</display_name>
+        </choice>
+        <choice>
+          <value>Single Exterior (Front)</value>
+          <display_name>Single Exterior (Front)</display_name>
+        </choice>
+        <choice>
+          <value>Double Exterior</value>
+          <display_name>Double Exterior</display_name>
+        </choice>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_corridor_width</name>
+      <display_name>Geometry: Corridor Width</display_name>
+      <description>The width of the corridor. Only applies to apartment units.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>10</default_value>
+    </argument>
+    <argument>
+      <name>geometry_inset_width</name>
+      <display_name>Geometry: Inset Width</display_name>
+      <description>The width of the inset. Only applies to apartment units.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>geometry_inset_depth</name>
+      <display_name>Geometry: Inset Depth</display_name>
+      <description>The depth of the inset. Only applies to apartment units.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>geometry_inset_position</name>
+      <display_name>Geometry: Inset Position</display_name>
+      <description>The position of the inset. Only applies to apartment units.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>Right</default_value>
+      <choices>
+        <choice>
+          <value>Right</value>
+          <display_name>Right</display_name>
+        </choice>
+        <choice>
+          <value>Left</value>
+          <display_name>Left</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_balcony_depth</name>
+      <display_name>Geometry: Balcony Depth</display_name>
+      <description>The depth of the balcony. Only applies to apartment units.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>geometry_foundation_type</name>
@@ -573,7 +696,7 @@
     <argument>
       <name>geometry_roof_type</name>
       <display_name>Geometry: Roof Type</display_name>
-      <description>The roof type of the building. Assumed flat for apartment unit units.</description>
+      <description>The roof type of the building. Assumed flat for apartment units.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -686,100 +809,84 @@
       <default_value>2</default_value>
     </argument>
     <argument>
-      <name>geometry_num_bedrooms</name>
-      <display_name>Geometry: Number of Bedrooms</display_name>
-      <description>Specify the number of bedrooms. Used to determine the energy usage of appliances and plug loads, hot water usage, etc.</description>
-      <type>Integer</type>
-      <units>#</units>
+      <name>neighbor_front_distance</name>
+      <display_name>Neighbor: Front Distance</display_name>
+      <description>The distance between the unit and the neighboring building to the front (not including eaves). A value of zero indicates no neighbors. Used for shading.</description>
+      <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>3</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
-      <name>geometry_num_bathrooms</name>
-      <display_name>Geometry: Number of Bathrooms</display_name>
-      <description>Specify the number of bathrooms.</description>
+      <name>neighbor_back_distance</name>
+      <display_name>Neighbor: Back Distance</display_name>
+      <description>The distance between the unit and the neighboring building to the back (not including eaves). A value of zero indicates no neighbors. Used for shading.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>neighbor_left_distance</name>
+      <display_name>Neighbor: Left Distance</display_name>
+      <description>The distance between the unit and the neighboring building to the left (not including eaves). A value of zero indicates no neighbors. Used for shading.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>10</default_value>
+    </argument>
+    <argument>
+      <name>neighbor_right_distance</name>
+      <display_name>Neighbor: Right Distance</display_name>
+      <description>The distance between the unit and the neighboring building to the right (not including eaves). A value of zero indicates no neighbors. Used for shading.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>10</default_value>
+    </argument>
+    <argument>
+      <name>neighbor_front_height</name>
+      <display_name>Neighbor: Front Height</display_name>
+      <description>The height of the neighboring building to the front. A value of 'auto' will use the same height as this building.</description>
       <type>String</type>
-      <units>#</units>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>geometry_num_occupants</name>
-      <display_name>Geometry: Number of Occupants</display_name>
-      <description>Specify the number of occupants. A value of 'auto' will calculate the average number of occupants from the number of bedrooms. Used to specify the internal gains from people only.</description>
+      <name>neighbor_back_height</name>
+      <display_name>Neighbor: Back Height</display_name>
+      <description>The height of the neighboring building to the back. A value of 'auto' will use the same height as this building.</description>
       <type>String</type>
-      <units>#</units>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>geometry_level</name>
-      <display_name>Geometry: Level</display_name>
-      <description>The level of the apartment unit unit.</description>
-      <type>Choice</type>
-      <required>false</required>
+      <name>neighbor_left_height</name>
+      <display_name>Neighbor: Left Height</display_name>
+      <description>The height of the neighboring building to the left. A value of 'auto' will use the same height as this building.</description>
+      <type>String</type>
+      <units>ft</units>
+      <required>true</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>Bottom</value>
-          <display_name>Bottom</display_name>
-        </choice>
-        <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Top</value>
-          <display_name>Top</display_name>
-        </choice>
-      </choices>
+      <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>geometry_horizontal_location</name>
-      <display_name>Geometry: Horizontal Location</display_name>
-      <description>The horizontal location of the single-family attached or apartment unit unit when viewing the front of the building.</description>
-      <type>Choice</type>
-      <required>false</required>
+      <name>neighbor_right_height</name>
+      <display_name>Neighbor: Right Height</display_name>
+      <description>The height of the neighboring building to the right. A value of 'auto' will use the same height as this building.</description>
+      <type>String</type>
+      <units>ft</units>
+      <required>true</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>None</value>
-          <display_name>None</display_name>
-        </choice>
-        <choice>
-          <value>Left</value>
-          <display_name>Left</display_name>
-        </choice>
-        <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Right</value>
-          <display_name>Right</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_building_num_units</name>
-      <display_name>Geometry: Building Number of Units</display_name>
-      <description>The number of units in the building. This is required for single-family attached and apartment unit units.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>geometry_building_num_bedrooms</name>
-      <display_name>Geometry: Building Number of Bedrooms</display_name>
-      <description>The number of bedrooms in the building. This is required for single-family attached and apartment unit units with shared PV systems.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>floor_over_foundation_assembly_r</name>
@@ -789,7 +896,7 @@
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>30</default_value>
+      <default_value>28.1</default_value>
     </argument>
     <argument>
       <name>floor_over_garage_assembly_r</name>
@@ -799,11 +906,11 @@
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>30</default_value>
+      <default_value>28.1</default_value>
     </argument>
     <argument>
       <name>foundation_wall_insulation_r</name>
-      <display_name>Foundation: Wall Insulation Nominal R-value</display_name>
+      <display_name>Foundation Wall: Insulation Nominal R-value</display_name>
       <description>Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
@@ -813,8 +920,8 @@
     </argument>
     <argument>
       <name>foundation_wall_insulation_distance_to_top</name>
-      <display_name>Foundation: Wall Insulation Distance To Top</display_name>
-      <description>The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces.</description>
+      <display_name>Foundation Wall: Insulation Distance To Top</display_name>
+      <description>The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces. A value of 'auto' will use zero.</description>
       <type>String</type>
       <units>ft</units>
       <required>true</required>
@@ -823,8 +930,8 @@
     </argument>
     <argument>
       <name>foundation_wall_insulation_distance_to_bottom</name>
-      <display_name>Foundation: Wall Insulation Distance To Bottom</display_name>
-      <description>The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. A value of 'auto' will use the same height as the foundation.</description>
+      <display_name>Foundation Wall: Insulation Distance To Bottom</display_name>
+      <description>The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. A value of 'auto' will use the height of the foundation wall.</description>
       <type>String</type>
       <units>ft</units>
       <required>true</required>
@@ -833,7 +940,7 @@
     </argument>
     <argument>
       <name>foundation_wall_assembly_r</name>
-      <display_name>Foundation: Wall Assembly R-value</display_name>
+      <display_name>Foundation Wall: Assembly R-value</display_name>
       <description>Assembly R-value for the foundation walls. Only applies to basements/crawlspaces. If provided, overrides the previous foundation wall insulation inputs.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
@@ -842,7 +949,7 @@
     </argument>
     <argument>
       <name>foundation_wall_thickness</name>
-      <display_name>Foundation: Wall Thickness</display_name>
+      <display_name>Foundation Wall: Thickness</display_name>
       <description>The thickness of the foundation wall.</description>
       <type>String</type>
       <required>true</required>
@@ -935,7 +1042,7 @@
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>30</default_value>
+      <default_value>31.6</default_value>
     </argument>
     <argument>
       <name>roof_material_type</name>
@@ -1027,7 +1134,7 @@
     <argument>
       <name>roof_radiant_barrier</name>
       <display_name>Roof: Has Radiant Barrier</display_name>
-      <description>Specifies whether the attic has a radiant barrier.</description>
+      <description>Presence of a radiant barrier in the attic.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1067,89 +1174,9 @@
       </choices>
     </argument>
     <argument>
-      <name>neighbor_front_distance</name>
-      <display_name>Neighbor: Front Distance</display_name>
-      <description>The minimum distance between the simulated unit and the neighboring building to the front (not including eaves). A value of zero indicates no neighbors.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>neighbor_back_distance</name>
-      <display_name>Neighbor: Back Distance</display_name>
-      <description>The minimum distance between the simulated unit and the neighboring building to the back (not including eaves). A value of zero indicates no neighbors.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>neighbor_left_distance</name>
-      <display_name>Neighbor: Left Distance</display_name>
-      <description>The minimum distance between the simulated unit and the neighboring building to the left (not including eaves). A value of zero indicates no neighbors.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>10</default_value>
-    </argument>
-    <argument>
-      <name>neighbor_right_distance</name>
-      <display_name>Neighbor: Right Distance</display_name>
-      <description>The minimum distance between the simulated unit and the neighboring building to the right (not including eaves). A value of zero indicates no neighbors.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>10</default_value>
-    </argument>
-    <argument>
-      <name>neighbor_front_height</name>
-      <display_name>Neighbor: Front Height</display_name>
-      <description>The height of the neighboring building to the front. A value of 'auto' will use the same height as this building.</description>
-      <type>String</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>neighbor_back_height</name>
-      <display_name>Neighbor: Back Height</display_name>
-      <description>The height of the neighboring building to the back. A value of 'auto' will use the same height as this building.</description>
-      <type>String</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>neighbor_left_height</name>
-      <display_name>Neighbor: Left Height</display_name>
-      <description>The height of the neighboring building to the left. A value of 'auto' will use the same height as this building.</description>
-      <type>String</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
-      <name>neighbor_right_height</name>
-      <display_name>Neighbor: Right Height</display_name>
-      <description>The height of the neighboring building to the right. A value of 'auto' will use the same height as this building.</description>
-      <type>String</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>wall_type</name>
-      <display_name>Walls: Type</display_name>
-      <description>The type of exterior walls.</description>
+      <display_name>Wall: Type</display_name>
+      <description>The type of walls.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1204,7 +1231,7 @@
     <argument>
       <name>wall_siding_type</name>
       <display_name>Wall: Siding Type</display_name>
-      <description>The siding type of the exterior walls. Also applies to rim joists.</description>
+      <description>The siding type of the walls. Also applies to rim joists.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -1258,7 +1285,7 @@
     <argument>
       <name>wall_color</name>
       <display_name>Wall: Color</display_name>
-      <description>The color of the exterior walls. Also applies to rim joists.</description>
+      <description>The color of the walls. Also applies to rim joists.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1288,13 +1315,13 @@
     </argument>
     <argument>
       <name>wall_assembly_r</name>
-      <display_name>Walls: Assembly R-value</display_name>
-      <description>Assembly R-value of the exterior walls.</description>
+      <display_name>Wall: Assembly R-value</display_name>
+      <description>Assembly R-value of the walls.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>13</default_value>
+      <default_value>11.9</default_value>
     </argument>
     <argument>
       <name>window_front_wwr</name>
@@ -1388,7 +1415,7 @@
     <argument>
       <name>window_ufactor</name>
       <display_name>Windows: U-Factor</display_name>
-      <description>The heat transfer coefficient of the windows.</description>
+      <description>Full-assembly NFRC U-factor.</description>
       <type>Double</type>
       <units>Btu/hr-ft^2-R</units>
       <required>true</required>
@@ -1398,7 +1425,7 @@
     <argument>
       <name>window_shgc</name>
       <display_name>Windows: SHGC</display_name>
-      <description>The ratio of solar heat gain through a glazing system compared to that of an unobstructed opening, for windows.</description>
+      <description>Full-assembly NFRC solar heat gain coefficient.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1438,8 +1465,8 @@
     </argument>
     <argument>
       <name>overhangs_front_depth</name>
-      <display_name>Overhangs: Front Facade Depth</display_name>
-      <description>Specifies the depth of overhangs for windows on the front facade.</description>
+      <display_name>Overhangs: Front Depth</display_name>
+      <description>The depth of overhangs for windows for the front facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1447,8 +1474,8 @@
     </argument>
     <argument>
       <name>overhangs_front_distance_to_top_of_window</name>
-      <display_name>Overhangs: Front Facade Distance to Top of Window</display_name>
-      <description>Specifies the distance to the top of window of overhangs for windows on the front facade.</description>
+      <display_name>Overhangs: Front Distance to Top of Window</display_name>
+      <description>The overhangs distance to the top of window for the front facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1456,8 +1483,8 @@
     </argument>
     <argument>
       <name>overhangs_back_depth</name>
-      <display_name>Overhangs: Back Facade Depth</display_name>
-      <description>Specifies the depth of overhangs for windows on the back facade.</description>
+      <display_name>Overhangs: Back Depth</display_name>
+      <description>The depth of overhangs for windows for the back facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1465,8 +1492,8 @@
     </argument>
     <argument>
       <name>overhangs_back_distance_to_top_of_window</name>
-      <display_name>Overhangs: Back Facade Distance to Top of Window</display_name>
-      <description>Specifies the distance to the top of window of overhangs for windows on the back facade.</description>
+      <display_name>Overhangs: Back Distance to Top of Window</display_name>
+      <description>The overhangs distance to the top of window for the back facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1474,8 +1501,8 @@
     </argument>
     <argument>
       <name>overhangs_left_depth</name>
-      <display_name>Overhangs: Left Facade Depth</display_name>
-      <description>Specifies the depth of overhangs for windows on the left facade.</description>
+      <display_name>Overhangs: Left Depth</display_name>
+      <description>The depth of overhangs for windows for the left facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1483,8 +1510,8 @@
     </argument>
     <argument>
       <name>overhangs_left_distance_to_top_of_window</name>
-      <display_name>Overhangs: Left Facade Distance to Top of Window</display_name>
-      <description>Specifies the distance to the top of window of overhangs for windows on the left facade.</description>
+      <display_name>Overhangs: Left Distance to Top of Window</display_name>
+      <description>The overhangs distance to the top of window for the left facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1492,8 +1519,8 @@
     </argument>
     <argument>
       <name>overhangs_right_depth</name>
-      <display_name>Overhangs: Right Facade Depth</display_name>
-      <description>Specifies the depth of overhangs for windows on the right facade.</description>
+      <display_name>Overhangs: Right Depth</display_name>
+      <description>The depth of overhangs for windows for the right facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1501,8 +1528,8 @@
     </argument>
     <argument>
       <name>overhangs_right_distance_to_top_of_window</name>
-      <display_name>Overhangs: Right Facade Distance to Top of Window</display_name>
-      <description>Specifies the distance to the top of window of overhangs for windows on the right facade.</description>
+      <display_name>Overhangs: Right Distance to Top of Window</display_name>
+      <description>The overhangs distance to the top of window for the right facade.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1547,7 +1574,7 @@
     <argument>
       <name>skylight_ufactor</name>
       <display_name>Skylights: U-Factor</display_name>
-      <description>The heat transfer coefficient of the skylights.</description>
+      <description>Full-assembly NFRC U-factor.</description>
       <type>Double</type>
       <units>Btu/hr-ft^2-R</units>
       <required>true</required>
@@ -1557,7 +1584,7 @@
     <argument>
       <name>skylight_shgc</name>
       <display_name>Skylights: SHGC</display_name>
-      <description>The ratio of solar heat gain through a glazing system compared to that of an unobstructed opening, for skylights.</description>
+      <description>Full-assembly NFRC solar heat gain coefficient.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1576,17 +1603,17 @@
     <argument>
       <name>door_rvalue</name>
       <display_name>Doors: R-value</display_name>
-      <description>R-value of the doors.</description>
+      <description>R-value of the opaque door(s).</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>5</default_value>
+      <default_value>4.4</default_value>
     </argument>
     <argument>
       <name>air_leakage_units</name>
       <display_name>Air Leakage: Units</display_name>
-      <description>The unit of measure for the above-grade living air leakage.</description>
+      <description>The unit of measure for the air leakage.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1609,7 +1636,7 @@
     <argument>
       <name>air_leakage_house_pressure</name>
       <display_name>Air Leakage: House Pressure</display_name>
-      <description>The pressure of the house for the above-grade living air leakage when the air leakage units are ACH or CFM.</description>
+      <description>The house pressure relative to outside. Required when units are ACH or CFM.</description>
       <type>Double</type>
       <units>Pa</units>
       <required>true</required>
@@ -1619,38 +1646,11 @@
     <argument>
       <name>air_leakage_value</name>
       <display_name>Air Leakage: Value</display_name>
-      <description>Air exchange rate, in ACH or CFM at the specified house pressure.</description>
+      <description>Air exchange rate value.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>3</default_value>
-    </argument>
-    <argument>
-      <name>air_leakage_shielding_of_home</name>
-      <display_name>Air Leakage: Shielding of Home</display_name>
-      <description>Presence of nearby buildings, trees, obstructions for infiltration model.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>exposed</value>
-          <display_name>exposed</display_name>
-        </choice>
-        <choice>
-          <value>normal</value>
-          <display_name>normal</display_name>
-        </choice>
-        <choice>
-          <value>well-shielded</value>
-          <display_name>well-shielded</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>heating_system_type</name>
@@ -1763,7 +1763,7 @@
     <argument>
       <name>heating_system_heating_capacity</name>
       <display_name>Heating System: Heating Capacity</display_name>
-      <description>The output heating capacity of the heating system. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.</description>
+      <description>The output heating capacity of the heating system. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>true</required>
@@ -1878,7 +1878,7 @@
     <argument>
       <name>cooling_system_cooling_capacity</name>
       <display_name>Cooling System: Cooling Capacity</display_name>
-      <description>The output cooling capacity of the cooling system. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.</description>
+      <description>The output cooling capacity of the cooling system. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
       <type>String</type>
       <units>tons</units>
       <required>true</required>
@@ -1898,7 +1898,7 @@
     <argument>
       <name>cooling_system_is_ducted</name>
       <display_name>Cooling System: Is Ducted</display_name>
-      <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler.</description>
+      <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted and room air conditioner is not ducted.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2037,7 +2037,7 @@
     <argument>
       <name>heat_pump_heating_capacity</name>
       <display_name>Heat Pump: Heating Capacity</display_name>
-      <description>The output heating capacity of the heat pump. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.</description>
+      <description>The output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter 'auto using max load' to size the capacity based on the maximum of heating/cooling design loads.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>true</required>
@@ -2057,7 +2057,7 @@
     <argument>
       <name>heat_pump_cooling_capacity</name>
       <display_name>Heat Pump: Cooling Capacity</display_name>
-      <description>The output cooling capacity of the heat pump. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.</description>
+      <description>The output cooling capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>true</required>
@@ -2127,7 +2127,7 @@
     <argument>
       <name>heat_pump_backup_heating_capacity</name>
       <display_name>Heat Pump: Backup Heating Capacity</display_name>
-      <description>The backup output heating capacity of the heat pump. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.</description>
+      <description>The backup output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>true</required>
@@ -2146,7 +2146,7 @@
     <argument>
       <name>heat_pump_is_ducted</name>
       <display_name>Heat Pump: Is Ducted</display_name>
-      <description>Whether the heat pump is ducted or not. Only used for mini-split.</description>
+      <description>Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted.</description>
       <type>Boolean</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2162,7 +2162,7 @@
       </choices>
     </argument>
     <argument>
-      <name>heating_system_type_2</name>
+      <name>heating_system_2_type</name>
       <display_name>Heating System 2: Type</display_name>
       <description>The type of the second heating system.</description>
       <type>Choice</type>
@@ -2205,7 +2205,7 @@
       </choices>
     </argument>
     <argument>
-      <name>heating_system_fuel_2</name>
+      <name>heating_system_2_fuel</name>
       <display_name>Heating System 2: Fuel Type</display_name>
       <description>The fuel type of the second heating system. Ignored for ElectricResistance.</description>
       <type>Choice</type>
@@ -2244,9 +2244,9 @@
       </choices>
     </argument>
     <argument>
-      <name>heating_system_heating_efficiency_2</name>
+      <name>heating_system_2_heating_efficiency</name>
       <display_name>Heating System 2: Rated AFUE or Percent</display_name>
-      <description>For Furnace/WallFurnace/FloorFurnace/Boiler second heating system, the rated AFUE value. For ElectricResistance/Stove/PortableHeater/Fireplace, the rated Percent value.</description>
+      <description>The rated heating efficiency value of the second heating system.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -2254,9 +2254,9 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>heating_system_heating_capacity_2</name>
+      <name>heating_system_2_heating_capacity</name>
       <display_name>Heating System 2: Heating Capacity</display_name>
-      <description>The output heating capacity of the second heating system. If using 'auto', the autosizing algorithm will use ACCA Manual J/S to set the capacity to meet its load served.</description>
+      <description>The output heating capacity of the second heating system. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>true</required>
@@ -2264,7 +2264,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>heating_system_fraction_heat_load_served_2</name>
+      <name>heating_system_2_fraction_heat_load_served</name>
       <display_name>Heating System 2: Fraction Heat Load Served</display_name>
       <description>The heat load served fraction of the second heating system.</description>
       <type>Double</type>
@@ -2274,17 +2274,17 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
-      <name>season_heating_period</name>
-      <display_name>Heating Season Period</display_name>
-      <description>Specifies the heating season. Enter a date like "Nov 1 - Jun 30".</description>
+      <name>hvac_control_heating_season_period</name>
+      <display_name>HVAC Control: Heating Season Period</display_name>
+      <description>Enter a date like "Nov 1 - Jun 30".</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>season_cooling_period</name>
-      <display_name>Cooling Season Period</display_name>
-      <description>Specifies the cooling season. Enter a date like "Jun 1 - Oct 31".</description>
+      <name>hvac_control_cooling_season_period</name>
+      <display_name>HVAC Control: Cooling Season Period</display_name>
+      <description>Enter a date like "Jun 1 - Oct 31".</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2309,18 +2309,18 @@
       </choices>
     </argument>
     <argument>
-      <name>ducts_supply_leakage_value</name>
-      <display_name>Ducts: Supply Leakage Value</display_name>
-      <description>The leakage value to outside of the supply ducts.</description>
+      <name>ducts_supply_leakage_to_outside_value</name>
+      <display_name>Ducts: Supply Leakage to Outside Value</display_name>
+      <description>The leakage value to outside for the supply ducts.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>75</default_value>
     </argument>
     <argument>
-      <name>ducts_return_leakage_value</name>
-      <display_name>Ducts: Return Leakage Value</display_name>
-      <description>The leakage value to outside of the return ducts.</description>
+      <name>ducts_return_leakage_to_outside_value</name>
+      <display_name>Ducts: Return Leakage to Outside Value</display_name>
+      <description>The leakage value to outside for the return ducts.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2329,7 +2329,7 @@
     <argument>
       <name>ducts_supply_insulation_r</name>
       <display_name>Ducts: Supply Insulation R-Value</display_name>
-      <description>The insulation r-value of the supply ducts.</description>
+      <description>The insulation r-value of the supply ducts excluding air films.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
@@ -2339,7 +2339,7 @@
     <argument>
       <name>ducts_return_insulation_r</name>
       <display_name>Ducts: Return Insulation R-Value</display_name>
-      <description>The insulation r-value of the return ducts.</description>
+      <description>The insulation r-value of the return ducts excluding air films.</description>
       <type>Double</type>
       <units>h-ft^2-R/Btu</units>
       <required>true</required>
@@ -2653,7 +2653,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>shared_mech_vent_frac_recirculation</name>
+      <name>mech_vent_shared_frac_recirculation</name>
       <display_name>Shared Mechanical Ventilation: Fraction Recirculation</display_name>
       <description>Fraction of the total supply air that is recirculated, with the remainder assumed to be outdoor air. The value must be 0 for exhaust only systems. This is required for a shared mechanical ventilation system.</description>
       <type>Double</type>
@@ -2662,7 +2662,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>shared_mech_vent_preheating_fuel</name>
+      <name>mech_vent_shared_preheating_fuel</name>
       <display_name>Shared Mechanical Ventilation: Preheating Fuel</display_name>
       <description>Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system.</description>
       <type>Choice</type>
@@ -2700,7 +2700,7 @@
       </choices>
     </argument>
     <argument>
-      <name>shared_mech_vent_preheating_efficiency</name>
+      <name>mech_vent_shared_preheating_efficiency</name>
       <display_name>Shared Mechanical Ventilation: Preheating Efficiency</display_name>
       <description>Efficiency of the preconditioning heating equipment. Only used for a shared mechanical ventilation system.</description>
       <type>Double</type>
@@ -2709,7 +2709,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>shared_mech_vent_preheating_fraction_heat_load_served</name>
+      <name>mech_vent_shared_preheating_fraction_heat_load_served</name>
       <display_name>Shared Mechanical Ventilation: Preheating Fraction Ventilation Heat Load Served</display_name>
       <description>Fraction of heating load introduced by the shared ventilation system that is met by the preconditioning heating equipment.</description>
       <type>Double</type>
@@ -2718,7 +2718,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>shared_mech_vent_precooling_fuel</name>
+      <name>mech_vent_shared_precooling_fuel</name>
       <display_name>Shared Mechanical Ventilation: Precooling Fuel</display_name>
       <description>Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system.</description>
       <type>Choice</type>
@@ -2732,7 +2732,7 @@
       </choices>
     </argument>
     <argument>
-      <name>shared_mech_vent_precooling_efficiency</name>
+      <name>mech_vent_shared_precooling_efficiency</name>
       <display_name>Shared Mechanical Ventilation: Precooling Efficiency</display_name>
       <description>Efficiency of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system.</description>
       <type>Double</type>
@@ -2741,7 +2741,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>shared_mech_vent_precooling_fraction_cool_load_served</name>
+      <name>mech_vent_shared_precooling_fraction_cool_load_served</name>
       <display_name>Shared Mechanical Ventilation: Precooling Fraction Ventilation Cool Load Served</display_name>
       <description>Fraction of cooling load introduced by the shared ventilation system that is met by the preconditioning cooling equipment.</description>
       <type>Double</type>
@@ -2750,7 +2750,7 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>mech_vent_fan_type_2</name>
+      <name>mech_vent_2_fan_type</name>
       <display_name>Mechanical Ventilation 2: Fan Type</display_name>
       <description>The type of the second mechanical ventilation. Use 'none' if there is no second mechanical ventilation system.</description>
       <type>Choice</type>
@@ -2785,7 +2785,7 @@
       </choices>
     </argument>
     <argument>
-      <name>mech_vent_flow_rate_2</name>
+      <name>mech_vent_2_flow_rate</name>
       <display_name>Mechanical Ventilation 2: Flow Rate</display_name>
       <description>The flow rate of the second mechanical ventilation.</description>
       <type>Double</type>
@@ -2795,7 +2795,7 @@
       <default_value>110</default_value>
     </argument>
     <argument>
-      <name>mech_vent_hours_in_operation_2</name>
+      <name>mech_vent_2_hours_in_operation</name>
       <display_name>Mechanical Ventilation 2: Hours In Operation</display_name>
       <description>The hours in operation of the second mechanical ventilation.</description>
       <type>Double</type>
@@ -2805,7 +2805,7 @@
       <default_value>24</default_value>
     </argument>
     <argument>
-      <name>mech_vent_recovery_efficiency_type_2</name>
+      <name>mech_vent_2_recovery_efficiency_type</name>
       <display_name>Mechanical Ventilation 2: Total Recovery Efficiency Type</display_name>
       <description>The total recovery efficiency type of the second mechanical ventilation.</description>
       <type>Choice</type>
@@ -2824,7 +2824,7 @@
       </choices>
     </argument>
     <argument>
-      <name>mech_vent_total_recovery_efficiency_2</name>
+      <name>mech_vent_2_total_recovery_efficiency</name>
       <display_name>Mechanical Ventilation 2: Total Recovery Efficiency</display_name>
       <description>The Unadjusted or Adjusted total recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator.</description>
       <type>Double</type>
@@ -2834,7 +2834,7 @@
       <default_value>0.48</default_value>
     </argument>
     <argument>
-      <name>mech_vent_sensible_recovery_efficiency_2</name>
+      <name>mech_vent_2_sensible_recovery_efficiency</name>
       <display_name>Mechanical Ventilation 2: Sensible Recovery Efficiency</display_name>
       <description>The Unadjusted or Adjusted sensible recovery efficiency of the second mechanical ventilation. Applies to energy recovery ventilator and heat recovery ventilator.</description>
       <type>Double</type>
@@ -2844,7 +2844,7 @@
       <default_value>0.72</default_value>
     </argument>
     <argument>
-      <name>mech_vent_fan_power_2</name>
+      <name>mech_vent_2_fan_power</name>
       <display_name>Mechanical Ventilation 2: Fan Power</display_name>
       <description>The fan power of the second mechanical ventilation.</description>
       <type>Double</type>
@@ -3242,7 +3242,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>dhw_distribution_system_type</name>
+      <name>hot_water_distribution_system_type</name>
       <display_name>Hot Water Distribution: System Type</display_name>
       <description>The type of the hot water distribution system.</description>
       <type>Choice</type>
@@ -3261,7 +3261,7 @@
       </choices>
     </argument>
     <argument>
-      <name>dhw_distribution_standard_piping_length</name>
+      <name>hot_water_distribution_standard_piping_length</name>
       <display_name>Hot Water Distribution: Standard Piping Length</display_name>
       <description>If the distribution system is Standard, the length of the piping. A value of 'auto' will use a default.</description>
       <type>String</type>
@@ -3271,7 +3271,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>dhw_distribution_recirc_control_type</name>
+      <name>hot_water_distribution_recirc_control_type</name>
       <display_name>Hot Water Distribution: Recirculation Control Type</display_name>
       <description>If the distribution system is Recirculation, the type of hot water recirculation control, if any.</description>
       <type>Choice</type>
@@ -3302,7 +3302,7 @@
       </choices>
     </argument>
     <argument>
-      <name>dhw_distribution_recirc_piping_length</name>
+      <name>hot_water_distribution_recirc_piping_length</name>
       <display_name>Hot Water Distribution: Recirculation Piping Length</display_name>
       <description>If the distribution system is Recirculation, the length of the recirculation piping.</description>
       <type>String</type>
@@ -3312,7 +3312,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>dhw_distribution_recirc_branch_piping_length</name>
+      <name>hot_water_distribution_recirc_branch_piping_length</name>
       <display_name>Hot Water Distribution: Recirculation Branch Piping Length</display_name>
       <description>If the distribution system is Recirculation, the length of the recirculation branch piping.</description>
       <type>String</type>
@@ -3322,7 +3322,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>dhw_distribution_recirc_pump_power</name>
+      <name>hot_water_distribution_recirc_pump_power</name>
       <display_name>Hot Water Distribution: Recirculation Pump Power</display_name>
       <description>If the distribution system is Recirculation, the recirculation pump power.</description>
       <type>String</type>
@@ -3332,7 +3332,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>dhw_distribution_pipe_r</name>
+      <name>hot_water_distribution_pipe_r</name>
       <display_name>Hot Water Distribution: Pipe Insulation Nominal R-Value</display_name>
       <description>Nominal R-value of the pipe insulation.</description>
       <type>String</type>
@@ -3580,9 +3580,9 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>pv_system_module_type_1</name>
-      <display_name>Photovoltaics 1: Module Type</display_name>
-      <description>Module type of the PV system 1. Use 'none' if there is no PV system 1.</description>
+      <name>pv_system_module_type</name>
+      <display_name>PV System: Module Type</display_name>
+      <description>Module type of the PV system. Use 'none' if there is no PV system 1.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3611,9 +3611,9 @@
       </choices>
     </argument>
     <argument>
-      <name>pv_system_location_1</name>
-      <display_name>Photovoltaics 1: Location</display_name>
-      <description>Location of the PV system 1.</description>
+      <name>pv_system_location</name>
+      <display_name>PV System: Location</display_name>
+      <description>Location of the PV system.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3634,9 +3634,9 @@
       </choices>
     </argument>
     <argument>
-      <name>pv_system_tracking_1</name>
-      <display_name>Photovoltaics 1: Tracking</display_name>
-      <description>Tracking of the PV system 1.</description>
+      <name>pv_system_tracking</name>
+      <display_name>PV System: Tracking</display_name>
+      <description>Tracking of the PV system.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3665,9 +3665,9 @@
       </choices>
     </argument>
     <argument>
-      <name>pv_system_array_azimuth_1</name>
-      <display_name>Photovoltaics 1: Array Azimuth</display_name>
-      <description>Array azimuth of the PV system 1. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
+      <name>pv_system_array_azimuth</name>
+      <display_name>PV System: Array Azimuth</display_name>
+      <description>Array azimuth of the PV system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -3675,9 +3675,9 @@
       <default_value>180</default_value>
     </argument>
     <argument>
-      <name>pv_system_array_tilt_1</name>
-      <display_name>Photovoltaics 1: Array Tilt</display_name>
-      <description>Array tilt of the PV system 1. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.</description>
+      <name>pv_system_array_tilt</name>
+      <display_name>PV System: Array Tilt</display_name>
+      <description>Array tilt of the PV system. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.</description>
       <type>String</type>
       <units>degrees</units>
       <required>true</required>
@@ -3685,9 +3685,9 @@
       <default_value>RoofPitch</default_value>
     </argument>
     <argument>
-      <name>pv_system_max_power_output_1</name>
-      <display_name>Photovoltaics 1: Maximum Power Output</display_name>
-      <description>Maximum power output of the PV system 1. For a shared system, this is the total building maximum power output.</description>
+      <name>pv_system_max_power_output</name>
+      <display_name>PV System: Maximum Power Output</display_name>
+      <description>Maximum power output of the PV system. For a shared system, this is the total building maximum power output.</description>
       <type>Double</type>
       <units>W</units>
       <required>true</required>
@@ -3695,27 +3695,27 @@
       <default_value>4000</default_value>
     </argument>
     <argument>
-      <name>pv_system_inverter_efficiency_1</name>
-      <display_name>Photovoltaics 1: Inverter Efficiency</display_name>
-      <description>Inverter efficiency of the PV system 1.</description>
+      <name>pv_system_inverter_efficiency</name>
+      <display_name>PV System: Inverter Efficiency</display_name>
+      <description>Inverter efficiency of the PV system.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>pv_system_system_losses_fraction_1</name>
-      <display_name>Photovoltaics 1: System Losses Fraction</display_name>
-      <description>System losses fraction of the PV system 1.</description>
+      <name>pv_system_system_losses_fraction</name>
+      <display_name>PV System: System Losses Fraction</display_name>
+      <description>System losses fraction of the PV system.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>pv_system_num_units_served_1</name>
-      <display_name>Photovoltaics 1: Number of Units Served</display_name>
-      <description>Number of dwelling units served by PV system 1. Must be 1 if single-family detached. Used to apportion PV generation to the unit.</description>
+      <name>pv_system_num_units_served</name>
+      <display_name>PV System: Number of Units Served</display_name>
+      <description>Number of dwelling units served by PV system. Must be 1 if single-family detached. Used to apportion PV generation to the unit.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -3723,9 +3723,9 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>pv_system_module_type_2</name>
-      <display_name>Photovoltaics 2: Module Type</display_name>
-      <description>Module type of the PV system 2. Use 'none' if there is no PV system 2.</description>
+      <name>pv_system_2_module_type</name>
+      <display_name>PV System 2: Module Type</display_name>
+      <description>Module type of the second PV system. Use 'none' if there is no PV system 2.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3754,9 +3754,9 @@
       </choices>
     </argument>
     <argument>
-      <name>pv_system_location_2</name>
-      <display_name>Photovoltaics 2: Location</display_name>
-      <description>Location of the PV system 2.</description>
+      <name>pv_system_2_location</name>
+      <display_name>PV System 2: Location</display_name>
+      <description>Location of the second PV system.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3777,9 +3777,9 @@
       </choices>
     </argument>
     <argument>
-      <name>pv_system_tracking_2</name>
-      <display_name>Photovoltaics 2: Tracking</display_name>
-      <description>Tracking of the PV system 2.</description>
+      <name>pv_system_2_tracking</name>
+      <display_name>PV System 2: Tracking</display_name>
+      <description>Tracking of the second PV system.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3808,9 +3808,9 @@
       </choices>
     </argument>
     <argument>
-      <name>pv_system_array_azimuth_2</name>
-      <display_name>Photovoltaics 2: Array Azimuth</display_name>
-      <description>Array azimuth of the PV system 2. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
+      <name>pv_system_2_array_azimuth</name>
+      <display_name>PV System 2: Array Azimuth</display_name>
+      <description>Array azimuth of the second PV system. Azimuth is measured clockwise from north (e.g., North=0, East=90, South=180, West=270).</description>
       <type>Double</type>
       <units>degrees</units>
       <required>true</required>
@@ -3818,9 +3818,9 @@
       <default_value>180</default_value>
     </argument>
     <argument>
-      <name>pv_system_array_tilt_2</name>
-      <display_name>Photovoltaics 2: Array Tilt</display_name>
-      <description>Array tilt of the PV system 2. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.</description>
+      <name>pv_system_2_array_tilt</name>
+      <display_name>PV System 2: Array Tilt</display_name>
+      <description>Array tilt of the second PV system. Can also enter, e.g., RoofPitch, RoofPitch+20, Latitude, Latitude-15, etc.</description>
       <type>String</type>
       <units>degrees</units>
       <required>true</required>
@@ -3828,9 +3828,9 @@
       <default_value>RoofPitch</default_value>
     </argument>
     <argument>
-      <name>pv_system_max_power_output_2</name>
-      <display_name>Photovoltaics 2: Maximum Power Output</display_name>
-      <description>Maximum power output of the PV system 2. For a shared system, this is the total building maximum power output.</description>
+      <name>pv_system_2_max_power_output</name>
+      <display_name>PV System 2: Maximum Power Output</display_name>
+      <description>Maximum power output of the second PV system. For a shared system, this is the total building maximum power output.</description>
       <type>Double</type>
       <units>W</units>
       <required>true</required>
@@ -3838,27 +3838,27 @@
       <default_value>4000</default_value>
     </argument>
     <argument>
-      <name>pv_system_inverter_efficiency_2</name>
-      <display_name>Photovoltaics 2: Inverter Efficiency</display_name>
-      <description>Inverter efficiency of the PV system 2.</description>
+      <name>pv_system_2_inverter_efficiency</name>
+      <display_name>PV System 2: Inverter Efficiency</display_name>
+      <description>Inverter efficiency of the second PV system.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>pv_system_system_losses_fraction_2</name>
-      <display_name>Photovoltaics 2: System Losses Fraction</display_name>
-      <description>System losses fraction of the PV system 2.</description>
+      <name>pv_system_2_system_losses_fraction</name>
+      <display_name>PV System 2: System Losses Fraction</display_name>
+      <description>System losses fraction of the second PV system.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>pv_system_num_units_served_2</name>
-      <display_name>Photovoltaics 2: Number of Units Served</display_name>
-      <description>Number of dwelling units served by PV system 2. Must be 1 if single-family detached. Used to apportion PV generation to the unit.</description>
+      <name>pv_system_2_num_units_served</name>
+      <display_name>PV System 2: Number of Units Served</display_name>
+      <description>Number of dwelling units served by second PV system. Must be 1 if single-family detached. Used to apportion PV generation to the unit.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -3866,8 +3866,8 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>lighting_fraction_cfl_interior</name>
-      <display_name>Lighting: Fraction CFL Interior</display_name>
+      <name>lighting_interior_fraction_cfl</name>
+      <display_name>Lighting: Interior Fraction CFL</display_name>
       <description>Fraction of all lamps (interior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -3875,8 +3875,8 @@
       <default_value>0.4</default_value>
     </argument>
     <argument>
-      <name>lighting_fraction_lfl_interior</name>
-      <display_name>Lighting: Fraction LFL Interior</display_name>
+      <name>lighting_interior_fraction_lfl</name>
+      <display_name>Lighting: Interior Fraction LFL</display_name>
       <description>Fraction of all lamps (interior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -3884,8 +3884,8 @@
       <default_value>0.1</default_value>
     </argument>
     <argument>
-      <name>lighting_fraction_led_interior</name>
-      <display_name>Lighting: Fraction LED Interior</display_name>
+      <name>lighting_interior_fraction_led</name>
+      <display_name>Lighting: Interior Fraction LED</display_name>
       <description>Fraction of all lamps (interior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -3893,8 +3893,8 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
-      <name>lighting_usage_multiplier_interior</name>
-      <display_name>Lighting: Usage Multiplier Interior</display_name>
+      <name>lighting_interior_usage_multiplier</name>
+      <display_name>Lighting: Interior Usage Multiplier</display_name>
       <description>Multiplier on the lighting energy usage (interior) that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
       <required>true</required>
@@ -3902,8 +3902,8 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>lighting_fraction_cfl_exterior</name>
-      <display_name>Lighting: Fraction CFL Exterior</display_name>
+      <name>lighting_exterior_fraction_cfl</name>
+      <display_name>Lighting: Exterior Fraction CFL</display_name>
       <description>Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -3911,8 +3911,8 @@
       <default_value>0.4</default_value>
     </argument>
     <argument>
-      <name>lighting_fraction_lfl_exterior</name>
-      <display_name>Lighting: Fraction LFL Exterior</display_name>
+      <name>lighting_exterior_fraction_lfl</name>
+      <display_name>Lighting: Exterior Fraction LFL</display_name>
       <description>Fraction of all lamps (exterior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -3920,8 +3920,8 @@
       <default_value>0.1</default_value>
     </argument>
     <argument>
-      <name>lighting_fraction_led_exterior</name>
-      <display_name>Lighting: Fraction LED Exterior</display_name>
+      <name>lighting_exterior_fraction_led</name>
+      <display_name>Lighting: Exterior Fraction LED</display_name>
       <description>Fraction of all lamps (exterior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -3929,8 +3929,8 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
-      <name>lighting_usage_multiplier_exterior</name>
-      <display_name>Lighting: Usage Multiplier Exterior</display_name>
+      <name>lighting_exterior_usage_multiplier</name>
+      <display_name>Lighting: Exterior Usage Multiplier</display_name>
       <description>Multiplier on the lighting energy usage (exterior) that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
       <required>true</required>
@@ -3938,8 +3938,8 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>lighting_fraction_cfl_garage</name>
-      <display_name>Lighting: Fraction CFL Garage</display_name>
+      <name>lighting_garage_fraction_cfl</name>
+      <display_name>Lighting: Garage Fraction CFL</display_name>
       <description>Fraction of all lamps (garage) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -3947,8 +3947,8 @@
       <default_value>0.4</default_value>
     </argument>
     <argument>
-      <name>lighting_fraction_lfl_garage</name>
-      <display_name>Lighting: Fraction LFL Garage</display_name>
+      <name>lighting_garage_fraction_lfl</name>
+      <display_name>Lighting: Garage Fraction LFL</display_name>
       <description>Fraction of all lamps (garage) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -3956,8 +3956,8 @@
       <default_value>0.1</default_value>
     </argument>
     <argument>
-      <name>lighting_fraction_led_garage</name>
-      <display_name>Lighting: Fraction LED Garage</display_name>
+      <name>lighting_garage_fraction_led</name>
+      <display_name>Lighting: Garage Fraction LED</display_name>
       <description>Fraction of all lamps (garage) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
@@ -3965,8 +3965,8 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
-      <name>lighting_usage_multiplier_garage</name>
-      <display_name>Lighting: Usage Multiplier Garage</display_name>
+      <name>lighting_garage_usage_multiplier</name>
+      <display_name>Lighting: Garage Usage Multiplier</display_name>
       <description>Multiplier on the lighting energy usage (garage) that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
       <required>true</required>
@@ -4005,7 +4005,7 @@
     <argument>
       <name>holiday_lighting_period</name>
       <display_name>Holiday Lighting: Period</display_name>
-      <description>Specifies the holiday lighting period. Enter a date like "Nov 25 - Jan 5".</description>
+      <description>Enter a date like "Nov 25 - Jan 5".</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -4905,8 +4905,8 @@
       <default_value>0.5</default_value>
     </argument>
     <argument>
-      <name>plug_loads_other_annual_kwh</name>
-      <display_name>Plug Loads: Other Annual kWh</display_name>
+      <name>misc_plug_loads_other_annual_kwh</name>
+      <display_name>Misc Plug Loads: Other Annual kWh</display_name>
       <description>The annual energy consumption of the other residual plug loads.</description>
       <type>String</type>
       <units>kWh/yr</units>
@@ -4915,8 +4915,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>plug_loads_other_frac_sensible</name>
-      <display_name>Plug Loads: Other Sensible Fraction</display_name>
+      <name>misc_plug_loads_other_frac_sensible</name>
+      <display_name>Misc Plug Loads: Other Sensible Fraction</display_name>
       <description>Fraction of other residual plug loads' internal gains that are sensible.</description>
       <type>String</type>
       <units>Frac</units>
@@ -4925,8 +4925,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>plug_loads_other_frac_latent</name>
-      <display_name>Plug Loads: Other Latent Fraction</display_name>
+      <name>misc_plug_loads_other_frac_latent</name>
+      <display_name>Misc Plug Loads: Other Latent Fraction</display_name>
       <description>Fraction of other residual plug loads' internal gains that are latent.</description>
       <type>String</type>
       <units>Frac</units>
@@ -4935,8 +4935,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>plug_loads_other_usage_multiplier</name>
-      <display_name>Plug Loads: Other Usage Multiplier</display_name>
+      <name>misc_plug_loads_other_usage_multiplier</name>
+      <display_name>Misc Plug Loads: Other Usage Multiplier</display_name>
       <description>Multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
       <required>true</required>
@@ -4944,8 +4944,8 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>plug_loads_well_pump_present</name>
-      <display_name>Plug Loads: Well Pump Present</display_name>
+      <name>misc_plug_loads_well_pump_present</name>
+      <display_name>Misc Plug Loads: Well Pump Present</display_name>
       <description>Whether there is a well pump.</description>
       <type>Boolean</type>
       <required>true</required>
@@ -4963,8 +4963,8 @@
       </choices>
     </argument>
     <argument>
-      <name>plug_loads_well_pump_annual_kwh</name>
-      <display_name>Plug Loads: Well Pump Annual kWh</display_name>
+      <name>misc_plug_loads_well_pump_annual_kwh</name>
+      <display_name>Misc Plug Loads: Well Pump Annual kWh</display_name>
       <description>The annual energy consumption of the well pump plug loads.</description>
       <type>String</type>
       <units>kWh/yr</units>
@@ -4973,8 +4973,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>plug_loads_well_pump_usage_multiplier</name>
-      <display_name>Plug Loads: Well Pump Usage Multiplier</display_name>
+      <name>misc_plug_loads_well_pump_usage_multiplier</name>
+      <display_name>Misc Plug Loads: Well Pump Usage Multiplier</display_name>
       <description>Multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
       <required>true</required>
@@ -4982,8 +4982,8 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>plug_loads_vehicle_present</name>
-      <display_name>Plug Loads: Vehicle Present</display_name>
+      <name>misc_plug_loads_vehicle_present</name>
+      <display_name>Misc Plug Loads: Vehicle Present</display_name>
       <description>Whether there is an electric vehicle.</description>
       <type>Boolean</type>
       <required>true</required>
@@ -5001,8 +5001,8 @@
       </choices>
     </argument>
     <argument>
-      <name>plug_loads_vehicle_annual_kwh</name>
-      <display_name>Plug Loads: Vehicle Annual kWh</display_name>
+      <name>misc_plug_loads_vehicle_annual_kwh</name>
+      <display_name>Misc Plug Loads: Vehicle Annual kWh</display_name>
       <description>The annual energy consumption of the electric vehicle plug loads.</description>
       <type>String</type>
       <units>kWh/yr</units>
@@ -5011,8 +5011,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>plug_loads_vehicle_usage_multiplier</name>
-      <display_name>Plug Loads: Vehicle Usage Multiplier</display_name>
+      <name>misc_plug_loads_vehicle_usage_multiplier</name>
+      <display_name>Misc Plug Loads: Vehicle Usage Multiplier</display_name>
       <description>Multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
       <required>true</required>
@@ -5020,8 +5020,8 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_grill_present</name>
-      <display_name>Fuel Loads: Grill Present</display_name>
+      <name>misc_fuel_loads_grill_present</name>
+      <display_name>Misc Fuel Loads: Grill Present</display_name>
       <description>Whether there is a fuel loads grill.</description>
       <type>Boolean</type>
       <required>true</required>
@@ -5039,8 +5039,8 @@
       </choices>
     </argument>
     <argument>
-      <name>fuel_loads_grill_fuel_type</name>
-      <display_name>Fuel Loads: Grill Fuel Type</display_name>
+      <name>misc_fuel_loads_grill_fuel_type</name>
+      <display_name>Misc Fuel Loads: Grill Fuel Type</display_name>
       <description>The fuel type of the fuel loads grill.</description>
       <type>Choice</type>
       <required>true</required>
@@ -5070,8 +5070,8 @@
       </choices>
     </argument>
     <argument>
-      <name>fuel_loads_grill_annual_therm</name>
-      <display_name>Fuel Loads: Grill Annual therm</display_name>
+      <name>misc_fuel_loads_grill_annual_therm</name>
+      <display_name>Misc Fuel Loads: Grill Annual therm</display_name>
       <description>The annual energy consumption of the fuel loads grill.</description>
       <type>String</type>
       <units>therm/yr</units>
@@ -5080,8 +5080,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_grill_usage_multiplier</name>
-      <display_name>Fuel Loads: Grill Usage Multiplier</display_name>
+      <name>misc_fuel_loads_grill_usage_multiplier</name>
+      <display_name>Misc Fuel Loads: Grill Usage Multiplier</display_name>
       <description>Multiplier on the fuel loads grill energy usage that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
       <required>true</required>
@@ -5089,8 +5089,8 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_lighting_present</name>
-      <display_name>Fuel Loads: Lighting Present</display_name>
+      <name>misc_fuel_loads_lighting_present</name>
+      <display_name>Misc Fuel Loads: Lighting Present</display_name>
       <description>Whether there is fuel loads lighting.</description>
       <type>Boolean</type>
       <required>true</required>
@@ -5108,8 +5108,8 @@
       </choices>
     </argument>
     <argument>
-      <name>fuel_loads_lighting_fuel_type</name>
-      <display_name>Fuel Loads: Lighting Fuel Type</display_name>
+      <name>misc_fuel_loads_lighting_fuel_type</name>
+      <display_name>Misc Fuel Loads: Lighting Fuel Type</display_name>
       <description>The fuel type of the fuel loads lighting.</description>
       <type>Choice</type>
       <required>true</required>
@@ -5139,8 +5139,8 @@
       </choices>
     </argument>
     <argument>
-      <name>fuel_loads_lighting_annual_therm</name>
-      <display_name>Fuel Loads: Lighting Annual therm</display_name>
+      <name>misc_fuel_loads_lighting_annual_therm</name>
+      <display_name>Misc Fuel Loads: Lighting Annual therm</display_name>
       <description>The annual energy consumption of the fuel loads lighting.</description>
       <type>String</type>
       <units>therm/yr</units>
@@ -5149,8 +5149,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_lighting_usage_multiplier</name>
-      <display_name>Fuel Loads: Lighting Usage Multiplier</display_name>
+      <name>misc_fuel_loads_lighting_usage_multiplier</name>
+      <display_name>Misc Fuel Loads: Lighting Usage Multiplier</display_name>
       <description>Multiplier on the fuel loads lighting energy usage that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
       <required>true</required>
@@ -5158,8 +5158,8 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_fireplace_present</name>
-      <display_name>Fuel Loads: Fireplace Present</display_name>
+      <name>misc_fuel_loads_fireplace_present</name>
+      <display_name>Misc Fuel Loads: Fireplace Present</display_name>
       <description>Whether there is fuel loads fireplace.</description>
       <type>Boolean</type>
       <required>true</required>
@@ -5177,8 +5177,8 @@
       </choices>
     </argument>
     <argument>
-      <name>fuel_loads_fireplace_fuel_type</name>
-      <display_name>Fuel Loads: Fireplace Fuel Type</display_name>
+      <name>misc_fuel_loads_fireplace_fuel_type</name>
+      <display_name>Misc Fuel Loads: Fireplace Fuel Type</display_name>
       <description>The fuel type of the fuel loads fireplace.</description>
       <type>Choice</type>
       <required>true</required>
@@ -5208,8 +5208,8 @@
       </choices>
     </argument>
     <argument>
-      <name>fuel_loads_fireplace_annual_therm</name>
-      <display_name>Fuel Loads: Fireplace Annual therm</display_name>
+      <name>misc_fuel_loads_fireplace_annual_therm</name>
+      <display_name>Misc Fuel Loads: Fireplace Annual therm</display_name>
       <description>The annual energy consumption of the fuel loads fireplace.</description>
       <type>String</type>
       <units>therm/yr</units>
@@ -5218,8 +5218,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_fireplace_frac_sensible</name>
-      <display_name>Fuel Loads: Fireplace Sensible Fraction</display_name>
+      <name>misc_fuel_loads_fireplace_frac_sensible</name>
+      <display_name>Misc Fuel Loads: Fireplace Sensible Fraction</display_name>
       <description>Fraction of fireplace residual fuel loads' internal gains that are sensible.</description>
       <type>String</type>
       <units>Frac</units>
@@ -5228,8 +5228,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_fireplace_frac_latent</name>
-      <display_name>Fuel Loads: Fireplace Latent Fraction</display_name>
+      <name>misc_fuel_loads_fireplace_frac_latent</name>
+      <display_name>Misc Fuel Loads: Fireplace Latent Fraction</display_name>
       <description>Fraction of fireplace residual fuel loads' internal gains that are latent.</description>
       <type>String</type>
       <units>Frac</units>
@@ -5238,8 +5238,8 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>fuel_loads_fireplace_usage_multiplier</name>
-      <display_name>Fuel Loads: Fireplace Usage Multiplier</display_name>
+      <name>misc_fuel_loads_fireplace_usage_multiplier</name>
+      <display_name>Misc Fuel Loads: Fireplace Usage Multiplier</display_name>
       <description>Multiplier on the fuel loads fireplace energy usage that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
       <required>true</required>
@@ -5471,8 +5471,8 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>geometry_cfa_bin</name>
-      <display_name>Geometry: Conditioned Floor Area Bin</display_name>
+      <name>geometry_unit_cfa_bin</name>
+      <display_name>Geometry: Unit Conditioned Floor Area Bin</display_name>
       <description>E.g., '2000-2499'</description>
       <type>String</type>
       <required>true</required>
@@ -5480,8 +5480,8 @@
       <default_value>2000-2499</default_value>
     </argument>
     <argument>
-      <name>geometry_cfa</name>
-      <display_name>Geometry: Conditioned Floor Area</display_name>
+      <name>geometry_unit_cfa</name>
+      <display_name>Geometry: Unit Conditioned Floor Area</display_name>
       <description>E.g., '2000' or 'auto'</description>
       <type>String</type>
       <units>sqft</units>
@@ -5490,7 +5490,7 @@
       <default_value>2000</default_value>
     </argument>
     <argument>
-      <name>plug_loads_other_usage_multiplier_2</name>
+      <name>misc_plug_loads_other_2_usage_multiplier</name>
       <display_name>Plug Loads: Other Usage Multiplier 2</display_name>
       <description>Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
@@ -5499,7 +5499,7 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>plug_loads_well_pump_usage_multiplier_2</name>
+      <name>misc_plug_loads_well_pump_2_usage_multiplier</name>
       <display_name>Plug Loads: Well Pump Usage Multiplier 2</display_name>
       <description>Additional multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
@@ -5508,7 +5508,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>plug_loads_vehicle_usage_multiplier_2</name>
+      <name>misc_plug_loads_vehicle_2_usage_multiplier</name>
       <display_name>Plug Loads: Vehicle Usage Multiplier 2</display_name>
       <description>Additional multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.</description>
       <type>Double</type>
@@ -5517,7 +5517,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>setpoint_heating_weekday_temp</name>
+      <name>hvac_control_heating_weekday_setpoint_temp</name>
       <display_name>Heating Setpoint: Weekday Temperature</display_name>
       <description>Specify the weekday heating setpoint temperature.</description>
       <type>Double</type>
@@ -5527,7 +5527,7 @@
       <default_value>71</default_value>
     </argument>
     <argument>
-      <name>setpoint_heating_weekend_temp</name>
+      <name>hvac_control_heating_weekend_setpoint_temp</name>
       <display_name>Heating Setpoint: Weekend Temperature</display_name>
       <description>Specify the weekend heating setpoint temperature.</description>
       <type>Double</type>
@@ -5537,7 +5537,7 @@
       <default_value>71</default_value>
     </argument>
     <argument>
-      <name>setpoint_heating_weekday_offset_magnitude</name>
+      <name>hvac_control_heating_weekday_setpoint_offset_magnitude</name>
       <display_name>Heating Setpoint: Weekday Offset Magnitude</display_name>
       <description>Specify the weekday heating offset magnitude.</description>
       <type>Double</type>
@@ -5547,7 +5547,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>setpoint_heating_weekend_offset_magnitude</name>
+      <name>hvac_control_heating_weekend_setpoint_offset_magnitude</name>
       <display_name>Heating Setpoint: Weekend Offset Magnitude</display_name>
       <description>Specify the weekend heating offset magnitude.</description>
       <type>Double</type>
@@ -5557,7 +5557,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>setpoint_heating_weekday_schedule</name>
+      <name>hvac_control_heating_weekday_setpoint_schedule</name>
       <display_name>Heating Setpoint: Weekday Schedule</display_name>
       <description>Specify the 24-hour comma-separated weekday heating schedule of 0s and 1s.</description>
       <type>String</type>
@@ -5566,7 +5566,7 @@
       <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
     </argument>
     <argument>
-      <name>setpoint_heating_weekend_schedule</name>
+      <name>hvac_control_heating_weekend_setpoint_schedule</name>
       <display_name>Heating Setpoint: Weekend Schedule</display_name>
       <description>Specify the 24-hour comma-separated weekend heating schedule of 0s and 1s.</description>
       <type>String</type>
@@ -5594,7 +5594,7 @@
       </choices>
     </argument>
     <argument>
-      <name>setpoint_cooling_weekday_temp</name>
+      <name>hvac_control_cooling_weekday_setpoint_temp</name>
       <display_name>Cooling Setpoint: Weekday Temperature</display_name>
       <description>Specify the weekday cooling setpoint temperature.</description>
       <type>Double</type>
@@ -5604,7 +5604,7 @@
       <default_value>76</default_value>
     </argument>
     <argument>
-      <name>setpoint_cooling_weekend_temp</name>
+      <name>hvac_control_cooling_weekend_setpoint_temp</name>
       <display_name>Cooling Setpoint: Weekend Temperature</display_name>
       <description>Specify the weekend cooling setpoint temperature.</description>
       <type>Double</type>
@@ -5614,7 +5614,7 @@
       <default_value>76</default_value>
     </argument>
     <argument>
-      <name>setpoint_cooling_weekday_offset_magnitude</name>
+      <name>hvac_control_cooling_weekday_setpoint_offset_magnitude</name>
       <display_name>Cooling Setpoint: Weekday Offset Magnitude</display_name>
       <description>Specify the weekday cooling offset magnitude.</description>
       <type>Double</type>
@@ -5624,7 +5624,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>setpoint_cooling_weekend_offset_magnitude</name>
+      <name>hvac_control_cooling_weekend_setpoint_offset_magnitude</name>
       <display_name>Cooling Setpoint: Weekend Offset Magnitude</display_name>
       <description>Specify the weekend cooling offset magnitude.</description>
       <type>Double</type>
@@ -5634,7 +5634,7 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>setpoint_cooling_weekday_schedule</name>
+      <name>hvac_control_cooling_weekday_setpoint_schedule</name>
       <display_name>Cooling Setpoint: Weekday Schedule</display_name>
       <description>Specify the 24-hour comma-separated weekday cooling schedule of 0s and 1s.</description>
       <type>String</type>
@@ -5643,7 +5643,7 @@
       <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
     </argument>
     <argument>
-      <name>setpoint_cooling_weekend_schedule</name>
+      <name>hvac_control_cooling_weekend_setpoint_schedule</name>
       <display_name>Cooling Setpoint: Weekend Schedule</display_name>
       <description>Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.</description>
       <type>String</type>
@@ -5680,7 +5680,7 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
-      <name>heating_system_has_flue_or_chimney_2</name>
+      <name>heating_system_2_has_flue_or_chimney</name>
       <display_name>Heating System 2: Has Flue or Chimney</display_name>
       <description>Whether the second heating system has a flue or chimney.</description>
       <type>String</type>
@@ -5779,7 +5779,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>EAE6ACC1</checksum>
+      <checksum>D92549D7</checksum>
     </file>
     <file>
       <version>
@@ -5790,7 +5790,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FCEA2177</checksum>
+      <checksum>464EC46B</checksum>
     </file>
   </files>
 </measure>
