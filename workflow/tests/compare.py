@@ -203,6 +203,7 @@ class BaseCompare:
 
             cols = sorted(list(set(base_df.columns) & set(feature_df.columns)))
             cols = remove_columns(cols)
+            n_cols = max(len(cols), 1)
 
             groups = [None]
             if display_columns:
@@ -215,12 +216,13 @@ class BaseCompare:
                             df[col] = df[col].map(enum_map)
 
                 groups = list(base_df[display_columns[0]].unique())
+            n_groups = max(len(groups), 1)
 
-            vertical_spacing = 0.3 / len(cols)
+            vertical_spacing = 0.3 / n_cols
             fig = make_subplots(
-                rows=len(cols),
-                cols=len(groups),
-                subplot_titles=groups * len(cols),
+                rows=n_cols,
+                cols=n_groups,
+                subplot_titles=groups * n_cols,
                 row_titles=[
                     f'<b>{f}</b>' for f in cols],
                 vertical_spacing=vertical_spacing)
@@ -290,10 +292,10 @@ class BaseCompare:
                     fig.update_yaxes(title_text='feature', row=nrow, col=ncol)
 
             fig['layout'].update(template='plotly_white')
-            fig.update_layout(width=800 * len(groups), height=600 * len(cols), autosize=False, font=dict(size=12))
+            fig.update_layout(width=800 * n_groups, height=600 * n_cols, autosize=False, font=dict(size=12))
 
             # Re-locate row titles above plots
-            increment = (1/len(cols)/2)*0.95
+            increment = (1/n_cols/2)*0.95
             for i in fig['layout']['annotations']:
                 text = i['text'].replace('<b>','').replace('</b>','')
                 if text in cols:
