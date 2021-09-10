@@ -2865,7 +2865,7 @@ class HPXML < Object
       XMLHelper.add_extension(heating_system, 'HeatingAirflowCFM', @heating_airflow_cfm, :float, @heating_airflow_cfm_isdefaulted) unless @heating_airflow_cfm.nil?
       XMLHelper.add_extension(heating_system, 'SeedId', @seed_id, :string) unless @seed_id.nil?
       if @primary_system
-        primary_heating_system = XMLHelper.add_element(primary_systems, 'PrimaryHeatingSystem')
+        primary_heating_system = XMLHelper.insert_element(primary_systems, 'PrimaryHeatingSystem')
         XMLHelper.add_attribute(primary_heating_system, 'idref', @id)
       end
     end
@@ -3232,7 +3232,7 @@ class HPXML < Object
       XMLHelper.add_extension(heat_pump, 'SharedLoopMotorEfficiency', @shared_loop_motor_efficiency, :float) unless @shared_loop_motor_efficiency.nil?
       XMLHelper.add_extension(heat_pump, 'SeedId', @seed_id, :string) unless @seed_id.nil?
       if @primary_heating_system
-        primary_heating_system = XMLHelper.add_element(primary_systems, 'PrimaryHeatingSystem')
+        primary_heating_system = XMLHelper.insert_element(primary_systems, 'PrimaryHeatingSystem')
         XMLHelper.add_attribute(primary_heating_system, 'idref', @id)
       end
       if @primary_cooling_system
