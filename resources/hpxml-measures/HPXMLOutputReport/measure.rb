@@ -116,7 +116,6 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Cost multipliers
     cost_multipliers.each do |cost_mult_type, cost_mult|
-      cost_mult.name = "Building Summary: #{cost_mult_type}"
       cost_mult.output = get_cost_multiplier(hpxml, cost_mult_type)
     end
 
@@ -127,6 +126,7 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
 
     # Units
     cost_multipliers.each do |cost_mult_type, cost_mult|
+      cost_mult.name = "Building Summary: #{cost_mult_type}"
       cost_mult.units = BS.get_units(cost_mult_type)
     end
 
@@ -297,6 +297,7 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def assign_primary_and_secondary(hpxml, cost_multipliers)
+    has_primary_heating_system = false
     hpxml.heating_systems.each do |heating_system|
       next if !heating_system.primary_system
 
@@ -304,8 +305,12 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
       cost_mult.output = cost_multipliers["#{BS::SizeHeatingSystem}: #{heating_system.id}"].output
       cost_multipliers["#{BS::SizeHeatingSystem}: Primary"] = cost_mult
 
-      hpxml.heating_systems.each do |heating_system2|
-        next if heating_system == heating_system2
+      has_primary_heating_system = true
+    end
+
+    if has_primary_heating_system
+      hpxml.heating_systems.each do |heating_system|
+        next if heating_system.primary_system
 
         if not cost_multipliers.keys.include?("#{BS::SizeHeatingSystem}: Secondary")
           cost_mult = BaseOutput.new
@@ -314,10 +319,11 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
         end
 
         cost_mult = cost_multipliers["#{BS::SizeHeatingSystem}: Secondary"]
-        cost_mult.output += cost_multipliers["#{BS::SizeHeatingSystem}: #{heating_system2.id}"].output
+        cost_mult.output += cost_multipliers["#{BS::SizeHeatingSystem}: #{heating_system.id}"].output
       end
     end
 
+    has_primary_cooling_system = false
     hpxml.cooling_systems.each do |cooling_system|
       next if !cooling_system.primary_system
 
@@ -325,8 +331,12 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
       cost_mult.output = cost_multipliers["#{BS::SizeCoolingSystem}: #{cooling_system.id}"].output
       cost_multipliers["#{BS::SizeCoolingSystem}: Primary"] = cost_mult
 
-      hpxml.cooling_systems.each do |cooling_system2|
-        next if cooling_system == cooling_system2
+      has_primary_cooling_system = true
+    end
+
+    if has_primary_cooling_system
+      hpxml.cooling_systems.each do |cooling_system|
+        next if cooling_system.primary_system
 
         if not cost_multipliers.keys.include?("#{BS::SizeCoolingSystem}: Secondary")
           cost_mult = BaseOutput.new
@@ -335,12 +345,12 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
         end
 
         cost_mult = cost_multipliers["#{BS::SizeCoolingSystem}: Secondary"]
-        cost_mult.output += cost_multipliers["#{BS::SizeCoolingSystem}: #{cooling_system2.id}"].output
+        cost_mult.output += cost_multipliers["#{BS::SizeCoolingSystem}: #{cooling_system.id}"].output
       end
     end
 
     hpxml.heat_pumps.each do |heat_pump|
-      next if !heat_pump.primary_system
+      next if !heat_pump.primary_heating_system
 
       cost_mult = BaseOutput.new
       cost_mult.output = cost_multipliers["#{BS::SizeHeatingSystem}: #{heat_pump.id}"].output
@@ -350,8 +360,12 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
       cost_mult.output = cost_multipliers["#{BS::SizeHeatPumpBackup}: #{heat_pump.id}"].output
       cost_multipliers["#{BS::SizeHeatPumpBackup}: Primary"] = cost_mult
 
-      hpxml.heat_pumps.each do |heat_pump2|
-        next if heat_pump == heat_pump2
+      has_primary_heating_system = true
+    end
+
+    if has_primary_heating_system
+      hpxml.heat_pumps.each do |heat_pump|
+        next if heat_pump.primary_heating_system
 
         if not cost_multipliers.keys.include?("#{BS::SizeHeatingSystem}: Secondary")
           cost_mult = BaseOutput.new
@@ -360,7 +374,7 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
         end
 
         cost_mult = cost_multipliers["#{BS::SizeHeatingSystem}: Secondary"]
-        cost_mult.output += cost_multipliers["#{BS::SizeHeatingSystem}: #{heat_pump2.id}"].output
+        cost_mult.output += cost_multipliers["#{BS::SizeHeatingSystem}: #{heat_pump.id}"].output
 
         if not cost_multipliers.keys.include?("#{BS::SizeHeatPumpBackup}: Secondary")
           cost_mult = BaseOutput.new
@@ -369,7 +383,32 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
         end
 
         cost_mult = cost_multipliers["#{BS::SizeHeatPumpBackup}: Secondary"]
-        cost_mult.output += cost_multipliers["#{BS::SizeHeatPumpBackup}: #{heat_pump2.id}"].output
+        cost_mult.output += cost_multipliers["#{BS::SizeHeatPumpBackup}: #{heat_pump.id}"].output
+      end
+    end
+
+    hpxml.heat_pumps.each do |heat_pump|
+      next if !heat_pump.primary_cooling_system
+
+      cost_mult = BaseOutput.new
+      cost_mult.output = cost_multipliers["#{BS::SizeCoolingSystem}: #{heat_pump.id}"].output
+      cost_multipliers["#{BS::SizeCoolingSystem}: Primary"] = cost_mult
+
+      has_primary_cooling_system = true
+    end
+
+    if has_primary_cooling_system
+      hpxml.heat_pumps.each do |heat_pump|
+        next if heat_pump.primary_cooling_system
+
+        if not cost_multipliers.keys.include?("#{BS::SizeCoolingSystem}: Secondary")
+          cost_mult = BaseOutput.new
+          cost_mult.output = 0
+          cost_multipliers["#{BS::SizeCoolingSystem}: Secondary"] = cost_mult
+        end
+
+        cost_mult = cost_multipliers["#{BS::SizeCoolingSystem}: Secondary"]
+        cost_mult.output += cost_multipliers["#{BS::SizeCoolingSystem}: #{heat_pump.id}"].output
       end
     end
   end

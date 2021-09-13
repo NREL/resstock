@@ -48,6 +48,7 @@ class HPXMLOutputReportTest < MiniTest::Test
     assert_includes(actual_rows.sort, 'Building Summary: Size Heating System: Secondary (kBtu/h)')
     assert_includes(actual_rows.sort, 'Building Summary: Size Cooling System: Primary (kBtu/h)')
     assert_includes(actual_rows.sort, 'Building Summary: Size Cooling System: Secondary (kBtu/h)')
+    assert_includes(actual_rows.sort, 'Building Summary: Size Heat Pump Backup: Secondary (kBtu/h)')
   end
 
   def test_base_xml
