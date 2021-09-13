@@ -36,28 +36,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   end
 
   def cost_multiplier_choices
-    return [
-      '',
-      'Fixed (1)',
-      'Wall Area, Above-Grade, Conditioned (ft^2)',
-      'Wall Area, Above-Grade, Exterior (ft^2)',
-      'Wall Area, Below-Grade (ft^2)',
-      'Floor Area, Conditioned (ft^2)',
-      'Floor Area, Attic (ft^2)',
-      'Floor Area, Lighting (ft^2)',
-      'Roof Area (ft^2)',
-      'Window Area (ft^2)',
-      'Door Area (ft^2)',
-      'Duct Unconditioned Surface Area (ft^2)',
-      'Size Heating System: Primary (kBtu/h)',
-      'Size Heating System: Secondary (kBtu/h)',
-      'Size Cooling System: Primary (kBtu/h)',
-      'Size Heat Pump Backup: Primary (kBtu/h)',
-      'Size Water Heater (gal)',
-      'Flow Rate, Mechanical Ventilation (cfm)',
-      'Slab Perimeter, Exposed, Conditioned (ft)',
-      'Rim Joist Area, Above-Grade, Exterior (ft^2)'
-    ]
+    return Constants.CostMultiplierChoices # Synced with UpgradeCosts measure
   end
 
   # define the arguments that the user will input

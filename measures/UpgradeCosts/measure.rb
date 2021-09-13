@@ -49,6 +49,10 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     return Constants.NumApplyUpgradesCostsPerOption # Synced with ApplyUpgrade measure
   end
 
+  def cost_multiplier_choices
+    return Constants.CostMultiplierChoices # Synced with ApplyUpgrade measure
+  end
+
   # define what happens when the measure is run
   def run(runner, user_arguments)
     super(runner, user_arguments)
@@ -68,6 +72,16 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
     # Retrieve values from HPXMLOutputReport
     hpxml = get_values_from_runner_past_results(runner, 'hpxml_output_report')
+    cost_multiplier_choices.each do |cost_mult_type|
+      next if cost_mult_type.empty?
+      next if cost_mult_type.include?('Fixed')
+
+      cost_mult_type_str = registered_underscore_case(cost_mult_type)
+      unless hpxml.keys.include?(cost_mult_type_str)
+        hpxml[cost_mult_type_str] = 0.0
+      end
+      register_value(runner, cost_mult_type_str, hpxml[cost_mult_type_str])
+    end
 
     # Retrieve values from ApplyUpgrade
     values = get_values_from_runner_past_results(runner, 'apply_upgrade')
@@ -121,8 +135,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
         next if cost_mult_type.empty?
 
-        cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-        cost_mult_type_str = cost_mult_type_str[0..-2]
+        cost_mult_type_str = registered_underscore_case(cost_mult_type)
         cost_mult = hpxml[cost_mult_type_str]
         total_cost = cost_value * cost_mult
         next if total_cost == 0
@@ -151,6 +164,13 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
     return true
+  end
+
+  def registered_underscore_case(str)
+    # e.g., Window Area (ft^2) => window_area_ft_2
+    str = OpenStudio::toUnderscoreCase(str)
+    str = str[0..-2]
+    return str
   end
 end
 
