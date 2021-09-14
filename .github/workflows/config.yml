@@ -8,6 +8,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  bsb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show environment
+        run: |
+          ruby -v
+          python -v
+
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: buildstockbatch
+        run: |
+          pip install git+https://github.com/NREL/buildstockbatch.git@v0.20.1
+          
+          buildstock_docker -h
+          
+          ls
+          buildstock_docker project_testing/testing.yml --validateonly
+  
   build:
     runs-on: ubuntu-latest
     container:
