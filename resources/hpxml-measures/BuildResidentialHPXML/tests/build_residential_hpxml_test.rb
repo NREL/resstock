@@ -217,6 +217,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       hpxml.header.schedules_filepath = 'SCHEDULES_FILE' unless hpxml.header.schedules_filepath.nil?
       hpxml.header.use_max_load_for_heat_pumps = true if hpxml.header.use_max_load_for_heat_pumps.nil?
       hpxml.site.fuels = [] # Not used by model
+      hpxml.site.azimuth_of_front_of_home = nil
+      hpxml.site.surroundings = nil
       hpxml.climate_and_risk_zones.weather_station_name = nil
       hpxml.building_construction.conditioned_building_volume = nil
       hpxml.building_construction.average_ceiling_height = nil # Comparing conditioned volume instead
@@ -267,6 +269,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         wall.emittance = nil
         wall.color = nil
         wall.interior_finish_type = nil
+        wall.attic_wall_type = nil
         next if wall.exterior_adjacent_to != HPXML::LocationOutside
         next unless [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? wall.interior_adjacent_to
 

@@ -3385,10 +3385,9 @@ class HPXMLFile
 
     surf_ids.each do |surf_type, surf_hash|
       surf_hash['surfaces'].each do |surface|
-        next if (not foundation_locations.include? surface.interior_adjacent_to) &&
-                (not foundation_locations.include? surface.exterior_adjacent_to) &&
-                (surf_type != 'slabs') &&
-                (surf_type != 'foundation_walls')
+        next unless (foundation_locations.include? surface.interior_adjacent_to) ||
+                    (foundation_locations.include? surface.exterior_adjacent_to) ||
+                    (surf_type == 'slabs' && surface.interior_adjacent_to == HPXML::LocationLivingSpace)
 
         surf_hash['ids'] << surface.id
       end
@@ -3521,18 +3520,19 @@ class HPXMLFile
 
       next if exterior_adjacent_to == HPXML::LocationLivingSpace # already captured these surfaces
 
+      attic_locations = [HPXML::LocationAtticUnconditioned, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented]
       attic_wall_type = nil
-      if ([HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to) && (exterior_adjacent_to == HPXML::LocationOutside)
+      if (attic_locations.include? interior_adjacent_to) && (exterior_adjacent_to == HPXML::LocationOutside)
         attic_wall_type = HPXML::AtticWallTypeGable
       end
 
       wall_type = args[:wall_type]
-      if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to
+      if attic_locations.include? interior_adjacent_to
         wall_type = HPXML::WallTypeWoodStud
       end
 
       if exterior_adjacent_to == HPXML::LocationOutside && args[:wall_siding_type].is_initialized
-        if ([HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to) && (args[:wall_siding_type].get == HPXML::SidingTypeNone)
+        if (attic_locations.include? interior_adjacent_to) && (args[:wall_siding_type].get == HPXML::SidingTypeNone)
           siding = HPXML::SidingTypeVinyl
         else
           siding = args[:wall_siding_type].get
@@ -3556,7 +3556,7 @@ class HPXMLFile
                       area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(2))
 
       is_uncond_attic_roof_insulated = false
-      if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to
+      if attic_locations.include? interior_adjacent_to
         hpxml.roofs.each do |roof|
           next unless (roof.interior_adjacent_to == interior_adjacent_to) && (roof.insulation_assembly_r_value > 4.0)
 
