@@ -24,11 +24,12 @@ jobs:
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@develop
           
-          buildstock_docker -h
-          
-          #buildstock_docker project_testing/testing.yml --validateonly
-          
-          docker -h
+          # docker -h
+          # buildstock_docker -h
+          # buildstock_docker project_testing/testing.yml --validateonly
+          buildstock_docker project_testing/testing.yml > log.txt
+          less log.txt
+          docker ps -a
   
   build:
     runs-on: ubuntu-latest
