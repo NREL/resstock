@@ -1,20 +1,29 @@
 schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: outputs
-# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+output_directory: national_baseline
+weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota
+  type: residential_quota_downselect
   args:
-    n_datapoints: 450000
+    n_datapoints: 3000
+    logic:
+      or:
+        - County|AZ, Maricopa County
+        - County|CA, Los Angeles County
+        - County|GA, Fulton County
+        - County|IL, Cook County
+        - County|TX, Harris County
+        - County|WA, King County
+    resample: false
 
 workflow_generator:
   type: residential_default
   args:
     residential_simulation_controls:
-      timesteps_per_hr: 4
+      timesteps_per_hr: 1
       begin_month: 1
       begin_day_of_month: 1
       end_month: 12
@@ -22,10 +31,6 @@ workflow_generator:
       calendar_year: 2007
 
     simulation_output:
-      include_enduse_subcategories: true
-
-    timeseries_csv_export:
-      reporting_frequency: Timestep
       include_enduse_subcategories: true
 
 baseline:
