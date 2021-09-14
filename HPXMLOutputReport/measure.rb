@@ -280,7 +280,11 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def assign_primary_and_secondary(hpxml, cost_multipliers)
+    # Primary
+
     has_primary_heating_system = false
+    has_primary_cooling_system = false
+
     hpxml.heating_systems.each do |heating_system|
       next if !heating_system.primary_system
 
@@ -290,20 +294,6 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
       has_primary_heating_system = true
     end
 
-    if has_primary_heating_system
-      hpxml.heating_systems.each do |heating_system|
-        next if heating_system.primary_system
-
-        if not cost_multipliers.keys.include?("#{BS::HeatingSystem}: Secondary")
-          cost_multipliers["#{BS::HeatingSystem}: Secondary"] = BaseOutput.new
-          cost_multipliers["#{BS::HeatingSystem}: Secondary"].output = 0
-        end
-
-        cost_multipliers["#{BS::HeatingSystem}: Secondary"].output += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
-      end
-    end
-
-    has_primary_cooling_system = false
     hpxml.cooling_systems.each do |cooling_system|
       next if !cooling_system.primary_system
 
@@ -311,19 +301,6 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
       cost_multipliers["#{BS::CoolingSystem}: Primary"].output = UnitConversions.convert(cooling_system.cooling_capacity, 'btu/hr', 'kbtu/hr')
 
       has_primary_cooling_system = true
-    end
-
-    if has_primary_cooling_system
-      hpxml.cooling_systems.each do |cooling_system|
-        next if cooling_system.primary_system
-
-        if not cost_multipliers.keys.include?("#{BS::CoolingSystem}: Secondary")
-          cost_multipliers["#{BS::CoolingSystem}: Secondary"] = BaseOutput.new
-          cost_multipliers["#{BS::CoolingSystem}: Secondary"].output = 0
-        end
-
-        cost_multipliers["#{BS::CoolingSystem}: Secondary"].output += UnitConversions.convert(cooling_system.cooling_capacity, 'btu/hr', 'kbtu/hr')
-      end
     end
 
     hpxml.heat_pumps.each do |heat_pump|
@@ -338,7 +315,29 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
       has_primary_heating_system = true
     end
 
+    hpxml.heat_pumps.each do |heat_pump|
+      next if !heat_pump.primary_cooling_system
+
+      cost_multipliers["#{BS::CoolingSystem}: Primary"] = BaseOutput.new
+      cost_multipliers["#{BS::CoolingSystem}: Primary"].output = UnitConversions.convert(heat_pump.cooling_capacity, 'btu/hr', 'kbtu/hr')
+
+      has_primary_cooling_system = true
+    end
+
+    # Secondary
+
     if has_primary_heating_system
+      hpxml.heating_systems.each do |heating_system|
+        next if heating_system.primary_system
+
+        if not cost_multipliers.keys.include?("#{BS::HeatingSystem}: Secondary")
+          cost_multipliers["#{BS::HeatingSystem}: Secondary"] = BaseOutput.new
+          cost_multipliers["#{BS::HeatingSystem}: Secondary"].output = 0
+        end
+
+        cost_multipliers["#{BS::HeatingSystem}: Secondary"].output += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
+      end
+
       hpxml.heat_pumps.each do |heat_pump|
         next if heat_pump.primary_heating_system
 
@@ -358,16 +357,18 @@ class HPXMLOutputReport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    hpxml.heat_pumps.each do |heat_pump|
-      next if !heat_pump.primary_cooling_system
-
-      cost_multipliers["#{BS::CoolingSystem}: Primary"] = BaseOutput.new
-      cost_multipliers["#{BS::CoolingSystem}: Primary"].output = UnitConversions.convert(heat_pump.cooling_capacity, 'btu/hr', 'kbtu/hr')
-
-      has_primary_cooling_system = true
-    end
-
     if has_primary_cooling_system
+      hpxml.cooling_systems.each do |cooling_system|
+        next if cooling_system.primary_system
+
+        if not cost_multipliers.keys.include?("#{BS::CoolingSystem}: Secondary")
+          cost_multipliers["#{BS::CoolingSystem}: Secondary"] = BaseOutput.new
+          cost_multipliers["#{BS::CoolingSystem}: Secondary"].output = 0
+        end
+
+        cost_multipliers["#{BS::CoolingSystem}: Secondary"].output += UnitConversions.convert(cooling_system.cooling_capacity, 'btu/hr', 'kbtu/hr')
+      end
+
       hpxml.heat_pumps.each do |heat_pump|
         next if heat_pump.primary_cooling_system
 

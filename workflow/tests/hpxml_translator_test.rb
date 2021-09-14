@@ -283,7 +283,7 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv')
     assert(File.exist? csv_output_path)
-    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'hpxml_output.csv')
+    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_hpxml.csv')
     assert(File.exist? csv_output_path)
 
     # Check for debug files
