@@ -23,14 +23,14 @@ class Constants
       'Window Area (ft^2)',
       'Door Area (ft^2)',
       'Duct Unconditioned Surface Area (ft^2)',
-      'Size Heating System: Primary (kBtu/h)',
-      'Size Heating System: Secondary (kBtu/h)',
-      'Size Cooling System: Primary (kBtu/h)',
-      'Size Heat Pump Backup: Primary (kBtu/h)',
-      'Size Water Heater (gal)',
+      'Rim Joist Area, Above-Grade, Exterior (ft^2)',
+      'Size, Heating System: Primary (kBtu/h)',
+      'Size, Heating System: Secondary (kBtu/h)',
+      'Size, Cooling System: Primary (kBtu/h)',
+      'Size, Heat Pump Backup: Primary (kBtu/h)',
+      'Size, Water Heater (gal)',
       'Flow Rate, Mechanical Ventilation (cfm)',
-      'Slab Perimeter, Exposed, Conditioned (ft)',
-      'Rim Joist Area, Above-Grade, Exterior (ft^2)'
+      'Slab Perimeter, Exposed, Conditioned (ft)'
     ]
   end
 
