@@ -24,15 +24,33 @@ jobs:
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@develop
           
-          # docker -h
-          # buildstock_docker -h
-          # buildstock_docker project_testing/testing.yml --validateonly
-          buildstock_docker project_testing/testing.yml > log.txt
-          less log.txt
-          docker ps -a
-  
+          buildstock_docker project_testing/testing_baseline.yml > testing_baseline.txt
+          less testing_baseline.txt
+          
+          buildstock_docker project_testing/national_baseline.yml > national_baseline.txt
+          less national_baseline.txt
+          
+          buildstock_docker project_national/testing_upgrades.yml > testing_upgrades.txt
+          less testing_upgrades.txt
+          
+          buildstock_docker project_national/national_upgrades.yml > national_upgrades.txt
+          less national_upgrades.txt
+
+      - name: Upload national project integration results
+        uses: actions/upload-artifact@v2
+        with:
+          path: project_national/national_baseline/results_csvs/results_up00.csv.gz
+          name: national_baseline
+
+      - name: Upload testing project integration results
+        uses: actions/upload-artifact@v2
+        with:
+          path: project_testing/testing_baseline/results_csvs/results_up00.csv.gz
+          name: testing_baseline
+
   build:
     runs-on: ubuntu-latest
+    needs: bsb
     container:
       image: docker://nrel/openstudio:3.2.1
     steps:
