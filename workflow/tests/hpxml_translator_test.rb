@@ -80,7 +80,7 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? json_output_path)
     json_output_path = File.join(File.dirname(xml), 'run', 'results_timeseries.json')
     assert(File.exist? json_output_path)
-    json_output_path = File.join(File.dirname(xml), 'run', 'hpxml_output.json')
+    json_output_path = File.join(File.dirname(xml), 'run', 'results_hpxml.json')
     assert(File.exist? json_output_path)
 
     # Check for debug files
@@ -108,7 +108,7 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
     assert(File.exist? csv_output_path)
-    csv_output_path = File.join(File.dirname(xml), 'run', 'hpxml_output.csv')
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_hpxml.csv')
     assert(File.exist? csv_output_path)
   end
 
@@ -129,7 +129,7 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
     assert(File.exist? csv_output_path)
-    csv_output_path = File.join(File.dirname(xml), 'run', 'hpxml_output.csv')
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_hpxml.csv')
     assert(File.exist? csv_output_path)
   end
 
@@ -146,7 +146,7 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
     assert(File.exist? csv_output_path)
-    csv_output_path = File.join(File.dirname(xml), 'run', 'hpxml_output.csv')
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_hpxml.csv')
     assert(File.exist? csv_output_path)
 
     # Check component loads don't exist
@@ -191,7 +191,7 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv')
     assert(File.exist? csv_output_path)
-    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'hpxml_output.csv')
+    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_hpxml.csv')
     assert(File.exist? csv_output_path)
 
     # Check for debug files
@@ -236,7 +236,7 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv')
     assert(File.exist? csv_output_path)
-    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'hpxml_output.csv')
+    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_hpxml.csv')
     assert(File.exist? csv_output_path)
 
     # Check for debug files
@@ -509,7 +509,7 @@ class HPXMLTest < MiniTest::Test
       command = "#{OpenStudio.getOpenStudioCLI} OpenStudio-HPXML/workflow/run_simulation.rb -x OpenStudio-HPXML/workflow/sample_files/base.xml"
       system(command)
       assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_annual.csv')
-      assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/hpxml_output.csv')
+      assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_hpxml.csv')
       File.delete(zip)
       rm_path('OpenStudio-HPXML')
     end
@@ -570,10 +570,10 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     annual_csv_path = File.join(rundir, 'results_annual.csv')
     timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
-    hpxml_output_csv_path = File.join(rundir, 'hpxml_output.csv')
+    hpxml_csv_path = File.join(rundir, 'results_hpxml.csv')
     assert(File.exist? annual_csv_path)
     assert(File.exist? timeseries_csv_path)
-    assert(File.exist? hpxml_output_csv_path)
+    assert(File.exist? hpxml_csv_path)
 
     # Get results
     results = _get_simulation_results(annual_csv_path, xml)

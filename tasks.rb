@@ -251,7 +251,6 @@ def create_osws
     'base-hvac-mini-split-heat-pump-ducted-heating-only.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
     'base-hvac-mini-split-heat-pump-ductless.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
     # 'base-hvac-multiple.osw' => 'base.osw', # Not supporting multiple heating/cooling systems for now
-    # 'base-hvac-multiple2.osw' => 'base-hvac-multiple.osw', # Not supporting multiple heating/cooling systems for now
     'base-hvac-none.osw' => 'base.osw',
     'base-hvac-portable-heater-gas-only.osw' => 'base.osw',
     # 'base-hvac-programmable-thermostat.osw' => 'base.osw',
@@ -2970,7 +2969,6 @@ def create_hpxmls
     'base-hvac-mini-split-heat-pump-ducted-heating-only.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-mini-split-heat-pump-ductless.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-multiple.xml' => 'base.xml',
-    'base-hvac-multiple2.xml' => 'base-hvac-multiple.xml',
     'base-hvac-none.xml' => 'base.xml',
     'base-hvac-portable-heater-gas-only.xml' => 'base.xml',
     'base-hvac-programmable-thermostat.xml' => 'base.xml',
@@ -5685,7 +5683,8 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
                               heating_system_fuel: HPXML::FuelTypeNaturalGas,
                               heating_capacity: 6400,
                               heating_efficiency_afue: 0.92,
-                              fraction_heat_load_served: 0.1)
+                              fraction_heat_load_served: 0.1,
+                              primary_system: true)
     hpxml.heating_systems.add(id: 'HeatingSystem3',
                               distribution_system_idref: 'HVACDistribution3',
                               heating_system_type: HPXML::HVACTypeBoiler,
@@ -5728,9 +5727,6 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
     hpxml.heating_systems << hpxml.heating_systems[0].dup
     hpxml.heating_systems[1].id = 'HeatingSystem2'
     hpxml.heating_systems[1].distribution_system_idref = 'HVACDistribution2'
-  elsif ['base-hvac-multiple2.xml'].include? hpxml_file
-    hpxml.heating_systems[1].primary_system = true
-    hpxml.cooling_systems[-1].primary_system = true
   elsif ['invalid_files/hvac-frac-load-served.xml'].include? hpxml_file
     hpxml.heating_systems[0].fraction_heat_load_served += 0.1
   elsif ['base-hvac-fireplace-wood-only.xml'].include? hpxml_file
@@ -5955,7 +5951,8 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
                               cooling_capacity: 9600,
                               fraction_cool_load_served: 0.2,
                               cooling_efficiency_eer: 8.5,
-                              cooling_shr: 0.65)
+                              cooling_shr: 0.65,
+                              primary_system: true)
   elsif ['base-mechvent-multiple.xml',
          'base-bldgtype-multifamily-shared-mechvent-multiple.xml'].include? hpxml_file
     hpxml.cooling_systems[0].fraction_cool_load_served /= 2.0

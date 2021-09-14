@@ -9,26 +9,26 @@ require_relative '../measure.rb'
 
 class HPXMLOutputReportTest < MiniTest::Test
   Rows = [
-    'Building Summary: Fixed (1)',
-    'Building Summary: Wall Area Above-Grade Conditioned (ft^2)',
-    'Building Summary: Wall Area Above-Grade Exterior (ft^2)',
-    'Building Summary: Wall Area Below-Grade (ft^2)',
-    'Building Summary: Floor Area Conditioned (ft^2)',
-    'Building Summary: Floor Area Attic (ft^2)',
-    'Building Summary: Floor Area Lighting (ft^2)',
-    'Building Summary: Roof Area (ft^2)',
-    'Building Summary: Window Area (ft^2)',
-    'Building Summary: Door Area (ft^2)',
-    'Building Summary: Duct Unconditioned Surface Area (ft^2)',
-    'Building Summary: Size Heating System: HeatingSystem (kBtu/h)',
-    'Building Summary: Size Cooling System: CoolingSystem (kBtu/h)',
-    'Building Summary: Size Water Heater (gal)',
-    'Building Summary: Flow Rate Mechanical Ventilation (cfm)',
-    'Building Summary: Slab Perimeter Exposed Conditioned (ft)',
-    'Building Summary: Rim Joist Area Above-Grade Exterior (ft^2)',
+    'Surface Area: Wall Above-Grade Conditioned (ft^2)',
+    'Surface Area: Wall Above-Grade Exterior (ft^2)',
+    'Surface Area: Wall Below-Grade (ft^2)',
+    'Surface Area: Floor Conditioned (ft^2)',
+    'Surface Area: Floor Attic (ft^2)',
+    'Surface Area: Floor Lighting (ft^2)',
+    'Surface Area: Roof (ft^2)',
+    'Surface Area: Window (ft^2)',
+    'Surface Area: Door (ft^2)',
+    'Surface Area: Duct Unconditioned (ft^2)',
+    'Surface Area: Rim Joist Above-Grade Exterior (ft^2)',
+    'Size: Heating System (kBtu/h)',
+    'Size: Cooling System (kBtu/h)',
+    'Size: Heat Pump Backup (kBtu/h)',
+    'Size: Water Heater (gal)',
+    'Other: Flow Rate Mechanical Ventilation (cfm)',
+    'Other: Slab Perimeter Exposed Conditioned (ft)',
   ]
 
-  def test_base_hpxml_output
+  def test_base_results_hpxml
     args_hash = {}
     hpxml_csv = _test_measure(args_hash)
     assert(File.exist?(hpxml_csv))
@@ -37,48 +37,89 @@ class HPXMLOutputReportTest < MiniTest::Test
     assert_equal(expected_rows.sort, actual_rows.sort)
   end
 
-  def test_base_hpxml_output_with_primary_systems
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-hvac-multiple2.xml' }
+  def test_base_results_hpxml_with_primary_systems
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-hvac-multiple.xml' }
     hpxml_csv = _test_measure(args_hash)
     assert(File.exist?(hpxml_csv))
     actual_rows = File.readlines(hpxml_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    assert_includes(actual_rows.sort, 'Building Summary: Size Heating System: HeatingSystem2 (kBtu/h)')
-    assert_includes(actual_rows.sort, 'Building Summary: Size Cooling System: CoolingSystem2 (kBtu/h)')
-    assert_includes(actual_rows.sort, 'Building Summary: Size Heating System: Primary (kBtu/h)')
-    assert_includes(actual_rows.sort, 'Building Summary: Size Heating System: Secondary (kBtu/h)')
-    assert_includes(actual_rows.sort, 'Building Summary: Size Cooling System: Primary (kBtu/h)')
-    assert_includes(actual_rows.sort, 'Building Summary: Size Cooling System: Secondary (kBtu/h)')
-    assert_includes(actual_rows.sort, 'Building Summary: Size Heat Pump Backup: Secondary (kBtu/h)')
+    assert_includes(actual_rows.sort, 'Size: Heating System (kBtu/h)')
+    assert_includes(actual_rows.sort, 'Size: Cooling System (kBtu/h)')
+    assert_includes(actual_rows.sort, 'Size: Heating System: Primary (kBtu/h)')
+    assert_includes(actual_rows.sort, 'Size: Heating System: Secondary (kBtu/h)')
+    assert_includes(actual_rows.sort, 'Size: Cooling System: Primary (kBtu/h)')
+    assert_includes(actual_rows.sort, 'Size: Cooling System: Secondary (kBtu/h)')
+    assert(!actual_rows.sort.include?('Size: Heat Pump Backup: Primary (kBtu/h)')) # there is no primary heat pump
+    assert_includes(actual_rows.sort, 'Size: Heat Pump Backup: Secondary (kBtu/h)') # all heat pumps are secondary
   end
 
-  def test_base_xml
+  def test_furnace_and_central_air_conditioner_xml
     args_hash = {}
     hpxml_csv = _test_measure(args_hash)
     assert(File.exist?(hpxml_csv))
 
     expected_multipliers = {
-      'Building Summary: Fixed (1)' => 1.0,
-      'Building Summary: Wall Area Above-Grade Conditioned (ft^2)' => 1200.0,
-      'Building Summary: Wall Area Above-Grade Exterior (ft^2)' => 1490.0,
-      'Building Summary: Wall Area Below-Grade (ft^2)' => 1200.0,
-      'Building Summary: Floor Area Conditioned (ft^2)' => 2700.0,
-      'Building Summary: Floor Area Attic (ft^2)' => 1350.0,
-      'Building Summary: Floor Area Lighting (ft^2)' => 2700.0,
-      'Building Summary: Roof Area (ft^2)' => 1509.3,
-      'Building Summary: Window Area (ft^2)' => 360.0,
-      'Building Summary: Door Area (ft^2)' => 40.0,
-      'Building Summary: Duct Unconditioned Surface Area (ft^2)' => 200.0,
-      'Building Summary: Size Heating System: HeatingSystem (kBtu/h)' => 36.0,
-      'Building Summary: Size Cooling System: CoolingSystem (kBtu/h)' => 24.0,
-      'Building Summary: Size Water Heater (gal)' => 40.0,
-      'Building Summary: Flow Rate Mechanical Ventilation (cfm)' => 0.0,
-      'Building Summary: Slab Perimeter Exposed Conditioned (ft)' => 150.0,
-      'Building Summary: Rim Joist Area Above-Grade Exterior (ft^2)' => 116.0
+      'Surface Area: Wall Above-Grade Conditioned (ft^2)' => 1200.0,
+      'Surface Area: Wall Above-Grade Exterior (ft^2)' => 1490.0,
+      'Surface Area: Wall Below-Grade (ft^2)' => 1200.0,
+      'Surface Area: Floor Conditioned (ft^2)' => 2700.0,
+      'Surface Area: Floor Attic (ft^2)' => 1350.0,
+      'Surface Area: Floor Lighting (ft^2)' => 2700.0,
+      'Surface Area: Roof (ft^2)' => 1509.3,
+      'Surface Area: Window (ft^2)' => 360.0,
+      'Surface Area: Door (ft^2)' => 40.0,
+      'Surface Area: Duct Unconditioned (ft^2)' => 200.0,
+      'Surface Area: Rim Joist Above-Grade Exterior (ft^2)' => 116.0,
+      'Size: Heating System (kBtu/h)' => 36.0,
+      'Size: Cooling System (kBtu/h)' => 24.0,
+      'Size: Heat Pump Backup (kBtu/h)' => 0.0,
+      'Size: Water Heater (gal)' => 40.0,
+      'Other: Flow Rate Mechanical Ventilation (cfm)' => 0.0,
+      'Other: Slab Perimeter Exposed Conditioned (ft)' => 150.0
     }
 
-    actual_rows = File.readlines(hpxml_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    actual_values = File.readlines(hpxml_csv).map { |x| x.split(',')[1].strip }.select { |x| !x.empty? }.map { |x| Float(x) }
-    actual_multipliers = Hash[actual_rows.zip(actual_values)]
+    actual_multipliers = {}
+    File.readlines(hpxml_csv).each do |line|
+      next if line.strip.empty?
+
+      key, value = line.split(',').map { |x| x.strip }
+      actual_multipliers[key] = Float(value)
+    end
+
+    assert_equal(expected_multipliers, actual_multipliers)
+  end
+
+  def test_air_source_heat_pump_xml
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-hvac-air-to-air-heat-pump-1-speed.xml' }
+    hpxml_csv = _test_measure(args_hash)
+    assert(File.exist?(hpxml_csv))
+
+    expected_multipliers = {
+      'Surface Area: Wall Above-Grade Conditioned (ft^2)' => 1200.0,
+      'Surface Area: Wall Above-Grade Exterior (ft^2)' => 1490.0,
+      'Surface Area: Wall Below-Grade (ft^2)' => 1200.0,
+      'Surface Area: Floor Conditioned (ft^2)' => 2700.0,
+      'Surface Area: Floor Attic (ft^2)' => 1350.0,
+      'Surface Area: Floor Lighting (ft^2)' => 2700.0,
+      'Surface Area: Roof (ft^2)' => 1509.3,
+      'Surface Area: Window (ft^2)' => 360.0,
+      'Surface Area: Door (ft^2)' => 40.0,
+      'Surface Area: Duct Unconditioned (ft^2)' => 200.0,
+      'Surface Area: Rim Joist Above-Grade Exterior (ft^2)' => 116.0,
+      'Size: Heating System (kBtu/h)' => 36.0,
+      'Size: Cooling System (kBtu/h)' => 36.0,
+      'Size: Heat Pump Backup (kBtu/h)' => 36.0,
+      'Size: Water Heater (gal)' => 40.0,
+      'Other: Flow Rate Mechanical Ventilation (cfm)' => 0.0,
+      'Other: Slab Perimeter Exposed Conditioned (ft)' => 150.0
+    }
+
+    actual_multipliers = {}
+    File.readlines(hpxml_csv).each do |line|
+      next if line.strip.empty?
+
+      key, value = line.split(',').map { |x| x.strip }
+      actual_multipliers[key] = Float(value)
+    end
 
     assert_equal(expected_multipliers, actual_multipliers)
   end
@@ -117,7 +158,7 @@ class HPXMLOutputReportTest < MiniTest::Test
     # Cleanup
     File.delete(osw_path)
 
-    hpxml_csv = File.join(File.dirname(template_osw), 'run', 'hpxml_output.csv')
+    hpxml_csv = File.join(File.dirname(template_osw), 'run', 'results_hpxml.csv')
     return hpxml_csv
   end
 end
