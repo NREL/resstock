@@ -917,6 +917,7 @@ def get_values(osw_file, step)
   elsif ['base-atticroof-radiant-barrier.osw'].include? osw_file
     step.setArgument('roof_radiant_barrier', true)
     step.setArgument('roof_radiant_barrier_grade', '2')
+    step.setArgument('ceiling_assembly_r', 8.7)
   elsif ['base-atticroof-unvented-insulated-roof.osw'].include? osw_file
     step.setArgument('ceiling_assembly_r', 2.1)
     step.setArgument('roof_assembly_r', 25.8)
@@ -4735,6 +4736,8 @@ def set_hpxml_frame_floors(hpxml_file, hpxml)
                            area: 1350,
                            interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                            insulation_assembly_r_value: 39.3)
+  elsif ['base-atticroof-radiant-barrier.xml'].include? hpxml_file
+    hpxml.frame_floors[0].insulation_assembly_r_value = 8.7
   elsif ['base-bldgtype-multifamily.xml'].include? hpxml_file
     hpxml.frame_floors.clear
     hpxml.frame_floors.add(id: 'FloorAboveOther',
