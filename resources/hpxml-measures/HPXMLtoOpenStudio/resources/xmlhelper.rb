@@ -4,24 +4,7 @@ class XMLHelper
   # Adds the child element with 'element_name' and sets its value. Returns the
   # child element.
   def self.add_element(parent, element_name, value = nil, datatype = nil, defaulted = false)
-    added = Oga::XML::Element.new(name: element_name)
-    parent.children << added
-    if not value.nil?
-      if datatype == :integer
-        value = to_integer(value, parent, element_name)
-      elsif datatype == :float
-        value = to_float(value, parent, element_name)
-      elsif datatype == :boolean
-        value = to_boolean(value, parent, element_name)
-      elsif datatype != :string
-        # If value provided, datatype required
-        fail 'Unexpected datatype.'
-      end
-      added.inner_text = value.to_s
-    end
-    if defaulted
-      XMLHelper.add_attribute(added, 'dataSource', 'software')
-    end
+    added = XMLHelper.insert_element(parent, element_name, -1, value, datatype, defaulted)
     return added
   end
 
@@ -29,7 +12,11 @@ class XMLHelper
   # child element.
   def self.insert_element(parent, element_name, index = 0, value = nil, datatype = nil, defaulted = false)
     added = Oga::XML::Element.new(name: element_name)
-    parent.children.insert(index, added)
+    if index == -1
+      parent.children << added
+    else
+      parent.children.insert(index, added)
+    end
     if not value.nil?
       if datatype == :integer
         value = to_integer(value, parent, element_name)
