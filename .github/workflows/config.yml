@@ -29,7 +29,9 @@ jobs:
           
           buildstock_docker project_testing/testing_upgrades.yml > project_testing/testing_upgrades.txt          
           buildstock_docker project_national/national_upgrades.yml > project_national/national_upgrades.txt
-          
+
+      - name: Process results
+        run: |
           gunzip -v project_national/national_baseline/results_csvs/results_00.csv.gz
           mv project_national/national_baseline/results_csvs/results_00.csv project_national/national_baseline.csv
           
