@@ -35,8 +35,6 @@ for col in df.columns.values:
 
 # results_characteristics.csv
 results_characteristics = df[['OSW'] + build_existing_models]
-for col in results_characteristics.columns.values:
-  results_characteristics = results_characteristics.rename(columns={col: col.replace('build_existing_model.', '')})
 
 results_characteristics = results_characteristics.set_index('OSW')
 results_characteristics = results_characteristics.reindex(sorted(results_characteristics), axis=1)
@@ -44,10 +42,8 @@ results_characteristics.to_csv('baseline/results/results_characteristics.csv')
 
 # results_output.csv
 results_output = df[['OSW'] + simulation_output_reports + qoi_reports]
+results_output = results_output.dropna(how='all', axis=1)
 results_output = results_output.round(1)
-for col in results_output.columns.values:
-  results_output = results_output.rename(columns={col: col.replace('simulation_output_report.', '')})
-  results_output = results_output.rename(columns={col: col.replace('qoi_report.', '')})
 
 results_output = results_output.set_index('OSW')
 results_output = results_output.reindex(sorted(results_output), axis=1)
