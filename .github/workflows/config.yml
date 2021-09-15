@@ -29,6 +29,15 @@ jobs:
           
           buildstock_docker project_testing/testing_upgrades.yml > project_testing/testing_upgrades.txt          
           buildstock_docker project_national/national_upgrades.yml > project_national/national_upgrades.txt
+          
+          gunzip -v project_national/national_baseline/results_csvs/results_00.csv.gz
+          mv project_national/national_baseline/results_csvs/results_00.csv project_national/national_baseline.csv
+          
+          gunzip -v project_testing/testing_baseline/results_csvs/results_00.csv.gz
+          mv project_testing/testing_baseline/results_csvs/results_00.csv project_testing/testing_baseline.csv
+          
+          pip install pandas
+          python util.py
 
       - name: Upload buildstockbatch logs
         uses: actions/upload-artifact@v2
@@ -39,16 +48,6 @@ jobs:
           name: bsb-logs
 
       - name: Upload integration results
-        run: |
-          gunzip -v project_national/national_baseline/results_csvs/results_00.csv.gz
-          mv project_national/national_baseline/results_csvs/results_00.csv project_national/national_baseline.csv
-          
-          gunzip -v project_testing/testing_baseline/results_csvs/results_00.csv.gz
-          mv project_testing/testing_baseline/results_csvs/results_00.csv project_testing/testing_baseline.csv
-          
-          pip install pandas
-          python util.py
-          
         uses: actions/upload-artifact@v2
         with:
           path: baseline/results
