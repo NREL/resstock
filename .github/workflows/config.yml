@@ -20,33 +20,39 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: buildstockbatch
+      - name: Run buildstockbatch
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@develop
           
-          buildstock_docker project_testing/testing_baseline.yml > testing_baseline.txt
-          less testing_baseline.txt
+          buildstock_docker project_testing/testing_baseline.yml > project_testing/testing_baseline.txt          
+          buildstock_docker project_national/national_baseline.yml > project_national/national_baseline.txt
           
-          buildstock_docker project_national/national_baseline.yml > national_baseline.txt
-          less national_baseline.txt
-          
-          buildstock_docker project_testing/testing_upgrades.yml > testing_upgrades.txt
-          less testing_upgrades.txt
-          
-          buildstock_docker project_national/national_upgrades.yml > national_upgrades.txt
-          less national_upgrades.txt
+          buildstock_docker project_testing/testing_upgrades.yml > project_testing/testing_upgrades.txt          
+          buildstock_docker project_national/national_upgrades.yml > project_national/national_upgrades.txt
 
-      - name: Upload national project integration results
+      - name: Upload buildstockbatch logs
         uses: actions/upload-artifact@v2
         with:
-          path: project_national/national_baseline/results_csvs/results_up00.csv.gz
-          name: national_baseline
+          path: |
+            project_testing/*.txt
+            project_national/*.txt
+          name: bsb-logs
 
-      - name: Upload testing project integration results
+      - name: Upload integration results
+        run: |
+          gunzip -v project_national/national_baseline/results_csvs/results_00.csv.gz
+          mv project_national/national_baseline/results_csvs/results_00.csv project_national/national_baseline.csv
+          
+          gunzip -v project_testing/testing_baseline/results_csvs/results_00.csv.gz
+          mv project_testing/testing_baseline/results_csvs/results_00.csv project_testing/testing_baseline.csv
+          
+          pip install pandas
+          python util.py
+          
         uses: actions/upload-artifact@v2
         with:
-          path: project_testing/testing_baseline/results_csvs/results_up00.csv.gz
-          name: testing_baseline
+          path: baseline/results
+          name: results
 
   build:
     runs-on: ubuntu-latest
@@ -83,9 +89,9 @@ jobs:
         run: |
           rake test:project_tests
 
-      - name: Run all integration tests
-        run: |
-          rake test:integration_tests
+      # - name: Run all integration tests
+        # run: |
+          # rake test:integration_tests
 
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
@@ -93,11 +99,11 @@ jobs:
           path: resources/buildstock.csv
           name: samples
 
-      - name: Upload integration results
-        uses: actions/upload-artifact@v2
-        with:
-          path: test/test_samples_osw/baseline/results
-          name: results
+      # - name: Upload integration results
+        # uses: actions/upload-artifact@v2
+        # with:
+          # path: test/test_samples_osw/baseline/results
+          # name: results
 
       - name: Upload schedules
         uses: actions/upload-artifact@v2
