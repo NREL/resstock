@@ -47,7 +47,7 @@ results_output = df[['OSW'] + simulation_output_reports + qoi_reports]
 results_output = results_output.round(1)
 for col in results_output.columns.values:
   results_output = results_output.rename(columns={col: col.replace('simulation_output_report.', '')})
-  results_output = results_output.rename(columns={col: col.replace('qoi_report.', 'qoi_')})
+  results_output = results_output.rename(columns={col: col.replace('qoi_report.', '')})
 
 results_output = results_output.set_index('OSW')
 results_output = results_output.reindex(sorted(results_output), axis=1)
