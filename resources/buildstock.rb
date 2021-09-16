@@ -416,6 +416,17 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
   fail msg
 end
 
+def version
+  data = {}
+  File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
+    file.each_line do |line|
+      key, value = line.split(' = ')
+      data[key] = value.chomp.gsub("'", '')
+    end
+  end
+  return data
+end
+
 class RunOSWs
   require 'csv'
   require 'json'
