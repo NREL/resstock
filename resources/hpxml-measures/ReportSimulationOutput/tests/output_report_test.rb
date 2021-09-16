@@ -7,7 +7,7 @@ require 'fileutils'
 require 'csv'
 require_relative '../measure.rb'
 
-class SimulationOutputReportTest < MiniTest::Test
+class ReportSimulationOutputTest < MiniTest::Test
   AnnualRows = [
     'Fuel Use: Electricity: Total (MBtu)',
     'Fuel Use: Electricity: Net (MBtu)',

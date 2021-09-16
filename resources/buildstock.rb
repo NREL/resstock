@@ -455,8 +455,8 @@ class RunOSWs
       measures << measure[:measure_dir_name]
     end
 
-    unless measures.include? 'SimulationOutputReport'
-      simulation_output_report = { measure_dir_name: 'SimulationOutputReport' }
+    unless measures.include? 'ReportSimulationOutput'
+      simulation_output_report = { measure_dir_name: 'ReportSimulationOutput' }
       json[:steps] << simulation_output_report
     end
 
@@ -489,7 +489,7 @@ class RunOSWs
 
     result_characteristics = get_measure_results(rows, result_characteristics, 'BuildExistingModel')
     result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
-    result_output = get_measure_results(rows, result_output, 'SimulationOutputReport')
+    result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
     result_output = get_measure_results(rows, result_output, 'QOIReport')
     return finished_job, result_characteristics, result_output
