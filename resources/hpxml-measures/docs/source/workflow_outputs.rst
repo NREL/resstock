@@ -8,8 +8,9 @@ OpenStudio-HPXML generates a number of workflow outputs:
   =================================  ======================================
   File                               Notes
   =================================  ======================================
-  results_annual.csv (or .json)      Summary annual outputs in either CSV or JSON formats. See :ref:`annual_outputs`.
-  results_timeseries.csv (or .json)  Timeseries outputs in either CSV or JSON formats. See :ref:`timeseries_outputs`. Only generated if requested.
+  results_annual.csv (or .json)      Simulation annual outputs in either CSV or JSON formats. See :ref:`annual_outputs`.
+  results_timeseries.csv (or .json)  Simulation timeseries outputs in either CSV or JSON formats. See :ref:`timeseries_outputs`. Only generated if requested.
+  results_hpxml.csv (or .json)       HPXML outputs in either CSV or JSON formats. See :ref:`hpxml_outputs`.
   in.idf                             The EnergyPlus input file.
   in.xml                             HPXML file populated with defaulted values (e.g., autosized HVAC capacities); defaults use the ``dataSource='software'`` attribute.
   in.osm                             The OpenStudio model file. Only generated if the ``debug`` argument is used.
@@ -279,3 +280,62 @@ Timeseries outputs can be one of the following frequencies: hourly, daily, month
 
 Timestamps in the output use the end-of-hour (or end-of-day for daily frequency, etc.) convention.
 Most outputs will be summed over the hour (e.g., energy) but some will be averaged over the hour (e.g., temperatures, airflows).
+
+.. _hpxml_outputs:
+
+HPXML Outputs
+-------------
+
+OpenStudio-HPXML will always generate an output file called results_hpxml.csv (or results_hpxml.json), co-located with the EnergyPlus output.
+Unlike the other output files that are based on EnergyPlus simulation results, this file contains outputs summarizing the HPXML file (including defaults like auto-sized HVAC systems).
+The file includes the following sections of output:
+
+Enclosure
+~~~~~~~~~
+
+Enclosure outputs are listed below.
+
+   =======================================================  ====================
+   Type                                                     Notes
+   =======================================================  ====================
+   Enclosure: Wall Area Thermal Boundary (ft^2)             Total thermal boundary wall area
+   Enclosure: Wall Area Exterior (ft^2)                     Total exterior wall area
+   Enclosure: Foundation Wall Area Exterior (ft^2)          Total exterior foundation wall area
+   Enclosure: Floor Area Conditioned (ft^2)                 Total conditioned floor area
+   Enclosure: Floor Area Lighting (ft^2)                    Total lighting floor area
+   Enclosure: Ceiling Area Thermal Boundary (ft^2)          Total thermal boundary ceiling area
+   Enclosure: Roof Area (ft^2)                              Total roof area
+   Enclosure: Window Area (ft^2)                            Total window area
+   Enclosure: Door Area (ft^2)                              Total door area
+   Enclosure: Duct Area Unconditioned (ft^2)                Total unconditioned duct area
+   Enclosure: Rim Joist Area (ft^2)                         Total rim joist area
+   Enclosure: Slab Exposed Perimeter Thermal Boundary (ft)  Total thermal boundary slab exposed perimeter
+   =======================================================  ====================
+
+Systems
+~~~~~~~
+
+System outputs are listed below.
+
+   =======================================================  ====================
+   Type                                                     Notes
+   =======================================================  ====================
+   Systems: Cooling Capacity (kBtu/h)                       Total HVAC cooling capacity
+   Systems: Heating Capacity (kBtu/h)                       Total HVAC heating capacity
+   Systems: Heat Pump Backup Capacity (kBtu/h)              Total HVAC heat pump backup capacity
+   Systems: Water Heater Tank Volume (gal)                  Total water heater tank volume
+   Systems: Mechanical Ventilation Flow Rate (cfm)          Total mechanical ventilation flow rate
+   =======================================================  ====================
+
+If the HPXML file has ``Systems/HVAC/HVACPlant/PrimarySystems`` populated, then additional system outputs will be provided:
+
+   =======================================================  ====================
+   Type                                                     Notes
+   =======================================================  ====================
+   Primary Systems: Cooling Capacity (kBtu/h)               Cooling capacity of primary system
+   Primary Systems: Heating Capacity (kBtu/h)               Heating capacity of primary system
+   Primary Systems: Heat Pump Backup Capacity (kBtu/h)      Heat pump backup capacity of primary system
+   Secondary Systems: Cooling Capacity (kBtu/h)             Cooling capacity of secondary system; only provided if a non-primary system is present
+   Secondary Systems: Heating Capacity (kBtu/h)             Heating capacity of secondary system; only provided if a non-primary system is present
+   Secondary Systems: Heat Pump Backup Capacity (kBtu/h)    Heat pump backup capacity of secondary system; only provided if a non-primary system is present
+   =======================================================  ====================

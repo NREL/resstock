@@ -14,6 +14,7 @@ __New Features__
 - Expands choices allowed for `Siding` (Wall/RimJoist) and `RoofType` (Roof) elements.
 - Allows "none" for wall/rim joist siding.
 - Allows interior finish inputs (e.g., 0.5" drywall) for walls, ceilings, and roofs.
+- Adds a new results_hpxml.csv output file to summarize HPXML values (e.g., surface areas, HVAC capacities).
 - Allows additional fuel types for generators.
 - Adds alternative inputs:
   - `Ducts/FractionDuctArea` instead of `Ducts/DuctSurfaceArea`.
@@ -33,6 +34,7 @@ __New Features__
 - Switches to the EnergyPlus Fan:SystemModel object for all HVAC systems.
 - Introduces a small amount of infiltration for unvented spaces.
 - Revises shared mechanical ventilation preconditioning control logic to operate less often.
+- Adds more efficiency range warning checks for heating, cooling, and hot water systems.
 - Removes error-check for number of bedrooms based on conditioned floor area, per RESNET guidance.
 - Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
 - Removes timeseries CSV output columns that are all zeroes to reduce file size and processing time.
