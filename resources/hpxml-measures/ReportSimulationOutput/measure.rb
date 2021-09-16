@@ -10,7 +10,7 @@ require_relative '../HPXMLtoOpenStudio/resources/hpxml.rb'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions.rb'
 
 # start the measure
-class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
+class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   # human readable name
   def name
     # Measure name should be the title case of the class name.
@@ -1960,4 +1960,4 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 end
 
 # register the measure to be used by the application
-SimulationOutputReport.new.registerWithApplication
+ReportSimulationOutput.new.registerWithApplication
