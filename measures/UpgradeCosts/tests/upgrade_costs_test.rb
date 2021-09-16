@@ -3,7 +3,7 @@
 require 'openstudio'
 
 require_relative '../measure.rb'
-require_relative '../../../resources/hpxml-measures/HPXMLOutputReport/measure.rb'
+require_relative '../../../resources/hpxml-measures/ReportHPXMLOutput/measure.rb'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 
 class UpgradeCostsTest < MiniTest::Test
@@ -594,7 +594,7 @@ class UpgradeCostsTest < MiniTest::Test
     hpxml_in = HPXML.new(hpxml_path: hpxml_path)
 
     # create instance of the measures
-    hpxml_output_report = HPXMLOutputReport.new
+    hpxml_output_report = ReportHPXMLOutput.new
     upgrade_costs = UpgradeCosts.new
 
     # create an instance of a runner
@@ -605,58 +605,58 @@ class UpgradeCostsTest < MiniTest::Test
     hpxml = {}
     cost_multipliers.each do |cost_mult_type, mult_value|
       if cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
-        hpxml['surface_area_wall_above_grade_conditioned_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Wall Above-Grade Conditioned')
+        hpxml['enclosure_wall_area_thermal_boundary_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Wall Area Thermal Boundary')
       elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'
-        hpxml['surface_area_wall_above_grade_exterior_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Wall Above-Grade Exterior')
+        hpxml['enclosure_wall_area_exterior_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Wall Area Exterior')
       elsif cost_mult_type == 'Wall Area, Below-Grade (ft^2)'
-        hpxml['surface_area_wall_below_grade_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Wall Below-Grade')
+        hpxml['enclosure_foundation_wall_area_exterior_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Foundation Wall Area Exterior')
       elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
-        hpxml['surface_area_floor_conditioned_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Floor Conditioned')
-      elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
-        hpxml['surface_area_floor_attic_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Floor Attic')
+        hpxml['enclosure_floor_area_conditioned_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Floor Area Conditioned')
       elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
-        hpxml['surface_area_floor_lighting_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Floor Lighting')
+        hpxml['enclosure_floor_area_lighting_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Floor Area Lighting')
+      elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
+        hpxml['enclosure_ceiling_area_thermal_boundary_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Ceiling Area Thermal Boundary')
       elsif cost_mult_type == 'Roof Area (ft^2)'
-        hpxml['surface_area_roof_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Roof')
+        hpxml['enclosure_roof_area_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Roof Area')
       elsif cost_mult_type == 'Window Area (ft^2)'
-        hpxml['surface_area_window_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Window')
+        hpxml['enclosure_window_area_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Window Area')
       elsif cost_mult_type == 'Door Area (ft^2)'
-        hpxml['surface_area_door_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Door')
+        hpxml['enclosure_door_area_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Door Area')
       elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
-        hpxml['surface_area_duct_unconditioned_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Duct Unconditioned')
+        hpxml['enclosure_duct_area_unconditioned_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Duct Area Unconditioned')
       elsif cost_mult_type == 'Rim Joist Area, Above-Grade, Exterior (ft^2)'
-        hpxml['surface_area_rim_joist_above_grade_exterior_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Rim Joist Above-Grade Exterior')
+        hpxml['enclosure_rim_joist_area_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Rim Joist Area')
+      elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
+        hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Slab Exposed Perimeter Thermal Boundary')
       elsif cost_mult_type == 'Size, Heating System: Primary (kBtu/h)'
-        hpxml['size_heating_system_primary_k_btu_h'] = 0.0
-        if cost_multipliers.keys.include?('Size: Heating System: Primary')
-          hpxml['size_heating_system_primary_k_btu_h'] = cost_multipliers['Size: Heating System: Primary'].output
+        hpxml['primary_systems_heating_capacity_k_btu_h'] = 0.0
+        if cost_multipliers.keys.include?('Primary Systems: Heating Capacity')
+          hpxml['primary_systems_heating_capacity_k_btu_h'] = cost_multipliers['Primary Systems: Heating Capacity'].output
         end
       elsif cost_mult_type == 'Size, Heating System: Secondary (kBtu/h)'
-        hpxml['size_heating_system_secondary_k_btu_h'] = 0.0
-        if cost_multipliers.keys.include?('Size: Heating System: Secondary')
-          hpxml['size_heating_system_secondary_k_btu_h'] = cost_multipliers['Size: Heating System: Secondary'].output
+        hpxml['secondary_systems_heating_capacity_k_btu_h'] = 0.0
+        if cost_multipliers.keys.include?('Secondary Systems: Heating Capacity')
+          hpxml['secondary_systems_heating_capacity_k_btu_h'] = cost_multipliers['Secondary Systems: Heating Capacity'].output
         end
       elsif cost_mult_type == 'Size, Cooling System: Primary (kBtu/h)'
-        hpxml['size_cooling_system_primary_k_btu_h'] = 0.0
-        if cost_multipliers.keys.include?('Size: Cooling System: Primary')
-          hpxml['size_cooling_system_primary_k_btu_h'] = cost_multipliers['Size: Cooling System: Primary'].output
+        hpxml['primary_systems_cooling_capacity_k_btu_h'] = 0.0
+        if cost_multipliers.keys.include?('Primary Systems: Cooling Capacity')
+          hpxml['primary_systems_cooling_capacity_k_btu_h'] = cost_multipliers['Primary Systems: Cooling Capacity'].output
         end
       elsif cost_mult_type == 'Size, Heat Pump Backup: Primary (kBtu/h)'
-        hpxml['size_heat_pump_backup_primary_k_btu_h'] = 0.0
-        if cost_multipliers.keys.include?('Size: Heat Pump Backup: Primary')
-          hpxml['size_heat_pump_backup_primary_k_btu_h'] = cost_multipliers['Size: Heat Pump Backup: Primary'].output
+        hpxml['primary_systems_heat_pump_backup_capacity_k_btu_h'] = 0.0
+        if cost_multipliers.keys.include?('Primary Systems: Heat Pump Backup Capacity')
+          hpxml['primary_systems_heat_pump_backup_capacity_k_btu_h'] = cost_multipliers['Primary Systems: Heat Pump Backup Capacity'].output
         end
       elsif cost_mult_type == 'Size, Water Heater (gal)'
-        hpxml['size_water_heater_gal'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Water Heater')
+        hpxml['systems_water_heater_tank_volume_gal'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Systems: Water Heater Tank Volume')
       elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
-        hpxml['other_flow_rate_mechanical_ventilation_cfm'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Flow Rate Mechanical Ventilation')
-      elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
-        hpxml['other_slab_perimeter_exposed_conditioned_ft'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Slab Perimeter Exposed Conditioned')
+        hpxml['systems_mechanical_ventilation_flow_rate_cfm'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Systems: Mechanical Ventilation Flow Rate')
       end
     end
 
     cost_multipliers.each do |mult_type, mult_value|
-      next if mult_type.include?('Size:')
+      next if mult_type.include?('Systems:')
 
       value = upgrade_costs.get_cost_multiplier(mult_type, hpxml)
       assert(!value.nil?)

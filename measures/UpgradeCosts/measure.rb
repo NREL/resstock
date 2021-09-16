@@ -70,8 +70,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    # Retrieve values from HPXMLOutputReport
-    hpxml = get_values_from_runner_past_results(runner, 'hpxml_output_report')
+    # Retrieve values from ReportHPXMLOutput
+    hpxml = get_values_from_runner_past_results(runner, 'report_hpxml_output')
 
     # Report cost multipliers
     cost_multiplier_choices.each do |cost_mult_type|
@@ -169,49 +169,49 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     if cost_mult_type == 'Fixed (1)'
       cost_mult += 1.0
     elsif cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
-      cost_mult += hpxml['surface_area_wall_above_grade_conditioned_ft_2']
+      cost_mult += hpxml['enclosure_wall_area_thermal_boundary_ft_2']
     elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'
-      cost_mult += hpxml['surface_area_wall_above_grade_exterior_ft_2']
+      cost_mult += hpxml['enclosure_wall_area_exterior_ft_2']
     elsif cost_mult_type == 'Wall Area, Below-Grade (ft^2)'
-      cost_mult += hpxml['surface_area_wall_below_grade_ft_2']
+      cost_mult += hpxml['enclosure_foundation_wall_area_exterior_ft_2']
     elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
-      cost_mult += hpxml['surface_area_floor_conditioned_ft_2']
-    elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
-      cost_mult += hpxml['surface_area_floor_attic_ft_2']
+      cost_mult += hpxml['enclosure_floor_area_conditioned_ft_2']
     elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
-      cost_mult += hpxml['surface_area_floor_lighting_ft_2']
+      cost_mult += hpxml['enclosure_floor_area_lighting_ft_2']
+    elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
+      cost_mult += hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
     elsif cost_mult_type == 'Roof Area (ft^2)'
-      cost_mult += hpxml['surface_area_roof_ft_2']
+      cost_mult += hpxml['enclosure_roof_area_ft_2']
     elsif cost_mult_type == 'Window Area (ft^2)'
-      cost_mult += hpxml['surface_area_window_ft_2']
+      cost_mult += hpxml['enclosure_window_area_ft_2']
     elsif cost_mult_type == 'Door Area (ft^2)'
-      cost_mult += hpxml['surface_area_door_ft_2']
+      cost_mult += hpxml['enclosure_door_area_ft_2']
     elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
-      cost_mult += hpxml['surface_area_duct_unconditioned_ft_2']
+      cost_mult += hpxml['enclosure_duct_area_unconditioned_ft_2']
     elsif cost_mult_type == 'Rim Joist Area, Above-Grade, Exterior (ft^2)'
-      cost_mult += hpxml['surface_area_rim_joist_above_grade_exterior_ft_2']
+      cost_mult += hpxml['enclosure_rim_joist_area_ft_2']
+    elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
+      cost_mult += hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft']
     elsif cost_mult_type == 'Size, Heating System: Primary (kBtu/h)'
-      if hpxml.keys.include?('size_heating_system_primary_k_btu_h')
-        cost_mult += hpxml['size_heating_system_primary_k_btu_h']
+      if hpxml.keys.include?('primary_systems_heating_capacity_k_btu_h')
+        cost_mult += hpxml['primary_systems_heating_capacity_k_btu_h']
       end
     elsif cost_mult_type == 'Size, Heating System: Secondary (kBtu/h)'
-      if hpxml.keys.include?('size_heating_system_secondary_k_btu_h')
-        cost_mult += hpxml['size_heating_system_secondary_k_btu_h']
+      if hpxml.keys.include?('secondary_systems_heating_capacity_k_btu_h')
+        cost_mult += hpxml['secondary_systems_heating_capacity_k_btu_h']
       end
     elsif cost_mult_type == 'Size, Cooling System: Primary (kBtu/h)'
-      if hpxml.keys.include?('size_cooling_system_primary_k_btu_h')
-        cost_mult += hpxml['size_cooling_system_primary_k_btu_h']
+      if hpxml.keys.include?('primary_systems_cooling_capacity_k_btu_h')
+        cost_mult += hpxml['primary_systems_cooling_capacity_k_btu_h']
       end
     elsif cost_mult_type == 'Size, Heat Pump Backup: Primary (kBtu/h)'
-      if hpxml.keys.include?('size_heat_pump_backup_primary_k_btu_h')
-        cost_mult += hpxml['size_heat_pump_backup_primary_k_btu_h']
+      if hpxml.keys.include?('primary_systems_heat_pump_backup_capacity_k_btu_h')
+        cost_mult += hpxml['primary_systems_heat_pump_backup_capacity_k_btu_h']
       end
     elsif cost_mult_type == 'Size, Water Heater (gal)'
-      cost_mult += hpxml['size_water_heater_gal']
+      cost_mult += hpxml['systems_water_heater_tank_volume_gal']
     elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
-      cost_mult += hpxml['other_flow_rate_mechanical_ventilation_cfm']
-    elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
-      cost_mult += hpxml['other_slab_perimeter_exposed_conditioned_ft']
+      cost_mult += hpxml['systems_mechanical_ventilation_flow_rate_cfm']
     end
     return cost_mult
   end # end get_cost_multiplier
