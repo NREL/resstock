@@ -24,7 +24,7 @@ upgrade_costs = []
 qoi_reports = []
 
 for col in df.columns.values:
-  elif col.startswith('build_existing_model'):
+  if col.startswith('build_existing_model'):
     build_existing_models.append(col)
   elif col.startswith('simulation_output_report'):
     simulation_output_reports.append(col)
