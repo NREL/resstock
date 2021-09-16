@@ -5992,6 +5992,7 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     hpxml.cooling_systems[0].cooling_capacity = 24000 * 6
     hpxml.cooling_systems[0].compressor_type = nil
     hpxml.cooling_systems[0].cooling_efficiency_kw_per_ton = 0.9
+    hpxml.cooling_systems[0].cooling_efficiency_seer = nil
     hpxml.cooling_systems[0].cooling_shr = nil
     hpxml.cooling_systems[0].shared_loop_watts = 600
   elsif ['base-bldgtype-multifamily-shared-cooling-tower-only-water-loop-heat-pump.xml',
@@ -8497,16 +8498,16 @@ if ARGV[0].to_sym == :create_release_zips
 
   files = ['Changelog.md',
            'LICENSE.md',
+           'BuildResidentialHPXML/measure.*',
+           'BuildResidentialHPXML/resources/*.*',
            'BuildResidentialScheduleFile/measure.*',
            'BuildResidentialScheduleFile/resources/*.*',
            'HPXMLtoOpenStudio/measure.*',
            'HPXMLtoOpenStudio/resources/*.*',
-           'SimulationOutputReport/measure.*',
-           'SimulationOutputReport/resources/*.*',
-           'BuildResidentialHPXML/measure.*',
-           'BuildResidentialHPXML/resources/*.*',
-           'HPXMLOutputReport/measure.*',
-           'HPXMLOutputReport/resources/*.*',
+           'ReportSimulationOutput/measure.*',
+           'ReportSimulationOutput/resources/*.*',
+           'ReportHPXMLOutput/measure.*',
+           'ReportHPXMLOutput/resources/*.*',
            'weather/*.*',
            'workflow/*.*',
            'workflow/sample_files/*.xml',

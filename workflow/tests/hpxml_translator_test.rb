@@ -522,7 +522,7 @@ class HPXMLTest < MiniTest::Test
     rundir = File.join(@this_dir, "test#{worker_num}")
 
     # Uses 'monthly' to verify timeseries results match annual results via error-checking
-    # inside the SimulationOutputReport measure.
+    # inside the ReportSimulationOutput measure.
     cli_path = OpenStudio.getOpenStudioCLI
     building_id = ''
     if xml.include? 'base-multiple-buildings.xml'
