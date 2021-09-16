@@ -1,0 +1,50 @@
+{
+  "measure_paths": [
+    "../../../measures"
+  ],
+  "steps": [
+    {
+      "measure_dir_name": "ResidentialSimulationControls",
+      "arguments": {
+        "timesteps_per_hr": 1,
+        "begin_month": 1,
+        "begin_day_of_month": 1,
+        "end_month": 12,
+        "end_day_of_month": 31,
+        "calendar_year": 2007
+      }
+    },
+    {
+      "measure_dir_name": "BuildExistingModel",
+      "arguments": {
+        "building_id": 1,
+        "workflow_json": "measure-info.json"
+      }
+    },
+    {
+      "measure_dir_name": "ApplyUpgrade",
+      "arguments": {
+        "run_measure": 1,
+        "upgrade_name": "Windows and Walls",
+        "option_1": "Windows|Triple, Low-E, Non-metal, Air, L-Gain",
+        "option_1_lifetime": 30,
+        "option_1_cost_1_value": 45.77,
+        "option_1_cost_1_multiplier": "Window Area (ft^2)",
+        "option_2": "Insulation Wall|Wood Stud, R-13",
+        "option_2_lifetime": 999,
+        "option_2_apply_logic": "Insulation Wall|Wood Stud, Uninsulated",
+        "option_2_cost_1_value": 2.21,
+        "option_2_cost_1_multiplier": "Wall Area, Above-Grade, Conditioned (ft^2)"
+      }
+    },
+    {
+      "measure_dir_name": "SimulationOutputReport",
+      "arguments": {
+        "include_enduse_subcategories": true
+      }
+    },
+    {
+      "measure_dir_name": "QOIReport"
+    }
+  ]
+}
