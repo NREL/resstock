@@ -28,7 +28,7 @@ for col in df.columns.values:
     build_existing_models.append(col)
   elif col.startswith('simulation_output_report'):
     simulation_output_reports.append(col)
-  elif co.startswith('upgrade_costs'):
+  elif col.startswith('upgrade_costs'):
     upgrade_costs.append(col)
   elif col.startswith('qoi_report'):
     qoi_reports.append(col)
