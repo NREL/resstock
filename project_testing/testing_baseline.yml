@@ -1,20 +1,20 @@
 schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
-project_directory: project_national # Relative to buildstock_directory
-output_directory: outputs
-# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+project_directory: project_testing # Relative to buildstock_directory
+output_directory: testing_baseline
+weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 450000
+    n_datapoints: 100
 
 workflow_generator:
   type: residential_default
   args:
     residential_simulation_controls:
-      timesteps_per_hr: 4
+      timesteps_per_hr: 1
       begin_month: 1
       begin_day_of_month: 1
       end_month: 12
@@ -24,12 +24,15 @@ workflow_generator:
     simulation_output:
       include_enduse_subcategories: true
 
-    timeseries_csv_export:
-      reporting_frequency: Timestep
-      include_enduse_subcategories: true
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
 
 baseline:
-  n_buildings_represented: 110000000
+  n_buildings_represented: 80000000
 
 eagle:
   n_jobs: 3
