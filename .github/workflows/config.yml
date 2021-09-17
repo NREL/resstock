@@ -75,11 +75,17 @@ jobs:
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@develop
           
-          buildstock_docker project_testing/testing_baseline.yml > project_testing/testing_baseline.txt
-          buildstock_docker project_national/national_baseline.yml > project_national/national_baseline.txt
+          # buildstock_docker project_testing/testing_baseline.yml > project_testing/testing_baseline.txt
+          # buildstock_docker project_national/national_baseline.yml > project_national/national_baseline.txt
           
-          buildstock_docker project_testing/testing_upgrades.yml > project_testing/testing_upgrades.txt
-          buildstock_docker project_national/national_upgrades.yml > project_national/national_upgrades.txt
+          # buildstock_docker project_testing/testing_upgrades.yml > project_testing/testing_upgrades.txt
+          # buildstock_docker project_national/national_upgrades.yml > project_national/national_upgrades.txt
+          
+          buildstock_docker project_testing/testing_baseline.yml
+          buildstock_docker project_national/national_baseline.yml
+          
+          buildstock_docker project_testing/testing_upgrades.yml
+          buildstock_docker project_national/national_upgrades.yml
 
       - name: Process results
         run: |
