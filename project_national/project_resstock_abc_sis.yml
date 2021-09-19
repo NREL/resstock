@@ -1,11 +1,11 @@
 schema_version: '0.3'
-buildstock_directory: ../resstock  # Relative to this file or absolute
+buildstock_directory: ../resstock_abc_sis  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
 output_directory: /projects/scout/abc-sis/packages_v1 # <----
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
-# weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 # weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
-weather_files_path: ./BuildStock_TMY3_FIPS.zip
+# weather_files_path: ./BuildStock_TMY3_FIPS.zip
 baseline:
   n_buildings_represented: 133172057
 
@@ -722,13 +722,23 @@ upgrades:
       - *air_sealing_20_to_10ACH50
       - *air_sealing_15_to_10ACH50
 ## 4. HPWH [4]
-      - &hpwh_40gal
+      - &hpwh_40gal_from_electric
         option: Water Heater Efficiency|Electric Heat Pump, 40 gal, 3.78 UEF
         apply_logic: 
           or:
             - Water Heater Efficiency|Electric Premium 
             - Water Heater Efficiency|Electric Standard  
             - Water Heater Efficiency|Electric Tankless  
+          or:
+            - Occupants|1
+        costs:
+          - value: 1650 #Rheem, 1150(eq)+500(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_40gal_from_fuel
+        option: Water Heater Efficiency|Electric Heat Pump, 40 gal, 3.78 UEF
+        apply_logic: 
+          or:
             - Water Heater Efficiency|FIXME Fuel Oil Indirect  
             - Water Heater Efficiency|Fuel Oil Premium 
             - Water Heater Efficiency|Fuel Oil Standard  
@@ -742,16 +752,26 @@ upgrades:
           or:
             - Occupants|1
         costs:
-          - value: 1150 #Rheem, eq cost only, does not include labor cost
+          - value: 2000 #Rheem, 1150(eq)+850(labor)
             multiplier: Fixed (1)
         lifetime: 12
-      - &hpwh_50gal
+      - &hpwh_50gal_from_electric
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.86 UEF
         apply_logic: 
           or:
             - Water Heater Efficiency|Electric Premium 
             - Water Heater Efficiency|Electric Standard  
             - Water Heater Efficiency|Electric Tankless  
+          or:
+            - Occupants|2
+        costs:
+          - value: 2029 #Rheem, 1529(eq)+500(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_50gal_from_fuel
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.86 UEF
+        apply_logic: 
+          or:
             - Water Heater Efficiency|FIXME Fuel Oil Indirect  
             - Water Heater Efficiency|Fuel Oil Premium 
             - Water Heater Efficiency|Fuel Oil Standard  
@@ -765,16 +785,26 @@ upgrades:
           or:
             - Occupants|2
         costs:
-          - value: 1529 #Rheem, eq cost only, does not include labor cost
+          - value: 2379 #Rheem, 1529(eq)+850(labor)
             multiplier: Fixed (1)
         lifetime: 12
-      - &hpwh_65gal
+      - &hpwh_65gal_from_electric
         option: Water Heater Efficiency|Electric Heat Pump, 65 gal, 3.85 UEF
         apply_logic: 
           or:
             - Water Heater Efficiency|Electric Premium 
             - Water Heater Efficiency|Electric Standard  
             - Water Heater Efficiency|Electric Tankless  
+          or:
+            - Occupants|3
+        costs:
+          - value: 2379 #Rheem, 1879(eq)+500(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_65gal_from_fuel
+        option: Water Heater Efficiency|Electric Heat Pump, 65 gal, 3.85 UEF
+        apply_logic: 
+          or:
             - Water Heater Efficiency|FIXME Fuel Oil Indirect  
             - Water Heater Efficiency|Fuel Oil Premium 
             - Water Heater Efficiency|Fuel Oil Standard  
@@ -788,16 +818,32 @@ upgrades:
           or:
             - Occupants|3
         costs:
-          - value: 1879 #Rheem, eq cost only, does not include labor cost
+          - value: 2729 #Rheem, 1879(eq)+850(labor)
             multiplier: Fixed (1)
         lifetime: 12
-      - &hpwh_80gal
+      - &hpwh_80gal_from_electric
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 4.0 UEF
         apply_logic: 
           or:
             - Water Heater Efficiency|Electric Premium 
             - Water Heater Efficiency|Electric Standard  
-            - Water Heater Efficiency|Electric Tankless  
+            - Water Heater Efficiency|Electric Tankless
+          or:
+            - Occupants|4
+            - Occupants|5
+            - Occupants|6
+            - Occupants|7
+            - Occupants|8
+            - Occupants|9
+            - Occupants|10
+        costs:
+          - value: 2749 #Rheem, 2249(eq)+500(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_80gal_from_fuel
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 4.0 UEF
+        apply_logic: 
+          or:
             - Water Heater Efficiency|FIXME Fuel Oil Indirect  
             - Water Heater Efficiency|Fuel Oil Premium 
             - Water Heater Efficiency|Fuel Oil Standard  
@@ -817,7 +863,7 @@ upgrades:
             - Occupants|9
             - Occupants|10
         costs:
-          - value: 2249 #Rheem, eq cost only, does not include labor cost
+          - value: 3099 #Rheem, 2249(eq)+850(labor)
             multiplier: Fixed (1)
         lifetime: 12
 
@@ -857,7 +903,11 @@ upgrades:
       - *air_sealing_mech_vent
 
 ## 4. HPWH [4]
-      - *hpwh_40gal
-      - *hpwh_50gal
-      - *hpwh_65gal
-      - *hpwh_80gal
+      - *hpwh_40gal_from_electric
+      - *hpwh_40gal_from_fuel
+      - *hpwh_50gal_from_electric
+      - *hpwh_50gal_from_fuel
+      - *hpwh_65gal_from_electric
+      - *hpwh_65gal_from_fuel
+      - *hpwh_80gal_from_electric
+      - *hpwh_80gal_from_fuel
