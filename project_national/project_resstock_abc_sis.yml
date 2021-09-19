@@ -1,5 +1,5 @@
 schema_version: '0.3'
-buildstock_directory: ../resstock_abc_sis  # Relative to this file or absolute
+buildstock_directory: ../ResStock_abc_sis  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
 output_directory: /projects/scout/abc-sis/packages_v1 # <----
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
@@ -15,10 +15,10 @@ sampler:
     n_datapoints: 55000
     resample: false
     logic:
-      or:
+      - or:
         - Geometry Building Type RECS|Multi-Family with 2 - 4 Units
         - Geometry Building Type RECS|Multi-Family with 5+ Units
-      or:
+      - or:
         - Geometry Stories|1
         - Geometry Stories|2
         - Geometry Stories|3
@@ -29,6 +29,7 @@ workflow_generator:
     timeseries_csv_export: 
       reporting_frequency: Hourly # <----
       include_enduse_subcategories: true
+      output_variables: Site Outdoor Air Drybulb Temperature, Site Outdoor Air Relative Humidity, Zone Mean Air Temperature, Zone Mean Air Humidity Ratio
     residential_simulation_controls: 
       timesteps_per_hr: 4
       begin_month: 1
@@ -47,6 +48,7 @@ eagle:
     time: 60
 
 postprocessing:
+  keep_individual_timeseries: true  # default false if omitted
   aws:
     region_name: 'us-west-2'
     s3:
@@ -67,7 +69,7 @@ upgrades:
       - &window_double_pane_high_gain
         option: Windows|Double, Low-E, H-Gain #U=0.29
         apply_logic: 
-          or:
+          - or:
             - Windows|Single, Clear, Metal
             - Windows|Single, Clear, Metal, Exterior Clear Storm
             - Windows|Single, Clear, Non-metal
@@ -77,12 +79,10 @@ upgrades:
             - Windows|Double, Clear, Non-metal, Air #U=0.49
             - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm #U=0.34
             - Windows|Double, Low-E, Non-metal, Air, M-Gain #U=0.38
-          not:
-            or:
-              - State|AZ
-              - State|FL
-              - State|LA
-              - State|TX
+          - not: State|AZ
+          - not: State|FL
+          - not: State|LA
+          - not: State|TX
         costs:
           - value: 44
             multiplier: Window Area (ft^2)
@@ -90,7 +90,7 @@ upgrades:
       - &window_double_pane_low_gain
         option: Windows|Double, Low-E, L-Gain #U=0.26
         apply_logic:
-          or:
+          - or:
             - Windows|Single, Clear, Metal
             - Windows|Single, Clear, Metal, Exterior Clear Storm
             - Windows|Single, Clear, Non-metal
@@ -100,7 +100,7 @@ upgrades:
             - Windows|Double, Clear, Non-metal, Air #U=0.49
             - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm #U=0.34
             - Windows|Double, Low-E, Non-metal, Air, M-Gain #U=0.38
-          or:
+          - or:
             - State|AZ
             - State|FL
             - State|LA
@@ -252,7 +252,7 @@ upgrades:
           - value: 3.55 # based on regression of R-5,10,15 XPS costs
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-      - &exterior_r30_cum_r19
+      - &exterior_r30_cmu_r19
         option: Insulation Wall|CMU, 6-in Hollow, R-19, R-30 XPS
         apply_logic: Insulation Wall|CMU, 6-in Hollow, R-19
         costs: 
@@ -541,7 +541,7 @@ upgrades:
       - *exterior_r30_cmu_r7
       - *exterior_r30_cmu_r11
       - *exterior_r30_cmu_r15
-      - *exterior_r30_cum_r19
+      - *exterior_r30_cmu_r19
 ## 3. air sealing to 1ACH50 (with mech vent) [15]
       - *air_sealing_50_to_1ACH50
       - *air_sealing_40_to_1ACH50
@@ -584,7 +584,9 @@ upgrades:
 ## 4. MSHP [4]
       - &mshp_p1
         option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-        apply_logic: HVAC Has Ducts|No
+        apply_logic: 
+          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+          - HVAC Has Ducts|No
         costs:
           - value: 710 # prev: 2510
             multiplier: Fixed (1)
@@ -630,7 +632,7 @@ upgrades:
       - *exterior_r30_cmu_r7
       - *exterior_r30_cmu_r11
       - *exterior_r30_cmu_r15
-      - *exterior_r30_cum_r19
+      - *exterior_r30_cmu_r19
 ## 3. air sealing to 1ACH50 (with mech vent) [15]
       - *air_sealing_50_to_1ACH50
       - *air_sealing_40_to_1ACH50
@@ -670,7 +672,7 @@ upgrades:
       - *exterior_r30_cmu_r7
       - *exterior_r30_cmu_r11
       - *exterior_r30_cmu_r15
-      - *exterior_r30_cum_r19
+      - *exterior_r30_cmu_r19
 ## 3. air sealing to 1ACH50 (with rec vent) [23]
       - *air_sealing_50_to_1ACH50
       - *air_sealing_40_to_1ACH50
@@ -725,11 +727,11 @@ upgrades:
       - &hpwh_40gal_from_electric
         option: Water Heater Efficiency|Electric Heat Pump, 40 gal, 3.78 UEF
         apply_logic: 
-          or:
+          - or:
             - Water Heater Efficiency|Electric Premium 
             - Water Heater Efficiency|Electric Standard  
             - Water Heater Efficiency|Electric Tankless  
-          or:
+          - or:
             - Occupants|1
         costs:
           - value: 1650 #Rheem, 1150(eq)+500(labor)
@@ -738,7 +740,7 @@ upgrades:
       - &hpwh_40gal_from_fuel
         option: Water Heater Efficiency|Electric Heat Pump, 40 gal, 3.78 UEF
         apply_logic: 
-          or:
+          - or:
             - Water Heater Efficiency|FIXME Fuel Oil Indirect  
             - Water Heater Efficiency|Fuel Oil Premium 
             - Water Heater Efficiency|Fuel Oil Standard  
@@ -749,7 +751,7 @@ upgrades:
             - Water Heater Efficiency|Propane Premium  
             - Water Heater Efficiency|Propane Standard 
             - Water Heater Efficiency|Propane Tankless
-          or:
+          - or:
             - Occupants|1
         costs:
           - value: 2000 #Rheem, 1150(eq)+850(labor)
@@ -758,11 +760,11 @@ upgrades:
       - &hpwh_50gal_from_electric
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.86 UEF
         apply_logic: 
-          or:
+          - or:
             - Water Heater Efficiency|Electric Premium 
             - Water Heater Efficiency|Electric Standard  
             - Water Heater Efficiency|Electric Tankless  
-          or:
+          - or:
             - Occupants|2
         costs:
           - value: 2029 #Rheem, 1529(eq)+500(labor)
@@ -771,7 +773,7 @@ upgrades:
       - &hpwh_50gal_from_fuel
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.86 UEF
         apply_logic: 
-          or:
+          - or:
             - Water Heater Efficiency|FIXME Fuel Oil Indirect  
             - Water Heater Efficiency|Fuel Oil Premium 
             - Water Heater Efficiency|Fuel Oil Standard  
@@ -782,7 +784,7 @@ upgrades:
             - Water Heater Efficiency|Propane Premium  
             - Water Heater Efficiency|Propane Standard 
             - Water Heater Efficiency|Propane Tankless
-          or:
+          - or:
             - Occupants|2
         costs:
           - value: 2379 #Rheem, 1529(eq)+850(labor)
@@ -791,11 +793,11 @@ upgrades:
       - &hpwh_65gal_from_electric
         option: Water Heater Efficiency|Electric Heat Pump, 65 gal, 3.85 UEF
         apply_logic: 
-          or:
+          - or:
             - Water Heater Efficiency|Electric Premium 
             - Water Heater Efficiency|Electric Standard  
             - Water Heater Efficiency|Electric Tankless  
-          or:
+          - or:
             - Occupants|3
         costs:
           - value: 2379 #Rheem, 1879(eq)+500(labor)
@@ -804,7 +806,7 @@ upgrades:
       - &hpwh_65gal_from_fuel
         option: Water Heater Efficiency|Electric Heat Pump, 65 gal, 3.85 UEF
         apply_logic: 
-          or:
+          - or:
             - Water Heater Efficiency|FIXME Fuel Oil Indirect  
             - Water Heater Efficiency|Fuel Oil Premium 
             - Water Heater Efficiency|Fuel Oil Standard  
@@ -815,7 +817,7 @@ upgrades:
             - Water Heater Efficiency|Propane Premium  
             - Water Heater Efficiency|Propane Standard 
             - Water Heater Efficiency|Propane Tankless
-          or:
+          - or:
             - Occupants|3
         costs:
           - value: 2729 #Rheem, 1879(eq)+850(labor)
@@ -824,11 +826,11 @@ upgrades:
       - &hpwh_80gal_from_electric
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 4.0 UEF
         apply_logic: 
-          or:
+          - or:
             - Water Heater Efficiency|Electric Premium 
             - Water Heater Efficiency|Electric Standard  
             - Water Heater Efficiency|Electric Tankless
-          or:
+          - or:
             - Occupants|4
             - Occupants|5
             - Occupants|6
@@ -843,7 +845,7 @@ upgrades:
       - &hpwh_80gal_from_fuel
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 4.0 UEF
         apply_logic: 
-          or:
+          - or:
             - Water Heater Efficiency|FIXME Fuel Oil Indirect  
             - Water Heater Efficiency|Fuel Oil Premium 
             - Water Heater Efficiency|Fuel Oil Standard  
@@ -854,7 +856,7 @@ upgrades:
             - Water Heater Efficiency|Propane Premium  
             - Water Heater Efficiency|Propane Standard 
             - Water Heater Efficiency|Propane Tankless
-          or:
+          - or:
             - Occupants|4
             - Occupants|5
             - Occupants|6
@@ -884,7 +886,7 @@ upgrades:
       - *exterior_r30_cmu_r7
       - *exterior_r30_cmu_r11
       - *exterior_r30_cmu_r15
-      - *exterior_r30_cum_r19
+      - *exterior_r30_cmu_r19
 ## 3. air sealing to 1ACH50 (with mech vent) [15]
       - *air_sealing_50_to_1ACH50
       - *air_sealing_40_to_1ACH50
