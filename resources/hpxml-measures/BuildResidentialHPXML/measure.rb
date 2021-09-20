@@ -4134,6 +4134,8 @@ class HPXMLFile
 
     if args[:max_flex_speed].is_initialized
       max_flex_speed = args[:max_flex_speed].get
+    end
+    
     if fraction_heat_load_served > 0
       primary_heating_system = true
     end
