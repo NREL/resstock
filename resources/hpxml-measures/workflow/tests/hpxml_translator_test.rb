@@ -1448,7 +1448,7 @@ class HPXMLTest < MiniTest::Test
     if hpxml_path.include? 'base-hvac-undersized.xml'
       assert_operator(unmet_hours_htg, :>, 1000)
       assert_operator(unmet_hours_clg, :>, 1000)
-    else
+    elsif not hpxml_path.include? 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-'
       assert_operator(unmet_hours_htg, :<, 100)
       assert_operator(unmet_hours_clg, :<, 100)
     end

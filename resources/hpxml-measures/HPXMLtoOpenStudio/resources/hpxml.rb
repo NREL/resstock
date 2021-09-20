@@ -3314,6 +3314,7 @@ class HPXML < Object
         XMLHelper.add_element(demand_flexibility, 'IHPPcmStorage', @ihp_pcm_storage, :boolean) unless @ihp_pcm_storage.nil?
         XMLHelper.add_element(demand_flexibility, 'GridSignalSchedule', @grid_signal_schedule, :string) unless @grid_signal_schedule.nil?
         XMLHelper.add_element(demand_flexibility, 'MaxGridResponseSpeed', @max_flex_speed, :integer) unless @max_flex_speed.nil?
+      end
       if @primary_heating_system
         primary_heating_system = XMLHelper.insert_element(primary_systems, 'PrimaryHeatingSystem')
         XMLHelper.add_attribute(primary_heating_system, 'idref', @id)
