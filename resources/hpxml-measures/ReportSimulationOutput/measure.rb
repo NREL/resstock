@@ -10,7 +10,7 @@ require_relative '../HPXMLtoOpenStudio/resources/hpxml.rb'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions.rb'
 
 # start the measure
-class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
+class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   # human readable name
   def name
     # Measure name should be the title case of the class name.
@@ -81,12 +81,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_timeseries_unmet_loads', true)
-    arg.setDisplayName('Generate Timeseries Output: Unmet Loads')
-    arg.setDescription('Generates timeseries unmet heating and cooling loads.')
-    arg.setDefaultValue(false)
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('include_timeseries_zone_temperatures', true)
     arg.setDisplayName('Generate Timeseries Output: Zone Temperatures')
     arg.setDescription('Generates timeseries temperatures for each thermal zone.')
@@ -118,7 +112,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     all_outputs << @fuels
     all_outputs << @end_uses
     all_outputs << @loads
-    all_outputs << @unmet_loads
+    all_outputs << @unmet_hours
     all_outputs << @peak_fuels
     all_outputs << @peak_loads
     all_outputs << @component_loads
@@ -176,7 +170,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       include_timeseries_hot_water_uses = runner.getBoolArgumentValue('include_timeseries_hot_water_uses', user_arguments)
       include_timeseries_total_loads = runner.getBoolArgumentValue('include_timeseries_total_loads', user_arguments)
       include_timeseries_component_loads = runner.getBoolArgumentValue('include_timeseries_component_loads', user_arguments)
-      include_timeseries_unmet_loads = runner.getBoolArgumentValue('include_timeseries_unmet_loads', user_arguments)
       include_timeseries_zone_temperatures = runner.getBoolArgumentValue('include_timeseries_zone_temperatures', user_arguments)
       include_timeseries_airflows = runner.getBoolArgumentValue('include_timeseries_airflows', user_arguments)
       include_timeseries_weather = runner.getBoolArgumentValue('include_timeseries_weather', user_arguments)
@@ -200,10 +193,9 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       include_timeseries_end_use_consumptions = true
     end
 
-    # End Use/Hot Water Use/Unmet Load/Ideal Load outputs
+    # End Use/Hot Water Use/Ideal Load outputs
     { @end_uses.values => include_timeseries_end_use_consumptions,
       @hot_water_uses.values => include_timeseries_hot_water_uses,
-      @unmet_loads.values => include_timeseries_unmet_loads,
       @ideal_system_loads.values => false }.each do |uses, include_timeries|
       uses.each do |use|
         use.variables.each do |sys_id, varkey, var|
@@ -318,7 +310,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       include_timeseries_hot_water_uses = runner.getBoolArgumentValue('include_timeseries_hot_water_uses', user_arguments)
       include_timeseries_total_loads = runner.getBoolArgumentValue('include_timeseries_total_loads', user_arguments)
       include_timeseries_component_loads = runner.getBoolArgumentValue('include_timeseries_component_loads', user_arguments)
-      include_timeseries_unmet_loads = runner.getBoolArgumentValue('include_timeseries_unmet_loads', user_arguments)
       include_timeseries_zone_temperatures = runner.getBoolArgumentValue('include_timeseries_zone_temperatures', user_arguments)
       include_timeseries_airflows = runner.getBoolArgumentValue('include_timeseries_airflows', user_arguments)
       include_timeseries_weather = runner.getBoolArgumentValue('include_timeseries_weather', user_arguments)
@@ -368,7 +359,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                           include_timeseries_hot_water_uses,
                           include_timeseries_total_loads,
                           include_timeseries_component_loads,
-                          include_timeseries_unmet_loads,
                           include_timeseries_zone_temperatures,
                           include_timeseries_airflows,
                           include_timeseries_weather)
@@ -390,7 +380,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                                     include_timeseries_hot_water_uses,
                                     include_timeseries_total_loads,
                                     include_timeseries_component_loads,
-                                    include_timeseries_unmet_loads,
                                     include_timeseries_zone_temperatures,
                                     include_timeseries_airflows,
                                     include_timeseries_weather)
@@ -438,7 +427,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                   include_timeseries_hot_water_uses,
                   include_timeseries_total_loads,
                   include_timeseries_component_loads,
-                  include_timeseries_unmet_loads,
                   include_timeseries_zone_temperatures,
                   include_timeseries_airflows,
                   include_timeseries_weather)
@@ -497,17 +485,14 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    # Unmet loads (heating/cooling energy delivered by backup residual ideal air system)
-    @unmet_loads.each do |load_type, unmet_load|
-      unmet_load.variables.map { |v| v[0] }.each do |sys_id|
-        keys = unmet_load.variables.select { |v| v[0] == sys_id }.map { |v| v[1] }
-        vars = unmet_load.variables.select { |v| v[0] == sys_id }.map { |v| v[2] }
-
-        unmet_load.annual_output = get_report_variable_data_annual(keys, vars)
-        if include_timeseries_unmet_loads
-          unmet_load.timeseries_output = get_report_variable_data_timeseries(keys, vars, UnitConversions.convert(1.0, 'J', unmet_load.timeseries_units), 0, timeseries_frequency)
-        end
+    # Unmet Hours
+    @unmet_hours.each do |key, unmet_hour|
+      if (key == UHT::Heating && @hpxml.total_fraction_heat_load_served <= 0) ||
+         (key == UHT::Cooling && @hpxml.total_fraction_cool_load_served <= 0)
+        next # Don't report unmet hours if there is no heating/cooling system
       end
+
+      unmet_hour.annual_output = get_tabular_data_value('SystemSummary', 'Entire Facility', 'Time Setpoint Not Met', ['LIVING SPACE'], unmet_hour.col_name, unmet_hour.annual_units)
     end
 
     # Ideal system loads (expected fraction of loads that are not met by partial HVAC (e.g., room AC that meets 30% of load))
@@ -678,7 +663,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
   def check_for_errors(runner, outputs)
     all_total = @fuels.values.map { |x| x.annual_output.to_f }.sum(0.0)
-    all_total += @unmet_loads.values.map { |x| x.annual_output.to_f }.sum(0.0)
     all_total += @ideal_system_loads.values.map { |x| x.annual_output.to_f }.sum(0.0)
     if all_total == 0
       runner.registerError('Simulation unsuccessful.')
@@ -710,8 +694,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     { @end_uses => 'End Use',
       @fuels => 'Fuel',
       @loads => 'Load',
-      @component_loads => 'Component Load',
-      @unmet_loads => 'Unmet Load' }.each do |outputs, output_type|
+      @component_loads => 'Component Load' }.each do |outputs, output_type|
       outputs.each do |key, obj|
         next if obj.timeseries_output.empty?
 
@@ -747,8 +730,8 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       results_out << ["#{load.name} (#{load.annual_units})", load.annual_output.to_f.round(2)]
     end
     results_out << [line_break]
-    @unmet_loads.each do |load_type, unmet_load|
-      results_out << ["#{unmet_load.name} (#{unmet_load.annual_units})", unmet_load.annual_output.to_f.round(2)]
+    @unmet_hours.each do |load_type, unmet_hour|
+      results_out << ["#{unmet_hour.name} (#{unmet_hour.annual_units})", unmet_hour.annual_output.to_f.round(2)]
     end
     results_out << [line_break]
     @peak_fuels.each do |key, peak_fuel|
@@ -792,7 +775,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     all_outputs << @fuels
     all_outputs << @end_uses
     all_outputs << @loads
-    all_outputs << @unmet_loads
+    all_outputs << @unmet_hours
     all_outputs << @peak_fuels
     all_outputs << @peak_loads
     if @component_loads.values.map { |load| load.annual_output.to_f }.sum != 0 # Skip if component loads not calculated
@@ -1091,7 +1074,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
                                       include_timeseries_hot_water_uses,
                                       include_timeseries_total_loads,
                                       include_timeseries_component_loads,
-                                      include_timeseries_unmet_loads,
                                       include_timeseries_zone_temperatures,
                                       include_timeseries_airflows,
                                       include_timeseries_weather)
@@ -1132,11 +1114,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     else
       comp_loads_data = []
     end
-    if include_timeseries_unmet_loads
-      unmet_loads_data = @unmet_loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
-    else
-      unmet_loads_data = []
-    end
     if include_timeseries_zone_temperatures
       zone_temps_data = @zone_temps.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
     else
@@ -1153,13 +1130,13 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       weather_data = []
     end
 
-    return if fuel_data.size + end_use_data.size + hot_water_use_data.size + total_loads_data.size + comp_loads_data.size + unmet_loads_data.size + zone_temps_data.size + airflows_data.size + weather_data.size == 0
+    return if fuel_data.size + end_use_data.size + hot_water_use_data.size + total_loads_data.size + comp_loads_data.size + zone_temps_data.size + airflows_data.size + weather_data.size == 0
 
     fail 'Unable to obtain timestamps.' if @timestamps.empty?
 
     if output_format == 'csv'
       # Assemble data
-      data = data.zip(*fuel_data, *end_use_data, *hot_water_use_data, *total_loads_data, *comp_loads_data, *unmet_loads_data, *zone_temps_data, *airflows_data, *weather_data)
+      data = data.zip(*fuel_data, *end_use_data, *hot_water_use_data, *total_loads_data, *comp_loads_data, *zone_temps_data, *airflows_data, *weather_data)
 
       # Error-check
       n_elements = []
@@ -1176,7 +1153,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       # Assemble data
       h = {}
       h['Time'] = data[2..-1]
-      [fuel_data, end_use_data, hot_water_use_data, total_loads_data, comp_loads_data, unmet_loads_data, zone_temps_data, airflows_data, weather_data].each do |d|
+      [fuel_data, end_use_data, hot_water_use_data, total_loads_data, comp_loads_data, zone_temps_data, airflows_data, weather_data].each do |d|
         d.each do |o|
           grp, name = o[0].split(':', 2)
           h[grp] = {} if h[grp].nil?
@@ -1290,7 +1267,7 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     @model.getModelObjects.each do |object|
       next if object.to_AdditionalProperties.is_initialized
 
-      [EUT, HWT, LT, ULT, ILT].each do |class_name|
+      [EUT, HWT, LT, ILT].each do |class_name|
         vars_by_key = get_object_output_variables_by_key(@model, object, class_name)
         next if vars_by_key.size == 0
 
@@ -1392,7 +1369,15 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     attr_accessor(:ems_variable)
   end
 
-  class UnmetLoad < BaseOutput
+  class UnmetHours < BaseOutput
+    def initialize(col_name:)
+      super()
+      @col_name = col_name
+    end
+    attr_accessor(:col_name)
+  end
+
+  class IdealLoad < BaseOutput
     def initialize(variables: [])
       super()
       @variables = variables
@@ -1667,26 +1652,25 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
     @component_loads.each do |key, comp_load|
       load_type, comp_load_type = key
-      comp_load.name = "Component Load: #{load_type}: #{comp_load_type}"
+      comp_load.name = "Component Load: #{load_type.gsub(': Delivered', '')}: #{comp_load_type}"
       comp_load.annual_units = 'MBtu'
       comp_load.timeseries_units = 'kBtu'
     end
 
-    # Unmet Loads (unexpected load that should have been met by HVAC)
-    @unmet_loads = {}
-    @unmet_loads[ULT::Heating] = UnmetLoad.new(variables: get_object_variables(ULT, ULT::Heating))
-    @unmet_loads[ULT::Cooling] = UnmetLoad.new(variables: get_object_variables(ULT, ULT::Cooling))
+    # Unmet Hours
+    @unmet_hours = {}
+    @unmet_hours[UHT::Heating] = UnmetHours.new(col_name: 'During Heating')
+    @unmet_hours[UHT::Cooling] = UnmetHours.new(col_name: 'During Cooling')
 
-    @unmet_loads.each do |load_type, unmet_load|
-      unmet_load.name = "Unmet Load: #{load_type}"
-      unmet_load.annual_units = 'MBtu'
-      unmet_load.timeseries_units = 'kBtu'
+    @unmet_hours.each do |load_type, unmet_hour|
+      unmet_hour.name = "Unmet Hours: #{load_type}"
+      unmet_hour.annual_units = 'hr'
     end
 
-    # Ideal System Loads (expected load that is not met by HVAC)
+    # Ideal System Loads (expected load that is not met by the HVAC systems)
     @ideal_system_loads = {}
-    @ideal_system_loads[ILT::Heating] = UnmetLoad.new(variables: get_object_variables(ILT, ILT::Heating))
-    @ideal_system_loads[ILT::Cooling] = UnmetLoad.new(variables: get_object_variables(ILT, ILT::Cooling))
+    @ideal_system_loads[ILT::Heating] = IdealLoad.new(variables: get_object_variables(ILT, ILT::Heating))
+    @ideal_system_loads[ILT::Cooling] = IdealLoad.new(variables: get_object_variables(ILT, ILT::Cooling))
 
     @ideal_system_loads.each do |load_type, ideal_load|
       ideal_load.name = "Ideal System Load: #{load_type}"
@@ -1984,18 +1968,6 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 
       end
 
-    elsif class_name == ULT
-
-      # Unmet Load
-
-      if object.to_ZoneHVACIdealLoadsAirSystem.is_initialized
-        if object.name.to_s == Constants.ObjectNameIdealAirSystemResidual
-          return { ULT::Heating => ['Zone Ideal Loads Zone Sensible Heating Energy'],
-                   ULT::Cooling => ['Zone Ideal Loads Zone Sensible Cooling Energy'] }
-        end
-
-      end
-
     elsif class_name == ILT
 
       # Ideal Load
@@ -2015,4 +1987,4 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
 end
 
 # register the measure to be used by the application
-SimulationOutputReport.new.registerWithApplication
+ReportSimulationOutput.new.registerWithApplication

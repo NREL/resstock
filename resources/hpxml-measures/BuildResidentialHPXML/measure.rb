@@ -110,6 +110,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('zip_code', false)
+    arg.setDisplayName('Zip Code')
+    arg.setDescription('Zip code - used for informational purposes only')
+    args << arg
+
     site_state_code_choices = OpenStudio::StringVector.new
     ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
      'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
@@ -128,6 +133,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Weather Station: EnergyPlus Weather (EPW) Filepath')
     arg.setDescription('Path of the EPW file.')
     arg.setDefaultValue('USA_CO_Denver.Intl.AP.725650_TMY3.epw')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('year_built', false)
+    arg.setDisplayName('Building Construction: Year Built')
+    arg.setDescription('The year the building was built')
     args << arg
 
     unit_type_choices = OpenStudio::StringVector.new
@@ -2925,7 +2935,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = ((args[:ducts_supply_location] == Constants.Auto) && (args[:ducts_supply_surface_area] != Constants.Auto)) || ((args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area] == Constants.Auto)) || ((args[:ducts_return_location] == Constants.Auto) && (args[:ducts_return_surface_area] != Constants.Auto)) || ((args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto))
     errors << "ducts_supply_location=#{args[:ducts_supply_location]} and ducts_supply_surface_area=#{args[:ducts_supply_surface_area]} and ducts_return_location=#{args[:ducts_return_location]} and ducts_return_surface_area=#{args[:ducts_return_surface_area]}" if error
 
-    # second heating system fraction heat load served non less than 50%
+    # second heating system fraction heat load served not less than 50%
     warning = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] >= 0.5) && (args[:heating_system_2_fraction_heat_load_served] < 1.0)
     warnings << "heating_system_2_type=#{args[:heating_system_2_type]} and heating_system_2_fraction_heat_load_served=#{args[:heating_system_2_fraction_heat_load_served]}" if warning
 
@@ -3103,14 +3113,14 @@ class HPXMLFile
     set_climate_and_risk_zones(hpxml, runner, args, epw_file)
     set_air_infiltration_measurements(hpxml, runner, args)
 
-    set_attics(hpxml, runner, model, args)
-    set_foundations(hpxml, runner, model, args)
     set_roofs(hpxml, runner, model, args)
     set_rim_joists(hpxml, runner, model, args)
     set_walls(hpxml, runner, model, args)
     set_foundation_walls(hpxml, runner, model, args)
     set_frame_floors(hpxml, runner, model, args)
+    set_attics(hpxml, runner, model, args)
     set_slabs(hpxml, runner, model, args)
+    set_foundations(hpxml, runner, model, args)
     set_windows(hpxml, runner, model, args)
     set_skylights(hpxml, runner, model, args)
     set_doors(hpxml, runner, model, args)
@@ -3247,6 +3257,9 @@ class HPXMLFile
     end
 
     hpxml.header.building_id = 'MyBuilding'
+    if args[:zip_code].is_initialized
+      hpxml.header.zip_code = args[:zip_code]
+    end
     hpxml.header.state_code = args[:site_state_code]
     hpxml.header.event_type = 'proposed workscope'
   end
@@ -3260,6 +3273,16 @@ class HPXMLFile
       hpxml.site.site_type = args[:site_type].get
     end
 
+    surroundings_hash = { 'Left' => HPXML::SurroundingsOneSide,
+                          'Right' => HPXML::SurroundingsOneSide,
+                          'Middle' => HPXML::SurroundingsTwoSides,
+                          'None' => HPXML::SurroundingsStandAlone }
+
+    if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
+      hpxml.site.surroundings = surroundings_hash[args[:geometry_unit_horizontal_location].get]
+    end
+
+    hpxml.site.azimuth_of_front_of_home = args[:geometry_unit_orientation]
     hpxml.site.shielding_of_home = shielding_of_home
   end
 
@@ -3317,6 +3340,10 @@ class HPXMLFile
     hpxml.building_construction.conditioned_building_volume = conditioned_building_volume
     hpxml.building_construction.average_ceiling_height = args[:geometry_wall_height]
     hpxml.building_construction.residential_facility_type = args[:geometry_unit_type]
+
+    if args[:year_built].is_initialized
+      hpxml.building_construction.year_built = args[:year_built].get
+    end
     if args[:geometry_has_flue_or_chimney] != Constants.Auto
       hpxml.building_construction.has_flue_or_chimney = args[:geometry_has_flue_or_chimney]
     end
@@ -3358,20 +3385,63 @@ class HPXMLFile
   def self.set_attics(hpxml, runner, model, args)
     return if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
 
+    surf_ids = { 'roofs' => { 'surfaces' => hpxml.roofs, 'ids' => [] },
+                 'walls' => { 'surfaces' => hpxml.walls, 'ids' => [] },
+                 'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] } }
+
+    attic_locations = [HPXML::LocationAtticUnconditioned, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented]
+    surf_ids.each do |surf_type, surf_hash|
+      surf_hash['surfaces'].each do |surface|
+        next if (not attic_locations.include? surface.interior_adjacent_to) &&
+                (not attic_locations.include? surface.exterior_adjacent_to)
+
+        surf_hash['ids'] << surface.id
+      end
+    end
+
     if args[:geometry_roof_type] == 'flat'
       hpxml.attics.add(id: HPXML::AtticTypeFlatRoof,
                        attic_type: HPXML::AtticTypeFlatRoof)
     else
       hpxml.attics.add(id: args[:geometry_attic_type],
-                       attic_type: args[:geometry_attic_type])
+                       attic_type: args[:geometry_attic_type],
+                       attached_to_roof_idrefs: surf_ids['roofs']['ids'],
+                       attached_to_wall_idrefs: surf_ids['walls']['ids'],
+                       attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'])
     end
   end
 
   def self.set_foundations(hpxml, runner, model, args)
     return if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
 
+    surf_ids = { 'slabs' => { 'surfaces' => hpxml.slabs, 'ids' => [] },
+                 'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] },
+                 'foundation_walls' => { 'surfaces' => hpxml.foundation_walls, 'ids' => [] },
+                 'walls' => { 'surfaces' => hpxml.walls, 'ids' => [] },
+                 'rim_joists' => { 'surfaces' => hpxml.rim_joists, 'ids' => [] }, }
+
+    foundation_locations = [HPXML::LocationBasementConditioned, HPXML::LocationBasementUnconditioned,
+                            HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented]
+
+    surf_ids.each do |surf_type, surf_hash|
+      surf_hash['surfaces'].each do |surface|
+        next unless (foundation_locations.include? surface.interior_adjacent_to) ||
+                    (foundation_locations.include? surface.exterior_adjacent_to) ||
+                    (surf_type == 'slabs' && surface.interior_adjacent_to == HPXML::LocationLivingSpace)
+
+        (surf_type == 'frame_floors' && surface.exterior_adjacent_to == HPXML::LocationOutside)
+
+        surf_hash['ids'] << surface.id
+      end
+    end
+
     hpxml.foundations.add(id: args[:geometry_foundation_type],
-                          foundation_type: args[:geometry_foundation_type])
+                          foundation_type: args[:geometry_foundation_type],
+                          attached_to_slab_idrefs: surf_ids['slabs']['ids'],
+                          attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'],
+                          attached_to_foundation_wall_idrefs: surf_ids['foundation_walls']['ids'],
+                          attached_to_wall_idrefs: surf_ids['walls']['ids'],
+                          attached_to_rim_joist_idrefs: surf_ids['rim_joists']['ids'])
   end
 
   def self.set_roofs(hpxml, runner, model, args)
@@ -3492,13 +3562,23 @@ class HPXMLFile
 
       next if exterior_adjacent_to == HPXML::LocationLivingSpace # already captured these surfaces
 
+      attic_locations = [HPXML::LocationAtticUnconditioned, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented]
+      attic_wall_type = nil
+      if (attic_locations.include? interior_adjacent_to) && (exterior_adjacent_to == HPXML::LocationOutside)
+        attic_wall_type = HPXML::AtticWallTypeGable
+      end
+
       wall_type = args[:wall_type]
-      if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to
+      if attic_locations.include? interior_adjacent_to
         wall_type = HPXML::WallTypeWoodStud
       end
 
       if exterior_adjacent_to == HPXML::LocationOutside && args[:wall_siding_type].is_initialized
-        siding = args[:wall_siding_type].get
+        if (attic_locations.include? interior_adjacent_to) && (args[:wall_siding_type].get == HPXML::SidingTypeNone)
+          siding = nil
+        else
+          siding = args[:wall_siding_type].get
+        end
       end
 
       if args[:wall_color] != Constants.Auto
@@ -3512,12 +3592,13 @@ class HPXMLFile
                       interior_adjacent_to: interior_adjacent_to,
                       azimuth: azimuth,
                       wall_type: wall_type,
+                      attic_wall_type: attic_wall_type,
                       siding: siding,
                       color: color,
                       area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2').round(2))
 
       is_uncond_attic_roof_insulated = false
-      if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? interior_adjacent_to
+      if attic_locations.include? interior_adjacent_to
         hpxml.roofs.each do |roof|
           next unless (roof.interior_adjacent_to == interior_adjacent_to) && (roof.insulation_assembly_r_value > 4.0)
 
@@ -3880,7 +3961,8 @@ class HPXMLFile
                               heating_efficiency_percent: heating_efficiency_percent,
                               airflow_defect_ratio: airflow_defect_ratio,
                               is_shared_system: is_shared_system,
-                              number_of_units_served: number_of_units_served)
+                              number_of_units_served: number_of_units_served,
+                              primary_system: true)
   end
 
   def self.set_cooling_systems(hpxml, runner, args)
@@ -3904,12 +3986,14 @@ class HPXMLFile
       end
     end
 
-    if args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsSEER
-      cooling_efficiency_seer = args[:cooling_system_cooling_efficiency]
-    elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsEER
-      cooling_efficiency_eer = args[:cooling_system_cooling_efficiency]
-    elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsCEER
-      cooling_efficiency_ceer = args[:cooling_system_cooling_efficiency]
+    if cooling_system_type != HPXML::HVACTypeEvaporativeCooler
+      if args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsSEER
+        cooling_efficiency_seer = args[:cooling_system_cooling_efficiency]
+      elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsEER
+        cooling_efficiency_eer = args[:cooling_system_cooling_efficiency]
+      elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsCEER
+        cooling_efficiency_ceer = args[:cooling_system_cooling_efficiency]
+      end
     end
 
     if args[:cooling_system_airflow_defect_ratio].is_initialized
@@ -3935,7 +4019,8 @@ class HPXMLFile
                               cooling_efficiency_eer: cooling_efficiency_eer,
                               cooling_efficiency_ceer: cooling_efficiency_ceer,
                               airflow_defect_ratio: airflow_defect_ratio,
-                              charge_defect_ratio: charge_defect_ratio)
+                              charge_defect_ratio: charge_defect_ratio,
+                              primary_system: true)
   end
 
   def self.set_heat_pumps(hpxml, runner, args)
@@ -4013,6 +4098,8 @@ class HPXMLFile
     end
 
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
+    fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
+
     if args[:heating_system_2_type] != 'none' && fraction_heat_load_served + args[:heating_system_2_fraction_heat_load_served] > 1.0
       fraction_heat_load_served = 1.0 - args[:heating_system_2_fraction_heat_load_served]
     end
@@ -4047,6 +4134,12 @@ class HPXMLFile
 
     if args[:max_flex_speed].is_initialized
       max_flex_speed = args[:max_flex_speed].get
+    if fraction_heat_load_served > 0
+      primary_heating_system = true
+    end
+
+    if fraction_cool_load_served > 0
+      primary_cooling_system = true
     end
 
     hpxml.heat_pumps.add(id: 'HeatPump',
@@ -4058,7 +4151,7 @@ class HPXMLFile
                          cooling_shr: cooling_shr,
                          cooling_capacity: cooling_capacity,
                          fraction_heat_load_served: fraction_heat_load_served,
-                         fraction_cool_load_served: args[:heat_pump_fraction_cool_load_served],
+                         fraction_cool_load_served: fraction_cool_load_served,
                          backup_heating_fuel: backup_heating_fuel,
                          backup_heating_capacity: backup_heating_capacity,
                          backup_heating_efficiency_afue: backup_heating_efficiency_afue,
@@ -4077,7 +4170,9 @@ class HPXMLFile
                          ihp_grid_ac: ihp_grid_ac,
                          ihp_ice_storage: ihp_ice_storage,
                          ihp_pcm_storage: ihp_pcm_storage,
-                         max_flex_speed: max_flex_speed)
+                         max_flex_speed: max_flex_speed,
+                         primary_heating_system: primary_heating_system,
+                         primary_cooling_system: primary_cooling_system)
   end
 
   def self.set_secondary_heating_systems(hpxml, runner, args)

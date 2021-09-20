@@ -977,7 +977,7 @@ class HVAC
   end
 
   def self.apply_dehumidifiers(model, runner, dehumidifiers, living_space)
-    dehumidifier_id = dehumidifiers[0].id # Syncs with SimulationOutputReport, which only looks at first dehumidifier ID
+    dehumidifier_id = dehumidifiers[0].id # Syncs with the ReportSimulationOutput measure, which only looks at first dehumidifier ID
 
     if dehumidifiers.map { |d| d.rh_setpoint }.uniq.size > 1
       fail 'All dehumidifiers must have the same setpoint but multiple setpoints were specified.'

@@ -927,6 +927,7 @@ def get_values(osw_file, step)
   elsif ['base-atticroof-radiant-barrier.osw'].include? osw_file
     step.setArgument('roof_radiant_barrier', true)
     step.setArgument('roof_radiant_barrier_grade', '2')
+    step.setArgument('ceiling_assembly_r', 8.7)
   elsif ['base-atticroof-unvented-insulated-roof.osw'].include? osw_file
     step.setArgument('ceiling_assembly_r', 2.1)
     step.setArgument('roof_assembly_r', 25.8)
@@ -4781,6 +4782,8 @@ def set_hpxml_frame_floors(hpxml_file, hpxml)
                            area: 1350,
                            interior_finish_type: HPXML::InteriorFinishGypsumBoard,
                            insulation_assembly_r_value: 39.3)
+  elsif ['base-atticroof-radiant-barrier.xml'].include? hpxml_file
+    hpxml.frame_floors[0].insulation_assembly_r_value = 8.7
   elsif ['base-bldgtype-multifamily.xml'].include? hpxml_file
     hpxml.frame_floors.clear
     hpxml.frame_floors.add(id: 'FloorAboveOther',
@@ -5736,7 +5739,8 @@ def set_hpxml_heating_systems(hpxml_file, hpxml)
                               heating_system_fuel: HPXML::FuelTypeNaturalGas,
                               heating_capacity: 6400,
                               heating_efficiency_afue: 0.92,
-                              fraction_heat_load_served: 0.1)
+                              fraction_heat_load_served: 0.1,
+                              primary_system: true)
     hpxml.heating_systems.add(id: 'HeatingSystem3',
                               distribution_system_idref: 'HVACDistribution3',
                               heating_system_type: HPXML::HVACTypeBoiler,
@@ -6003,7 +6007,8 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
                               cooling_capacity: 9600,
                               fraction_cool_load_served: 0.2,
                               cooling_efficiency_eer: 8.5,
-                              cooling_shr: 0.65)
+                              cooling_shr: 0.65,
+                              primary_system: true)
   elsif ['base-mechvent-multiple.xml',
          'base-bldgtype-multifamily-shared-mechvent-multiple.xml'].include? hpxml_file
     hpxml.cooling_systems[0].fraction_cool_load_served /= 2.0
@@ -6043,6 +6048,7 @@ def set_hpxml_cooling_systems(hpxml_file, hpxml)
     hpxml.cooling_systems[0].cooling_capacity = 24000 * 6
     hpxml.cooling_systems[0].compressor_type = nil
     hpxml.cooling_systems[0].cooling_efficiency_kw_per_ton = 0.9
+    hpxml.cooling_systems[0].cooling_efficiency_seer = nil
     hpxml.cooling_systems[0].cooling_shr = nil
     hpxml.cooling_systems[0].shared_loop_watts = 600
   elsif ['base-bldgtype-multifamily-shared-cooling-tower-only-water-loop-heat-pump.xml',
@@ -8584,14 +8590,16 @@ if ARGV[0].to_sym == :create_release_zips
 
   files = ['Changelog.md',
            'LICENSE.md',
+           'BuildResidentialHPXML/measure.*',
+           'BuildResidentialHPXML/resources/*.*',
            'BuildResidentialScheduleFile/measure.*',
            'BuildResidentialScheduleFile/resources/*.*',
            'HPXMLtoOpenStudio/measure.*',
            'HPXMLtoOpenStudio/resources/*.*',
-           'SimulationOutputReport/measure.*',
-           'SimulationOutputReport/resources/*.*',
-           'BuildResidentialHPXML/measure.*',
-           'BuildResidentialHPXML/resources/*.*',
+           'ReportSimulationOutput/measure.*',
+           'ReportSimulationOutput/resources/*.*',
+           'ReportHPXMLOutput/measure.*',
+           'ReportHPXMLOutput/resources/*.*',
            'weather/*.*',
            'workflow/*.*',
            'workflow/sample_files/*.xml',

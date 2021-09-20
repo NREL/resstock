@@ -39,7 +39,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   update_args_hash(measures, measure_subdir, args)
 
   # Add reporting measure to workflow
-  measure_subdir = 'SimulationOutputReport'
+  measure_subdir = 'ReportSimulationOutput'
   args = {}
   args['output_format'] = output_format
   args['timeseries_frequency'] = timeseries_output_freq
@@ -48,10 +48,15 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_hot_water_uses'] = timeseries_outputs.include? 'hotwater'
   args['include_timeseries_total_loads'] = timeseries_outputs.include? 'loads'
   args['include_timeseries_component_loads'] = timeseries_outputs.include? 'componentloads'
-  args['include_timeseries_unmet_loads'] = timeseries_outputs.include? 'unmetloads'
   args['include_timeseries_zone_temperatures'] = timeseries_outputs.include? 'temperatures'
   args['include_timeseries_airflows'] = timeseries_outputs.include? 'airflows'
   args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
+  update_args_hash(measures, measure_subdir, args)
+
+  # Add hpxml output measure to workflow
+  measure_subdir = 'ReportHPXMLOutput'
+  args = {}
+  args['output_format'] = output_format
   update_args_hash(measures, measure_subdir, args)
 
   results = run_hpxml_workflow(rundir, measures, measures_dir, debug: debug, ep_input_format: ep_input_format)
@@ -59,7 +64,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   return results[:success]
 end
 
-timeseries_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'unmetloads', 'temperatures', 'airflows', 'weather']
+timeseries_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
 
 options = {}
 OptionParser.new do |opts|

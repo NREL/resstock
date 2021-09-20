@@ -411,14 +411,16 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   return result
 end
 
-def get_data_for_sample(buildstock_csv_data, building_id, runner)
-  buildstock_csv_data.each do |sample|
-    next if sample['Building'].to_i != building_id
+def get_data_for_sample(buildstock_csv_path, building_id, runner)
+  buildstock_csv = CSV.open(buildstock_csv_path, headers: true)
 
-    return sample
+  buildstock_csv.each do |row|
+    next if row['Building'].to_i != building_id.to_i
+
+    return row.to_hash
   end
   # If we got this far, couldn't find the sample #
-  msg = "Could not find row for #{building_id} in #{File.basename(buildstock_csv)}."
+  msg = "Could not find row for #{building_id} in #{buildstock_csv_path}."
   runner.registerError(msg)
   fail msg
 end
@@ -446,23 +448,6 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.add_simulation_output_report(osw)
-    json = JSON.parse(File.read(osw), symbolize_names: true)
-    measures = []
-    json[:steps].each do |measure|
-      measures << measure[:measure_dir_name]
-    end
-
-    unless measures.include? 'SimulationOutputReport'
-      simulation_output_report = { measure_dir_name: 'SimulationOutputReport' }
-      json[:steps] << simulation_output_report
-    end
-
-    File.open(osw, 'w') do |f|
-      f.write(JSON.pretty_generate(json))
-    end
-  end
-
   def self.run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
@@ -487,7 +472,7 @@ class RunOSWs
 
     result_characteristics = get_measure_results(rows, result_characteristics, 'BuildExistingModel')
     result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
-    result_output = get_measure_results(rows, result_output, 'SimulationOutputReport')
+    result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
     result_output = get_measure_results(rows, result_output, 'QOIReport')
     return finished_job, result_characteristics, result_output

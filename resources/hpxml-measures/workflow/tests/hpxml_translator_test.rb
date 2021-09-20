@@ -80,6 +80,8 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? json_output_path)
     json_output_path = File.join(File.dirname(xml), 'run', 'results_timeseries.json')
     assert(File.exist? json_output_path)
+    json_output_path = File.join(File.dirname(xml), 'run', 'results_hpxml.json')
+    assert(File.exist? json_output_path)
 
     # Check for debug files
     osm_path = File.join(File.dirname(xml), 'run', 'in.osm')
@@ -107,6 +109,8 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
     assert(File.exist? csv_output_path)
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_hpxml.csv')
+    assert(File.exist? csv_output_path)
   end
 
   def test_run_simulation_idf_input
@@ -126,6 +130,8 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
     assert(File.exist? csv_output_path)
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_hpxml.csv')
+    assert(File.exist? csv_output_path)
   end
 
   def test_run_simulation_faster_performance
@@ -140,6 +146,8 @@ class HPXMLTest < MiniTest::Test
     sql_path = File.join(File.dirname(xml), 'run', 'eplusout.sql')
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
+    assert(File.exist? csv_output_path)
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_hpxml.csv')
     assert(File.exist? csv_output_path)
 
     # Check component loads don't exist
@@ -184,6 +192,8 @@ class HPXMLTest < MiniTest::Test
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv')
     assert(File.exist? csv_output_path)
+    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_hpxml.csv')
+    assert(File.exist? csv_output_path)
 
     # Check for debug files
     osm_path = File.join(File.dirname(osw_path_test), 'run', 'in.osm')
@@ -226,6 +236,8 @@ class HPXMLTest < MiniTest::Test
     sql_path = File.join(File.dirname(osw_path_test), 'run', 'eplusout.sql')
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv')
+    assert(File.exist? csv_output_path)
+    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_hpxml.csv')
     assert(File.exist? csv_output_path)
 
     # Check for debug files
@@ -271,6 +283,8 @@ class HPXMLTest < MiniTest::Test
     sql_path = File.join(File.dirname(osw_path_test), 'run', 'eplusout.sql')
     assert(File.exist? sql_path)
     csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_annual.csv')
+    assert(File.exist? csv_output_path)
+    csv_output_path = File.join(File.dirname(osw_path_test), 'run', 'results_hpxml.csv')
     assert(File.exist? csv_output_path)
 
     # Check for debug files
@@ -496,6 +510,7 @@ class HPXMLTest < MiniTest::Test
       command = "#{OpenStudio.getOpenStudioCLI} OpenStudio-HPXML/workflow/run_simulation.rb -x OpenStudio-HPXML/workflow/sample_files/base.xml"
       system(command)
       assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_annual.csv')
+      assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_hpxml.csv')
       File.delete(zip)
       rm_path('OpenStudio-HPXML')
     end
@@ -508,7 +523,7 @@ class HPXMLTest < MiniTest::Test
     rundir = File.join(@this_dir, "test#{worker_num}")
 
     # Uses 'monthly' to verify timeseries results match annual results via error-checking
-    # inside the SimulationOutputReport measure.
+    # inside the ReportSimulationOutput measure.
     cli_path = OpenStudio.getOpenStudioCLI
     building_id = ''
     if xml.include? 'base-multiple-buildings.xml'
@@ -556,8 +571,10 @@ class HPXMLTest < MiniTest::Test
     # Check for output files
     annual_csv_path = File.join(rundir, 'results_annual.csv')
     timeseries_csv_path = File.join(rundir, 'results_timeseries.csv')
+    hpxml_csv_path = File.join(rundir, 'results_hpxml.csv')
     assert(File.exist? annual_csv_path)
     assert(File.exist? timeseries_csv_path)
+    assert(File.exist? hpxml_csv_path)
 
     # Get results
     results = _get_simulation_results(annual_csv_path, xml)
@@ -592,8 +609,8 @@ class HPXMLTest < MiniTest::Test
     if not xml.include? 'ASHRAE_Standard_140'
       sum_component_htg_loads = results.select { |k, v| k.start_with? 'Component Load: Heating:' }.map { |k, v| v }.sum(0.0)
       sum_component_clg_loads = results.select { |k, v| k.start_with? 'Component Load: Cooling:' }.map { |k, v| v }.sum(0.0)
-      residual_htg_load = results['Load: Heating (MBtu)'] - sum_component_htg_loads
-      residual_clg_load = results['Load: Cooling (MBtu)'] - sum_component_clg_loads
+      residual_htg_load = results['Load: Heating: Delivered (MBtu)'] - sum_component_htg_loads
+      residual_clg_load = results['Load: Cooling: Delivered (MBtu)'] - sum_component_clg_loads
       assert_operator(residual_htg_load.abs, :<, 0.5)
       assert_operator(residual_clg_load.abs, :<, 0.5)
     end
@@ -1425,17 +1442,16 @@ class HPXMLTest < MiniTest::Test
       end
     end
 
-    # Check unmet loads
-    unmet_htg_load = results.select { |k, v| k.include? 'Unmet Load: Heating' }.map { |k, v| v }.sum(0.0)
-    unmet_clg_load = results.select { |k, v| k.include? 'Unmet Load: Cooling' }.map { |k, v| v }.sum(0.0)
-    # FIXME
-    # if hpxml_path.include? 'base-hvac-undersized.xml'
-    # assert_operator(unmet_htg_load, :>, 0.5)
-    # assert_operator(unmet_clg_load, :>, 0.5)
-    # else
-    # assert_operator(unmet_htg_load, :<, 0.5)
-    # assert_operator(unmet_clg_load, :<, 0.5)
-    # end
+    # Check unmet hours
+    unmet_hours_htg = results.select { |k, v| k.include? 'Unmet Hours: Heating' }.map { |k, v| v }.sum(0.0)
+    unmet_hours_clg = results.select { |k, v| k.include? 'Unmet Hours: Cooling' }.map { |k, v| v }.sum(0.0)
+    if hpxml_path.include? 'base-hvac-undersized.xml'
+      assert_operator(unmet_hours_htg, :>, 1000)
+      assert_operator(unmet_hours_clg, :>, 1000)
+    else
+      assert_operator(unmet_hours_htg, :<, 100)
+      assert_operator(unmet_hours_clg, :<, 100)
+    end
 
     sqlFile.close
   end
@@ -1506,7 +1522,7 @@ class HPXMLTest < MiniTest::Test
       all_results.sort.each do |xml, xml_results|
         next unless xml.include? 'C.xml'
 
-        htg_load = xml_results['Load: Heating (MBtu)'].round(2)
+        htg_load = xml_results['Load: Heating: Delivered (MBtu)'].round(2)
         csv << [File.basename(xml), htg_load, 'N/A']
         test_name = File.basename(xml, File.extname(xml))
         htg_loads[test_name] = htg_load
@@ -1514,7 +1530,7 @@ class HPXMLTest < MiniTest::Test
       all_results.sort.each do |xml, xml_results|
         next unless xml.include? 'L.xml'
 
-        clg_load = xml_results['Load: Cooling (MBtu)'].round(2)
+        clg_load = xml_results['Load: Cooling: Delivered (MBtu)'].round(2)
         csv << [File.basename(xml), 'N/A', clg_load]
         test_name = File.basename(xml, File.extname(xml))
         clg_loads[test_name] = clg_load
