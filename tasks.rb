@@ -210,6 +210,16 @@ def create_osws
     'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.osw' => 'base-hvac-air-to-air-heat-pump-2-speed.osw',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw' => 'base-hvac-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating-not-grid-connected.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source-not-grid-connected.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac-not-grid-connected.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage-not-grid-connected.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.osw',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage-not-grid-connected.osw' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.osw',
     'base-hvac-dual-fuel-mini-split-heat-pump-ducted.osw' => 'base-hvac-mini-split-heat-pump-ducted.osw',
     'base-hvac-ducts-leakage-percent.osw' => 'base.osw',
     # 'base-hvac-ducts-area-fractions.osw' => 'base-enclosure-2stories.osw',
@@ -1671,6 +1681,42 @@ def get_values(osw_file, step)
     step.setArgument('heat_pump_backup_fuel', HPXML::FuelTypeNaturalGas)
     step.setArgument('heat_pump_backup_heating_efficiency', 0.95)
     step.setArgument('heat_pump_backup_heating_switchover_temp', 25)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', true)
+    step.setArgument('heat_pump_demand_flexibility_modulating', true)
+    step.setArgument('grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
+    step.setArgument('max_flex_speed', 1)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.osw'].include? osw_file
+    step.removeArgument('heat_pump_backup_heating_switchover_temp')
+    step.setArgument('heat_pump_demand_flexibility', true)
+    step.setArgument('heat_pump_demand_flexibility_dual_source', true)
+    step.setArgument('max_flex_speed', 0)
+    step.setArgument('grid_signal_schedule', '0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', true)
+    step.setArgument('heat_pump_demand_flexibility_ihp_grid_ac', true)
+    step.setArgument('grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
+    step.setArgument('max_flex_speed', 1)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', true)
+    step.setArgument('heat_pump_demand_flexibility_ihp_ice_storage', true)
+    step.setArgument('grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
+    step.setArgument('max_flex_speed', 0)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', true)
+    step.setArgument('heat_pump_demand_flexibility_ihp_pcm_storage', true)
+    step.setArgument('grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
+    step.setArgument('max_flex_speed', 0)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating-not-grid-connected.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', false)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source-not-grid-connected.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', false)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac-not-grid-connected.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', false)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage-not-grid-connected.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', false)
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage-not-grid-connected.osw'].include? osw_file
+    step.setArgument('heat_pump_demand_flexibility', false)
   elsif ['base-hvac-dual-fuel-mini-split-heat-pump-ducted.osw'].include? osw_file
     step.setArgument('heat_pump_heating_capacity', '36000.0')
     step.setArgument('heat_pump_heating_capacity_17_f', '20423.0')
@@ -2927,6 +2973,16 @@ def create_hpxmls
     'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed-electric.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating-not-grid-connected.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source-not-grid-connected.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac-not-grid-connected.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage-not-grid-connected.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.xml',
+    'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage-not-grid-connected.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.xml',
     'base-hvac-dual-fuel-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
     'base-hvac-ducts-leakage-percent.xml' => 'base.xml',
     'base-hvac-ducts-area-fractions.xml' => 'base-enclosure-2stories.xml',
@@ -6237,6 +6293,42 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
     hpxml.heat_pumps[0].heating_capacity = nil
     hpxml.heat_pumps[0].heating_capacity_17F = nil
     hpxml.heat_pumps[0].backup_heating_capacity = nil
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = true
+    hpxml.heat_pumps[0].modulating = true
+    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
+    hpxml.heat_pumps[0].max_flex_speed = 1
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = true
+    hpxml.heat_pumps[0].dual_source = true
+    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0'
+    hpxml.heat_pumps[0].backup_heating_switchover_temp = nil
+    hpxml.heat_pumps[0].max_flex_speed = 0
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = true
+    hpxml.heat_pumps[0].ihp_grid_ac = true
+    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
+    hpxml.heat_pumps[0].max_flex_speed = 1
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = true
+    hpxml.heat_pumps[0].ihp_ice_storage = true
+    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
+    hpxml.heat_pumps[0].max_flex_speed = 0
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = true
+    hpxml.heat_pumps[0].ihp_pcm_storage = true
+    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
+    hpxml.heat_pumps[0].max_flex_speed = 0
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating-not-grid-connected.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = false
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source-not-grid-connected.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = false
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac-not-grid-connected.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = false
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage-not-grid-connected.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = false
+  elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage-not-grid-connected.xml'].include? hpxml_file
+    hpxml.heat_pumps[0].flex = false
   end
 end
 
