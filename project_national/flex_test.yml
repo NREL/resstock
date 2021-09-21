@@ -1,0 +1,377 @@
+schema_version: '0.3'
+buildstock_directory: ../../resstock # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: national_flex
+weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 10
+    logic:
+      - Geometry Building Type RECS|Single-Family Detached
+    resample: false
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    simulation_output_report:
+      timeseries_frequency: none
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+baseline:
+  n_buildings_represented: 110000000
+
+upgrades:
+## Dual Source
+  ##### BASE 1 DUAL SOURCE
+  - upgrade_name: Base Dual Source Air Source Heat Pump
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+      - not: HVAC Cooling Type|None
+    options:
+      # Natural Gas Backup
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Dual Source, Gas Backup, Base
+        apply_logic: 
+          - or:
+            - Clothes Dryer|Gas, 80% Usage
+            - Clothes Dryer|Gas, 100% Usage
+            - Clothes Dryer|Gas, 120% Usage
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Gas, 120% Usage
+            - Misc Gas Fireplace|Gas Fireplace
+            - Misc Gas Grill|Gas Grill
+            - Misc Gas Lighting|Gas Lighting
+            - Misc Hot Tub Spa|Gas
+            - Misc Pool Heater|Gas
+            - Water Heater Fuel|Natural Gas
+            - and:
+              - Heating Fuel|Natural Gas
+              - not: HVAC Heating Type And Fuel|None 
+      - option: HVAC Cooling Efficiency|None
+        apply_logic: 
+          - or:
+            - Clothes Dryer|Gas, 80% Usage
+            - Clothes Dryer|Gas, 100% Usage
+            - Clothes Dryer|Gas, 120% Usage
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Gas, 120% Usage
+            - Misc Gas Fireplace|Gas Fireplace
+            - Misc Gas Grill|Gas Grill
+            - Misc Gas Lighting|Gas Lighting
+            - Misc Hot Tub Spa|Gas
+            - Misc Pool Heater|Gas
+            - Water Heater Fuel|Natural Gas
+            - and:
+              - Heating Fuel|Natural Gas
+              - not: HVAC Heating Type And Fuel|None 
+
+      # Propane Backup
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Dual Source, Propane Backup, Base
+        apply_logic: 
+          - or:
+            - Clothes Dryer|Propane, 80% Usage
+            - Clothes Dryer|Propane, 100% Usage
+            - Clothes Dryer|Propane, 120% Usage
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Propane, 120% Usage
+            - Water Heater Fuel|Propane
+            - and:
+              - Heating Fuel|Propane
+              - not: HVAC Heating Type And Fuel|None 
+      - option: HVAC Cooling Efficiency|None
+        apply_logic: 
+          - or:
+            - Clothes Dryer|Propane, 80% Usage
+            - Clothes Dryer|Propane, 100% Usage
+            - Clothes Dryer|Propane, 120% Usage
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Propane, 120% Usage
+            - Water Heater Fuel|Propane
+            - and:
+              - Heating Fuel|Propane
+              - not: HVAC Heating Type And Fuel|None
+
+      # Fuel Oil Backup
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Dual Source, Fuel Oil Backup, Base
+        apply_logic: 
+          - or:
+            - Water Heater Fuel|Fuel Oil
+            - and:
+              - Heating Fuel|Fuel Oil
+              - not: HVAC Heating Type And Fuel|None 
+      - option: HVAC Cooling Efficiency|None
+        apply_logic: 
+          - or:
+            - Water Heater Fuel|Fuel Oil
+            - and:
+              - Heating Fuel|Fuel Oil
+              - not: HVAC Heating Type And Fuel|None 
+
+  ##### UPGRADE 1 DUAL SOURCE
+  - upgrade_name: Dual Source Air Source Heat Pump
+    package_apply_logic:
+      - HVAC Has Ducts|Yes
+      - not: HVAC Cooling Type|None
+    options:
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+
+      # Natural Gas Backup
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Dual Source, Gas Backup
+        apply_logic: 
+          - or:
+            - Clothes Dryer|Gas, 80% Usage
+            - Clothes Dryer|Gas, 100% Usage
+            - Clothes Dryer|Gas, 120% Usage
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Gas, 120% Usage
+            - Misc Gas Fireplace|Gas Fireplace
+            - Misc Gas Grill|Gas Grill
+            - Misc Gas Lighting|Gas Lighting
+            - Misc Hot Tub Spa|Gas
+            - Misc Pool Heater|Gas
+            - Water Heater Fuel|Natural Gas
+            - and:
+              - Heating Fuel|Natural Gas
+              - not: HVAC Heating Type And Fuel|None 
+      - option: HVAC Cooling Efficiency|None
+        apply_logic: 
+          - or:
+            - Clothes Dryer|Gas, 80% Usage
+            - Clothes Dryer|Gas, 100% Usage
+            - Clothes Dryer|Gas, 120% Usage
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Gas, 120% Usage
+            - Misc Gas Fireplace|Gas Fireplace
+            - Misc Gas Grill|Gas Grill
+            - Misc Gas Lighting|Gas Lighting
+            - Misc Hot Tub Spa|Gas
+            - Misc Pool Heater|Gas
+            - Water Heater Fuel|Natural Gas
+            - and:
+              - Heating Fuel|Natural Gas
+              - not: HVAC Heating Type And Fuel|None 
+
+      # Propane Backup
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Dual Source, Propane Backup
+        apply_logic: 
+          - or:
+            - Clothes Dryer|Propane, 80% Usage
+            - Clothes Dryer|Propane, 100% Usage
+            - Clothes Dryer|Propane, 120% Usage
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Propane, 120% Usage
+            - Water Heater Fuel|Propane
+            - and:
+              - Heating Fuel|Propane
+              - not: HVAC Heating Type And Fuel|None 
+      - option: HVAC Cooling Efficiency|None
+        apply_logic: 
+          - or:
+            - Clothes Dryer|Propane, 80% Usage
+            - Clothes Dryer|Propane, 100% Usage
+            - Clothes Dryer|Propane, 120% Usage
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Propane, 120% Usage
+            - Water Heater Fuel|Propane
+            - and:
+              - Heating Fuel|Propane
+              - not: HVAC Heating Type And Fuel|None
+
+      # Fuel Oil Backup
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Dual Source, Fuel Oil Backup
+        apply_logic: 
+          - or:
+            - Water Heater Fuel|Fuel Oil
+            - and:
+              - Heating Fuel|Fuel Oil
+              - not: HVAC Heating Type And Fuel|None 
+      - option: HVAC Cooling Efficiency|None
+        apply_logic: 
+          - or:
+            - Water Heater Fuel|Fuel Oil
+            - and:
+              - Heating Fuel|Fuel Oil
+              - not: HVAC Heating Type And Fuel|None 
+
+## Modulating
+  ##### BASE 2 MODULATING
+  - upgrade_name: Modulating Air Source Heat Pump
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating, Base
+      - option: HVAC Cooling Efficiency|None
+
+  ##### UPGRADE 2a MODULATING (Speed = 0)
+  - upgrade_name: Modulating Air Source Heat Pump, Speed 0
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating
+      - option: Max Flex Speed|0
+      - option: HVAC Cooling Efficiency|None
+
+  ##### UPGRADE 2b MODULATING (Speed = 1)
+  - upgrade_name: Modulating Air Source Heat Pump, Speed 1
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating
+      - option: Max Flex Speed|1
+      - option: HVAC Cooling Efficiency|None
+
+  ##### UPGRADE 2c MODULATING (Speed = 2)
+  - upgrade_name: Modulating Air Source Heat Pump, Speed 2
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating
+      - option: Max Flex Speed|2
+      - option: HVAC Cooling Efficiency|None
+
+## IHP
+  ##### BASE 3 IHP
+  - upgrade_name: IHP Grid AC Source Heat Pump, Base
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: HVAC Cooling Efficiency|None
+
+  ##### UPGRADE 3a IHP (Speed = 0)
+  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 0
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: Max Flex Speed|0
+      - option: HVAC Cooling Efficiency|None
+
+  ##### UPGRADE 3b IHP (Speed = 1)
+  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 0
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: Max Flex Speed|1
+      - option: HVAC Cooling Efficiency|None
+
+  ##### UPGRADE 3c IHP (Speed = 2)
+  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 0
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: Max Flex Speed|2
+      - option: HVAC Cooling Efficiency|None
+
+## Ice Storage
+  ##### UPGRADE 4 IHP + Ice Storage
+  - upgrade_name: Ice Storage IHP Grid AC Source Heat Pump, Speed 0
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Ice Storage
+      - option: Max Flex Speed|0
+      - option: HVAC Cooling Efficiency|None
+
+## PCM Storage
+  ##### UPGRADE 5 IHP + PCM Storage
+  - upgrade_name: PCM Storage IHP Grid AC Source Heat Pump, Speed 0
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP PCM Storage
+      - option: Max Flex Speed|0
+      - option: HVAC Cooling Efficiency|None
+
+eagle:
+  n_jobs: 5
+  minutes_per_sim: 1
+  account: scout
+  sampling:
+    time: 10
+  postprocessing:
+    time: 10
+    n_workers: 1

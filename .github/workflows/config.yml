@@ -65,6 +65,8 @@ jobs:
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@restructure-v3-flex
           
+          buildstock_docker project_national/flex_test.yml
+          
           buildstock_docker project_testing/testing_baseline.yml
           buildstock_docker project_national/national_baseline.yml
           
@@ -73,6 +75,9 @@ jobs:
 
       - name: Process results
         run: |
+          gunzip -v project_national/national_flex/results_csvs/results_up00.csv.gz
+          mv project_national/national_flex/results_csvs/results_up00.csv project_national/national_flex.csv          
+          
           gunzip -v project_national/national_baseline/results_csvs/results_up00.csv.gz
           mv project_national/national_baseline/results_csvs/results_up00.csv project_national/national_baseline.csv
           
@@ -82,17 +87,17 @@ jobs:
           pip install pandas
           python test/util.py
 
+      - name: Upload flex integration results
+        uses: actions/upload-artifact@v2
+        with:
+          path: project_national/national_flex.csv
+          name: flex-results
+
       - name: Upload integration results
         uses: actions/upload-artifact@v2
         with:
           path: baseline/results
           name: results
-
-      - name: Upload flex integration results
-        uses: actions/upload-artifact@v2
-        with:
-          path: test/test_samples_osw/upgrades-flex/results
-          name: flex-results
 
   compare-results:
     if: github.event_name == 'pull_request'
