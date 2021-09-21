@@ -1684,28 +1684,28 @@ def get_values(osw_file, step)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.osw'].include? osw_file
     step.setArgument('heat_pump_demand_flexibility', true)
     step.setArgument('heat_pump_demand_flexibility_modulating', true)
-    step.setArgument('grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
+    step.setArgument('cooling_grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
     step.setArgument('max_flex_speed', 1)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.osw'].include? osw_file
     step.removeArgument('heat_pump_backup_heating_switchover_temp')
     step.setArgument('heat_pump_demand_flexibility', true)
     step.setArgument('heat_pump_demand_flexibility_dual_source', true)
     step.setArgument('max_flex_speed', 0)
-    step.setArgument('grid_signal_schedule', '0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+    step.setArgument('heating_grid_signal_schedule', '0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.osw'].include? osw_file
     step.setArgument('heat_pump_demand_flexibility', true)
     step.setArgument('heat_pump_demand_flexibility_ihp_grid_ac', true)
-    step.setArgument('grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
+    step.setArgument('cooling_grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
     step.setArgument('max_flex_speed', 1)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.osw'].include? osw_file
     step.setArgument('heat_pump_demand_flexibility', true)
     step.setArgument('heat_pump_demand_flexibility_ihp_ice_storage', true)
-    step.setArgument('grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
+    step.setArgument('cooling_grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
     step.setArgument('max_flex_speed', 0)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.osw'].include? osw_file
     step.setArgument('heat_pump_demand_flexibility', true)
     step.setArgument('heat_pump_demand_flexibility_ihp_pcm_storage', true)
-    step.setArgument('grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
+    step.setArgument('cooling_grid_signal_schedule', '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0')
     step.setArgument('max_flex_speed', 0)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating-not-grid-connected.osw'].include? osw_file
     step.setArgument('heat_pump_demand_flexibility', false)
@@ -6296,28 +6296,28 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = true
     hpxml.heat_pumps[0].modulating = true
-    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
+    hpxml.heat_pumps[0].cooling_grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
     hpxml.heat_pumps[0].max_flex_speed = 1
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = true
     hpxml.heat_pumps[0].dual_source = true
-    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0'
+    hpxml.heat_pumps[0].heating_grid_signal_schedule = '0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0'
     hpxml.heat_pumps[0].backup_heating_switchover_temp = nil
     hpxml.heat_pumps[0].max_flex_speed = 0
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = true
     hpxml.heat_pumps[0].ihp_grid_ac = true
-    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
+    hpxml.heat_pumps[0].cooling_grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
     hpxml.heat_pumps[0].max_flex_speed = 1
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = true
     hpxml.heat_pumps[0].ihp_ice_storage = true
-    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
+    hpxml.heat_pumps[0].cooling_grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
     hpxml.heat_pumps[0].max_flex_speed = 0
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = true
     hpxml.heat_pumps[0].ihp_pcm_storage = true
-    hpxml.heat_pumps[0].grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
+    hpxml.heat_pumps[0].cooling_grid_signal_schedule = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0'
     hpxml.heat_pumps[0].max_flex_speed = 0
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating-not-grid-connected.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = false

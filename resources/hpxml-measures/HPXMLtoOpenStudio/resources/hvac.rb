@@ -218,25 +218,39 @@ class HVAC
 
     hp_ap = heat_pump.additional_properties
 
-    grid_signal_schedule = nil
-    if heat_pump.flex # grid connected
-      if heat_pump.grid_signal_schedule.include? '.csv' # schedule file path
-        schedules_path = File.join(File.dirname(__FILE__), heat_pump.grid_signal_schedule)
+    cooling_grid_signal_schedule = nil
+    heating_grid_signal_schedule = nil
+    if heat_pump.flex and not heat_pump.cooling_grid_signal_schedule.nil? # grid connected w/ cooling schedule
+      if heat_pump.cooling_grid_signal_schedule.include? '.csv' # schedule file path
+        schedules_path = File.join(File.dirname(__FILE__), heat_pump.cooling_grid_signal_schedule)
         grid_signal_schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedules_path, col_names: Constants.GridSignalRegions)
-        grid_signal_schedule = grid_signal_schedules_file.create_schedule_file(col_name: model.getWeatherFile.stateProvinceRegion)
+        cooling_grid_signal_schedule = grid_signal_schedules_file.create_schedule_file(col_name: model.getWeatherFile.stateProvinceRegion)
       else # 24-hours schedule
         num_days = Constants.NumDaysInYear(year)
-        grid_signal_schedule = heat_pump.grid_signal_schedule.split(',').map { |i| Float(i) }
-        grid_signal_schedule = [grid_signal_schedule] * num_days
-        grid_signal_schedule = HourlyByDaySchedule.new(model, 'Grid signal schedule', grid_signal_schedule, grid_signal_schedule, nil, false).schedule
+        cooling_grid_signal_schedule = heat_pump.cooling_grid_signal_schedule.split(',').map { |i| Float(i) }
+        cooling_grid_signal_schedule = [cooling_grid_signal_schedule] * num_days
+        cooling_grid_signal_schedule = HourlyByDaySchedule.new(model, 'Grid signal schedule', cooling_grid_signal_schedule, cooling_grid_signal_schedule, nil, false).schedule
+      end
+    end
+
+    if heat_pump.flex and not heat_pump.heating_grid_signal_schedule.nil? # grid connected w/ heating schedule
+      if heat_pump.heating_grid_signal_schedule.include? '.csv' # schedule file path
+        schedules_path = File.join(File.dirname(__FILE__), heat_pump.heating_grid_signal_schedule)
+        grid_signal_schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedules_path, col_names: Constants.GridSignalRegions)
+        heating_grid_signal_schedule = grid_signal_schedules_file.create_schedule_file(col_name: model.getWeatherFile.stateProvinceRegion)
+      else # 24-hours schedule
+        num_days = Constants.NumDaysInYear(year)
+        heating_grid_signal_schedule = heat_pump.heating_grid_signal_schedule.split(',').map { |i| Float(i) }
+        heating_grid_signal_schedule = [heating_grid_signal_schedule] * num_days
+        heating_grid_signal_schedule = HourlyByDaySchedule.new(model, 'Grid signal schedule', heating_grid_signal_schedule, heating_grid_signal_schedule, nil, false).schedule
       end
     end
 
     # Cooling Coil
-    clg_coil = create_dx_cooling_coil(model, obj_name, heat_pump, grid_signal_schedule)
+    clg_coil = create_dx_cooling_coil(model, obj_name, heat_pump, cooling_grid_signal_schedule)
 
     # Heating Coil
-    htg_coil = create_dx_heating_coil(model, obj_name, heat_pump, grid_signal_schedule)
+    htg_coil = create_dx_heating_coil(model, obj_name, heat_pump, heating_grid_signal_schedule)
 
     # Supplemental Heating Coil
     htg_supp_coil = create_supp_heating_coil(model, obj_name, heat_pump)
@@ -280,14 +294,14 @@ class HVAC
 
         # Grid AC
         if heat_pump.ihp_grid_ac
-          grid_clg_coil = create_dx_cooling_coil(model, obj_name, heat_pump, grid_signal_schedule)
+          grid_clg_coil = create_dx_cooling_coil(model, obj_name, heat_pump, cooling_grid_signal_schedule)
           grid_clg_coil.setLowerBoundToApplyGridResponsiveControl(1000.0)
           grid_clg_coil.setMaxSpeedLevelDuringGridResponsiveControl(1)
         end
 
         # Storage
         if heat_pump.ihp_ice_storage || heat_pump.ihp_pcm_storage
-          chiller_coil = chiller_coil(model, obj_name, grid_signal_schedule)
+          chiller_coil = chiller_coil(model, obj_name, cooling_grid_signal_schedule)
 
           supp_chiller_coil = supp_chiller_coil(model, obj_name)
           if heat_pump.ihp_ice_storage

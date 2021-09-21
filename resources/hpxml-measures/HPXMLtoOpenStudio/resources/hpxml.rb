@@ -3189,7 +3189,8 @@ class HPXML < Object
              :fan_watts_per_cfm, :is_shared_system, :number_of_units_served, :shared_loop_watts,
              :shared_loop_motor_efficiency, :airflow_defect_ratio, :charge_defect_ratio,
              :heating_airflow_cfm, :cooling_airflow_cfm, :location, :primary_heating_system, :primary_cooling_system,
-             :flex, :modulating, :dual_source, :ihp_grid_ac, :ihp_ice_storage, :ihp_pcm_storage, :grid_signal_schedule, :max_flex_speed]
+             :flex, :modulating, :dual_source, :ihp_grid_ac, :ihp_ice_storage, :ihp_pcm_storage, 
+             :cooling_grid_signal_schedule, :heating_grid_signal_schedule, :max_flex_speed]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -3312,7 +3313,8 @@ class HPXML < Object
         XMLHelper.add_element(demand_flexibility, 'IHPGridAC', @ihp_grid_ac, :boolean) unless @ihp_grid_ac.nil?
         XMLHelper.add_element(demand_flexibility, 'IHPIceStorage', @ihp_ice_storage, :boolean) unless @ihp_ice_storage.nil?
         XMLHelper.add_element(demand_flexibility, 'IHPPcmStorage', @ihp_pcm_storage, :boolean) unless @ihp_pcm_storage.nil?
-        XMLHelper.add_element(demand_flexibility, 'GridSignalSchedule', @grid_signal_schedule, :string) unless @grid_signal_schedule.nil?
+        XMLHelper.add_element(demand_flexibility, 'CoolingGridSignalSchedule', @cooling_grid_signal_schedule, :string) unless @cooling_grid_signal_schedule.nil?
+        XMLHelper.add_element(demand_flexibility, 'HeatingGridSignalSchedule', @heating_grid_signal_schedule, :string) unless @heating_grid_signal_schedule.nil?
         XMLHelper.add_element(demand_flexibility, 'MaxGridResponseSpeed', @max_flex_speed, :integer) unless @max_flex_speed.nil?
       end
       if @primary_heating_system
@@ -3368,7 +3370,8 @@ class HPXML < Object
       @ihp_ice_storage = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/IHPIceStorage', :boolean)
       @ihp_pcm_storage = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/IHPPcmStorage', :boolean)
       @flex = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/GridConnected', :boolean)
-      @grid_signal_schedule = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/GridSignalSchedule', :string)
+      @cooling_grid_signal_schedule = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/CoolingGridSignalSchedule', :string)
+      @heating_grid_signal_schedule = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/HeatingGridSignalSchedule', :string)
       @max_flex_speed = XMLHelper.get_value(heat_pump, 'extension/DemandFlexibility/MaxGridResponseSpeed', :integer)
       primary_heating_system = HPXML::get_idref(XMLHelper.get_element(heat_pump, '../PrimarySystems/PrimaryHeatingSystem'))
       if primary_heating_system == @id
