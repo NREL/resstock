@@ -1208,8 +1208,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('grid_signal_schedule', false)
-    arg.setDisplayName('Grid Signal Schedule for Demand Flexibility Measures')
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('cooling_grid_signal_schedule', false)
+    arg.setDisplayName('Cooling Grid Signal Schedule for Demand Flexibility Measures')
+    arg.setDescription('Schedule can be 24 hour array or file location')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_grid_signal_schedule', false)
+    arg.setDisplayName('Heating Grid Signal Schedule for Demand Flexibility Measures')
     arg.setDescription('Schedule can be 24 hour array or file location')
     args << arg
 
@@ -4128,8 +4133,12 @@ class HPXMLFile
       ihp_pcm_storage = args[:heat_pump_demand_flexibility_ihp_pcm_storage].get
     end
 
-    if args[:grid_signal_schedule].is_initialized
-      grid_signal_schedule = args[:grid_signal_schedule].get
+    if args[:cooling_grid_signal_schedule].is_initialized
+      cooling_grid_signal_schedule = args[:cooling_grid_signal_schedule].get
+    end
+
+    if args[:heating_grid_signal_schedule].is_initialized
+      heating_grid_signal_schedule = args[:heating_grid_signal_schedule].get
     end
 
     if args[:max_flex_speed].is_initialized
@@ -4166,7 +4175,8 @@ class HPXMLFile
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio,
                          flex: flex,
-                         grid_signal_schedule: grid_signal_schedule,
+                         cooling_grid_signal_schedule: cooling_grid_signal_schedule,
+                         heating_grid_signal_schedule: heating_grid_signal_schedule,
                          modulating: modulating,
                          dual_source: dual_source,
                          ihp_grid_ac: ihp_grid_ac,
