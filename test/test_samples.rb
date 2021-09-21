@@ -56,7 +56,7 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def test_upgrades
-    scenario_dir = File.join(@top_dir, 'upgrades-flex')
+    scenario_dir = File.join(@top_dir, 'upgrades')
     Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
 
     all_results_characteristics = []
@@ -79,7 +79,7 @@ class IntegrationWorkflowTest < MiniTest::Test
       cols.each do |col|
         next if col[0] != 'completed_status'
 
-        # assert(col[1..-1].all? { |x| x != 'Fail' })
+        assert(col[1..-1].all? { |x| x != 'Fail' })
       end
     end
   end
