@@ -39,7 +39,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   update_args_hash(measures, measure_subdir, args)
 
   # Add reporting measure to workflow
-  measure_subdir = 'SimulationOutputReport'
+  measure_subdir = 'ReportSimulationOutput'
   args = {}
   args['output_format'] = output_format
   args['timeseries_frequency'] = timeseries_output_freq
@@ -51,6 +51,12 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_zone_temperatures'] = timeseries_outputs.include? 'temperatures'
   args['include_timeseries_airflows'] = timeseries_outputs.include? 'airflows'
   args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
+  update_args_hash(measures, measure_subdir, args)
+
+  # Add hpxml output measure to workflow
+  measure_subdir = 'ReportHPXMLOutput'
+  args = {}
+  args['output_format'] = output_format
   update_args_hash(measures, measure_subdir, args)
 
   results = run_hpxml_workflow(rundir, measures, measures_dir, debug: debug, ep_input_format: ep_input_format)

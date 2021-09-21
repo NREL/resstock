@@ -4,8 +4,19 @@ class XMLHelper
   # Adds the child element with 'element_name' and sets its value. Returns the
   # child element.
   def self.add_element(parent, element_name, value = nil, datatype = nil, defaulted = false)
+    added = XMLHelper.insert_element(parent, element_name, -1, value, datatype, defaulted)
+    return added
+  end
+
+  # Inserts the child element with 'element_name' and sets its value. Returns the
+  # child element.
+  def self.insert_element(parent, element_name, index = 0, value = nil, datatype = nil, defaulted = false)
     added = Oga::XML::Element.new(name: element_name)
-    parent.children << added
+    if index == -1
+      parent.children << added
+    else
+      parent.children.insert(index, added)
+    end
     if not value.nil?
       if datatype == :integer
         value = to_integer(value, parent, element_name)
