@@ -1218,11 +1218,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Schedule can be 24 hour array or file location')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('winter_grid_signal_schedule', false)
-    arg.setDisplayName('Grid Signal Schedule for Demand Flexibility Measures')
-    arg.setDescription('Schedule can be 24 hour array or file location ##FIXME: Placeholder arg right now')
-    args << arg
-
     heating_system_2_type_choices = OpenStudio::StringVector.new
     heating_system_2_type_choices << 'none'
     heating_system_2_type_choices << HPXML::HVACTypeWallFurnace
