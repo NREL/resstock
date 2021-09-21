@@ -2864,8 +2864,7 @@ class HPXML < Object
              :heating_efficiency_percent, :fraction_heat_load_served, :electric_auxiliary_energy,
              :third_party_certification, :seed_id, :is_shared_system, :number_of_units_served,
              :shared_loop_watts, :shared_loop_motor_efficiency, :fan_coil_watts, :fan_watts_per_cfm,
-             :airflow_defect_ratio, :fan_watts, :heating_airflow_cfm, :location,
-             :primary_system, :modulating, :dual_source]
+             :airflow_defect_ratio, :fan_watts, :heating_airflow_cfm, :location, :primary_system]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -3021,8 +3020,7 @@ class HPXML < Object
              :cooling_efficiency_seer, :cooling_efficiency_eer, :cooling_efficiency_ceer, :cooling_efficiency_kw_per_ton,
              :cooling_shr, :third_party_certification, :seed_id, :is_shared_system, :number_of_units_served,
              :shared_loop_watts, :shared_loop_motor_efficiency, :fan_coil_watts, :airflow_defect_ratio,
-             :fan_watts_per_cfm, :charge_defect_ratio, :cooling_airflow_cfm, :location,
-             :primary_system, :modulating, :dual_source]
+             :fan_watts_per_cfm, :charge_defect_ratio, :cooling_airflow_cfm, :location, :primary_system]
     attr_accessor(*ATTRS)
 
     def distribution_system
@@ -3189,7 +3187,7 @@ class HPXML < Object
              :fan_watts_per_cfm, :is_shared_system, :number_of_units_served, :shared_loop_watts,
              :shared_loop_motor_efficiency, :airflow_defect_ratio, :charge_defect_ratio,
              :heating_airflow_cfm, :cooling_airflow_cfm, :location, :primary_heating_system, :primary_cooling_system,
-             :flex, :modulating, :dual_source, :ihp_grid_ac, :ihp_ice_storage, :ihp_pcm_storage, 
+             :flex, :modulating, :dual_source, :ihp_grid_ac, :ihp_ice_storage, :ihp_pcm_storage,
              :cooling_grid_signal_schedule, :heating_grid_signal_schedule, :max_flex_speed]
     attr_accessor(*ATTRS)
 

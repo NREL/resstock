@@ -220,7 +220,7 @@ class HVAC
 
     cooling_grid_signal_schedule = nil
     heating_grid_signal_schedule = nil
-    if heat_pump.flex and not heat_pump.cooling_grid_signal_schedule.nil? # grid connected w/ cooling schedule
+    if heat_pump.flex && (not heat_pump.cooling_grid_signal_schedule.nil?) # grid connected w/ cooling schedule
       if heat_pump.cooling_grid_signal_schedule.include? '.csv' # schedule file path
         schedules_path = File.join(File.dirname(__FILE__), heat_pump.cooling_grid_signal_schedule)
         grid_signal_schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedules_path, col_names: Constants.GridSignalRegions)
@@ -233,7 +233,7 @@ class HVAC
       end
     end
 
-    if heat_pump.flex and not heat_pump.heating_grid_signal_schedule.nil? # grid connected w/ heating schedule
+    if heat_pump.flex && (not heat_pump.heating_grid_signal_schedule.nil?) # grid connected w/ heating schedule
       if heat_pump.heating_grid_signal_schedule.include? '.csv' # schedule file path
         schedules_path = File.join(File.dirname(__FILE__), heat_pump.heating_grid_signal_schedule)
         grid_signal_schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedules_path, col_names: Constants.GridSignalRegions)
