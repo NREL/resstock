@@ -3,13 +3,17 @@
 require 'parallel'
 require 'json'
 require 'yaml'
-require_relative '../resources/buildstock.rb'
+require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling'
 
 start_time = Time.now
 
-def run_workflow(yml)
+def run_workflow(yml, measures_only)
   cfg = YAML.load_file(yml)
+
+  if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
+    fail "Not supporting 'residential_quota_downselect' at this time."
+  end
 
   workflow_args = {
     'residential_simulation_controls' => {},
@@ -80,7 +84,7 @@ def run_workflow(yml)
   thisdir = File.dirname(__FILE__)
   base, ext = File.basename(yml).split('.')
 
-  osw_path = File.join(thisdir, "workflow-#{base}.osw")
+  osw_path = File.join(thisdir, "#{base}.osw")
   File.open(osw_path, 'w') do |f|
     f.write(JSON.pretty_generate(osw))
   end
@@ -91,29 +95,44 @@ def run_workflow(yml)
   n_datapoints = cfg['sampler']['args']['n_datapoints']
 
   results_dir = File.absolute_path(File.join(thisdir, output_directory))
-  Dir.mkdir(results_dir) unless File.exist?(results_dir)
-  
+  fail "Output directory #{output_directory} already exists." if File.exist?(results_dir)
+
+  Dir.mkdir(results_dir)
+
   # Create lib folder
   lib_dir = File.join(thisdir, '..', 'lib')
   resources_dir = File.join(thisdir, '..', 'resources')
   housing_characteristics_dir = File.join(File.dirname(yml), 'housing_characteristics')
   create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
-  
-  # Create weather folder
-  weather_dir = create_weather_folder(results_dir, 'project_testing')
-  # FIXME: instead copy files from weather_files_path to File.join(thisdir, '..', 'weather')
-  weather_files_path = cfg['weather_files_path']
-  
 
-  # TODO: support downselection
+  # Create weather folder
+  weather_dir = File.join(thisdir, '..', 'weather')
+  if !File.exist?(weather_dir)
+    if cfg.keys.include?('weather_files_url')
+      require 'tempfile'
+      tmpfile = Tempfile.new('epw')
+
+      weather_files_url = cfg['weather_files_url']
+      UrlResolver.fetch(weather_files_url, tmpfile)
+
+      weather_files_path = tmpfile.path.to_s
+    elsif cfg.keys.include?('weather_files_path')
+      weather_files_path = cfg['weather_files_path']
+    else
+      fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
+    end
+    puts 'Extracting weather files...'
+    unzip_file = OpenStudio::UnzipFile.new(weather_files_path)
+    unzip_file.extractAllFiles(OpenStudio::toPath(weather_dir))
+  end
 
   # Create buildstock.csv
   outfile = File.join('..', 'lib', 'housing_characteristics', 'buildstock.csv')
   create_buildstock_csv(project_directory, n_datapoints, outfile)
-  
+
   all_results_characteristics = []
   all_results_output = []
-  samples_osw(results_dir, osw_path, n_datapoints, all_results_characteristics, all_results_output)
+  samples_osw(results_dir, osw_path, n_datapoints, all_results_characteristics, all_results_output, measures_only)
 
   results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
   results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
@@ -129,21 +148,14 @@ def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
   FileUtils.cp_r(housing_characteristics_dir, lib_dir)
 end
 
-def create_weather_folder(parent_dir, project_dir)
-  src = File.join(parent_dir, '..', '..', 'resources', 'measures', 'HPXMLtoOpenStudio', 'weather', project_dir)
-  des = File.join(parent_dir, '..', '..', 'weather')
-  FileUtils.cp_r(src, des)
-
-  return des
-end
-
 def create_buildstock_csv(project_dir, num_samples, outfile)
   r = RunSampling.new
   r.run(project_dir, num_samples, outfile)
 end
 
-def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics, all_results_output)
-  runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics, all_results_output, measures_only)
+  osw_dir = File.join(results_dir, 'osw')
+  Dir.mkdir(osw_dir) unless File.exist?(osw_dir)
 
   workflow_and_building_ids = []
   (1..num_samples).to_a.each do |building_id|
@@ -163,7 +175,7 @@ def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics,
 
     change_building_id(osw, building_id)
 
-    finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir)
+    finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
 
     osw = "#{building_id.to_s.rjust(4, '0')}.osw"
     result_characteristics['OSW'] = osw
@@ -174,6 +186,18 @@ def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics,
 
     all_results_characteristics << result_characteristics
     all_results_output << result_output
+
+    # Save existing/upgraded osws
+    ['measures', 'measures-upgrade'].each do |scen|
+      ['osw'].each do |type|
+        from = File.join(worker_dir, 'run', "#{scen}.#{type}")
+
+        dir = osw_dir
+        to = File.join(dir, "#{building_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
+
+        FileUtils.mv(from, to) if File.exist?(from)
+      end
+    end
   end
 end
 
@@ -211,6 +235,11 @@ OptionParser.new do |opts|
     options[:version] = true
   end
 
+  options[:measures_only] = false
+  opts.on('-m', '--measures_only', 'Only run the OpenStudio and EnergyPlus measures') do |t|
+    options[:measures_only] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -228,7 +257,7 @@ end
 
 # Run analysis
 puts "YML: #{options[:yml]}"
-success = run_workflow(options[:yml])
+success = run_workflow(options[:yml], options[:measures_only])
 
 if not success
   exit! 1
