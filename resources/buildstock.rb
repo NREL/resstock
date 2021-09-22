@@ -448,17 +448,22 @@ class RunOSWs
     end
   end
 
-  def self.run_and_check(in_osw, parent_dir)
+  def self.run_and_check(in_osw, parent_dir, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "\"#{cli_path}\" run -w #{in_osw}"
+    command = "\"#{cli_path}\" run"
+    command += ' -m' if measures_only
+    command += " -w #{in_osw}"
 
     system(command)
-    out_osw = File.join(parent_dir, 'out.osw')
 
-    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
+    out_osw = File.join(parent_dir, 'out.osw')
     result_characteristics = {}
     result_output = {}
+
+    return out_osw, result_characteristics, result_output if measures_only
+
+    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     if rows.keys.include? 'BuildExistingModel'
       result_characteristics = get_build_existing_model(result_characteristics, rows)
