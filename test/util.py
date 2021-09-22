@@ -40,7 +40,7 @@ for col in results_characteristics.columns.values:
 
 results_characteristics = results_characteristics.set_index('OSW')
 results_characteristics = results_characteristics.reindex(sorted(results_characteristics), axis=1)
-results_characteristics.to_csv('baseline/results/results_characteristics.csv')
+results_characteristics.to_csv(os.path.join(outdir, 'results_characteristics.csv'))
 
 # results_output.csv
 results_output = df[['OSW'] + simulation_output_reports + qoi_reports]
@@ -52,4 +52,4 @@ for col in results_output.columns.values:
 
 results_output = results_output.set_index('OSW')
 results_output = results_output.reindex(sorted(results_output), axis=1)
-results_output.to_csv('baseline/results/results_output.csv')
+results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
