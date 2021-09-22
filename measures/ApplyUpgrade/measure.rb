@@ -236,6 +236,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       # Apply this package?
       apply_package_upgrade = evaluate_logic(package_apply_logic, runner)
       if apply_package_upgrade.nil?
+        # Upgrade not applied; don't re-run existing home simulation
+        runner.haltWorkflow('Invalid')
         return false
       end
     end
@@ -253,6 +255,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         if options_apply_logic.include?(option_num)
           apply_option_upgrade = evaluate_logic(options_apply_logic[option_num], runner)
           if apply_option_upgrade.nil?
+            # Upgrade not applied; don't re-run existing home simulation
+            runner.haltWorkflow('Invalid')
             return false
           end
         end
@@ -312,6 +316,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       end
 
       if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures-upgrade.osw', true)
+        # Upgrade not applied; don't re-run existing home simulation
+        runner.haltWorkflow('Invalid')
         return false
       end
 
