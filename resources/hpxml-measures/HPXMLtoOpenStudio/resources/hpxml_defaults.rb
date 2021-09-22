@@ -869,14 +869,6 @@ class HPXMLDefaults
     mini_split_ductless_watts_per_cfm = 0.07 # W/cfm
     mini_split_ducted_watts_per_cfm = 0.18 # W/cfm
     hpxml.heating_systems.each do |heating_system|
-      if heating_system.modulating.nil?
-        heating_system.modulating = false
-        heating_system.modulating_isdefaulted = true
-      end
-      if heating_system.dual_source.nil?
-        heating_system.dual_source = false
-        heating_system.dual_source_isdefaulted = true
-      end
       if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
         if heating_system.fan_watts_per_cfm.nil?
           if heating_system.distribution_system.air_type == HPXML::AirTypeGravity
@@ -905,14 +897,6 @@ class HPXMLDefaults
       end
     end
     hpxml.cooling_systems.each do |cooling_system|
-      if cooling_system.modulating.nil?
-        cooling_system.modulating = false
-        cooling_system.modulating_isdefaulted = true
-      end
-      if cooling_system.dual_source.nil?
-        cooling_system.dual_source = false
-        cooling_system.dual_source_isdefaulted = true
-      end
       next unless cooling_system.fan_watts_per_cfm.nil?
 
       if (not cooling_system.attached_heating_system.nil?) && (not cooling_system.attached_heating_system.fan_watts_per_cfm.nil?)
