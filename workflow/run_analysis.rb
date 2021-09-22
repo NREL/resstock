@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
-require 'yaml'
+require 'parallel'
 require 'json'
+require 'yaml'
 require_relative '../resources/buildstock.rb'
+require_relative '../resources/run_sampling'
 
 start_time = Time.now
 
@@ -83,40 +85,117 @@ def run_workflow(yml)
     f.write(JSON.pretty_generate(osw))
   end
 
-  # TODO: share methods with test_samples.rb
+  buildstock_directory = cfg['buildstock_directory']
+  project_directory = cfg['project_directory']
+  output_directory = cfg['output_directory']
+  n_datapoints = cfg['sampler']['args']['n_datapoints']
 
-  project_dir = { cfg['project_directory'] => 1 }
+  results_dir = File.absolute_path(File.join(thisdir, output_directory))
+  Dir.mkdir(results_dir) unless File.exist?(results_dir)
+  
+  # Create lib folder
+  lib_dir = File.join(thisdir, '..', 'lib')
+  resources_dir = File.join(thisdir, '..', 'resources')
+  housing_characteristics_dir = File.join(File.dirname(yml), 'housing_characteristics')
+  create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
+  
+  # Create weather folder
+  weather_dir = create_weather_folder(results_dir, 'project_testing')
+  # FIXME: instead copy files from weather_files_path to File.join(thisdir, '..', 'weather')
+  weather_files_path = cfg['weather_files_path']
+  
 
-  top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'results'))
-  lib_dir = File.join(top_dir, '..', '..', 'lib')
-  resources_dir = File.join(top_dir, '..', '..', 'resources')
-  weather_dir = create_weather_folder(top_dir, 'project_testing')
+  # TODO: support downselection
+
+  # Create buildstock.csv
   outfile = File.join('..', 'lib', 'housing_characteristics', 'buildstock.csv')
-
-  scenario_dir = File.join(top_dir, 'workflow')
-  Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
-
+  create_buildstock_csv(project_directory, n_datapoints, outfile)
+  
   all_results_characteristics = []
   all_results_output = []
-  project_dir.each_with_index do |(project_dir, num_samples), color_index|
-    next unless num_samples > 0
+  samples_osw(results_dir, osw_path, n_datapoints, all_results_characteristics, all_results_output)
 
-    samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index)
-  end
-
-  results_dir = File.join(scenario_dir, 'results')
-  RunOSWs._rm_path(results_dir)
   results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
   results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
 
-  FileUtils.rm_rf(lib_dir) if File.exist?(@lib_dir)
-  FileUtils.rm_rf(weather_dir) if File.exist?(@weather_dir)
-
-  Dir["#{top_dir}/workflow*.osw"].each do |osw|
-    TestResStockMeasuresOSW.change_building_id(osw, 1)
-  end
+  change_building_id(osw_path, 1)
 
   return true
+end
+
+def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
+  Dir.mkdir(lib_dir) unless File.exist?(lib_dir)
+  FileUtils.cp_r(resources_dir, lib_dir)
+  FileUtils.cp_r(housing_characteristics_dir, lib_dir)
+end
+
+def create_weather_folder(parent_dir, project_dir)
+  src = File.join(parent_dir, '..', '..', 'resources', 'measures', 'HPXMLtoOpenStudio', 'weather', project_dir)
+  des = File.join(parent_dir, '..', '..', 'weather')
+  FileUtils.cp_r(src, des)
+
+  return des
+end
+
+def create_buildstock_csv(project_dir, num_samples, outfile)
+  r = RunSampling.new
+  r.run(project_dir, num_samples, outfile)
+end
+
+def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics, all_results_output)
+  runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
+  workflow_and_building_ids = []
+  (1..num_samples).to_a.each do |building_id|
+    workflow_and_building_ids << [osw_path, building_id]
+  end
+
+  Parallel.map(workflow_and_building_ids, in_threads: Parallel.processor_count) do |workflow, building_id|
+    worker_number = Parallel.worker_number
+    osw_basename = File.basename(workflow)
+    puts "\nWorkflow: #{osw_basename}, Building ID: #{building_id} (#{workflow_and_building_ids.index([workflow, building_id]) + 1} / #{workflow_and_building_ids.size}), Worker Number: #{worker_number} ...\n"
+
+    worker_folder = "run#{worker_number}"
+    worker_dir = File.join(results_dir, worker_folder)
+    Dir.mkdir(worker_dir) unless File.exist?(worker_dir)
+    FileUtils.cp(workflow, worker_dir)
+    osw = File.join(worker_dir, File.basename(workflow))
+
+    change_building_id(osw, building_id)
+
+    finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir)
+
+    osw = "#{building_id.to_s.rjust(4, '0')}.osw"
+    result_characteristics['OSW'] = osw
+    result_output['OSW'] = osw
+
+    check_finished_job(result_characteristics, finished_job)
+    check_finished_job(result_output, finished_job)
+
+    all_results_characteristics << result_characteristics
+    all_results_output << result_output
+  end
+end
+
+def change_building_id(osw, building_id)
+  json = JSON.parse(File.read(osw), symbolize_names: true)
+  json[:steps].each do |measure|
+    next if measure[:measure_dir_name] != 'BuildExistingModel'
+
+    measure[:arguments][:building_id] = "#{building_id}"
+  end
+  File.open(osw, 'w') do |f|
+    f.write(JSON.pretty_generate(json))
+  end
+end
+
+def check_finished_job(result, finished_job)
+  result['completed_status'] = 'Fail'
+  if File.exist?(finished_job)
+    result['completed_status'] = 'Success'
+  end
+
+  return result
 end
 
 options = {}
