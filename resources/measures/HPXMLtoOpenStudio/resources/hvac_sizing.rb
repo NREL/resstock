@@ -1846,9 +1846,12 @@ class HVACSizing
       unit_final.Cool_Airflow = unit_final.Cool_Airflow * unit_final.Cool_Capacity / prev_capacity
     end
     if not hvac.FixedSuppHeatingCapacity.nil?
-      unit_final.Heat_Load = UnitConversions.convert(hvac.FixedSuppHeatingCapacity, 'ton', 'Btu/hr')
-    elsif not hvac.FixedHeatingCapacity.nil?
-      unit_final.Heat_Load = UnitConversions.convert(hvac.FixedHeatingCapacity, 'ton', 'Btu/hr')
+      unit_final.Heat_Capacity_Supp = UnitConversions.convert(hvac.FixedSuppHeatingCapacity, "ton", "Btu/hr")
+    else
+      unit_final.Heat_Capacity_Supp = 0
+    end
+    if not hvac.FixedHeatingCapacity.nil?
+      unit_final.Heat_Load = UnitConversions.convert(hvac.FixedHeatingCapacity, "ton", "Btu/hr")
     end
 
     return unit_final
@@ -1860,8 +1863,6 @@ class HVACSizing
     '''
 
     return if mj8.nil? || unit_final.nil? || unit_init.nil?
-
-    unit_final.Heat_Capacity_Supp = 0
 
     if hvac.HasFurnace
       unit_final.Heat_Capacity = unit_final.Heat_Load
@@ -1886,7 +1887,10 @@ class HVACSizing
       end
 
       unit_final.Heat_Capacity = unit_final.Cool_Capacity
-      unit_final.Heat_Capacity_Supp = unit_final.Heat_Load
+      if hvac.FixedSuppHeatingCapacity.nil?
+        # Autosize Supplemental to Design Heat Load
+        unit_final.Heat_Capacity_Supp = unit_final.Heat_Load
+      end
 
       if unit_final.Cool_Capacity > @minCoolingCapacity
         unit_final.Heat_Airflow = unit_final.Heat_Capacity / (1.1 * mj8.acf * (hvac.HtgSupplyAirTemp - mj8.heat_setpoint))
@@ -1902,7 +1906,10 @@ class HVACSizing
       end
 
       unit_final.Heat_Capacity = unit_final.Cool_Capacity + hvac.HeatingCapacityOffset
-      unit_final.Heat_Capacity_Supp = unit_final.Heat_Load
+      if hvac.FixedSuppHeatingCapacity.nil?
+        # Autosize Supplemental to Design Heat Load
+        unit_final.Heat_Capacity_Supp = unit_final.Heat_Load
+      end
 
       unit_final.Heat_Airflow = hvac.HeatingCFMs[-1] * UnitConversions.convert(unit_final.Heat_Capacity, 'Btu/hr', 'ton') # Maximum air flow under heating operation
 
@@ -1917,14 +1924,20 @@ class HVACSizing
       else
         unit_final.Heat_Capacity = unit_final.Cool_Capacity
       end
-      unit_final.Heat_Capacity_Supp = unit_final.Heat_Load
+      if hvac.FixedSuppHeatingCapacity.nil?
+        # Autosize Supplemental to Design Heat Load
+        unit_final.Heat_Capacity_Supp = unit_final.Heat_Load
+      end
 
       # For single stage compressor, when heating capacity is much larger than cooling capacity,
       # in order to avoid frequent cycling in cooling mode, heating capacity is derated to 75%.
       if unit_final.Heat_Capacity >= 1.5 * unit_final.Cool_Capacity
         unit_final.Heat_Capacity = unit_final.Heat_Load * 0.75
       elsif unit_final.Heat_Capacity < unit_final.Cool_Capacity
-        unit_final.Heat_Capacity_Supp = unit_final.Heat_Capacity
+        if hvac.FixedSuppHeatingCapacity.nil?
+          # Autosize Supplemental to Design Heat Load
+          unit_final.Heat_Capacity_Supp = unit_final.Heat_Load
+        end
       end
 
       ground_conductivity = UnitConversions.convert(hvac.GroundHXVertical.groundThermalConductivity.get, 'W/(m*K)', 'Btu/(hr*ft*R)')
