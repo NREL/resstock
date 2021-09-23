@@ -1,16 +1,22 @@
 schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
-project_directory: project_testing # Relative to buildstock_directory
-output_directory: outputs
-# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+project_directory: project_national # Relative to buildstock_directory
+output_directory: national_upgrades
+weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 4
+    n_datapoints: 1
     logic:
-      - not: Lighting|None
+      or:
+        - County|AZ, Maricopa County
+        - County|CA, Los Angeles County
+        - County|GA, Fulton County
+        - County|IL, Cook County
+        - County|TX, Harris County
+        - County|WA, King County
     resample: false
 
 workflow_generator:
@@ -27,29 +33,24 @@ workflow_generator:
     simulation_output:
       include_enduse_subcategories: true
 
-    timeseries_csv_export:
-      reporting_frequency: Hourly
-      include_enduse_subcategories: true
+    reporting_measures:
+      - measure_dir_name: QOIReport
 
     server_directory_cleanup:
-      retain_in_osm: true
-      retain_eplusout_rdd: true
-      retain_eplusout_err: true
+      retain_in_idf: false
+      retain_schedules_csv: false
 
 baseline:
-  n_buildings_represented: 80000000
+  n_buildings_represented: 110000000
 
 upgrades:
-  - upgrade_name: Triple-Pane Windows
+  - upgrade_name: Windows and Walls
     options:
       - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
         costs:
           - value: 45.77
             multiplier: Window Area (ft^2)
         lifetime: 30
-
-  - upgrade_name: R-13 Wall Insulation
-    options:
       - option: Insulation Wall|Wood Stud, R-13
         apply_logic: Insulation Wall|Wood Stud, Uninsulated
         costs:
