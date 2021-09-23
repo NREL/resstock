@@ -8,7 +8,7 @@ require_relative '../resources/run_sampling'
 
 start_time = Time.now
 
-def run_workflow(yml, measures_only)
+def run_workflow(yml, measures_only, debug)
   cfg = YAML.load_file(yml)
 
   if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
@@ -131,7 +131,7 @@ def run_workflow(yml, measures_only)
 
   all_results_characteristics = []
   all_results_output = []
-  samples_osw(results_dir, osw_path, n_datapoints, all_results_characteristics, all_results_output, measures_only)
+  samples_osw(results_dir, osw_path, n_datapoints, all_results_characteristics, all_results_output, measures_only, debug)
 
   results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
   results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
@@ -152,7 +152,7 @@ def create_buildstock_csv(project_dir, num_samples, outfile)
   r.run(project_dir, num_samples, outfile)
 end
 
-def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics, all_results_output, measures_only)
+def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics, all_results_output, measures_only, debug)
   osw_dir = File.join(results_dir, 'osw')
   Dir.mkdir(osw_dir) unless File.exist?(osw_dir)
 
@@ -189,17 +189,18 @@ def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics,
     all_results_characteristics << result_characteristics
     all_results_output << result_output
 
-    # Save existing/upgraded osws
-    ['existing', 'upgraded'].each do |scen|
-      ['osw', 'xml'].each do |type|
-        from = File.join(worker_dir, 'run', "#{scen}.#{type}")
-
-        dir = osw_dir
-        dir = xml_dir if type == 'xml'
-        to = File.join(dir, "#{building_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
-
-        FileUtils.mv(from, to) if File.exist?(from)
-      end
+    run_dir = File.join(worker_dir, 'run')
+    if debug
+      FileUtils.mv(File.join(run_dir, 'in.xml'), File.join(xml_dir, "#{building_id}-existing-defaulted.xml")) if !File.exist?(File.join(run_dir, 'upgraded.xml'))
+      FileUtils.mv(File.join(run_dir, 'in.xml'), File.join(xml_dir, "#{building_id}-upgraded-defaulted.xml")) if File.exist?(File.join(run_dir, 'upgraded.xml'))
+      FileUtils.mv(File.join(run_dir, 'existing.xml'), File.join(xml_dir, "#{building_id}-existing.xml"))
+      FileUtils.mv(File.join(run_dir, 'upgraded.xml'), File.join(xml_dir, "#{building_id}-upgraded.xml")) if File.exist?(File.join(run_dir, 'upgraded.xml'))
+      FileUtils.mv(File.join(run_dir, 'existing.osw'), File.join(osw_dir, "#{building_id}-existing.osw"))
+      FileUtils.mv(File.join(run_dir, 'upgraded.osw'), File.join(osw_dir, "#{building_id}-upgraded.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
+    else
+      FileUtils.mv(File.join(run_dir, 'in.xml'), File.join(xml_dir, "#{building_id}.xml"))
+      FileUtils.mv(File.join(run_dir, 'existing.osw'), File.join(osw_dir, "#{building_id}.osw")) if !File.exist?(File.join(run_dir, 'upgraded.osw'))
+      FileUtils.mv(File.join(run_dir, 'upgraded.osw'), File.join(osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
     end
   end
 end
@@ -243,6 +244,11 @@ OptionParser.new do |opts|
     options[:measures_only] = true
   end
 
+  options[:debug] = false
+  opts.on('-d', '--debug', 'Save both existing and upgraded osw files.') do |t|
+    options[:debug] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -260,7 +266,7 @@ end
 
 # Run analysis
 puts "YML: #{options[:yml]}"
-success = run_workflow(options[:yml], options[:measures_only])
+success = run_workflow(options[:yml], options[:measures_only], options[:debug])
 
 if not success
   exit! 1
