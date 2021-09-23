@@ -461,18 +461,16 @@ class RunOSWs
     result_characteristics = {}
     result_output = {}
 
-    return finished_job, result_characteristics, result_output if measures_only
+    results = File.join(parent_dir, 'run/results.json')
+
+    return finished_job, result_characteristics, result_output if measures_only || !File.exist?(results)
 
     rows = {}
-
-    results = File.join(parent_dir, 'run/results.json')
-    if File.exist?(File.expand_path(results))
-      old_rows = JSON.parse(File.read(File.expand_path(results)))
-      old_rows.each do |measure, values|
-        rows[measure] = {}
-        values.each do |arg, val|
-          rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
-        end
+    old_rows = JSON.parse(File.read(File.expand_path(results)))
+    old_rows.each do |measure, values|
+      rows[measure] = {}
+      values.each do |arg, val|
+        rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
       end
     end
 
@@ -481,6 +479,7 @@ class RunOSWs
     result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
     result_output = get_measure_results(rows, result_output, 'QOIReport')
+
     return finished_job, result_characteristics, result_output
   end
 
