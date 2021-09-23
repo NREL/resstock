@@ -448,15 +448,21 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.run_and_check(in_osw, parent_dir)
+  def self.run_and_check(in_osw, parent_dir, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
-    system(command)
-    finished_job = File.join(parent_dir, 'run/finished.job')
+    command = "\"#{cli_path}\" run"
+    command += ' -m' if measures_only
+    command += " -w #{in_osw}"
 
+    system(command)
+
+    finished_job = File.join(parent_dir, 'run/finished.job')
     result_characteristics = {}
     result_output = {}
+
+    return finished_job, result_characteristics, result_output if measures_only
+
     rows = {}
 
     results = File.join(parent_dir, 'run/results.json')

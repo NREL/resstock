@@ -33,12 +33,12 @@ namespace :unit_tests do
   end
 end
 
-desc 'Perform tasks related to integration tests'
-namespace :integration do
-  desc 'Run integration tests for sampled datapoints'
-  Rake::TestTask.new('workflow_tests') do |t|
+desc 'Perform tasks related to analysis tests'
+namespace :workflow do
+  desc 'Run analysis tests for sampled datapoints'
+  Rake::TestTask.new('analysis_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['test/test_samples.rb']
+    t.test_files = Dir['test/test_run_analysis.rb']
     t.warning = false
     t.verbose = true
   end
