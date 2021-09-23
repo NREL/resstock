@@ -2,7 +2,7 @@
 
 require_relative 'minitest_helper'
 require 'minitest/autorun'
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', '..')
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..')
 load 'Rakefile'
 require 'openstudio'
 
@@ -10,6 +10,14 @@ class TestResStockMeasuresOSW < MiniTest::Test
   def before_setup
     cli_path = OpenStudio.getOpenStudioCLI
     @command = "\"#{cli_path}\" workflow/run_analysis.rb -y "
+  end
+
+  def test_testing_baseline_measures_only
+    yml = 'project_testing/testing_baseline.yml'
+    @command += yml
+    @command += ' -m'
+    
+    system(@command)
   end
 
   def test_testing_upgrades
