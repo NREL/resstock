@@ -16,7 +16,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
     yml = 'project_testing/testing_baseline.yml'
     @command += yml
     @command += ' -m'
-    
+
     system(@command)
   end
 
