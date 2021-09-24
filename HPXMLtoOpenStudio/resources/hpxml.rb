@@ -308,10 +308,17 @@ class HPXML < Object
   WindowFrameTypeWood = 'Wood'
   WindowGasAir = 'air'
   WindowGasArgon = 'argon'
-  WindowGlazingLowE = 'low-e'
-  WindowGlazingReflective = 'reflective'
-  WindowGlazingTintedReflective = 'tinted/reflective'
+  WindowGasKrypton = 'krypton'
+  WindowGasNitrogen = 'nitrogen'
+  WindowGasOther = 'other'
+  WindowGasXenon = 'xenon'
+  WindowGlassTypeClear = 'clear'
+  WindowGlassTypeLowE = 'low-e'
+  WindowGlassTypeReflective = 'reflective'
+  WindowGlassTypeTinted = 'tinted'
+  WindowGlassTypeTintedReflective = 'tinted/reflective'
   WindowLayersDoublePane = 'double-pane'
+  WindowLayersGlassBlock = 'glass block'
   WindowLayersSinglePane = 'single-pane'
   WindowLayersTriplePane = 'triple-pane'
   WindowClassArchitectural = 'architectural'
@@ -2490,7 +2497,7 @@ class HPXML < Object
   end
 
   class Window < BaseElement
-    ATTRS = [:id, :area, :azimuth, :orientation, :frame_type, :aluminum_thermal_break, :glass_layers,
+    ATTRS = [:id, :area, :azimuth, :orientation, :frame_type, :thermal_break, :glass_layers,
              :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer,
              :interior_shading_factor_winter, :interior_shading_type, :exterior_shading_factor_summer,
              :exterior_shading_factor_winter, :exterior_shading_type, :overhangs_depth,
@@ -2552,15 +2559,15 @@ class HPXML < Object
       if not @frame_type.nil?
         frame_type_el = XMLHelper.add_element(window, 'FrameType')
         frame_type = XMLHelper.add_element(frame_type_el, @frame_type)
-        if @frame_type == HPXML::WindowFrameTypeAluminum
-          XMLHelper.add_element(frame_type, 'ThermalBreak', @aluminum_thermal_break, :boolean) unless @aluminum_thermal_break.nil?
+        if [HPXML::WindowFrameTypeAluminum, HPXML::WindowFrameTypeMetal].include? @frame_type
+          XMLHelper.add_element(frame_type, 'ThermalBreak', @thermal_break, :boolean, @thermal_break_isdefaulted) unless @thermal_break.nil?
         end
       end
-      XMLHelper.add_element(window, 'GlassLayers', @glass_layers, :string) unless @glass_layers.nil?
-      XMLHelper.add_element(window, 'GlassType', @glass_type, :string) unless @glass_type.nil?
-      XMLHelper.add_element(window, 'GasFill', @gas_fill, :string) unless @gas_fill.nil?
-      XMLHelper.add_element(window, 'UFactor', @ufactor, :float) unless @ufactor.nil?
-      XMLHelper.add_element(window, 'SHGC', @shgc, :float) unless @shgc.nil?
+      XMLHelper.add_element(window, 'GlassLayers', @glass_layers, :string, @glass_layers_isdefaulted) unless @glass_layers.nil?
+      XMLHelper.add_element(window, 'GlassType', @glass_type, :string, @glass_type_isdefaulted) unless @glass_type.nil?
+      XMLHelper.add_element(window, 'GasFill', @gas_fill, :string, @gas_fill_isdefaulted) unless @gas_fill.nil?
+      XMLHelper.add_element(window, 'UFactor', @ufactor, :float, @ufactor_isdefaulted) unless @ufactor.nil?
+      XMLHelper.add_element(window, 'SHGC', @shgc, :float, @shgc_isdefaulted) unless @shgc.nil?
       if (not @exterior_shading_type.nil?) || (not @exterior_shading_factor_summer.nil?) || (not @exterior_shading_factor_winter.nil?)
         exterior_shading = XMLHelper.add_element(window, 'ExteriorShading')
         sys_id = XMLHelper.add_element(exterior_shading, 'SystemIdentifier')
@@ -2599,8 +2606,10 @@ class HPXML < Object
       @azimuth = XMLHelper.get_value(window, 'Azimuth', :integer)
       @orientation = XMLHelper.get_value(window, 'Orientation', :string)
       @frame_type = XMLHelper.get_child_name(window, 'FrameType')
-      if not @frame_type.nil?
-        @aluminum_thermal_break = XMLHelper.get_value(window, 'FrameType/Aluminum/ThermalBreak', :boolean)
+      if @frame_type == HPXML::WindowFrameTypeAluminum
+        @thermal_break = XMLHelper.get_value(window, 'FrameType/Aluminum/ThermalBreak', :boolean)
+      elsif @frame_type == HPXML::WindowFrameTypeMetal
+        @thermal_break = XMLHelper.get_value(window, 'FrameType/Metal/ThermalBreak', :boolean)
       end
       @glass_layers = XMLHelper.get_value(window, 'GlassLayers', :string)
       @glass_type = XMLHelper.get_value(window, 'GlassType', :string)
@@ -2637,7 +2646,7 @@ class HPXML < Object
   end
 
   class Skylight < BaseElement
-    ATTRS = [:id, :area, :azimuth, :orientation, :frame_type, :aluminum_thermal_break, :glass_layers,
+    ATTRS = [:id, :area, :azimuth, :orientation, :frame_type, :thermal_break, :glass_layers,
              :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer,
              :interior_shading_factor_winter, :interior_shading_type, :exterior_shading_factor_summer,
              :exterior_shading_factor_winter, :exterior_shading_type, :roof_idref]
@@ -2697,15 +2706,15 @@ class HPXML < Object
       if not @frame_type.nil?
         frame_type_el = XMLHelper.add_element(skylight, 'FrameType')
         frame_type = XMLHelper.add_element(frame_type_el, @frame_type)
-        if @frame_type == HPXML::WindowFrameTypeAluminum
-          XMLHelper.add_element(frame_type, 'ThermalBreak', @aluminum_thermal_break, :boolean) unless @aluminum_thermal_break.nil?
+        if [HPXML::WindowFrameTypeAluminum, HPXML::WindowFrameTypeMetal].include? @frame_type
+          XMLHelper.add_element(frame_type, 'ThermalBreak', @thermal_break, :boolean, @thermal_break_isdefaulted) unless @thermal_break.nil?
         end
       end
-      XMLHelper.add_element(skylight, 'GlassLayers', @glass_layers, :string) unless @glass_layers.nil?
-      XMLHelper.add_element(skylight, 'GlassType', @glass_type, :string) unless @glass_type.nil?
-      XMLHelper.add_element(skylight, 'GasFill', @gas_fill, :string) unless @gas_fill.nil?
-      XMLHelper.add_element(skylight, 'UFactor', @ufactor, :float) unless @ufactor.nil?
-      XMLHelper.add_element(skylight, 'SHGC', @shgc, :float) unless @shgc.nil?
+      XMLHelper.add_element(skylight, 'GlassLayers', @glass_layers, :string, @glass_layers_isdefaulted) unless @glass_layers.nil?
+      XMLHelper.add_element(skylight, 'GlassType', @glass_type, :string, @glass_type_isdefaulted) unless @glass_type.nil?
+      XMLHelper.add_element(skylight, 'GasFill', @gas_fill, :string, @gas_fill_isdefaulted) unless @gas_fill.nil?
+      XMLHelper.add_element(skylight, 'UFactor', @ufactor, :float, @ufactor_isdefaulted) unless @ufactor.nil?
+      XMLHelper.add_element(skylight, 'SHGC', @shgc, :float, @shgc_isdefaulted) unless @shgc.nil?
       if (not @exterior_shading_type.nil?) || (not @exterior_shading_factor_summer.nil?) || (not @exterior_shading_factor_winter.nil?)
         exterior_shading = XMLHelper.add_element(skylight, 'ExteriorShading')
         sys_id = XMLHelper.add_element(exterior_shading, 'SystemIdentifier')
@@ -2736,7 +2745,11 @@ class HPXML < Object
       @azimuth = XMLHelper.get_value(skylight, 'Azimuth', :integer)
       @orientation = XMLHelper.get_value(skylight, 'Orientation', :string)
       @frame_type = XMLHelper.get_child_name(skylight, 'FrameType')
-      @aluminum_thermal_break = XMLHelper.get_value(skylight, 'FrameType/Aluminum/ThermalBreak', :boolean)
+      if @frame_type == HPXML::WindowFrameTypeAluminum
+        @thermal_break = XMLHelper.get_value(skylight, 'FrameType/Aluminum/ThermalBreak', :boolean)
+      elsif @frame_type == HPXML::WindowFrameTypeMetal
+        @thermal_break = XMLHelper.get_value(skylight, 'FrameType/Metal/ThermalBreak', :boolean)
+      end
       @glass_layers = XMLHelper.get_value(skylight, 'GlassLayers', :string)
       @glass_type = XMLHelper.get_value(skylight, 'GlassType', :string)
       @gas_fill = XMLHelper.get_value(skylight, 'GasFill', :string)
@@ -3484,11 +3497,11 @@ class HPXML < Object
       sys_id = XMLHelper.add_element(hvac_control, 'SystemIdentifier')
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(hvac_control, 'ControlType', @control_type, :string) unless @control_type.nil?
-      XMLHelper.add_element(hvac_control, 'SetpointTempHeatingSeason', @heating_setpoint_temp, :float) unless @heating_setpoint_temp.nil?
+      XMLHelper.add_element(hvac_control, 'SetpointTempHeatingSeason', @heating_setpoint_temp, :float, @heating_setpoint_temp_isdefaulted) unless @heating_setpoint_temp.nil?
       XMLHelper.add_element(hvac_control, 'SetbackTempHeatingSeason', @heating_setback_temp, :float) unless @heating_setback_temp.nil?
       XMLHelper.add_element(hvac_control, 'TotalSetbackHoursperWeekHeating', @heating_setback_hours_per_week, :integer) unless @heating_setback_hours_per_week.nil?
       XMLHelper.add_element(hvac_control, 'SetupTempCoolingSeason', @cooling_setup_temp, :float) unless @cooling_setup_temp.nil?
-      XMLHelper.add_element(hvac_control, 'SetpointTempCoolingSeason', @cooling_setpoint_temp, :float) unless @cooling_setpoint_temp.nil?
+      XMLHelper.add_element(hvac_control, 'SetpointTempCoolingSeason', @cooling_setpoint_temp, :float, @cooling_setpoint_temp_isdefaulted) unless @cooling_setpoint_temp.nil?
       XMLHelper.add_element(hvac_control, 'TotalSetupHoursperWeekCooling', @cooling_setup_hours_per_week, :integer) unless @cooling_setup_hours_per_week.nil?
       if (not @seasons_heating_begin_month.nil?) || (not @seasons_heating_begin_day.nil?) || (not @seasons_heating_end_month.nil?) || (not @seasons_heating_end_day.nil?)
         heating_season = XMLHelper.add_element(hvac_control, 'HeatingSeason')
