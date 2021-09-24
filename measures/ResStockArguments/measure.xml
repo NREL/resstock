@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>31d273f5-8c61-4380-8d8f-e1c018aaec15</version_id>
-  <version_modified>20210908T214602Z</version_modified>
+  <version_id>5e3c3678-b7a4-4df1-8380-b2f6b2a73224</version_id>
+  <version_modified>20210924T233244Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -111,6 +111,14 @@
           <display_name>well-shielded</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>zip_code</name>
+      <display_name>Zip Code</display_name>
+      <description>Zip code - used for informational purposes only</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>site_state_code</name>
@@ -336,6 +344,14 @@
       <default_value>USA_CO_Denver.Intl.AP.725650_TMY3.epw</default_value>
     </argument>
     <argument>
+      <name>year_built</name>
+      <display_name>Building Construction: Year Built</display_name>
+      <description>The year the building was built</description>
+      <type>Integer</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>geometry_unit_type</name>
       <display_name>Geometry: Unit Type</display_name>
       <description>The type of dwelling unit. Use single-family attached for a dwelling unit with 1 or more stories, attached units to one or both sides, and no units above/below. Use apartment unit for a dwelling unit with 1 story, attached units to one, two, or three sides, and units above and/or below.</description>
@@ -357,64 +373,6 @@
           <display_name>apartment unit</display_name>
         </choice>
       </choices>
-    </argument>
-    <argument>
-      <name>geometry_unit_level</name>
-      <display_name>Geometry: Unit Level</display_name>
-      <description>The level of the unit. This is required for apartment units.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>Bottom</value>
-          <display_name>Bottom</display_name>
-        </choice>
-        <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Top</value>
-          <display_name>Top</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_unit_horizontal_location</name>
-      <display_name>Geometry: Unit Horizontal Location</display_name>
-      <description>The horizontal location of the unit when viewing the front of the building. This is required for single-family attached and apartment units.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>None</value>
-          <display_name>None</display_name>
-        </choice>
-        <choice>
-          <value>Left</value>
-          <display_name>Left</display_name>
-        </choice>
-        <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Right</value>
-          <display_name>Right</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_num_floors_above_grade</name>
-      <display_name>Geometry: Number of Floors Above Grade</display_name>
-      <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>2</default_value>
     </argument>
     <argument>
       <name>geometry_unit_aspect_ratio</name>
@@ -662,6 +620,10 @@
           <value>Ambient</value>
           <display_name>Ambient</display_name>
         </choice>
+        <choice>
+          <value>Adiabatic</value>
+          <display_name>Adiabatic</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -795,6 +757,10 @@
         <choice>
           <value>ConditionedAttic</value>
           <display_name>ConditionedAttic</display_name>
+        </choice>
+        <choice>
+          <value>Adiabatic</value>
+          <display_name>Adiabatic</display_name>
         </choice>
       </choices>
     </argument>
@@ -5490,6 +5456,64 @@
       <default_value>2000</default_value>
     </argument>
     <argument>
+      <name>geometry_unit_level</name>
+      <display_name>Geometry: Unit Level</display_name>
+      <description>The level of the unit. This is required for apartment units.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>Bottom</value>
+          <display_name>Bottom</display_name>
+        </choice>
+        <choice>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Top</value>
+          <display_name>Top</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_unit_horizontal_location</name>
+      <display_name>Geometry: Unit Horizontal Location</display_name>
+      <description>The horizontal location of the unit when viewing the front of the building. This is required for single-family attached and apartment units.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+        <choice>
+          <value>Left</value>
+          <display_name>Left</display_name>
+        </choice>
+        <choice>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Right</value>
+          <display_name>Right</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_num_floors_above_grade</name>
+      <display_name>Geometry: Number of Floors Above Grade</display_name>
+      <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2</default_value>
+    </argument>
+    <argument>
       <name>misc_plug_loads_other_2_usage_multiplier</name>
       <display_name>Plug Loads: Other Usage Multiplier 2</display_name>
       <description>Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.</description>
@@ -5779,7 +5803,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>D92549D7</checksum>
+      <checksum>9CA4C9EA</checksum>
     </file>
     <file>
       <version>
@@ -5790,7 +5814,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>464EC46B</checksum>
+      <checksum>4FA0AB50</checksum>
     </file>
   </files>
 </measure>

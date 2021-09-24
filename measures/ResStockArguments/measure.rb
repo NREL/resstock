@@ -83,6 +83,34 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('2000')
     args << arg
 
+    level_choices = OpenStudio::StringVector.new
+    level_choices << 'Bottom'
+    level_choices << 'Middle'
+    level_choices << 'Top'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_unit_level', level_choices, false)
+    arg.setDisplayName('Geometry: Unit Level')
+    arg.setDescription("The level of the unit. This is required for #{HPXML::ResidentialTypeApartment}s.")
+    args << arg
+
+    horizontal_location_choices = OpenStudio::StringVector.new
+    horizontal_location_choices << 'None'
+    horizontal_location_choices << 'Left'
+    horizontal_location_choices << 'Middle'
+    horizontal_location_choices << 'Right'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_unit_horizontal_location', horizontal_location_choices, false)
+    arg.setDisplayName('Geometry: Unit Horizontal Location')
+    arg.setDescription("The horizontal location of the unit when viewing the front of the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_floors_above_grade', true)
+    arg.setDisplayName('Geometry: Number of Floors Above Grade')
+    arg.setUnits('#')
+    arg.setDescription("The number of floors above grade (in the unit if #{HPXML::ResidentialTypeSFD} or #{HPXML::ResidentialTypeSFA}, and in the building if #{HPXML::ResidentialTypeApartment}). Conditioned attics are included.")
+    arg.setDefaultValue(2)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
@@ -330,6 +358,40 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['geometry_unit_cfa'] = Float(cfa)
     else
       args['geometry_unit_cfa'] = Float(args['geometry_unit_cfa'])
+    end
+
+    # Num Floors
+    if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeSFA].include?(args['geometry_unit_type'])
+      args['geometry_unit_num_floors_above_grade'] = args['geometry_num_floors_above_grade']
+    elsif [HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
+      args['geometry_unit_num_floors_above_grade'] = 1
+    end
+
+    # Adiabatic Floor/Ceiling
+    if args['geometry_unit_level'].is_initialized
+      if args['geometry_unit_level'].get == 'Bottom'
+        args['geometry_attic_type'] = 'Adiabatic'
+      elsif args['geometry_unit_level'].get == 'Middle'
+        args['geometry_foundation_type'] = 'Adiabatic'
+        args['geometry_attic_type'] = 'Adiabatic'
+      elsif args['geometry_unit_level'].get == 'Top'
+        args['geometry_foundation_type'] = 'Adiabatic'
+      end
+    end
+
+    # Adiabatic Walls
+    args['geometry_unit_left_wall_is_adiabatic'] = false
+    args['geometry_unit_right_wall_is_adiabatic'] = false
+    args['geometry_unit_back_wall_is_adiabatic'] = false
+    if args['geometry_unit_horizontal_location'].is_initialized
+      if args['geometry_unit_horizontal_location'].get == 'Left'
+        args['geometry_unit_right_wall_is_adiabatic'] = true
+      elsif args['geometry_unit_horizontal_location'].get == 'Middle'
+        args['geometry_unit_left_wall_is_adiabatic'] = true
+        args['geometry_unit_right_wall_is_adiabatic'] = true
+      elsif args['geometry_unit_horizontal_location'].get == 'Right'
+        args['geometry_unit_left_wall_is_adiabatic'] = true
+      end
     end
 
     # Num Occupants
