@@ -539,8 +539,11 @@ def get_values(osw_file, step)
     step.setArgument('weather_station_epw_filepath', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     step.setArgument('site_type', HPXML::SiteTypeSuburban)
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeSFD)
+    step.setArgument('geometry_unit_left_wall_is_adiabatic', false)
+    step.setArgument('geometry_unit_right_wall_is_adiabatic', false)
+    step.setArgument('geometry_unit_back_wall_is_adiabatic', false)
+    step.setArgument('geometry_unit_num_floors_above_grade', 1)
     step.setArgument('geometry_unit_cfa', 2700.0)
-    step.setArgument('geometry_num_floors_above_grade', 1)
     step.setArgument('geometry_wall_height', 8.0)
     step.setArgument('geometry_unit_orientation', 180.0)
     step.setArgument('geometry_unit_aspect_ratio', 1.5)
@@ -931,7 +934,7 @@ def get_values(osw_file, step)
     step.setArgument('geometry_unit_cfa', 1800.0)
     step.setArgument('geometry_corridor_position', 'None')
     step.setArgument('geometry_building_num_units', 3)
-    step.setArgument('geometry_unit_horizontal_location', 'Left')
+    step.setArgument('geometry_unit_right_wall_is_adiabatic', true)
     step.setArgument('window_front_wwr', 0.18)
     step.setArgument('window_back_wwr', 0.18)
     step.setArgument('window_left_wwr', 0.18)
@@ -943,7 +946,7 @@ def get_values(osw_file, step)
     step.setArgument('heating_system_heating_capacity', '24000.0')
     step.setArgument('misc_plug_loads_other_annual_kwh', '1638.0')
   elsif ['base-bldgtype-single-family-attached-2stories.osw'].include? osw_file
-    step.setArgument('geometry_num_floors_above_grade', 2)
+    step.setArgument('geometry_unit_num_floors_above_grade', 2)
     step.setArgument('geometry_unit_cfa', 2700.0)
     step.setArgument('heating_system_heating_capacity', '48000.0')
     step.setArgument('cooling_system_cooling_capacity', '36000.0')
@@ -955,12 +958,11 @@ def get_values(osw_file, step)
     step.setArgument('geometry_unit_type', HPXML::ResidentialTypeApartment)
     step.setArgument('geometry_unit_cfa', 900.0)
     step.setArgument('geometry_corridor_position', 'None')
-    step.setArgument('geometry_foundation_type', HPXML::FoundationTypeBasementUnconditioned)
-    step.setArgument('geometry_unit_level', 'Middle')
-    step.setArgument('geometry_unit_horizontal_location', 'Left')
+    step.setArgument('geometry_foundation_type', 'Adiabatic')
+    step.setArgument('geometry_attic_type', 'Adiabatic')
     step.setArgument('geometry_building_num_units', 6)
     step.setArgument('geometry_building_num_bedrooms', 6 * 3)
-    step.setArgument('geometry_num_floors_above_grade', 3)
+    step.setArgument('geometry_unit_right_wall_is_adiabatic', true)
     step.setArgument('window_front_wwr', 0.18)
     step.setArgument('window_back_wwr', 0.18)
     step.setArgument('window_left_wwr', 0.18)
@@ -1208,7 +1210,7 @@ def get_values(osw_file, step)
   # Enclosure
   if ['base-enclosure-2stories.osw'].include? osw_file
     step.setArgument('geometry_unit_cfa', 4050.0)
-    step.setArgument('geometry_num_floors_above_grade', 2)
+    step.setArgument('geometry_unit_num_floors_above_grade', 2)
     step.setArgument('window_area_front', 216.0)
     step.setArgument('window_area_back', 216.0)
     step.setArgument('window_area_left', 144.0)
@@ -2248,12 +2250,12 @@ def get_values(osw_file, step)
     step.setArgument('geometry_garage_protrusion', 0.5)
   elsif ['extra-enclosure-garage-atticroof-conditioned.osw'].include? osw_file
     step.setArgument('geometry_unit_cfa', 4500.0)
-    step.setArgument('geometry_num_floors_above_grade', 2)
+    step.setArgument('geometry_unit_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
     step.setArgument('floor_over_garage_assembly_r', 39.3)
   elsif ['extra-enclosure-atticroof-conditioned-eaves-gable.osw'].include? osw_file
     step.setArgument('geometry_unit_cfa', 4500.0)
-    step.setArgument('geometry_num_floors_above_grade', 2)
+    step.setArgument('geometry_unit_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
     step.setArgument('geometry_eaves_depth', 2)
   elsif ['extra-enclosure-atticroof-conditioned-eaves-hip.osw'].include? osw_file
@@ -2290,7 +2292,7 @@ def get_values(osw_file, step)
     step.setArgument('site_state_code', 'WY')
 
   elsif ['extra-bldgtype-single-family-attached-atticroof-conditioned-eaves-gable.osw'].include? osw_file
-    step.setArgument('geometry_num_floors_above_grade', 2)
+    step.setArgument('geometry_unit_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
     step.setArgument('geometry_eaves_depth', 2)
     step.setArgument('ducts_supply_location', HPXML::LocationLivingSpace)
@@ -2534,7 +2536,7 @@ def get_values(osw_file, step)
     step.setArgument('geometry_foundation_type', HPXML::FoundationTypeBasementConditioned)
     step.setArgument('floor_over_foundation_assembly_r', 10)
   elsif ['invalid_files/conditioned-attic-with-floor-insulation.osw'].include? osw_file
-    step.setArgument('geometry_num_floors_above_grade', 2)
+    step.setArgument('geometry_unit_num_floors_above_grade', 2)
     step.setArgument('geometry_attic_type', HPXML::AtticTypeConditioned)
     step.setArgument('ducts_supply_location', HPXML::LocationLivingSpace)
     step.setArgument('ducts_return_location', HPXML::LocationLivingSpace)
@@ -2686,8 +2688,10 @@ def create_hpxmls
     'invalid_files/invalid-runperiod.xml' => 'base.xml',
     'invalid_files/invalid-schema-version.xml' => 'base.xml',
     'invalid_files/invalid-shared-vent-in-unit-flowrate.xml' => 'base-bldgtype-multifamily-shared-mechvent.xml',
+    'invalid_files/invalid-skylights-physical-properties.xml' => 'base-enclosure-skylights-physical-properties.xml',
     'invalid_files/invalid-timestep.xml' => 'base.xml',
     'invalid_files/invalid-window-height.xml' => 'base-enclosure-overhangs.xml',
+    'invalid_files/invalid-windows-physical-properties.xml' => 'base-enclosure-windows-physical-properties.xml',
     'invalid_files/lighting-fractions.xml' => 'base.xml',
     'invalid_files/missing-duct-area.xml' => 'base-hvac-multiple.xml',
     'invalid_files/missing-duct-location.xml' => 'base-hvac-multiple.xml',
@@ -2847,11 +2851,13 @@ def create_hpxmls
     'base-enclosure-overhangs.xml' => 'base.xml',
     'base-enclosure-rooftypes.xml' => 'base.xml',
     'base-enclosure-skylights.xml' => 'base.xml',
+    'base-enclosure-skylights-physical-properties.xml' => 'base-enclosure-skylights.xml',
     'base-enclosure-skylights-shading.xml' => 'base-enclosure-skylights.xml',
     'base-enclosure-split-level.xml' => 'base-foundation-slab.xml',
     'base-enclosure-split-surfaces.xml' => 'base-enclosure-skylights.xml', # Surfaces should collapse via HPXML.collapse_enclosure_surfaces()
     'base-enclosure-split-surfaces2.xml' => 'base-enclosure-skylights.xml', # Surfaces should NOT collapse via HPXML.collapse_enclosure_surfaces()
     'base-enclosure-walltypes.xml' => 'base.xml',
+    'base-enclosure-windows-physical-properties.xml' => 'base.xml',
     'base-enclosure-windows-shading.xml' => 'base.xml',
     'base-enclosure-windows-none.xml' => 'base.xml',
     'base-foundation-multiple.xml' => 'base-foundation-unconditioned-basement.xml',
@@ -5265,8 +5271,32 @@ def set_hpxml_windows(hpxml_file, hpxml)
     hpxml.windows[3].exterior_shading_factor_winter = 1.0
     hpxml.windows[3].interior_shading_factor_summer = 0.0
     hpxml.windows[3].interior_shading_factor_winter = 1.0
+  elsif ['base-enclosure-windows-physical-properties.xml'].include? hpxml_file
+    hpxml.windows[0].ufactor = nil
+    hpxml.windows[0].shgc = nil
+    hpxml.windows[0].glass_layers = HPXML::WindowLayersSinglePane
+    hpxml.windows[0].frame_type = HPXML::WindowFrameTypeWood
+    hpxml.windows[0].glass_type = HPXML::WindowGlassTypeTinted
+    hpxml.windows[1].ufactor = nil
+    hpxml.windows[1].shgc = nil
+    hpxml.windows[1].glass_layers = HPXML::WindowLayersDoublePane
+    hpxml.windows[1].frame_type = HPXML::WindowFrameTypeMetal
+    hpxml.windows[1].thermal_break = true
+    hpxml.windows[1].glass_type = HPXML::WindowGlassTypeLowE
+    hpxml.windows[1].gas_fill = HPXML::WindowGasArgon
+    hpxml.windows[2].ufactor = nil
+    hpxml.windows[2].shgc = nil
+    hpxml.windows[2].glass_layers = HPXML::WindowLayersDoublePane
+    hpxml.windows[2].frame_type = HPXML::WindowFrameTypeVinyl
+    hpxml.windows[2].glass_type = HPXML::WindowGlassTypeReflective
+    hpxml.windows[2].gas_fill = HPXML::WindowGasAir
+    hpxml.windows[3].ufactor = nil
+    hpxml.windows[3].shgc = nil
+    hpxml.windows[3].glass_layers = HPXML::WindowLayersGlassBlock
   elsif ['base-enclosure-windows-none.xml'].include? hpxml_file
     hpxml.windows.clear
+  elsif ['invalid_files/invalid-windows-physical-properties.xml'].include? hpxml_file
+    hpxml.windows[1].thermal_break = false
   elsif ['invalid_files/net-area-negative-wall.xml'].include? hpxml_file
     hpxml.windows[0].area = 1000
   elsif ['base-atticroof-conditioned.xml'].include? hpxml_file
@@ -5466,6 +5496,21 @@ def set_hpxml_skylights(hpxml_file, hpxml)
     hpxml.skylights[1].exterior_shading_factor_winter = 0.0
     hpxml.skylights[1].interior_shading_factor_summer = 0.5
     hpxml.skylights[1].interior_shading_factor_winter = 1.0
+  elsif ['base-enclosure-skylights-physical-properties.xml'].include? hpxml_file
+    hpxml.skylights[0].ufactor = nil
+    hpxml.skylights[0].shgc = nil
+    hpxml.skylights[0].glass_layers = HPXML::WindowLayersSinglePane
+    hpxml.skylights[0].frame_type = HPXML::WindowFrameTypeWood
+    hpxml.skylights[0].glass_type = HPXML::WindowGlassTypeTinted
+    hpxml.skylights[1].ufactor = nil
+    hpxml.skylights[1].shgc = nil
+    hpxml.skylights[1].glass_layers = HPXML::WindowLayersDoublePane
+    hpxml.skylights[1].frame_type = HPXML::WindowFrameTypeMetal
+    hpxml.skylights[1].thermal_break = true
+    hpxml.skylights[1].glass_type = HPXML::WindowGlassTypeLowE
+    hpxml.skylights[1].gas_fill = HPXML::WindowGasKrypton
+  elsif ['invalid_files/invalid-skylights-physical-properties.xml'].include? hpxml_file
+    hpxml.skylights[1].thermal_break = false
   elsif ['invalid_files/net-area-negative-roof.xml'].include? hpxml_file
     hpxml.skylights[0].area = 4000
   elsif ['invalid_files/unattached-skylight.xml'].include? hpxml_file
@@ -6241,17 +6286,19 @@ def set_hpxml_heat_pumps(hpxml_file, hpxml)
 end
 
 def set_hpxml_hvac_control(hpxml_file, hpxml)
-  if ['ASHRAE_Standard_140/L100AC.xml',
-      'ASHRAE_Standard_140/L100AL.xml'].include? hpxml_file
+  hpxml.hvac_controls.clear
+  if hpxml_file.include? 'ASHRAE_Standard_140'
     hpxml.hvac_controls.add(id: 'HVACControl',
                             heating_setpoint_temp: 68,
                             cooling_setpoint_temp: 78)
-  elsif ['base.xml'].include? hpxml_file
+  else
     hpxml.hvac_controls.add(id: 'HVACControl',
                             control_type: HPXML::HVACControlTypeManual,
                             heating_setpoint_temp: 68,
                             cooling_setpoint_temp: 78)
-  elsif ['base-hvac-seasons.xml'].include? hpxml_file
+  end
+
+  if ['base-hvac-seasons.xml'].include? hpxml_file
     hpxml.hvac_controls[0].seasons_heating_begin_month = 11
     hpxml.hvac_controls[0].seasons_heating_begin_day = 1
     hpxml.hvac_controls[0].seasons_heating_end_month = 6
@@ -6292,6 +6339,28 @@ def set_hpxml_hvac_control(hpxml_file, hpxml)
     hpxml.hvac_controls[0].seasons_cooling_begin_day = 1
     hpxml.hvac_controls[0].seasons_cooling_end_month = 9
     hpxml.hvac_controls[0].seasons_cooling_end_day = 30
+  end
+
+  if hpxml.hvac_controls.size == 1
+    if hpxml.total_fraction_cool_load_served == 0 && !hpxml.header.apply_ashrae140_assumptions
+      hpxml.hvac_controls[0].cooling_setpoint_temp = nil
+      hpxml.hvac_controls[0].seasons_cooling_begin_month = nil
+      hpxml.hvac_controls[0].seasons_cooling_begin_day = nil
+      hpxml.hvac_controls[0].seasons_cooling_end_month = nil
+      hpxml.hvac_controls[0].seasons_cooling_end_day = nil
+      hpxml.hvac_controls[0].weekday_cooling_setpoints = nil
+      hpxml.hvac_controls[0].weekend_cooling_setpoints = nil
+      hpxml.hvac_controls[0].ceiling_fan_cooling_setpoint_temp_offset = nil
+    end
+    if hpxml.total_fraction_heat_load_served == 0 && !hpxml.header.apply_ashrae140_assumptions
+      hpxml.hvac_controls[0].heating_setpoint_temp = nil
+      hpxml.hvac_controls[0].seasons_heating_begin_month = nil
+      hpxml.hvac_controls[0].seasons_heating_begin_day = nil
+      hpxml.hvac_controls[0].seasons_heating_end_month = nil
+      hpxml.hvac_controls[0].seasons_heating_end_day = nil
+      hpxml.hvac_controls[0].weekday_heating_setpoints = nil
+      hpxml.hvac_controls[0].weekend_heating_setpoints = nil
+    end
   end
 end
 

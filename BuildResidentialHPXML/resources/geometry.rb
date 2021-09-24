@@ -132,7 +132,7 @@ class Geometry
                                          model:,
                                          geometry_unit_cfa:,
                                          geometry_wall_height:,
-                                         geometry_num_floors_above_grade:,
+                                         geometry_unit_num_floors_above_grade:,
                                          geometry_unit_aspect_ratio:,
                                          geometry_garage_width:,
                                          geometry_garage_depth:,
@@ -147,7 +147,7 @@ class Geometry
                                          **remainder)
     cfa = geometry_unit_cfa
     wall_height = geometry_wall_height
-    num_floors = geometry_num_floors_above_grade
+    num_floors = geometry_unit_num_floors_above_grade
     aspect_ratio = geometry_unit_aspect_ratio
     garage_width = geometry_garage_width
     garage_depth = geometry_garage_depth
@@ -1645,9 +1645,8 @@ class Geometry
                                          geometry_unit_cfa:,
                                          geometry_wall_height:,
                                          geometry_building_num_units:,
-                                         geometry_num_floors_above_grade:,
+                                         geometry_unit_num_floors_above_grade:,
                                          geometry_unit_aspect_ratio:,
-                                         geometry_unit_horizontal_location:,
                                          geometry_corridor_position:,
                                          geometry_foundation_type:,
                                          geometry_foundation_height:,
@@ -1655,14 +1654,16 @@ class Geometry
                                          geometry_attic_type:,
                                          geometry_roof_type:,
                                          geometry_roof_pitch:,
+                                         geometry_unit_left_wall_is_adiabatic:,
+                                         geometry_unit_right_wall_is_adiabatic:,
+                                         geometry_unit_back_wall_is_adiabatic:,
                                          **remainder)
 
     cfa = geometry_unit_cfa
     wall_height = geometry_wall_height
     num_units = geometry_building_num_units.get
-    num_floors = geometry_num_floors_above_grade
+    num_floors = geometry_unit_num_floors_above_grade
     aspect_ratio = geometry_unit_aspect_ratio
-    horizontal_location = geometry_unit_horizontal_location.get
     corridor_position = geometry_corridor_position
     foundation_type = geometry_foundation_type
     foundation_height = geometry_foundation_height
@@ -1673,6 +1674,18 @@ class Geometry
     end
     roof_type = geometry_roof_type
     roof_pitch = geometry_roof_pitch
+    left_wall = geometry_unit_left_wall_is_adiabatic
+    right_wall = geometry_unit_right_wall_is_adiabatic
+    back_wall = geometry_unit_back_wall_is_adiabatic
+
+    horizontal_location = 'None'
+    if left_wall && right_wall
+      horizontal_location = 'Middle'
+    elsif left_wall
+      horizontal_location = 'Right'
+    elsif right_wall
+      horizontal_location = 'Left'
+    end
 
     has_rear_units = false
     if corridor_position == 'Double Exterior'
@@ -1686,40 +1699,6 @@ class Geometry
       unit_width = num_units / 2
     else
       unit_width = num_units
-    end
-
-    # error checking
-    if model.getSpaces.size > 0
-      runner.registerError('Starting model is not empty.')
-      return false
-    end
-    if foundation_type.downcase.include?('crawlspace') && ((foundation_height < 1.5) || (foundation_height > 5.0))
-      runner.registerError('The crawlspace height can be set between 1.5 and 5 ft.')
-      return false
-    end
-    if (num_units == 1) && has_rear_units
-      runner.registerError("Specified building as having rear units, but didn't specify enough units.")
-      return false
-    end
-    if aspect_ratio < 0
-      runner.registerError('Invalid aspect ratio entered.')
-      return false
-    end
-    if has_rear_units && (num_units % 2 != 0)
-      runner.registerError('Specified a building with rear units and an odd number of units.')
-      return false
-    end
-    if (unit_width < 3) && (horizontal_location == 'Middle')
-      runner.registerError('Invalid horizontal location entered, no middle location exists.')
-      return false
-    end
-    if (unit_width > 1) && (horizontal_location == 'None')
-      runner.registerError('Invalid horizontal location entered.')
-      return false
-    end
-    if (unit_width == 1) && (horizontal_location != 'None')
-      runner.registerWarning("No #{horizontal_location} location exists, setting horizontal_location to 'None'")
-      horizontal_location = 'None'
     end
 
     # Convert to SI
@@ -2080,10 +2059,8 @@ class Geometry
                               geometry_unit_cfa:,
                               geometry_wall_height:,
                               geometry_building_num_units:,
-                              geometry_num_floors_above_grade:,
+                              geometry_unit_num_floors_above_grade:,
                               geometry_unit_aspect_ratio:,
-                              geometry_unit_level:,
-                              geometry_unit_horizontal_location:,
                               geometry_corridor_position:,
                               geometry_corridor_width:,
                               geometry_inset_width:,
@@ -2093,15 +2070,16 @@ class Geometry
                               geometry_foundation_type:,
                               geometry_foundation_height:,
                               geometry_rim_joist_height:,
+                              geometry_attic_type:,
+                              geometry_unit_left_wall_is_adiabatic:,
+                              geometry_unit_right_wall_is_adiabatic:,
+                              geometry_unit_back_wall_is_adiabatic:,
                               **remainder)
 
     cfa = geometry_unit_cfa
     wall_height = geometry_wall_height
     num_units = geometry_building_num_units.get
-    num_floors = geometry_num_floors_above_grade
     aspect_ratio = geometry_unit_aspect_ratio
-    level = geometry_unit_level.get
-    horz_location = geometry_unit_horizontal_location.get
     corridor_position = geometry_corridor_position
     corridor_width = geometry_corridor_width
     inset_width = geometry_inset_width
@@ -2111,91 +2089,37 @@ class Geometry
     foundation_type = geometry_foundation_type
     foundation_height = geometry_foundation_height
     rim_joist_height = geometry_rim_joist_height
+    attic_type = geometry_attic_type
+    left_wall = geometry_unit_left_wall_is_adiabatic
+    right_wall = geometry_unit_right_wall_is_adiabatic
+    back_wall = geometry_unit_back_wall_is_adiabatic # TODO: use this for corridor?
+
+    if attic_type == 'Adiabatic' && foundation_type == 'Adiabatic'
+      level = 'Middle'
+    elsif attic_type == 'Adiabatic'
+      level = 'Bottom'
+    elsif foundation_type == 'Adiabatic'
+      level = 'Top'
+    end
+
+    horz_location = 'None'
+    if left_wall && right_wall
+      horz_location = 'Middle'
+    elsif left_wall
+      horz_location = 'Right'
+    elsif right_wall
+      horz_location = 'Left'
+    end
+
+    has_rear_units = false
+    if back_wall
+      has_rear_units = true
+    end
 
     if level != 'Bottom'
       foundation_type = HPXML::LocationOtherHousingUnit
       foundation_height = 0.0
       rim_joist_height = 0.0
-    end
-
-    num_units_per_floor = num_units / num_floors
-    num_units_per_floor_actual = num_units_per_floor
-    above_ground_floors = num_floors
-
-    if (num_floors > 1) && (level != 'Bottom') && (foundation_height > 0.0)
-      runner.registerWarning('Unit is not on the bottom floor, setting foundation height to 0.')
-      foundation_height = 0.0
-    end
-
-    if num_floors == 1
-      level = 'Bottom'
-    end
-
-    if (num_floors <= 2) && (level == 'Middle')
-      runner.registerError("Building is #{num_floors} stories and does not have middle units")
-      return false
-    end
-
-    if (num_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
-      unit_depth = 2
-      unit_width = num_units_per_floor / 2.0
-      has_rear_units = true
-    elsif (num_units_per_floor == 2) && (horz_location == 'None') # double-loaded corridor for 2 units/story
-      unit_depth = 2
-      unit_width = 1.0
-      has_rear_units = true
-    else
-      unit_depth = 1
-      unit_width = num_units_per_floor
-      has_rear_units = false
-    end
-
-    # error checking
-    if model.getSpaces.size > 0
-      runner.registerError('Starting model is not empty.')
-      return false
-    end
-    if foundation_type.downcase.include?('crawlspace') && ((foundation_height < 1.5) || (foundation_height > 5.0)) && level == 'Bottom'
-      runner.registerError('The crawlspace height can be set between 1.5 and 5 ft.')
-      return false
-    end
-    if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
-      runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
-      corridor_position = 'Single Exterior (Front)'
-    end
-    if aspect_ratio < 0
-      runner.registerError('Invalid aspect ratio entered.')
-      return false
-    end
-    if (corridor_width == 0) && (corridor_position != 'None')
-      corridor_position = 'None'
-    end
-    if corridor_position == 'None'
-      corridor_width = 0
-    end
-    if corridor_width < 0
-      runner.registerError('Invalid corridor width entered.')
-      return false
-    end
-    if (balcony_depth > 0) && (inset_width * inset_depth == 0)
-      runner.registerWarning('Specified a balcony, but there is no inset.')
-      balcony_depth = 0
-    end
-    if (unit_width < 2) && (horz_location != 'None')
-      runner.registerWarning("No #{horz_location} location exists, setting horz_location to 'None'")
-      horz_location = 'None'
-    end
-    if (unit_width >= 2) && (horz_location == 'None')
-      runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
-      return false
-    end
-    if (unit_width > 1) && (horz_location == 'None')
-      runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
-      return false
-    end
-    if (unit_width <= 2) && (horz_location == 'Middle')
-      runner.registerError('Invalid horizontal location entered, no middle location exists.')
-      return false
     end
 
     # Convert to SI
@@ -2213,7 +2137,7 @@ class Geometry
     x = Math.sqrt(footprint / aspect_ratio)
     y = footprint / x
 
-    story_hash = { 'Bottom' => 0, 'Middle' => 1, 'Top' => num_floors - 1 }
+    story_hash = { 'Bottom' => 0, 'Middle' => 1, 'Top' => 2 }
     z = wall_height * story_hash[level]
 
     foundation_corr_polygon = nil
@@ -2294,7 +2218,7 @@ class Geometry
     adb_level = level_hash[level]
 
     # Check levels
-    if num_floors == 1
+    if level == 'Bottom'
       adb_level = []
     end
     if (has_rear_units == true)
