@@ -19,7 +19,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     ]
 
     test_base = true
-    test_extra = true
+    test_extra = false
 
     osws = []
     test_dirs.each do |test_dir|
@@ -86,6 +86,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   end
 
   def test_invalid_workflows
+    skip
     require 'json'
 
     this_dir = File.dirname(__FILE__)

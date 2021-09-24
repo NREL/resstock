@@ -151,31 +151,28 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(HPXML::ResidentialTypeSFD)
     args << arg
 
-    level_choices = OpenStudio::StringVector.new
-    level_choices << 'Bottom'
-    level_choices << 'Middle'
-    level_choices << 'Top'
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_unit_level', level_choices, false)
-    arg.setDisplayName('Geometry: Unit Level')
-    arg.setDescription("The level of the unit. This is required for #{HPXML::ResidentialTypeApartment}s.")
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_left_wall_is_adiabatic', true)
+    arg.setDisplayName('Geometry: Unit Left Wall Is Adiabatic')
+    arg.setDescription('Presence of an adiabatic left wall.')
+    arg.setDefaultValue(false)
     args << arg
 
-    horizontal_location_choices = OpenStudio::StringVector.new
-    horizontal_location_choices << 'None'
-    horizontal_location_choices << 'Left'
-    horizontal_location_choices << 'Middle'
-    horizontal_location_choices << 'Right'
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_unit_horizontal_location', horizontal_location_choices, false)
-    arg.setDisplayName('Geometry: Unit Horizontal Location')
-    arg.setDescription("The horizontal location of the unit when viewing the front of the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s.")
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_right_wall_is_adiabatic', true)
+    arg.setDisplayName('Geometry: Unit Right Wall Is Adiabatic')
+    arg.setDescription('Presence of an adiabatic right wall.')
+    arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_floors_above_grade', true)
-    arg.setDisplayName('Geometry: Number of Floors Above Grade')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_back_wall_is_adiabatic', true)
+    arg.setDisplayName('Geometry: Unit Back Wall Is Adiabatic')
+    arg.setDescription('Presence of an adiabatic back wall.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_unit_num_floors_above_grade', true)
+    arg.setDisplayName('Geometry: Unit Number of Floors Above Grade')
     arg.setUnits('#')
-    arg.setDescription("The number of floors above grade (in the unit if #{HPXML::ResidentialTypeSFD} or #{HPXML::ResidentialTypeSFA}, and in the building if #{HPXML::ResidentialTypeApartment}). Conditioned attics are included.")
+    arg.setDescription("The number of floors above grade in the unit. Conditioned attics are included. Assumed to be 1 if #{HPXML::ResidentialTypeApartment}.")
     arg.setDefaultValue(2)
     args << arg
 
@@ -328,6 +325,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     foundation_type_choices << HPXML::FoundationTypeBasementUnconditioned
     foundation_type_choices << HPXML::FoundationTypeBasementConditioned
     foundation_type_choices << HPXML::FoundationTypeAmbient
+    foundation_type_choices << 'Adiabatic'
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_foundation_type', foundation_type_choices, true)
     arg.setDisplayName('Geometry: Foundation Type')
@@ -390,6 +388,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     attic_type_choices << HPXML::AtticTypeVented
     attic_type_choices << HPXML::AtticTypeUnvented
     attic_type_choices << HPXML::AtticTypeConditioned
+    attic_type_choices << 'Adiabatic'
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_attic_type', attic_type_choices, true)
     arg.setDisplayName('Geometry: Attic Type')
@@ -2872,16 +2871,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]}" if error
 
     # multifamily, bottom, slab, foundation height > 0
-    if args[:geometry_unit_level].is_initialized
-      warning = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_unit_level].get == 'Bottom') && (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] > 0)
-      warnings << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_unit_level=#{args[:geometry_unit_level].get} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if warning
-    end
+    # if args[:geometry_unit_level].is_initialized
+    # warning = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_unit_level].get == 'Bottom') && (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] > 0)
+    # warnings << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_unit_level=#{args[:geometry_unit_level].get} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if warning
+    # end
 
-    # multifamily, bottom, non slab, foundation height = 0
-    if args[:geometry_unit_level].is_initialized
-      error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_unit_level].get == 'Bottom') && (args[:geometry_foundation_type] != HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] == 0)
-      errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_unit_level=#{args[:geometry_unit_level].get} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
-    end
+    # # multifamily, bottom, non slab, foundation height = 0
+    # if args[:geometry_unit_level].is_initialized
+    # error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_unit_level].get == 'Bottom') && (args[:geometry_foundation_type] != HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] == 0)
+    # errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_unit_level=#{args[:geometry_unit_level].get} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
+    # end
 
     # multifamily and finished basement
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned)
@@ -2908,33 +2907,33 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     errors << "heating_system_type=#{args[:heating_system_type]} and heat_pump_type=#{args[:heat_pump_type]} and heating_system_2_type=#{args[:heating_system_2_type]}" if error
 
     # single-family attached and num units, horizontal location not specified
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_unit_horizontal_location].is_initialized)
-    if error
-      error = "geometry_unit_type=#{args[:geometry_unit_type]}"
-      if !args[:geometry_building_num_units].is_initialized
-        error += ' and geometry_building_num_units=not provided'
-      end
-      if !args[:geometry_unit_horizontal_location].is_initialized
-        error += ' and geometry_unit_horizontal_location=not provided'
-      end
-      errors << error
-    end
+    # error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_unit_horizontal_location].is_initialized)
+    # if error
+    # error = "geometry_unit_type=#{args[:geometry_unit_type]}"
+    # if !args[:geometry_building_num_units].is_initialized
+    # error += ' and geometry_building_num_units=not provided'
+    # end
+    # if !args[:geometry_unit_horizontal_location].is_initialized
+    # error += ' and geometry_unit_horizontal_location=not provided'
+    # end
+    # errors << error
+    # end
 
     # apartment unit and num units, level, horizontal location not specified
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_unit_level].is_initialized || !args[:geometry_unit_horizontal_location].is_initialized)
-    if error
-      error = "geometry_unit_type=#{args[:geometry_unit_type]}"
-      if !args[:geometry_building_num_units].is_initialized
-        error += ' and geometry_building_num_units=not provided'
-      end
-      if !args[:geometry_unit_level].is_initialized
-        error += ' and geometry_unit_level=not provided'
-      end
-      if !args[:geometry_unit_horizontal_location].is_initialized
-        error += ' and geometry_unit_horizontal_location=not provided'
-      end
-      errors << error
-    end
+    # error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_unit_level].is_initialized || !args[:geometry_unit_horizontal_location].is_initialized)
+    # if error
+    # error = "geometry_unit_type=#{args[:geometry_unit_type]}"
+    # if !args[:geometry_building_num_units].is_initialized
+    # error += ' and geometry_building_num_units=not provided'
+    # end
+    # if !args[:geometry_unit_level].is_initialized
+    # error += ' and geometry_unit_level=not provided'
+    # end
+    # if !args[:geometry_unit_horizontal_location].is_initialized
+    # error += ' and geometry_unit_horizontal_location=not provided'
+    # end
+    # errors << error
+    # end
 
     # crawlspace or unconditioned basement with foundation wall and ceiling insulation
     warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > 2.1)
@@ -2965,8 +2964,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warnings << "geometry_attic_type=#{args[:geometry_attic_type]} and ceiling_assembly_r=#{args[:ceiling_assembly_r]}" if warning
 
     # conditioned attic but only one above-grade floor
-    error = (args[:geometry_num_floors_above_grade] == 1 && args[:geometry_attic_type] == HPXML::AtticTypeConditioned)
-    errors << "geometry_num_floors_above_grade=#{args[:geometry_num_floors_above_grade]} and geometry_attic_type=#{args[:geometry_attic_type]}" if error
+    error = (args[:geometry_unit_num_floors_above_grade] == 1 && args[:geometry_attic_type] == HPXML::AtticTypeConditioned)
+    errors << "geometry_unit_num_floors_above_grade=#{args[:geometry_unit_num_floors_above_grade]} and geometry_attic_type=#{args[:geometry_attic_type]}" if error
 
     # dhw indirect but no boiler
     error = ((args[:water_heater_type] == HPXML::WaterHeaterTypeCombiStorage) || (args[:water_heater_type] == HPXML::WaterHeaterTypeCombiTankless)) && (args[:heating_system_type] != HPXML::HVACTypeBoiler)
@@ -3072,7 +3071,6 @@ class HPXMLFile
     set_building_construction(hpxml, runner, args)
     set_climate_and_risk_zones(hpxml, runner, args, epw_file)
     set_air_infiltration_measurements(hpxml, runner, args)
-
     set_roofs(hpxml, runner, model, args)
     set_rim_joists(hpxml, runner, model, args)
     set_walls(hpxml, runner, model, args)
@@ -3084,7 +3082,6 @@ class HPXMLFile
     set_windows(hpxml, runner, model, args)
     set_skylights(hpxml, runner, model, args)
     set_doors(hpxml, runner, model, args)
-
     set_heating_systems(hpxml, runner, args)
     set_cooling_systems(hpxml, runner, args)
     set_heat_pumps(hpxml, runner, args)
@@ -3162,7 +3159,6 @@ class HPXMLFile
       success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
       args[:geometry_roof_type] = 'flat'
-      args[:geometry_attic_type] = HPXML::AtticTypeVented
       success = Geometry.create_multifamily(runner: runner, model: model, **args)
     end
     return false if not success
@@ -3238,9 +3234,9 @@ class HPXMLFile
                           'Middle' => HPXML::SurroundingsTwoSides,
                           'None' => HPXML::SurroundingsStandAlone }
 
-    if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
-      hpxml.site.surroundings = surroundings_hash[args[:geometry_unit_horizontal_location].get]
-    end
+    # if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
+    # hpxml.site.surroundings = surroundings_hash[args[:geometry_unit_horizontal_location].get]
+    # end
 
     hpxml.site.azimuth_of_front_of_home = args[:geometry_unit_orientation]
     hpxml.site.shielding_of_home = shielding_of_home
@@ -3279,7 +3275,7 @@ class HPXMLFile
       number_of_conditioned_floors_above_grade = 1
       number_of_conditioned_floors = 1
     else
-      number_of_conditioned_floors_above_grade = args[:geometry_num_floors_above_grade]
+      number_of_conditioned_floors_above_grade = args[:geometry_unit_num_floors_above_grade]
       number_of_conditioned_floors = number_of_conditioned_floors_above_grade
       if args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned
         number_of_conditioned_floors += 1
@@ -3387,9 +3383,8 @@ class HPXMLFile
       surf_hash['surfaces'].each do |surface|
         next unless (foundation_locations.include? surface.interior_adjacent_to) ||
                     (foundation_locations.include? surface.exterior_adjacent_to) ||
-                    (surf_type == 'slabs' && surface.interior_adjacent_to == HPXML::LocationLivingSpace)
-
-        (surf_type == 'frame_floors' && surface.exterior_adjacent_to == HPXML::LocationOutside)
+                    (surf_type == 'slabs' && surface.interior_adjacent_to == HPXML::LocationLivingSpace) ||
+                    (surf_type == 'frame_floors' && surface.exterior_adjacent_to == HPXML::LocationOutside)
 
         surf_hash['ids'] << surface.id
       end
@@ -3773,7 +3768,7 @@ class HPXMLFile
           overhangs_distance_to_bottom_of_window = (overhangs_distance_to_top_of_window + sub_surface_height).round(1)
         elsif args[:geometry_eaves_depth] > 0
           # Get max z coordinate of eaves
-          eaves_z = args[:geometry_wall_height] * args[:geometry_num_floors_above_grade] + args[:geometry_rim_joist_height]
+          eaves_z = args[:geometry_wall_height] * args[:geometry_unit_num_floors_above_grade] + args[:geometry_rim_joist_height]
           if args[:geometry_attic_type] == HPXML::AtticTypeConditioned
             eaves_z += Geometry.get_conditioned_attic_height(model.getSpaces)
           end
@@ -4258,26 +4253,52 @@ class HPXMLFile
   def self.set_hvac_control(hpxml, runner, args)
     return if (args[:heating_system_type] == 'none') && (args[:cooling_system_type] == 'none') && (args[:heat_pump_type] == 'none')
 
-    if args[:hvac_control_heating_weekday_setpoint] == args[:hvac_control_heating_weekend_setpoint] && !args[:hvac_control_heating_weekday_setpoint].include?(',')
-      heating_setpoint_temp = args[:hvac_control_heating_weekday_setpoint]
-    else
-      weekday_heating_setpoints = args[:hvac_control_heating_weekday_setpoint]
-      weekend_heating_setpoints = args[:hvac_control_heating_weekend_setpoint]
+    # Heating
+    if hpxml.total_fraction_heat_load_served > 0
+
+      if args[:hvac_control_heating_weekday_setpoint] == args[:hvac_control_heating_weekend_setpoint] && !args[:hvac_control_heating_weekday_setpoint].include?(',')
+        heating_setpoint_temp = args[:hvac_control_heating_weekday_setpoint]
+      else
+        weekday_heating_setpoints = args[:hvac_control_heating_weekday_setpoint]
+        weekend_heating_setpoints = args[:hvac_control_heating_weekend_setpoint]
+      end
+
+      if args[:hvac_control_heating_season_period].is_initialized
+        begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_heating_season_period].get)
+        seasons_heating_begin_month = begin_month
+        seasons_heating_begin_day = begin_day
+        seasons_heating_end_month = end_month
+        seasons_heating_end_day = end_day
+      end
+
     end
 
-    if args[:hvac_control_cooling_weekday_setpoint] == args[:hvac_control_cooling_weekend_setpoint] && !args[:hvac_control_cooling_weekday_setpoint].include?(',')
-      cooling_setpoint_temp = args[:hvac_control_cooling_weekday_setpoint]
-    else
-      weekday_cooling_setpoints = args[:hvac_control_cooling_weekday_setpoint]
-      weekend_cooling_setpoints = args[:hvac_control_cooling_weekend_setpoint]
-    end
+    # Cooling
+    if hpxml.total_fraction_cool_load_served > 0
 
-    if args[:ceiling_fan_quantity] != Constants.Auto
-      ceiling_fan_quantity = Integer(args[:ceiling_fan_quantity])
-    end
+      if args[:hvac_control_cooling_weekday_setpoint] == args[:hvac_control_cooling_weekend_setpoint] && !args[:hvac_control_cooling_weekday_setpoint].include?(',')
+        cooling_setpoint_temp = args[:hvac_control_cooling_weekday_setpoint]
+      else
+        weekday_cooling_setpoints = args[:hvac_control_cooling_weekday_setpoint]
+        weekend_cooling_setpoints = args[:hvac_control_cooling_weekend_setpoint]
+      end
 
-    if (args[:ceiling_fan_cooling_setpoint_temp_offset] > 0) && (ceiling_fan_quantity.nil? || ceiling_fan_quantity > 0)
-      ceiling_fan_cooling_setpoint_temp_offset = args[:ceiling_fan_cooling_setpoint_temp_offset]
+      if args[:ceiling_fan_quantity] != Constants.Auto
+        ceiling_fan_quantity = Integer(args[:ceiling_fan_quantity])
+      end
+
+      if (args[:ceiling_fan_cooling_setpoint_temp_offset] > 0) && (ceiling_fan_quantity.nil? || ceiling_fan_quantity > 0)
+        ceiling_fan_cooling_setpoint_temp_offset = args[:ceiling_fan_cooling_setpoint_temp_offset]
+      end
+
+      if args[:hvac_control_cooling_season_period].is_initialized
+        begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_cooling_season_period].get)
+        seasons_cooling_begin_month = begin_month
+        seasons_cooling_begin_day = begin_day
+        seasons_cooling_end_month = end_month
+        seasons_cooling_end_day = end_day
+      end
+
     end
 
     hpxml.hvac_controls.add(id: 'HVACControl',
@@ -4287,23 +4308,15 @@ class HPXMLFile
                             weekend_heating_setpoints: weekend_heating_setpoints,
                             weekday_cooling_setpoints: weekday_cooling_setpoints,
                             weekend_cooling_setpoints: weekend_cooling_setpoints,
-                            ceiling_fan_cooling_setpoint_temp_offset: ceiling_fan_cooling_setpoint_temp_offset)
-
-    if args[:hvac_control_heating_season_period].is_initialized
-      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_heating_season_period].get)
-      hpxml.hvac_controls[0].seasons_heating_begin_month = begin_month
-      hpxml.hvac_controls[0].seasons_heating_begin_day = begin_day
-      hpxml.hvac_controls[0].seasons_heating_end_month = end_month
-      hpxml.hvac_controls[0].seasons_heating_end_day = end_day
-    end
-
-    if args[:hvac_control_cooling_season_period].is_initialized
-      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_cooling_season_period].get)
-      hpxml.hvac_controls[0].seasons_cooling_begin_month = begin_month
-      hpxml.hvac_controls[0].seasons_cooling_begin_day = begin_day
-      hpxml.hvac_controls[0].seasons_cooling_end_month = end_month
-      hpxml.hvac_controls[0].seasons_cooling_end_day = end_day
-    end
+                            ceiling_fan_cooling_setpoint_temp_offset: ceiling_fan_cooling_setpoint_temp_offset,
+                            seasons_heating_begin_month: seasons_heating_begin_month,
+                            seasons_heating_begin_day: seasons_heating_begin_day,
+                            seasons_heating_end_month: seasons_heating_end_month,
+                            seasons_heating_end_day: seasons_heating_end_day,
+                            seasons_cooling_begin_month: seasons_cooling_begin_month,
+                            seasons_cooling_begin_day: seasons_cooling_begin_day,
+                            seasons_cooling_end_month: seasons_cooling_end_month,
+                            seasons_cooling_end_day: seasons_cooling_end_day)
   end
 
   def self.set_ventilation_fans(hpxml, runner, args)
