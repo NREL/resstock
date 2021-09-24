@@ -458,6 +458,9 @@
 	</xs:complexType>
 	<xs:simpleType name="IECCYear_simple">
 		<xs:restriction base="xs:integer">
+			<xs:enumeration value="2021"/>
+			<xs:enumeration value="2018"/>
+			<xs:enumeration value="2015"/>
 			<xs:enumeration value="2012"/>
 			<xs:enumeration value="2009"/>
 			<xs:enumeration value="2006"/>
@@ -1648,6 +1651,7 @@
 			<xs:enumeration value="double-pane"/>
 			<xs:enumeration value="triple-pane"/>
 			<xs:enumeration value="multi-layered"/>
+			<xs:enumeration value="glass block"/>
 			<xs:enumeration value="other"/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -2886,6 +2890,9 @@
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="air"/>
 			<xs:enumeration value="argon"/>
+			<xs:enumeration value="krypton"/>
+			<xs:enumeration value="xenon"/>
+			<xs:enumeration value="nitrogen"/>
 			<xs:enumeration value="other"/>
 		</xs:restriction>
 	</xs:simpleType>
@@ -2898,6 +2905,7 @@
 	</xs:complexType>
 	<xs:simpleType name="GlassType_simple">
 		<xs:restriction base="xs:string">
+			<xs:enumeration value="clear"/>
 			<xs:enumeration value="low-e"/>
 			<xs:enumeration value="tinted"/>
 			<xs:enumeration value="reflective"/>
@@ -4283,6 +4291,7 @@
 			<xs:enumeration value="platform"/>
 			<xs:enumeration value="balloon"/>
 			<xs:enumeration value="timber"/>
+			<xs:enumeration value="other"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:complexType name="FramingType">
@@ -4710,15 +4719,6 @@
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>
-	</xs:complexType>
-	<xs:complexType name="Season">
-		<xs:sequence>
-			<xs:element maxOccurs="1" minOccurs="0" name="BeginMonth" type="Month"/>
-			<xs:element maxOccurs="1" minOccurs="0" name="BeginDayOfMonth" type="DayOfMonth"/>
-			<xs:element maxOccurs="1" minOccurs="0" name="EndMonth" type="Month"/>
-			<xs:element maxOccurs="1" minOccurs="0" name="EndDayOfMonth" type="DayOfMonth"/>
-		</xs:sequence>
-		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>
 	<xs:simpleType name="Month_simple">
 		<xs:restriction base="xs:integer">
