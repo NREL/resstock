@@ -400,7 +400,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    if args['geometry_corridor_width'] > 0
+    if args['geometry_corridor_position'] == 'Double Exterior'
       args['geometry_unit_back_wall_is_adiabatic'] = true
     end
 
