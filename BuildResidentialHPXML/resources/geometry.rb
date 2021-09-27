@@ -2123,6 +2123,10 @@ class Geometry
       rim_joist_height = 0.0
     end
 
+    if attic_type == 'Adiabatic'
+      attic_type = HPXML::LocationOtherHousingUnit
+    end
+
     # Convert to SI
     cfa = UnitConversions.convert(cfa, 'ft^2', 'm^2')
     wall_height = UnitConversions.convert(wall_height, 'ft', 'm')
@@ -2139,7 +2143,7 @@ class Geometry
     y = footprint / x
 
     top = 0
-    if attic_type == 'Adiabatic'
+    if attic_type == HPXML::LocationOtherHousingUnit
       top = 1
     end
     story_hash = { 'Bottom' => 0, 'Middle' => 1, 'Top' => top } # FIXME: is this right?
@@ -2223,10 +2227,10 @@ class Geometry
     adb_level = level_hash[level]
 
     # Check levels
-    if attic_type != 'Adiabatic' # FIXME: is this right?
+    if attic_type != HPXML::LocationOtherHousingUnit && foundation_type != HPXML::LocationOtherHousingUnit # FIXME: is this right?
       adb_level = []
     end
-    if (has_rear_units == true)
+    if has_rear_units
       adb_facade += ['back']
     end
 
