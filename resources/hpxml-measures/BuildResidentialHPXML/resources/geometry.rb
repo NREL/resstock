@@ -2094,6 +2094,7 @@ class Geometry
     right_wall = geometry_unit_right_wall_is_adiabatic
     back_wall = geometry_unit_back_wall_is_adiabatic # TODO: use this for corridor?
 
+    level = 'Bottom'
     if attic_type == 'Adiabatic' && foundation_type == 'Adiabatic'
       level = 'Middle'
     elsif attic_type == 'Adiabatic'
@@ -2137,7 +2138,11 @@ class Geometry
     x = Math.sqrt(footprint / aspect_ratio)
     y = footprint / x
 
-    story_hash = { 'Bottom' => 0, 'Middle' => 1, 'Top' => 2 }
+    top = 0
+    if attic_type == 'Adiabatic'
+      top = 1
+    end
+    story_hash = { 'Bottom' => 0, 'Middle' => 1, 'Top' => top } # FIXME: is this right?
     z = wall_height * story_hash[level]
 
     foundation_corr_polygon = nil
@@ -2218,7 +2223,7 @@ class Geometry
     adb_level = level_hash[level]
 
     # Check levels
-    if level == 'Bottom'
+    if attic_type != 'Adiabatic' # FIXME: is this right?
       adb_level = []
     end
     if (has_rear_units == true)
