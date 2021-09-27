@@ -370,7 +370,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Adiabatic Floor/Ceiling
     if args['geometry_unit_level'].is_initialized
       if args['geometry_unit_level'].get == 'Bottom'
-        args['geometry_attic_type'] = 'Adiabatic'
+        if args['geometry_num_floors_above_grade'] > 1
+          args['geometry_attic_type'] = 'Adiabatic'
+        end
       elsif args['geometry_unit_level'].get == 'Middle'
         args['geometry_foundation_type'] = 'Adiabatic'
         args['geometry_attic_type'] = 'Adiabatic'
@@ -385,13 +387,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['geometry_unit_back_wall_is_adiabatic'] = false
     if args['geometry_unit_horizontal_location'].is_initialized
       if args['geometry_unit_horizontal_location'].get == 'Left'
-        args['geometry_unit_right_wall_is_adiabatic'] = true
+        if args['geometry_num_floors_above_grade'] > 1
+          args['geometry_unit_right_wall_is_adiabatic'] = true
+        end
       elsif args['geometry_unit_horizontal_location'].get == 'Middle'
         args['geometry_unit_left_wall_is_adiabatic'] = true
         args['geometry_unit_right_wall_is_adiabatic'] = true
       elsif args['geometry_unit_horizontal_location'].get == 'Right'
-        args['geometry_unit_left_wall_is_adiabatic'] = true
+        if args['geometry_num_floors_above_grade'] > 1
+          args['geometry_unit_left_wall_is_adiabatic'] = true
+        end
       end
+    end
+
+    if args['geometry_corridor_width'] > 0
+      args['geometry_unit_back_wall_is_adiabatic'] = true
     end
 
     # Num Occupants
