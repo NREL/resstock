@@ -47,4 +47,14 @@ class TestResStockMeasuresOSW < MiniTest::Test
 
     FileUtils.rm_rf(File.join(@workflowdir, 'testing_upgrades'))
   end
+
+  def test_testing_baseline
+    # FIXME: this is a temporary test
+    yml = 'project_testing/testing_baseline.yml'
+    @command += yml
+
+    system(@command)
+
+    FileUtils.rm_rf(File.join(@workflowdir, 'testing_baseline'))
+  end
 end
