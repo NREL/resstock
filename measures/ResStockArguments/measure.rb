@@ -539,7 +539,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           args['geometry_unit_back_wall_is_adiabatic'] = true
         else
           has_rear_units = false
-          args['geometry_corridor_position'] = 'Exterior'
+          if args['geometry_corridor_position'] != 'None'
+            args['geometry_corridor_position'] = 'Exterior'
+          end
         end
       elsif args['geometry_unit_type'] == HPXML::ResidentialTypeSFA
         n_floors = 1.0
