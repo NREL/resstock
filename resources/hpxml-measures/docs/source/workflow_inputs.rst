@@ -650,8 +650,8 @@ Each window or glass door area is entered as an ``/HPXML/Building/BuildingDetail
   ``SystemIdentifier``                          id                                                        Yes                  Unique identifier
   ``Area``                                      double             ft2               > 0                  Yes                  Total area
   ``Azimuth`` or ``Orientation``                integer or string  deg or direction  0 - 359 or See [#]_  Yes                  Direction (clockwise from North)
-  ``UFactor``                                   double             Btu/F-ft2-hr      > 0                  Yes                  Full-assembly NFRC U-factor
-  ``SHGC``                                      double                               0 - 1                Yes                  Full-assembly NFRC solar heat gain coefficient
+  ``UFactor`` and/or ``GlassLayers``            double or string   Btu/F-ft2-hr      > 0 or See [#]_      Yes                  Full-assembly NFRC U-factor (including any storm window) or glass layers description
+  ``SHGC`` and/or ``GlassLayers``               double or string                     0 - 1                Yes                  Full-assembly NFRC solar heat gain coefficient (including any storm window) or glass layers description
   ``ExteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior summer shading coefficient (1=transparent, 0=opaque)
   ``ExteriorShading/WinterShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior winter shading coefficient (1=transparent, 0=opaque)
   ``InteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        0.70 [#]_  Interior summer shading coefficient (1=transparent, 0=opaque)
@@ -661,7 +661,8 @@ Each window or glass door area is entered as an ``/HPXML/Building/BuildingDetail
   ``AttachedToWall``                            idref                                See [#]_             Yes                  ID of attached wall
   ============================================  =================  ================  ===================  ========  =========  =============================================================
 
-  .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
+  .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north".
+  .. [#] GlassLayers choices are "single-pane", "double-pane", "triple-pane", or "glass block".
   .. [#] InteriorShading/SummerShadingCoefficient default value indicates 30% reduction in solar heat gain, based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
   .. [#] InteriorShading/WinterShadingCoefficient default value indicates 15% reduction in solar heat gain, based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.
   .. [#] FractionOperable reflects whether the windows are operable (can be opened), not how they are used by the occupants.
@@ -669,6 +670,54 @@ Each window or glass door area is entered as an ``/HPXML/Building/BuildingDetail
          If a ``Window`` represents multiple windows (e.g., 4), the value should be between 0 and 1 (e.g., 0, 0.25, 0.5, 0.75, or 1).
          The total open window area for natural ventilation is calculated using A) the operable fraction, B) the assumption that 50% of the area of operable windows can be open, and C) the assumption that 20% of that openable area is actually opened by occupants whenever outdoor conditions are favorable for cooling.
   .. [#] AttachedToWall must reference a ``Wall`` or ``FoundationWall``.
+
+If UFactor and SHGC are not provided and GlassLayers is not "glass block", additional information is entered in ``Window``.
+
+  ============================  ========  ======  =======================  ========  ========  ========================================================
+  Element                       Type      Units   Constraints              Required  Default   Notes
+  ============================  ========  ======  =======================  ========  ========  ========================================================
+  ``FrameType``                 element           See [#]_                 Yes                 Type of frame
+  ``FrameType/*/ThermalBreak``  boolean           See [#]_                 No        false     Whether the Aluminum or Metal frame has a thermal break
+  ``GlassType``                 string            See [#]_                 No        <none>    Type of glass
+  ``GasFill``                   string            See [#]_                 No        See [#]_  Type of gas inside double/triple-pane windows
+  ============================  ========  ======  =======================  ========  ========  ========================================================
+  
+  .. [#] FrameType child element choices are ``Aluminum``, ``Fiberglass``, ``Metal``, ``Vinyl``, or ``Wood``.
+  .. [#] ThermalBreak is only valid if FrameType is ``Aluminum`` or ``Metal``.
+  .. [#] GlassType choices are "clear", "low-e", "tinted", "tinted/reflective", or "reflective".
+         Do not specify this element if the window has clear glass.
+  .. [#] GasFill choices are "air", "argon", "krypton", "xenon", "nitrogen", or "other".
+  .. [#] If GasFill not provided, defaults to "air" for double-pane windows and "argon" for triple-pane windows.
+
+If UFactor and SHGC are not provided, they are defaulted as follows:
+  
+  ===========  =======================  ============  =========================  =============  =======  ====
+  GlassLayers  FrameType                ThermalBreak  GlassType                  GasFill        UFactor  SHGC
+  ===========  =======================  ============  =========================  =============  =======  ====
+  single-pane  Aluminum, Metal          false         clear                      --             1.27     0.75
+  single-pane  Fiberglass, Vinyl, Wood  --            clear                      --             0.89     0.64
+  single-pane  Aluminum, Metal          false         tinted, tinted/reflective  --             1.27     0.64
+  single-pane  Fiberglass, Vinyl, Wood  --            tinted, tinted/reflective  --             0.89     0.54
+  double-pane  Aluminum, Metal          false         clear                      air            0.81     0.67
+  double-pane  Aluminum, Metal          true          clear                      air            0.60     0.67
+  double-pane  Fiberglass, Vinyl, Wood  --            clear                      air            0.51     0.56
+  double-pane  Aluminum, Metal          false         tinted, tinted/reflective  air            0.81     0.55
+  double-pane  Aluminum, Metal          true          tinted, tinted/reflective  air            0.60     0.55
+  double-pane  Fiberglass, Vinyl, Wood  --            tinted, tinted/reflective  air            0.51     0.46
+  double-pane  Fiberglass, Vinyl, Wood  --            low-e                      air            0.42     0.52
+  double-pane  Aluminum, Metal          true          low-e                      <any but air>  0.47     0.62
+  double-pane  Fiberglass, Vinyl, Wood  --            low-e                      <any but air>  0.39     0.52
+  double-pane  Aluminum, Metal          false         reflective                 air            0.67     0.37
+  double-pane  Aluminum, Metal          true          reflective                 air            0.47     0.37
+  double-pane  Fiberglass, Vinyl, Wood  --            reflective                 air            0.39     0.31
+  double-pane  Fiberglass, Vinyl, Wood  --            reflective                 <any but air>  0.36     0.31
+  triple-pane  Fiberglass, Vinyl, Wood  --            low-e                      <any but air>  0.27     0.31
+  glass block  --                       --            --                         --             0.60     0.60
+  ===========  =======================  ============  =========================  =============  =======  ====
+
+.. warning::
+
+  OpenStudio-HPXML will return an error if the combination of window properties is not in the above table.
 
 If overhangs are specified, additional information is entered in ``Overhangs``.
 
@@ -693,8 +742,8 @@ Each skylight is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Skyli
   ``SystemIdentifier``                          id                                                        Yes                  Unique identifier
   ``Area``                                      double             ft2               > 0                  Yes                  Total area
   ``Azimuth`` or ``Orientation``                integer or string  deg or direction  0 - 359 or See [#]_  Yes                  Direction (clockwise from North)
-  ``UFactor``                                   double             Btu/F-ft2-hr      > 0                  Yes                  Full-assembly NFRC U-factor
-  ``SHGC``                                      double                               0 - 1                Yes                  Full-assembly NFRC solar heat gain coefficient
+  ``UFactor`` and/or ``GlassLayers``            double or string   Btu/F-ft2-hr      > 0 or See [#]_      Yes                  Full-assembly NFRC U-factor or glass layers description
+  ``SHGC`` and/or ``GlassLayers``               double or string                     0 - 1                Yes                  Full-assembly NFRC solar heat gain coefficient or glass layers description
   ``ExteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior summer shading coefficient (1=transparent, 0=opaque)
   ``ExteriorShading/WinterShadingCoefficient``  double             frac              0 - 1                No        1.00       Exterior winter shading coefficient (1=transparent, 0=opaque)
   ``InteriorShading/SummerShadingCoefficient``  double             frac              0 - 1                No        1.00       Interior summer shading coefficient (1=transparent, 0=opaque)
@@ -703,7 +752,56 @@ Each skylight is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Skyli
   ============================================  =================  ================  ===================  ========  =========  =============================================================
 
   .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
+  .. [#] GlassLayers choices are "single-pane", "double-pane", or "triple-pane".
   .. [#] AttachedToRoof must reference a ``Roof``.
+
+If UFactor and SHGC are not provided and GlassLayers is not "glass block", additional information is entered in ``Skylight``.
+
+  ============================  ========  ======  =======================  ========  ========  ========================================================
+  Element                       Type      Units   Constraints              Required  Default   Notes
+  ============================  ========  ======  =======================  ========  ========  ========================================================
+  ``FrameType``                 element           See [#]_                 Yes                 Type of frame
+  ``FrameType/*/ThermalBreak``  boolean           See [#]_                 No        false     Whether the Aluminum or Metal frame has a thermal break
+  ``GlassType``                 string            See [#]_                 No        <none>    Type of glass
+  ``GasFill``                   string            See [#]_                 No        See [#]_  Type of gas inside double/triple-pane skylights
+  ============================  ========  ======  =======================  ========  ========  ========================================================
+  
+  .. [#] FrameType child element choices are ``Aluminum``, ``Fiberglass``, ``Metal``, ``Vinyl``, or ``Wood``.
+  .. [#] ThermalBreak is only valid if FrameType is ``Aluminum`` or ``Metal``.
+  .. [#] GlassType choices are "clear", "low-e", "tinted", "tinted/reflective", or "reflective".
+         Do not specify this element if the skylight has clear glass.
+  .. [#] GasFill choices are "air", "argon", "krypton", "xenon", "nitrogen", or "other".
+  .. [#] If GasFill not provided, defaults to "air" for double-pane skylights and "argon" for triple-pane skylights.
+
+If UFactor and SHGC are not provided, they are defaulted as follows:
+  
+  ===========  =======================  ============  =========================  =============  =======  ====
+  GlassLayers  FrameType                ThermalBreak  GlassType                  GasFill        UFactor  SHGC
+  ===========  =======================  ============  =========================  =============  =======  ====
+  single-pane  Aluminum, Metal          false         clear                      --             1.98     0.75
+  single-pane  Fiberglass, Vinyl, Wood  --            clear                      --             1.47     0.64
+  single-pane  Aluminum, Metal          false         tinted, tinted/reflective  --             1.98     0.64
+  single-pane  Fiberglass, Vinyl, Wood  --            tinted, tinted/reflective  --             1.47     0.54
+  double-pane  Aluminum, Metal          false         clear                      air            1.30     0.67
+  double-pane  Aluminum, Metal          true          clear                      air            1.10     0.67
+  double-pane  Fiberglass, Vinyl, Wood  --            clear                      air            0.84     0.56
+  double-pane  Aluminum, Metal          false         tinted, tinted/reflective  air            1.30     0.55
+  double-pane  Aluminum, Metal          true          tinted, tinted/reflective  air            1.10     0.55
+  double-pane  Fiberglass, Vinyl, Wood  --            tinted, tinted/reflective  air            0.84     0.46
+  double-pane  Fiberglass, Vinyl, Wood  --            low-e                      air            0.74     0.52
+  double-pane  Aluminum, Metal          true          low-e                      <any but air>  0.95     0.62
+  double-pane  Fiberglass, Vinyl, Wood  --            low-e                      <any but air>  0.68     0.52
+  double-pane  Aluminum, Metal          false         reflective                 air            1.17     0.37
+  double-pane  Aluminum, Metal          true          reflective                 air            0.98     0.37
+  double-pane  Fiberglass, Vinyl, Wood  --            reflective                 air            0.71     0.31
+  double-pane  Fiberglass, Vinyl, Wood  --            reflective                 <any but air>  0.65     0.31
+  triple-pane  Fiberglass, Vinyl, Wood  --            low-e                      <any but air>  0.47     0.31
+  glass block  --                       --            --                         --             0.60     0.60
+  ===========  =======================  ============  =========================  =============  =======  ====
+
+.. warning::
+
+  OpenStudio-HPXML will return an error if the combination of skylight properties is not in the above table.
 
 HPXML Doors
 ***********
@@ -717,7 +815,7 @@ Each opaque door is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Do
   ``AttachedToWall``                            idref                            See [#]_             Yes                  ID of attached wall
   ``Area``                                      double             ft2           > 0                  Yes                  Total area
   ``Azimuth`` or ``Orientation``                integer or string  deg           0 - 359 or See [#]_  No        See [#]_   Direction (clockwise from North)
-  ``RValue``                                    double             F-ft2-hr/Btu  > 0                  Yes                  R-value
+  ``RValue``                                    double             F-ft2-hr/Btu  > 0                  Yes                  R-value (including any storm door)
   ============================================  =================  ============  ===================  ========  =========  ==============================
 
   .. [#] AttachedToWall must reference a ``Wall`` or ``FoundationWall``.
@@ -1229,11 +1327,12 @@ If any HVAC systems are specified, a single thermostat is entered as a ``/HPXML/
   =======================================================  ========  =====  ===========  ========  =========  ========================================
   ``SystemIdentifier``                                     id                            Yes                  Unique identifier
   ``HeatingSeason``                                        element                       No        See [#]_   Heating season        
-  ``CoolingSeason``                                        element                       No                   Cooling season
+  ``CoolingSeason``                                        element                       No        See [#]_   Cooling season
   ``extension/CeilingFanSetpointTempCoolingSeasonOffset``  double    F      >= 0         No        0          Cooling setpoint temperature offset [#]_
   =======================================================  ========  =====  ===========  ========  =========  ========================================
 
-  .. [#] If HeatingSeason or CoolingSeason not provided, defaults to year-round.
+  .. [#] If HeatingSeason not provided, defaults to year-round.
+  .. [#] If CoolingSeason not provided, defaults to year-round.
   .. [#] CeilingFanSetpointTempCoolingSeasonOffset should only be used if there are sufficient ceiling fans present to warrant a reduced cooling setpoint.
 
 If a heating and/or cooling season is defined, additional information is entered in ``HVACControl/HeatingSeason`` and/or ``HVACControl/CoolingSeason``.
@@ -1259,9 +1358,12 @@ To define simple thermostat setpoints, additional information is entered in ``HV
   =============================  ========  =======  ===========  ========  =========  ============================
   Element                        Type      Units    Constraints  Required  Default    Notes
   =============================  ========  =======  ===========  ========  =========  ============================
-  ``SetpointTempHeatingSeason``  double    F                     Yes                  Heating setpoint temperature
-  ``SetpointTempCoolingSeason``  double    F                     Yes                  Cooling setpoint temperature
+  ``SetpointTempHeatingSeason``  double    F                     See [#]_             Heating setpoint temperature
+  ``SetpointTempCoolingSeason``  double    F                     See [#]_             Cooling setpoint temperature
   =============================  ========  =======  ===========  ========  =========  ============================
+
+  .. [#] SetpointTempHeatingSeason only required if there is heating equipment (i.e., sum of all ``FractionHeatLoadServed`` is greater than 0).
+  .. [#] SetpointTempCoolingSeason only required if there is cooling equipment (i.e., sum of all ``FractionCoolLoadServed`` is greater than 0).
 
 If there is a heating temperature setback, additional information is entered in ``HVACControl``.
 
@@ -1269,9 +1371,11 @@ If there is a heating temperature setback, additional information is entered in 
   Element                                Type      Units     Constraints  Required  Default    Notes
   =====================================  ========  ========  ===========  ========  =========  =========================================
   ``SetbackTempHeatingSeason``           double    F                      Yes                  Heating setback temperature
-  ``TotalSetbackHoursperWeekHeating``    integer   hrs/week  > 0          Yes                  Hours/week of heating temperature setback
+  ``TotalSetbackHoursperWeekHeating``    integer   hrs/week  > 0          Yes                  Hours/week of heating temperature setback [#]_
   ``extension/SetbackStartHourHeating``  integer             0 - 23       No        23 (11pm)  Daily setback start hour
   =====================================  ========  ========  ===========  ========  =========  =========================================
+
+  .. [#] TotalSetbackHoursperWeekHeating is converted to hrs/day and modeled as a temperature setback every day starting at SetbackStartHourHeating.
 
 If there is a cooling temperature setup, additional information is entered in ``HVACControl``.
 
@@ -1279,9 +1383,11 @@ If there is a cooling temperature setup, additional information is entered in ``
   Element                                Type      Units     Constraints  Required  Default    Notes
   =====================================  ========  ========  ===========  ========  =========  =========================================
   ``SetupTempCoolingSeason``             double    F                      Yes                  Cooling setup temperature
-  ``TotalSetupHoursperWeekCooling``      integer   hrs/week  > 0          Yes                  Hours/week of cooling temperature setup
+  ``TotalSetupHoursperWeekCooling``      integer   hrs/week  > 0          Yes                  Hours/week of cooling temperature setup [#]_
   ``extension/SetupStartHourCooling``    integer             0 - 23       No        9 (9am)    Daily setup start hour
   =====================================  ========  ========  ===========  ========  =========  =========================================
+
+  .. [#] TotalSetupHoursperWeekCooling is converted to hrs/day and modeled as a temperature setup every day starting at SetupStartHourCooling.
 
 Detailed Inputs
 ~~~~~~~~~~~~~~~
@@ -1291,11 +1397,16 @@ To define detailed thermostat setpoints, additional information is entered in ``
   ===============================================  =====  =======  ===========  ========  =========  ============================================
   Element                                          Type   Units    Constraints  Required  Default    Notes
   ===============================================  =====  =======  ===========  ========  =========  ============================================
-  ``extension/WeekdaySetpointTempsHeatingSeason``  array  F                     Yes                  24 comma-separated weekday heating setpoints
-  ``extension/WeekendSetpointTempsHeatingSeason``  array  F                     Yes                  24 comma-separated weekend heating setpoints
-  ``extension/WeekdaySetpointTempsCoolingSeason``  array  F                     Yes                  24 comma-separated weekday cooling setpoints
-  ``extension/WeekendSetpointTempsCoolingSeason``  array  F                     Yes                  24 comma-separated weekend cooling setpoints
+  ``extension/WeekdaySetpointTempsHeatingSeason``  array  F                     See [#]_             24 comma-separated weekday heating setpoints
+  ``extension/WeekendSetpointTempsHeatingSeason``  array  F                     See [#]_             24 comma-separated weekend heating setpoints
+  ``extension/WeekdaySetpointTempsCoolingSeason``  array  F                     See [#]_             24 comma-separated weekday cooling setpoints
+  ``extension/WeekendSetpointTempsCoolingSeason``  array  F                     See [#]_             24 comma-separated weekend cooling setpoints
   ===============================================  =====  =======  ===========  ========  =========  ============================================
+
+  .. [#] WeekdaySetpointTempsHeatingSeason only required if there is heating equipment (i.e., sum of all ``FractionHeatLoadServed`` is greater than 0).
+  .. [#] WeekendSetpointTempsHeatingSeason only required if there is heating equipment (i.e., sum of all ``FractionHeatLoadServed`` is greater than 0).
+  .. [#] WeekdaySetpointTempsCoolingSeason only required if there is cooling equipment (i.e., sum of all ``FractionCoolLoadServed`` is greater than 0).
+  .. [#] WeekendSetpointTempsCoolingSeason only required if there is cooling equipment (i.e., sum of all ``FractionCoolLoadServed`` is greater than 0).
 
 HPXML HVAC Distribution
 ***********************
@@ -2330,7 +2441,7 @@ If not entered, the simulation will not include a ceiling fan.
   ``Quantity``                               integer           > 0          No        See [#]_  Number of similar ceiling fans
   ``extension/WeekdayScheduleFractions``     array                          No        See [#]_  24 comma-separated weekday fractions
   ``extension/WeekendScheduleFractions``     array                          No                  24 comma-separated weekend fractions
-  ``extension/MonthlyScheduleMultipliers``   array                          No                  12 comma-separated monthly multipliers
+  ``extension/MonthlyScheduleMultipliers``   array                          No        See [#]_  12 comma-separated monthly multipliers
   =========================================  =======  =======  ===========  ========  ========  ==============================
 
   .. [#] If Efficiency not provided, defaults to 3000 / 42.6 based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_.

@@ -3072,7 +3072,6 @@ class HPXMLFile
     set_building_construction(hpxml, runner, args)
     set_climate_and_risk_zones(hpxml, runner, args, epw_file)
     set_air_infiltration_measurements(hpxml, runner, args)
-
     set_roofs(hpxml, runner, model, args)
     set_rim_joists(hpxml, runner, model, args)
     set_walls(hpxml, runner, model, args)
@@ -4256,26 +4255,52 @@ class HPXMLFile
   def self.set_hvac_control(hpxml, runner, args)
     return if (args[:heating_system_type] == 'none') && (args[:cooling_system_type] == 'none') && (args[:heat_pump_type] == 'none')
 
-    if args[:hvac_control_heating_weekday_setpoint] == args[:hvac_control_heating_weekend_setpoint] && !args[:hvac_control_heating_weekday_setpoint].include?(',')
-      heating_setpoint_temp = args[:hvac_control_heating_weekday_setpoint]
-    else
-      weekday_heating_setpoints = args[:hvac_control_heating_weekday_setpoint]
-      weekend_heating_setpoints = args[:hvac_control_heating_weekend_setpoint]
+    # Heating
+    if hpxml.total_fraction_heat_load_served > 0
+
+      if args[:hvac_control_heating_weekday_setpoint] == args[:hvac_control_heating_weekend_setpoint] && !args[:hvac_control_heating_weekday_setpoint].include?(',')
+        heating_setpoint_temp = args[:hvac_control_heating_weekday_setpoint]
+      else
+        weekday_heating_setpoints = args[:hvac_control_heating_weekday_setpoint]
+        weekend_heating_setpoints = args[:hvac_control_heating_weekend_setpoint]
+      end
+
+      if args[:hvac_control_heating_season_period].is_initialized
+        begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_heating_season_period].get)
+        seasons_heating_begin_month = begin_month
+        seasons_heating_begin_day = begin_day
+        seasons_heating_end_month = end_month
+        seasons_heating_end_day = end_day
+      end
+
     end
 
-    if args[:hvac_control_cooling_weekday_setpoint] == args[:hvac_control_cooling_weekend_setpoint] && !args[:hvac_control_cooling_weekday_setpoint].include?(',')
-      cooling_setpoint_temp = args[:hvac_control_cooling_weekday_setpoint]
-    else
-      weekday_cooling_setpoints = args[:hvac_control_cooling_weekday_setpoint]
-      weekend_cooling_setpoints = args[:hvac_control_cooling_weekend_setpoint]
-    end
+    # Cooling
+    if hpxml.total_fraction_cool_load_served > 0
 
-    if args[:ceiling_fan_quantity] != Constants.Auto
-      ceiling_fan_quantity = Integer(args[:ceiling_fan_quantity])
-    end
+      if args[:hvac_control_cooling_weekday_setpoint] == args[:hvac_control_cooling_weekend_setpoint] && !args[:hvac_control_cooling_weekday_setpoint].include?(',')
+        cooling_setpoint_temp = args[:hvac_control_cooling_weekday_setpoint]
+      else
+        weekday_cooling_setpoints = args[:hvac_control_cooling_weekday_setpoint]
+        weekend_cooling_setpoints = args[:hvac_control_cooling_weekend_setpoint]
+      end
 
-    if (args[:ceiling_fan_cooling_setpoint_temp_offset] > 0) && (ceiling_fan_quantity.nil? || ceiling_fan_quantity > 0)
-      ceiling_fan_cooling_setpoint_temp_offset = args[:ceiling_fan_cooling_setpoint_temp_offset]
+      if args[:ceiling_fan_quantity] != Constants.Auto
+        ceiling_fan_quantity = Integer(args[:ceiling_fan_quantity])
+      end
+
+      if (args[:ceiling_fan_cooling_setpoint_temp_offset] > 0) && (ceiling_fan_quantity.nil? || ceiling_fan_quantity > 0)
+        ceiling_fan_cooling_setpoint_temp_offset = args[:ceiling_fan_cooling_setpoint_temp_offset]
+      end
+
+      if args[:hvac_control_cooling_season_period].is_initialized
+        begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_cooling_season_period].get)
+        seasons_cooling_begin_month = begin_month
+        seasons_cooling_begin_day = begin_day
+        seasons_cooling_end_month = end_month
+        seasons_cooling_end_day = end_day
+      end
+
     end
 
     hpxml.hvac_controls.add(id: 'HVACControl',
@@ -4285,23 +4310,15 @@ class HPXMLFile
                             weekend_heating_setpoints: weekend_heating_setpoints,
                             weekday_cooling_setpoints: weekday_cooling_setpoints,
                             weekend_cooling_setpoints: weekend_cooling_setpoints,
-                            ceiling_fan_cooling_setpoint_temp_offset: ceiling_fan_cooling_setpoint_temp_offset)
-
-    if args[:hvac_control_heating_season_period].is_initialized
-      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_heating_season_period].get)
-      hpxml.hvac_controls[0].seasons_heating_begin_month = begin_month
-      hpxml.hvac_controls[0].seasons_heating_begin_day = begin_day
-      hpxml.hvac_controls[0].seasons_heating_end_month = end_month
-      hpxml.hvac_controls[0].seasons_heating_end_day = end_day
-    end
-
-    if args[:hvac_control_cooling_season_period].is_initialized
-      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_cooling_season_period].get)
-      hpxml.hvac_controls[0].seasons_cooling_begin_month = begin_month
-      hpxml.hvac_controls[0].seasons_cooling_begin_day = begin_day
-      hpxml.hvac_controls[0].seasons_cooling_end_month = end_month
-      hpxml.hvac_controls[0].seasons_cooling_end_day = end_day
-    end
+                            ceiling_fan_cooling_setpoint_temp_offset: ceiling_fan_cooling_setpoint_temp_offset,
+                            seasons_heating_begin_month: seasons_heating_begin_month,
+                            seasons_heating_begin_day: seasons_heating_begin_day,
+                            seasons_heating_end_month: seasons_heating_end_month,
+                            seasons_heating_end_day: seasons_heating_end_day,
+                            seasons_cooling_begin_month: seasons_cooling_begin_month,
+                            seasons_cooling_begin_day: seasons_cooling_begin_day,
+                            seasons_cooling_end_month: seasons_cooling_end_month,
+                            seasons_cooling_end_day: seasons_cooling_end_day)
   end
 
   def self.set_ventilation_fans(hpxml, runner, args)
