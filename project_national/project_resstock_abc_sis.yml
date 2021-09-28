@@ -3,16 +3,16 @@ buildstock_directory: ../ResStock_abc_sis  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
 output_directory: /projects/scout/abc-sis/packages_v1 # <----
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
-weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip # Relative to this file or absolute path to zipped weather files
 # weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
 # weather_files_path: ./BuildStock_TMY3_FIPS.zip
 baseline:
-  n_buildings_represented: 133172057
+  n_buildings_represented: 133172057 # ACS 5-yr 2016
 
 sampler: 
   type: residential_quota_downselect
   args: 
-    n_datapoints: 550000
+    n_datapoints: 550000 # N = ~110K after downselect
     resample: false
     logic:
       - or:
@@ -27,9 +27,9 @@ workflow_generator:
   type: residential_default
   args: 
     timeseries_csv_export: 
-      reporting_frequency: Hourly # <----
+      reporting_frequency: Timestep # <----
       include_enduse_subcategories: true
-      output_variables: Site Outdoor Air Drybulb Temperature, Site Outdoor Air Relative Humidity, Zone Mean Air Temperature, Zone Mean Air Humidity Ratio
+      output_variables: Site Outdoor Air Barometric Pressure, Site Outdoor Air Drybulb Temperature, Site Outdoor Air Relative Humidity, Zone Mean Air Temperature, Zone Mean Air Humidity Ratio
     residential_simulation_controls: 
       timesteps_per_hr: 4
       begin_month: 1
@@ -40,12 +40,13 @@ workflow_generator:
 
 eagle:
   account: scout
-  n_jobs: 500
-  minutes_per_sim: 5
+  n_jobs: 400
+  minutes_per_sim: 3
   sampling:
-    time: 20
-  postprocessing:
     time: 60
+  postprocessing:
+    time: 2000
+    n_workers: 35
 
 postprocessing:
   keep_individual_timeseries: true  # default false if omitted
