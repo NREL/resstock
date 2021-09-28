@@ -17,6 +17,7 @@ __New Features__
 - Adds a new results_hpxml.csv output file to summarize HPXML values (e.g., surface areas, HVAC capacities).
 - Allows additional fuel types for generators.
 - Adds alternative inputs:
+  - Window/skylight physical properties (`GlassLayers`, `FrameType`, etc.) instead of `UFactor` & `SHGC`.
   - `Ducts/FractionDuctArea` instead of `Ducts/DuctSurfaceArea`.
   - `Length` instead of `Area` for foundation walls.
   - `Orientation` instead of `Azimuth` for all applicable surfaces, PV systems, and solar thermal systems.
@@ -38,6 +39,7 @@ __New Features__
 - Removes error-check for number of bedrooms based on conditioned floor area, per RESNET guidance.
 - Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
 - Removes timeseries CSV output columns that are all zeroes to reduce file size and processing time.
+- Relaxes requirement for heating (or cooling) setpoints so that they are only needed if heating (or cooling) equipment is present.
 - Adds an `--ep-input-format` argument to run_simulation.rb to choose epJSON as the EnergyPlus input file format instead of IDF.
 - Eliminates EnergyPlus warnings related to unused objects or invalid output meters/variables.
 

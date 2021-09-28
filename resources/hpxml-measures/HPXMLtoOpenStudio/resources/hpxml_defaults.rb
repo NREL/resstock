@@ -611,6 +611,37 @@ class HPXMLDefaults
         window.fraction_operable = Airflow.get_default_fraction_of_windows_operable()
         window.fraction_operable_isdefaulted = true
       end
+      next unless window.ufactor.nil? || window.shgc.nil?
+
+      # Frame/Glass provided instead, fill in more defaults as needed
+      if window.thermal_break.nil? && [HPXML::WindowFrameTypeAluminum, HPXML::WindowFrameTypeMetal].include?(window.frame_type)
+        if window.glass_layers == HPXML::WindowLayersSinglePane
+          window.thermal_break = false
+          window.thermal_break_isdefaulted = true
+        elsif window.glass_layers == HPXML::WindowLayersDoublePane
+          window.thermal_break = true
+          window.thermal_break_isdefaulted = true
+        end
+      end
+      if window.gas_fill.nil?
+        if window.glass_layers == HPXML::WindowLayersDoublePane
+          window.gas_fill = HPXML::WindowGasAir
+          window.gas_fill_isdefaulted = true
+        elsif window.glass_layers == HPXML::WindowLayersTriplePane
+          window.gas_fill = HPXML::WindowGasArgon
+          window.gas_fill_isdefaulted = true
+        end
+      end
+      # Now lookup U/SHGC based on properties
+      ufactor, shgc = Constructions.get_default_window_skylight_ufactor_shgc(window, 'window')
+      if window.ufactor.nil?
+        window.ufactor = ufactor
+        window.ufactor_isdefaulted = true
+      end
+      if window.shgc.nil?
+        window.shgc = shgc
+        window.shgc_isdefaulted = true
+      end
     end
   end
 
@@ -639,6 +670,37 @@ class HPXMLDefaults
       if skylight.exterior_shading_factor_winter.nil?
         skylight.exterior_shading_factor_winter = 1.0
         skylight.exterior_shading_factor_winter_isdefaulted = true
+      end
+      next unless skylight.ufactor.nil? || skylight.shgc.nil?
+
+      # Frame/Glass provided instead, fill in more defaults as needed
+      if skylight.thermal_break.nil? && [HPXML::WindowFrameTypeAluminum, HPXML::WindowFrameTypeMetal].include?(skylight.frame_type)
+        if skylight.glass_layers == HPXML::WindowLayersSinglePane
+          skylight.thermal_break = false
+          skylight.thermal_break_isdefaulted = true
+        elsif skylight.glass_layers == HPXML::WindowLayersDoublePane
+          skylight.thermal_break = true
+          skylight.thermal_break_isdefaulted = true
+        end
+      end
+      if skylight.gas_fill.nil?
+        if skylight.glass_layers == HPXML::WindowLayersDoublePane
+          skylight.gas_fill = HPXML::WindowGasAir
+          skylight.gas_fill_isdefaulted = true
+        elsif skylight.glass_layers == HPXML::WindowLayersTriplePane
+          skylight.gas_fill = HPXML::WindowGasArgon
+          skylight.gas_fill_isdefaulted = true
+        end
+      end
+      # Now lookup U/SHGC based on properties
+      ufactor, shgc = Constructions.get_default_window_skylight_ufactor_shgc(skylight, 'skylight')
+      if skylight.ufactor.nil?
+        skylight.ufactor = ufactor
+        skylight.ufactor_isdefaulted = true
+      end
+      if skylight.shgc.nil?
+        skylight.shgc = shgc
+        skylight.shgc_isdefaulted = true
       end
     end
   end
@@ -1049,21 +1111,32 @@ class HPXMLDefaults
 
   def self.apply_hvac_control(hpxml)
     hpxml.hvac_controls.each do |hvac_control|
-      if not hvac_control.heating_setback_temp.nil?
-        if hvac_control.heating_setback_start_hour.nil?
-          hvac_control.heating_setback_start_hour = 23 # 11 pm
-          hvac_control.heating_setback_start_hour_isdefaulted = true
-        end
+      if hvac_control.heating_setpoint_temp.nil? && hvac_control.weekday_heating_setpoints.nil?
+        # No heating setpoints; set a default heating setpoint for, e.g., natural ventilation
+        htg_sp, htg_setback_sp, htg_setback_hrs_per_week, htg_setback_start_hr = HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual)
+        hvac_control.heating_setpoint_temp = htg_sp
+        hvac_control.heating_setpoint_temp_isdefaulted = true
       end
 
-      if not hvac_control.cooling_setup_temp.nil?
-        if hvac_control.cooling_setup_start_hour.nil?
-          hvac_control.cooling_setup_start_hour = 9 # 9 am
-          hvac_control.cooling_setup_start_hour_isdefaulted = true
-        end
+      if hvac_control.cooling_setpoint_temp.nil? && hvac_control.weekday_cooling_setpoints.nil?
+        # No cooling setpoints; set a default cooling setpoint for, e.g., natural ventilation
+        clg_sp, clg_setup_sp, clg_setup_hrs_per_week, clg_setup_start_hr = HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual)
+        hvac_control.cooling_setpoint_temp = clg_sp
+        hvac_control.cooling_setpoint_temp_isdefaulted = true
       end
 
-      if hvac_control.seasons_heating_begin_month.nil? || hvac_control.seasons_heating_begin_day.nil? || hvac_control.seasons_heating_end_month.nil? || hvac_control.seasons_heating_end_day.nil?
+      if hvac_control.heating_setback_start_hour.nil? && (not hvac_control.heating_setback_temp.nil?)
+        hvac_control.heating_setback_start_hour = 23 # 11 pm
+        hvac_control.heating_setback_start_hour_isdefaulted = true
+      end
+
+      if hvac_control.cooling_setup_start_hour.nil? && (not hvac_control.cooling_setup_temp.nil?)
+        hvac_control.cooling_setup_start_hour = 9 # 9 am
+        hvac_control.cooling_setup_start_hour_isdefaulted = true
+      end
+
+      if hvac_control.seasons_heating_begin_month.nil? || hvac_control.seasons_heating_begin_day.nil? ||
+         hvac_control.seasons_heating_end_month.nil? || hvac_control.seasons_heating_end_day.nil?
         hvac_control.seasons_heating_begin_month = 1
         hvac_control.seasons_heating_begin_day = 1
         hvac_control.seasons_heating_end_month = 12
@@ -1074,7 +1147,8 @@ class HPXMLDefaults
         hvac_control.seasons_heating_end_day_isdefaulted = true
       end
 
-      next unless hvac_control.seasons_cooling_begin_month.nil? || hvac_control.seasons_cooling_begin_day.nil? || hvac_control.seasons_cooling_end_month.nil? || hvac_control.seasons_cooling_end_day.nil?
+      next unless hvac_control.seasons_cooling_begin_month.nil? || hvac_control.seasons_cooling_begin_day.nil? ||
+                  hvac_control.seasons_cooling_end_month.nil? || hvac_control.seasons_cooling_end_day.nil?
 
       hvac_control.seasons_cooling_begin_month = 1
       hvac_control.seasons_cooling_begin_day = 1

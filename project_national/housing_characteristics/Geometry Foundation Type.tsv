@@ -449,3 +449,11 @@ Dependency=ASHRAE IECC Climate Zone 2004	Dependency=Geometry Building Type RECS	
 7B	Single-Family Detached	2000-09	0.000000	0.000000	0.412361	0.000000	0.381459	0.206180	0.000103
 7B	Single-Family Detached	2010s	0.000000	0.000000	0.412361	0.000000	0.381459	0.206180	0.000024
 7B	Single-Family Detached	<1940	0.228494	0.000000	0.290110	0.000000	0.110445	0.370951	0.000090
+# Created by: sources\recs\2009\tsv_maker.py (manually modified by Joe Robertson)
+# Source: The sample counts and sample weights are constructed using U.S. EIA 2009 Residential Energy Consumption Survey (RECS) microdata.
+# Assumption: All mobile homes have Ambient foundations.
+# Assumption: Multi-family buildings cannot have Ambient and Heated Basements
+# Assumption: Single-family attached buildings cannot have Ambient foundations
+# Assumption: Foundation types are the same for each building type except mobile homes and the applicable options.
+# Assumption: Because we need to assume a foundation type for ground-floor MF units, we use the lumped SFD+SFA distributions for MF2-4 and MF5+ building foundations. (RECS data for households in MF2-4 unit buildings are not useful since we do not know which floor the unitis on. RECS does not include foundation responses for households in MF5+ unit buildings.)
+# Assumption: For SFD and SFA, if no foundation type specified, then sample has Ambient foundation.

@@ -29,7 +29,7 @@
       <sch:assert role='ERROR' test='number(h:ConditionedBuildingVolume) &gt; 0 or not(h:ConditionedBuildingVolume)'>Expected ConditionedBuildingVolume to be greater than 0</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:ClimateandRiskZones/h:ClimateZoneIECC'>
-      <sch:assert role='ERROR' test='h:Year[text()="2012" or text()="2009" or text()="2006" or text()="2003"] or not(h:Year)'>Expected Year to be '2012' or '2009' or '2006' or '2003'</sch:assert>
+      <sch:assert role='ERROR' test='h:Year[text()="2021" or text()="2018" or text()="2015" or text()="2012" or text()="2009" or text()="2006" or text()="2003"] or not(h:Year)'>Expected Year to be '2021' or '2018' or '2015' or '2012' or '2009' or '2006' or '2003'</sch:assert>
       <sch:assert role='ERROR' test='h:ClimateZone[text()="1A" or text()="1B" or text()="1C" or text()="2A" or text()="2B" or text()="2C" or text()="3A" or text()="3B" or text()="3C" or text()="4A" or text()="4B" or text()="4C" or text()="5A" or text()="5B" or text()="5C" or text()="6A" or text()="6B" or text()="6C" or text()="7" or text()="8"] or not(h:ClimateZone)'>Expected ClimateZone to be '1A' or '1B' or '1C' or '2A' or '2B' or '2C' or '3A' or '3B' or '3C' or '4A' or '4B' or '4C' or '5A' or '5B' or '5C' or '6A' or '6B' or '6C' or '7' or '8'</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:AirInfiltration/h:AirInfiltrationMeasurement'>
@@ -172,6 +172,9 @@
       <sch:assert role='ERROR' test='number(h:Azimuth) &gt;= 0 or not(h:Azimuth)'>Expected Azimuth to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:Azimuth) &lt; 360 or not(h:Azimuth)'>Expected Azimuth to be less than 360</sch:assert>
       <sch:assert role='ERROR' test='h:Orientation[text()="north" or text()="northwest" or text()="west" or text()="southwest" or text()="south" or text()="southeast" or text()="east" or text()="northeast"] or not(h:Orientation)'>Expected Orientation to be 'north' or 'northwest' or 'west' or 'southwest' or 'south' or 'southeast' or 'east' or 'northeast'</sch:assert>
+      <sch:assert role='ERROR' test='h:GlassLayers[text()="single-pane" or text()="double-pane" or text()="triple-pane" or text()="multi-layered" or text()="glass block" or text()="other"] or not(h:GlassLayers)'>Expected GlassLayers to be 'single-pane' or 'double-pane' or 'triple-pane' or 'multi-layered' or 'glass block' or 'other'</sch:assert>
+      <sch:assert role='ERROR' test='h:GlassType[text()="clear" or text()="low-e" or text()="tinted" or text()="reflective" or text()="tinted/reflective" or text()="other"] or not(h:GlassType)'>Expected GlassType to be 'clear' or 'low-e' or 'tinted' or 'reflective' or 'tinted/reflective' or 'other'</sch:assert>
+      <sch:assert role='ERROR' test='h:GasFill[text()="air" or text()="argon" or text()="krypton" or text()="xenon" or text()="nitrogen" or text()="other"] or not(h:GasFill)'>Expected GasFill to be 'air' or 'argon' or 'krypton' or 'xenon' or 'nitrogen' or 'other'</sch:assert>
       <sch:assert role='ERROR' test='number(h:UFactor) &gt; 0 or not(h:UFactor)'>Expected UFactor to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:SHGC) &gt; 0 or not(h:SHGC)'>Expected SHGC to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:SHGC) &lt; 1 or not(h:SHGC)'>Expected SHGC to be less than 1</sch:assert>
@@ -203,6 +206,9 @@
       <sch:assert role='ERROR' test='number(h:Area) &gt; 0 or not(h:Area)'>Expected Area to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:Azimuth) &gt;= 0 or not(h:Azimuth)'>Expected Azimuth to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:Azimuth) &lt; 360 or not(h:Azimuth)'>Expected Azimuth to be less than 360</sch:assert>
+      <sch:assert role='ERROR' test='h:GlassLayers[text()="single-pane" or text()="double-pane" or text()="triple-pane" or text()="multi-layered" or text()="glass block" or text()="other"] or not(h:GlassLayers)'>Expected GlassLayers to be 'single-pane' or 'double-pane' or 'triple-pane' or 'multi-layered' or 'glass block' or 'other'</sch:assert>
+      <sch:assert role='ERROR' test='h:GlassType[text()="clear" or text()="low-e" or text()="tinted" or text()="reflective" or text()="tinted/reflective" or text()="other"] or not(h:GlassType)'>Expected GlassType to be 'clear' or 'low-e' or 'tinted' or 'reflective' or 'tinted/reflective' or 'other'</sch:assert>
+      <sch:assert role='ERROR' test='h:GasFill[text()="air" or text()="argon" or text()="krypton" or text()="xenon" or text()="nitrogen" or text()="other"] or not(h:GasFill)'>Expected GasFill to be 'air' or 'argon' or 'krypton' or 'xenon' or 'nitrogen' or 'other'</sch:assert>
       <sch:assert role='ERROR' test='number(h:UFactor) &gt; 0 or not(h:UFactor)'>Expected UFactor to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:SHGC) &gt; 0 or not(h:SHGC)'>Expected SHGC to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:SHGC) &lt; 1 or not(h:SHGC)'>Expected SHGC to be less than 1</sch:assert>
@@ -287,6 +293,26 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl'>
       <sch:assert role='ERROR' test='h:ControlType[text()="programmable thermostat" or text()="manual thermostat" or text()="digital thermostat" or text()="timer" or text()="EMCS" or text()="other"] or not(h:ControlType)'>Expected ControlType to be 'programmable thermostat' or 'manual thermostat' or 'digital thermostat' or 'timer' or 'EMCS' or 'other'</sch:assert>
       <sch:assert role='ERROR' test='count(h:SystemIdentifier[@id]) = 1 or not (h:SystemIdentifier)'>Expected id attribute for SystemIdentifier</sch:assert>
+    </sch:rule>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl/h:HeatingSeason'>
+      <sch:assert role='ERROR' test='number(h:BeginMonth) &gt;= 1 or not(h:BeginMonth)'>Expected BeginMonth to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:BeginMonth) &lt;= 12 or not(h:BeginMonth)'>Expected BeginMonth to be less than or equal to 12</sch:assert>
+      <sch:assert role='ERROR' test='number(h:BeginDayOfMonth) &gt;= 1 or not(h:BeginDayOfMonth)'>Expected BeginDayOfMonth to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:BeginDayOfMonth) &lt;= 31 or not(h:BeginDayOfMonth)'>Expected BeginDayOfMonth to be less than or equal to 31</sch:assert>
+      <sch:assert role='ERROR' test='number(h:EndMonth) &gt;= 1 or not(h:EndMonth)'>Expected EndMonth to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:EndMonth) &lt;= 12 or not(h:EndMonth)'>Expected EndMonth to be less than or equal to 12</sch:assert>
+      <sch:assert role='ERROR' test='number(h:EndDayOfMonth) &gt;= 1 or not(h:EndDayOfMonth)'>Expected EndDayOfMonth to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:EndDayOfMonth) &lt;= 31 or not(h:EndDayOfMonth)'>Expected EndDayOfMonth to be less than or equal to 31</sch:assert>
+    </sch:rule>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl/h:CoolingSeason'>
+      <sch:assert role='ERROR' test='number(h:BeginMonth) &gt;= 1 or not(h:BeginMonth)'>Expected BeginMonth to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:BeginMonth) &lt;= 12 or not(h:BeginMonth)'>Expected BeginMonth to be less than or equal to 12</sch:assert>
+      <sch:assert role='ERROR' test='number(h:BeginDayOfMonth) &gt;= 1 or not(h:BeginDayOfMonth)'>Expected BeginDayOfMonth to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:BeginDayOfMonth) &lt;= 31 or not(h:BeginDayOfMonth)'>Expected BeginDayOfMonth to be less than or equal to 31</sch:assert>
+      <sch:assert role='ERROR' test='number(h:EndMonth) &gt;= 1 or not(h:EndMonth)'>Expected EndMonth to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:EndMonth) &lt;= 12 or not(h:EndMonth)'>Expected EndMonth to be less than or equal to 12</sch:assert>
+      <sch:assert role='ERROR' test='number(h:EndDayOfMonth) &gt;= 1 or not(h:EndDayOfMonth)'>Expected EndDayOfMonth to be greater than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='number(h:EndDayOfMonth) &lt;= 31 or not(h:EndDayOfMonth)'>Expected EndDayOfMonth to be less than or equal to 31</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACDistribution/h:DistributionSystemType/h:AirDistribution'>
       <sch:assert role='ERROR' test='h:AirDistributionType[text()="regular velocity" or text()="high velocity" or text()="gravity" or text()="fan coil"] or not(h:AirDistributionType)'>Expected AirDistributionType to be 'regular velocity' or 'high velocity' or 'gravity' or 'fan coil'</sch:assert>
