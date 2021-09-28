@@ -339,7 +339,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Vintage
     if args['vintage'].is_initialized
-      args['year_built'] = args['vintage'].get.gsub(/[^0-9]/, '').to_i # strip non-numeric
+      args['year_built'] = Integer(Float(args['vintage'].get.gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
     # Num Occupants
