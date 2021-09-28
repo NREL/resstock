@@ -269,15 +269,14 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     corridor_position_choices = OpenStudio::StringVector.new
-    corridor_position_choices << 'Double-Loaded Interior'
-    corridor_position_choices << 'Single Exterior (Front)'
-    corridor_position_choices << 'Double Exterior'
+    corridor_position_choices << 'Interior'
+    corridor_position_choices << 'Exterior'
     corridor_position_choices << 'None'
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_corridor_position', corridor_position_choices, true)
     arg.setDisplayName('Geometry: Corridor Position')
     arg.setDescription("The position of the corridor. Only applies to #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.")
-    arg.setDefaultValue('Double-Loaded Interior')
+    arg.setDefaultValue('Inside')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_corridor_width', true)

@@ -1647,7 +1647,6 @@ class Geometry
                                          geometry_building_num_units:,
                                          geometry_unit_num_floors_above_grade:,
                                          geometry_unit_aspect_ratio:,
-                                         geometry_corridor_position:,
                                          geometry_foundation_type:,
                                          geometry_foundation_height:,
                                          geometry_rim_joist_height:,
@@ -1664,7 +1663,6 @@ class Geometry
     num_units = geometry_building_num_units.get
     num_floors = geometry_unit_num_floors_above_grade
     aspect_ratio = geometry_unit_aspect_ratio
-    corridor_position = geometry_corridor_position
     foundation_type = geometry_foundation_type
     foundation_height = geometry_foundation_height
     rim_joist_height = geometry_rim_joist_height
@@ -1688,10 +1686,9 @@ class Geometry
     end
 
     has_rear_units = false
-    if corridor_position == 'Double Exterior'
+    if back_wall
       has_rear_units = true
     end
-    offset = 0
 
     num_units_actual = num_units
     num_floors_actual = num_floors
@@ -1754,7 +1751,8 @@ class Geometry
     # Map unit location to adiabatic surfaces (#if `key` unit then make `value(s)` adiabatic)
     horz_hash = { 'Left' => ['right'], 'Right' => ['left'], 'Middle' => ['left', 'right'], 'None' => [] }
     adb_facade = horz_hash[horizontal_location]
-    if (has_rear_units == true)
+
+    if has_rear_units
       adb_facade += ['back']
     end
 
@@ -1903,14 +1901,10 @@ class Geometry
     OpenStudio::Model.matchSurfaces(spaces)
 
     if [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(attic_type) && (roof_type != 'flat')
-      if offset == 0
-        attic_spaces.each do |attic_space|
-          attic_space.remove
-        end
-        attic_space = get_attic_space(model, x, y, wall_height, num_floors, num_units, roof_pitch, roof_type, rim_joist_height, has_rear_units)
-      else
-        attic_space = make_one_space_from_multiple_spaces(model, attic_spaces)
+      attic_spaces.each do |attic_space|
+        attic_space.remove
       end
+      attic_space = get_attic_space(model, x, y, wall_height, num_floors, num_units, roof_pitch, roof_type, rim_joist_height, has_rear_units)
 
       # set these to the attic zone
       if (attic_type == HPXML::AtticTypeVented) || (attic_type == HPXML::AtticTypeUnvented)
@@ -2257,7 +2251,7 @@ class Geometry
       end
     end
 
-    if (corridor_position == 'Double-Loaded Interior')
+    if (corridor_position == 'Interior')
       interior_corridor_width = corridor_width / 2 # Only half the corridor is attached to a unit
       # corridors
       if corridor_width > 0
@@ -2285,7 +2279,7 @@ class Geometry
         corridor_space.setThermalZone(corridor_zone)
       end
 
-    elsif (corridor_position == 'Double Exterior') || (corridor_position == 'Single Exterior (Front)')
+    elsif (corridor_position == 'Exterior')
       interior_corridor_width = 0
       # front access
       nw_point = OpenStudio::Point3d.new(0, -y, wall_height + rim_joist_height)
@@ -2305,7 +2299,7 @@ class Geometry
 
       # foundation corridor
       foundation_corridor_space = nil
-      if (corridor_width > 0) && (corridor_position == 'Double-Loaded Interior')
+      if (corridor_width > 0) && (corridor_position == 'Interior')
         foundation_corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
         foundation_corridor_space = foundation_corridor_space.get
         m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
