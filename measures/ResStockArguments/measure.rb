@@ -48,10 +48,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     measure.arguments(model).each do |arg|
       next if Constants.build_residential_hpxml_excludes.include? arg.name
 
-      # Exclude the geometry_unit_cfa arg from BuildResHPXML in lieu of the one below.
-      # We can't add it to Constants.excludes because a geometry_unit_cfa value will still
-      # need to be passed to the BuildResHPXML measure.
+      # Following are arguments with the same namber but different options
       next if arg.name == 'geometry_unit_cfa'
+      next if arg.name == 'geometry_corridor_position'
 
       args << arg
     end
@@ -109,6 +108,18 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setUnits('#')
     arg.setDescription("The number of floors above grade (in the unit if #{HPXML::ResidentialTypeSFD} or #{HPXML::ResidentialTypeSFA}, and in the building if #{HPXML::ResidentialTypeApartment}). Conditioned attics are included.")
     arg.setDefaultValue(2)
+    args << arg
+
+    corridor_position_choices = OpenStudio::StringVector.new
+    corridor_position_choices << 'Double-Loaded Interior'
+    corridor_position_choices << 'Double Exterior'
+    corridor_position_choices << 'Single Exterior (Front)'
+    corridor_position_choices << 'None'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_corridor_position', corridor_position_choices, true)
+    arg.setDisplayName('Geometry: Corridor Position')
+    arg.setDescription("The position of the corridor. Only applies to #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.")
+    arg.setDefaultValue('Inside')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
@@ -360,46 +371,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['geometry_unit_cfa'] = Float(args['geometry_unit_cfa'])
     end
 
-    # Num Floors
-    if [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeSFA].include?(args['geometry_unit_type'])
-      args['geometry_unit_num_floors_above_grade'] = args['geometry_num_floors_above_grade']
-    elsif [HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
-      args['geometry_unit_num_floors_above_grade'] = 1
-    end
-
-    # Adiabatic Floor/Ceiling
-    if args['geometry_unit_level'].is_initialized
-      if args['geometry_unit_level'].get == 'Bottom'
-        if args['geometry_num_floors_above_grade'] > 1
-          args['geometry_attic_type'] = 'Adiabatic'
-        end
-      elsif args['geometry_unit_level'].get == 'Middle'
-        args['geometry_foundation_type'] = 'Adiabatic'
-        args['geometry_attic_type'] = 'Adiabatic'
-      elsif args['geometry_unit_level'].get == 'Top'
-        args['geometry_foundation_type'] = 'Adiabatic'
-      end
-    end
-
-    # Adiabatic Walls
-    args['geometry_unit_left_wall_is_adiabatic'] = false
-    args['geometry_unit_right_wall_is_adiabatic'] = false
-    args['geometry_unit_back_wall_is_adiabatic'] = false
-    if args['geometry_unit_horizontal_location'].is_initialized
-      if args['geometry_unit_horizontal_location'].get == 'Left'
-        if args['geometry_num_floors_above_grade'] > 1
-          args['geometry_unit_right_wall_is_adiabatic'] = true
-        end
-      elsif args['geometry_unit_horizontal_location'].get == 'Middle'
-        args['geometry_unit_left_wall_is_adiabatic'] = true
-        args['geometry_unit_right_wall_is_adiabatic'] = true
-      elsif args['geometry_unit_horizontal_location'].get == 'Right'
-        if args['geometry_num_floors_above_grade'] > 1
-          args['geometry_unit_left_wall_is_adiabatic'] = true
-        end
-      end
-    end
-
     # Num Occupants
     if args['geometry_unit_num_occupants'] == Constants.Auto
       args['geometry_unit_num_occupants'] = Geometry.get_occupancy_default_num(args['geometry_unit_num_bedrooms'])
@@ -538,10 +509,22 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['heat_pump_charge_defect_ratio'] = args['heat_pump_frac_manufacturer_charge'].get - 1.0
     end
 
+    # Adiabatic Walls
+    args['geometry_unit_left_wall_is_adiabatic'] = false
+    args['geometry_unit_right_wall_is_adiabatic'] = false
+    args['geometry_unit_back_wall_is_adiabatic'] = false
+
+    # Corridors
+    if args['geometry_corridor_position'].include?('Interior')
+      args['geometry_corridor_position'] = 'Interior'
+    elsif args['geometry_corridor_position'].include?('Exterior')
+      args['geometry_corridor_position'] = 'Exterior'
+    end
+
     # Infiltration adjustment for SFA/MF units
+    n_floors = Float(args['geometry_num_floors_above_grade'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       n_units = Float(args['geometry_building_num_units'])
-      n_floors = Float(args['geometry_num_floors_above_grade'])
       aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
       horiz_location = args['geometry_unit_horizontal_location'].to_s
       corridor_position = args['geometry_corridor_position'].to_s
@@ -550,10 +533,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         n_units_per_floor = n_units / n_floors
         if (n_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
           has_rear_units = true
+          args['geometry_unit_back_wall_is_adiabatic'] = true
         elsif (n_units_per_floor == 2) && (horiz_location == 'None') # double-loaded corridor for 2 units/story
           has_rear_units = true
+          args['geometry_unit_back_wall_is_adiabatic'] = true
         else
           has_rear_units = false
+          args['geometry_corridor_position'] = 'Exterior'
         end
       elsif args['geometry_unit_type'] == HPXML::ResidentialTypeSFA
         n_floors = 1.0
@@ -594,6 +580,32 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Apply adjustment to infiltration value
       args['air_leakage_value'] *= exposed_wall_area_ratio
+
+      if horiz_location == 'Left'
+        args['geometry_unit_right_wall_is_adiabatic'] = true
+      elsif horiz_location == 'Middle'
+        args['geometry_unit_left_wall_is_adiabatic'] = true
+        args['geometry_unit_right_wall_is_adiabatic'] = true
+      elsif horiz_location == 'Right'
+        args['geometry_unit_left_wall_is_adiabatic'] = true
+      end
+    end
+
+    # Num Floors
+    args['geometry_unit_num_floors_above_grade'] = n_floors
+
+    # Adiabatic Floor/Ceiling
+    if args['geometry_unit_level'].is_initialized
+      if args['geometry_unit_level'].get == 'Bottom'
+        if args['geometry_num_floors_above_grade'] > 1 # this could be "bottom" of a 1-story building
+          args['geometry_attic_type'] = 'Adiabatic'
+        end
+      elsif args['geometry_unit_level'].get == 'Middle'
+        args['geometry_foundation_type'] = 'Adiabatic'
+        args['geometry_attic_type'] = 'Adiabatic'
+      elsif args['geometry_unit_level'].get == 'Top'
+        args['geometry_foundation_type'] = 'Adiabatic'
+      end
     end
 
     args.each do |arg_name, arg_value|
