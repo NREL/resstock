@@ -3159,6 +3159,11 @@ class HPXMLFile
       success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
       args[:geometry_roof_type] = 'flat'
+      # FIXME: I think ideally we'd change geometry_corridor_position to have choices of None, Front, Back, Left, Right
+      if !args[:geometry_unit_back_wall_is_adiabatic] && ['Double-Loaded Interior', 'Double Exterior'].include?(args[:geometry_corridor_position])
+        args[:geometry_unit_back_wall_is_adiabatic] = true if args[:geometry_corridor_position] == 'Double Exterior'
+        args[:geometry_corridor_position] = 'Single Exterior (Front)'
+      end
       success = Geometry.create_multifamily(runner: runner, model: model, **args)
     end
     return false if not success

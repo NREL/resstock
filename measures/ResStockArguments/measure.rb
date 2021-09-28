@@ -400,10 +400,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    if args['geometry_corridor_position'] == 'Double Exterior'
-      args['geometry_unit_back_wall_is_adiabatic'] = true
-    end
-
     # Num Occupants
     if args['geometry_unit_num_occupants'] == Constants.Auto
       args['geometry_unit_num_occupants'] = Geometry.get_occupancy_default_num(args['geometry_unit_num_bedrooms'])
