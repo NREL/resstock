@@ -1,8 +1,8 @@
 schema_version: '0.3'
 buildstock_directory: /home/pwhite/GitHub/resstock
 project_directory: project_national
-output_directory: /projects/resilience/updatedv1/houston_2011_hot_long
-weather_files_path: resilience_weather/houston_2011.zip
+output_directory: /projects/resilience/updatedv1/atlanta_2011_cold_short
+weather_files_path: resilience_weather/atlanta_2011.zip
 
 eagle:
   n_jobs: 10
@@ -17,7 +17,7 @@ eagle:
 sampler:
   type: precomputed
   args:
-    sample_file: /home/pwhite/GitHub/resstock/resilience/houston/buildstock.csv
+    sample_file: /home/pwhite/GitHub/resstock/resilience/atlanta/buildstock.csv
     
 workflow_generator:
   type: residential_default
@@ -30,17 +30,16 @@ workflow_generator:
     residential_simulation_controls:
       calendar_year: 2011
       timesteps_per_hr: 1
-      begin_month: 5
-      begin_day_of_month: 28
-      end_month: 7
-      end_day_of_month: 5
-
+      begin_month: 1
+      begin_day_of_month: 1
+      end_month: 1
+      end_day_of_month: 28
     measures:
       - measure_dir_name: PowerOutage
         arguments:
-          otg_date: June 11
+          otg_date: January 9
           otg_hr: 0
-          otg_len: 264
+          otg_len: 144
           comfort_model_1: Pierce
     reporting_measures:
       - measure_dir_name: ResilienceMetricsReport
@@ -55,7 +54,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-resilience
-      prefix: updatedv1/houston_2011_hot_long
+      prefix: updatedv1/atlanta_2011_cold_short
 
 
 upgrades:
