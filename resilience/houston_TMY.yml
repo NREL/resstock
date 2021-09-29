@@ -1,28 +1,23 @@
 schema_version: '0.3'
-buildstock_directory: /home/nmoore/github/resstock
+buildstock_directory: /home/pwhite/GitHub/resstock
 project_directory: project_national
-output_directory: /projects/resilience/test_houston_TMY
+output_directory: /projects/resilience/updatedv1/houston_TMY
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 eagle:
-  n_jobs: 1
-  minutes_per_sim: 4
+  n_jobs: 10
+  minutes_per_sim: 20
   account: resilience
   sampling:
-    time: 10
+    time: 700
   postprocessing:
-    time: 10
-    n_workers: 1
+    time: 500
+    n_workers: 5
 
 sampler:
-  type: residential_quota_downselect
+  type: precomputed
   args:
-    n_datapoints: 500
-    resample: false
-    logic:
-      - Geometry Building Type ACS|Single-Family Detached
-      - Vacancy Status|Occupied
-      - County|TX, Harris County
+    sample_file: /home/pwhite/GitHub/resstock/resilience/texas/buildstock.csv
 
 workflow_generator:
   type: residential_default
@@ -35,6 +30,13 @@ workflow_generator:
 
 baseline:
   n_buildings_represented: 133172057
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resstock-resilience
+      prefix: updatedv1/houston_TMY
 
 upgrades:
   - upgrade_name: Package 1
@@ -310,28 +312,28 @@ upgrades:
   - upgrade_name: Package 3
     options:
       # Same packages as Package 1
-      - *clothes_washer_80pct
-      - *clothes_washer_100pct
-      - *clothes_washer_120pct
-      - *dishwasher_80pct
-      - *dishwasher_100pct
-      - *dishwasher_120pct
-      - *refrigerator
-      - *clothes_dryer_80pct
-      - *clothes_dryer_100pct
-      - *clothes_dryer_120pct
-      - *lighting
-      - *cooking_range
-      - *ducts_category1
-      - *ducts_category2
-      - *ducts_category3
-      - *ducts_category4
-      - *ducts_category5
-      - *ducts_category6
-      - *ducts_category7
-      - *water_heater_efficiency_80gal
-      - *HVAC_efficiency_ASHP_duct
-      - *HVAC_efficiency_MSHP_ductless
+      # - *clothes_washer_80pct
+      # - *clothes_washer_100pct
+      # - *clothes_washer_120pct
+      # - *dishwasher_80pct
+      # - *dishwasher_100pct
+      # - *dishwasher_120pct
+      # - *refrigerator
+      # - *clothes_dryer_80pct
+      # - *clothes_dryer_100pct
+      # - *clothes_dryer_120pct
+      # - *lighting
+      # - *cooking_range
+      # - *ducts_category1
+      # - *ducts_category2
+      # - *ducts_category3
+      # - *ducts_category4
+      # - *ducts_category5
+      # - *ducts_category6
+      # - *ducts_category7
+      # - *water_heater_efficiency_80gal
+      # - *HVAC_efficiency_ASHP_duct
+      # - *HVAC_efficiency_MSHP_ductless
 
       # ERV and HRV options only if ACH50 decreases below 7ACH50
       - &ERVupgrade_sensible_60pct_below7ACH50
@@ -4510,37 +4512,37 @@ upgrades:
   - upgrade_name: PHIUS
     options:
       # Same packages as Package 1
-      - *clothes_washer_80pct
-      - *clothes_washer_100pct
-      - *clothes_washer_120pct
-      - *dishwasher_80pct
-      - *dishwasher_100pct
-      - *dishwasher_120pct
-      - *refrigerator
-      - *clothes_dryer_80pct
-      - *clothes_dryer_100pct
-      - *clothes_dryer_120pct
-      - *lighting
-      - *cooking_range
-      - *ducts_category1
-      - *ducts_category2
-      - *ducts_category3
-      - *ducts_category4
-      - *ducts_category5
-      - *ducts_category6
-      - *ducts_category7
-      - *water_heater_efficiency_80gal
-      - *HVAC_efficiency_ASHP_duct
-      - *HVAC_efficiency_MSHP_ductless
-      - *ERVupgrade_sensible_60pct_below7ACH50
-      - *ERVupgrade_sensible_50pct_below7ACH50
-      - *ERVupgrade_sensible_70pct_below7ACH50
-      - *ERVupgrade_sensible_80pct_below7ACH50
-      - *HRVupgrade_sensible_60pct_below7ACH50
-      - *HRVupgrade_sensible_70pct_below7ACH50
-      - *HRVupgrade_sensible_75pct_below7ACH50
-      - *HRVupgrade_sensible_80pct_below7ACH50
-      - *HRVupgrade_sensible_85pct_below7ACH50
+      # - *clothes_washer_80pct
+      # - *clothes_washer_100pct
+      # - *clothes_washer_120pct
+      # - *dishwasher_80pct
+      # - *dishwasher_100pct
+      # - *dishwasher_120pct
+      # - *refrigerator
+      # - *clothes_dryer_80pct
+      # - *clothes_dryer_100pct
+      # - *clothes_dryer_120pct
+      # - *lighting
+      # - *cooking_range
+      # - *ducts_category1
+      # - *ducts_category2
+      # - *ducts_category3
+      # - *ducts_category4
+      # - *ducts_category5
+      # - *ducts_category6
+      # - *ducts_category7
+      # - *water_heater_efficiency_80gal
+      # - *HVAC_efficiency_ASHP_duct
+      # - *HVAC_efficiency_MSHP_ductless
+      # - *ERVupgrade_sensible_60pct_below7ACH50
+      # - *ERVupgrade_sensible_50pct_below7ACH50
+      # - *ERVupgrade_sensible_70pct_below7ACH50
+      # - *ERVupgrade_sensible_80pct_below7ACH50
+      # - *HRVupgrade_sensible_60pct_below7ACH50
+      # - *HRVupgrade_sensible_70pct_below7ACH50
+      # - *HRVupgrade_sensible_75pct_below7ACH50
+      # - *HRVupgrade_sensible_80pct_below7ACH50
+      # - *HRVupgrade_sensible_85pct_below7ACH50
       - &phius_infiltration
         option: Infiltration|1 ACH50
       # Add the appropriate ERV or HRV for the climate zone
