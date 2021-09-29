@@ -451,7 +451,7 @@ class RunOSWs
   def self.run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
+    command = " \"#{cli_path}\" run -w #{in_osw}"
     system(command)
     finished_job = File.join(parent_dir, 'run/finished.job')
 
