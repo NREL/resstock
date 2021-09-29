@@ -1,14 +1,14 @@
 schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /lustre/eaglefs/projects/scout/flex_measures/1k_test_1
+output_directory: /lustre/eaglefs/projects/scout/flex_measures/1k_test_9
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 1000
+    n_datapoints: 1800 #180,000
     logic:
       - Geometry Building Type RECS|Single-Family Detached
     resample: false
@@ -24,15 +24,13 @@ workflow_generator:
       simulation_control_run_period_end_day_of_month: 31
       simulation_control_run_period_calendar_year: 2007
       debug: false
-
     simulation_output_report:
-      timeseries_frequency: Hourly
+      timeseries_frequency: hourly
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
       include_timeseries_hot_water_uses: false
-      include_timeseries_total_loads: true
+      include_timeseries_total_loads: false
       include_timeseries_component_loads: false
-      include_timeseries_unmet_loads: true
       include_timeseries_zone_temperatures: true
       include_timeseries_airflows: true
       include_timeseries_weather: true
@@ -136,8 +134,6 @@ upgrades:
       - HVAC Has Ducts|Yes
       - not: HVAC Cooling Type|None
     options:
-      - option: HVAC Heating Type And Fuel|Electricity ASHP
-
       # Natural Gas Backup
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Dual Source, Gas Backup
         apply_logic: 
@@ -292,7 +288,7 @@ upgrades:
             - not: HVAC Cooling Type|None
             - HVAC Has Ducts|Yes
     options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC, Base
       - option: HVAC Cooling Efficiency|None
 
   ##### UPGRADE 3a IHP (Speed = 0)
@@ -379,5 +375,16 @@ eagle:
   sampling:
     time: 10
   postprocessing:
-    time: 10
+    time: 15
     n_workers: 1
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: flex-measures/
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: flex_measures
+      max_crawling_time: 300 #seconds to wait for the crawler to complete before aborting it
