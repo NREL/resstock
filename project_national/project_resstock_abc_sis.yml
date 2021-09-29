@@ -1,11 +1,9 @@
 schema_version: '0.3'
 buildstock_directory: ../ResStock_abc_sis  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/scout/abc-sis/packages_v1 # <----
-# weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
+output_directory: /projects/scout/abc-sis/packages_v01 # <----
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip # Relative to this file or absolute path to zipped weather files
-# weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
-# weather_files_path: ./BuildStock_TMY3_FIPS.zip
+
 baseline:
   n_buildings_represented: 133172057 # ACS 5-yr 2016
 
@@ -54,7 +52,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resbldg-datasets
-      prefix: abc_sis/packages_v1 # <----
+      prefix: abc_sis
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: abc_sis
@@ -360,9 +358,8 @@ upgrades:
             multiplier: Floor Area, Conditioned (ft^2)
         lifetime: 999
       - &air_sealing_mech_vent
-        option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
-        apply_logic: 
-            - Mechanical Ventilation|None
+        option: Mechanical Ventilation|Exhaust
+        apply_logic: Mechanical Ventilation|None
         costs: 
           - value: 360
             multiplier: Fixed (1)
@@ -402,7 +399,7 @@ upgrades:
       - *air_sealing_2_to_1ACH50
  # 3.1. ERV upgrades
       - &ERVupgrade_sensible_60pct
-        option: Mechanical Ventilation|ERV, 60%, 2010 ASHRAE 62.2
+        option: Mechanical Ventilation|ERV, 60%
         apply_logic:
           or: 
             - ASHRAE IECC Climate Zone 2004|1A
@@ -412,7 +409,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 18
       - &ERVupgrade_sensible_50pct
-        option: Mechanical Ventilation|ERV, 50%, 2010 ASHRAE 62.2
+        option: Mechanical Ventilation|ERV, 50%
         apply_logic:
           or: 
             - ASHRAE IECC Climate Zone 2004|2B
@@ -421,7 +418,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 18
       - &ERVupgrade_sensible_70pct
-        option: Mechanical Ventilation|ERV, 70%, 2010 ASHRAE 62.2
+        option: Mechanical Ventilation|ERV, 70%
         apply_logic:
           or: 
             - ASHRAE IECC Climate Zone 2004|3A
@@ -430,7 +427,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 18
       - &ERVupgrade_sensible_80pct
-        option: Mechanical Ventilation|ERV, 80%, 2010 ASHRAE 62.2
+        option: Mechanical Ventilation|ERV, 80%
         apply_logic:
           or: 
             - ASHRAE IECC Climate Zone 2004|4A
@@ -440,7 +437,7 @@ upgrades:
         lifetime: 18
  # 3.2. HRV upgrades
       - &HRVupgrade_sensible_60pct
-        option: Mechanical Ventilation|HRV, 60%, 2010 ASHRAE 62.2
+        option: Mechanical Ventilation|HRV, 60%
         apply_logic: 
           or:
             - ASHRAE IECC Climate Zone 2004|3C
@@ -449,7 +446,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 18
       - &HRVupgrade_sensible_70pct
-        option: Mechanical Ventilation|HRV, 70%, 2010 ASHRAE 62.2
+        option: Mechanical Ventilation|HRV, 70%
         apply_logic: 
           or:
             - ASHRAE IECC Climate Zone 2004|3B
@@ -459,7 +456,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 18
       - &HRVupgrade_sensible_75pct
-        option: Mechanical Ventilation|HRV, 75%, 2010 ASHRAE 62.2
+        option: Mechanical Ventilation|HRV, 75%
         apply_logic: 
           or:
             - ASHRAE IECC Climate Zone 2004|4B
@@ -468,7 +465,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 18
       - &HRVupgrade_sensible_80pct
-        option: Mechanical Ventilation|HRV, 80%, 2010 ASHRAE 62.2
+        option: Mechanical Ventilation|HRV, 80%
         apply_logic: 
           or:
             - ASHRAE IECC Climate Zone 2004|5B
@@ -477,7 +474,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 18
       - &HRVupgrade_sensible_85pct
-        option: Mechanical Ventilation|HRV, 85%, 2010 ASHRAE 62.2
+        option: Mechanical Ventilation|HRV, 85%
         apply_logic: 
           or:
             - ASHRAE IECC Climate Zone 2004|5A
