@@ -13,10 +13,10 @@ Run ``rake -T`` to see the list of possible rake tasks. The ``-T`` is replaced w
 .. code:: ruby
 
   $ rake -T
-  rake integration:workflow_tests           # Run tests for workflow_tests
   rake unit_tests:integrity_check_tests     # Run tests for integrity_check_t...
   rake unit_tests:measure_tests             # Run tests for measure_tests
   rake unit_tests:project_integrity_checks  # Run tests for project_integrity...
+  rake workflow:analysis_tests              # Run tests for analysis_tests
 
 .. _integrity-checks:
 
