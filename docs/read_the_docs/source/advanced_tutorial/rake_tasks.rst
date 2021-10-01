@@ -13,15 +13,15 @@ Run ``rake -T`` to see the list of possible rake tasks. The ``-T`` is replaced w
 .. code:: ruby
 
   $ rake -T
-  rake integrity_check_all                   # Run tests for integrity_check_all
-  rake integrity_check_national              # Run tests for integrity_check_...
-  rake integrity_check_testing               # Run tests for integrity_check_...
-  rake integrity_check_unit_tests            # Run tests for integrity_check_...
-  rake test:measures_osw                     # Run tests for measures_osw
-  rake test:regenerate_osms                  # Run tests for regenerate_osms
-  rake test:regression_tests                 # Run tests for regression_tests
-  rake test:unit_tests                       # Run tests for unit_tests
-  rake update_measures                       # Run tests for update_measures
+  rake integrity_check_all         # Run tests for integrity_check_all
+  rake integrity_check_national    # Run tests for integrity_check_national  
+  rake integrity_check_testing     # Run tests for integrity_check_testing   
+  rake integrity_check_unit_tests  # Run tests for integrity_check_unit_tests
+  rake test:integration_tests      # Run tests for integration_tests
+  rake test:project_tests          # Run tests for project_tests
+  rake test:regenerate_osms        # Run tests for regenerate_osms
+  rake test:unit_tests             # Run tests for unit_tests
+  rake update_measures             # Run tests for update_measures
 
 .. _integrity-checks:
 

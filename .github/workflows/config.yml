@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:2.9.0
+      image: docker://nrel/openstudio:3.2.1
     steps:
       - name: Show environment
         run: |
@@ -42,10 +42,6 @@ jobs:
         run: |
           rake test:project_tests
 
-      - name: Run all regression tests
-        run: |
-          rake test:regression_tests
-
       - name: Run all integration tests
         run: |
           rake test:integration_tests
@@ -56,28 +52,56 @@ jobs:
           path: resources/buildstock.csv
           name: samples
 
-      - name: Upload regression results
-        uses: actions/upload-artifact@v2
-        with:
-          path: workflows/results
-          name: examples
-
-      - name: Upload integration results
-        uses: actions/upload-artifact@v2
-        with:
-          path: test/test_samples_osw/results
-          name: results
-
       - name: Upload schedules
         uses: actions/upload-artifact@v2
         with:
           path: resources/measures/ResidentialScheduleGenerator/tests/output/test_sweep_building_ids_and_num_occupants
           name: schedules
 
+  bsb:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Show environment
+        run: |
+          ruby -v
+          python -v
+
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Run buildstockbatch
+        run: |
+          pip install git+https://github.com/NREL/buildstockbatch.git@develop
+          
+          buildstock_docker project_testing/testing_baseline.yml
+          buildstock_docker project_national/national_baseline.yml
+          
+          buildstock_docker project_testing/testing_upgrades.yml
+          buildstock_docker project_national/national_upgrades.yml
+
+      - name: Process results
+        run: |
+          gunzip -v project_national/national_baseline/results_csvs/results_up00.csv.gz
+          mv project_national/national_baseline/results_csvs/results_up00.csv project_national/national_baseline.csv
+          
+          gunzip -v project_testing/testing_baseline/results_csvs/results_up00.csv.gz
+          mv project_testing/testing_baseline/results_csvs/results_up00.csv project_testing/testing_baseline.csv
+          
+          pip install pandas
+          python test/util.py
+
+      - name: Upload integration results
+        uses: actions/upload-artifact@v2
+        with:
+          path: baseline/results
+          name: results
+
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: build
+    needs: bsb
     steps:
       - name: Show environment
         run: |
@@ -121,15 +145,25 @@ jobs:
 
       - name: Compare samples and results
         run: |
-          cp -r base/buildstock*.csv resources/base_buildstock.csv
-          cp -r samples/buildstock*.csv resources/buildstock.csv
-          pip install pandas
-          python test/compare.py
-          
-          cp -r base/results*.csv test/test_samples_osw/base
+          cp -r base/*.csv test/test_samples_osw/base
           mkdir test/test_samples_osw/results
+          cp -r samples/buildstock*.csv test/test_samples_osw/results
           cp -r results/results* test/test_samples_osw/results
-          ruby test/compare.rb
+          
+          pip install numpy
+          pip install pandas
+          pip install plotly
+          pip install kaleido
+          
+          python test/compare.py -a samples
+          
+          python test/compare.py -a results
+          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv
+          
+          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html
+          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html
+          python test/compare.py -a visualize -dc county -x results_output_county.html
+          python test/compare.py -a visualize -dc geometry_building_type_recs -ac county -af sum -x results_output_county_sum.html
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
@@ -139,7 +173,7 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: build
+    needs: bsb
     steps:
       - uses: actions/checkout@v2
         with:
@@ -175,29 +209,3 @@ jobs:
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
-
-  docs:
-    runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      matrix:
-        python-version: [3.8.4]
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Build documentation
-        run: |
-          cd docs/read_the_docs
-          pip install -r requirements.txt
-          make html
-
-      - name: Upload docs
-        uses: actions/upload-artifact@v2
-        with:
-          path: docs/read_the_docs/build
-          name: readthedocs

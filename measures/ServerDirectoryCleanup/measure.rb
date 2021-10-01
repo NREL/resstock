@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # start the measure
 class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
   # define the name that a user will see, this method may be deprecated as
@@ -7,73 +9,219 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments()
+  def arguments(model)
     args = OpenStudio::Ruleset::OSArgumentVector.new
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_in_osm', true)
+    arg.setDisplayName('Retain in.osm')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_in_idf', true)
+    arg.setDisplayName('Retain in.idf')
+    arg.setDefaultValue(true)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_pre_process_idf', true)
+    arg.setDisplayName('Retain pre_process.idf')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_audit', true)
+    arg.setDisplayName('Retain eplusout.audit')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_bnd', true)
+    arg.setDisplayName('Retain eplusout.bnd')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_eio', true)
+    arg.setDisplayName('Retain eplusout.eio')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_end', true)
+    arg.setDisplayName('Retain eplusout.end')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_err', true)
+    arg.setDisplayName('Retain eplusout.err')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_eso', true)
+    arg.setDisplayName('Retain eplusout.eso')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_mdd', true)
+    arg.setDisplayName('Retain eplusout.mdd')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_mtd', true)
+    arg.setDisplayName('Retain eplusout.mtd')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_rdd', true)
+    arg.setDisplayName('Retain eplusout.rdd')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_shd', true)
+    arg.setDisplayName('Retain eplusout.shd')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplusout_sql', true)
+    arg.setDisplayName('Retain eplusout.sql')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_eplustbl_htm', true)
+    arg.setDisplayName('Retain eplustbl.htm')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_sqlite_err', true)
+    arg.setDisplayName('Retain sqlite.err.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_stdout_energyplus', true)
+    arg.setDisplayName('Retain stdout-energyplus')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_stdout_expandobject', true)
+    arg.setDisplayName('Retain stdout-expandobject.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_schedules_csv', true)
+    arg.setDisplayName('Retain schedules.csv.')
+    arg.setDefaultValue(true)
+    args << arg
+
+    return args
   end # end the arguments method
 
   # define what happens when the measure is run
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
+    model = runner.lastOpenStudioModel
+    if model.empty?
+      runner.registerError('Cannot find OpenStudio model.')
+      return false
+    end
+    model = model.get
+
     # use the built-in error checking
-    unless runner.validateUserArguments(arguments, user_arguments)
-      false
+    if !runner.validateUserArguments(arguments(model), user_arguments)
+      return false
     end
 
-    initial_string = 'The following files were in the local run directory prior to the execution of this measure: '
-    Dir.entries('./../').each do |f|
-      initial_string << "#{f}, "
-    end
-    initial_string = initial_string[0..(initial_string.length - 3)] + '.'
-    runner.registerInitialCondition(initial_string)
+    in_osm = runner.getBoolArgumentValue('retain_in_osm', user_arguments)
+    in_idf = runner.getBoolArgumentValue('retain_in_idf', user_arguments)
+    pre_process_idf = runner.getBoolArgumentValue('retain_pre_process_idf', user_arguments)
+    eplusout_audit = runner.getBoolArgumentValue('retain_eplusout_audit', user_arguments)
+    eplusout_bnd = runner.getBoolArgumentValue('retain_eplusout_bnd', user_arguments)
+    eplusout_eio = runner.getBoolArgumentValue('retain_eplusout_eio', user_arguments)
+    eplusout_end = runner.getBoolArgumentValue('retain_eplusout_end', user_arguments)
+    eplusout_err = runner.getBoolArgumentValue('retain_eplusout_err', user_arguments)
+    eplusout_eso = runner.getBoolArgumentValue('retain_eplusout_eso', user_arguments)
+    eplusout_mdd = runner.getBoolArgumentValue('retain_eplusout_mdd', user_arguments)
+    eplusout_mtd = runner.getBoolArgumentValue('retain_eplusout_mtd', user_arguments)
+    eplusout_rdd = runner.getBoolArgumentValue('retain_eplusout_rdd', user_arguments)
+    eplusout_shd = runner.getBoolArgumentValue('retain_eplusout_shd', user_arguments)
+    eplusout_sql = runner.getBoolArgumentValue('retain_eplusout_sql', user_arguments)
+    eplustbl_htm = runner.getBoolArgumentValue('retain_eplustbl_htm', user_arguments)
+    sqlite_err = runner.getBoolArgumentValue('retain_sqlite_err', user_arguments)
+    stdout_energyplus = runner.getBoolArgumentValue('retain_stdout_energyplus', user_arguments)
+    stdout_expandobject = runner.getBoolArgumentValue('retain_stdout_expandobject', user_arguments)
+    schedules_csv = runner.getBoolArgumentValue('retain_schedules_csv', user_arguments)
 
-    Dir.glob('./../*.sql').each do |f|
-      File.delete(f)
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
-    Dir.glob('./../*.audit').each do |f|
-      File.delete(f)
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
     Dir.glob('./../in.osm').each do |f|
-      File.delete(f)
+      File.delete(f) unless in_osm
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
-    Dir.glob('./../../in.osm').each do |f|
-      File.delete(f)
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
-    Dir.glob('./../*.bnd').each do |f|
-      File.delete(f)
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
-    Dir.glob('./../*.eio').each do |f|
-      File.delete(f)
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
-    Dir.glob('./../*.shd').each do |f|
-      File.delete(f)
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
-    Dir.glob('./../*.mdd').each do |f|
-      File.delete(f)
-      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
-    end
-    Dir.glob('./../*.eso').each do |f|
-      File.delete(f)
+    Dir.glob('./../in.idf').each do |f|
+      File.delete(f) unless in_idf
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
     Dir.glob('./../pre-preprocess.idf').each do |f|
-      File.delete(f)
+      File.delete(f) unless pre_process_idf
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
-
-    final_string = 'The following files were in the local run directory following the execution of this measure: '
-    Dir.entries('./..').each do |f|
-      final_string << "#{f}, "
+    Dir.glob('./../eplusout.audit').each do |f|
+      File.delete(f) unless eplusout_audit
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
-    final_string = final_string[0..(final_string.length - 3)] + '.'
-    runner.registerFinalCondition(final_string)
+    Dir.glob('./../eplusout.bnd').each do |f|
+      File.delete(f) unless eplusout_bnd
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplusout.eio').each do |f|
+      File.delete(f) unless eplusout_eio
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplusout.end').each do |f|
+      File.delete(f) unless eplusout_end
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplusout.err').each do |f|
+      File.delete(f) unless eplusout_err
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplusout.eso').each do |f|
+      File.delete(f) unless eplusout_eso
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplusout.mdd').each do |f|
+      File.delete(f) unless eplusout_mdd
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplusout.mtd').each do |f|
+      File.delete(f) unless eplusout_mtd
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplusout.rdd').each do |f|
+      File.delete(f) unless eplusout_rdd
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplusout.shd').each do |f|
+      File.delete(f) unless eplusout_shd
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplusout.sql').each do |f|
+      File.delete(f) unless eplusout_sql
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../eplustbl.htm').each do |f|
+      File.delete(f) unless eplustbl_htm
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../sqlite.err').each do |f|
+      File.delete(f) unless sqlite_err
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../stdout-energyplus').each do |f|
+      File.delete(f) unless stdout_energyplus
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../stdout-expandobject').each do |f|
+      File.delete(f) unless stdout_expandobject
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
+    Dir.glob('./../schedules.csv').each do |f|
+      File.delete(f) unless schedules_csv
+      runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
+    end
 
     true
   end # end the run method

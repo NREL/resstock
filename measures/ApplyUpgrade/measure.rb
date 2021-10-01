@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -216,13 +218,14 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     # Check file/dir paths exist
     check_file_exists(lookup_file, runner)
 
-    lookup_csv_data = CSV.open(lookup_file, { col_sep: "\t" }).each.to_a
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
     # Retrieve workflow_json from BuildExistingModel measure if provided
-    workflow_json = get_value_from_runner_past_results(runner, 'workflow_json', 'build_existing_model', false)
+    values = get_values_from_runner_past_results(runner, 'build_existing_model')
+    workflow_json = values['workflow_json']
     if not workflow_json.nil?
       workflow_json = File.join(resources_dir, workflow_json)
     end
@@ -263,6 +266,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         print_option_assignment(parameter_name, option_name, runner)
 
         # Register cost values/multipliers/lifetime for applied options; used by the SimulationOutputReport measure
+        register_value(runner, 'option_%02d_name_applied' % option_num, option)
         for cost_num in 1..num_costs_per_option
           cost_value = runner.getOptionalDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value", user_arguments)
           if cost_value.nil?
@@ -289,7 +293,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
       measures.keys.each do |measure_subdir|
         parameters.each do |parameter_name|
-          existing_option_name = get_value_from_runner_past_results(runner, parameter_name, 'build_existing_model')
+          existing_option_name = values[OpenStudio::toUnderscoreCase(parameter_name)]
 
           options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
           options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
