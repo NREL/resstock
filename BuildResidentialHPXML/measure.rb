@@ -1255,7 +1255,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     hvac_control_type_choices << HPXML::HVACControlTypeManual
     hvac_control_type_choices << HPXML::HVACControlTypeProgrammable
 
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('hvac_control_type', hvac_control_type_choices, true)
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('hvac_control_type', hvac_control_type_choices, false)
     arg.setDisplayName('HVAC Control: Type')
     arg.setDescription('The type of thermostat.')
     arg.setDefaultValue(HPXML::HVACControlTypeManual)
@@ -4473,8 +4473,12 @@ class HPXMLFile
 
     end
 
+    if args[:hvac_control_type].is_initialized
+      hvac_control_type = args[:hvac_control_type].get
+    end
+
     hpxml.hvac_controls.add(id: "HVACControl#{hpxml.hvac_controls.size + 1}",
-                            control_type: args[:hvac_control_type],
+                            control_type: hvac_control_type,
                             heating_setpoint_temp: heating_setpoint_temp,
                             cooling_setpoint_temp: cooling_setpoint_temp,
                             weekday_heating_setpoints: weekday_heating_setpoints,
