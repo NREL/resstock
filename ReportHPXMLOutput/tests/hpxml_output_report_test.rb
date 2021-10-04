@@ -26,6 +26,9 @@ class ReportHPXMLOutputTest < MiniTest::Test
     'Systems: Heat Pump Backup Capacity (kBtu/h)',
     'Systems: Water Heater Tank Volume (gal)',
     'Systems: Mechanical Ventilation Flow Rate (cfm)',
+    'Primary Systems: Cooling Capacity (kBtu/h)',
+    'Primary Systems: Heating Capacity (kBtu/h)',
+    'Primary Systems: Heat Pump Backup Capacity (kBtu/h)'
   ]
 
   def test_base_results_hpxml
@@ -37,7 +40,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
     assert_equal(expected_rows.sort, actual_rows.sort)
   end
 
-  def test_base_results_hpxml_with_primary_systems
+  def test_base_results_hpxml_with_secondary_systems
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base-hvac-multiple.xml' }
     hpxml_csv = _test_measure(args_hash)
     assert(File.exist?(hpxml_csv))
@@ -59,22 +62,25 @@ class ReportHPXMLOutputTest < MiniTest::Test
 
     expected_multipliers = {
       'Enclosure: Wall Area Thermal Boundary (ft^2)' => 1200.0,
-      'Enclosure: Wall Area Exterior (ft^2)' => 1490.0,
+      'Enclosure: Wall Area Exterior (ft^2)' => 1425.0,
       'Enclosure: Foundation Wall Area Exterior (ft^2)' => 1200.0,
       'Enclosure: Floor Area Conditioned (ft^2)' => 2700.0,
       'Enclosure: Floor Area Lighting (ft^2)' => 2700.0,
       'Enclosure: Ceiling Area Thermal Boundary (ft^2)' => 1350.0,
-      'Enclosure: Roof Area (ft^2)' => 1509.3,
+      'Enclosure: Roof Area (ft^2)' => 1509.4,
       'Enclosure: Window Area (ft^2)' => 360.0,
       'Enclosure: Door Area (ft^2)' => 40.0,
       'Enclosure: Duct Area Unconditioned (ft^2)' => 200.0,
-      'Enclosure: Rim Joist Area (ft^2)' => 116.0,
+      'Enclosure: Rim Joist Area (ft^2)' => 115.6,
       'Enclosure: Slab Exposed Perimeter Thermal Boundary (ft)' => 150.0,
       'Systems: Heating Capacity (kBtu/h)' => 36.0,
       'Systems: Cooling Capacity (kBtu/h)' => 24.0,
       'Systems: Heat Pump Backup Capacity (kBtu/h)' => 0.0,
       'Systems: Water Heater Tank Volume (gal)' => 40.0,
       'Systems: Mechanical Ventilation Flow Rate (cfm)' => 0.0,
+      'Primary Systems: Heating Capacity (kBtu/h)' => 36.0,
+      'Primary Systems: Cooling Capacity (kBtu/h)' => 24.0,
+      'Primary Systems: Heat Pump Backup Capacity (kBtu/h)' => 0.0
     }
 
     actual_multipliers = {}
@@ -95,22 +101,25 @@ class ReportHPXMLOutputTest < MiniTest::Test
 
     expected_multipliers = {
       'Enclosure: Wall Area Thermal Boundary (ft^2)' => 1200.0,
-      'Enclosure: Wall Area Exterior (ft^2)' => 1490.0,
+      'Enclosure: Wall Area Exterior (ft^2)' => 1425.0,
       'Enclosure: Foundation Wall Area Exterior (ft^2)' => 1200.0,
       'Enclosure: Floor Area Conditioned (ft^2)' => 2700.0,
       'Enclosure: Floor Area Lighting (ft^2)' => 2700.0,
       'Enclosure: Ceiling Area Thermal Boundary (ft^2)' => 1350.0,
-      'Enclosure: Roof Area (ft^2)' => 1509.3,
+      'Enclosure: Roof Area (ft^2)' => 1509.4,
       'Enclosure: Window Area (ft^2)' => 360.0,
       'Enclosure: Door Area (ft^2)' => 40.0,
       'Enclosure: Duct Area Unconditioned (ft^2)' => 200.0,
-      'Enclosure: Rim Joist Area (ft^2)' => 116.0,
+      'Enclosure: Rim Joist Area (ft^2)' => 115.6,
       'Enclosure: Slab Exposed Perimeter Thermal Boundary (ft)' => 150.0,
       'Systems: Heating Capacity (kBtu/h)' => 36.0,
       'Systems: Cooling Capacity (kBtu/h)' => 36.0,
       'Systems: Heat Pump Backup Capacity (kBtu/h)' => 36.0,
       'Systems: Water Heater Tank Volume (gal)' => 40.0,
       'Systems: Mechanical Ventilation Flow Rate (cfm)' => 0.0,
+      'Primary Systems: Heating Capacity (kBtu/h)' => 36.0,
+      'Primary Systems: Cooling Capacity (kBtu/h)' => 36.0,
+      'Primary Systems: Heat Pump Backup Capacity (kBtu/h)' => 36.0
     }
 
     actual_multipliers = {}

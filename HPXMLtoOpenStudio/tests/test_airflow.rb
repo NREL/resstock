@@ -513,8 +513,8 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
       foundation.within_infiltration_volume = true
     end
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas
-    assert_in_delta(5066, exterior_area, 1.0)
-    assert_in_delta(5066, total_area, 1.0)
+    assert_in_delta(5000, exterior_area, 1.0)
+    assert_in_delta(5000, total_area, 1.0)
 
     # Test unvented attic/crawlspace not within infiltration volume
     hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unvented-crawlspace.xml')))
