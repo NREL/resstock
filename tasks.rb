@@ -685,7 +685,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['pv_system_2_inverter_efficiency'] = 0.96
     args['pv_system_2_system_losses_fraction'] = 0.14
     args['pv_system_2_num_units_served'] = 1
-    args['lighting_present'] = true
     args['lighting_interior_fraction_cfl'] = 0.4
     args['lighting_interior_fraction_lfl'] = 0.1
     args['lighting_interior_fraction_led'] = 0.25
