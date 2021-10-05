@@ -1177,6 +1177,11 @@ If a backup system fuel is provided, additional information is entered in ``Heat
   .. [#] Provide BackupHeatingSwitchoverTemperature for, e.g., a dual-fuel heat pump, in which there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
          If not provided, the backup heating system will operate as needed when the heat pump has insufficient capacity.
 
+.. note::
+
+  The heat pump's distribution system and blower fan power will apply to any backup heating specified.
+  So the backup heating can represent, e.g., built-in electric resistance heating or an integrated backup furnace (in the case of a dual-fuel heat pump).
+
 Air-to-Air Heat Pump
 ~~~~~~~~~~~~~~~~~~~~
 

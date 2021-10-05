@@ -2088,7 +2088,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('lighting_present', true)
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('lighting_present', false)
     arg.setDisplayName('Lighting: Present')
     arg.setDescription('Whether there is lighting energy use.')
     arg.setDefaultValue(true)
@@ -4979,7 +4979,7 @@ class HPXMLFile
   end
 
   def self.set_lighting(hpxml, runner, args)
-    return unless args[:lighting_present]
+    return if args[:lighting_present].is_initialized && (not args[:lighting_present].get)
 
     hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
                               location: HPXML::LocationInterior,
