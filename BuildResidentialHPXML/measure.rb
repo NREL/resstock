@@ -2097,19 +2097,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_interior_fraction_cfl', true)
     arg.setDisplayName('Lighting: Interior Fraction CFL')
     arg.setDescription('Fraction of all lamps (interior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.4)
+    arg.setDefaultValue(0.1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_interior_fraction_lfl', true)
     arg.setDisplayName('Lighting: Interior Fraction LFL')
     arg.setDescription('Fraction of all lamps (interior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.1)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_interior_fraction_led', true)
     arg.setDisplayName('Lighting: Interior Fraction LED')
     arg.setDescription('Fraction of all lamps (interior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.25)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_interior_usage_multiplier', true)
@@ -2121,19 +2121,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_exterior_fraction_cfl', true)
     arg.setDisplayName('Lighting: Exterior Fraction CFL')
     arg.setDescription('Fraction of all lamps (exterior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.4)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_exterior_fraction_lfl', true)
     arg.setDisplayName('Lighting: Exterior Fraction LFL')
     arg.setDescription('Fraction of all lamps (exterior) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.1)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_exterior_fraction_led', true)
     arg.setDisplayName('Lighting: Exterior Fraction LED')
     arg.setDescription('Fraction of all lamps (exterior) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.25)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_exterior_usage_multiplier', true)
@@ -2145,19 +2145,19 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_garage_fraction_cfl', true)
     arg.setDisplayName('Lighting: Garage Fraction CFL')
     arg.setDescription('Fraction of all lamps (garage) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.4)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_garage_fraction_lfl', true)
     arg.setDisplayName('Lighting: Garage Fraction LFL')
     arg.setDescription('Fraction of all lamps (garage) that are linear fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.1)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_garage_fraction_led', true)
     arg.setDisplayName('Lighting: Garage Fraction LED')
     arg.setDescription('Fraction of all lamps (garage) that are light emitting diodes. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.')
-    arg.setDefaultValue(0.25)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('lighting_garage_usage_multiplier', true)
@@ -2452,7 +2452,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('extra_refrigerator_location', appliance_location_choices, true)
     arg.setDisplayName('Extra Refrigerator: Location')
     arg.setDescription('The space type for the extra refrigerator location.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue('none')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('extra_refrigerator_rated_annual_kwh', true)
@@ -2471,7 +2471,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('freezer_location', appliance_location_choices, true)
     arg.setDisplayName('Freezer: Location')
     arg.setDescription('The space type for the freezer location.')
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDefaultValue('none')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('freezer_rated_annual_kwh', true)
@@ -2547,7 +2547,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Ceiling Fan: Cooling Setpoint Temperature Offset')
     arg.setUnits('deg-F')
     arg.setDescription('The setpoint temperature offset during cooling season for the ceiling fan(s). Only applies if ceiling fan quantity is greater than zero.')
-    arg.setDefaultValue(0.5)
+    arg.setDefaultValue(0.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('misc_plug_loads_television_present', true)

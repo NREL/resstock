@@ -5,6 +5,7 @@ __New Features__
 - **Breaking change**: Replaces "Unmet Load" outputs with "Unmet Hours".
 - **Breaking change**: Renames "Load: Heating" and "Peak Load: Heating" (and Cooling) outputs to include "Delivered".
 - **Breaking change**: Replaces ClothesDryer `extension/IsVented` and `extension/VentedFlowRate` with `Vented` and `VentedFlowRate`.
+- Initial release of BuildResidentialHPXML measure, which generates an HPXML file from a set of building description inputs.
 - Expanded capabilities for scheduling:
   - Allows modeling detailed occupancy via a schedule CSV file.
   - Introduces a measure for automatically generating detailed smooth/stochastic schedule CSV files.
