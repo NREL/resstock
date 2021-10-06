@@ -391,7 +391,7 @@ class Geometry
     end
 
     # Attic
-    if roof_type != 'flat'
+    if attic_type != HPXML::AtticTypeFlatRoof
 
       z += average_ceiling_height
 
@@ -571,7 +571,7 @@ class Geometry
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
 
-    if has_garage && (roof_type != 'flat')
+    if has_garage && attic_type != HPXML::AtticTypeFlatRoof
       if num_floors > 1
         space_with_roof_over_garage = living_space
       else
@@ -1683,7 +1683,6 @@ class Geometry
       adb_facade += ['back']
     end
 
-    adiabatic_surf = adb_facade
     # Make surfaces adiabatic
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
@@ -1719,7 +1718,7 @@ class Geometry
     end
 
     # attic
-    if roof_type != 'flat'
+    if attic_type != HPXML::AtticTypeFlatRoof
       attic_space = get_attic_space(model, x, y, average_ceiling_height, num_floors, num_units, roof_pitch, roof_type, rim_joist_height)
       if attic_type == HPXML::AtticTypeConditioned
         attic_space.setName("#{attic_type} space")
@@ -1827,7 +1826,7 @@ class Geometry
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
 
-    if [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(attic_type) && (roof_type != 'flat')
+    if [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(attic_type)
       attic_spaces.each do |attic_space|
         attic_space.remove
       end
@@ -2016,11 +2015,11 @@ class Geometry
     back_wall = geometry_unit_back_wall_is_adiabatic # TODO: use this for corridor?
 
     level = 'Bottom'
-    if attic_type == 'Adiabatic' && foundation_type == 'Adiabatic'
+    if attic_type == HPXML::AtticTypeBelowApartment && foundation_type == HPXML::FoundationTypeAboveApartment
       level = 'Middle'
-    elsif attic_type == 'Adiabatic'
+    elsif attic_type == HPXML::AtticTypeBelowApartment
       level = 'Bottom'
-    elsif foundation_type == 'Adiabatic'
+    elsif foundation_type == HPXML::FoundationTypeAboveApartment
       level = 'Top'
     end
 
@@ -2044,7 +2043,7 @@ class Geometry
       rim_joist_height = 0.0
     end
 
-    if attic_type == 'Adiabatic'
+    if attic_type == HPXML::AtticTypeBelowApartment
       attic_type = HPXML::LocationOtherHousingUnit
     end
 
@@ -2155,7 +2154,6 @@ class Geometry
       adb_facade += ['back']
     end
 
-    adiabatic_surf = adb_facade + adb_level
     # Make living space surfaces adiabatic
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
