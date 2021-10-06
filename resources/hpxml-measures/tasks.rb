@@ -1244,7 +1244,7 @@ def set_measure_argument_values(hpxml_file, args)
 
   # Attic/roof
   if ['base-atticroof-flat.xml'].include? hpxml_file
-    args['geometry_roof_type'] = 'flat'
+    args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
     args['roof_assembly_r'] = 25.8
     args['ducts_supply_leakage_to_outside_value'] = 0.0
     args['ducts_return_leakage_to_outside_value'] = 0.0
@@ -1329,8 +1329,8 @@ def set_measure_argument_values(hpxml_file, args)
     args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
     args['geometry_unit_cfa'] = 900.0
     args['geometry_corridor_position'] = 'None'
-    args['geometry_foundation_type'] = 'Adiabatic'
-    args['geometry_attic_type'] = 'Adiabatic'
+    args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
+    args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     args['geometry_unit_right_wall_is_adiabatic'] = true
     args['geometry_building_num_units'] = 6
     args['geometry_building_num_bedrooms'] = 6 * 3

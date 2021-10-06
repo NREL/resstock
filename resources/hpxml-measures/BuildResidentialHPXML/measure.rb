@@ -329,7 +329,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     foundation_type_choices << HPXML::FoundationTypeBasementUnconditioned
     foundation_type_choices << HPXML::FoundationTypeBasementConditioned
     foundation_type_choices << HPXML::FoundationTypeAmbient
-    foundation_type_choices << 'Adiabatic'
+    foundation_type_choices << HPXML::FoundationTypeAboveApartment # I.e., adiabatic
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_foundation_type', foundation_type_choices, true)
     arg.setDisplayName('Geometry: Foundation Type')
@@ -357,14 +357,26 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The height of the rim joists. Only applies to basements/crawlspaces.')
     args << arg
 
+    attic_type_choices = OpenStudio::StringVector.new
+    attic_type_choices << HPXML::AtticTypeFlatRoof
+    attic_type_choices << HPXML::AtticTypeVented
+    attic_type_choices << HPXML::AtticTypeUnvented
+    attic_type_choices << HPXML::AtticTypeConditioned
+    attic_type_choices << HPXML::AtticTypeBelowApartment # I.e., adiabatic
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_attic_type', attic_type_choices, true)
+    arg.setDisplayName('Geometry: Attic Type')
+    arg.setDescription('The attic type of the building.')
+    arg.setDefaultValue(HPXML::AtticTypeVented)
+    args << arg
+
     roof_type_choices = OpenStudio::StringVector.new
     roof_type_choices << 'gable'
     roof_type_choices << 'hip'
-    roof_type_choices << 'flat'
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_roof_type', roof_type_choices, true)
     arg.setDisplayName('Geometry: Roof Type')
-    arg.setDescription("The roof type of the building. Assumed flat for #{HPXML::ResidentialTypeApartment}s.")
+    arg.setDescription('The roof type of the building. Ignored if the building has a flat roof.')
     arg.setDefaultValue('gable')
     args << arg
 
@@ -386,18 +398,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Geometry: Roof Pitch')
     arg.setDescription('The roof pitch of the attic. Ignored if the building has a flat roof.')
     arg.setDefaultValue('6:12')
-    args << arg
-
-    attic_type_choices = OpenStudio::StringVector.new
-    attic_type_choices << HPXML::AtticTypeVented
-    attic_type_choices << HPXML::AtticTypeUnvented
-    attic_type_choices << HPXML::AtticTypeConditioned
-    attic_type_choices << 'Adiabatic'
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_attic_type', attic_type_choices, true)
-    arg.setDisplayName('Geometry: Attic Type')
-    arg.setDescription('The attic type of the building. Ignored if the building has a flat roof.')
-    arg.setDefaultValue(HPXML::AtticTypeVented)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_eaves_depth', true)
@@ -3033,7 +3033,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     end
 
     # vented/unvented attic with floor and roof insulation
-    warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1) && (args[:roof_assembly_r] > 2.3)
+    warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:ceiling_assembly_r] > 2.1) && (args[:roof_assembly_r] > 2.3)
     warnings << "geometry_attic_type=#{args[:geometry_attic_type]} and ceiling_assembly_r=#{args[:ceiling_assembly_r]} and roof_assembly_r=#{args[:roof_assembly_r]}" if warning
 
     # conditioned basement with ceiling insulation
@@ -3041,7 +3041,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and floor_over_foundation_assembly_r=#{args[:floor_over_foundation_assembly_r]}" if warning
 
     # conditioned attic with floor insulation
-    warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1)
+    warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:ceiling_assembly_r] > 2.1)
     warnings << "geometry_attic_type=#{args[:geometry_attic_type]} and ceiling_assembly_r=#{args[:ceiling_assembly_r]}" if warning
 
     # conditioned attic but only one above-grade floor
@@ -3294,12 +3294,6 @@ class HPXMLFile
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
       success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
-      args[:geometry_roof_type] = 'flat'
-      # FIXME: I think ideally we'd change geometry_corridor_position to have choices of None, Front, Back, Left, Right
-      if !args[:geometry_unit_back_wall_is_adiabatic] && ['Double-Loaded Interior', 'Double Exterior'].include?(args[:geometry_corridor_position])
-        args[:geometry_unit_back_wall_is_adiabatic] = true if args[:geometry_corridor_position] == 'Double Exterior'
-        args[:geometry_corridor_position] = 'Single Exterior (Front)'
-      end
       success = Geometry.create_multifamily(runner: runner, model: model, **args)
     end
     return false if not success
@@ -3370,7 +3364,7 @@ class HPXMLFile
       hpxml.site.site_type = args[:site_type].get
     end
 
-    if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type])
+    if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? args[:geometry_unit_type]
       if args[:geometry_unit_left_wall_is_adiabatic] && args[:geometry_unit_right_wall_is_adiabatic]
         hpxml.site.surroundings = HPXML::SurroundingsTwoSides
       elsif args[:geometry_unit_left_wall_is_adiabatic] || args[:geometry_unit_right_wall_is_adiabatic]
@@ -3378,6 +3372,22 @@ class HPXMLFile
       else
         hpxml.site.surroundings = HPXML::SurroundingsStandAlone
       end
+      if args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment
+        if args[:geometry_foundation_type] == HPXML::FoundationTypeAboveApartment
+          hpxml.site.vertical_surroundings = HPXML::VerticalSurroundingsAboveAndBelow
+        else
+          hpxml.site.vertical_surroundings = HPXML::VerticalSurroundingsAbove
+        end
+      else
+        if args[:geometry_foundation_type] == HPXML::FoundationTypeAboveApartment
+          hpxml.site.vertical_surroundings = HPXML::VerticalSurroundingsBelow
+        else
+          hpxml.site.vertical_surroundings = HPXML::VerticalSurroundingsNoAboveOrBelow
+        end
+      end
+    elsif [HPXML::ResidentialTypeSFD].include? args[:geometry_unit_type]
+      hpxml.site.surroundings = HPXML::SurroundingsStandAlone
+      hpxml.site.vertical_surroundings = HPXML::VerticalSurroundingsNoAboveOrBelow
     end
 
     hpxml.site.azimuth_of_front_of_home = args[:geometry_unit_orientation]
@@ -3482,7 +3492,7 @@ class HPXMLFile
 
   def self.set_roofs(hpxml, runner, model, args, sorted_surfaces)
     args[:geometry_roof_pitch] *= 12.0
-    if args[:geometry_roof_type] == 'flat'
+    if args[:geometry_attic_type] == HPXML::AtticTypeFlatRoof
       args[:geometry_roof_pitch] = 0.0
     end
 
@@ -3506,7 +3516,7 @@ class HPXMLFile
         radiant_barrier_grade = args[:roof_radiant_barrier_grade]
       end
 
-      if args[:geometry_roof_type] == 'flat'
+      if args[:geometry_attic_type] == HPXML::AtticTypeFlatRoof
         azimuth = nil
       else
         azimuth = Geometry.get_surface_azimuth(surface: surface, orientation: args[:geometry_unit_orientation])
@@ -3745,7 +3755,7 @@ class HPXMLFile
       args[:floor_over_foundation_assembly_r] = 2.1 # Uninsulated
     end
 
-    if [HPXML::AtticTypeConditioned].include?(args[:geometry_attic_type]) && (args[:geometry_roof_type] != 'flat') && (args[:ceiling_assembly_r] > 2.1)
+    if [HPXML::AtticTypeConditioned].include?(args[:geometry_attic_type]) && (args[:ceiling_assembly_r] > 2.1)
       args[:ceiling_assembly_r] = 2.1 # Uninsulated
     end
 
@@ -3987,8 +3997,6 @@ class HPXMLFile
   end
 
   def self.set_attics(hpxml, runner, model, args)
-    return if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
-
     surf_ids = { 'roofs' => { 'surfaces' => hpxml.roofs, 'ids' => [] },
                  'walls' => { 'surfaces' => hpxml.walls, 'ids' => [] },
                  'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] } }
@@ -4003,21 +4011,14 @@ class HPXMLFile
       end
     end
 
-    if args[:geometry_roof_type] == 'flat'
-      hpxml.attics.add(id: "Attic#{hpxml.attics.size + 1}",
-                       attic_type: HPXML::AtticTypeFlatRoof)
-    else
-      hpxml.attics.add(id: "Attic#{hpxml.attics.size + 1}",
-                       attic_type: args[:geometry_attic_type],
-                       attached_to_roof_idrefs: surf_ids['roofs']['ids'],
-                       attached_to_wall_idrefs: surf_ids['walls']['ids'],
-                       attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'])
-    end
+    hpxml.attics.add(id: "Attic#{hpxml.attics.size + 1}",
+                     attic_type: args[:geometry_attic_type],
+                     attached_to_roof_idrefs: surf_ids['roofs']['ids'],
+                     attached_to_wall_idrefs: surf_ids['walls']['ids'],
+                     attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'])
   end
 
   def self.set_foundations(hpxml, runner, model, args)
-    return if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
-
     surf_ids = { 'slabs' => { 'surfaces' => hpxml.slabs, 'ids' => [] },
                  'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] },
                  'foundation_walls' => { 'surfaces' => hpxml.foundation_walls, 'ids' => [] },
