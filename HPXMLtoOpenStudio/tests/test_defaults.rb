@@ -1878,7 +1878,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
     hpxml.water_heating_systems[0].is_shared_system = true
     hpxml.water_heating_systems[0].number_of_units_served = 6
-    hpxml.water_heating_systems[0].fraction_dhw_load_served = 0
     hpxml.clothes_washers[0].location = HPXML::LocationBasementConditioned
     hpxml.clothes_washers[0].is_shared_appliance = true
     hpxml.clothes_washers[0].usage_multiplier = 1.5
@@ -1935,7 +1934,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
     hpxml.water_heating_systems[0].is_shared_system = true
     hpxml.water_heating_systems[0].number_of_units_served = 6
-    hpxml.water_heating_systems[0].fraction_dhw_load_served = 0
     hpxml.clothes_dryers[0].location = HPXML::LocationBasementConditioned
     hpxml.clothes_dryers[0].is_shared_appliance = true
     hpxml.clothes_dryers[0].combined_energy_factor = 3.33
@@ -2011,7 +2009,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
     hpxml.water_heating_systems[0].is_shared_system = true
     hpxml.water_heating_systems[0].number_of_units_served = 6
-    hpxml.water_heating_systems[0].fraction_dhw_load_served = 0
     hpxml.dishwashers[0].location = HPXML::LocationBasementConditioned
     hpxml.dishwashers[0].is_shared_appliance = true
     hpxml.dishwashers[0].usage_multiplier = 1.3

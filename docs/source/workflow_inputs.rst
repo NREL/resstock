@@ -1177,6 +1177,11 @@ If a backup system fuel is provided, additional information is entered in ``Heat
   .. [#] Provide BackupHeatingSwitchoverTemperature for, e.g., a dual-fuel heat pump, in which there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
          If not provided, the backup heating system will operate as needed when the heat pump has insufficient capacity.
 
+.. note::
+
+  The heat pump's distribution system and blower fan power will apply to any backup heating specified.
+  So the backup heating can represent, e.g., built-in electric resistance heating or an integrated backup furnace (in the case of a dual-fuel heat pump).
+
 Air-to-Air Heat Pump
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -2247,7 +2252,7 @@ If not entered, the simulation will not include a refrigerator.
   =====================================================  =======  ======  ===========  ========  ========  ======================================
   ``SystemIdentifier``                                   id                            Yes                 Unique identifier
   ``Location``                                           string           See [#]_     No        See [#]_  Location
-  ``RatedAnnualkWh`` or ``extension/AdjustedAnnualkWh``  double   kWh/yr  > 0          No        See [#]_  Annual consumption
+  ``RatedAnnualkWh``                                     double   kWh/yr  > 0          No        See [#]_  Annual consumption
   ``PrimaryIndicator``                                   boolean                       See [#]_            Primary refrigerator?
   ``extension/UsageMultiplier``                          double           >= 0         No        1.0       Multiplier on energy use
   ``extension/WeekdayScheduleFractions``                 array                         No        See [#]_  24 comma-separated weekday fractions
@@ -2259,7 +2264,7 @@ If not entered, the simulation will not include a refrigerator.
          See :ref:`hpxmllocations` for descriptions.
   .. [#] If Location not provided and is the *primary* refrigerator, defaults to "living space".
          If Location not provided and is a *secondary* refrigerator, defaults to the first present space type: "garage", "basement - unconditioned", "basement - conditioned", or "living space".
-  .. [#] If neither RatedAnnualkWh nor AdjustedAnnualkWh provided, it will be defaulted to represent a standard refrigerator from 2006 using the following equation based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_:
+  .. [#] If RatedAnnualkWh not provided, it will be defaulted to represent a standard refrigerator from 2006 using the following equation based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_:
          RatedAnnualkWh = 637.0 + 18.0 * NumberofBedrooms.
   .. [#] If multiple refrigerators are specified, there must be exactly one refrigerator described with PrimaryIndicator=true.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figure 16 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041".
@@ -2276,7 +2281,7 @@ If not entered, the simulation will not include a standalone freezer.
   =====================================================  ======  ======  ===========  ========  ==========  ======================================
   ``SystemIdentifier``                                   id                           Yes                   Unique identifier
   ``Location``                                           string          See [#]_     No        See [#]_    Location
-  ``RatedAnnualkWh`` or ``extension/AdjustedAnnualkWh``  double  kWh/yr  > 0          No        319.8 [#]_  Annual consumption
+  ``RatedAnnualkWh``                                     double  kWh/yr  > 0          No        319.8 [#]_  Annual consumption
   ``extension/UsageMultiplier``                          double          >= 0         No        1.0         Multiplier on energy use
   ``extension/WeekdayScheduleFractions``                 array                        No        See [#]_    24 comma-separated weekday fractions
   ``extension/WeekendScheduleFractions``                 array                        No                    24 comma-separated weekend fractions

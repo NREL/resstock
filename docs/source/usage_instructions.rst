@@ -57,7 +57,11 @@ By default it will be found at the same location as the OSW file.
 
 Another example:
 ``openstudio run -w workflow/template-stochastic-schedules.osw``
-This run includes the automatic generation of a CSV file with stochastic occupancy schedules that are used in the EnergyPlus simulation.
+This workflow automatically generates a CSV file with stochastic occupancy schedules before running the EnergyPlus simulation.
+
+And another example:
+``openstudio run -w workflow/template-build-hpxml-and-stocastic-schedules.osw``
+This workflow builds an HPXML file on the fly from building description inputs in the OSW, then automatically generates a CSV file with stochastic occupancy schedules, and finally runs the EnergyPlus simulation.
 
 Outputs
 ~~~~~~~
