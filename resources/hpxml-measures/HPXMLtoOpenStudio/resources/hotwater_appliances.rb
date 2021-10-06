@@ -615,11 +615,7 @@ class HotWaterAndAppliances
 
   def self.calc_refrigerator_or_freezer_energy(refrigerator_or_freezer, is_outside = false)
     # Get values
-    annual_kwh = refrigerator_or_freezer.adjusted_annual_kwh
-    if annual_kwh.nil?
-      annual_kwh = refrigerator_or_freezer.rated_annual_kwh
-    end
-
+    annual_kwh = refrigerator_or_freezer.rated_annual_kwh
     annual_kwh *= refrigerator_or_freezer.usage_multiplier
     if not is_outside
       frac_sens = 1.0
