@@ -605,13 +605,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if args['geometry_unit_level'].is_initialized
       if args['geometry_unit_level'].get == 'Bottom'
         if args['geometry_num_floors_above_grade'] > 1 # this could be "bottom" of a 1-story building
-          args['geometry_attic_type'] = 'Adiabatic'
+          args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
         end
       elsif args['geometry_unit_level'].get == 'Middle'
-        args['geometry_foundation_type'] = 'Adiabatic'
-        args['geometry_attic_type'] = 'Adiabatic'
+        args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
+        args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
       elsif args['geometry_unit_level'].get == 'Top'
-        args['geometry_foundation_type'] = 'Adiabatic'
+        args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
       end
     end
 
