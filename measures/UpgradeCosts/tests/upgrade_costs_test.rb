@@ -666,5 +666,9 @@ class UpgradeCostsTest < MiniTest::Test
         assert_in_epsilon(mult_value, value, 0.05)
       end
     end
+
+    # Clean up
+    File.delete(File.join(File.dirname(__FILE__), osw_file.gsub('.osw', '.xml')))
+    Dir.glob(File.join(File.dirname(__FILE__), 'in.*')).each { |f| File.delete(f) }
   end
 end
