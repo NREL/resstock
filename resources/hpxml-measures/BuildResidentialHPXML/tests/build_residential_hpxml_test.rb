@@ -590,9 +590,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_unit_cfa'] = 900.0
       args['geometry_corridor_position'] = 'None'
       args['geometry_foundation_type'] = HPXML::FoundationTypeBasementUnconditioned
-      args['geometry_attic_type'] = 'Adiabatic'
-      args['geometry_foundation_type'] = 'Adiabatic'
-
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
       args['geometry_unit_right_wall_is_adiabatic'] = true
       args['geometry_building_num_units'] = 6
       args['geometry_building_num_bedrooms'] = 6 * 3
@@ -740,7 +739,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['extra-zero-dishwasher-kwh.xml'].include? hpxml_file
       args['dishwasher_efficiency'] = 0
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
-      args['geometry_roof_type'] = 'flat'
+      args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0
       args['ducts_return_leakage_to_outside_value'] = 0.0
       args['ducts_supply_location'] = HPXML::LocationBasementConditioned
@@ -833,56 +832,53 @@ class BuildResidentialHPXMLTest < MiniTest::Test
            'extra-mf-vented-crawlspace-left-bottom.xml',
            'extra-mf-unvented-crawlspace-left-bottom.xml'].include? hpxml_file
       args['geometry_unit_right_wall_is_adiabatic'] = true
-      args['geometry_attic_type'] = 'Adiabatic'
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['extra-mf-slab-left-middle.xml',
            'extra-mf-vented-crawlspace-left-middle.xml',
            'extra-mf-unvented-crawlspace-left-middle.xml'].include? hpxml_file
       args['geometry_unit_right_wall_is_adiabatic'] = true
-      args['geometry_attic_type'] = 'Adiabatic'
-      args['geometry_foundation_type'] = 'Adiabatic'
-
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-left-top.xml',
            'extra-mf-vented-crawlspace-left-top.xml',
            'extra-mf-unvented-crawlspace-left-top.xml'].include? hpxml_file
       args['geometry_unit_right_wall_is_adiabatic'] = true
-      args['geometry_foundation_type'] = 'Adiabatic'
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-middle-bottom.xml',
            'extra-mf-vented-crawlspace-middle-bottom.xml',
            'extra-mf-unvented-crawlspace-middle-bottom.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
       args['geometry_unit_right_wall_is_adiabatic'] = true
-      args['geometry_attic_type'] = 'Adiabatic'
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['extra-mf-slab-middle-middle.xml',
            'extra-mf-vented-crawlspace-middle-middle.xml',
            'extra-mf-unvented-crawlspace-middle-middle.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
       args['geometry_unit_right_wall_is_adiabatic'] = true
-      args['geometry_attic_type'] = 'Adiabatic'
-      args['geometry_foundation_type'] = 'Adiabatic'
-
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-middle-top.xml',
            'extra-mf-vented-crawlspace-middle-top.xml',
            'extra-mf-unvented-crawlspace-middle-top.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
       args['geometry_unit_right_wall_is_adiabatic'] = true
-
-      args['geometry_foundation_type'] = 'Adiabatic'
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-right-bottom.xml',
            'extra-mf-vented-crawlspace-right-bottom.xml',
            'extra-mf-unvented-crawlspace-right-bottom.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
-      args['geometry_attic_type'] = 'Adiabatic'
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['extra-mf-slab-right-middle.xml',
            'extra-mf-vented-crawlspace-right-middle.xml',
            'extra-mf-unvented-crawlspace-right-middle.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
-      args['geometry_attic_type'] = 'Adiabatic'
-      args['geometry_foundation_type'] = 'Adiabatic'
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-right-top.xml',
            'extra-mf-vented-crawlspace-right-top.xml',
            'extra-mf-unvented-crawlspace-right-top.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
-      args['geometry_foundation_type'] = 'Adiabatic'
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-interior-corridor.xml',
            'extra-mf-vented-crawlspace-interior-corridor.xml',
            'extra-mf-unvented-crawlspace-interior-corridor.xml',
@@ -937,7 +933,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['error-mf-bottom-crawlspace-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
       args['geometry_foundation_height'] = 0.0
-      args['geometry_attic_type'] = 'Adiabatic'
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
       args['foundation_wall_insulation_distance_to_bottom'] = Constants.Auto
     elsif ['error-ducts-location-and-areas-not-same-type.xml'].include? hpxml_file
       args['ducts_supply_location'] = Constants.Auto
@@ -980,7 +976,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['warning-mf-bottom-slab-non-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
       args['geometry_foundation_height_above_grade'] = 0.0
-      args['geometry_attic_type'] = 'Adiabatic'
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['warning-slab-non-zero-foundation-height-above-grade.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
       args['geometry_foundation_height'] = 0.0
@@ -1059,6 +1055,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         end
       end
       argument_map[arg.name] = temp_arg_var
+    end
+    args_hash.keys.each do |arg_name|
+      next if argument_map.keys.include? arg_name
+
+      fail "Unexpected argument name: #{arg_name}"
     end
 
     # run the measure

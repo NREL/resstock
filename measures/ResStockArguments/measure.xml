@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>adee5570-24e3-4944-859a-f677a0ef26d9</version_id>
-  <version_modified>20210929T180720Z</version_modified>
+  <version_id>008e6080-8f66-415e-b86b-127ba46c637e</version_id>
+  <version_modified>20211006T232328Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -443,9 +443,9 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>geometry_wall_height</name>
-      <display_name>Geometry: Average Wall Height</display_name>
-      <description>The average height of the walls.</description>
+      <name>geometry_average_ceiling_height</name>
+      <display_name>Geometry: Average Ceiling Height</display_name>
+      <description>Average distance from the floor to the ceiling.</description>
       <type>Double</type>
       <units>ft</units>
       <required>true</required>
@@ -512,55 +512,6 @@
       <default_value>10</default_value>
     </argument>
     <argument>
-      <name>geometry_inset_width</name>
-      <display_name>Geometry: Inset Width</display_name>
-      <description>The width of the inset. Only applies to apartment units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>geometry_inset_depth</name>
-      <display_name>Geometry: Inset Depth</display_name>
-      <description>The depth of the inset. Only applies to apartment units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>geometry_inset_position</name>
-      <display_name>Geometry: Inset Position</display_name>
-      <description>The position of the inset. Only applies to apartment units.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Right</default_value>
-      <choices>
-        <choice>
-          <value>Right</value>
-          <display_name>Right</display_name>
-        </choice>
-        <choice>
-          <value>Left</value>
-          <display_name>Left</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_balcony_depth</name>
-      <display_name>Geometry: Balcony Depth</display_name>
-      <description>The depth of the balcony. Only applies to apartment units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
       <name>geometry_foundation_type</name>
       <display_name>Geometry: Foundation Type</display_name>
       <description>The foundation type of the building.</description>
@@ -594,8 +545,8 @@
           <display_name>Ambient</display_name>
         </choice>
         <choice>
-          <value>Adiabatic</value>
-          <display_name>Adiabatic</display_name>
+          <value>AboveApartment</value>
+          <display_name>AboveApartment</display_name>
         </choice>
       </choices>
     </argument>
@@ -629,9 +580,40 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>geometry_attic_type</name>
+      <display_name>Geometry: Attic Type</display_name>
+      <description>The attic type of the building.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>VentedAttic</default_value>
+      <choices>
+        <choice>
+          <value>FlatRoof</value>
+          <display_name>FlatRoof</display_name>
+        </choice>
+        <choice>
+          <value>VentedAttic</value>
+          <display_name>VentedAttic</display_name>
+        </choice>
+        <choice>
+          <value>UnventedAttic</value>
+          <display_name>UnventedAttic</display_name>
+        </choice>
+        <choice>
+          <value>ConditionedAttic</value>
+          <display_name>ConditionedAttic</display_name>
+        </choice>
+        <choice>
+          <value>BelowApartment</value>
+          <display_name>BelowApartment</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>geometry_roof_type</name>
       <display_name>Geometry: Roof Type</display_name>
-      <description>The roof type of the building. Assumed flat for apartment units.</description>
+      <description>The roof type of the building. Ignored if the building has a flat roof.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -644,10 +626,6 @@
         <choice>
           <value>hip</value>
           <display_name>hip</display_name>
-        </choice>
-        <choice>
-          <value>flat</value>
-          <display_name>flat</display_name>
         </choice>
       </choices>
     </argument>
@@ -707,33 +685,6 @@
         <choice>
           <value>12:12</value>
           <display_name>12:12</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_attic_type</name>
-      <display_name>Geometry: Attic Type</display_name>
-      <description>The attic type of the building. Ignored if the building has a flat roof.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>VentedAttic</default_value>
-      <choices>
-        <choice>
-          <value>VentedAttic</value>
-          <display_name>VentedAttic</display_name>
-        </choice>
-        <choice>
-          <value>UnventedAttic</value>
-          <display_name>UnventedAttic</display_name>
-        </choice>
-        <choice>
-          <value>ConditionedAttic</value>
-          <display_name>ConditionedAttic</display_name>
-        </choice>
-        <choice>
-          <value>Adiabatic</value>
-          <display_name>Adiabatic</display_name>
         </choice>
       </choices>
     </argument>
@@ -856,6 +807,26 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>foundation_wall_insulation_location</name>
+      <display_name>Foundation Wall: Insulation Location</display_name>
+      <description>Whether the insulation is on the interior or exterior of the foundation wall. Only applies to basements/crawlspaces.</description>
+      <type>Choice</type>
+      <units>ft</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>exterior</default_value>
+      <choices>
+        <choice>
+          <value>interior</value>
+          <display_name>interior</display_name>
+        </choice>
+        <choice>
+          <value>exterior</value>
+          <display_name>exterior</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>foundation_wall_insulation_distance_to_top</name>
@@ -1421,6 +1392,15 @@
       <default_value>0</default_value>
     </argument>
     <argument>
+      <name>overhangs_front_distance_to_bottom_of_window</name>
+      <display_name>Overhangs: Front Distance to Bottom of Window</display_name>
+      <description>The overhangs distance to the bottom of window for the front facade.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>4</default_value>
+    </argument>
+    <argument>
       <name>overhangs_back_depth</name>
       <display_name>Overhangs: Back Depth</display_name>
       <description>The depth of overhangs for windows for the back facade.</description>
@@ -1437,6 +1417,15 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>overhangs_back_distance_to_bottom_of_window</name>
+      <display_name>Overhangs: Back Distance to Bottom of Window</display_name>
+      <description>The overhangs distance to the bottom of window for the back facade.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>4</default_value>
     </argument>
     <argument>
       <name>overhangs_left_depth</name>
@@ -1457,6 +1446,15 @@
       <default_value>0</default_value>
     </argument>
     <argument>
+      <name>overhangs_left_distance_to_bottom_of_window</name>
+      <display_name>Overhangs: Left Distance to Bottom of Window</display_name>
+      <description>The overhangs distance to the bottom of window for the left facade.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>4</default_value>
+    </argument>
+    <argument>
       <name>overhangs_right_depth</name>
       <display_name>Overhangs: Right Depth</display_name>
       <description>The depth of overhangs for windows for the right facade.</description>
@@ -1473,6 +1471,15 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>overhangs_right_distance_to_bottom_of_window</name>
+      <display_name>Overhangs: Right Distance to Bottom of Window</display_name>
+      <description>The overhangs distance to the bottom of window for the right facade.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>4</default_value>
     </argument>
     <argument>
       <name>skylight_area_front</name>
@@ -2213,6 +2220,25 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
+      <name>hvac_control_type</name>
+      <display_name>HVAC Control: Type</display_name>
+      <description>The type of thermostat.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>manual thermostat</default_value>
+      <choices>
+        <choice>
+          <value>manual thermostat</value>
+          <display_name>manual thermostat</display_name>
+        </choice>
+        <choice>
+          <value>programmable thermostat</value>
+          <display_name>programmable thermostat</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>hvac_control_heating_season_period</name>
       <display_name>HVAC Control: Heating Season Period</display_name>
       <description>Enter a date like "Nov 1 - Jun 30".</description>
@@ -2264,26 +2290,6 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>25</default_value>
-    </argument>
-    <argument>
-      <name>ducts_supply_insulation_r</name>
-      <display_name>Ducts: Supply Insulation R-Value</display_name>
-      <description>The insulation r-value of the supply ducts excluding air films.</description>
-      <type>Double</type>
-      <units>h-ft^2-R/Btu</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>ducts_return_insulation_r</name>
-      <display_name>Ducts: Return Insulation R-Value</display_name>
-      <description>The insulation r-value of the return ducts excluding air films.</description>
-      <type>Double</type>
-      <units>h-ft^2-R/Btu</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
     </argument>
     <argument>
       <name>ducts_supply_location</name>
@@ -2365,6 +2371,26 @@
       </choices>
     </argument>
     <argument>
+      <name>ducts_supply_insulation_r</name>
+      <display_name>Ducts: Supply Insulation R-Value</display_name>
+      <description>The insulation r-value of the supply ducts excluding air films.</description>
+      <type>Double</type>
+      <units>h-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>ducts_supply_surface_area</name>
+      <display_name>Ducts: Supply Surface Area</display_name>
+      <description>The surface area of the supply ducts.</description>
+      <type>String</type>
+      <units>ft^2</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
       <name>ducts_return_location</name>
       <display_name>Ducts: Return Location</display_name>
       <description>The location of the return ducts.</description>
@@ -2444,14 +2470,14 @@
       </choices>
     </argument>
     <argument>
-      <name>ducts_supply_surface_area</name>
-      <display_name>Ducts: Supply Surface Area</display_name>
-      <description>The surface area of the supply ducts.</description>
-      <type>String</type>
-      <units>ft^2</units>
+      <name>ducts_return_insulation_r</name>
+      <display_name>Ducts: Return Insulation R-Value</display_name>
+      <description>The insulation r-value of the return ducts excluding air films.</description>
+      <type>Double</type>
+      <units>h-ft^2-R/Btu</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>ducts_return_surface_area</name>
@@ -3143,6 +3169,16 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
+      <name>water_heater_heating_capacity</name>
+      <display_name>Water Heater: Heating Capacity</display_name>
+      <description>Heating capacity. Set to 'auto' to have heating capacity defaulted. Only applies to storage water heater.</description>
+      <type>String</type>
+      <units>Btu/hr</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
       <name>water_heater_standby_loss</name>
       <display_name>Water Heater: Standby Loss</display_name>
       <description>The standby loss of water heater. Only applies to space-heating boilers.</description>
@@ -3179,6 +3215,24 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1</default_value>
+    </argument>
+    <argument>
+      <name>water_heater_uses_desuperheater</name>
+      <display_name>Water Heater: Uses Desuperheater</display_name>
+      <description>Requires that the dwelling unit has a air-to-air, mini-split, or ground-to-air heat pump or a central air conditioner or mini-split air conditioner.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>hot_water_distribution_system_type</name>
@@ -3805,13 +3859,32 @@
       <default_value>1</default_value>
     </argument>
     <argument>
+      <name>lighting_present</name>
+      <display_name>Lighting: Present</display_name>
+      <description>Whether there is lighting energy use.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>lighting_interior_fraction_cfl</name>
       <display_name>Lighting: Interior Fraction CFL</display_name>
       <description>Fraction of all lamps (interior) that are compact fluorescent. Lighting not specified as CFL, LFL, or LED is assumed to be incandescent.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.4</default_value>
+      <default_value>0.1</default_value>
     </argument>
     <argument>
       <name>lighting_interior_fraction_lfl</name>
@@ -3820,7 +3893,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_interior_fraction_led</name>
@@ -3829,7 +3902,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_interior_usage_multiplier</name>
@@ -3847,7 +3920,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.4</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_fraction_lfl</name>
@@ -3856,7 +3929,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_fraction_led</name>
@@ -3865,7 +3938,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_usage_multiplier</name>
@@ -3883,7 +3956,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.4</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_garage_fraction_lfl</name>
@@ -3892,7 +3965,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_garage_fraction_led</name>
@@ -3901,7 +3974,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_garage_usage_multiplier</name>
@@ -4530,7 +4603,7 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>none</default_value>
       <choices>
         <choice>
           <value>auto</value>
@@ -4600,7 +4673,7 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>none</default_value>
       <choices>
         <choice>
           <value>auto</value>
@@ -4841,7 +4914,26 @@
       <units>deg-F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.5</default_value>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>misc_plug_loads_television_present</name>
+      <display_name>Misc Plug Loads: Television Present</display_name>
+      <description>Whether there are televisions.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>misc_plug_loads_other_annual_kwh</name>
@@ -5821,7 +5913,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>586E8560</checksum>
+      <checksum>A070A763</checksum>
     </file>
   </files>
 </measure>
