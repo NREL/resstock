@@ -2176,7 +2176,7 @@ class Geometry
       end
     end
 
-    if (corridor_position == 'Interior')
+    if (corridor_position == 'Double-Loaded Interior')
       interior_corridor_width = corridor_width / 2 # Only half the corridor is attached to a unit
       # corridors
       if corridor_width > 0
@@ -2204,7 +2204,7 @@ class Geometry
         corridor_space.setThermalZone(corridor_zone)
       end
 
-    elsif (corridor_position == 'Exterior')
+    elsif corridor_position.include?('Exterior')
       interior_corridor_width = 0
       # front access
       nw_point = OpenStudio::Point3d.new(0, -y, average_ceiling_height + rim_joist_height)
@@ -2224,7 +2224,7 @@ class Geometry
 
       # foundation corridor
       foundation_corridor_space = nil
-      if (corridor_width > 0) && (corridor_position == 'Interior')
+      if (corridor_width > 0) && (corridor_position == 'Double-Loaded Interior')
         foundation_corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
         foundation_corridor_space = foundation_corridor_space.get
         m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))

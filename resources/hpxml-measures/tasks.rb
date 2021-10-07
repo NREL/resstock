@@ -479,7 +479,7 @@ def set_measure_argument_values(hpxml_file, args)
     args['geometry_average_ceiling_height'] = 8.0
     args['geometry_unit_orientation'] = 180.0
     args['geometry_unit_aspect_ratio'] = 1.5
-    args['geometry_corridor_position'] = 'Interior'
+    args['geometry_corridor_position'] = 'Double-Loaded Interior'
     args['geometry_corridor_width'] = 10.0
     args['geometry_garage_width'] = 0.0
     args['geometry_garage_depth'] = 20.0
@@ -803,7 +803,7 @@ def set_measure_argument_values(hpxml_file, args)
     args['geometry_average_ceiling_height'] = 8.0
     args['geometry_unit_orientation'] = 180.0
     args['geometry_unit_aspect_ratio'] = 57.0 / 27.0
-    args['geometry_corridor_position'] = 'Interior'
+    args['geometry_corridor_position'] = 'Double-Loaded Interior'
     args['geometry_corridor_width'] = 0
     args['geometry_garage_width'] = 0
     args['geometry_garage_depth'] = 0
