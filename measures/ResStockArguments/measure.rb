@@ -600,7 +600,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Num Floors
-    args['geometry_unit_num_floors_above_grade'] = n_floors
+    args['geometry_unit_num_floors_above_grade'] = Integer(args['geometry_num_floors_above_grade'])
 
     # Adiabatic Floor/Ceiling
     if args['geometry_unit_level'].is_initialized
