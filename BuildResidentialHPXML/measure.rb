@@ -272,8 +272,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     corridor_position_choices = OpenStudio::StringVector.new
-    corridor_position_choices << 'Interior'
-    corridor_position_choices << 'Exterior'
+    corridor_position_choices << 'Double Exterior'
+    corridor_position_choices << 'Single Exterior (Front)'
+    corridor_position_choices << 'Double-Loaded Interior'
     corridor_position_choices << 'None'
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_corridor_position', corridor_position_choices, true)
@@ -3492,7 +3493,7 @@ class HPXMLFile
 
   def self.set_roofs(hpxml, runner, model, args, sorted_surfaces)
     args[:geometry_roof_pitch] *= 12.0
-    if args[:geometry_attic_type] == HPXML::AtticTypeFlatRoof
+    if (args[:geometry_attic_type] == HPXML::AtticTypeFlatRoof) || (args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment)
       args[:geometry_roof_pitch] = 0.0
     end
 
