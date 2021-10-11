@@ -3493,7 +3493,7 @@ class HPXMLFile
 
   def self.set_roofs(hpxml, runner, model, args, sorted_surfaces)
     args[:geometry_roof_pitch] *= 12.0
-    if args[:geometry_attic_type] == HPXML::AtticTypeFlatRoof
+    if args[:geometry_attic_type] == HPXML::AtticTypeFlatRoof or args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment
       args[:geometry_roof_pitch] = 0.0
     end
 
