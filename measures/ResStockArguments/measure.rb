@@ -519,13 +519,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['geometry_unit_right_wall_is_adiabatic'] = false
     args['geometry_unit_back_wall_is_adiabatic'] = false
 
-    # Corridors
-    # if args['geometry_corridor_position'].include?('Interior')
-    #   args['geometry_corridor_position'] = 'Interior'
-    # elsif args['geometry_corridor_position'].include?('Exterior')
-    #   args['geometry_corridor_position'] = 'Exterior'
-    # end
-
     # Infiltration adjustment for SFA/MF units
     n_floors = Float(args['geometry_num_floors_above_grade'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
