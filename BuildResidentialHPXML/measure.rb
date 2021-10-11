@@ -2952,17 +2952,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type]) && (args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient)
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]}" if error
 
-    # multifamily, bottom, slab, foundation height > 0
-    # if args[:geometry_unit_level].is_initialized
-    #   warning = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_unit_level].get == 'Bottom') && (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] > 0)
-    #   warnings << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_unit_level=#{args[:geometry_unit_level].get} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if warning
-    # end
+    # multifamily, slab, foundation height > 0
+    warning = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && 
+            ([HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include? args[:geometry_foundation_type]) &&
+            (args[:geometry_foundation_height] > 0)
+    warnings << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if warning
 
-    # multifamily, bottom, non slab, foundation height = 0
-    # if args[:geometry_unit_level].is_initialized
-    #   error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_unit_level].get == 'Bottom') && (args[:geometry_foundation_type] != HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] == 0)
-    #   errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_unit_level=#{args[:geometry_unit_level].get} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
-    # end
+    # multifamily, non slab, foundation height = 0
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && 
+            (![HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include? args[:geometry_foundation_type]) &&
+            (args[:geometry_foundation_height] == 0)
+    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
 
     # multifamily and finished basement
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned)
@@ -2987,35 +2987,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # second heating system but no primary heating system
     error = (args[:heating_system_type] == 'none') && (args[:heat_pump_type] == 'none') && (args[:heating_system_2_type] != 'none')
     errors << "heating_system_type=#{args[:heating_system_type]} and heat_pump_type=#{args[:heat_pump_type]} and heating_system_2_type=#{args[:heating_system_2_type]}" if error
-
-    # single-family attached and num units, horizontal location not specified
-    # error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_unit_horizontal_location].is_initialized)
-    # if error
-    #   error = "geometry_unit_type=#{args[:geometry_unit_type]}"
-    #   if !args[:geometry_building_num_units].is_initialized
-    #     error += ' and geometry_building_num_units=not provided'
-    #   end
-    #   if !args[:geometry_unit_horizontal_location].is_initialized
-    #     error += ' and geometry_unit_horizontal_location=not provided'
-    #   end
-    #   errors << error
-    # end
-
-    # apartment unit and num units, level, horizontal location not specified
-    # error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (!args[:geometry_building_num_units].is_initialized || !args[:geometry_unit_level].is_initialized || !args[:geometry_unit_horizontal_location].is_initialized)
-    # if error
-    #   error = "geometry_unit_type=#{args[:geometry_unit_type]}"
-    #   if !args[:geometry_building_num_units].is_initialized
-    #     error += ' and geometry_building_num_units=not provided'
-    #   end
-    #   if !args[:geometry_unit_level].is_initialized
-    #     error += ' and geometry_unit_level=not provided'
-    #   end
-    #   if !args[:geometry_unit_horizontal_location].is_initialized
-    #     error += ' and geometry_unit_horizontal_location=not provided'
-    #   end
-    #   errors << error
-    # end
 
     # crawlspace or unconditioned basement with foundation wall and ceiling insulation
     warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > 2.1)
