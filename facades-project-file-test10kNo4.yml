@@ -140,13 +140,14 @@ upgrades:
               - Geometry Wall Exterior Finish|Wood, Medium/Dark
         lifetime: 30
       - &siding_upgrade_to_stucco
-        option: Geometry Wall Exterior Finish|Stucco, Light
+        option: Geometry Wall Exterior Finish|Stucco, Medium/Light
         apply_logic:
           and:
             - or:
               - Geometry Wall Exterior Finish|Brick, Light
               - Geometry Wall Exterior Finish|Brick, Medium/Dark
-              - Geometry Wall Exterior Finish|Stucco, Light
+              - Geometry Wall Exterior Finish|Concrete
+              - Geometry Wall Exterior Finish|Stucco, Medium/Light
               - Geometry Wall Exterior Finish|Stucco, Medium/Dark
         lifetime: 30
       - &siding_upgrade_to_vinyl
@@ -154,8 +155,8 @@ upgrades:
         apply_logic:
           and:
             - or:
-              - Geometry Wall Exterior Finish|Shingle, Asbestos, Medium
-              - Geometry Wall Exterior Finish|Shingle, Composition, Medium
+              - Geometry Wall Exterior Finish|Shingle, Asbestos
+              - Geometry Wall Exterior Finish|Shingle, Composition
               - Geometry Wall Exterior Finish|Vinyl, Light
         lifetime: 30
     #low-E Storm windows
@@ -167,7 +168,7 @@ upgrades:
                 - Windows|Single, Clear, Metal
                 - Windows|Single, Clear, Metal, Exterior Clear Storm
         costs: &low-e_storm_costs
-          - value: 14.7
+          - value: 23
             multiplier: Window Area (ft^2)
         lifetime: 30
       - &low-e_storms_on_single_clear_nonmetal
@@ -1068,7 +1069,7 @@ upgrades:
           and:
             - *upgradable_windows
         costs:
-          - value: 47
+          - value: 62
             multiplier: Window Area (ft^2)
         lifetime: 30
     #Infiltration
@@ -1359,7 +1360,7 @@ upgrades:
                 - Windows|Single, Clear, Metal
                 - Windows|Single, Clear, Metal, Exterior Clear Storm
         costs: &low-e_storm_with_shading_costs
-          - value: 20.20 #I added 5.50 for the shading, I have a note saying to also add 2 for low shgc but I don't think we're doing that any more
+          - value: 28.50 #I added 5.50 for the shading, I have a note saying to also add 2 for low shgc but I don't think we're doing that any more
             multiplier: Window Area (ft^2)
         lifetime: 30
       - &low-e_storms_on_single_clear_nonmetal_with_shading
