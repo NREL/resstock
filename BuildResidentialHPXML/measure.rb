@@ -2953,13 +2953,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]}" if error
 
     # multifamily, slab, foundation height > 0
-    warning = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && 
-            ([HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include? args[:geometry_foundation_type]) &&
-            (args[:geometry_foundation_height] > 0)
+    warning = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) &&
+              ([HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include? args[:geometry_foundation_type]) &&
+              (args[:geometry_foundation_height] > 0)
     warnings << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if warning
 
     # multifamily, non slab, foundation height = 0
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && 
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) &&
             (![HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include? args[:geometry_foundation_type]) &&
             (args[:geometry_foundation_height] == 0)
     errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
@@ -3336,10 +3336,15 @@ class HPXMLFile
       hpxml.site.site_type = args[:site_type].get
     end
 
+    adb_walls = [args[:geometry_unit_left_wall_is_adiabatic], args[:geometry_unit_right_wall_is_adiabatic], args[:geometry_unit_back_wall_is_adiabatic]]
+    n_walls_attached = adb_walls.count(true)
+
     if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? args[:geometry_unit_type]
-      if args[:geometry_unit_left_wall_is_adiabatic] && args[:geometry_unit_right_wall_is_adiabatic]
+      if n_walls_attached == 3
+        hpxml.site.surroundings = HPXML::SurroundingsThreeSides
+      elsif n_walls_attached == 2
         hpxml.site.surroundings = HPXML::SurroundingsTwoSides
-      elsif args[:geometry_unit_left_wall_is_adiabatic] || args[:geometry_unit_right_wall_is_adiabatic]
+      elsif n_walls_attached == 1
         hpxml.site.surroundings = HPXML::SurroundingsOneSide
       else
         hpxml.site.surroundings = HPXML::SurroundingsStandAlone
