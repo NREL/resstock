@@ -262,6 +262,7 @@ class HPXML < Object
   SolarThermalTypeSingleGlazing = 'single glazing black'
   SurroundingsOneSide = 'attached on one side'
   SurroundingsTwoSides = 'attached on two sides'
+  SurroundingsThreeSides = 'attached on three sides'
   SurroundingsStandAlone = 'stand-alone'
   TypeNone = 'none'
   TypeUnknown = 'unknown'
