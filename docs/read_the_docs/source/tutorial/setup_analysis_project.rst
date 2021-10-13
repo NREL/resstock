@@ -12,14 +12,14 @@ OpenStudio Measures
 .. _simulation-controls:
 
 Simulation Controls
-^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~
 
 Using this measure you can set the simulation timesteps per hour, the run period begin month/day and end month/day, and the calendar year (for start day of week). By default the simulations use a 10-min timestep (i.e., the number of timesteps per hour is 6), start on January 1, end on December 31, and run with a calendar year of 2007 (start day of week is Monday). If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.
 
 .. _build-existing-model:
 
 Build Existing Model
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 
 This measure creates the baseline scenario. It incrementally applies OpenStudio measures (located in the ``resources`` directory, which should be at the same level as your project directory) to create residential building models. Set the following inputs:
 
@@ -51,7 +51,7 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 .. _tutorial-apply-upgrade:
 
 Apply Upgrade
-^^^^^^^^^^^^^
+~~~~~~~~~~~~~
 
 Each "Apply Upgrade" measure defines an upgrade scenario. An upgrade scenario is a collection of options exercised with some logic and costs applied. In the simplest case, we apply the new option to all houses. The available upgrade options are in ``resources/options_lookup.tsv`` in your git repository. 
 
@@ -67,14 +67,14 @@ Scroll down to the bottom on the Measures Selection tab, and you will see the **
 .. _simulation-output-report:
 
 Simulation Output Report
-^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Leave this alone if you do not want to report annual totals for end use subcategories. Select **Include End Use Subcategories** if you want to report them. See below for a listing of available end use subcategories.
 
 .. _timeseries-csv-export:
 
 Timeseries CSV Export
-^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~
 
 If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing end use timeseries data for their model.
 
@@ -144,6 +144,6 @@ End uses include:
 .. _utility-bill-calculations:
 
 Utility Bill Calculations
-^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This measure is currently under construction.
