@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 
+# BASELINE
+
 outdir = 'baseline/results'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
