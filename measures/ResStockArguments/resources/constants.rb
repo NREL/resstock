@@ -8,6 +8,7 @@ class Constants
             'software_info_program_version',
             'geometry_unit_left_wall_is_adiabatic',
             'geometry_unit_right_wall_is_adiabatic',
+            'geometry_unit_front_wall_is_adiabatic',
             'geometry_unit_back_wall_is_adiabatic',
             'geometry_unit_num_floors_above_grade',
             'hvac_control_heating_weekday_setpoint',

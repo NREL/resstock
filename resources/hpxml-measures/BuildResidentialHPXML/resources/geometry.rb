@@ -1411,8 +1411,7 @@ class Geometry
         next if space_is_below_grade(space)
 
         space.surfaces.each do |surface|
-          next if get_facade_for_surface(surface) != facade
-          next if surface.outsideBoundaryCondition.downcase != 'outdoors'
+          next unless get_facade_for_surface(surface) == Constants.FacadeFront      
           next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
 
           avail_walls << surface
@@ -1434,45 +1433,6 @@ class Geometry
       elsif (minz - min_story_avail_wall_minz).abs < 0.001
         min_story_avail_walls << avail_wall
       end
-    end
-
-    # Get all corridor walls
-    corridor_walls = []
-    get_conditioned_spaces(model.getSpaces).each do |space|
-      space.surfaces.each do |surface|
-        next unless surface.surfaceType.downcase == 'wall'
-        next unless surface.outsideBoundaryCondition.downcase == 'adiabatic'
-
-        model.getSpaces.each do |potential_corridor_space|
-          next unless potential_corridor_space.spaceType.get.standardsSpaceType.get == HPXML::LocationOtherHousingUnit
-
-          potential_corridor_space.surfaces.each do |potential_corridor_surface|
-            next unless surface.reverseEqualVertices(potential_corridor_surface)
-
-            corridor_walls << potential_corridor_surface
-          end
-        end
-      end
-    end
-
-    # Get subset of corridor walls on lowest story
-    min_story_corridor_walls = []
-    min_story_corridor_wall_minz = 99999
-    corridor_walls.each do |corridor_wall|
-      zvalues = getSurfaceZValues([corridor_wall])
-      minz = zvalues.min + corridor_wall.space.get.zOrigin
-      if minz < min_story_corridor_wall_minz
-        min_story_corridor_walls.clear
-        min_story_corridor_walls << corridor_wall
-        min_story_corridor_wall_minz = minz
-      elsif (minz - min_story_corridor_wall_minz).abs < 0.001
-        min_story_corridor_walls << corridor_wall
-      end
-    end
-
-    # Prioritize corridor surfaces if available
-    unless min_story_corridor_walls.size == 0
-      min_story_avail_walls = min_story_corridor_walls
     end
 
     unit_has_door = true
@@ -1582,6 +1542,7 @@ class Geometry
                                          geometry_roof_pitch:,
                                          geometry_unit_left_wall_is_adiabatic:,
                                          geometry_unit_right_wall_is_adiabatic:,
+                                         geometry_unit_front_wall_is_adiabatic:,
                                          geometry_unit_back_wall_is_adiabatic:,
                                          **remainder)
 
@@ -1601,6 +1562,7 @@ class Geometry
     roof_pitch = geometry_roof_pitch
     left_wall = geometry_unit_left_wall_is_adiabatic
     right_wall = geometry_unit_right_wall_is_adiabatic
+    front_wall = geometry_unit_front_wall_is_adiabatic
     back_wall = geometry_unit_back_wall_is_adiabatic
 
     horizontal_location = 'None'
@@ -1683,6 +1645,10 @@ class Geometry
       adb_facade += ['back']
     end
 
+    if front_wall
+      adb_facade += ['front']
+    end
+    
     # Make surfaces adiabatic
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
@@ -1981,8 +1947,6 @@ class Geometry
                               geometry_building_num_units:,
                               geometry_unit_num_floors_above_grade:,
                               geometry_unit_aspect_ratio:,
-                              geometry_corridor_position:,
-                              geometry_corridor_width:,
                               geometry_inset_width:,
                               geometry_inset_depth:,
                               geometry_inset_position:,
@@ -1993,6 +1957,7 @@ class Geometry
                               geometry_attic_type:,
                               geometry_unit_left_wall_is_adiabatic:,
                               geometry_unit_right_wall_is_adiabatic:,
+                              geometry_unit_front_wall_is_adiabatic:,
                               geometry_unit_back_wall_is_adiabatic:,
                               **remainder)
 
@@ -2000,8 +1965,6 @@ class Geometry
     average_ceiling_height = geometry_average_ceiling_height
     num_units = geometry_building_num_units.get
     aspect_ratio = geometry_unit_aspect_ratio
-    corridor_position = geometry_corridor_position
-    corridor_width = geometry_corridor_width
     inset_width = geometry_inset_width
     inset_depth = geometry_inset_depth
     inset_position = geometry_inset_position
@@ -2012,7 +1975,8 @@ class Geometry
     attic_type = geometry_attic_type
     left_wall = geometry_unit_left_wall_is_adiabatic
     right_wall = geometry_unit_right_wall_is_adiabatic
-    back_wall = geometry_unit_back_wall_is_adiabatic # TODO: use this for corridor?
+    front_wall = geometry_unit_front_wall_is_adiabatic
+    back_wall = geometry_unit_back_wall_is_adiabatic
 
     level = 'Bottom'
     if attic_type == HPXML::AtticTypeBelowApartment && foundation_type == HPXML::FoundationTypeAboveApartment
@@ -2051,7 +2015,6 @@ class Geometry
     cfa = UnitConversions.convert(cfa, 'ft^2', 'm^2')
     average_ceiling_height = UnitConversions.convert(average_ceiling_height, 'ft', 'm')
     foundation_height = UnitConversions.convert(foundation_height, 'ft', 'm')
-    corridor_width = UnitConversions.convert(corridor_width, 'ft', 'm')
     inset_width = UnitConversions.convert(inset_width, 'ft', 'm')
     inset_depth = UnitConversions.convert(inset_depth, 'ft', 'm')
     balcony_depth = UnitConversions.convert(balcony_depth, 'ft', 'm')
@@ -2153,6 +2116,9 @@ class Geometry
     if has_rear_units
       adb_facade += ['back']
     end
+    if front_wall
+      adb_facade += ['front']
+    end
 
     # Make living space surfaces adiabatic
     model.getSpaces.each do |space|
@@ -2176,68 +2142,9 @@ class Geometry
       end
     end
 
-    if (corridor_position == 'Double-Loaded Interior')
-      interior_corridor_width = corridor_width / 2 # Only half the corridor is attached to a unit
-      # corridors
-      if corridor_width > 0
-        # create the prototype corridor
-        nw_point = OpenStudio::Point3d.new(0, interior_corridor_width, rim_joist_height)
-        ne_point = OpenStudio::Point3d.new(x, interior_corridor_width, rim_joist_height)
-        sw_point = OpenStudio::Point3d.new(0, 0, rim_joist_height)
-        se_point = OpenStudio::Point3d.new(x, 0, rim_joist_height)
-        corr_polygon = make_polygon(sw_point, nw_point, ne_point, se_point)
-
-        if (foundation_height > 0) && foundation_corr_polygon.nil?
-          foundation_corr_polygon = corr_polygon
-        end
-
-        # create corridor zone
-        corridor_zone = OpenStudio::Model::ThermalZone.new(model)
-        corridor_zone.setName(HPXML::LocationOtherHousingUnit)
-        corridor_space = OpenStudio::Model::Space::fromFloorPrint(corr_polygon, average_ceiling_height, model)
-        corridor_space = corridor_space.get
-        corridor_space.setName(HPXML::LocationOtherHousingUnit)
-        corridor_space_type = OpenStudio::Model::SpaceType.new(model)
-        corridor_space_type.setStandardsSpaceType(HPXML::LocationOtherHousingUnit)
-
-        corridor_space.setSpaceType(corridor_space_type)
-        corridor_space.setThermalZone(corridor_zone)
-      end
-
-    elsif corridor_position.include?('Exterior')
-      interior_corridor_width = 0
-      # front access
-      nw_point = OpenStudio::Point3d.new(0, -y, average_ceiling_height + rim_joist_height)
-      sw_point = OpenStudio::Point3d.new(0, -y - corridor_width, average_ceiling_height + rim_joist_height)
-      ne_point = OpenStudio::Point3d.new(x, -y, average_ceiling_height + rim_joist_height)
-      se_point = OpenStudio::Point3d.new(x, -y - corridor_width, average_ceiling_height + rim_joist_height)
-
-      shading_surface = OpenStudio::Model::ShadingSurface.new(OpenStudio::Point3dVector.new([sw_point, se_point, ne_point, nw_point]), model)
-      shading_surface_group = OpenStudio::Model::ShadingSurfaceGroup.new(model)
-      shading_surface.setShadingSurfaceGroup(shading_surface_group)
-      shading_surface.setName('Corridor shading')
-    end
-
     # foundation
     if foundation_height > 0
       foundation_spaces = []
-
-      # foundation corridor
-      foundation_corridor_space = nil
-      if (corridor_width > 0) && (corridor_position == 'Double-Loaded Interior')
-        foundation_corridor_space = OpenStudio::Model::Space::fromFloorPrint(foundation_corr_polygon, foundation_height, model)
-        foundation_corridor_space = foundation_corridor_space.get
-        m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
-        m[2, 3] = foundation_height + rim_joist_height
-        foundation_corridor_space.changeTransformation(OpenStudio::Transformation.new(m))
-        foundation_corridor_space.setXOrigin(0)
-        foundation_corridor_space.setYOrigin(0)
-        foundation_corridor_space.setZOrigin(0)
-        foundation_spaces << foundation_corridor_space
-
-        # Rim Joist
-        add_rim_joist(model, foundation_corr_polygon, foundation_corridor_space, rim_joist_height, 0)
-      end
 
       # foundation front
       foundation_space_front = []
@@ -2253,7 +2160,7 @@ class Geometry
       foundation_space_front << foundation_space
       foundation_spaces << foundation_space
 
-      foundation_spaces.each do |foundation_space| # (corridor and foundation)
+      foundation_spaces.each do |foundation_space|
         next unless [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(foundation_type)
 
         # create foundation zone
@@ -2292,7 +2199,6 @@ class Geometry
       # Foundation space boundary conditions
       model.getSpaces.each do |space|
         next unless get_space_floor_z(space) + UnitConversions.convert(space.zOrigin, 'm', 'ft') < 0 # Foundation
-        next if space.name.get.include? 'corridor'
 
         surfaces = space.surfaces
         surfaces.each do |surface|
@@ -2308,37 +2214,6 @@ class Geometry
           end
         end
       end
-
-      # Foundation corridor space boundary conditions
-      foundation_corr_obcs = []
-      if not foundation_corridor_space.nil?
-        foundation_corridor_space.surfaces.each do |surface|
-          next unless surface.surfaceType.downcase == 'wall'
-
-          os_facade = get_facade_for_surface(surface)
-          if adb_facade.include? os_facade
-            surface.setOutsideBoundaryCondition('Adiabatic')
-          else
-            surface.setOutsideBoundaryCondition('Foundation')
-          end
-        end
-      end
-    end
-
-    # Corridor space boundary conditions
-    model.getSpaces.each do |space|
-      next unless is_corridor(space)
-
-      space.surfaces.each do |surface|
-        os_facade = get_facade_for_surface(surface)
-        if adb_facade.include? os_facade
-          surface.setOutsideBoundaryCondition('Adiabatic')
-        end
-
-        if (adb_level.include? surface.surfaceType)
-          surface.setOutsideBoundaryCondition('Adiabatic')
-        end
-      end
     end
 
     # put all of the spaces in the model into a vector
@@ -2351,29 +2226,6 @@ class Geometry
     OpenStudio::Model.intersectSurfaces(spaces)
     OpenStudio::Model.matchSurfaces(spaces)
 
-    # make corridor floors adiabatic if no exterior walls to avoid exposed perimeter error
-    exterior_obcs = ['Foundation', 'Ground', 'Outdoors']
-    obcs_hash = {}
-    model.getSpaces.each do |space|
-      next unless space.name.get.include? 'corridor' # corridor and foundation corridor spaces
-
-      space_name = space.name
-      obcs_hash[space_name] = []
-      space.surfaces.each do |surface|
-        next unless surface.surfaceType.downcase == 'wall'
-
-        obcs_hash[space_name] << surface.outsideBoundaryCondition
-      end
-
-      next if (obcs_hash[space_name] & exterior_obcs).any?
-
-      space.surfaces.each do |surface|
-        next unless surface.surfaceType.downcase == 'floor'
-
-        surface.setOutsideBoundaryCondition('Adiabatic')
-      end
-    end
-
     # set foundation outside boundary condition to Kiva "foundation"
     model.getSurfaces.each do |surface|
       next if surface.outsideBoundaryCondition.downcase != 'ground'
@@ -2381,23 +2233,7 @@ class Geometry
       surface.setOutsideBoundaryCondition('Foundation')
     end
 
-    # set adjacent corridor walls to adiabatic
-    model.getSpaces.each do |space|
-      next unless is_corridor(space)
-
-      space.surfaces.each do |surface|
-        if surface.adjacentSurface.is_initialized && (surface.surfaceType.downcase == 'wall')
-          surface.adjacentSurface.get.setOutsideBoundaryCondition('Adiabatic')
-          surface.setOutsideBoundaryCondition('Adiabatic')
-        end
-      end
-    end
-
     return true
-  end
-
-  def self.is_corridor(space_or_zone)
-    return space_or_zone_is_of_type(space_or_zone, HPXML::LocationOtherHousingUnit)
   end
 
   # Returns true if space is either fully or partially below grade

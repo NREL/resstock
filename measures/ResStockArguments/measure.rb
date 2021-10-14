@@ -50,7 +50,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Following are arguments with the same namber but different options
       next if arg.name == 'geometry_unit_cfa'
-      next if arg.name == 'geometry_corridor_position'
+      # next if arg.name == 'geometry_corridor_position'
 
       args << arg
     end
@@ -125,6 +125,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Geometry: Corridor Position')
     arg.setDescription("The position of the corridor. Only applies to #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.")
     arg.setDefaultValue('Inside')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_corridor_width', true)
+    arg.setDisplayName('Geometry: Corridor Width')
+    arg.setUnits('ft')
+    arg.setDescription("The width of the corridor. Only applies to #{HPXML::ResidentialTypeApartment}s.")
+    arg.setDefaultValue(10.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
@@ -517,37 +524,54 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Adiabatic Walls
     args['geometry_unit_left_wall_is_adiabatic'] = false
     args['geometry_unit_right_wall_is_adiabatic'] = false
+    args['geometry_unit_front_wall_is_adiabatic'] = false
     args['geometry_unit_back_wall_is_adiabatic'] = false
 
-    # Infiltration adjustment for SFA/MF units
+    # Map corridor arguments to adiabatic walls and shading
     n_floors = Float(args['geometry_num_floors_above_grade'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       n_units = Float(args['geometry_building_num_units'])
       aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
       horiz_location = args['geometry_unit_horizontal_location'].to_s
       corridor_position = args['geometry_corridor_position'].to_s
+      exterior_entry = (corridor_position == 'Double Exterior' || corridor_position == 'None') # door opens to outside (front has outdoor boundary)
+      interior_entry = corridor_position == 'Double-Loaded Interior' # door opens to interior corridor (front is adiabatic)
 
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
-        if (n_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
+        if n_units_per_floor >= 4 && exterior_entry
           has_rear_units = true
           args['geometry_unit_back_wall_is_adiabatic'] = true
-        elsif (n_units_per_floor == 2) && (horiz_location == 'None') # double-loaded corridor for 2 units/story
+        elsif n_units_per_floor >= 4 && interior_entry
+          has_rear_units = true
+          args['geometry_unit_front_wall_is_adiabatic'] = true
+        elsif (n_units_per_floor == 2) && (horiz_location == 'None') && exterior_entry
           has_rear_units = true
           args['geometry_unit_back_wall_is_adiabatic'] = true
+        elsif (n_units_per_floor == 2) && (horiz_location == 'None') && interior_entry
+          has_rear_units = true
+          args['geometry_unit_front_wall_is_adiabatic'] = true
         else
           has_rear_units = false
-          args['geometry_unit_back_wall_is_adiabatic'] = false
+          args['geometry_unit_front_wall_is_adiabatic'] = false
           if args['geometry_corridor_position'] != 'None'
             args['geometry_corridor_position'] = 'Single Exterior (Front)'
           end
         end
+
+        # Model exterior corridors as overhangs
+        if (args['geometry_corridor_position'].include? 'Exterior') && args['geometry_corridor_width'] > 0
+          args['overhangs_front_depth']  = args['geometry_corridor_width']
+          args['overhangs_front_distance_to_top_of_window'] = 1
+        end
+
       elsif args['geometry_unit_type'] == HPXML::ResidentialTypeSFA
         n_floors = 1.0
         n_units_per_floor = n_units
         has_rear_units = false
       end
 
+      # Infiltration adjustment for SFA/MF units
       # Calculate exposed wall area ratio for the unit (unit exposed wall area
       # divided by average unit exposed wall area)
       if (n_units_per_floor <= 2) || (n_units_per_floor == 4 && has_rear_units) # No middle unit(s)

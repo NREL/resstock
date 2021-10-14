@@ -166,6 +166,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_front_wall_is_adiabatic', true)
+    arg.setDisplayName('Geometry: Unit Front Wall Is Adiabatic')
+    arg.setDescription('Presence of an adiabatic front wall.')
+    arg.setDefaultValue(false)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_back_wall_is_adiabatic', true)
     arg.setDisplayName('Geometry: Unit Back Wall Is Adiabatic')
     arg.setDescription('Presence of an adiabatic back wall.')
@@ -269,25 +275,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Geometry: Garage Position')
     arg.setDescription("The position of the garage. Only applies to #{HPXML::ResidentialTypeSFD} units.")
     arg.setDefaultValue('Right')
-    args << arg
-
-    corridor_position_choices = OpenStudio::StringVector.new
-    corridor_position_choices << 'Double Exterior'
-    corridor_position_choices << 'Single Exterior (Front)'
-    corridor_position_choices << 'Double-Loaded Interior'
-    corridor_position_choices << 'None'
-
-    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_corridor_position', corridor_position_choices, true)
-    arg.setDisplayName('Geometry: Corridor Position')
-    arg.setDescription("The position of the corridor. Only applies to #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.")
-    arg.setDefaultValue('Interior')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_corridor_width', true)
-    arg.setDisplayName('Geometry: Corridor Width')
-    arg.setUnits('ft')
-    arg.setDescription("The width of the corridor. Only applies to #{HPXML::ResidentialTypeApartment}s.")
-    arg.setDefaultValue(10.0)
     args << arg
 
     # Currently hiding these detailed and seldom used geometry inputs
@@ -3336,7 +3323,7 @@ class HPXMLFile
       hpxml.site.site_type = args[:site_type].get
     end
 
-    adb_walls = [args[:geometry_unit_left_wall_is_adiabatic], args[:geometry_unit_right_wall_is_adiabatic], args[:geometry_unit_back_wall_is_adiabatic]]
+    adb_walls = [args[:geometry_unit_left_wall_is_adiabatic], args[:geometry_unit_right_wall_is_adiabatic], args[:geometry_unit_front_wall_is_adiabatic], args[:geometry_unit_back_wall_is_adiabatic]]
     n_walls_attached = adb_walls.count(true)
 
     if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? args[:geometry_unit_type]
@@ -3532,7 +3519,7 @@ class HPXMLFile
               exterior_adjacent_to = HPXML::LocationOtherHousingUnit
             end
           end
-        else # adjacent to a space that is explicitly in the model, e.g., corridor
+        else # adjacent to a space that is explicitly in the model
           exterior_adjacent_to = Geometry.get_adjacent_to(surface: adjacent_surface)
         end
       end
@@ -3576,14 +3563,14 @@ class HPXMLFile
       exterior_adjacent_to = HPXML::LocationOutside
       if surface.adjacentSurface.is_initialized
         exterior_adjacent_to = Geometry.get_adjacent_to(surface: surface.adjacentSurface.get)
-      elsif surface.outsideBoundaryCondition == 'Adiabatic' # can be adjacent to living space, attic, corridor
+      elsif surface.outsideBoundaryCondition == 'Adiabatic' # can be adjacent to living space, attic
         adjacent_surface = Geometry.get_adiabatic_adjacent_surface(model: model, surface: surface)
         if adjacent_surface.nil? # adjacent to a space that is not explicitly in the model
           exterior_adjacent_to = interior_adjacent_to
           if exterior_adjacent_to == HPXML::LocationLivingSpace # living adjacent to living
             exterior_adjacent_to = HPXML::LocationOtherHousingUnit
           end
-        else # adjacent to a space that is explicitly in the model, e.g., corridor
+        else # adjacent to a space that is explicitly in the model
           exterior_adjacent_to = Geometry.get_adjacent_to(surface: adjacent_surface)
         end
       end
@@ -3662,7 +3649,7 @@ class HPXMLFile
               exterior_adjacent_to = HPXML::LocationOtherHousingUnit
             end
           end
-        else # adjacent to a space that is explicitly in the model, e.g., corridor
+        else # adjacent to a space that is explicitly in the model
           exterior_adjacent_to = Geometry.get_adjacent_to(surface: adjacent_surface)
         end
       end
@@ -3793,7 +3780,7 @@ class HPXMLFile
         has_foundation_walls = true
       end
       exposed_perimeter = Geometry.calculate_exposed_perimeter(model, [surface], has_foundation_walls).round(1)
-      next if exposed_perimeter == 0 # this could be, e.g., the foundation floor of an interior corridor
+      next if exposed_perimeter == 0
 
       if [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned, HPXML::LocationBasementConditioned].include? interior_adjacent_to
         exposed_perimeter -= Geometry.get_unexposed_garage_perimeter(**args)
