@@ -193,20 +193,20 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
       cost_mult += hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft']
     elsif cost_mult_type == 'Size, Heating System: Primary (kBtu/h)'
-      if hpxml.keys.include?('primary_systems_heating_capacity_k_btu_h')
-        cost_mult += hpxml['primary_systems_heating_capacity_k_btu_h']
+      if hpxml.keys.include?('primary_systems_heating_capacity_btu_h')
+        cost_mult += UnitConversions.convert(hpxml['primary_systems_heating_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Heating System: Secondary (kBtu/h)'
-      if hpxml.keys.include?('secondary_systems_heating_capacity_k_btu_h')
-        cost_mult += hpxml['secondary_systems_heating_capacity_k_btu_h']
+      if hpxml.keys.include?('secondary_systems_heating_capacity_btu_h')
+        cost_mult += UnitConversions.convert(hpxml['secondary_systems_heating_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Cooling System: Primary (kBtu/h)'
-      if hpxml.keys.include?('primary_systems_cooling_capacity_k_btu_h')
-        cost_mult += hpxml['primary_systems_cooling_capacity_k_btu_h']
+      if hpxml.keys.include?('primary_systems_cooling_capacity_btu_h')
+        cost_mult += UnitConversions.convert(hpxml['primary_systems_cooling_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Heat Pump Backup: Primary (kBtu/h)'
-      if hpxml.keys.include?('primary_systems_heat_pump_backup_capacity_k_btu_h')
-        cost_mult += hpxml['primary_systems_heat_pump_backup_capacity_k_btu_h']
+      if hpxml.keys.include?('primary_systems_heat_pump_backup_capacity_btu_h')
+        cost_mult += UnitConversions.convert(hpxml['primary_systems_heat_pump_backup_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Water Heater (gal)'
       cost_mult += hpxml['systems_water_heater_tank_volume_gal']
