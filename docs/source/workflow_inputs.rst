@@ -46,45 +46,40 @@ Input Defaults
 A large number of elements in the HPXML file are optional and can be defaulted.
 Default values, equations, and logic are described throughout this documentation.
 
-Defaults can also be seen in the ``in.xml`` file generated in the run directory, where additional fields are populated for inspection.
-
-For example, suppose a HPXML file has a window defined as follows:
+For example, suppose a HPXML file has a refrigerator defined as follows:
 
 .. code-block:: XML
 
-  <Window>
-    <SystemIdentifier id='Window'/>
-    <Area>108.0</Area>
-    <Azimuth>0</Azimuth>
-    <UFactor>0.33</UFactor>
-    <SHGC>0.45</SHGC>
-    <AttachedToWall idref='Wall'/>
-  </Window>
+  <Refrigerator>
+    <SystemIdentifier id='Refrigerator1'/>
+  </Refrigerator>
 
-In the ``in.xml`` file, the window would have additional elements like so:
+Default values would be used for the refrigerator energy use, location, and schedule:
 
 .. code-block:: XML
 
-  <Window>
-    <SystemIdentifier id='Window'/>
-    <Area>108.0</Area>
-    <Azimuth>0</Azimuth>
-    <UFactor>0.33</UFactor>
-    <SHGC>0.45</SHGC>
-    <InteriorShading>
-      <SystemIdentifier id='WindowInteriorShading'/>
-      <SummerShadingCoefficient dataSource='software'>0.7</SummerShadingCoefficient>
-      <WinterShadingCoefficient dataSource='software'>0.85</WinterShadingCoefficient>
-    </InteriorShading>
-    <FractionOperable dataSource='software'>0.67</FractionOperable>
-    <AttachedToWall idref='Wall'/>
-  </Window>
+  <Refrigerator>
+    <SystemIdentifier id='Refrigerator1'/>
+    <Location dataSource='software'>living space</Location>
+    <RatedAnnualkWh dataSource='software'>691.0</RatedAnnualkWh>
+    <PrimaryIndicator dataSource='software'>true</PrimaryIndicator>
+    <extension>
+      <UsageMultiplier dataSource='software'>1.0</UsageMultiplier>
+      <WeekdayScheduleFractions dataSource='software'>0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041</WeekdayScheduleFractions>
+      <WeekendScheduleFractions dataSource='software'>0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041</WeekendScheduleFractions>
+      <MonthlyScheduleMultipliers dataSource='software'>0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837</MonthlyScheduleMultipliers>
+    </extension>
+  </Refrigerator>
 
-.. note::
+These defaults will be reflected in the EnergyPlus simulation results.
 
-  The OpenStudio-HPXML workflow generally treats missing elements differently than missing values.
-  For example, if there is a ``Window`` with no ``Overhangs`` element defined, the window will be interpreted as having no overhangs and modeled this way.
-  On the other hand, if there is a ``Window`` with no ``FractionOperable`` value defined, it is assumed that the operable property of the window is unknown and will be defaulted in the model according to :ref:`windowinputs`.
+ .. note::
+
+  The OpenStudio-HPXML workflow generally treats missing *elements* differently than missing *values*.
+  For example, if there is no ``Refrigerator`` element defined, the model will proceed without refrigerator energy use.
+  On the other hand, if there is a ``Refrigerator`` element but with no values defined (i.e., no ``Location`` or ``RatedAnnualkWh``), it is assumed that a refrigerator exists but its properties are unknown, so they will be defaulted in the model.
+
+See :ref:`hpxml_defaults` for information on how default values can be inspected.
 
 HPXML Software Info
 -------------------
@@ -555,13 +550,15 @@ Other walls (e.g., wood framed walls) that are connected to a below-grade space 
 
 If insulation layers are provided, additional information is entered in each ``FoundationWall/Insulation/Layer``.
 
-  ==========================================  ========  ============  ==================================  ========  =======  =====================================================================
-  Element                                     Type      Units         Constraints                         Required  Default  Notes
-  ==========================================  ========  ============  ==================================  ========  =======  =====================================================================
-  ``NominalRValue``                           double    F-ft2-hr/Btu  >= 0                                Yes                R-value of the foundation wall insulation; use zero if no insulation
-  ``extension/DistanceToTopOfInsulation``     double    ft            >= 0                                No        0        Vertical distance from top of foundation wall to top of insulation
-  ``extension/DistanceToBottomOfInsulation``  double    ft            DistanceToTopOfInsulation - Height  No        Height   Vertical distance from top of foundation wall to bottom of insulation
-  ==========================================  ========  ============  ==================================  ========  =======  =====================================================================
+  ==========================================  ========  ============  ===========  ========  =======  =====================================================================
+  Element                                     Type      Units         Constraints  Required  Default  Notes
+  ==========================================  ========  ============  ===========  ========  =======  =====================================================================
+  ``NominalRValue``                           double    F-ft2-hr/Btu  >= 0         Yes                R-value of the foundation wall insulation; use zero if no insulation
+  ``extension/DistanceToTopOfInsulation``     double    ft            >= 0         No        0        Vertical distance from top of foundation wall to top of insulation
+  ``extension/DistanceToBottomOfInsulation``  double    ft            See [#]_     No        Height   Vertical distance from top of foundation wall to bottom of insulation
+  ==========================================  ========  ============  ===========  ========  =======  =====================================================================
+
+  .. [#] When NominalRValue is non-zero, DistanceToBottomOfInsulation must be greater than DistanceToTopOfInsulation and less than or equal to FoundationWall/Height.
 
 HPXML Frame Floors
 ******************
@@ -721,15 +718,16 @@ If UFactor and SHGC are not provided, they are defaulted as follows:
 
 If overhangs are specified, additional information is entered in ``Overhangs``.
 
-  ============================  ========  ======  =======================  ========  =======  ========================================================
-  Element                       Type      Units   Constraints              Required  Default  Notes
-  ============================  ========  ======  =======================  ========  =======  ========================================================
-  ``Depth``                     double    inches  >= 0                     Yes                Depth of overhang
-  ``DistanceToTopOfWindow``     double    ft      >= 0                     Yes                Vertical distance from overhang to top of window
-  ``DistanceToBottomOfWindow``  double    ft      > DistanceToTopOfWindow  Yes                Vertical distance from overhang to bottom of window [#]_
-  ============================  ========  ======  =======================  ========  =======  ========================================================
+  ============================  ========  ======  ===========  ========  =======  ========================================================
+  Element                       Type      Units   Constraints  Required  Default  Notes
+  ============================  ========  ======  ===========  ========  =======  ========================================================
+  ``Depth``                     double    inches  >= 0         Yes                Depth of overhang
+  ``DistanceToTopOfWindow``     double    ft      >= 0         Yes                Vertical distance from overhang to top of window
+  ``DistanceToBottomOfWindow``  double    ft      See [#]_     Yes                Vertical distance from overhang to bottom of window [#]_
+  ============================  ========  ======  ===========  ========  =======  ========================================================
 
   .. [#] The difference between DistanceToBottomOfWindow and DistanceToTopOfWindow defines the height of the window.
+  .. [#] When Depth is non-zero, DistanceToBottomOfWindow must be greater than DistanceToTopOfWindow.
 
 HPXML Skylights
 ***************
