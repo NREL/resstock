@@ -106,7 +106,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
     arg.setDisplayName('Add annual component loads output')
-    arg.setDescription('If true, output the annual component loads')
+    arg.setDescription('If true, output the annual component loads.')
     args << arg
 
     return args
