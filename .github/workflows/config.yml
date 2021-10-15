@@ -104,35 +104,17 @@ jobs:
           pip install pandas
           python test/util.py
 
-      - name: Upload integration results
+      - name: Upload baseline integration results
         uses: actions/upload-artifact@v2
         with:
           path: baseline/results
           name: results
 
-      - name: Upload national upgrade01 results
+      - name: Upload upgrade integration results
         uses: actions/upload-artifact@v2
         with:
-          path: project_national/national_upgrade01.csv
-          name: national_upgrade01
-
-      - name: Upload national upgrade02 results
-        uses: actions/upload-artifact@v2
-        with:
-          path: project_national/national_upgrade02.csv
-          name: national_upgrade02
-
-      - name: Upload testing upgrade01 results
-        uses: actions/upload-artifact@v2
-        with:
-          path: project_testing/testing_upgrade01.csv
-          name: testing_upgrade01
-
-      - name: Upload testing upgrade02 results
-        uses: actions/upload-artifact@v2
-        with:
-          path: project_testing/testing_upgrade02.csv
-          name: testing_upgrade02
+          path: upgrades/results
+          name: results-upgrades
 
   compare-results:
     if: github.event_name == 'pull_request'
@@ -222,12 +204,19 @@ jobs:
             samples
           name: samples
 
-      - name: Download feature results
+      - name: Download baseline feature results
         uses: actions/download-artifact@v2
         with:
           path: |
             results
           name: results
+
+      - name: Download upgrade feature results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            results_upgrades
+          name: results-upgrades
 
       - name: Commit latest results
         shell: bash        
@@ -236,7 +225,9 @@ jobs:
           git pull origin $branch_name
           cp -r samples/buildstock*.csv test/test_samples_osw/base
           cp -r results/results*.csv test/test_samples_osw/base
+          cp -r results_upgrades/results*.csv test/test_samples_osw/upgrades
           git add test/test_samples_osw/base
+          git add test/test_samples_osw/upgrades
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
