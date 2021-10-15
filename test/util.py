@@ -55,3 +55,57 @@ for col in results_output.columns.values:
 results_output = results_output.set_index('OSW')
 results_output = results_output.reindex(sorted(results_output), axis=1)
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
+
+# UPGRADES
+
+outdir = 'upgrades/results'
+if not os.path.exists(outdir):
+  os.makedirs(outdir)
+
+frames = []
+
+for i in range(1, 3):
+  print(i)
+  df_testing = pd.read_csv('project_testing/testing_upgrade{}.csv'.format('%02d' % i))
+  df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}.osw'.format('%04d' % x))
+  df_testing.insert(1, 'color_index', 0)
+
+  frames.append(df_testing)
+
+  df_national = pd.read_csv('project_national/national_upgrade{}.csv'.format('%02d' % i))
+  df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}.osw'.format('%04d' % x))
+  df_national.insert(1, 'color_index', 1)
+
+  frames.append(df_national)
+
+df = pd.concat(frames)
+df = df.rename(columns={'building_id': 'OSW'})
+del df['job_id']
+
+simulation_output_reports = ['color_index']
+qoi_reports = []
+apply_upgrades = []
+
+for col in df.columns.values:
+  if 'applicable' in col:
+    continue
+
+  elif col.startswith('simulation_output_report'):
+    simulation_output_reports.append(col)
+  elif col.startswith('qoi_report'):
+    qoi_reports.append(col)
+  elif col.startswith('apply_upgrade'):
+    apply_upgrades.append(col)
+
+# results_output.csv
+results_output = df[['OSW'] + simulation_output_reports + qoi_reports + apply_upgrades]
+results_output = results_output.dropna(how='all', axis=1)
+results_output = results_output.round(1)
+for col in results_output.columns.values:
+  results_output = results_output.rename(columns={col: col.replace('simulation_output_report.', '')})
+  results_output = results_output.rename(columns={col: col.replace('qoi_report.', 'qoi_')})
+  results_output = results_output.rename(columns={col: col.replace('apply_upgrade.', '')})
+
+results_output = results_output.set_index('OSW')
+results_output = results_output.reindex(sorted(results_output), axis=1)
+results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
