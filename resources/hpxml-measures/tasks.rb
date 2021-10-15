@@ -1598,8 +1598,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['air_leakage_units'] = HPXML::UnitsACHNatural
     args['air_leakage_value'] = 0.2
   elsif ['base-enclosure-overhangs.xml'].include? hpxml_file
-    args['overhangs_front_distance_to_top_of_window'] = 1.0
-    args['overhangs_front_distance_to_bottom_of_window'] = 5.0
     args['overhangs_back_depth'] = 2.5
     args['overhangs_back_distance_to_bottom_of_window'] = 4.0
     args['overhangs_left_depth'] = 1.5
@@ -2697,7 +2695,12 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     area: 20,
                     orientation: HPXML::OrientationSouth,
                     r_value: 4.4)
+  elsif ['base-foundation-unconditioned-basement.xml'].include? hpxml_file
+    hpxml.foundations[0].within_infiltration_volume = false
   elsif ['base-atticroof-conditioned.xml'].include? hpxml_file
+    hpxml.attics.add(id: "Attic#{hpxml.attics.size + 1}",
+                     attic_type: HPXML::AtticTypeUnvented,
+                     within_infiltration_volume: false)
     hpxml.roofs.each do |roof|
       roof.area = 1006.0 / hpxml.roofs.size
       roof.insulation_assembly_r_value = 25.8
@@ -3439,6 +3442,15 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.doors << hpxml.doors[-1].dup
     hpxml.doors[-1].id += '_tiny'
     hpxml.doors[-1].area = 0.05
+  elsif ['base-enclosure-overhangs.xml'].include? hpxml_file
+    # Test relaxed overhangs validation; https://github.com/NREL/OpenStudio-HPXML/issues/866
+    hpxml.windows.each do |window|
+      next unless window.overhangs_depth.nil?
+
+      window.overhangs_depth = 0.0
+      window.overhangs_distance_to_top_of_window = 0.0
+      window.overhangs_distance_to_bottom_of_window = 0.0
+    end
   end
   if ['base-enclosure-2stories-garage.xml',
       'base-enclosure-garage.xml'].include? hpxml_file
