@@ -472,12 +472,14 @@ def set_measure_argument_values(hpxml_file, args)
     args['site_type'] = HPXML::SiteTypeSuburban
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFD
     args['geometry_unit_cfa'] = 2700.0
-    args['geometry_num_floors_above_grade'] = 1
+    args['geometry_unit_left_wall_is_adiabatic'] = false
+    args['geometry_unit_right_wall_is_adiabatic'] = false
+    args['geometry_unit_front_wall_is_adiabatic'] = false
+    args['geometry_unit_back_wall_is_adiabatic'] = false
+    args['geometry_unit_num_floors_above_grade'] = 1
     args['geometry_average_ceiling_height'] = 8.0
     args['geometry_unit_orientation'] = 180.0
     args['geometry_unit_aspect_ratio'] = 1.5
-    args['geometry_corridor_position'] = 'Double-Loaded Interior'
-    args['geometry_corridor_width'] = 10.0
     args['geometry_garage_width'] = 0.0
     args['geometry_garage_depth'] = 20.0
     args['geometry_garage_protrusion'] = 0.0
@@ -793,12 +795,14 @@ def set_measure_argument_values(hpxml_file, args)
     args['weather_station_epw_filepath'] = 'USA_CO_Colorado.Springs-Peterson.Field.724660_TMY3.epw'
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFD
     args['geometry_unit_cfa'] = 1539.0
-    args['geometry_num_floors_above_grade'] = 1
+    args['geometry_unit_left_wall_is_adiabatic'] = false
+    args['geometry_unit_right_wall_is_adiabatic'] = false
+    args['geometry_unit_front_wall_is_adiabatic'] = false
+    args['geometry_unit_back_wall_is_adiabatic'] = false
+    args['geometry_unit_num_floors_above_grade'] = 1
     args['geometry_average_ceiling_height'] = 8.0
     args['geometry_unit_orientation'] = 180.0
     args['geometry_unit_aspect_ratio'] = 57.0 / 27.0
-    args['geometry_corridor_position'] = 'Double-Loaded Interior'
-    args['geometry_corridor_width'] = 0
     args['geometry_garage_width'] = 0
     args['geometry_garage_depth'] = 0
     args['geometry_garage_protrusion'] = 0
@@ -1238,7 +1242,7 @@ def set_measure_argument_values(hpxml_file, args)
 
   # Attic/roof
   if ['base-atticroof-flat.xml'].include? hpxml_file
-    args['geometry_roof_type'] = 'flat'
+    args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
     args['roof_assembly_r'] = 25.8
     args['ducts_supply_leakage_to_outside_value'] = 0.0
     args['ducts_return_leakage_to_outside_value'] = 0.0
@@ -1258,7 +1262,7 @@ def set_measure_argument_values(hpxml_file, args)
     args['ducts_return_location'] = HPXML::LocationAtticVented
   elsif ['base-atticroof-conditioned.xml'].include? hpxml_file
     args['geometry_attic_type'] = HPXML::AtticTypeConditioned
-    args['geometry_num_floors_above_grade'] = 2
+    args['geometry_unit_num_floors_above_grade'] = 2
     args['geometry_unit_cfa'] = 3600
     args['ducts_supply_location'] = HPXML::LocationLivingSpace
     args['ducts_return_location'] = HPXML::LocationLivingSpace
@@ -1276,7 +1280,7 @@ def set_measure_argument_values(hpxml_file, args)
     # BuildResHPXML measure doesn't support cathedral ceiling; model as
     # conditioned attic and then update the resulting HPXML later.
     args['geometry_attic_type'] = HPXML::AtticTypeConditioned
-    args['geometry_num_floors_above_grade'] = 2
+    args['geometry_unit_num_floors_above_grade'] = 2
     args['geometry_unit_cfa'] = 4050
     args['window_area_front'] = 108.0
     args['window_area_back'] = 108.0
@@ -1294,9 +1298,8 @@ def set_measure_argument_values(hpxml_file, args)
   if ['base-bldgtype-single-family-attached.xml'].include? hpxml_file
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
     args['geometry_unit_cfa'] = 1800.0
-    args['geometry_corridor_position'] = 'None'
     args['geometry_building_num_units'] = 3
-    args['geometry_unit_horizontal_location'] = 'Left'
+    args['geometry_unit_right_wall_is_adiabatic'] = true
     args['window_front_wwr'] = 0.18
     args['window_back_wwr'] = 0.18
     args['window_left_wwr'] = 0.18
@@ -1308,7 +1311,7 @@ def set_measure_argument_values(hpxml_file, args)
     args['heating_system_heating_capacity'] = 24000.0
     args['misc_plug_loads_other_annual_kwh'] = 1638.0
   elsif ['base-bldgtype-single-family-attached-2stories.xml'].include? hpxml_file
-    args['geometry_num_floors_above_grade'] = 2
+    args['geometry_unit_num_floors_above_grade'] = 2
     args['geometry_unit_cfa'] = 2700.0
     args['heating_system_heating_capacity'] = 48000.0
     args['cooling_system_cooling_capacity'] = 36000.0
@@ -1322,13 +1325,11 @@ def set_measure_argument_values(hpxml_file, args)
   if ['base-bldgtype-multifamily.xml'].include? hpxml_file
     args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
     args['geometry_unit_cfa'] = 900.0
-    args['geometry_corridor_position'] = 'None'
-    args['geometry_foundation_type'] = HPXML::FoundationTypeBasementUnconditioned
-    args['geometry_unit_level'] = 'Middle'
-    args['geometry_unit_horizontal_location'] = 'Left'
+    args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
+    args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+    args['geometry_unit_right_wall_is_adiabatic'] = true
     args['geometry_building_num_units'] = 6
     args['geometry_building_num_bedrooms'] = 6 * 3
-    args['geometry_num_floors_above_grade'] = 3
     args['window_front_wwr'] = 0.18
     args['window_back_wwr'] = 0.18
     args['window_left_wwr'] = 0.18
@@ -1535,7 +1536,7 @@ def set_measure_argument_values(hpxml_file, args)
   # Enclosure
   if ['base-enclosure-2stories.xml'].include? hpxml_file
     args['geometry_unit_cfa'] = 4050.0
-    args['geometry_num_floors_above_grade'] = 2
+    args['geometry_unit_num_floors_above_grade'] = 2
     args['window_area_front'] = 216.0
     args['window_area_back'] = 216.0
     args['window_area_left'] = 144.0
