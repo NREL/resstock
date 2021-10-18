@@ -65,7 +65,7 @@ if not os.path.exists(outdir):
 frames = []
 
 for i in range(1, 3):
-  print(i)
+
   df_testing = pd.read_csv('project_testing/testing_upgrade{}.csv'.format('%02d' % i))
   df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}.osw'.format('%04d' % x))
   df_testing.insert(1, 'color_index', 0)
