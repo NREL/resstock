@@ -16,14 +16,14 @@ class ReportHPXMLOutputTest < MiniTest::Test
     hpxml_csv = _test_measure(args_hash)
     assert(File.exist?(hpxml_csv))
     actual_rows = File.readlines(hpxml_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    assert_includes(actual_rows, 'Systems: Heating Capacity (kBtu/h)')
-    assert_includes(actual_rows, 'Systems: Cooling Capacity (kBtu/h)')
-    assert_includes(actual_rows, 'Primary Systems: Cooling Capacity (kBtu/h)')
-    assert_includes(actual_rows, 'Primary Systems: Heating Capacity (kBtu/h)')
-    assert_includes(actual_rows, 'Primary Systems: Heat Pump Backup Capacity (kBtu/h)')
-    assert_includes(actual_rows, 'Secondary Systems: Cooling Capacity (kBtu/h)')
-    assert_includes(actual_rows, 'Secondary Systems: Heating Capacity (kBtu/h)')
-    assert_includes(actual_rows, 'Secondary Systems: Heat Pump Backup Capacity (kBtu/h)')
+    assert_includes(actual_rows, 'Systems: Heating Capacity (Btu/h)')
+    assert_includes(actual_rows, 'Systems: Cooling Capacity (Btu/h)')
+    assert_includes(actual_rows, 'Primary Systems: Cooling Capacity (Btu/h)')
+    assert_includes(actual_rows, 'Primary Systems: Heating Capacity (Btu/h)')
+    assert_includes(actual_rows, 'Primary Systems: Heat Pump Backup Capacity (Btu/h)')
+    assert_includes(actual_rows, 'Secondary Systems: Cooling Capacity (Btu/h)')
+    assert_includes(actual_rows, 'Secondary Systems: Heating Capacity (Btu/h)')
+    assert_includes(actual_rows, 'Secondary Systems: Heat Pump Backup Capacity (Btu/h)')
   end
 
   def test_hpxml_without_primary_systems
@@ -38,14 +38,14 @@ class ReportHPXMLOutputTest < MiniTest::Test
     File.delete(tmp_hpxml_path) if File.exist?(tmp_hpxml_path)
     assert(File.exist?(hpxml_csv))
     actual_rows = File.readlines(hpxml_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    assert_includes(actual_rows, 'Systems: Heating Capacity (kBtu/h)')
-    assert_includes(actual_rows, 'Systems: Cooling Capacity (kBtu/h)')
-    refute_includes(actual_rows, 'Primary Systems: Cooling Capacity (kBtu/h)')
-    refute_includes(actual_rows, 'Primary Systems: Heating Capacity (kBtu/h)')
-    refute_includes(actual_rows, 'Primary Systems: Heat Pump Backup Capacity (kBtu/h)')
-    refute_includes(actual_rows, 'Secondary Systems: Cooling Capacity (kBtu/h)')
-    refute_includes(actual_rows, 'Secondary Systems: Heating Capacity (kBtu/h)')
-    refute_includes(actual_rows, 'Secondary Systems: Heat Pump Backup Capacity (kBtu/h)')
+    assert_includes(actual_rows, 'Systems: Heating Capacity (Btu/h)')
+    assert_includes(actual_rows, 'Systems: Cooling Capacity (Btu/h)')
+    refute_includes(actual_rows, 'Primary Systems: Cooling Capacity (Btu/h)')
+    refute_includes(actual_rows, 'Primary Systems: Heating Capacity (Btu/h)')
+    refute_includes(actual_rows, 'Primary Systems: Heat Pump Backup Capacity (Btu/h)')
+    refute_includes(actual_rows, 'Secondary Systems: Cooling Capacity (Btu/h)')
+    refute_includes(actual_rows, 'Secondary Systems: Heating Capacity (Btu/h)')
+    refute_includes(actual_rows, 'Secondary Systems: Heat Pump Backup Capacity (Btu/h)')
   end
 
   def test_furnace_and_central_air_conditioner_xml
@@ -66,14 +66,41 @@ class ReportHPXMLOutputTest < MiniTest::Test
       'Enclosure: Duct Area Unconditioned (ft^2)' => 200.0,
       'Enclosure: Rim Joist Area (ft^2)' => 115.6,
       'Enclosure: Slab Exposed Perimeter Thermal Boundary (ft)' => 150.0,
-      'Systems: Heating Capacity (kBtu/h)' => 36.0,
-      'Systems: Cooling Capacity (kBtu/h)' => 24.0,
-      'Systems: Heat Pump Backup Capacity (kBtu/h)' => 0.0,
+      'Systems: Heating Capacity (Btu/h)' => 36000.0,
+      'Systems: Cooling Capacity (Btu/h)' => 24000.0,
+      'Systems: Heat Pump Backup Capacity (Btu/h)' => 0.0,
       'Systems: Water Heater Tank Volume (gal)' => 40.0,
       'Systems: Mechanical Ventilation Flow Rate (cfm)' => 0.0,
-      'Primary Systems: Heating Capacity (kBtu/h)' => 36.0,
-      'Primary Systems: Cooling Capacity (kBtu/h)' => 24.0,
-      'Primary Systems: Heat Pump Backup Capacity (kBtu/h)' => 0.0
+      'Primary Systems: Heating Capacity (Btu/h)' => 36000.0,
+      'Primary Systems: Cooling Capacity (Btu/h)' => 24000.0,
+      'Primary Systems: Heat Pump Backup Capacity (Btu/h)' => 0.0,
+      'Design Loads Heating: Total (Btu/h)' => 32302.0,
+      'Design Loads Heating: Ducts (Btu/h)' => 8597.0,
+      'Design Loads Heating: Windows (Btu/h)' => 7508.0,
+      'Design Loads Heating: Skylights (Btu/h)' => 0.0,
+      'Design Loads Heating: Doors (Btu/h)' => 575.0,
+      'Design Loads Heating: Walls (Btu/h)' => 6409.0,
+      'Design Loads Heating: Roofs (Btu/h)' => 0.0,
+      'Design Loads Heating: Floors (Btu/h)' => 0.0,
+      'Design Loads Heating: Slabs (Btu/h)' => 2446.0,
+      'Design Loads Heating: Ceilings (Btu/h)' => 2171.0,
+      'Design Loads Heating: Infiltration/Ventilation (Btu/h)' => 4597.0,
+      'Design Loads Cooling Sensible: Total (Btu/h)' => 17964.0,
+      'Design Loads Cooling Sensible: Ducts (Btu/h)' => 5216.0,
+      'Design Loads Cooling Sensible: Windows (Btu/h)' => 7127.0,
+      'Design Loads Cooling Sensible: Skylights (Btu/h)' => 0.0,
+      'Design Loads Cooling Sensible: Doors (Btu/h)' => 207.0,
+      'Design Loads Cooling Sensible: Walls (Btu/h)' => 265.0,
+      'Design Loads Cooling Sensible: Roofs (Btu/h)' => 0.0,
+      'Design Loads Cooling Sensible: Floors (Btu/h)' => 0.0,
+      'Design Loads Cooling Sensible: Slabs (Btu/h)' => 0.0,
+      'Design Loads Cooling Sensible: Ceilings (Btu/h)' => 2010.0,
+      'Design Loads Cooling Sensible: Infiltration/Ventilation (Btu/h)' => 619.0,
+      'Design Loads Cooling Sensible: Internal Gains (Btu/h)' => 2520.0,
+      'Design Loads Cooling Latent: Total (Btu/h)' => 0.0,
+      'Design Loads Cooling Latent: Ducts (Btu/h)' => 0.0,
+      'Design Loads Cooling Latent: Infiltration/Ventilation (Btu/h)' => 0.0,
+      'Design Loads Cooling Latent: Internal Gains (Btu/h)' => 0.0
     }
 
     actual_multipliers = {}
@@ -105,14 +132,41 @@ class ReportHPXMLOutputTest < MiniTest::Test
       'Enclosure: Duct Area Unconditioned (ft^2)' => 200.0,
       'Enclosure: Rim Joist Area (ft^2)' => 115.6,
       'Enclosure: Slab Exposed Perimeter Thermal Boundary (ft)' => 150.0,
-      'Systems: Heating Capacity (kBtu/h)' => 36.0,
-      'Systems: Cooling Capacity (kBtu/h)' => 36.0,
-      'Systems: Heat Pump Backup Capacity (kBtu/h)' => 36.0,
+      'Systems: Heating Capacity (Btu/h)' => 36000.0,
+      'Systems: Cooling Capacity (Btu/h)' => 36000.0,
+      'Systems: Heat Pump Backup Capacity (Btu/h)' => 36000.0,
       'Systems: Water Heater Tank Volume (gal)' => 40.0,
       'Systems: Mechanical Ventilation Flow Rate (cfm)' => 0.0,
-      'Primary Systems: Heating Capacity (kBtu/h)' => 36.0,
-      'Primary Systems: Cooling Capacity (kBtu/h)' => 36.0,
-      'Primary Systems: Heat Pump Backup Capacity (kBtu/h)' => 36.0
+      'Primary Systems: Heating Capacity (Btu/h)' => 36000.0,
+      'Primary Systems: Cooling Capacity (Btu/h)' => 36000.0,
+      'Primary Systems: Heat Pump Backup Capacity (Btu/h)' => 36000.0,
+      'Design Loads Heating: Total (Btu/h)' => 31214.0,
+      'Design Loads Heating: Ducts (Btu/h)' => 7508.0,
+      'Design Loads Heating: Windows (Btu/h)' => 7508.0,
+      'Design Loads Heating: Skylights (Btu/h)' => 0.0,
+      'Design Loads Heating: Doors (Btu/h)' => 575.0,
+      'Design Loads Heating: Walls (Btu/h)' => 6409.0,
+      'Design Loads Heating: Roofs (Btu/h)' => 0.0,
+      'Design Loads Heating: Floors (Btu/h)' => 0.0,
+      'Design Loads Heating: Slabs (Btu/h)' => 2446.0,
+      'Design Loads Heating: Ceilings (Btu/h)' => 2171.0,
+      'Design Loads Heating: Infiltration/Ventilation (Btu/h)' => 4597.0,
+      'Design Loads Cooling Sensible: Total (Btu/h)' => 17964.0,
+      'Design Loads Cooling Sensible: Ducts (Btu/h)' => 5216.0,
+      'Design Loads Cooling Sensible: Windows (Btu/h)' => 7127.0,
+      'Design Loads Cooling Sensible: Skylights (Btu/h)' => 0.0,
+      'Design Loads Cooling Sensible: Doors (Btu/h)' => 207.0,
+      'Design Loads Cooling Sensible: Walls (Btu/h)' => 265.0,
+      'Design Loads Cooling Sensible: Roofs (Btu/h)' => 0.0,
+      'Design Loads Cooling Sensible: Floors (Btu/h)' => 0.0,
+      'Design Loads Cooling Sensible: Slabs (Btu/h)' => 0.0,
+      'Design Loads Cooling Sensible: Ceilings (Btu/h)' => 2010.0,
+      'Design Loads Cooling Sensible: Infiltration/Ventilation (Btu/h)' => 619.0,
+      'Design Loads Cooling Sensible: Internal Gains (Btu/h)' => 2520.0,
+      'Design Loads Cooling Latent: Total (Btu/h)' => 0.0,
+      'Design Loads Cooling Latent: Ducts (Btu/h)' => 0.0,
+      'Design Loads Cooling Latent: Infiltration/Ventilation (Btu/h)' => 0.0,
+      'Design Loads Cooling Latent: Internal Gains (Btu/h)' => 0.0
     }
 
     actual_multipliers = {}

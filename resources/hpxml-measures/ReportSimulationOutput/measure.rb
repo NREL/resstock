@@ -542,6 +542,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     (@hpxml.heating_systems + @hpxml.heat_pumps).each do |htg_system|
       next unless htg_system.fraction_heat_load_served > 0
       next if htg_system.distribution_system_idref.nil?
+      next unless htg_system.distribution_system.distribution_system_type == HPXML::HVACDistributionTypeDSE
       next if htg_system.distribution_system.annual_heating_dse.nil?
 
       dse = htg_system.distribution_system.annual_heating_dse
@@ -562,6 +563,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     (@hpxml.cooling_systems + @hpxml.heat_pumps).each do |clg_system|
       next unless clg_system.fraction_cool_load_served > 0
       next if clg_system.distribution_system_idref.nil?
+      next unless clg_system.distribution_system.distribution_system_type == HPXML::HVACDistributionTypeDSE
       next if clg_system.distribution_system.annual_cooling_dse.nil?
 
       dse = clg_system.distribution_system.annual_cooling_dse

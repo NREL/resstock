@@ -1,12 +1,12 @@
 Rake Tasks
-##########
+==========
 
 Once you have completed instructions found in :doc:`installer_setup`, you can then :ref:`use the Rakefile <using-the-rakefile>` contained at the top level of this repository (`Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_). You will run rake task(s) for :ref:`performing integrity checks on project inputs <integrity-checks>`.
 
 .. _using-the-rakefile:
 
 Using the Rakefile
-==================
+------------------
 
 Run ``rake -T`` to see the list of possible rake tasks. The ``-T`` is replaced with the chosen task.
 
@@ -21,7 +21,7 @@ Run ``rake -T`` to see the list of possible rake tasks. The ``-T`` is replaced w
 .. _integrity-checks:
 
 Integrity Checks
-================
+----------------
 
 Run ``rake integrity_check_<project_name>``, where ``<project_name>`` matches the project you are working with. If no rake task exists for the project you are working with, extend the list of integrity check rake tasks to accommodate your project by copy-pasting and renaming the ``integrity_check_national`` rake task found in the `Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_. An example for running a project's integrity checks is given below:
 

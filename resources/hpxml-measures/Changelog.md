@@ -36,7 +36,7 @@ __New Features__
 - Switches to the EnergyPlus Fan:SystemModel object for all HVAC systems.
 - Introduces a small amount of infiltration for unvented spaces.
 - Revises shared mechanical ventilation preconditioning control logic to operate less often.
-- Adds more efficiency range warning checks for heating, cooling, and hot water systems.
+- Adds more warnings of inputs based on ANSI/BPI 2400 Standard.
 - Removes error-check for number of bedrooms based on conditioned floor area, per RESNET guidance.
 - Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
 - Removes timeseries CSV output columns that are all zeroes to reduce file size and processing time.
@@ -51,6 +51,8 @@ __Bugfixes__
 - Negative `DistanceToTopOfInsulation` values are now disallowed.
 - Fixes workflow errors if a `VentilationFan` has zero airflow rate or zero hours of operation.
 - Fixes duct design load calculations for HPXML files with multiple ducted HVAC systems.
+- Relaxes `Overhangs` DistanceToBottomOfWindow vs DistanceToBottomOfWindow validation when Depth is zero.
+- Fixes possibility of double-counting HVAC distribution losses if an `HVACDistribution` element has both AirDistribution properties and DSE values
 
 ## OpenStudio-HPXML v1.2.0
 

@@ -629,24 +629,24 @@ class UpgradeCostsTest < MiniTest::Test
       elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
         hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Slab Exposed Perimeter Thermal Boundary')
       elsif cost_mult_type == 'Size, Heating System: Primary (kBtu/h)'
-        hpxml['primary_systems_heating_capacity_k_btu_h'] = 0.0
+        hpxml['primary_systems_heating_capacity_btu_h'] = 0.0
         if cost_multipliers.keys.include?('Primary Systems: Heating Capacity')
-          hpxml['primary_systems_heating_capacity_k_btu_h'] = cost_multipliers['Primary Systems: Heating Capacity'].output
+          hpxml['primary_systems_heating_capacity_btu_h'] = cost_multipliers['Primary Systems: Heating Capacity'].output
         end
       elsif cost_mult_type == 'Size, Heating System: Secondary (kBtu/h)'
-        hpxml['secondary_systems_heating_capacity_k_btu_h'] = 0.0
+        hpxml['secondary_systems_heating_capacity_btu_h'] = 0.0
         if cost_multipliers.keys.include?('Secondary Systems: Heating Capacity')
-          hpxml['secondary_systems_heating_capacity_k_btu_h'] = cost_multipliers['Secondary Systems: Heating Capacity'].output
+          hpxml['secondary_systems_heating_capacity_btu_h'] = cost_multipliers['Secondary Systems: Heating Capacity'].output
         end
       elsif cost_mult_type == 'Size, Cooling System: Primary (kBtu/h)'
-        hpxml['primary_systems_cooling_capacity_k_btu_h'] = 0.0
+        hpxml['primary_systems_cooling_capacity_btu_h'] = 0.0
         if cost_multipliers.keys.include?('Primary Systems: Cooling Capacity')
-          hpxml['primary_systems_cooling_capacity_k_btu_h'] = cost_multipliers['Primary Systems: Cooling Capacity'].output
+          hpxml['primary_systems_cooling_capacity_btu_h'] = cost_multipliers['Primary Systems: Cooling Capacity'].output
         end
       elsif cost_mult_type == 'Size, Heat Pump Backup: Primary (kBtu/h)'
-        hpxml['primary_systems_heat_pump_backup_capacity_k_btu_h'] = 0.0
+        hpxml['primary_systems_heat_pump_backup_capacity_btu_h'] = 0.0
         if cost_multipliers.keys.include?('Primary Systems: Heat Pump Backup Capacity')
-          hpxml['primary_systems_heat_pump_backup_capacity_k_btu_h'] = cost_multipliers['Primary Systems: Heat Pump Backup Capacity'].output
+          hpxml['primary_systems_heat_pump_backup_capacity_btu_h'] = cost_multipliers['Primary Systems: Heat Pump Backup Capacity'].output
         end
       elsif cost_mult_type == 'Size, Water Heater (gal)'
         hpxml['systems_water_heater_tank_volume_gal'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Systems: Water Heater Tank Volume')

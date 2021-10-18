@@ -850,11 +850,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-floor-furnace-propane-only.xml')
     hpxml.heating_systems[0].fan_watts = 22
     hpxml.heating_systems[0].heating_capacity = 12345
-    hpxml.heating_systems[0].heating_efficiency_afue = 0.60
+    hpxml.heating_systems[0].heating_efficiency_afue = 0.66
     hpxml.heating_systems[0].year_installed = 1980
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 22, 12345, 0.60)
+    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 22, 12345, 0.66)
 
     # Test defaults
     hpxml.heating_systems[0].fan_watts = nil
@@ -862,7 +862,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.heating_systems[0].year_installed = 1980
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 0, nil, 0.595)
+    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 0, nil, 0.60)
   end
 
   def test_boilers
@@ -2539,10 +2539,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(wall_furnace_afue, 0.656)
 
     wall_furnace_afue = HVAC.get_default_hvac_efficiency_by_year_installed(1971, 'WallFurnace', 'propane', 'AFUE')
-    assert_equal(wall_furnace_afue, 0.548)
+    assert_equal(wall_furnace_afue, 0.6)
 
     wall_furnace_afue = HVAC.get_default_hvac_efficiency_by_year_installed(1970, 'FloorFurnace', 'natural gas', 'AFUE')
-    assert_equal(wall_furnace_afue, 0.5)
+    assert_equal(wall_furnace_afue, 0.6)
 
     boiler_afue = HVAC.get_default_hvac_efficiency_by_year_installed(2004, 'Boiler', 'propane', 'AFUE')
     assert_equal(boiler_afue, 0.831)
