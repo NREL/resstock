@@ -462,7 +462,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 240.0 + 133.0,
       'Wall Area, Above-Grade, Exterior (ft^2)' => 240.0 + 133.0,
-      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0 + 40.0,
+      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0,
       'Floor Area, Conditioned (ft^2)' => 500.0,
       'Floor Area, Attic (ft^2)' => 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
@@ -477,7 +477,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Size, Water Heater (gal)' => 30.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
-      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 75.7
+      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 71.8
     }
     _test_cost_multipliers('MF_2story_UB_Furnace_AC1_FuelTankWH.osw', cost_multipliers)
   end
@@ -487,7 +487,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 240.0 + 133.0,
       'Wall Area, Above-Grade, Exterior (ft^2)' => 240.0 + 133.0,
-      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0 + 40.0,
+      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0,
       'Floor Area, Conditioned (ft^2)' => 500.0,
       'Floor Area, Attic (ft^2)' => 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
@@ -502,7 +502,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Size, Water Heater (gal)' => 30.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
-      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 75.7
+      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 71.8
     }
     _test_cost_multipliers('MF_2story_UB_FuelBoiler_AC1_FuelTankWH.osw', cost_multipliers)
   end
@@ -512,7 +512,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 240.0 + 133.0,
       'Wall Area, Above-Grade, Exterior (ft^2)' => 240.0 + 133.0,
-      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0 + 40.0,
+      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0,
       'Floor Area, Conditioned (ft^2)' => 500.0,
       'Floor Area, Attic (ft^2)' => 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
@@ -527,7 +527,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Size, Water Heater (gal)' => 50.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
-      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 75.7
+      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 71.8
     }
     _test_cost_multipliers('MF_2story_UB_ASHP2_HPWH.osw', cost_multipliers)
   end
@@ -537,7 +537,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Fixed (1)' => 1,
       'Wall Area, Above-Grade, Conditioned (ft^2)' => 240.0 + 133.0,
       'Wall Area, Above-Grade, Exterior (ft^2)' => 240.0 + 133.0,
-      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0 + 40.0,
+      'Wall Area, Below-Grade (ft^2)' => 240.0 + 133.0,
       'Floor Area, Conditioned (ft^2)' => 500.0,
       'Floor Area, Attic (ft^2)' => 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
@@ -552,7 +552,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Size, Water Heater (gal)' => 30.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
-      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 75.7
+      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 71.8
     }
     _test_cost_multipliers('MF_1story_UB_Furnace_AC1_FuelTankWH.osw', cost_multipliers)
   end
