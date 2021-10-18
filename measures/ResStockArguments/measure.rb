@@ -50,7 +50,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Following are arguments with the same namber but different options
       next if arg.name == 'geometry_unit_cfa'
-      # next if arg.name == 'geometry_corridor_position'
 
       args << arg
     end
@@ -381,6 +380,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['geometry_unit_cfa'] = Float(cfa)
     else
       args['geometry_unit_cfa'] = Float(args['geometry_unit_cfa'])
+    end
+
+    # Vintage
+    if args['vintage'].is_initialized
+      args['year_built'] = Integer(Float(args['vintage'].get.gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
     # Num Occupants
