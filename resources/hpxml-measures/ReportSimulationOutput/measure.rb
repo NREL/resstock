@@ -1234,7 +1234,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     if (key_values.size == 1) && (key_values[0] == 'EMS') && (@timestamps.size > 0)
       if (timeseries_frequency.downcase == 'timestep' || (timeseries_frequency.downcase == 'hourly' && @model.getTimestep.numberOfTimestepsPerHour == 1))
         # Shift all values by 1 timestep due to EMS reporting lag
-        return values[1..-1] + [values[-1]]
+        return values[1..-1] + [values[0]]
       end
     end
 
