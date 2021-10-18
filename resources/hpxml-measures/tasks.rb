@@ -474,13 +474,12 @@ def set_measure_argument_values(hpxml_file, args)
     args['geometry_unit_cfa'] = 2700.0
     args['geometry_unit_left_wall_is_adiabatic'] = false
     args['geometry_unit_right_wall_is_adiabatic'] = false
+    args['geometry_unit_front_wall_is_adiabatic'] = false
     args['geometry_unit_back_wall_is_adiabatic'] = false
     args['geometry_unit_num_floors_above_grade'] = 1
     args['geometry_average_ceiling_height'] = 8.0
     args['geometry_unit_orientation'] = 180.0
     args['geometry_unit_aspect_ratio'] = 1.5
-    args['geometry_corridor_position'] = 'Double-Loaded Interior'
-    args['geometry_corridor_width'] = 10.0
     args['geometry_garage_width'] = 0.0
     args['geometry_garage_depth'] = 20.0
     args['geometry_garage_protrusion'] = 0.0
@@ -798,13 +797,12 @@ def set_measure_argument_values(hpxml_file, args)
     args['geometry_unit_cfa'] = 1539.0
     args['geometry_unit_left_wall_is_adiabatic'] = false
     args['geometry_unit_right_wall_is_adiabatic'] = false
+    args['geometry_unit_front_wall_is_adiabatic'] = false
     args['geometry_unit_back_wall_is_adiabatic'] = false
     args['geometry_unit_num_floors_above_grade'] = 1
     args['geometry_average_ceiling_height'] = 8.0
     args['geometry_unit_orientation'] = 180.0
     args['geometry_unit_aspect_ratio'] = 57.0 / 27.0
-    args['geometry_corridor_position'] = 'Double-Loaded Interior'
-    args['geometry_corridor_width'] = 0
     args['geometry_garage_width'] = 0
     args['geometry_garage_depth'] = 0
     args['geometry_garage_protrusion'] = 0
@@ -1300,7 +1298,6 @@ def set_measure_argument_values(hpxml_file, args)
   if ['base-bldgtype-single-family-attached.xml'].include? hpxml_file
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
     args['geometry_unit_cfa'] = 1800.0
-    args['geometry_corridor_position'] = 'None'
     args['geometry_building_num_units'] = 3
     args['geometry_unit_right_wall_is_adiabatic'] = true
     args['window_front_wwr'] = 0.18
@@ -1328,7 +1325,6 @@ def set_measure_argument_values(hpxml_file, args)
   if ['base-bldgtype-multifamily.xml'].include? hpxml_file
     args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
     args['geometry_unit_cfa'] = 900.0
-    args['geometry_corridor_position'] = 'None'
     args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     args['geometry_unit_right_wall_is_adiabatic'] = true

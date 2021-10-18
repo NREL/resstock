@@ -1411,7 +1411,7 @@ class Geometry
         next if space_is_below_grade(space)
 
         space.surfaces.each do |surface|
-          next unless get_facade_for_surface(surface) == Constants.FacadeFront      
+          next unless get_facade_for_surface(surface) == Constants.FacadeFront
           next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
 
           avail_walls << surface
@@ -1648,7 +1648,6 @@ class Geometry
     if front_wall
       adb_facade += ['front']
     end
-    
     # Make surfaces adiabatic
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|

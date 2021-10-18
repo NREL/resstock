@@ -258,8 +258,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_average_ceiling_height'] = 8.0
       args['geometry_unit_orientation'] = 180.0
       args['geometry_unit_aspect_ratio'] = 1.5
-      args['geometry_corridor_position'] = 'Double-Loaded Interior'
-      args['geometry_corridor_width'] = 10.0
       args['geometry_garage_width'] = 0.0
       args['geometry_garage_depth'] = 20.0
       args['geometry_garage_protrusion'] = 0.0
@@ -574,7 +572,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['base-sfa.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
       args['geometry_unit_cfa'] = 1800.0
-      args['geometry_corridor_position'] = 'None'
       args['geometry_building_num_units'] = 3
       args['geometry_unit_right_wall_is_adiabatic'] = true
       args['window_front_wwr'] = 0.18
@@ -588,7 +585,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['base-mf.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
       args['geometry_unit_cfa'] = 900.0
-      args['geometry_corridor_position'] = 'None'
       args['geometry_foundation_type'] = HPXML::FoundationTypeBasementUnconditioned
       args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
       args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
@@ -789,10 +785,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['foundation_wall_insulation_distance_to_bottom'] = 0.0
     elsif ['extra-sfa-interior-corridor.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 4
-      args['geometry_corridor_position'] = 'Double-Loaded Interior'
     elsif ['extra-sfa-exterior-corridor.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 4
-      args['geometry_corridor_position'] = 'Single Exterior (Front)'
     elsif ['extra-sfa-slab-middle.xml',
            'extra-sfa-vented-crawlspace-middle.xml',
            'extra-sfa-unvented-crawlspace-middle.xml',
@@ -824,10 +818,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['foundation_wall_insulation_distance_to_bottom'] = 4.0
     elsif ['extra-mf-interior-corridor.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 18
-      args['geometry_corridor_position'] = 'Double-Loaded Interior'
     elsif ['extra-mf-exterior-corridor.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 18
-      args['geometry_corridor_position'] = 'Single Exterior (Front)'
     elsif ['extra-mf-slab-left-bottom.xml',
            'extra-mf-vented-crawlspace-left-bottom.xml',
            'extra-mf-unvented-crawlspace-left-bottom.xml'].include? hpxml_file
@@ -909,7 +901,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
            'extra-mf-unvented-crawlspace-right-bottom-interior-corridor.xml',
            'extra-mf-unvented-crawlspace-right-middle-interior-corridor.xml',
            'extra-mf-unvented-crawlspace-right-top-interior-corridor.xml'].include? hpxml_file
-      args['geometry_corridor_position'] = 'Double-Loaded Interior'
+      ## FIXME: remove these files?
     end
 
     # Error
