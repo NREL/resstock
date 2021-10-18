@@ -7,13 +7,13 @@ outdir = 'baseline/results'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
-df_testing = pd.read_csv('project_testing/testing_baseline.csv')
-df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}.osw'.format('%04d' % x))
-df_testing.insert(1, 'color_index', 0)
-
-df_national = pd.read_csv('project_national/national_baseline.csv')
+df_national = pd.read_csv('project_national/national_baseline/results_csvs/results_up00.csv')
 df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}.osw'.format('%04d' % x))
 df_national.insert(1, 'color_index', 1)
+
+df_testing = pd.read_csv('project_testing/testing_baseline/results_csvs/results_up00.csv')
+df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}.osw'.format('%04d' % x))
+df_testing.insert(1, 'color_index', 0)
 
 frames = [df_national, df_testing]
 df = pd.concat(frames)
@@ -64,19 +64,19 @@ if not os.path.exists(outdir):
 
 frames = []
 
-for i in range(1, 3):
+for i in range(1, 6):
 
-  df_testing = pd.read_csv('project_testing/testing_upgrade{}.csv'.format('%02d' % i))
-  df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}.osw'.format('%04d' % x))
-  df_testing.insert(1, 'color_index', 0)
-
-  frames.append(df_testing)
-
-  df_national = pd.read_csv('project_national/national_upgrade{}.csv'.format('%02d' % i))
+  df_national = pd.read_csv('project_national/national_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
   df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}.osw'.format('%04d' % x))
   df_national.insert(1, 'color_index', 1)
 
   frames.append(df_national)
+
+  df_testing = pd.read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
+  df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}.osw'.format('%04d' % x))
+  df_testing.insert(1, 'color_index', 0)
+
+  frames.append(df_testing)
 
 df = pd.concat(frames)
 df = df.rename(columns={'building_id': 'OSW'})

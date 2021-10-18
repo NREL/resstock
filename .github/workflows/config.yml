@@ -83,23 +83,11 @@ jobs:
 
       - name: Process results
         run: |
-          gunzip -v project_national/national_baseline/results_csvs/results_up00.csv.gz
-          mv project_national/national_baseline/results_csvs/results_up00.csv project_national/national_baseline.csv
+          gunzip -v project_national/national_baseline/results_csvs/*.csv.gz
+          gunzip -v project_testing/testing_baseline/results_csvs/*.csv.gz
           
-          gunzip -v project_national/national_upgrades/results_csvs/results_up01.csv.gz
-          mv project_national/national_upgrades/results_csvs/results_up01.csv project_national/national_upgrade01.csv
-          
-          gunzip -v project_national/national_upgrades/results_csvs/results_up02.csv.gz
-          mv project_national/national_upgrades/results_csvs/results_up02.csv project_national/national_upgrade02.csv
-          
-          gunzip -v project_testing/testing_baseline/results_csvs/results_up00.csv.gz
-          mv project_testing/testing_baseline/results_csvs/results_up00.csv project_testing/testing_baseline.csv
-          
-          gunzip -v project_testing/testing_upgrades/results_csvs/results_up01.csv.gz
-          mv project_testing/testing_upgrades/results_csvs/results_up01.csv project_testing/testing_upgrade01.csv
-          
-          gunzip -v project_testing/testing_upgrades/results_csvs/results_up02.csv.gz
-          mv project_testing/testing_upgrades/results_csvs/results_up02.csv project_testing/testing_upgrade02.csv
+          gunzip -v project_national/national_upgrades/results_csvs/*.csv.gz
+          gunzip -v project_testing/testing_upgrades/results_csvs/*.csv.gz
           
           pip install pandas
           python test/util.py
