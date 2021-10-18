@@ -118,11 +118,17 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
-      - name: Upload base samples and results
+      - name: Upload baseline samples and results
         uses: actions/upload-artifact@v2
         with:
           path: test/test_samples_osw/base
           name: base
+
+      - name: Upload upgrade results
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/upgrades
+          name: upgrades
 
       - uses: actions/checkout@v2
         with:
@@ -135,6 +141,13 @@ jobs:
             base
           name: base
 
+      - name: Download upgrade samples and results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            upgrades
+          name: upgrades
+
       - name: Download feature samples
         uses: actions/download-artifact@v2
         with:
@@ -142,12 +155,19 @@ jobs:
             samples
           name: samples
 
-      - name: Download feature results
+      - name: Download baseline feature results
         uses: actions/download-artifact@v2
         with:
           path: |
             results
           name: results
+
+      - name: Download upgrade feature results
+        uses: actions/download-artifact@v2
+        with:
+          path: |
+            results_upgrades
+          name: results-upgrades
 
       - name: Compare samples and results
         run: |
@@ -155,6 +175,10 @@ jobs:
           mkdir test/test_samples_osw/results
           cp -r samples/buildstock*.csv test/test_samples_osw/results
           cp -r results/results* test/test_samples_osw/results
+          
+          cp -r upgrades/*.csv test/test_samples_osw/upgrades
+          mkdir test/test_samples_osw/results_upgrades
+          cp -r results_upgrades/results* test/test_samples_osw/results_upgrades
           
           pip install numpy
           pip install pandas
@@ -170,6 +194,11 @@ jobs:
           python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html
           python test/compare.py -a visualize -dc county -x results_output_county.html
           python test/compare.py -a visualize -dc geometry_building_type_recs -ac county -af sum -x results_output_county_sum.html
+          
+          python test/compare.py -a visualize -dc geometry_building_type_recs -x upgrades_results_output_building_type.html -b test/test_samples_osw/upgrades -f test/test_samples_osw/results_upgrades
+          python test/compare.py -a visualize -dc geometry_foundation_type -x upgrades_results_output_foundation_type.html -b test/test_samples_osw/upgrades -f test/test_samples_osw/results_upgrades
+          python test/compare.py -a visualize -dc county -x upgrades_results_output_county.html -b test/test_samples_osw/upgrades -f test/test_samples_osw/results_upgrades
+          python test/compare.py -a visualize -dc geometry_building_type_recs -ac county -af sum -x upgrades_results_output_county_sum.html -b test/test_samples_osw/upgrades -f test/test_samples_osw/results_upgrades
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
