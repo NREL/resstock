@@ -3,9 +3,12 @@
 require 'parallel'
 require 'json'
 require 'yaml'
+
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling'
 require_relative '../resources/util'
+
+require_relative '../resources/measures/HPXMLtoOpenStudio/resources/version'
 
 start_time = Time.now
 
@@ -257,7 +260,7 @@ OptionParser.new do |opts|
 end.parse!
 
 if options[:version]
-  puts "#{software_program_used} v#{software_program_version}"
+  puts "#{Version.software_program_used} v#{Version.software_program_version}"
   exit!
 end
 

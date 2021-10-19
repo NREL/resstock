@@ -25,7 +25,7 @@ copyright = metadata['__copyright__']
 author = metadata['__author__']
 
 # The full version, including alpha/beta/rc tags
-release = metadata['__version__']
+release = metadata['__resstock_version__']
 
 
 # -- General configuration ---------------------------------------------------

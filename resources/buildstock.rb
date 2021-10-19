@@ -425,25 +425,6 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
   fail msg
 end
 
-def version
-  data = {}
-  File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
-    file.each_line do |line|
-      key, value = line.split(' = ')
-      data[key] = value.chomp.gsub("'", '')
-    end
-  end
-  return data
-end
-
-def software_program_used
-  return version['__title__']
-end
-
-def software_program_version
-  return version['__version__']
-end
-
 class RunOSWs
   require 'csv'
   require 'json'
@@ -531,5 +512,26 @@ class RunOSWs
 
       sleep(0.01)
     end
+  end
+end
+
+class Version
+  def self.version
+    version = {}
+    File.open("#{File.dirname(__FILE__)}/../../../__version__.py", 'r') do |file|
+      file.each_line do |line|
+        key, value = line.split(' = ')
+        version[key] = value.chomp.gsub("'", '')
+      end
+    end
+    return version
+  end
+
+  def self.software_program_used
+    return version['__title__']
+  end
+
+  def self.software_program_version
+    return version['__resstock_version__']
   end
 end
