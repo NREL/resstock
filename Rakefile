@@ -18,7 +18,7 @@ namespace :test do
     t.verbose = true
   end
 
-  desc 'Run analysis tests for testing projects'
+  desc 'Run local analysis tests'
   Rake::TestTask.new('analysis_tests') do |t|
     t.libs << 'test'
     t.test_files = Dir['test/test_run_analysis.rb']

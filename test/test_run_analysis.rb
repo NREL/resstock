@@ -6,7 +6,7 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..')
 load 'Rakefile'
 require 'openstudio'
 
-class TestResStockMeasuresOSW < MiniTest::Test
+class TestRunAnalysis < MiniTest::Test
   def before_setup
     cli_path = OpenStudio.getOpenStudioCLI
     @command = "\"#{cli_path}\" workflow/run_analysis.rb"

@@ -42,7 +42,7 @@ jobs:
         run: |
           rake test:project_tests
 
-      - name: Run all analysis tests
+      - name: Run local analysis tests
         run: |
           rake test:analysis_tests
 
@@ -80,6 +80,10 @@ jobs:
           
           buildstock_docker project_testing/testing_upgrades.yml
           buildstock_docker project_national/national_upgrades.yml
+
+      - name: Run bsb tests
+        run: |
+          ruby test/test_bsb_analysis.rb
 
       - name: Process results
         run: |
