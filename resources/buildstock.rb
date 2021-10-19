@@ -518,7 +518,7 @@ end
 class Version
   def self.version
     version = {}
-    File.open("#{File.dirname(__FILE__)}/../../../__version__.py", 'r') do |file|
+    File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
       file.each_line do |line|
         key, value = line.split(' = ')
         version[key] = value.chomp.gsub("'", '')

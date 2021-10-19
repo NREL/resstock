@@ -8,8 +8,6 @@ require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling'
 require_relative '../resources/util'
 
-require_relative '../resources/measures/HPXMLtoOpenStudio/resources/version'
-
 start_time = Time.now
 
 def run_workflow(yml, measures_only, debug)
