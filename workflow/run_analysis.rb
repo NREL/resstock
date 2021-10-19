@@ -3,9 +3,12 @@
 require 'parallel'
 require 'json'
 require 'yaml'
+
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling'
 require_relative '../resources/util'
+
+require_relative '../resources/measures/HPXMLtoOpenStudio/resources/version'
 
 start_time = Time.now
 
@@ -188,17 +191,9 @@ def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics,
     all_results_characteristics << result_characteristics
     all_results_output << result_output
 
-    # Save existing/upgraded osws
-    ['measures', 'measures-upgrade'].each do |scen|
-      ['osw'].each do |type|
-        from = File.join(worker_dir, 'run', "#{scen}.#{type}")
-
-        dir = osw_dir
-        to = File.join(dir, "#{building_id}-#{osw_basename.gsub('.osw', '')}-#{scen}.#{type}")
-
-        FileUtils.mv(from, to) if File.exist?(from)
-      end
-    end
+    run_dir = File.join(worker_dir, 'run')
+    FileUtils.mv(File.join(run_dir, 'measures.osw'), File.join(osw_dir, "#{building_id}-measures.osw"))
+    FileUtils.mv(File.join(run_dir, 'measures-upgrade.osw'), File.join(osw_dir, "#{building_id}-measures-upgrade.osw")) if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
   end
 end
 
@@ -248,7 +243,7 @@ OptionParser.new do |opts|
 end.parse!
 
 if options[:version]
-  puts "ResStock v#{version['__version__']}"
+  puts "ResStock v#{Version.software_program_version}"
   exit!
 end
 
