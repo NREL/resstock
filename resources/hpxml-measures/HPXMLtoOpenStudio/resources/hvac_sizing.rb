@@ -2265,6 +2265,8 @@ class HVACSizing
         cfms[duct.Side] += duct.LeakageFrac * system_cfm
       elsif duct.LeakageCFM25.to_f > 0
         cfms[duct.Side] += duct.LeakageCFM25
+      elsif duct.LeakageCFM50.to_f > 0
+        cfms[duct.Side] += Airflow.calc_air_leakage_at_diff_pressure(0.65, duct.LeakageCFM50, 50.0, 25.0)
       end
     end
 
@@ -2483,10 +2485,14 @@ class HVACSizing
           lto[:supply_percent] = m.duct_leakage_value
         elsif m.duct_leakage_units == HPXML::UnitsCFM25 && m.duct_type == HPXML::DuctTypeSupply
           lto[:supply_cfm25] = m.duct_leakage_value
+        elsif m.duct_leakage_units == HPXML::UnitsCFM50 && m.duct_type == HPXML::DuctTypeSupply
+          lto[:supply_cfm50] = m.duct_leakage_value
         elsif m.duct_leakage_units == HPXML::UnitsPercent && m.duct_type == HPXML::DuctTypeReturn
           lto[:return_percent] = m.duct_leakage_value
         elsif m.duct_leakage_units == HPXML::UnitsCFM25 && m.duct_type == HPXML::DuctTypeReturn
           lto[:return_cfm25] = m.duct_leakage_value
+        elsif m.duct_leakage_units == HPXML::UnitsCFM50 && m.duct_type == HPXML::DuctTypeReturn
+          lto[:return_cfm50] = m.duct_leakage_value
         end
       end
       total_uncond_supply_area = hpxml_hvac.distribution_system.total_unconditioned_duct_areas[HPXML::DuctTypeSupply]
@@ -2506,14 +2512,16 @@ class HVACSizing
         if d.Side == HPXML::DuctTypeSupply
           d.LeakageFrac = lto[:supply_percent].to_f * d.Area / total_uncond_supply_area
           d.LeakageCFM25 = lto[:supply_cfm25].to_f * d.Area / total_uncond_supply_area
+          d.LeakageCFM50 = lto[:supply_cfm50].to_f * d.Area / total_uncond_supply_area
         elsif d.Side == HPXML::DuctTypeReturn
           d.LeakageFrac = lto[:return_percent].to_f * d.Area / total_uncond_return_area
           d.LeakageCFM25 = lto[:return_cfm25].to_f * d.Area / total_uncond_return_area
+          d.LeakageCFM50 = lto[:return_cfm50].to_f * d.Area / total_uncond_return_area
         end
         hvac.Ducts << d
       end
       # If all ducts are in conditioned space, treat leakage as going to outside
-      if (lto[:supply_percent].to_f + lto[:supply_cfm25].to_f) > 0 && total_uncond_supply_area == 0
+      if (lto[:supply_percent].to_f + lto[:supply_cfm25].to_f + lto[:supply_cfm50].to_f) > 0 && total_uncond_supply_area == 0
         d = DuctInfo.new
         d.Side = HPXML::DuctTypeSupply
         d.Location = HPXML::LocationOutside
@@ -2521,9 +2529,10 @@ class HVACSizing
         d.Rvalue = Airflow.get_duct_insulation_rvalue(0.0, d.Side)
         d.LeakageFrac = lto[:supply_percent]
         d.LeakageCFM25 = lto[:supply_cfm25]
+        d.LeakageCFM50 = lto[:supply_cfm50]
         hvac.Ducts << d
       end
-      next unless (lto[:return_percent].to_f + lto[:return_cfm25].to_f) > 0 && total_uncond_return_area == 0
+      next unless (lto[:return_percent].to_f + lto[:return_cfm25].to_f + lto[:return_cfm50].to_f) > 0 && total_uncond_return_area == 0
 
       d = DuctInfo.new
       d.Side = HPXML::DuctTypeReturn
@@ -2532,6 +2541,7 @@ class HVACSizing
       d.Rvalue = Airflow.get_duct_insulation_rvalue(0.0, d.Side)
       d.LeakageFrac = lto[:return_percent]
       d.LeakageCFM25 = lto[:return_cfm25]
+      d.LeakageCFM50 = lto[:return_cfm50]
       hvac.Ducts << d
     end
 
@@ -3421,7 +3431,7 @@ class DuctInfo
   # FUTURE: Remove class; use either airflow.rb Duct class or HPXML Ducts class directly
   def initial
   end
-  attr_accessor(:LeakageFrac, :LeakageCFM25, :Area, :Rvalue, :Location, :Side)
+  attr_accessor(:LeakageFrac, :LeakageCFM25, :LeakageCFM50, :Area, :Rvalue, :Location, :Side)
 end
 
 class Numeric

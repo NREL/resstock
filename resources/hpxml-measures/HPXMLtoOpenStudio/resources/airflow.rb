@@ -607,12 +607,6 @@ class Airflow
 
   def self.apply_ducts(model, ducts, object)
     ducts.each do |duct|
-      if duct.leakage_frac.nil? == duct.leakage_cfm25.nil?
-        fail 'Ducts: Must provide either leakage fraction or cfm25, but not both.'
-      end
-    end
-
-    ducts.each do |duct|
       duct.rvalue = get_duct_insulation_rvalue(duct.rvalue, duct.side) # Convert from nominal to actual R-value
       if not duct.loc_schedule.nil?
         # Pass MF space temperature schedule name
@@ -911,6 +905,9 @@ class Airflow
         elsif not duct.leakage_cfm25.nil?
           leakage_cfm25s[duct.side] = 0 if leakage_cfm25s[duct.side].nil?
           leakage_cfm25s[duct.side] += duct.leakage_cfm25
+        elsif not duct.leakage_cfm50.nil?
+          leakage_cfm25s[duct.side] = 0 if leakage_cfm25s[duct.side].nil?
+          leakage_cfm25s[duct.side] += calc_air_leakage_at_diff_pressure(0.65, duct.leakage_cfm50, 50.0, 25.0)
         end
         ua_values[duct.side] += duct.area / duct.rvalue
       end
@@ -1958,14 +1955,15 @@ class Airflow
 end
 
 class Duct
-  def initialize(side, loc_space, loc_schedule, leakage_frac, leakage_cfm25, area, rvalue)
+  def initialize(side, loc_space, loc_schedule, leakage_frac, leakage_cfm25, leakage_cfm50, area, rvalue)
     @side = side
     @loc_space = loc_space
     @loc_schedule = loc_schedule
     @leakage_frac = leakage_frac
     @leakage_cfm25 = leakage_cfm25
+    @leakage_cfm50 = leakage_cfm50
     @area = area
     @rvalue = rvalue
   end
-  attr_accessor(:side, :loc_space, :loc_schedule, :leakage_frac, :leakage_cfm25, :area, :rvalue, :zone, :location)
+  attr_accessor(:side, :loc_space, :loc_schedule, :leakage_frac, :leakage_cfm25, :leakage_cfm50, :area, :rvalue, :zone, :location)
 end

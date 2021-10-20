@@ -1021,6 +1021,104 @@ class Constructions
     return map[color]
   end
 
+  def self.get_default_window_skylight_ufactor_shgc(window_or_skylight, type)
+    if window_or_skylight.glass_layers == HPXML::WindowLayersSinglePane
+      n_panes = 1
+    elsif window_or_skylight.glass_layers == HPXML::WindowLayersDoublePane
+      n_panes = 2
+    elsif window_or_skylight.glass_layers == HPXML::WindowLayersTriplePane
+      n_panes = 3
+    elsif window_or_skylight.glass_layers == HPXML::WindowLayersGlassBlock
+      return [0.6, 0.6] # From https://www.federalregister.gov/documents/2016/06/17/2016-13547/energy-conservation-standards-for-manufactured-housing
+    end
+
+    if [HPXML::WindowFrameTypeAluminum,
+        HPXML::WindowFrameTypeMetal].include? window_or_skylight.frame_type
+      is_metal_frame = true
+    elsif [HPXML::WindowFrameTypeWood,
+           HPXML::WindowFrameTypeVinyl,
+           HPXML::WindowFrameTypeFiberglass].include? window_or_skylight.frame_type
+      is_metal_frame = false
+    else
+      fail "Unexpected #{type.downcase} frame type."
+    end
+
+    if window_or_skylight.glass_type.nil?
+      glass_type = 'clear'
+    elsif [HPXML::WindowGlassTypeTinted,
+           HPXML::WindowGlassTypeTintedReflective].include? window_or_skylight.glass_type
+      glass_type = 'tinted'
+    elsif [HPXML::WindowGlassTypeLowE].include? window_or_skylight.glass_type
+      glass_type = 'low_e'
+    elsif [HPXML::WindowGlassTypeReflective].include? window_or_skylight.glass_type
+      glass_type = 'reflective'
+    else
+      fail "Unexpected #{type.downcase} glass type."
+    end
+
+    if window_or_skylight.glass_layers == HPXML::WindowLayersSinglePane
+      gas_fill = 'none'
+    elsif [HPXML::WindowGasAir].include? window_or_skylight.gas_fill
+      gas_fill = 'air'
+    elsif [HPXML::WindowGasArgon,
+           HPXML::WindowGasKrypton,
+           HPXML::WindowGasXenon,
+           HPXML::WindowGasNitrogen,
+           HPXML::WindowGasOther].include? window_or_skylight.gas_fill
+      gas_fill = 'gas'
+    else
+      fail "Unexpected #{type.downcase} gas type."
+    end
+
+    # Lookup values
+    # From http://hes-documentation.lbl.gov/calculation-methodology/calculation-of-energy-consumption/heating-and-cooling-calculation/building-envelope/window-skylight-construction-types
+    key = [is_metal_frame, window_or_skylight.thermal_break, n_panes, glass_type, gas_fill]
+    if type.downcase == 'window'
+      vals = { [true, false, 1, 'clear', 'none'] => [1.27, 0.75], # Single-pane, clear, aluminum frame
+               [false, nil, 1, 'clear', 'none'] => [0.89, 0.64], # Single-pane, clear, wood or vinyl frame
+               [true, false, 1, 'tinted', 'none'] => [1.27, 0.64], # Single-pane, tinted, aluminum frame
+               [false, nil, 1, 'tinted', 'none'] => [0.89, 0.54], # Single-pane, tinted, wood or vinyl frame
+               [true, false, 2, 'clear', 'air'] => [0.81, 0.67], # Double-pane, clear, aluminum frame
+               [true, true, 2, 'clear', 'air'] => [0.60, 0.67], # Double-pane, clear, aluminum frame w/ thermal break
+               [false, nil, 2, 'clear', 'air'] => [0.51, 0.56], # Double-pane, clear, wood or vinyl frame
+               [true, false, 2, 'tinted', 'air'] => [0.81, 0.55], # Double-pane, tinted, aluminum frame
+               [true, true, 2, 'tinted', 'air'] => [0.60, 0.55], # Double-pane, tinted, aluminum frame w/ thermal break
+               [false, nil, 2, 'tinted', 'air'] => [0.51, 0.46], # Double-pane, tinted, wood or vinyl frame
+               [false, nil, 2, 'low_e', 'air'] => [0.42, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
+               [true, true, 2, 'low_e', 'gas'] => [0.47, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e', 'gas'] => [0.39, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [true, false, 2, 'reflective', 'air'] => [0.67, 0.37], # Double-pane, solar-control low-E, aluminum frame
+               [true, true, 2, 'reflective', 'air'] => [0.47, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
+               [false, nil, 2, 'reflective', 'air'] => [0.39, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
+               [false, nil, 2, 'reflective', 'gas'] => [0.36, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 3, 'low_e', 'gas'] => [0.27, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
+    elsif type.downcase == 'skylight'
+      vals = { [true, false, 1, 'clear', 'none'] => [1.98, 0.75], # Single-pane, clear, aluminum frame
+               [false, nil, 1, 'clear', 'none'] => [1.47, 0.64], # Single-pane, clear, wood or vinyl frame
+               [true, false, 1, 'tinted', 'none'] => [1.98, 0.64], # Single-pane, tinted, aluminum frame
+               [false, nil, 1, 'tinted', 'none'] => [1.47, 0.54], # Single-pane, tinted, wood or vinyl frame
+               [true, false, 2, 'clear', 'air'] => [1.30, 0.67], # Double-pane, clear, aluminum frame
+               [true, true, 2, 'clear', 'air'] => [1.10, 0.67], # Double-pane, clear, aluminum frame w/ thermal break
+               [false, nil, 2, 'clear', 'air'] => [0.84, 0.56], # Double-pane, clear, wood or vinyl frame
+               [true, false, 2, 'tinted', 'air'] => [1.30, 0.55], # Double-pane, tinted, aluminum frame
+               [true, true, 2, 'tinted', 'air'] => [1.10, 0.55], # Double-pane, tinted, aluminum frame w/ thermal break
+               [false, nil, 2, 'tinted', 'air'] => [0.84, 0.46], # Double-pane, tinted, wood or vinyl frame
+               [false, nil, 2, 'low_e', 'air'] => [0.74, 0.52], # Double-pane, insulating low-E, wood or vinyl frame
+               [true, true, 2, 'low_e', 'gas'] => [0.95, 0.62], # Double-pane, insulating low-E, argon gas fill, aluminum frame w/ thermal break
+               [false, nil, 2, 'low_e', 'gas'] => [0.68, 0.52], # Double-pane, insulating low-E, argon gas fill, wood or vinyl frame
+               [true, false, 2, 'reflective', 'air'] => [1.17, 0.37], # Double-pane, solar-control low-E, aluminum frame
+               [true, true, 2, 'reflective', 'air'] => [0.98, 0.37], # Double-pane, solar-control low-E, aluminum frame w/ thermal break
+               [false, nil, 2, 'reflective', 'air'] => [0.71, 0.31], # Double-pane, solar-control low-E, wood or vinyl frame
+               [false, nil, 2, 'reflective', 'gas'] => [0.65, 0.31], # Double-pane, solar-control low-E, argon gas fill, wood or vinyl frame
+               [false, nil, 3, 'low_e', 'gas'] => [0.47, 0.31] }[key] # Triple-pane, insulating low-E, argon gas fill, wood or vinyl frame
+    else
+      fail 'Unexpected type.'
+    end
+    return vals if not vals.nil?
+
+    fail "Could not lookup UFactor and SHGC for #{type.downcase} '#{window_or_skylight.id}'."
+  end
+
   private
 
   def self.get_roof_color_and_solar_absorptance_map
