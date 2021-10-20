@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'minitest_helper'
 require 'minitest/autorun'
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..')
 load 'Rakefile'
