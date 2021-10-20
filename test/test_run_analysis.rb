@@ -16,8 +16,7 @@ class TestResStockMeasuresOSW < MiniTest::Test
   def test_version
     @command += ' -v'
 
-    output = `#{@command}`
-    refute_empty(output)
+    assert(!system(@command))
   end
 
   def test_testing_baseline_measures_only

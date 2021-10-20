@@ -243,7 +243,7 @@ OptionParser.new do |opts|
 end.parse!
 
 if options[:version]
-  p "#{Version.software_program_used} v#{Version.software_program_version}"
+  puts "#{Version.software_program_used} v#{Version.software_program_version}"
   exit!
 end
 
