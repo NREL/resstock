@@ -5,23 +5,21 @@ __New Features__
 - **Breaking change**: Replaces "Unmet Load" outputs with "Unmet Hours".
 - **Breaking change**: Renames "Load: Heating" and "Peak Load: Heating" (and Cooling) outputs to include "Delivered".
 - **Breaking change**: Replaces ClothesDryer `extension/IsVented` and `extension/VentedFlowRate` with `Vented` and `VentedFlowRate`.
+- Initial release of BuildResidentialHPXML measure, which generates an HPXML file from a set of building description inputs.
 - Expanded capabilities for scheduling:
   - Allows modeling detailed occupancy via a schedule CSV file.
   - Introduces a measure for automatically generating detailed smooth/stochastic schedule CSV files.
   - Expands simplified weekday/weekend/monthly schedule inputs to additional building features.
   - Allows `HeatingSeason` & `CoolingSeason` to be specified for defining heating and cooling equipment availability.
-- Allows non-zero refrigerant charge defect ratios for ground source heat pumps.
-- Expands choices allowed for `Siding` (Wall/RimJoist) and `RoofType` (Roof) elements.
-- Allows "none" for wall/rim joist siding.
-- Allows interior finish inputs (e.g., 0.5" drywall) for walls, ceilings, and roofs.
 - Adds a new results_hpxml.csv output file to summarize HPXML values (e.g., surface areas, HVAC capacities).
-- Allows additional fuel types for generators.
 - Adds alternative inputs:
+  - Window/skylight physical properties (`GlassLayers`, `FrameType`, etc.) instead of `UFactor` & `SHGC`.
   - `Ducts/FractionDuctArea` instead of `Ducts/DuctSurfaceArea`.
   - `Length` instead of `Area` for foundation walls.
   - `Orientation` instead of `Azimuth` for all applicable surfaces, PV systems, and solar thermal systems.
   - CEER (Combined Energy Efficiency Ratio) instead of EER for room ACs.
   - `UsageBin` instead of `FirstHourRating` (for water heaters w/ UEF metric).
+  - `CFM50` instead of `CFM25` or `Percent` for duct leakage.
 - Allows more defaulting (optional inputs):
   - Mechanical ventilation airflow rate per ASHRAE 62.2-2019.
   - HVAC/DHW system efficiency (by age).
@@ -31,13 +29,19 @@ __New Features__
   - Door azimuth.
   - Radiant barrier grade.
   - Whole house fan airflow rate and fan power.
+- Allows non-zero refrigerant charge defect ratios for ground source heat pumps.
+- Expands choices allowed for `Siding` (Wall/RimJoist) and `RoofType` (Roof) elements.
+- Allows "none" for wall/rim joist siding.
+- Allows interior finish inputs (e.g., 0.5" drywall) for walls, ceilings, and roofs.
+- Allows additional fuel types for generators.
 - Switches to the EnergyPlus Fan:SystemModel object for all HVAC systems.
 - Introduces a small amount of infiltration for unvented spaces.
 - Revises shared mechanical ventilation preconditioning control logic to operate less often.
-- Adds more efficiency range warning checks for heating, cooling, and hot water systems.
+- Adds more warnings of inputs based on ANSI/BPI 2400 Standard.
 - Removes error-check for number of bedrooms based on conditioned floor area, per RESNET guidance.
 - Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
 - Removes timeseries CSV output columns that are all zeroes to reduce file size and processing time.
+- Relaxes requirement for heating (or cooling) setpoints so that they are only needed if heating (or cooling) equipment is present.
 - Adds an `--ep-input-format` argument to run_simulation.rb to choose epJSON as the EnergyPlus input file format instead of IDF.
 - Eliminates EnergyPlus warnings related to unused objects or invalid output meters/variables.
 
@@ -48,6 +52,9 @@ __Bugfixes__
 - Negative `DistanceToTopOfInsulation` values are now disallowed.
 - Fixes workflow errors if a `VentilationFan` has zero airflow rate or zero hours of operation.
 - Fixes duct design load calculations for HPXML files with multiple ducted HVAC systems.
+- Relaxes `Overhangs` DistanceToBottomOfWindow vs DistanceToBottomOfWindow validation when Depth is zero.
+- Fixes possibility of double-counting HVAC distribution losses if an `HVACDistribution` element has both AirDistribution properties and DSE values
+- Fixes possibility of incorrect "Peak Electricity: Winter Total (W)" and "Peak Electricity: Summer Total (W)" outputs for homes with duct losses.
 
 ## OpenStudio-HPXML v1.2.0
 

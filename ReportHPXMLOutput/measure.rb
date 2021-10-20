@@ -101,6 +101,33 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     cost_multipliers[BS::HeatPumpBackup] = BaseOutput.new
     cost_multipliers[BS::WaterHeater] = BaseOutput.new
     cost_multipliers[BS::FlowRateMechanicalVentilation] = BaseOutput.new
+    cost_multipliers[BS::HeatingTotal] = BaseOutput.new
+    cost_multipliers[BS::HeatingDucts] = BaseOutput.new
+    cost_multipliers[BS::HeatingWindows] = BaseOutput.new
+    cost_multipliers[BS::HeatingSkylights] = BaseOutput.new
+    cost_multipliers[BS::HeatingDoors] = BaseOutput.new
+    cost_multipliers[BS::HeatingWalls] = BaseOutput.new
+    cost_multipliers[BS::HeatingRoofs] = BaseOutput.new
+    cost_multipliers[BS::HeatingFloors] = BaseOutput.new
+    cost_multipliers[BS::HeatingSlabs] = BaseOutput.new
+    cost_multipliers[BS::HeatingCeilings] = BaseOutput.new
+    cost_multipliers[BS::HeatingInfilVent] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleTotal] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleDucts] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleWindows] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleSkylights] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleDoors] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleWalls] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleRoofs] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleFloors] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleSlabs] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleCeilings] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleInfilVent] = BaseOutput.new
+    cost_multipliers[BS::CoolingSensibleIntGains] = BaseOutput.new
+    cost_multipliers[BS::CoolingLatentTotal] = BaseOutput.new
+    cost_multipliers[BS::CoolingLatentDucts] = BaseOutput.new
+    cost_multipliers[BS::CoolingLatentInfilVent] = BaseOutput.new
+    cost_multipliers[BS::CoolingLatentIntGains] = BaseOutput.new
 
     # Cost multipliers
     cost_multipliers.each do |cost_mult_type, cost_mult|
@@ -246,23 +273,23 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       end
     elsif cost_mult_type == 'Systems: Heating Capacity'
       hpxml.heating_systems.each do |heating_system|
-        cost_mult += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
+        cost_mult += heating_system.heating_capacity
       end
 
       hpxml.heat_pumps.each do |heat_pump|
-        cost_mult += UnitConversions.convert(heat_pump.heating_capacity, 'btu/hr', 'kbtu/hr')
+        cost_mult += heat_pump.heating_capacity
       end
     elsif cost_mult_type == 'Systems: Cooling Capacity'
       hpxml.cooling_systems.each do |cooling_system|
-        cost_mult += UnitConversions.convert(cooling_system.cooling_capacity, 'btu/hr', 'kbtu/hr')
+        cost_mult += cooling_system.cooling_capacity
       end
 
       hpxml.heat_pumps.each do |heat_pump|
-        cost_mult += UnitConversions.convert(heat_pump.cooling_capacity, 'btu/hr', 'kbtu/hr')
+        cost_mult += heat_pump.cooling_capacity
       end
     elsif cost_mult_type == 'Systems: Heat Pump Backup Capacity'
       hpxml.heat_pumps.each do |heat_pump|
-        cost_mult += UnitConversions.convert(heat_pump.backup_heating_capacity, 'btu/hr', 'kbtu/hr')
+        cost_mult += heat_pump.backup_heating_capacity
       end
     elsif cost_mult_type == 'Systems: Water Heater Tank Volume'
       hpxml.water_heating_systems.each do |water_heating_system|
@@ -274,6 +301,60 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
         cost_mult += ventilation_fan.flow_rate.to_f
       end
+    elsif cost_mult_type == 'Design Loads Heating: Total'
+      cost_mult += hpxml.hvac_plant.hdl_total
+    elsif cost_mult_type == 'Design Loads Heating: Ducts'
+      cost_mult += hpxml.hvac_plant.hdl_ducts
+    elsif cost_mult_type == 'Design Loads Heating: Windows'
+      cost_mult += hpxml.hvac_plant.hdl_windows
+    elsif cost_mult_type == 'Design Loads Heating: Skylights'
+      cost_mult += hpxml.hvac_plant.hdl_skylights
+    elsif cost_mult_type == 'Design Loads Heating: Doors'
+      cost_mult += hpxml.hvac_plant.hdl_doors
+    elsif cost_mult_type == 'Design Loads Heating: Walls'
+      cost_mult += hpxml.hvac_plant.hdl_walls
+    elsif cost_mult_type == 'Design Loads Heating: Roofs'
+      cost_mult += hpxml.hvac_plant.hdl_roofs
+    elsif cost_mult_type == 'Design Loads Heating: Floors'
+      cost_mult += hpxml.hvac_plant.hdl_floors
+    elsif cost_mult_type == 'Design Loads Heating: Slabs'
+      cost_mult += hpxml.hvac_plant.hdl_slabs
+    elsif cost_mult_type == 'Design Loads Heating: Ceilings'
+      cost_mult += hpxml.hvac_plant.hdl_ceilings
+    elsif cost_mult_type == 'Design Loads Heating: Infiltration/Ventilation'
+      cost_mult += hpxml.hvac_plant.hdl_infilvent
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Total'
+      cost_mult += hpxml.hvac_plant.cdl_sens_total
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Ducts'
+      cost_mult += hpxml.hvac_plant.cdl_sens_ducts
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Windows'
+      cost_mult += hpxml.hvac_plant.cdl_sens_windows
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Skylights'
+      cost_mult += hpxml.hvac_plant.cdl_sens_skylights
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Doors'
+      cost_mult += hpxml.hvac_plant.cdl_sens_doors
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Walls'
+      cost_mult += hpxml.hvac_plant.cdl_sens_walls
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Roofs'
+      cost_mult += hpxml.hvac_plant.cdl_sens_roofs
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Floors'
+      cost_mult += hpxml.hvac_plant.cdl_sens_floors
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Slabs'
+      cost_mult += hpxml.hvac_plant.cdl_sens_slabs
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Ceilings'
+      cost_mult += hpxml.hvac_plant.cdl_sens_ceilings
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Infiltration/Ventilation'
+      cost_mult += hpxml.hvac_plant.cdl_sens_infilvent
+    elsif cost_mult_type == 'Design Loads Cooling Sensible: Internal Gains'
+      cost_mult += hpxml.hvac_plant.cdl_sens_intgains
+    elsif cost_mult_type == 'Design Loads Cooling Latent: Total'
+      cost_mult += hpxml.hvac_plant.cdl_lat_total
+    elsif cost_mult_type == 'Design Loads Cooling Latent: Ducts'
+      cost_mult += hpxml.hvac_plant.cdl_lat_ducts
+    elsif cost_mult_type == 'Design Loads Cooling Latent: Infiltration/Ventilation'
+      cost_mult += hpxml.hvac_plant.cdl_lat_infilvent
+    elsif cost_mult_type == 'Design Loads Cooling Latent: Internal Gains'
+      cost_mult += hpxml.hvac_plant.cdl_lat_intgains
     end
     return cost_mult
   end
@@ -327,23 +408,23 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     if has_primary_cooling_system || has_secondary_cooling_system
       hpxml.cooling_systems.each do |cooling_system|
         prefix = cooling_system.primary_system ? 'Primary' : 'Secondary'
-        cost_multipliers["#{prefix} #{BS::CoolingSystem}"].output += UnitConversions.convert(cooling_system.cooling_capacity, 'btu/hr', 'kbtu/hr')
+        cost_multipliers["#{prefix} #{BS::CoolingSystem}"].output += cooling_system.cooling_capacity
       end
       hpxml.heat_pumps.each do |heat_pump|
         prefix = heat_pump.primary_cooling_system ? 'Primary' : 'Secondary'
-        cost_multipliers["#{prefix} #{BS::CoolingSystem}"].output += UnitConversions.convert(heat_pump.cooling_capacity, 'btu/hr', 'kbtu/hr')
+        cost_multipliers["#{prefix} #{BS::CoolingSystem}"].output += heat_pump.cooling_capacity
       end
     end
 
     if has_primary_heating_system || has_secondary_heating_system
       hpxml.heating_systems.each do |heating_system|
         prefix = heating_system.primary_system ? 'Primary' : 'Secondary'
-        cost_multipliers["#{prefix} #{BS::HeatingSystem}"].output += UnitConversions.convert(heating_system.heating_capacity, 'btu/hr', 'kbtu/hr')
+        cost_multipliers["#{prefix} #{BS::HeatingSystem}"].output += heating_system.heating_capacity
       end
       hpxml.heat_pumps.each do |heat_pump|
         prefix = heat_pump.primary_heating_system ? 'Primary' : 'Secondary'
-        cost_multipliers["#{prefix} #{BS::HeatingSystem}"].output += UnitConversions.convert(heat_pump.heating_capacity, 'btu/hr', 'kbtu/hr')
-        cost_multipliers["#{prefix} #{BS::HeatPumpBackup}"].output += UnitConversions.convert(heat_pump.backup_heating_capacity, 'btu/hr', 'kbtu/hr')
+        cost_multipliers["#{prefix} #{BS::HeatingSystem}"].output += heat_pump.heating_capacity
+        cost_multipliers["#{prefix} #{BS::HeatPumpBackup}"].output += heat_pump.backup_heating_capacity
       end
     end
   end

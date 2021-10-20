@@ -472,6 +472,25 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     assert_in_epsilon(29.4, UnitConversions.convert(program_values['return_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
   end
 
+  def test_ducts_leakage_cfm50
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ducts-leakage-cfm50.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Get HPXML values
+    supply_leakage = hpxml.hvac_distributions[0].duct_leakage_measurements.select { |m| m.duct_type == HPXML::DuctTypeSupply }[0]
+    return_leakage = hpxml.hvac_distributions[0].duct_leakage_measurements.select { |m| m.duct_type == HPXML::DuctTypeReturn }[0]
+    supply_leakage_cfm50 = supply_leakage.duct_leakage_value
+    return_leakage_cfm50 = return_leakage.duct_leakage_value
+
+    # Check ducts program
+    program_values = get_ems_values(model.getEnergyManagementSystemSubroutines, 'duct subroutine')
+    assert_in_epsilon(supply_leakage_cfm50 * (25.0 / 50.0)**0.65, UnitConversions.convert(program_values['f_sup'].sum, 'm^3/s', 'cfm'), 0.01)
+    assert_in_epsilon(return_leakage_cfm50 * (25.0 / 50.0)**0.65, UnitConversions.convert(program_values['f_ret'].sum, 'm^3/s', 'cfm'), 0.01)
+    assert_in_epsilon(33.4, UnitConversions.convert(program_values['supply_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
+    assert_in_epsilon(29.4, UnitConversions.convert(program_values['return_ua'].sum, 'W/K', 'Btu/(hr*F)'), 0.01)
+  end
+
   def test_ducts_leakage_percent
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-ducts-leakage-percent.xml'))
@@ -513,8 +532,8 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
       foundation.within_infiltration_volume = true
     end
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas
-    assert_in_delta(5066, exterior_area, 1.0)
-    assert_in_delta(5066, total_area, 1.0)
+    assert_in_delta(5000, exterior_area, 1.0)
+    assert_in_delta(5000, total_area, 1.0)
 
     # Test unvented attic/crawlspace not within infiltration volume
     hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-foundation-unvented-crawlspace.xml')))

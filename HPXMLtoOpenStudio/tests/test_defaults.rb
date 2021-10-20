@@ -533,6 +533,47 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_window_values(hpxml_default, [1.0] * n_windows, [1.0] * n_windows, [0.7] * n_windows, [0.85] * n_windows, [0.67] * n_windows, [225] * n_windows)
   end
 
+  def test_windows_properties
+    # [frame_type, thermal_break, glass_layers, glass_type, gas_fill] => [ufactor, shgc]
+    tests = { [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersSinglePane, nil, nil] => [1.27, 0.75],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersSinglePane, nil, nil] => [0.89, 0.64],
+              [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersSinglePane, HPXML::WindowGlassTypeTintedReflective, nil] => [1.27, 0.64],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersSinglePane, HPXML::WindowGlassTypeTintedReflective, nil] => [0.89, 0.54],
+              [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersDoublePane, nil, HPXML::WindowGasAir] => [0.81, 0.67],
+              [HPXML::WindowFrameTypeAluminum, true, HPXML::WindowLayersDoublePane, nil, HPXML::WindowGasAir] => [0.60, 0.67],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, nil, HPXML::WindowGasAir] => [0.51, 0.56],
+              [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeTintedReflective, HPXML::WindowGasAir] => [0.81, 0.55],
+              [HPXML::WindowFrameTypeAluminum, true, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeTintedReflective, HPXML::WindowGasAir] => [0.60, 0.55],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeTintedReflective, HPXML::WindowGasAir] => [0.51, 0.46],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeLowE, HPXML::WindowGasAir] => [0.42, 0.52],
+              [HPXML::WindowFrameTypeAluminum, true, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeLowE, HPXML::WindowGasArgon] => [0.47, 0.62],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeLowE, HPXML::WindowGasArgon] => [0.39, 0.52],
+              [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeReflective, HPXML::WindowGasAir] => [0.67, 0.37],
+              [HPXML::WindowFrameTypeAluminum, true, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeReflective, HPXML::WindowGasAir] => [0.47, 0.37],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeReflective, HPXML::WindowGasAir] => [0.39, 0.31],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeReflective, HPXML::WindowGasArgon] => [0.36, 0.31],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersTriplePane, HPXML::WindowGlassTypeLowE, HPXML::WindowGasArgon] => [0.27, 0.31],
+              [nil, nil, HPXML::WindowLayersGlassBlock, nil, nil] => [0.60, 0.60] }
+    tests.each do |k, v|
+      frame_type, thermal_break, glass_layers, glass_type, gas_fill = k
+      ufactor, shgc = v
+
+      hpxml = _create_hpxml('base.xml')
+      hpxml.windows[0].ufactor = nil
+      hpxml.windows[0].shgc = nil
+      hpxml.windows[0].frame_type = frame_type
+      hpxml.windows[0].thermal_break = thermal_break
+      hpxml.windows[0].glass_layers = glass_layers
+      hpxml.windows[0].glass_type = glass_type
+      hpxml.windows[0].gas_fill = gas_fill
+      XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+      hpxml_default = _test_measure()
+
+      assert_equal(ufactor, hpxml_default.windows[0].ufactor)
+      assert_equal(shgc, hpxml_default.windows[0].shgc)
+    end
+  end
+
   def test_skylights
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-enclosure-skylights.xml')
@@ -561,6 +602,47 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     n_skylights = hpxml_default.skylights.size
     _test_default_skylight_values(hpxml_default, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights, [1.0] * n_skylights, [270] * n_skylights)
+  end
+
+  def test_skylights_properties
+    # [frame_type, thermal_break, glass_layers, glass_type, gas_fill] => [ufactor, shgc]
+    tests = { [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersSinglePane, nil, nil] => [1.98, 0.75],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersSinglePane, nil, nil] => [1.47, 0.64],
+              [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersSinglePane, HPXML::WindowGlassTypeTintedReflective, nil] => [1.98, 0.64],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersSinglePane, HPXML::WindowGlassTypeTintedReflective, nil] => [1.47, 0.54],
+              [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersDoublePane, nil, HPXML::WindowGasAir] => [1.30, 0.67],
+              [HPXML::WindowFrameTypeAluminum, true, HPXML::WindowLayersDoublePane, nil, HPXML::WindowGasAir] => [1.10, 0.67],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, nil, HPXML::WindowGasAir] => [0.84, 0.56],
+              [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeTintedReflective, HPXML::WindowGasAir] => [1.30, 0.55],
+              [HPXML::WindowFrameTypeAluminum, true, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeTintedReflective, HPXML::WindowGasAir] => [1.10, 0.55],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeTintedReflective, HPXML::WindowGasAir] => [0.84, 0.46],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeLowE, HPXML::WindowGasAir] => [0.74, 0.52],
+              [HPXML::WindowFrameTypeAluminum, true, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeLowE, HPXML::WindowGasArgon] => [0.95, 0.62],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeLowE, HPXML::WindowGasArgon] => [0.68, 0.52],
+              [HPXML::WindowFrameTypeAluminum, false, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeReflective, HPXML::WindowGasAir] => [1.17, 0.37],
+              [HPXML::WindowFrameTypeAluminum, true, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeReflective, HPXML::WindowGasAir] => [0.98, 0.37],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeReflective, HPXML::WindowGasAir] => [0.71, 0.31],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersDoublePane, HPXML::WindowGlassTypeReflective, HPXML::WindowGasArgon] => [0.65, 0.31],
+              [HPXML::WindowFrameTypeWood, nil, HPXML::WindowLayersTriplePane, HPXML::WindowGlassTypeLowE, HPXML::WindowGasArgon] => [0.47, 0.31],
+              [nil, nil, HPXML::WindowLayersGlassBlock, nil, nil] => [0.60, 0.60] }
+    tests.each do |k, v|
+      frame_type, thermal_break, glass_layers, glass_type, gas_fill = k
+      ufactor, shgc = v
+
+      hpxml = _create_hpxml('base-enclosure-skylights.xml')
+      hpxml.skylights[0].ufactor = nil
+      hpxml.skylights[0].shgc = nil
+      hpxml.skylights[0].frame_type = frame_type
+      hpxml.skylights[0].thermal_break = thermal_break
+      hpxml.skylights[0].glass_layers = glass_layers
+      hpxml.skylights[0].glass_type = glass_type
+      hpxml.skylights[0].gas_fill = gas_fill
+      XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+      hpxml_default = _test_measure()
+
+      assert_equal(ufactor, hpxml_default.skylights[0].ufactor)
+      assert_equal(shgc, hpxml_default.skylights[0].shgc)
+    end
   end
 
   def test_doors
@@ -768,11 +850,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-floor-furnace-propane-only.xml')
     hpxml.heating_systems[0].fan_watts = 22
     hpxml.heating_systems[0].heating_capacity = 12345
-    hpxml.heating_systems[0].heating_efficiency_afue = 0.60
+    hpxml.heating_systems[0].heating_efficiency_afue = 0.66
     hpxml.heating_systems[0].year_installed = 1980
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 22, 12345, 0.60)
+    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 22, 12345, 0.66)
 
     # Test defaults
     hpxml.heating_systems[0].fan_watts = nil
@@ -780,7 +862,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.heating_systems[0].year_installed = 1980
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 0, nil, 0.595)
+    _test_default_floor_furnace_values(hpxml_default.heating_systems[0], 0, nil, 0.60)
   end
 
   def test_boilers
@@ -1796,7 +1878,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
     hpxml.water_heating_systems[0].is_shared_system = true
     hpxml.water_heating_systems[0].number_of_units_served = 6
-    hpxml.water_heating_systems[0].fraction_dhw_load_served = 0
     hpxml.clothes_washers[0].location = HPXML::LocationBasementConditioned
     hpxml.clothes_washers[0].is_shared_appliance = true
     hpxml.clothes_washers[0].usage_multiplier = 1.5
@@ -1853,7 +1934,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
     hpxml.water_heating_systems[0].is_shared_system = true
     hpxml.water_heating_systems[0].number_of_units_served = 6
-    hpxml.water_heating_systems[0].fraction_dhw_load_served = 0
     hpxml.clothes_dryers[0].location = HPXML::LocationBasementConditioned
     hpxml.clothes_dryers[0].is_shared_appliance = true
     hpxml.clothes_dryers[0].combined_energy_factor = 3.33
@@ -1929,7 +2009,6 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.building_construction.residential_facility_type = HPXML::ResidentialTypeSFA
     hpxml.water_heating_systems[0].is_shared_system = true
     hpxml.water_heating_systems[0].number_of_units_served = 6
-    hpxml.water_heating_systems[0].fraction_dhw_load_served = 0
     hpxml.dishwashers[0].location = HPXML::LocationBasementConditioned
     hpxml.dishwashers[0].is_shared_appliance = true
     hpxml.dishwashers[0].usage_multiplier = 1.3
@@ -2460,10 +2539,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(wall_furnace_afue, 0.656)
 
     wall_furnace_afue = HVAC.get_default_hvac_efficiency_by_year_installed(1971, 'WallFurnace', 'propane', 'AFUE')
-    assert_equal(wall_furnace_afue, 0.548)
+    assert_equal(wall_furnace_afue, 0.6)
 
     wall_furnace_afue = HVAC.get_default_hvac_efficiency_by_year_installed(1970, 'FloorFurnace', 'natural gas', 'AFUE')
-    assert_equal(wall_furnace_afue, 0.5)
+    assert_equal(wall_furnace_afue, 0.6)
 
     boiler_afue = HVAC.get_default_hvac_efficiency_by_year_installed(2004, 'Boiler', 'propane', 'AFUE')
     assert_equal(boiler_afue, 0.831)
