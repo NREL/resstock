@@ -535,6 +535,20 @@ class ResidentialAirflowTest < MiniTest::Test
     model, result = _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_airloops, 1)
   end
 
+  def test_retrofit_ducts
+    num_airloops = 2
+    args_hash = {}
+    expected_num_del_objects = {}
+    expected_num_new_objects = { 'ScheduleRuleset' => 4, 'EnergyManagementSystemSubroutine' => num_airloops, 'EnergyManagementSystemProgramCallingManager' => 1 + num_airloops, 'EnergyManagementSystemProgram' => 2 + num_airloops, 'EnergyManagementSystemSensor' => 10 + 10 * num_airloops, 'EnergyManagementSystemActuator' => 5 + 12 * num_airloops, 'EnergyManagementSystemGlobalVariable' => 23 * num_airloops, 'AirLoopHVACReturnPlenum' => num_airloops, 'OtherEquipmentDefinition' => 10 * num_airloops, 'OtherEquipment' => 10 * num_airloops, 'ThermalZone' => num_airloops, 'ZoneMixing' => 2 * num_airloops, 'SpaceInfiltrationDesignFlowRate' => 2, 'SpaceInfiltrationEffectiveLeakageArea' => 1, 'Construction' => 1, 'Space' => num_airloops, 'Material' => 1, 'ElectricEquipmentDefinition' => 3, 'ElectricEquipment' => 3, 'SurfacePropertyConvectionCoefficients' => 6 * num_airloops, 'Surface' => 6 * num_airloops }
+    expected_values = { 'res_infil_1_program' => { 'c' => 0.0753, 'Cs' => 0.0906, 'Cw' => 0.1323, 'faneff_sp' => 0.471947, 'QWHV' => 27.3 }, 'res_nv_1_program' => { 'Cs' => 0.000179, 'Cw' => 0.000282 }, 'res_ds_res_fur_gas_asys_lk_subrout' => { 'f_sup' => 0.149925, 'f_ret' => 0.075074, 'f_OA' => 0.074850 }, 'res_ds_res_ac_asys_lk_subrout' => { 'f_sup' => 0.149925, 'f_ret' => 0.075074, 'f_OA' => 0.074850 }, 'TerrainType' => 'Suburbs', 'DuctLocation' => 'unfinished attic zone' }
+    model, result = _test_measure('SFD_2000sqft_2story_SL_UA_3Beds_2Baths_Denver_Furnace_CentralAC.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, num_airloops, 1)
+    args_hash['duct_location'] = Constants.SpaceTypeLiving
+    expected_num_del_objects = expected_num_new_objects
+    expected_num_new_objects = { 'ScheduleRuleset' => 4, 'EnergyManagementSystemProgramCallingManager' => 1, 'EnergyManagementSystemProgram' => 2, 'EnergyManagementSystemSensor' => 12, 'EnergyManagementSystemActuator' => 5, 'SpaceInfiltrationDesignFlowRate' => 2, 'SpaceInfiltrationEffectiveLeakageArea' => 1, 'Construction' => 1, 'Material' => 1, 'ElectricEquipmentDefinition' => 3, 'ElectricEquipment' => 3 }
+    expected_values = { 'res_infil_1_program' => { 'c' => 0.0323, 'Cs' => 0.0906, 'Cw' => 0.1323, 'faneff_sp' => 0.471947, 'QWHV' => 27.3 }, 'res_nv_1_program' => { 'Cs' => 0.000179, 'Cw' => 0.000282 }, 'res_ds_res_fur_gas_asys_lk_subrout' => { 'f_sup' => 0.149925, 'f_ret' => 0.075074, 'f_OA' => 0.074850 }, 'res_ds_res_ac_asys_lk_subrout' => { 'f_sup' => 0.149925, 'f_ret' => 0.075074, 'f_OA' => 0.074850 }, 'TerrainType' => 'Suburbs', 'DuctLocation' => 'unfinished attic zone' }
+    model, result = _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, 1, 1)
+  end
+
   def test_single_family_attached_new_construction_furnace_central_air_conditioner
     num_units = 1
     num_airloops = 2
