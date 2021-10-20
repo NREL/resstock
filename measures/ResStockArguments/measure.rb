@@ -10,8 +10,6 @@ elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../re
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
 elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
-else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
 require File.join(resources_path, 'location')
 require File.join(resources_path, 'meta_measure')
@@ -40,89 +38,104 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
   # define the arguments that the user will input
   def arguments(model)
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
-    measure_subdir = 'BuildResidentialHPXML'
-    full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
+    args = OpenStudio::Measure::OSArgumentVector.new
+
+    # BuildResidentialHPXML
+
+    full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
     measure = get_measure_instance(full_measure_path)
 
-    args = OpenStudio::Measure::OSArgumentVector.new
     measure.arguments(model).each do |arg|
-      next if Constants.excludes.include? arg.name
+      next if Constants.build_residential_hpxml_excludes.include? arg.name
 
-      # Exclude the geometry_cfa arg from BuildResHPXML in lieu of the one below.
-      # We can't add it to Constants.excludes because a geometry_cfa value will still
+      # Exclude the geometry_unit_cfa arg from BuildResHPXML in lieu of the one below.
+      # We can't add it to Constants.excludes because a geometry_unit_cfa value will still
       # need to be passed to the BuildResHPXML measure.
-      next if arg.name == 'geometry_cfa'
+      next if arg.name == 'geometry_unit_cfa'
 
       args << arg
     end
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_cfa_bin', true)
-    arg.setDisplayName('Geometry: Conditioned Floor Area Bin')
+    # BuildResidentialScheduleFile
+
+    full_measure_path = File.join(measures_dir, 'BuildResidentialScheduleFile', 'measure.rb')
+    measure = get_measure_instance(full_measure_path)
+
+    measure.arguments(model).each do |arg|
+      next if Constants.build_residential_schedule_file_excludes.include? arg.name
+
+      args << arg
+    end
+
+    # Additional arguments
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_unit_cfa_bin', true)
+    arg.setDisplayName('Geometry: Unit Conditioned Floor Area Bin')
     arg.setDescription("E.g., '2000-2499'")
     arg.setDefaultValue('2000-2499')
     args << arg
 
-    # Adds a geometry_cfa argument similar to the BuildResidentialHPXML measure, but as a string with "auto" allowed
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_cfa', true)
-    arg.setDisplayName('Geometry: Conditioned Floor Area')
+    # Adds a geometry_unit_cfa argument similar to the BuildResidentialHPXML measure, but as a string with "auto" allowed
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_unit_cfa', true)
+    arg.setDisplayName('Geometry: Unit Conditioned Floor Area')
     arg.setDescription("E.g., '2000' or '#{Constants.Auto}'")
     arg.setUnits('sqft')
     arg.setDefaultValue('2000')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_other_usage_multiplier_2', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
     arg.setDefaultValue(1.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_well_pump_usage_multiplier_2', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_well_pump_2_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Well Pump Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants.')
     arg.setDefaultValue(0.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('plug_loads_vehicle_usage_multiplier_2', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_vehicle_2_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Vehicle Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.')
     arg.setDefaultValue(0.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekday_temp', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekday_setpoint_temp', true)
     arg.setDisplayName('Heating Setpoint: Weekday Temperature')
     arg.setDescription('Specify the weekday heating setpoint temperature.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(71)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekend_temp', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekend_setpoint_temp', true)
     arg.setDisplayName('Heating Setpoint: Weekend Temperature')
     arg.setDescription('Specify the weekend heating setpoint temperature.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(71)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekday_offset_magnitude', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekday_setpoint_offset_magnitude', true)
     arg.setDisplayName('Heating Setpoint: Weekday Offset Magnitude')
     arg.setDescription('Specify the weekday heating offset magnitude.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_heating_weekend_offset_magnitude', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekend_setpoint_offset_magnitude', true)
     arg.setDisplayName('Heating Setpoint: Weekend Offset Magnitude')
     arg.setDescription('Specify the weekend heating offset magnitude.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekday_schedule', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_weekday_setpoint_schedule', true)
     arg.setDisplayName('Heating Setpoint: Weekday Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekday heating schedule of 0s and 1s.')
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_heating_weekend_schedule', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_weekend_setpoint_schedule', true)
     arg.setDisplayName('Heating Setpoint: Weekend Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekend heating schedule of 0s and 1s.')
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
@@ -134,41 +147,41 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekday_temp', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_weekday_setpoint_temp', true)
     arg.setDisplayName('Cooling Setpoint: Weekday Temperature')
     arg.setDescription('Specify the weekday cooling setpoint temperature.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(76)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekend_temp', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_weekend_setpoint_temp', true)
     arg.setDisplayName('Cooling Setpoint: Weekend Temperature')
     arg.setDescription('Specify the weekend cooling setpoint temperature.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(76)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekday_offset_magnitude', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_weekday_setpoint_offset_magnitude', true)
     arg.setDisplayName('Cooling Setpoint: Weekday Offset Magnitude')
     arg.setDescription('Specify the weekday cooling offset magnitude.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('setpoint_cooling_weekend_offset_magnitude', true)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_weekend_setpoint_offset_magnitude', true)
     arg.setDisplayName('Cooling Setpoint: Weekend Offset Magnitude')
     arg.setDescription('Specify the weekend cooling offset magnitude.')
     arg.setUnits('deg-F')
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_cooling_weekday_schedule', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_cooling_weekday_setpoint_schedule', true)
     arg.setDisplayName('Cooling Setpoint: Weekday Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekday cooling schedule of 0s and 1s.')
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('setpoint_cooling_weekend_schedule', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_cooling_weekend_setpoint_schedule', true)
     arg.setDisplayName('Cooling Setpoint: Weekend Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.')
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
@@ -186,7 +199,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_has_flue_or_chimney_2', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('heating_system_2_has_flue_or_chimney', true)
     arg.setDisplayName('Heating System 2: Has Flue or Chimney')
     arg.setDescription('Whether the second heating system has a flue or chimney.')
     arg.setDefaultValue(Constants.Auto)
@@ -254,13 +267,26 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args = get_argument_values(runner, arguments(model), user_arguments)
 
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
-    measure_subdir = 'BuildResidentialHPXML'
-    full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
+    arg_names = []
+
+    # BuildResidentialHPXML
+
+    full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
     measure = get_measure_instance(full_measure_path)
 
-    arg_names = []
     measure.arguments(model).each do |arg|
-      next if Constants.excludes.include? arg.name
+      next if Constants.build_residential_hpxml_excludes.include? arg.name
+
+      arg_names << arg.name
+    end
+
+    # BuildResidentialScheduleFile
+
+    full_measure_path = File.join(measures_dir, 'BuildResidentialScheduleFile', 'measure.rb')
+    measure = get_measure_instance(full_measure_path)
+
+    measure.arguments(model).each do |arg|
+      next if Constants.build_residential_schedule_file_excludes.include? arg.name
 
       arg_names << arg.name
     end
@@ -268,7 +294,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
 
     # Conditioned floor area
-    if args['geometry_cfa'] == Constants.Auto
+    if args['geometry_unit_cfa'] == Constants.Auto
       cfas = { ['0-499', HPXML::ResidentialTypeSFD] => 328,
                ['0-499', HPXML::ResidentialTypeSFA] => 317,
                ['0-499', HPXML::ResidentialTypeApartment] => 333,
@@ -296,122 +322,70 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
                ['4000+', HPXML::ResidentialTypeSFD] => 8194,
                ['4000+', HPXML::ResidentialTypeSFA] => 13414,
                ['4000+', HPXML::ResidentialTypeApartment] => 12291 }
-      cfa = cfas[[args['geometry_cfa_bin'], args['geometry_unit_type']]]
+      cfa = cfas[[args['geometry_unit_cfa_bin'], args['geometry_unit_type']]]
       if cfa.nil?
-        runner.registerError("Could not look up conditioned floor area for '#{args['geometry_cfa_bin']}' and 'args['geometry_unit_type']'.")
+        runner.registerError("Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
         return false
       end
-      args['geometry_cfa'] = Float(cfa)
+      args['geometry_unit_cfa'] = Float(cfa)
     else
-      args['geometry_cfa'] = Float(args['geometry_cfa'])
+      args['geometry_unit_cfa'] = Float(args['geometry_unit_cfa'])
     end
 
     # Num Occupants
-    if args['geometry_num_occupants'] == Constants.Auto
-      args['geometry_num_occupants'] = Geometry.get_occupancy_default_num(args['geometry_num_bedrooms'])
+    if args['geometry_unit_num_occupants'] == Constants.Auto
+      args['geometry_unit_num_occupants'] = Geometry.get_occupancy_default_num(args['geometry_unit_num_bedrooms'])
     else
-      args['geometry_num_occupants'] = Integer(args['geometry_num_occupants'])
+      args['geometry_unit_num_occupants'] = Integer(args['geometry_unit_num_occupants'])
     end
 
     # Plug Loads
-    args['plug_loads_television_annual_kwh'] = 0.0 # "other" now accounts for television
-    args['plug_loads_television_usage_multiplier'] = 0.0 # "other" now accounts for television
-    args['plug_loads_other_usage_multiplier'] *= args['plug_loads_other_usage_multiplier_2']
-    args['plug_loads_well_pump_usage_multiplier'] *= args['plug_loads_well_pump_usage_multiplier_2']
-    args['plug_loads_vehicle_usage_multiplier'] *= args['plug_loads_vehicle_usage_multiplier_2']
+    args['misc_plug_loads_television_annual_kwh'] = 0.0 # "other" now accounts for television
+    args['misc_plug_loads_television_usage_multiplier'] = 0.0 # "other" now accounts for television
+    args['misc_plug_loads_other_usage_multiplier'] *= args['misc_plug_loads_other_2_usage_multiplier']
+    args['misc_plug_loads_well_pump_usage_multiplier'] *= args['misc_plug_loads_well_pump_2_usage_multiplier']
+    args['misc_plug_loads_vehicle_usage_multiplier'] *= args['misc_plug_loads_vehicle_2_usage_multiplier']
 
-    if args['plug_loads_other_annual_kwh'] == Constants.Auto
+    if args['misc_plug_loads_other_annual_kwh'] == Constants.Auto
       if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
-        args['plug_loads_other_annual_kwh'] = 1146.95 + 296.94 * args['geometry_num_occupants'] + 0.3 * args['geometry_cfa'] # RECS 2015
+        args['misc_plug_loads_other_annual_kwh'] = 1146.95 + 296.94 * args['geometry_unit_num_occupants'] + 0.3 * args['geometry_unit_cfa'] # RECS 2015
       elsif [HPXML::ResidentialTypeSFA].include?(args['geometry_unit_type'])
-        args['plug_loads_other_annual_kwh'] = 1395.84 + 136.53 * args['geometry_num_occupants'] + 0.16 * args['geometry_cfa'] # RECS 2015
+        args['misc_plug_loads_other_annual_kwh'] = 1395.84 + 136.53 * args['geometry_unit_num_occupants'] + 0.16 * args['geometry_unit_cfa'] # RECS 2015
       elsif [HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
-        args['plug_loads_other_annual_kwh'] = 875.22 + 184.11 * args['geometry_num_occupants'] + 0.38 * args['geometry_cfa'] # RECS 2015
-      end
-    end
-
-    # Misc LULs
-    constant = 1.0 / 2
-    nbr_coef = 1.0 / 4 / 3
-    ffa_coef = 1.0 / 4 / 1920
-
-    ['plug_loads_well_pump_annual_kwh',
-     'fuel_loads_grill_annual_therm',
-     'fuel_loads_lighting_annual_therm',
-     'fuel_loads_fireplace_annual_therm',
-     'pool_pump_annual_kwh',
-     'pool_heater_annual_kwh',
-     'pool_heater_annual_therm',
-     'hot_tub_pump_annual_kwh',
-     'hot_tub_heater_annual_kwh',
-     'hot_tub_heater_annual_therm'].each do |annual_energy|
-      next if args[annual_energy] != Constants.Auto
-
-      if annual_energy == 'plug_loads_well_pump_annual_kwh'
-        args[annual_energy] = 50.8 / 0.127
-      elsif annual_energy == 'fuel_loads_grill_annual_therm'
-        args[annual_energy] = 0.87 / 0.029
-      elsif annual_energy == 'fuel_loads_lighting_annual_therm'
-        args[annual_energy] = 0.22 / 0.012
-      elsif annual_energy == 'fuel_loads_fireplace_annual_therm'
-        args[annual_energy] = 1.95 / 0.032
-      elsif annual_energy == 'pool_pump_annual_kwh'
-        args[annual_energy] = 158.6 / 0.070
-      elsif annual_energy == 'pool_heater_annual_kwh'
-        args[annual_energy] = 8.3 / 0.004
-      elsif annual_energy == 'pool_heater_annual_therm'
-        args[annual_energy] = 3.0 / 0.014
-      elsif annual_energy == 'hot_tub_pump_annual_kwh'
-        args[annual_energy] = 59.5 / 0.059
-      elsif annual_energy == 'hot_tub_heater_annual_kwh'
-        args[annual_energy] = 49.0 / 0.048
-      elsif annual_energy == 'hot_tub_heater_annual_therm'
-        args[annual_energy] = 0.87 / 0.011
-      end
-
-      if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
-        args[annual_energy] *= (constant + nbr_coef * (-1.47 + 1.69 * args['geometry_num_occupants']) + ffa_coef * args['geometry_cfa'])
-      elsif [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args['geometry_unit_type'])
-        args[annual_energy] *= (constant + nbr_coef * (-0.68 + 1.09 * args['geometry_num_occupants']) + ffa_coef * args['geometry_cfa'])
-      end
-
-      if annual_energy == 'pool_heater_annual_kwh' && args['pool_heater_type'] == HPXML::HeaterTypeHeatPump
-        args[annual_energy] /= 5.0
-      elsif annual_energy == 'hot_tub_heater_annual_kwh' && args['hot_tub_heater_type'] == HPXML::HeaterTypeHeatPump
-        args[annual_energy] /= 5.0
+        args['misc_plug_loads_other_annual_kwh'] = 875.22 + 184.11 * args['geometry_unit_num_occupants'] + 0.38 * args['geometry_unit_cfa'] # RECS 2015
       end
     end
 
     # Setpoints
-    weekday_heating_setpoints = [args['setpoint_heating_weekday_temp']] * 24
-    weekend_heating_setpoints = [args['setpoint_heating_weekend_temp']] * 24
+    weekday_heating_setpoints = [args['hvac_control_heating_weekday_setpoint_temp']] * 24
+    weekend_heating_setpoints = [args['hvac_control_heating_weekend_setpoint_temp']] * 24
 
-    weekday_cooling_setpoints = [args['setpoint_cooling_weekday_temp']] * 24
-    weekend_cooling_setpoints = [args['setpoint_cooling_weekend_temp']] * 24
+    weekday_cooling_setpoints = [args['hvac_control_cooling_weekday_setpoint_temp']] * 24
+    weekend_cooling_setpoints = [args['hvac_control_cooling_weekend_setpoint_temp']] * 24
 
-    setpoint_heating_weekday_offset_magnitude = args['setpoint_heating_weekday_offset_magnitude']
-    setpoint_heating_weekday_schedule = args['setpoint_heating_weekday_schedule'].split(',').map { |i| Float(i) }
-    weekday_heating_setpoints = modify_setpoint_schedule(weekday_heating_setpoints, setpoint_heating_weekday_offset_magnitude, setpoint_heating_weekday_schedule)
+    hvac_control_heating_weekday_setpoint_offset_magnitude = args['hvac_control_heating_weekday_setpoint_offset_magnitude']
+    hvac_control_heating_weekday_setpoint_schedule = args['hvac_control_heating_weekday_setpoint_schedule'].split(',').map { |i| Float(i) }
+    weekday_heating_setpoints = modify_setpoint_schedule(weekday_heating_setpoints, hvac_control_heating_weekday_setpoint_offset_magnitude, hvac_control_heating_weekday_setpoint_schedule)
 
-    setpoint_heating_weekend_offset_magnitude = args['setpoint_heating_weekend_offset_magnitude']
-    setpoint_heating_weekend_schedule = args['setpoint_heating_weekend_schedule'].split(',').map { |i| Float(i) }
-    weekend_heating_setpoints = modify_setpoint_schedule(weekend_heating_setpoints, setpoint_heating_weekend_offset_magnitude, setpoint_heating_weekend_schedule)
+    hvac_control_heating_weekend_setpoint_offset_magnitude = args['hvac_control_heating_weekend_setpoint_offset_magnitude']
+    hvac_control_heating_weekend_setpoint_schedule = args['hvac_control_heating_weekend_setpoint_schedule'].split(',').map { |i| Float(i) }
+    weekend_heating_setpoints = modify_setpoint_schedule(weekend_heating_setpoints, hvac_control_heating_weekend_setpoint_offset_magnitude, hvac_control_heating_weekend_setpoint_schedule)
 
-    setpoint_cooling_weekday_offset_magnitude = args['setpoint_cooling_weekday_offset_magnitude']
-    setpoint_cooling_weekday_schedule = args['setpoint_cooling_weekday_schedule'].split(',').map { |i| Float(i) }
-    weekday_cooling_setpoints = modify_setpoint_schedule(weekday_cooling_setpoints, setpoint_cooling_weekday_offset_magnitude, setpoint_cooling_weekday_schedule)
+    hvac_control_cooling_weekday_setpoint_offset_magnitude = args['hvac_control_cooling_weekday_setpoint_offset_magnitude']
+    hvac_control_cooling_weekday_setpoint_schedule = args['hvac_control_cooling_weekday_setpoint_schedule'].split(',').map { |i| Float(i) }
+    weekday_cooling_setpoints = modify_setpoint_schedule(weekday_cooling_setpoints, hvac_control_cooling_weekday_setpoint_offset_magnitude, hvac_control_cooling_weekday_setpoint_schedule)
 
-    setpoint_cooling_weekend_offset_magnitude = args['setpoint_cooling_weekend_offset_magnitude']
-    setpoint_cooling_weekend_schedule = args['setpoint_cooling_weekend_schedule'].split(',').map { |i| Float(i) }
-    weekend_cooling_setpoints = modify_setpoint_schedule(weekend_cooling_setpoints, setpoint_cooling_weekend_offset_magnitude, setpoint_cooling_weekend_schedule)
+    hvac_control_cooling_weekend_setpoint_offset_magnitude = args['hvac_control_cooling_weekend_setpoint_offset_magnitude']
+    hvac_control_cooling_weekend_setpoint_schedule = args['hvac_control_cooling_weekend_setpoint_schedule'].split(',').map { |i| Float(i) }
+    weekend_cooling_setpoints = modify_setpoint_schedule(weekend_cooling_setpoints, hvac_control_cooling_weekend_setpoint_offset_magnitude, hvac_control_cooling_weekend_setpoint_schedule)
 
-    args['setpoint_heating_weekday'] = weekday_heating_setpoints.join(', ')
-    args['setpoint_heating_weekend'] = weekend_heating_setpoints.join(', ')
-    args['setpoint_cooling_weekday'] = weekday_cooling_setpoints.join(', ')
-    args['setpoint_cooling_weekend'] = weekend_cooling_setpoints.join(', ')
+    args['hvac_control_heating_weekday_setpoint'] = weekday_heating_setpoints.join(', ')
+    args['hvac_control_heating_weekend_setpoint'] = weekend_heating_setpoints.join(', ')
+    args['hvac_control_cooling_weekday_setpoint'] = weekday_cooling_setpoints.join(', ')
+    args['hvac_control_cooling_weekend_setpoint'] = weekend_cooling_setpoints.join(', ')
 
-    # Energy and hot water adjustments based on # occupants
-    occ_to_nbr_ratio = Float(args['geometry_num_occupants']) / Float(args['geometry_num_bedrooms'])
+    # Energy and hot water adjustments based on # occupants for Appliances/Fixtures
+    occ_to_nbr_ratio = Float(args['geometry_unit_num_occupants']) / Float(args['geometry_unit_num_bedrooms'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       occ_factor = occ_to_nbr_ratio**0.51
     elsif [HPXML::ResidentialTypeSFD].include? args['geometry_unit_type']
@@ -422,6 +396,23 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['clothes_dryer_usage_multiplier'] *= occ_factor
     args['dishwasher_usage_multiplier'] *= occ_factor
     args['water_fixtures_usage_multiplier'] *= occ_factor
+
+    # Energy adjustments based on # occupants for Misc LULs
+    if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
+      c = [-0.68, 1.09]
+    elsif [HPXML::ResidentialTypeSFD].include? args['geometry_unit_type']
+      c = [-1.47, 1.69]
+    end
+    adj_factor = (0.5 + 0.25 * (c[0] + c[1] * Float(args['geometry_unit_num_occupants'])) / 3.0 + 0.25 * Float(args['geometry_unit_cfa']) / 1920.0) /
+                 (0.5 + 0.25 * Float(args['geometry_unit_num_bedrooms']) / 3.0 + 0.25 * Float(args['geometry_unit_cfa']) / 1920.0)
+    args['misc_plug_loads_well_pump_usage_multiplier'] *= adj_factor
+    args['misc_fuel_loads_grill_usage_multiplier'] *= adj_factor
+    args['misc_fuel_loads_lighting_usage_multiplier'] *= adj_factor
+    args['misc_fuel_loads_fireplace_usage_multiplier'] *= adj_factor
+    args['pool_pump_usage_multiplier'] *= adj_factor
+    args['pool_heater_usage_multiplier'] *= adj_factor
+    args['hot_tub_pump_usage_multiplier'] *= adj_factor
+    args['hot_tub_heater_usage_multiplier'] *= adj_factor
 
     # Seasons
     if args['use_auto_heating_season'] || args['use_auto_cooling_season']
@@ -449,11 +440,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Flue or Chimney
     args['geometry_has_flue_or_chimney'] = Constants.Auto
     if (args['heating_system_has_flue_or_chimney'] == 'false') &&
-       (args['heating_system_has_flue_or_chimney_2'] == 'false') &&
+       (args['heating_system_2_has_flue_or_chimney'] == 'false') &&
        (args['water_heater_has_flue_or_chimney'] == 'false')
       args['geometry_has_flue_or_chimney'] = 'false'
     elsif (args['heating_system_type'] != 'none' && args['heating_system_has_flue_or_chimney'] == 'true') ||
-          (args['heating_system_type_2'] != 'none' && args['heating_system_has_flue_or_chimney_2'] == 'true') ||
+          (args['heating_system_2_type'] != 'none' && args['heating_system_2_has_flue_or_chimney'] == 'true') ||
           (args['water_heater_type'] != 'none' && args['water_heater_has_flue_or_chimney'] == 'true')
       args['geometry_has_flue_or_chimney'] = 'true'
     end
@@ -483,8 +474,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       n_units = Float(args['geometry_building_num_units'])
       n_floors = Float(args['geometry_num_floors_above_grade'])
-      aspect_ratio = Float(args['geometry_aspect_ratio'])
-      horiz_location = args['geometry_horizontal_location'].to_s
+      aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
+      horiz_location = args['geometry_unit_horizontal_location'].to_s
       corridor_position = args['geometry_corridor_position'].to_s
 
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
@@ -548,7 +539,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
 
       if args_to_delete.include? arg_name
-        arg_value = '' # don't assign these to BuildResidentialHPXML
+        arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 
       runner.registerValue(arg_name, arg_value)

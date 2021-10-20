@@ -5,6 +5,7 @@ import pandas as pd
 import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 
 class BaseCompare:
     def __init__(self, base_folder, feature_folder, export_folder, export_file):
@@ -16,6 +17,14 @@ class BaseCompare:
     @staticmethod
     def intersect_rows(df1, df2):
           return df1[df1.index.isin(df2.index)]
+
+    @staticmethod
+    def union_columns(df1, df2):
+          cols = sorted(list(set(df1.columns) | set(df2.columns)))
+          for col in cols:
+              if not col in df1.columns:
+                  df1[col] = np.nan
+          return df1[cols]
 
     def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}):
         aggregate_columns = []
@@ -41,6 +50,8 @@ class BaseCompare:
             try:
                 df = feature_df - base_df
             except BaseException:
+                base_df = self.union_columns(base_df, feature_df)
+                feature_df = self.union_columns(feature_df, base_df)
                 df = feature_df != base_df
                 df = df.astype(int)
 
@@ -112,6 +123,8 @@ class BaseCompare:
                 self.export_file))
 
     def visualize(self, aggregate_column=None, aggregate_function=None, display_column=None, excludes=[], enum_maps={}, cols_to_ignore=[]):
+        colors = px.colors.qualitative.Dark24
+
         aggregate_columns = []
         if aggregate_column:
             aggregate_columns.append(aggregate_column)
@@ -190,11 +203,12 @@ class BaseCompare:
 
             cols = sorted(list(set(base_df.columns) & set(feature_df.columns)))
             cols = remove_columns(cols)
+            n_cols = max(len(cols), 1)
 
             groups = [None]
             if display_columns:
-                base_df = base_characteristics_df.join(base_df)
-                feature_df = feature_characteristics_df.join(feature_df)
+                base_df = base_characteristics_df.join(base_df, how='right')
+                feature_df = feature_characteristics_df.join(feature_df, how='right')
 
                 for col, enum_map in enum_maps.items():
                     if col in display_columns:
@@ -202,12 +216,13 @@ class BaseCompare:
                             df[col] = df[col].map(enum_map)
 
                 groups = list(base_df[display_columns[0]].unique())
+            n_groups = max(len(groups), 1)
 
-            vertical_spacing = 0.3 / len(cols)
+            vertical_spacing = 0.3 / n_cols
             fig = make_subplots(
-                rows=len(cols),
-                cols=len(groups),
-                subplot_titles=groups * len(cols),
+                rows=n_cols,
+                cols=n_groups,
+                subplot_titles=groups * n_cols,
                 row_titles=[
                     f'<b>{f}</b>' for f in cols],
                 vertical_spacing=vertical_spacing)
@@ -255,9 +270,13 @@ class BaseCompare:
                                                      showlegend=False),
                                           row=nrow, col=ncol)
                     else:
+                        color = [colors[0] for i in y[col]]
+                        if 'color_index' in y.columns.values:
+                            color = [colors[i] for i in y['color_index']]
                         fig.add_trace(go.Scatter(x=x[col],
                                                  y=y[col],
                                                  marker=dict(size=12,
+                                                             color=color,
                                                              line=dict(width=1.5,
                                                                        color='DarkSlateGrey')),
                                                  mode='markers',
@@ -273,10 +292,10 @@ class BaseCompare:
                     fig.update_yaxes(title_text='feature', row=nrow, col=ncol)
 
             fig['layout'].update(template='plotly_white')
-            fig.update_layout(width=800 * len(groups), height=600 * len(cols), autosize=False, font=dict(size=12))
+            fig.update_layout(width=800 * n_groups, height=600 * n_cols, autosize=False, font=dict(size=12))
 
             # Re-locate row titles above plots
-            increment = (1/len(cols)/2)*0.95
+            increment = (1/n_cols/2)*0.95
             for i in fig['layout']['annotations']:
                 text = i['text'].replace('<b>','').replace('</b>','')
                 if text in cols:

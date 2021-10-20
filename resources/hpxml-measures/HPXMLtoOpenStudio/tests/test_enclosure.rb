@@ -530,6 +530,41 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     end
   end
 
+  def test_compartmentaliztion_area
+    # Test single-family detached
+    hpxml = _create_hpxml('base.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_equal(1.0, a_ext_ratio)
+
+    hpxml = _create_hpxml('base-foundation-unconditioned-basement.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_equal(1.0, a_ext_ratio)
+
+    hpxml = _create_hpxml('base-atticroof-cathedral.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_equal(1.0, a_ext_ratio)
+
+    # Test single-family attached
+    hpxml = _create_hpxml('base-bldgtype-single-family-attached.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_in_delta(0.840, a_ext_ratio, 0.001)
+
+    hpxml.attics[0].within_infiltration_volume = true
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_in_delta(0.817, a_ext_ratio, 0.001)
+
+    # Test multifamily
+    hpxml = _create_hpxml('base-bldgtype-multifamily.xml')
+    total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
+    a_ext_ratio = exterior_area / total_area
+    assert_in_delta(0.247, a_ext_ratio, 0.001)
+  end
+
   def _check_surface(hpxml_surface, os_surface, expected_layer_names)
     os_construction = os_surface.construction.get.to_LayeredConstruction.get
 
@@ -543,7 +578,11 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     end
 
     # Check interior finish solar absorptance and emittance
-    if hpxml_surface.respond_to?(:interior_finish_type) && hpxml_surface.interior_finish_type != HPXML::InteriorFinishNone
+    if expected_layer_names[-1] == 'radiant barrier'
+      interior_layer = os_construction.getLayer(os_construction.numLayers - 1).to_OpaqueMaterial.get
+      assert_operator(interior_layer.solarAbsorptance, :<, 0.1)
+      assert_operator(interior_layer.thermalAbsorptance, :<, 0.1)
+    elsif hpxml_surface.respond_to?(:interior_finish_type) && hpxml_surface.interior_finish_type != HPXML::InteriorFinishNone
       interior_layer = os_construction.getLayer(os_construction.numLayers - 1).to_OpaqueMaterial.get
       assert_equal(0.6, interior_layer.solarAbsorptance)
       assert_equal(0.9, interior_layer.thermalAbsorptance)

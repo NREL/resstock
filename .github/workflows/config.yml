@@ -48,22 +48,68 @@ jobs:
           path: resources/buildstock.csv
           name: samples
 
-      - name: Upload integration results
-        uses: actions/upload-artifact@v2
+  bsb:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Show environment
+        run: |
+          ruby -v
+          python -v
+
+      - uses: actions/checkout@v2
         with:
-          path: test/test_samples_osw/baseline/results
-          name: results
+          ref: ${{ github.head_ref }}
+
+      - name: Run buildstockbatch
+        run: |
+          pip install git+https://github.com/NREL/buildstockbatch.git@restructure-v3-flex
+          
+          echo "project_national/flex_test.yml"
+          buildstock_docker project_national/flex_test.yml
+          
+          echo "project_testing/testing_baseline.yml"
+          buildstock_docker project_testing/testing_baseline.yml
+          
+          echo "project_national/national_baseline.yml"
+          buildstock_docker project_national/national_baseline.yml
+          
+          # echo "project_testing/testing_upgrades.yml"
+          # buildstock_docker project_testing/testing_upgrades.yml
+          
+          # echo "project_national/national_upgrades.yml"
+          # buildstock_docker project_national/national_upgrades.yml
+
+      - name: Process results
+        run: |
+          gunzip -v project_national/national_flex/results_csvs/results_up00.csv.gz
+          mv project_national/national_flex/results_csvs/results_up00.csv project_national/national_flex.csv          
+          
+          gunzip -v project_national/national_baseline/results_csvs/results_up00.csv.gz
+          mv project_national/national_baseline/results_csvs/results_up00.csv project_national/national_baseline.csv
+          
+          gunzip -v project_testing/testing_baseline/results_csvs/results_up00.csv.gz
+          mv project_testing/testing_baseline/results_csvs/results_up00.csv project_testing/testing_baseline.csv
+          
+          pip install pandas
+          python test/util.py
 
       - name: Upload flex integration results
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_samples_osw/upgrades-flex/results
+          path: project_national/national_flex.csv
           name: flex-results
+
+      - name: Upload integration results
+        uses: actions/upload-artifact@v2
+        with:
+          path: baseline/results
+          name: results
 
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: build
+    needs: bsb
     steps:
       - name: Show environment
         run: |
@@ -119,12 +165,13 @@ jobs:
           
           python test/compare.py -a samples
           
-          python test/compare.py
+          python test/compare.py -m feature
           
           python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map
           python test/compare.py -a results -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv
           
           python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html
+          python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html
           python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.county -x results_output_county.html
           python test/compare.py -a visualize -b test/test_samples_osw/base/map -f test/test_samples_osw/results/map -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.county -af sum -x results_output_county_sum.html
 
@@ -134,9 +181,21 @@ jobs:
           path: test/test_samples_osw/comparisons
           name: comparisons
 
+      - name: Upload base map
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/base/map
+          name: base_map
+
+      - name: Upload feature map
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/results/map
+          name: results_map
+
   update-results:
     runs-on: ubuntu-latest
-    needs: build
+    needs: bsb
     steps:
       - uses: actions/checkout@v2
         with:
@@ -172,13 +231,3 @@ jobs:
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
-
-  docs:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8.x'

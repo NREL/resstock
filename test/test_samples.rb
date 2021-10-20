@@ -9,8 +9,8 @@ require_relative '../resources/buildstock'
 
 class IntegrationWorkflowTest < MiniTest::Test
   def before_setup
-    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 200 }
-    @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 200 }
+    @project_dir_baseline = { 'project_testing' => 1, 'project_national' => 1 }
+    @project_dir_upgrades = { 'project_testing' => 1, 'project_national' => 1 }
 
     @top_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'test_samples_osw'))
     @lib_dir = File.join(@top_dir, '..', '..', 'lib')
@@ -32,10 +32,10 @@ class IntegrationWorkflowTest < MiniTest::Test
 
     all_results_characteristics = []
     all_results_output = []
-    @project_dir_baseline.each do |project_dir, num_samples|
-      next unless num_samples > 0
+    @project_dir_baseline.each_with_index do |(project_dir, num_samples), color_index|
+      next if num_samples == 0
 
-      samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output)
+      samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index)
     end
 
     results_dir = File.join(scenario_dir, 'results')
@@ -56,15 +56,15 @@ class IntegrationWorkflowTest < MiniTest::Test
   end
 
   def test_upgrades
-    scenario_dir = File.join(@top_dir, 'upgrades-flex')
+    scenario_dir = File.join(@top_dir, 'upgrades')
     Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
 
     all_results_characteristics = []
     all_results_output = []
-    @project_dir_upgrades.each do |project_dir, num_samples|
+    @project_dir_upgrades.each_with_index do |(project_dir, num_samples), color_index|
       next unless num_samples > 0
 
-      samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output)
+      samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index)
     end
 
     results_dir = File.join(scenario_dir, 'results')
@@ -79,14 +79,14 @@ class IntegrationWorkflowTest < MiniTest::Test
       cols.each do |col|
         next if col[0] != 'completed_status'
 
-        # assert(col[1..-1].all? { |x| x != 'Fail' })
+        assert(col[1..-1].all? { |x| x != 'Fail' })
       end
     end
   end
 
   private
 
-  def samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output)
+  def samples_osw(scenario_dir, project_dir, num_samples, all_results_characteristics, all_results_output, color_index)
     parent_dir = File.join(scenario_dir, project_dir)
     Dir.mkdir(parent_dir) unless File.exist?(parent_dir)
 
@@ -103,11 +103,12 @@ class IntegrationWorkflowTest < MiniTest::Test
 
     workflow_and_building_ids = []
     buildstock_csv_data = CSV.open(File.join(@lib_dir, 'housing_characteristics/buildstock.csv'), headers: true).map(&:to_hash)
+    buildstock_map = Hash[buildstock_csv_data.map { |x| [x['Building'].to_i, x] }]
     Dir["#{@top_dir}/workflow*.osw"].each do |workflow|
       next unless workflow.include?(File.basename(scenario_dir))
 
       (1..num_samples).to_a.each do |building_id|
-        bldg_data = get_data_for_sample(buildstock_csv_data, building_id, runner)
+        bldg_data = buildstock_map[building_id]
         next unless counties.include? bldg_data['County']
 
         workflow_and_building_ids << [workflow, building_id]
@@ -132,6 +133,7 @@ class IntegrationWorkflowTest < MiniTest::Test
       osw = "#{project_dir}-#{building_id.to_s.rjust(4, '0')}.osw"
       result_characteristics['OSW'] = osw
       result_output['OSW'] = osw
+      result_output['color_index'] = color_index
 
       check_finished_job(result_characteristics, finished_job)
       check_finished_job(result_output, finished_job)

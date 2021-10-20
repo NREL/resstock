@@ -4,8 +4,19 @@ class XMLHelper
   # Adds the child element with 'element_name' and sets its value. Returns the
   # child element.
   def self.add_element(parent, element_name, value = nil, datatype = nil, defaulted = false)
+    added = XMLHelper.insert_element(parent, element_name, -1, value, datatype, defaulted)
+    return added
+  end
+
+  # Inserts the child element with 'element_name' and sets its value. Returns the
+  # child element.
+  def self.insert_element(parent, element_name, index = 0, value = nil, datatype = nil, defaulted = false)
     added = Oga::XML::Element.new(name: element_name)
-    parent.children << added
+    if index == -1
+      parent.children << added
+    else
+      parent.children.insert(index, added)
+    end
     if not value.nil?
       if datatype == :integer
         value = to_integer(value, parent, element_name)
@@ -174,7 +185,7 @@ class XMLHelper
   end
 
   def self.write_file(doc, out_path)
-    doc_s = doc.to_xml
+    doc_s = doc.to_xml.delete("\r")
 
     # Manually apply pretty-printing (indentation and newlines)
     # Can remove if https://gitlab.com/yorickpeterse/oga/-/issues/75 is implemented
@@ -204,6 +215,8 @@ class XMLHelper
       end
     end
     indents.reverse_each do |pos, level|
+      next if doc_s[pos - 1] == ' '
+
       doc_s.insert(pos, "\n#{'  ' * level}")
     end
     # Retain REXML-styling
@@ -243,7 +256,7 @@ def to_integer(value, parent, element_name)
   end
 end
 
-def to_boolean(value, parent = nil, element_name = nil)
+def to_boolean(value, parent, element_name)
   if value.is_a? TrueClass
     return true
   elsif value.is_a? FalseClass
@@ -254,9 +267,7 @@ def to_boolean(value, parent = nil, element_name = nil)
     return false
   end
 
-  if (not parent.nil?) && (not element_name.nil?)
-    fail "Cannot convert '#{value}' to boolean for #{parent.name}/#{element_name}."
-  end
+  fail "Cannot convert '#{value}' to boolean for #{parent.name}/#{element_name}."
 end
 
 def to_float_or_nil(value, parent, element_name)

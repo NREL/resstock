@@ -27,6 +27,9 @@ Features
 - Update window type distributions using RECS 2015. Includes additional of frame material types (RECS 2015) and presence of storm windows (D&R International) ([#615](https://github.com/NREL/resstock/pull/615))
 - Reduces window interior shading during Winter to match ANSI/RESNET/ICC 301 assumption ([#649](https://github.com/NREL/resstock/pull/649))
 - Updates ceiling fan model based on ANSI/RESNET ICC 301 assumptions ([#652](https://github.com/NREL/resstock/pull/652))
+- Updates infiltration model pressure coefficient ([#670](https://github.com/NREL/resstock/pull/670))
+- Updates mechanical ventilation options/model to ASHRAE 62.2-2019 and adds a "Flow Rate, Mechanical Ventilation (cfm)" output ([#675](https://github.com/NREL/resstock/pull/675))
+- Add PV ownership and PV system size distributions using 2019 Tracking the Sun and GTM report on solar installation. ([#673](https://github.com/NREL/resstock/pull/673))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
@@ -43,6 +46,9 @@ Fixes
 - Sync the sample probabilities after a bug fix in tsv_dist ([#609](https://github.com/NREL/resstock/pull/609))
 - Fix name of ReEDS balancing areas ([#613](https://github.com/NREL/resstock/pull/613))
 - Fixes hot water distribution internal gains not being zeroed out during vacancies ([#653](https://github.com/NREL/resstock/pull/653))
+- Exclude adiabatic doors when outputting the door area cost multiplier ([#674](https://github.com/NREL/resstock/pull/674))
+- Disaggregate the shared fan coil's fan energy use into heating and cooling ([#694](https://github.com/NREL/resstock/pull/694))
+- Fixes hours setpoint not met output to exclude A) no heating and/or cooling equipment and B) finished basements ([#700](https://github.com/NREL/resstock/pull/700))
 
 ## ResStock v2.4.0
 

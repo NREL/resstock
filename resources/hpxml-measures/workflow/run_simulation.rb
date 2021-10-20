@@ -11,10 +11,21 @@ require_relative '../HPXMLtoOpenStudio/resources/version'
 basedir = File.expand_path(File.dirname(__FILE__))
 
 def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, add_comp_loads,
-                 output_format, building_id, ep_input_format)
+                 output_format, building_id, ep_input_format, detailed_schedules_type)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
+
+  # Optionally add schedule file measure to workflow
+  unless detailed_schedules_type.nil?
+    measure_subdir = 'BuildResidentialScheduleFile'
+    args = {}
+    args['hpxml_path'] = hpxml
+    args['hpxml_output_path'] = hpxml
+    args['schedules_type'] = detailed_schedules_type
+    args['output_csv_path'] = "workflow/sample_files/run/#{detailed_schedules_type}.csv"
+    update_args_hash(measures, measure_subdir, args)
+  end
 
   # Add HPXML translator measure to workflow
   measure_subdir = 'HPXMLtoOpenStudio'
@@ -28,7 +39,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   update_args_hash(measures, measure_subdir, args)
 
   # Add reporting measure to workflow
-  measure_subdir = 'SimulationOutputReport'
+  measure_subdir = 'ReportSimulationOutput'
   args = {}
   args['output_format'] = output_format
   args['timeseries_frequency'] = timeseries_output_freq
@@ -37,10 +48,15 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['include_timeseries_hot_water_uses'] = timeseries_outputs.include? 'hotwater'
   args['include_timeseries_total_loads'] = timeseries_outputs.include? 'loads'
   args['include_timeseries_component_loads'] = timeseries_outputs.include? 'componentloads'
-  args['include_timeseries_unmet_loads'] = timeseries_outputs.include? 'unmetloads'
   args['include_timeseries_zone_temperatures'] = timeseries_outputs.include? 'temperatures'
   args['include_timeseries_airflows'] = timeseries_outputs.include? 'airflows'
   args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
+  update_args_hash(measures, measure_subdir, args)
+
+  # Add hpxml output measure to workflow
+  measure_subdir = 'ReportHPXMLOutput'
+  args = {}
+  args['output_format'] = output_format
   update_args_hash(measures, measure_subdir, args)
 
   results = run_hpxml_workflow(rundir, measures, measures_dir, debug: debug, ep_input_format: ep_input_format)
@@ -48,7 +64,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   return results[:success]
 end
 
-timeseries_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'unmetloads', 'temperatures', 'airflows', 'weather']
+timeseries_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
 
 options = {}
 OptionParser.new do |opts|
@@ -94,6 +110,10 @@ OptionParser.new do |opts|
   options[:add_comp_loads] = false
   opts.on('--add-component-loads', 'Add heating/cooling component loads calculation') do |t|
     options[:add_comp_loads] = true
+  end
+
+  opts.on('--add-detailed-schedule TYPE', ['smooth', 'stochastic'], 'Add detailed schedule of type (smooth, stochastic)') do |t|
+    options[:detailed_schedules_type] = t
   end
 
   options[:ep_input_format] = 'idf'
@@ -185,7 +205,7 @@ rundir = File.join(options[:output_dir], 'run')
 puts "HPXML: #{options[:hpxml]}"
 success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
                        options[:skip_validation], options[:add_comp_loads], options[:output_format], options[:building_id],
-                       options[:ep_input_format])
+                       options[:ep_input_format], options[:detailed_schedules_type])
 
 if not success
   exit! 1

@@ -1,7 +1,16 @@
 # frozen_string_literal: true
 
+require 'openstudio'
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
+end
+require File.join(resources_path, 'meta_measure')
+
 require 'csv'
-require "#{File.dirname(__FILE__)}/meta_measure"
 
 class TsvFile
   def initialize(full_path, runner)
@@ -20,7 +29,7 @@ class TsvFile
 
     full_header = nil
     rows = []
-    CSV.foreach(@full_path, { col_sep: "\t" }) do |row|
+    CSV.foreach(@full_path, col_sep: "\t") do |row|
       next if row[0].start_with? "\#"
 
       row.delete_if { |x| x.nil? || (x.size == 0) } # purge trailing empty fields
@@ -402,14 +411,16 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   return result
 end
 
-def get_data_for_sample(buildstock_csv_data, building_id, runner)
-  buildstock_csv_data.each do |sample|
-    next if sample['Building'].to_i != building_id
+def get_data_for_sample(buildstock_csv_path, building_id, runner)
+  buildstock_csv = CSV.open(buildstock_csv_path, headers: true)
 
-    return sample
+  buildstock_csv.each do |row|
+    next if row['Building'].to_i != building_id.to_i
+
+    return row.to_hash
   end
   # If we got this far, couldn't find the sample #
-  msg = "Could not find row for #{building_id} in #{File.basename(buildstock_csv)}."
+  msg = "Could not find row for #{building_id} in #{buildstock_csv_path}."
   runner.registerError(msg)
   fail msg
 end
@@ -437,23 +448,6 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.add_simulation_output_report(osw)
-    json = JSON.parse(File.read(osw), symbolize_names: true)
-    measures = []
-    json[:steps].each do |measure|
-      measures << measure[:measure_dir_name]
-    end
-
-    unless measures.include? 'SimulationOutputReport'
-      simulation_output_report = { measure_dir_name: 'SimulationOutputReport' }
-      json[:steps] << simulation_output_report
-    end
-
-    File.open(osw, 'w') do |f|
-      f.write(JSON.pretty_generate(json))
-    end
-  end
-
   def self.run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
@@ -478,7 +472,7 @@ class RunOSWs
 
     result_characteristics = get_measure_results(rows, result_characteristics, 'BuildExistingModel')
     result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
-    result_output = get_measure_results(rows, result_output, 'SimulationOutputReport')
+    result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
     result_output = get_measure_results(rows, result_output, 'QOIReport')
     return finished_job, result_characteristics, result_output

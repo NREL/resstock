@@ -1,0 +1,69 @@
+schema_version: '0.3'
+buildstock_directory: ../../resstock # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: national_upgrades
+weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 1
+    logic:
+      or:
+        - County|AZ, Maricopa County
+        - County|CA, Los Angeles County
+        - County|GA, Fulton County
+        - County|IL, Cook County
+        - County|TX, Harris County
+        - County|WA, King County
+    resample: false
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    simulation_output_report:
+      timeseries_frequency: none
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+baseline:
+  n_buildings_represented: 110000000
+
+upgrades:
+  - upgrade_name: Windows and Walls
+    options:
+      - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+        costs:
+          - value: 45.77
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - option: Insulation Wall|Wood Stud, R-13
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs:
+          - value: 2.21
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+
+eagle:
+  n_jobs: 3
+  minutes_per_sim: 30
+  account: <account you are authorized to use>
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 5
