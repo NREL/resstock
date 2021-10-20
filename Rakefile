@@ -26,14 +26,6 @@ namespace :test do
     t.verbose = true
   end
 
-  desc 'Run bsb analysis tests'
-  Rake::TestTask.new('bsb_tests') do |t|
-    t.libs << 'test'
-    t.test_files = Dir['test/test_bsb_analysis.rb']
-    t.warning = false
-    t.verbose = true
-  end
-
   desc 'Regenerate test osms from osws'
   Rake::TestTask.new('regenerate_osms') do |t|
     t.libs << 'test'
