@@ -71,6 +71,10 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Install gems
+        run: |
+          rm -f Gemfile.lock && bundle install
+
       - name: Run buildstockbatch
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@develop
@@ -83,7 +87,7 @@ jobs:
 
       - name: Run bsb tests
         run: |
-          ruby test/test_bsb_analysis.rb
+          rake test:bsb_tests
 
       - name: Process results
         run: |
