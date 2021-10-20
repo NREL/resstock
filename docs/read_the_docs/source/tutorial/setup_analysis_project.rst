@@ -12,7 +12,7 @@ OpenStudio Measures
 .. _build-existing-model:
 
 Build Existing Model
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 
 Using this measure you can set the simulation timesteps per hour, the run period begin month/day and end month/day, and the calendar year (for start day of week). By default the simulations use a 10-min timestep (i.e., the number of timesteps per hour is 6), start on January 1, end on December 31, and run with a calendar year of 2007 (start day of week is Monday). If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.
 
@@ -33,6 +33,30 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 **Measures to Ignore**
   **INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS ONLY.** Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (the Build Existing Model measure will fail).
 
+**Simulation Control: Timestep**
+  Value must be a divisor of 60.
+
+**Simulation Control: Run Period Begin Month**
+  This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.
+
+**Simulation Control: Run Period Begin Day of Month**
+  This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.
+
+**Simulation Control: Run Period End Month**
+  This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.
+
+**Simulation Control: Run Period End Day of Month**
+  This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.
+
+**Simulation Control: Run Period Calendar Year**
+  This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.
+
+**Debug Mode?**
+  If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.
+
+**Add annual component loads output**
+  If true, output the annual component loads.
+
 .. _custom region map: https://github.com/NREL/resstock/wiki/Custom-Region-(CR)-Map
 
 .. note::
@@ -46,7 +70,7 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 .. _tutorial-apply-upgrade:
 
 Apply Upgrade
-^^^^^^^^^^^^^
+~~~~~~~~~~~~~
 
 Each "Apply Upgrade" measure defines an upgrade scenario. An upgrade scenario is a collection of options exercised with some logic and costs applied. In the simplest case, we apply the new option to all houses. The available upgrade options are in ``resources/options_lookup.tsv`` in your git repository. 
 
