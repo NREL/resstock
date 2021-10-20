@@ -1,23 +1,28 @@
 schema_version: '0.3'
 buildstock_directory: /home/pwhite/GitHub/resstock
 project_directory: project_national
-output_directory: /projects/resilience/testing/la_2018_hot_short_testv5
-weather_files_path: resilience_weather/la_2018.zip
+output_directory: /projects/resilience/testing/la_2018_hot_short_testv8
+weather_files_path: /home/pwhite/GitHub/resstock/resilience/resilience_weather/la_2018.zip
 
 eagle:
-  n_jobs: 1
-  minutes_per_sim: 4
+  n_jobs: 10
+  minutes_per_sim: 20
   account: enduse
   sampling:
-    time: 10
+    time: 700
   postprocessing:
-    time: 10
-    n_workers: 1
+    time: 500
+    n_workers: 5
 
 sampler:
-  type: precomputed
+  type: residential_quota_downselect
   args:
-    sample_file: /home/pwhite/GitHub/resstock/resilience/la/buildstock_test.csv
+    n_datapoints: 1000
+    resample: true
+    logic:
+      - Geometry Building Type ACS|Single-Family Detached
+      - Vacancy Status|Occupied
+      - County|CA, Los Angeles County
     
 workflow_generator:
   type: residential_default
@@ -54,7 +59,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-resilience
-      prefix: testing/la_2018_hot_short_testv5
+      prefix: testing/la_2018_hot_short_testv8
 
 
 upgrades:
@@ -4600,7 +4605,7 @@ upgrades:
         apply_logic: ASHRAE IECC Climate Zone 2004|7B
 
       # Ducts:- None, No ducts losess in crawlspace or attic
-      - option: Ducts|6% Leakage, R-8
+      - option: Ducts|None
 
       # Phius windows
       - option: Windows|Phius Window, Zone 1A, U-0.50, SHGC-0.25

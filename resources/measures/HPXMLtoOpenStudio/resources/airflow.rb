@@ -406,6 +406,10 @@ class Airflow
     # Remove existing ducts
 
     model.getThermalZones.each do |thermal_zone|
+      thermal_zone.airLoopHVACs.each do |air_loop|
+        thermal_zone.removeReturnPlenum(air_loop)
+      end
+
       next unless thermal_zone.name.to_s.start_with? obj_name_ducts
 
       thermal_zone.spaces.each do |space|
@@ -415,9 +419,6 @@ class Airflow
           end
         end
         space.remove
-      end
-      thermal_zone.airLoopHVACs.each do |air_loop|
-        thermal_zone.removeReturnPlenum(air_loop)
       end
       thermal_zone.remove
     end
