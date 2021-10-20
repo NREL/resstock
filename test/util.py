@@ -64,16 +64,16 @@ if not os.path.exists(outdir):
 
 frames = []
 
-for i in range(1, 6):
+for i in range(1, 9):
 
   df_national = pd.read_csv('project_national/national_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
-  df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}.osw'.format('%04d' % x))
+  df_national['building_id'] = df_national['apply_upgrade.upgrade_name'].apply(lambda x: 'project_national-{}.osw'.format(x))
   df_national.insert(1, 'color_index', 1)
 
   frames.append(df_national)
 
   df_testing = pd.read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
-  df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}.osw'.format('%04d' % x))
+  df_testing['building_id'] = df_testing['apply_upgrade.upgrade_name'].apply(lambda x: 'project_testing-{}.osw'.format(x))
   df_testing.insert(1, 'color_index', 0)
 
   frames.append(df_testing)
