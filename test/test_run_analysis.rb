@@ -16,7 +16,7 @@ class TestRunAnalysis < MiniTest::Test
   def test_version
     @command += ' -v'
 
-    system(@command)
+    assert(!system(@command))
   end
 
   def test_testing_baseline_measures_only
