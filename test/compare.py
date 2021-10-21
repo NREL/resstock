@@ -20,7 +20,8 @@ enum_maps = {'geometry_building_type_recs': {'Single-Family Detached': 'SFD',
 
 cols_to_ignore = ['include_',
                   'completed_status',
-                  'color_index']
+                  'color_index',
+                  'upgrade_name']
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
