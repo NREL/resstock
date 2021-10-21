@@ -1,16 +1,14 @@
 schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /lustre/eaglefs/projects/scout/flex_measures/1k_test_1
+output_directory: /lustre/eaglefs/projects/scout/flex_measures/3.6k_test_12
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota_downselect
+  type: residential_quota
   args:
-    n_datapoints: 1000
-    logic:
-      - Geometry Building Type RECS|Single-Family Detached
+    n_datapoints: 3600 #180,000
     resample: false
 
 workflow_generator:
@@ -24,15 +22,13 @@ workflow_generator:
       simulation_control_run_period_end_day_of_month: 31
       simulation_control_run_period_calendar_year: 2007
       debug: false
-
     simulation_output_report:
-      timeseries_frequency: Hourly
+      timeseries_frequency: hourly
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
       include_timeseries_hot_water_uses: false
-      include_timeseries_total_loads: true
+      include_timeseries_total_loads: false
       include_timeseries_component_loads: false
-      include_timeseries_unmet_loads: true
       include_timeseries_zone_temperatures: true
       include_timeseries_airflows: true
       include_timeseries_weather: true
@@ -42,7 +38,7 @@ baseline:
 
 upgrades:
 ## Dual Source
-  ##### BASE 1 DUAL SOURCE
+  ##### (1) BASE 1 DUAL SOURCE
   - upgrade_name: Base Dual Source Air Source Heat Pump
     package_apply_logic:
       - HVAC Has Ducts|Yes
@@ -130,14 +126,12 @@ upgrades:
               - Heating Fuel|Fuel Oil
               - not: HVAC Heating Type And Fuel|None 
 
-  ##### UPGRADE 1 DUAL SOURCE
+  ##### (2) UPGRADE 1 DUAL SOURCE
   - upgrade_name: Dual Source Air Source Heat Pump
     package_apply_logic:
       - HVAC Has Ducts|Yes
       - not: HVAC Cooling Type|None
     options:
-      - option: HVAC Heating Type And Fuel|Electricity ASHP
-
       # Natural Gas Backup
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Dual Source, Gas Backup
         apply_logic: 
@@ -221,7 +215,7 @@ upgrades:
               - not: HVAC Heating Type And Fuel|None 
 
 ## Modulating
-  ##### BASE 2 MODULATING
+  ##### (3) BASE 2 MODULATING
   - upgrade_name: Modulating Air Source Heat Pump
     package_apply_logic:
         - or:
@@ -235,7 +229,7 @@ upgrades:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating, Base
       - option: HVAC Cooling Efficiency|None
 
-  ##### UPGRADE 2a MODULATING (Speed = 0)
+  ##### (4) UPGRADE 2a MODULATING (Speed = 0)
   - upgrade_name: Modulating Air Source Heat Pump, Speed 0
     package_apply_logic:
         - or:
@@ -250,7 +244,7 @@ upgrades:
       - option: Max Flex Speed|0
       - option: HVAC Cooling Efficiency|None
 
-  ##### UPGRADE 2b MODULATING (Speed = 1)
+  ##### (5) UPGRADE 2b MODULATING (Speed = 1)
   - upgrade_name: Modulating Air Source Heat Pump, Speed 1
     package_apply_logic:
         - or:
@@ -265,7 +259,7 @@ upgrades:
       - option: Max Flex Speed|1
       - option: HVAC Cooling Efficiency|None
 
-  ##### UPGRADE 2c MODULATING (Speed = 2)
+  ##### (6) UPGRADE 2c MODULATING (Speed = 2)
   - upgrade_name: Modulating Air Source Heat Pump, Speed 2
     package_apply_logic:
         - or:
@@ -281,7 +275,7 @@ upgrades:
       - option: HVAC Cooling Efficiency|None
 
 ## IHP
-  ##### BASE 3 IHP
+  ##### (7) BASE 3 IHP
   - upgrade_name: IHP Grid AC Source Heat Pump, Base
     package_apply_logic:
         - or:
@@ -292,10 +286,10 @@ upgrades:
             - not: HVAC Cooling Type|None
             - HVAC Has Ducts|Yes
     options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC, Base
       - option: HVAC Cooling Efficiency|None
 
-  ##### UPGRADE 3a IHP (Speed = 0)
+  ##### (8) UPGRADE 3a IHP (Speed = 0)
   - upgrade_name: IHP Grid AC Source Heat Pump, Speed 0
     package_apply_logic:
         - or:
@@ -310,8 +304,8 @@ upgrades:
       - option: Max Flex Speed|0
       - option: HVAC Cooling Efficiency|None
 
-  ##### UPGRADE 3b IHP (Speed = 1)
-  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 0
+  ##### (9) UPGRADE 3b IHP (Speed = 1)
+  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 1
     package_apply_logic:
         - or:
           - or:
@@ -325,8 +319,8 @@ upgrades:
       - option: Max Flex Speed|1
       - option: HVAC Cooling Efficiency|None
 
-  ##### UPGRADE 3c IHP (Speed = 2)
-  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 0
+  ##### (10) UPGRADE 3c IHP (Speed = 2)
+  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 2
     package_apply_logic:
         - or:
           - or:
@@ -341,7 +335,7 @@ upgrades:
       - option: HVAC Cooling Efficiency|None
 
 ## Ice Storage
-  ##### UPGRADE 4 IHP + Ice Storage
+  ##### (11) UPGRADE 4 IHP + Ice Storage
   - upgrade_name: Ice Storage IHP Grid AC Source Heat Pump, Speed 0
     package_apply_logic:
         - or:
@@ -357,7 +351,7 @@ upgrades:
       - option: HVAC Cooling Efficiency|None
 
 ## PCM Storage
-  ##### UPGRADE 5 IHP + PCM Storage
+  ##### (12) UPGRADE 5 IHP + PCM Storage
   - upgrade_name: PCM Storage IHP Grid AC Source Heat Pump, Speed 0
     package_apply_logic:
         - or:
@@ -374,10 +368,22 @@ upgrades:
 
 eagle:
   n_jobs: 5
-  minutes_per_sim: 1
+  minutes_per_sim: 2
   account: scout
   sampling:
     time: 10
   postprocessing:
-    time: 10
+    time: 30
     n_workers: 1
+
+postprocessing:
+  keep_individual_timeseries: false
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: flex-measures/
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: flex_measures
+      max_crawling_time: 300 #seconds to wait for the crawler to complete before aborting it
