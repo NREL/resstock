@@ -18,10 +18,10 @@ namespace :test do
     t.verbose = true
   end
 
-  desc 'Run integration tests for sampled datapoints'
-  Rake::TestTask.new('integration_tests') do |t|
+  desc 'Run analysis tests for testing projects'
+  Rake::TestTask.new('analysis_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['test/test_samples.rb']
+    t.test_files = Dir['test/test_run_analysis.rb']
     t.warning = false
     t.verbose = true
   end
