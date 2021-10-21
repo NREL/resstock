@@ -113,6 +113,11 @@
       <sch:assert role='ERROR' test='count(h:MiscLoads/h:FuelLoad[h:FuelLoadType[text()="grill"]]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: MiscLoads/FuelLoad[FuelLoadType[text()="grill"]]</sch:assert> <!-- See [FuelLoad] -->
       <sch:assert role='ERROR' test='count(h:MiscLoads/h:FuelLoad[h:FuelLoadType[text()="lighting"]]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: MiscLoads/FuelLoad[FuelLoadType[text()="lighting"]]</sch:assert> <!-- See [FuelLoad] -->
       <sch:assert role='ERROR' test='count(h:MiscLoads/h:FuelLoad[h:FuelLoadType[text()="fireplace"]]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: MiscLoads/FuelLoad[FuelLoadType[text()="fireplace"]]</sch:assert> <!-- See [FuelLoad] -->
+      <!-- Sum Checks -->
+      <sch:assert role='ERROR' test='sum(h:Systems/h:HVAC/h:HVACPlant/h:HeatingSystem/h:FractionHeatLoadServed) + sum(h:Systems/h:HVAC/h:HVACPlant/h:HeatPump/h:FractionHeatLoadServed) &lt;= 1.01'>Expected sum(FractionHeatLoadServed) to be less than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='sum(h:Systems/h:HVAC/h:HVACPlant/h:CoolingSystem/h:FractionCoolLoadServed) + sum(h:Systems/h:HVAC/h:HVACPlant/h:HeatPump/h:FractionCoolLoadServed) &lt;= 1.01'>Expected sum(FractionCoolLoadServed) to be less than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='sum(h:Appliances/h:Dehumidifier/h:FractionDehumidificationLoadServed) &lt;= 1.01'>Expected sum(FractionDehumidificationLoadServed) to be less than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='(sum(h:Systems/h:WaterHeating/h:WaterHeatingSystem/h:FractionDHWLoadServed) &lt;= 1.01 and sum(h:Systems/h:WaterHeating/h:WaterHeatingSystem/h:FractionDHWLoadServed) &gt;= 0.99) or count(h:Systems/h:WaterHeating/h:WaterHeatingSystem/h:FractionDHWLoadServed) = 0'>Expected sum(FractionDHWLoadServed) to be 1</sch:assert>
       <!-- Warnings -->
       <sch:report role='WARN' test='count(h:Enclosure/h:Windows/h:Window) = 0'>No windows specified, the model will not include window heat transfer.</sch:report>
       <sch:report role='WARN' test='sum(h:Systems/h:HVAC/h:HVACPlant/h:HeatingSystem/h:FractionHeatLoadServed) + sum(h:Systems/h:HVAC/h:HVACPlant/h:HeatPump/h:FractionHeatLoadServed) = 0'>No space heating specified, the model will not include space heating energy use.</sch:report>
@@ -394,8 +399,9 @@
       <sch:assert role='ERROR' test='count(h:SystemIdentifier) = 1'>Expected 1 element(s) for xpath: SystemIdentifier</sch:assert>
       <sch:assert role='ERROR' test='count(h:Area) = 1'>Expected 1 element(s) for xpath: Area</sch:assert>
       <sch:assert role='ERROR' test='count(h:Azimuth) + count(h:Orientation) &gt;= 1'>Expected 1 or more element(s) for xpath: Azimuth | Orientation</sch:assert>
-      <sch:assert role='ERROR' test='count(h:UFactor) = 1'>Expected 1 element(s) for xpath: UFactor</sch:assert>
-      <sch:assert role='ERROR' test='count(h:SHGC) = 1'>Expected 1 element(s) for xpath: SHGC</sch:assert>
+      <sch:assert role='ERROR' test='count(h:UFactor) + count(h:GlassLayers) &gt;= 1'>Expected 1 or more element(s) for xpath: UFactor | GlassLayers</sch:assert> <!-- See [Window=PhysicalProperties] -->
+      <sch:assert role='ERROR' test='count(h:SHGC) + count(h:GlassLayers) &gt;= 1'>Expected 1 or more element(s) for xpath: SHGC | GlassLayers</sch:assert> <!-- See [Window=PhysicalProperties] -->
+      <sch:assert role='ERROR' test='h:GlassLayers[text()="single-pane" or text()="double-pane" or text()="triple-pane" or text()="glass block"] or not(h:GlassLayers) or h:UFactor'>Expected GlassLayers to be 'single-pane' or 'double-pane' or 'triple-pane' or 'glass block'</sch:assert>
       <sch:assert role='ERROR' test='count(h:ExteriorShading/h:SummerShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/SummerShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:ExteriorShading/h:WinterShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/WinterShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:InteriorShading/h:SummerShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/SummerShadingCoefficient</sch:assert>
@@ -405,11 +411,35 @@
       <sch:assert role='ERROR' test='count(h:AttachedToWall) = 1'>Expected 1 element(s) for xpath: AttachedToWall</sch:assert>
     </sch:rule>
   </sch:pattern>
+  
+  <sch:pattern>
+    <sch:title>[Window=PhysicalProperties]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window[not(h:UFactor) and h:GlassLayers[text()="single-pane" or text()="double-pane" or text()="triple-pane"]]'>
+      <sch:assert role='ERROR' test='count(h:FrameType[h:Aluminum | h:Fiberglass | h:Metal | h:Vinyl | h:Wood]) = 1'>Expected 1 element(s) for xpath: FrameType[Aluminum | Fiberglass | Metal | Vinyl | Wood]</sch:assert> <!-- See [Window=MetalFrame] -->
+      <sch:assert role='ERROR' test='count(h:GlassType) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GlassType</sch:assert>
+      <sch:assert role='ERROR' test='h:GlassType[text()="clear" or text()="low-e" or text()="tinted" or text()="tinted/reflective" or text()="reflective"] or not(h:GlassType)'>Expected GlassType to be 'clear' or 'low-e' or 'tinted' or 'tinted/reflective' or 'reflective'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:GasFill) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GasFill</sch:assert>
+      <sch:assert role='ERROR' test='h:GasFill[text()="air" or text()="argon" or text()="krypton" or text()="xenon" or text()="nitrogen" or text()="other"] or not(h:GasFill)'>Expected GasFill to be 'air' or 'argon' or 'krypton' or 'xenon' or 'nitrogen' or 'other'</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[Window=MetalFrame]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:FrameType/h:Metal | /h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:FrameType/h:Aluminum'>
+      <sch:assert role='ERROR' test='count(h:ThermalBreak) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ThermalBreak</sch:assert>
+    </sch:rule>
+  </sch:pattern>
 
   <sch:pattern>
     <sch:title>[WindowOverhangs]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:Overhangs'>
-      <sch:assert role='ERROR' test='count(h:Depth) = 1'>Expected 1 element(s) for xpath: Depth</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Depth) = 1'>Expected 1 element(s) for xpath: Depth</sch:assert> <!-- See [WindowOverhangs=Present] -->
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[WindowOverhangs=Present]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window/h:Overhangs[number(h:Depth) > 0]'>
       <sch:assert role='ERROR' test='count(h:DistanceToTopOfWindow) = 1'>Expected 1 element(s) for xpath: DistanceToTopOfWindow</sch:assert>
       <sch:assert role='ERROR' test='count(h:DistanceToBottomOfWindow) = 1'>Expected 1 element(s) for xpath: DistanceToBottomOfWindow</sch:assert>
       <sch:assert role='ERROR' test='number(h:DistanceToBottomOfWindow) &gt; number(h:DistanceToTopOfWindow) or not(h:DistanceToBottomOfWindow) or not(h:DistanceToTopOfWindow)'>Expected DistanceToBottomOfWindow to be greater than DistanceToTopOfWindow</sch:assert>
@@ -422,13 +452,32 @@
       <sch:assert role='ERROR' test='count(h:SystemIdentifier) = 1'>Expected 1 element(s) for xpath: SystemIdentifier</sch:assert>
       <sch:assert role='ERROR' test='count(h:Area) = 1'>Expected 1 element(s) for xpath: Area</sch:assert>
       <sch:assert role='ERROR' test='count(h:Azimuth) + count(h:Orientation) &gt;= 1'>Expected 1 or more element(s) for xpath: Azimuth | Orientation</sch:assert>
-      <sch:assert role='ERROR' test='count(h:UFactor) = 1'>Expected 1 element(s) for xpath: UFactor</sch:assert>
-      <sch:assert role='ERROR' test='count(h:SHGC) = 1'>Expected 1 element(s) for xpath: SHGC</sch:assert>
+      <sch:assert role='ERROR' test='count(h:UFactor) + count(h:GlassLayers) &gt;= 1'>Expected 1 or more element(s) for xpath: UFactor | GlassLayers</sch:assert> <!-- See [Skylight=PhysicalProperties] -->
+      <sch:assert role='ERROR' test='count(h:SHGC) + count(h:GlassLayers) &gt;= 1'>Expected 1 or more element(s) for xpath: SHGC | GlassLayers</sch:assert> <!-- See [Skylight=PhysicalProperties] -->
+      <sch:assert role='ERROR' test='h:GlassLayers[text()="single-pane" or text()="double-pane" or text()="triple-pane" or text()="glass block"] or not(h:GlassLayers) or h:UFactor'>Expected GlassLayers to be 'single-pane' or 'double-pane' or 'triple-pane' or 'glass block'</sch:assert>
       <sch:assert role='ERROR' test='count(h:ExteriorShading/h:SummerShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/SummerShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:ExteriorShading/h:WinterShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ExteriorShading/WinterShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:InteriorShading/h:SummerShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/SummerShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:InteriorShading/h:WinterShadingCoefficient) &lt;= 1'>Expected 0 or 1 element(s) for xpath: InteriorShading/WinterShadingCoefficient</sch:assert>
       <sch:assert role='ERROR' test='count(h:AttachedToRoof) = 1'>Expected 1 element(s) for xpath: AttachedToRoof</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[Skylight=PhysicalProperties]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Skylights/h:Skylight[not(h:UFactor) and h:GlassLayers[text()="single-pane" or text()="double-pane" or text()="triple-pane"]]'>
+      <sch:assert role='ERROR' test='count(h:FrameType[h:Aluminum | h:Fiberglass | h:Metal | h:Vinyl | h:Wood]) = 1'>Expected 1 element(s) for xpath: FrameType[Aluminum | Fiberglass | Metal | Vinyl | Wood]</sch:assert> <!-- See [Skylight=MetalFrame] -->
+      <sch:assert role='ERROR' test='count(h:GlassType) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GlassType</sch:assert>
+      <sch:assert role='ERROR' test='h:GlassType[text()="clear" or text()="low-e" or text()="tinted" or text()="tinted/reflective" or text()="reflective"] or not(h:GlassType)'>Expected GlassType to be 'clear' or 'low-e' or 'tinted' or 'tinted/reflective' or 'reflective'</sch:assert>
+      <sch:assert role='ERROR' test='count(h:GasFill) &lt;= 1'>Expected 0 or 1 element(s) for xpath: GasFill</sch:assert>
+      <sch:assert role='ERROR' test='h:GasFill[text()="air" or text()="argon" or text()="krypton" or text()="xenon" or text()="nitrogen" or text()="other"] or not(h:GasFill)'>Expected GasFill to be 'air' or 'argon' or 'krypton' or 'xenon' or 'nitrogen' or 'other'</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[Skylight=MetalFrame]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Skylights/h:Skylight/h:FrameType/h:Metal | /h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Skylights/h:Skylight/h:FrameType/h:Aluminum'>
+      <sch:assert role='ERROR' test='count(h:ThermalBreak) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ThermalBreak</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -442,7 +491,7 @@
       <sch:assert role='ERROR' test='count(h:RValue) = 1'>Expected 1 element(s) for xpath: RValue</sch:assert>
     </sch:rule>
   </sch:pattern>
-
+  
   <sch:pattern>
     <sch:title>[HeatingSystem]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACPlant/h:HeatingSystem'>
@@ -628,8 +677,6 @@
       <sch:assert role='ERROR' test='number(h:AnnualHeatingEfficiency[h:Units="Percent"]/h:Value) &lt;= 1 or not(h:AnnualHeatingEfficiency[h:Units="Percent"]/h:Value)'>Expected AnnualHeatingEfficiency[Units="Percent"]/Value to be less than or equal to 1</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:FanPowerWatts) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/FanPowerWatts</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanPowerWatts) &gt;= 0 or not(h:extension/h:FanPowerWatts)'>Expected extension/FanPowerWatts to be greater than or equal to 0</sch:assert>
-      <!-- Warnings -->
-      <sch:report role='WARN' test='number(h:AnnualHeatingEfficiency[h:Units="Percent"]/h:Value) &lt; 0.6'>Percent efficiency should typically be greater than or equal to 0.6.</sch:report>
     </sch:rule>
   </sch:pattern>
 
@@ -887,43 +934,26 @@
   <sch:pattern>
     <sch:title>[HVACControl]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl'>
-      <sch:assert role='ERROR' test='count(h:SystemIdentifier) = 1'>Expected 1 element(s) for xpath: SystemIdentifier</sch:assert>
-      <sch:assert role='ERROR' test='count(h:SetpointTempHeatingSeason) + count(h:extension/h:WeekdaySetpointTempsHeatingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempHeatingSeason | WeekdaySetpointTempsHeatingSeason</sch:assert>
-      <sch:assert role='ERROR' test='count(h:SetpointTempHeatingSeason) + count(h:extension/h:WeekendSetpointTempsHeatingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempHeatingSeason | WeekendSetpointTempsHeatingSeason</sch:assert>
-      <sch:assert role='ERROR' test='count(h:SetbackTempHeatingSeason) + count(h:extension/h:WeekdaySetpointTempsHeatingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetbackTempHeatingSeason | WeekdaySetpointTempsHeatingSeason</sch:assert> <!-- See [HVACControlType=HeatingSetback] -->
-      <sch:assert role='ERROR' test='count(h:SetbackTempHeatingSeason) + count(h:extension/h:WeekendSetpointTempsHeatingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetbackTempHeatingSeason | WeekendSetpointTempsHeatingSeason</sch:assert> <!-- See [HVACControlType=HeatingSetback] -->
-      <sch:assert role='ERROR' test='count(h:SetpointTempCoolingSeason) + count(h:extension/h:WeekdaySetpointTempsCoolingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempCoolingSeason | WeekdaySetpointTempsCoolingSeason</sch:assert>
-      <sch:assert role='ERROR' test='count(h:SetpointTempCoolingSeason) + count(h:extension/h:WeekendSetpointTempsCoolingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempCoolingSeason | WeekendSetpointTempsCoolingSeason</sch:assert>
-      <sch:assert role='ERROR' test='count(h:SetupTempCoolingSeason) + count(h:extension/h:WeekdaySetpointTempsCoolingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetupTempCoolingSeason | WeekdaySetpointTempsCoolingSeason</sch:assert> <!-- See [HVACControlType=CoolingSetup] -->
-      <sch:assert role='ERROR' test='count(h:SetupTempCoolingSeason) + count(h:extension/h:WeekendSetpointTempsCoolingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetupTempCoolingSeason | WeekendSetpointTempsCoolingSeason</sch:assert> <!-- See [HVACControlType=CoolingSetup] -->
-      <sch:assert role='ERROR' test='count(h:extension/h:CeilingFanSetpointTempCoolingSeasonOffset) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/CeilingFanSetpointTempCoolingSeasonOffset</sch:assert> <!-- deg F -->
-      <sch:assert role='ERROR' test='count(h:HeatingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Heating</sch:assert> <!-- See [HeatingSeason] -->
-      <sch:assert role='ERROR' test='count(h:CoolingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Cooling</sch:assert> <!-- See [CoolingSeason] -->
+      <sch:assert role='ERROR' test='count(h:SystemIdentifier) = 1'>Expected 1 element(s) for xpath: SystemIdentifier</sch:assert> <!-- See [HVACControl=Heating] and/or [HVACControl=Cooling] -->
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
-    <sch:title>[HeatingSeason]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl/h:HeatingSeason'>
-      <sch:assert role='ERROR' test='count(h:BeginMonth) = 1'>Expected 1 element(s) for xpath: BeginMonth</sch:assert> <!-- integer -->
-      <sch:assert role='ERROR' test='count(h:BeginDayOfMonth) = 1'>Expected 1 element(s) for xpath: BeginDayOfMonth</sch:assert> <!-- integer -->
-      <sch:assert role='ERROR' test='count(h:EndMonth) = 1'>Expected 1 element(s) for xpath: EndMonth</sch:assert> <!-- integer -->
-      <sch:assert role='ERROR' test='count(h:EndDayOfMonth) = 1'>Expected 1 element(s) for xpath: EndDayOfMonth</sch:assert> <!-- integer -->
+    <sch:title>[HVACControl=Heating]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl[sum(//h:FractionHeatLoadServed) > 0]'>
+      <sch:assert role='ERROR' test='count(h:SetpointTempHeatingSeason) + count(h:extension/h:WeekdaySetpointTempsHeatingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempHeatingSeason | extension/WeekdaySetpointTempsHeatingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SetpointTempHeatingSeason) + count(h:extension/h:WeekendSetpointTempsHeatingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempHeatingSeason | extension/WeekendSetpointTempsHeatingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SetbackTempHeatingSeason) + count(h:extension/h:WeekdaySetpointTempsHeatingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetbackTempHeatingSeason | extension/WeekdaySetpointTempsHeatingSeason</sch:assert> <!-- See [HVACControl=HeatingSetback] -->
+      <sch:assert role='ERROR' test='count(h:SetbackTempHeatingSeason) + count(h:extension/h:WeekendSetpointTempsHeatingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetbackTempHeatingSeason | extension/WeekendSetpointTempsHeatingSeason</sch:assert> <!-- See [HVACControl=HeatingSetback] -->
+      <sch:assert role='ERROR' test='count(h:HeatingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Heating</sch:assert> <!-- See [HVACControl=HeatingSeason] -->
+      <!-- Warnings -->
+      <sch:report role='WARN' test='number(h:SetpointTempHeatingSeason) &lt; 58'>Heating setpoint should typically be greater than or equal to 58 deg-F.</sch:report>
+      <sch:report role='WARN' test='number(h:SetpointTempHeatingSeason) &gt; 76'>Heating setpoint should typically be less than or equal to 76 deg-F.</sch:report>
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
-    <sch:title>[CoolingSeason]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl/h:CoolingSeason'>      
-      <sch:assert role='ERROR' test='count(h:BeginMonth) = 1'>Expected 1 element(s) for xpath: BeginMonth</sch:assert> <!-- integer -->
-      <sch:assert role='ERROR' test='count(h:BeginDayOfMonth) = 1'>Expected 1 element(s) for xpath: BeginDayOfMonth</sch:assert> <!-- integer -->
-      <sch:assert role='ERROR' test='count(h:EndMonth) = 1'>Expected 1 element(s) for xpath: EndMonth</sch:assert> <!-- integer -->
-      <sch:assert role='ERROR' test='count(h:EndDayOfMonth) = 1'>Expected 1 element(s) for xpath: EndDayOfMonth</sch:assert> <!-- integer -->
-    </sch:rule>
-  </sch:pattern>
-
-  <sch:pattern>
-    <sch:title>[HVACControlType=HeatingSetback]</sch:title>
+    <sch:title>[HVACControl=HeatingSetback]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl[h:SetbackTempHeatingSeason]'>
       <sch:assert role='ERROR' test='count(h:TotalSetbackHoursperWeekHeating) = 1'>Expected 1 element(s) for xpath: TotalSetbackHoursperWeekHeating</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:SetbackStartHourHeating) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/SetbackStartHourHeating</sch:assert> <!-- 0 = midnight. 12 = noon -->
@@ -933,12 +963,47 @@
   </sch:pattern>
 
   <sch:pattern>
-    <sch:title>[HVACControlType=CoolingSetup]</sch:title>
+    <sch:title>[HVACControl=HeatingSeason]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl/h:HeatingSeason'>
+      <sch:assert role='ERROR' test='count(h:BeginMonth) = 1'>Expected 1 element(s) for xpath: BeginMonth</sch:assert> <!-- integer -->
+      <sch:assert role='ERROR' test='count(h:BeginDayOfMonth) = 1'>Expected 1 element(s) for xpath: BeginDayOfMonth</sch:assert> <!-- integer -->
+      <sch:assert role='ERROR' test='count(h:EndMonth) = 1'>Expected 1 element(s) for xpath: EndMonth</sch:assert> <!-- integer -->
+      <sch:assert role='ERROR' test='count(h:EndDayOfMonth) = 1'>Expected 1 element(s) for xpath: EndDayOfMonth</sch:assert> <!-- integer -->
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[HVACControl=Cooling]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl[sum(//h:FractionCoolLoadServed) > 0]'>
+      <sch:assert role='ERROR' test='count(h:SetpointTempCoolingSeason) + count(h:extension/h:WeekdaySetpointTempsCoolingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempCoolingSeason | extension/WeekdaySetpointTempsCoolingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SetpointTempCoolingSeason) + count(h:extension/h:WeekendSetpointTempsCoolingSeason) = 1'>Expected 1 element(s) for xpath: SetpointTempCoolingSeason | extension/WeekendSetpointTempsCoolingSeason</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SetupTempCoolingSeason) + count(h:extension/h:WeekdaySetpointTempsCoolingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetupTempCoolingSeason | extension/WeekdaySetpointTempsCoolingSeason</sch:assert> <!-- See [HVACControl=CoolingSetup] -->
+      <sch:assert role='ERROR' test='count(h:SetupTempCoolingSeason) + count(h:extension/h:WeekendSetpointTempsCoolingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SetupTempCoolingSeason | extension/WeekendSetpointTempsCoolingSeason</sch:assert> <!-- See [HVACControl=CoolingSetup] -->
+      <sch:assert role='ERROR' test='count(h:extension/h:CeilingFanSetpointTempCoolingSeasonOffset) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/CeilingFanSetpointTempCoolingSeasonOffset</sch:assert> <!-- deg F -->
+      <sch:assert role='ERROR' test='count(h:CoolingSeason) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Cooling</sch:assert> <!-- See [HVACControl=CoolingSeason] -->
+      <!-- Warnings -->
+      <sch:report role='WARN' test='number(h:SetpointTempCoolingSeason) &lt; 68'>Cooling setpoint should typically be greater than or equal to 68 deg-F.</sch:report>
+      <sch:report role='WARN' test='number(h:SetpointTempCoolingSeason) &gt; 86'>Cooling setpoint should typically be less than or equal to 86 deg-F.</sch:report>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[HVACControl=CoolingSetup]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl[h:SetupTempCoolingSeason]'>
       <sch:assert role='ERROR' test='count(h:TotalSetupHoursperWeekCooling) = 1'>Expected 1 element(s) for xpath: TotalSetupHoursperWeekCooling</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:SetupStartHourCooling) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/SetupStartHourCooling</sch:assert> <!-- 0 = midnight. 12 = noon -->
       <sch:assert role='ERROR' test='number(h:extension/h:SetupStartHourCooling) &gt;= 0 or not(h:extension/h:SetupStartHourCooling)'>Expected extension/SetupStartHourCooling to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:SetupStartHourCooling) &lt;= 23 or not(h:extension/h:SetupStartHourCooling)'>Expected extension/SetupStartHourCooling to be less than or equal to 23</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[HVACControl=CoolingSeason]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACControl/h:CoolingSeason'>      
+      <sch:assert role='ERROR' test='count(h:BeginMonth) = 1'>Expected 1 element(s) for xpath: BeginMonth</sch:assert> <!-- integer -->
+      <sch:assert role='ERROR' test='count(h:BeginDayOfMonth) = 1'>Expected 1 element(s) for xpath: BeginDayOfMonth</sch:assert> <!-- integer -->
+      <sch:assert role='ERROR' test='count(h:EndMonth) = 1'>Expected 1 element(s) for xpath: EndMonth</sch:assert> <!-- integer -->
+      <sch:assert role='ERROR' test='count(h:EndDayOfMonth) = 1'>Expected 1 element(s) for xpath: EndDayOfMonth</sch:assert> <!-- integer -->
     </sch:rule>
   </sch:pattern>
 
@@ -956,8 +1021,12 @@
       <sch:assert role='ERROR' test='count(h:AirDistributionType) = 1'>Expected 1 element(s) for xpath: AirDistributionType</sch:assert>
       <sch:assert role='ERROR' test='h:AirDistributionType[text()="regular velocity" or text()="gravity" or text()="fan coil"] or not(h:AirDistributionType)'>Expected AirDistributionType to be 'regular velocity' or 'gravity' or 'fan coil'</sch:assert> <!-- See [AirDistributionType=RegularVelocityOrGravity] or [AirDistributionType=FanCoil] -->
       <sch:assert role='ERROR' test='count(h:Ducts) &gt;= 0'>Expected 0 or more element(s) for xpath: Ducts</sch:assert> <!-- See [HVACDuct] -->
+      <!-- Sum Checks -->
+      <sch:assert role='ERROR' test='(sum(h:Ducts[h:DuctType="supply"]/h:FractionDuctArea) &gt;= 0.99 and sum(h:Ducts[h:DuctType="supply"]/h:FractionDuctArea) &lt;= 1.01) or count(h:Ducts[h:DuctType="supply"]/h:FractionDuctArea) = 0'>Expected sum(Ducts/FractionDuctArea) for DuctType="supply" to be 1</sch:assert>
+      <sch:assert role='ERROR' test='(sum(h:Ducts[h:DuctType="return"]/h:FractionDuctArea) &gt;= 0.99 and sum(h:Ducts[h:DuctType="return"]/h:FractionDuctArea) &lt;= 1.01) or count(h:Ducts[h:DuctType="return"]/h:FractionDuctArea) = 0'>Expected sum(Ducts/FractionDuctArea) for DuctType="return" to be 1</sch:assert>
       <!-- Warnings -->
       <sch:report role='WARN' test='sum(h:DuctLeakageMeasurement/h:DuctLeakage[h:Units="CFM25" and h:TotalOrToOutside="to outside"]/h:Value) &gt; 0.04 * number(../../../../../h:BuildingSummary/h:BuildingConstruction/h:ConditionedFloorArea) and sum(h:Ducts[h:DuctLocation[text()!="living space" and text()!="basement - conditioned"]]/h:FractionDuctArea) = 0 and sum(h:Ducts[h:DuctLocation[text()!="living space" and text()!="basement - conditioned"]]/h:DuctSurfaceArea) = 0 and count(h:Ducts[h:FractionDuctArea | h:DuctSurfaceArea]) &gt; 0'>Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.</sch:report>
+      <sch:report role='WARN' test='sum(h:DuctLeakageMeasurement/h:DuctLeakage[h:Units="CFM50" and h:TotalOrToOutside="to outside"]/h:Value) &gt; 0.06 * number(../../../../../h:BuildingSummary/h:BuildingConstruction/h:ConditionedFloorArea) and sum(h:Ducts[h:DuctLocation[text()!="living space" and text()!="basement - conditioned"]]/h:FractionDuctArea) = 0 and sum(h:Ducts[h:DuctLocation[text()!="living space" and text()!="basement - conditioned"]]/h:DuctSurfaceArea) = 0 and count(h:Ducts[h:FractionDuctArea | h:DuctSurfaceArea]) &gt; 0'>Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.</sch:report>
       <sch:report role='WARN' test='sum(h:DuctLeakageMeasurement/h:DuctLeakage[h:Units="Percent" and h:TotalOrToOutside="to outside"]/h:Value) &gt; 0.05 and sum(h:Ducts[h:DuctLocation[text()!="living space" and text()!="basement - conditioned"]]/h:FractionDuctArea) = 0 and sum(h:Ducts[h:DuctLocation[text()!="living space" and text()!="basement - conditioned"]]/h:DuctSurfaceArea) = 0 and count(h:Ducts[h:FractionDuctArea | h:DuctSurfaceArea]) &gt; 0'>Ducts are entirely within conditioned space but there is moderate leakage to the outside. Leakage to the outside is typically zero or near-zero in these situations, consider revising leakage values. Leakage will be modeled as heat lost to the ambient environment.</sch:report>
     </sch:rule>
   </sch:pattern>
@@ -965,22 +1034,22 @@
   <sch:pattern>
     <sch:title>[AirDistributionType=RegularVelocityOrGravity]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACDistribution/h:DistributionSystemType/h:AirDistribution[h:AirDistributionType[text()="regular velocity" or text()="gravity"]]'>
-      <sch:assert role='ERROR' test='count(h:DuctLeakageMeasurement[h:DuctType="supply"]/h:DuctLeakage[(h:Units="CFM25" or h:Units="Percent") and h:TotalOrToOutside="to outside"]) = 1'>Expected 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="supply"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]</sch:assert> <!-- See [DuctLeakage=CFM25] or [DuctLeakage=Percent] -->
-      <sch:assert role='ERROR' test='count(h:DuctLeakageMeasurement[h:DuctType="return"]/h:DuctLeakage[(h:Units="CFM25" or h:Units="Percent") and h:TotalOrToOutside="to outside"]) = 1'>Expected 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]</sch:assert> <!-- See [DuctLeakage=CFM25] or [DuctLeakage=Percent] -->
+      <sch:assert role='ERROR' test='count(h:DuctLeakageMeasurement[h:DuctType="supply"]/h:DuctLeakage[(h:Units="CFM25" or h:Units="CFM50" or h:Units="Percent") and h:TotalOrToOutside="to outside"]) = 1'>Expected 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="supply"]/DuctLeakage[(Units="CFM25" or Units="CFM50" or Units="Percent") and TotalOrToOutside="to outside"]</sch:assert> <!-- See [DuctLeakage=CFM] or [DuctLeakage=Percent] -->
+      <sch:assert role='ERROR' test='count(h:DuctLeakageMeasurement[h:DuctType="return"]/h:DuctLeakage[(h:Units="CFM25" or h:Units="CFM50" or h:Units="Percent") and h:TotalOrToOutside="to outside"]) = 1'>Expected 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="CFM50" or Units="Percent") and TotalOrToOutside="to outside"]</sch:assert> <!-- See [DuctLeakage=CFM] or [DuctLeakage=Percent] -->
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
     <sch:title>[AirDistributionType=FanCoil]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACDistribution/h:DistributionSystemType/h:AirDistribution[h:AirDistributionType[text()="fan coil"]]'>
-      <sch:assert role='ERROR' test='count(h:DuctLeakageMeasurement[h:DuctType="supply"]/h:DuctLeakage[(h:Units="CFM25" or h:Units="Percent") and h:TotalOrToOutside="to outside"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="supply"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]</sch:assert> <!-- See [DuctLeakage=CFM25] or [DuctLeakage=Percent] -->
-      <sch:assert role='ERROR' test='count(h:DuctLeakageMeasurement[h:DuctType="return"]/h:DuctLeakage[(h:Units="CFM25" or h:Units="Percent") and h:TotalOrToOutside="to outside"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="Percent") and TotalOrToOutside="to outside"]</sch:assert> <!-- See [DuctLeakage=CFM25] or [DuctLeakage=Percent] -->
+      <sch:assert role='ERROR' test='count(h:DuctLeakageMeasurement[h:DuctType="supply"]/h:DuctLeakage[(h:Units="CFM25" or h:Units="CFM50" or h:Units="Percent") and h:TotalOrToOutside="to outside"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="supply"]/DuctLeakage[(Units="CFM25" or Units="CFM50" or Units="Percent") and TotalOrToOutside="to outside"]</sch:assert> <!-- See [DuctLeakage=CFM] or [DuctLeakage=Percent] -->
+      <sch:assert role='ERROR' test='count(h:DuctLeakageMeasurement[h:DuctType="return"]/h:DuctLeakage[(h:Units="CFM25" or h:Units="CFM50" or h:Units="Percent") and h:TotalOrToOutside="to outside"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DuctLeakageMeasurement[DuctType="return"]/DuctLeakage[(Units="CFM25" or Units="CFM50" or Units="Percent") and TotalOrToOutside="to outside"]</sch:assert> <!-- See [DuctLeakage=CFM] or [DuctLeakage=Percent] -->
     </sch:rule>
   </sch:pattern>
 
   <sch:pattern>
-    <sch:title>[DuctLeakage=CFM25]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACDistribution/h:DistributionSystemType/h:AirDistribution/h:DuctLeakageMeasurement/h:DuctLeakage[h:Units="CFM25"]'>
+    <sch:title>[DuctLeakage=CFM]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACDistribution/h:DistributionSystemType/h:AirDistribution/h:DuctLeakageMeasurement/h:DuctLeakage[h:Units="CFM25" or h:Units="CFM50"]'>
       <sch:assert role='ERROR' test='count(h:Value) = 1'>Expected 1 element(s) for xpath: Value</sch:assert>
       <sch:assert role='ERROR' test='number(h:Value) &gt;= 0 or not(h:Value)'>Expected Value to be greater than or equal to 0</sch:assert>
     </sch:rule>
@@ -1008,6 +1077,9 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:HVAC/h:HVACDistribution[h:DistributionSystemType[h:Other[text()="DSE"]]]'>
       <sch:assert role='ERROR' test='count(h:AnnualHeatingDistributionSystemEfficiency) = 1'>Expected 1 element(s) for xpath: AnnualHeatingDistributionSystemEfficiency</sch:assert>
       <sch:assert role='ERROR' test='count(h:AnnualCoolingDistributionSystemEfficiency) = 1'>Expected 1 element(s) for xpath: AnnualCoolingDistributionSystemEfficiency</sch:assert>
+      <!-- Warnings -->
+      <sch:report role='WARN' test='number(h:AnnualHeatingDistributionSystemEfficiency) &lt; 0.5'>Heating DSE should typically be greater than or equal to 0.5.</sch:report>
+      <sch:report role='WARN' test='number(h:AnnualCoolingDistributionSystemEfficiency) &lt; 0.5'>Cooling DSE should typically be greater than or equal to 0.5.</sch:report>
     </sch:rule>
   </sch:pattern>
 
@@ -1153,6 +1225,8 @@
       <sch:assert role='ERROR' test='count(h:FractionDHWLoadServed) = 1'>Expected 1 element(s) for xpath: FractionDHWLoadServed</sch:assert>
       <sch:assert role='ERROR' test='count(h:HotWaterTemperature) &lt;= 1'>Expected 0 or 1 element(s) for xpath: HotWaterTemperature</sch:assert>
       <sch:assert role='ERROR' test='count(h:UsesDesuperheater) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UsesDesuperheater</sch:assert> <!-- See [Desuperheater] -->
+      <!-- Warnings -->
+      <sch:report role='WARN' test='number(h:HotWaterTemperature) &lt; 110'>Hot water setpoint should typically be greater than or equal to 110 deg-F.</sch:report>
     </sch:rule>
   </sch:pattern>
 
@@ -1498,7 +1572,7 @@
       <sch:assert role='ERROR' test='count(h:SystemIdentifier) = 1'>Expected 1 element(s) for xpath: SystemIdentifier</sch:assert>
       <sch:assert role='ERROR' test='count(h:Location) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Location</sch:assert>
       <sch:assert role='ERROR' test='h:Location[text()="living space" or text()="basement - unconditioned" or text()="basement - conditioned" or text()="attic - unvented" or text()="attic - vented" or text()="garage" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"] or not(h:Location)'>Expected Location to be 'living space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space'</sch:assert>
-      <sch:assert role='ERROR' test='count(h:RatedAnnualkWh) + count(h:extension/h:AdjustedAnnualkWh) &gt;= 0'>Expected 0 or more element(s) for xpath: RatedAnnualkWh | extension/AdjustedAnnualkWh</sch:assert>
+      <sch:assert role='ERROR' test='count(h:RatedAnnualkWh) &lt;= 1'>Expected 0 or 1 element(s) for xpath: RatedAnnualkWh</sch:assert>
       <sch:assert role='ERROR' test='count(h:PrimaryIndicator) &lt;= 1'>Expected 0 or 1 element(s) for xpath: PrimaryIndicator</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:UsageMultiplier) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/UsageMultiplier</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:WeekdayScheduleFractions) + count(/h:HPXML/h:SoftwareInfo/h:extension/h:SchedulesFilePath) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/WeekdayScheduleFractions | /HPXML/SoftwareInfo/extension/SchedulesFilePath</sch:assert>
@@ -1513,7 +1587,7 @@
       <sch:assert role='ERROR' test='count(h:SystemIdentifier) = 1'>Expected 1 element(s) for xpath: SystemIdentifier</sch:assert>
       <sch:assert role='ERROR' test='count(h:Location) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Location</sch:assert>
       <sch:assert role='ERROR' test='h:Location[text()="living space" or text()="basement - unconditioned" or text()="basement - conditioned" or text()="attic - unvented" or text()="attic - vented" or text()="garage" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="other housing unit" or text()="other heated space" or text()="other multifamily buffer space" or text()="other non-freezing space"] or not(h:Location)'>Expected Location to be 'living space' or 'basement - unconditioned' or 'basement - conditioned' or 'attic - unvented' or 'attic - vented' or 'garage' or 'crawlspace - unvented' or 'crawlspace - vented' or 'other housing unit' or 'other heated space' or 'other multifamily buffer space' or 'other non-freezing space'</sch:assert>
-      <sch:assert role='ERROR' test='count(h:RatedAnnualkWh) + count(h:extension/h:AdjustedAnnualkWh) &gt;= 0'>Expected 0 or more element(s) for xpath: RatedAnnualkWh | extension/AdjustedAnnualkWh</sch:assert>
+      <sch:assert role='ERROR' test='count(h:RatedAnnualkWh) &lt;= 1'>Expected 0 or 1 element(s) for xpath: RatedAnnualkWh</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:UsageMultiplier) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/UsageMultiplier</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:WeekdayScheduleFractions) + count(/h:HPXML/h:SoftwareInfo/h:extension/h:SchedulesFilePath) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/WeekdayScheduleFractions | /HPXML/SoftwareInfo/extension/SchedulesFilePath</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:WeekendScheduleFractions) + count(/h:HPXML/h:SoftwareInfo/h:extension/h:SchedulesFilePath) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/WeekendScheduleFractions | /HPXML/SoftwareInfo/extension/SchedulesFilePath</sch:assert>
@@ -1565,15 +1639,15 @@
   <sch:pattern>
     <sch:title>[Lighting]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Lighting'>
-      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:LightEmittingDiode] and h:Location[text()="interior"]]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[LightEmittingDiode] and Location[text()="interior"]]</sch:assert> <!-- See [LightingGroup] -->
-      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:LightEmittingDiode] and h:Location[text()="exterior"]]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[LightEmittingDiode] and Location[text()="exterior"]]</sch:assert> <!-- See [LightingGroup] -->
-      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:LightEmittingDiode] and h:Location[text()="garage"]]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[LightEmittingDiode] and Location[text()="garage"]]</sch:assert> <!-- See [LightingGroup] -->
-      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:CompactFluorescent] and h:Location[text()="interior"]]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[CompactFluorescent] and Location[text()="interior"]]</sch:assert> <!-- See [LightingGroup] -->
-      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:CompactFluorescent] and h:Location[text()="exterior"]]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[CompactFluorescent] and Location[text()="exterior"]]</sch:assert> <!-- See [LightingGroup] -->
-      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:CompactFluorescent] and h:Location[text()="garage"]]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[CompactFluorescent] and Location[text()="garage"]]</sch:assert> <!-- See [LightingGroup] -->
-      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:FluorescentTube] and h:Location[text()="interior"]]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[FluorescentTube] and Location[text()="interior"]]</sch:assert> <!-- See [LightingGroup] -->
-      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:FluorescentTube] and h:Location[text()="exterior"]]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[FluorescentTube] and Location[text()="exterior"]]</sch:assert> <!-- See [LightingGroup] -->
-      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:FluorescentTube] and h:Location[text()="garage"]]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[FluorescentTube] and Location[text()="garage"]]</sch:assert> <!-- See [LightingGroup] -->
+      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:LightEmittingDiode] and h:Location="interior"]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[LightEmittingDiode] and Location[text()="interior"]]</sch:assert> <!-- See [LightingGroup] -->
+      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:LightEmittingDiode] and h:Location="exterior"]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[LightEmittingDiode] and Location[text()="exterior"]]</sch:assert> <!-- See [LightingGroup] -->
+      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:LightEmittingDiode] and h:Location="garage"]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[LightEmittingDiode] and Location[text()="garage"]]</sch:assert> <!-- See [LightingGroup] -->
+      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:CompactFluorescent] and h:Location="interior"]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[CompactFluorescent] and Location[text()="interior"]]</sch:assert> <!-- See [LightingGroup] -->
+      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:CompactFluorescent] and h:Location="exterior"]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[CompactFluorescent] and Location[text()="exterior"]]</sch:assert> <!-- See [LightingGroup] -->
+      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:CompactFluorescent] and h:Location="garage"]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[CompactFluorescent] and Location[text()="garage"]]</sch:assert> <!-- See [LightingGroup] -->
+      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:FluorescentTube] and h:Location="interior"]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[FluorescentTube] and Location[text()="interior"]]</sch:assert> <!-- See [LightingGroup] -->
+      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:FluorescentTube] and h:Location="exterior"]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[FluorescentTube] and Location[text()="exterior"]]</sch:assert> <!-- See [LightingGroup] -->
+      <sch:assert role='ERROR' test='count(h:LightingGroup[h:LightingType[h:FluorescentTube] and h:Location="garage"]) = 1'>Expected 1 element(s) for xpath: LightingGroup[LightingType[FluorescentTube] and Location[text()="garage"]]</sch:assert> <!-- See [LightingGroup] -->
       <sch:assert role='ERROR' test='count(h:extension/h:InteriorUsageMultiplier) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/InteriorUsageMultiplier</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:GarageUsageMultiplier) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/GarageUsageMultiplier</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:ExteriorUsageMultiplier) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/ExteriorUsageMultiplier</sch:assert>
@@ -1587,6 +1661,10 @@
       <sch:assert role='ERROR' test='count(h:extension/h:ExteriorWeekendScheduleFractions) + count(/h:HPXML/h:SoftwareInfo/h:extension/h:SchedulesFilePath) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/ExteriorWeekendScheduleFractions | /HPXML/SoftwareInfo/extension/SchedulesFilePath</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:ExteriorMonthlyScheduleMultipliers) + count(/h:HPXML/h:SoftwareInfo/h:extension/h:SchedulesFilePath) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/ExteriorMonthlyScheduleMultipliers | /HPXML/SoftwareInfo/extension/SchedulesFilePath</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:ExteriorHolidayLighting) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/ExteriorHolidayLighting</sch:assert> <!-- See [ExteriorHolidayLighting] -->
+      <!-- Sum Checks -->
+      <sch:assert role='ERROR' test='sum(h:LightingGroup[h:Location="interior"]/h:FractionofUnitsInLocation) &lt;= 1.01'>Expected sum(LightingGroup/FractionofUnitsInLocation) for Location="interior" to be less than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='sum(h:LightingGroup[h:Location="exterior"]/h:FractionofUnitsInLocation) &lt;= 1.01'>Expected sum(LightingGroup/FractionofUnitsInLocation) for Location="exterior" to be less than or equal to 1</sch:assert>
+      <sch:assert role='ERROR' test='sum(h:LightingGroup[h:Location="garage"]/h:FractionofUnitsInLocation) &lt;= 1.01'>Expected sum(LightingGroup/FractionofUnitsInLocation) for Location="garage" to be less than or equal to 1</sch:assert>
     </sch:rule>
   </sch:pattern>
 

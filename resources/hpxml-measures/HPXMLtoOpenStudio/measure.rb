@@ -1936,7 +1936,7 @@ class OSModel
     leakage_to_outside = { HPXML::DuctTypeSupply => [0.0, nil],
                            HPXML::DuctTypeReturn => [0.0, nil] }
     hvac_distribution.duct_leakage_measurements.each do |duct_leakage_measurement|
-      next unless [HPXML::UnitsCFM25, HPXML::UnitsPercent].include?(duct_leakage_measurement.duct_leakage_units) && (duct_leakage_measurement.duct_leakage_total_or_to_outside == 'to outside')
+      next unless [HPXML::UnitsCFM25, HPXML::UnitsCFM50, HPXML::UnitsPercent].include?(duct_leakage_measurement.duct_leakage_units) && (duct_leakage_measurement.duct_leakage_total_or_to_outside == 'to outside')
       next if duct_leakage_measurement.duct_type.nil?
 
       leakage_to_outside[duct_leakage_measurement.duct_type] = [duct_leakage_measurement.duct_leakage_value, duct_leakage_measurement.duct_leakage_units]
@@ -1968,14 +1968,16 @@ class OSModel
       duct_leakage_cfm = nil
       duct_leakage_frac = nil
       if duct_leakage_units == HPXML::UnitsCFM25
-        duct_leakage_cfm = duct_leakage_value
+        duct_leakage_cfm25 = duct_leakage_value
+      elsif duct_leakage_units == HPXML::UnitsCFM50
+        duct_leakage_cfm50 = duct_leakage_value
       elsif duct_leakage_units == HPXML::UnitsPercent
         duct_leakage_frac = duct_leakage_value
       else
         fail "#{ducts.duct_type.capitalize} ducts exist but leakage was not specified for distribution system '#{hvac_distribution.id}'."
       end
 
-      air_ducts << Duct.new(ducts.duct_type, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm, ducts.duct_surface_area, ducts.duct_insulation_r_value)
+      air_ducts << Duct.new(ducts.duct_type, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm25, duct_leakage_cfm50, ducts.duct_surface_area, ducts.duct_insulation_r_value)
     end
 
     # If all ducts are in conditioned space, model leakage as going to outside
@@ -1992,14 +1994,16 @@ class OSModel
       duct_leakage_cfm = nil
       duct_leakage_frac = nil
       if duct_leakage_units == HPXML::UnitsCFM25
-        duct_leakage_cfm = duct_leakage_value
+        duct_leakage_cfm25 = duct_leakage_value
+      elsif duct_leakage_units == HPXML::UnitsCFM50
+        duct_leakage_cfm50 = duct_leakage_value
       elsif duct_leakage_units == HPXML::UnitsPercent
         duct_leakage_frac = duct_leakage_value
       else
         fail "#{duct_side.capitalize} ducts exist but leakage was not specified for distribution system '#{hvac_distribution.id}'."
       end
 
-      air_ducts << Duct.new(duct_side, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm, duct_area, duct_rvalue)
+      air_ducts << Duct.new(duct_side, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm25, duct_leakage_cfm50, duct_area, duct_rvalue)
     end
 
     return air_ducts
@@ -2047,12 +2051,14 @@ class OSModel
   end
 
   def self.add_total_loads_output(runner, model, living_zone)
+    # Energy transferred in the conditioned space, used for determining heating (winter) vs cooling (summer)
     liv_load_sensors = {}
     liv_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
     liv_load_sensors[:htg].setName('htg_load_liv')
     liv_load_sensors[:clg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
     liv_load_sensors[:clg].setName('clg_load_liv')
 
+    # Total energy transferred (above plus ducts)
     tot_load_sensors = {}
     tot_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating:EnergyTransfer')
     tot_load_sensors[:htg].setName('htg_load_tot')

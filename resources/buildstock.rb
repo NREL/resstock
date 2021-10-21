@@ -425,48 +425,33 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
   fail msg
 end
 
-def version
-  data = {}
-  File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
-    file.each_line do |line|
-      key, value = line.split(' = ')
-      data[key] = value.chomp.gsub("'", '')
-    end
-  end
-  return data
-end
-
-def software_program_used
-  return version['__title__']
-end
-
-def software_program_version
-  return version['__version__']
-end
-
 class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.run_and_check(in_osw, parent_dir)
+  def self.run_and_check(in_osw, parent_dir, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "cd #{parent_dir} && \"#{cli_path}\" run -w #{in_osw}"
-    system(command)
-    finished_job = File.join(parent_dir, 'run/finished.job')
+    command = "\"#{cli_path}\" run"
+    command += ' -m' if measures_only
+    command += " -w #{in_osw}"
 
+    system(command)
+
+    finished_job = File.join(parent_dir, 'run/finished.job')
     result_characteristics = {}
     result_output = {}
-    rows = {}
 
     results = File.join(parent_dir, 'run/results.json')
-    if File.exist?(File.expand_path(results))
-      old_rows = JSON.parse(File.read(File.expand_path(results)))
-      old_rows.each do |measure, values|
-        rows[measure] = {}
-        values.each do |arg, val|
-          rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
-        end
+
+    return finished_job, result_characteristics, result_output if measures_only || !File.exist?(results)
+
+    rows = {}
+    old_rows = JSON.parse(File.read(File.expand_path(results)))
+    old_rows.each do |measure, values|
+      rows[measure] = {}
+      values.each do |arg, val|
+        rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
       end
     end
 
@@ -475,6 +460,7 @@ class RunOSWs
     result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
     result_output = get_measure_results(rows, result_output, 'QOIReport')
+
     return finished_job, result_characteristics, result_output
   end
 
@@ -526,5 +512,26 @@ class RunOSWs
 
       sleep(0.01)
     end
+  end
+end
+
+class Version
+  def self.version
+    version = {}
+    File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
+      file.each_line do |line|
+        key, value = line.split(' = ')
+        version[key] = value.chomp.gsub("'", '')
+      end
+    end
+    return version
+  end
+
+  def self.software_program_used
+    return version['__title__']
+  end
+
+  def self.software_program_version
+    return version['__resstock_version__']
   end
 end
