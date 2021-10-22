@@ -1,13 +1,13 @@
 schema_version: '0.3'
-buildstock_directory: /projects/resilience/facades/resstock # Relative to this file or absolute
+buildstock_directory: /projects/enduse/facades/resstock # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/resilience/facades/test10kNo4
+output_directory: /projects/enduse/facades/test10No5
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 10000
+    n_datapoints: 10
     logic:
       - Vacancy Status|Occupied
       - Geometry Building Type RECS|Single-Family Detached
@@ -341,8 +341,7 @@ upgrades:
         costs: *low-e_storm_costs
         lifetime: 30
       #10% ACH50 reduction for low-E storms on single or double pane window
-      - &decrease_ACH50_10pct_from_1
-        option: Infiltration|0.9 ACH50
+      - option: Infiltration|0.9 ACH50
         apply_logic:
           and:
             - Infiltration|1 ACH50
@@ -355,8 +354,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_2
-        option: Infiltration|1.8 ACH50
+      - option: Infiltration|1.8 ACH50
         apply_logic:
           and:
             - Infiltration|2 ACH50
@@ -365,8 +363,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_3
-        option: Infiltration|2.7 ACH50
+      - option: Infiltration|2.7 ACH50
         apply_logic:
           and:
             - Infiltration|3 ACH50
@@ -375,8 +372,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_4
-        option: Infiltration|3.6 ACH50
+      - option: Infiltration|3.6 ACH50
         apply_logic:
           and:
             - Infiltration|4 ACH50
@@ -385,8 +381,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_5
-        option: Infiltration|4.5 ACH50
+      - option: Infiltration|4.5 ACH50
         apply_logic:
           and:
             - Infiltration|5 ACH50
@@ -395,8 +390,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_6
-        option: Infiltration|5.4 ACH50
+      - option: Infiltration|5.4 ACH50
         apply_logic:
           and:
             - Infiltration|6 ACH50
@@ -405,8 +399,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_7
-        option: Infiltration|6.3 ACH50
+      - option: Infiltration|6.3 ACH50
         apply_logic:
           and:
             - Infiltration|7 ACH50
@@ -415,8 +408,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_8
-        option: Infiltration|7.2 ACH50
+      - option: Infiltration|7.2 ACH50
         apply_logic:
           and:
             - Infiltration|8 ACH50
@@ -425,8 +417,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_10
-        option: Infiltration|9 ACH50
+      - option: Infiltration|9 ACH50
         apply_logic:
           and:
             - Infiltration|10 ACH50
@@ -435,8 +426,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_15
-        option: Infiltration|13.5 ACH50
+      - option: Infiltration|13.5 ACH50
         apply_logic:
           and:
             - Infiltration|15 ACH50
@@ -445,8 +435,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_20
-        option: Infiltration|18 ACH50
+      - option: Infiltration|18 ACH50
         apply_logic:
           and:
             - Infiltration|20 ACH50
@@ -455,8 +444,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_25
-        option: Infiltration|22.5 ACH50
+      - option: Infiltration|22.5 ACH50
         apply_logic:
           and:
             - Infiltration|25 ACH50
@@ -465,8 +453,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_30
-        option: Infiltration|27 ACH50
+      - option: Infiltration|27 ACH50
         apply_logic:
           and:
             - Infiltration|30 ACH50
@@ -475,8 +462,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_40
-        option: Infiltration|36 ACH50
+      - option: Infiltration|36 ACH50
         apply_logic:
           and:
             - Infiltration|40 ACH50
@@ -485,8 +471,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_10pct_from_50
-        option: Infiltration|45 ACH50
+      - option: Infiltration|45 ACH50
         apply_logic:
           and:
             - Infiltration|50 ACH50
@@ -521,7 +506,7 @@ upgrades:
       - option: Infiltration|0.85 ACH50
         apply_logic:
           and:
-            - Infiltration:1 ACH50
+            - Infiltration|1 ACH50
             - &double_pane_metal_windows
               or:
                 - Windows|Double, Clear, Metal, Air
@@ -529,10 +514,10 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - option: Infiltration|1.70 ACH50
+      - option: Infiltration|1.7 ACH50
         apply_logic:
           and:
-            - Infiltration:2 ACH50
+            - Infiltration|2 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -541,7 +526,7 @@ upgrades:
       - option: Infiltration|2.55 ACH50
         apply_logic:
           and:
-            - Infiltration:3 ACH50
+            - Infiltration|3 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -550,7 +535,7 @@ upgrades:
       - option: Infiltration|3.4 ACH50
         apply_logic:
           and:
-            - Infiltration:4 ACH50
+            - Infiltration|4 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -559,7 +544,7 @@ upgrades:
       - option: Infiltration|4.25 ACH50
         apply_logic:
           and:
-            - Infiltration:5 ACH50
+            - Infiltration|5 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -568,7 +553,7 @@ upgrades:
       - option: Infiltration|5.1 ACH50
         apply_logic:
           and:
-            - Infiltration:6 ACH50
+            - Infiltration|6 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -577,7 +562,7 @@ upgrades:
       - option: Infiltration|5.95 ACH50
         apply_logic:
           and:
-            - Infiltration:7 ACH50
+            - Infiltration|7 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -586,7 +571,7 @@ upgrades:
       - option: Infiltration|6.8 ACH50
         apply_logic:
           and:
-            - Infiltration:8 ACH50
+            - Infiltration|8 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -595,7 +580,7 @@ upgrades:
       - option: Infiltration|8.5 ACH50
         apply_logic:
           and:
-            - Infiltration:10 ACH50
+            - Infiltration|10 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -604,7 +589,7 @@ upgrades:
       - option: Infiltration|12.75 ACH50
         apply_logic:
           and:
-            - Infiltration:15 ACH50
+            - Infiltration|15 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -613,7 +598,7 @@ upgrades:
       - option: Infiltration|17 ACH50
         apply_logic:
           and:
-            - Infiltration:20 ACH50
+            - Infiltration|20 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -622,7 +607,7 @@ upgrades:
       - option: Infiltration|21.25 ACH50
         apply_logic:
           and:
-            - Infiltration:25 ACH50
+            - Infiltration|25 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -631,7 +616,7 @@ upgrades:
       - option: Infiltration|25.5 ACH50
         apply_logic:
           and:
-            - Infiltration:30 ACH50
+            - Infiltration|30 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -640,7 +625,7 @@ upgrades:
       - option: Infiltration|34 ACH50
         apply_logic:
           and:
-            - Infiltration:40 ACH50
+            - Infiltration|40 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -649,7 +634,7 @@ upgrades:
       - option: Infiltration|42.5 ACH50
         apply_logic:
           and:
-            - Infiltration:50 ACH50
+            - Infiltration|50 ACH50
             - *double_pane_metal_windows
         costs:
           - value: 0
@@ -675,6 +660,7 @@ upgrades:
           and:
             - Infiltration|2 ACH50
             - *single_pane_windows
+        costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
@@ -831,21 +817,7 @@ upgrades:
         apply_logic:
           and:
             - Infiltration|1 ACH50
-            - &upgradable_walls
-              or: 
-                - Insulation Wall|Wood Stud, Uninsulated
-                - Insulation Wall|Wood Stud, R-7
-                - Insulation Wall|Wood Stud, R-11
-                - Insulation Wall|Wood Stud, R-13
-                - Insulation Wall|Wood Stud, R-15
-                - Insulation Wall|CMU, 6-in Hollow, Uninsulated
-                - Insulation Wall|CMU, 6-in Hollow, R-7
-                - Insulation Wall|CMU, 6-in Hollow, R-11
-                - Insulation Wall|CMU, 6-in Hollow, R-15
-                - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
-                - Insulation Wall|Brick, 12-in, 3-wythe, R-7
-                - Insulation Wall|Brick, 12-in, 3-wythe, R-11
-                - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+            - *upgradable_walls
             - not: *upgradable_windows
         costs:
           - value: 0
@@ -1381,17 +1353,17 @@ upgrades:
       - option: Infiltration|0.85 ACH50
         apply_logic:
           and:
-            - Infiltration:1 ACH50
+            - Infiltration|1 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - option: Infiltration|1.70 ACH50
+      - option: Infiltration|1.7 ACH50
         apply_logic:
           and:
-            - Infiltration:2 ACH50
+            - Infiltration|2 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1401,7 +1373,7 @@ upgrades:
       - option: Infiltration|2.55 ACH50
         apply_logic:
           and:
-            - Infiltration:3 ACH50
+            - Infiltration|3 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1411,7 +1383,7 @@ upgrades:
       - option: Infiltration|3.4 ACH50
         apply_logic:
           and:
-            - Infiltration:4 ACH50
+            - Infiltration|4 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1421,7 +1393,7 @@ upgrades:
       - option: Infiltration|4.25 ACH50
         apply_logic:
           and:
-            - Infiltration:5 ACH50
+            - Infiltration|5 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1431,7 +1403,7 @@ upgrades:
       - option: Infiltration|5.1 ACH50
         apply_logic:
           and:
-            - Infiltration:6 ACH50
+            - Infiltration|6 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1441,7 +1413,7 @@ upgrades:
       - option: Infiltration|5.95 ACH50
         apply_logic:
           and:
-            - Infiltration:7 ACH50
+            - Infiltration|7 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1451,7 +1423,7 @@ upgrades:
       - option: Infiltration|6.8 ACH50
         apply_logic:
           and:
-            - Infiltration:8 ACH50
+            - Infiltration|8 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1461,7 +1433,7 @@ upgrades:
       - option: Infiltration|8.5 ACH50
         apply_logic:
           and:
-            - Infiltration:10 ACH50
+            - Infiltration|10 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1471,7 +1443,7 @@ upgrades:
       - option: Infiltration|12.75 ACH50
         apply_logic:
           and:
-            - Infiltration:15 ACH50
+            - Infiltration|15 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1481,7 +1453,7 @@ upgrades:
       - option: Infiltration|17 ACH50
         apply_logic:
           and:
-            - Infiltration:20 ACH50
+            - Infiltration|20 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1491,7 +1463,7 @@ upgrades:
       - option: Infiltration|21.25 ACH50
         apply_logic:
           and:
-            - Infiltration:25 ACH50
+            - Infiltration|25 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1501,7 +1473,7 @@ upgrades:
       - option: Infiltration|25.5 ACH50
         apply_logic:
           and:
-            - Infiltration:30 ACH50
+            - Infiltration|30 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1511,7 +1483,7 @@ upgrades:
       - option: Infiltration|34 ACH50
         apply_logic:
           and:
-            - Infiltration:40 ACH50
+            - Infiltration|40 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1521,7 +1493,7 @@ upgrades:
       - option: Infiltration|42.5 ACH50
         apply_logic:
           and:
-            - Infiltration:50 ACH50
+            - Infiltration|50 ACH50
             - *double_pane_metal_windows
             - not: *upgradable_walls
         costs:
@@ -1545,6 +1517,7 @@ upgrades:
             - Infiltration|2 ACH50
             - *single_pane_windows
             - not: *upgradable_walls
+        costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
@@ -1987,7 +1960,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_19pct_and_30pct_from_40
+      - &decrease_ACH50_19pct_and_15pct_from_40
         option: Infiltration|27.54 ACH50
         apply_logic:
           and:
@@ -1998,7 +1971,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      - &decrease_ACH50_19pct_and_30pct_from_50
+      - &decrease_ACH50_19pct_and_15pct_from_50
         option: Infiltration|34.425 ACH50
         apply_logic:
           and:
@@ -2261,7 +2234,7 @@ upgrades:
 eagle:
   n_jobs: 8
   minutes_per_sim: 30
-  account: resilience
+  account: enduse
   sampling:
     time: 60
   postprocessing:
@@ -2272,8 +2245,8 @@ aws:
   # The job_identifier should be unique, start with alpha, not include dashes, and limited to 10 chars or data loss can occur
   job_identifier: fac_1
   s3:
-    bucket: resbldg-datasets
-    prefix: facades/test10kNo4
+    bucket: facades
+    prefix: test10No5
   emr:
     worker_instance_count: 1
   region: us-west-2
@@ -2286,9 +2259,9 @@ postprocessing:
   aws:
     region_name: 'us-west-2'
     s3:
-      bucket: resbldg-datasets
-      prefix: resstock-athena/facades-test10kNo4
+      bucket: facades
+      prefix: test10No5
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: resstock-test10kNo4
+      database_name: resstock-test10No5
       max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
