@@ -295,8 +295,6 @@ class HVAC
         # Grid AC
         if heat_pump.ihp_grid_ac
           grid_clg_coil = create_dx_cooling_coil(model, obj_name, heat_pump, cooling_grid_signal_schedule)
-          grid_clg_coil.setLowerBoundToApplyGridResponsiveControl(1)
-          grid_clg_coil.setMaxSpeedLevelDuringGridResponsiveControl(heat_pump.max_flex_speed)
         end
 
         # Storage

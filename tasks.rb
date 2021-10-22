@@ -3908,14 +3908,19 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.heat_pumps[0].max_flex_speed = 0
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-modulating-not-grid-connected.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = false
+    hpxml.heat_pumps[0].modulating = true
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-dual-source-not-grid-connected.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = false
+    hpxml.heat_pumps[0].dual_source = true
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-grid-ac-not-grid-connected.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = false
+    hpxml.heat_pumps[0].ihp_grid_ac = true
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-ice-storage-not-grid-connected.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = false
+    hpxml.heat_pumps[0].ihp_ice_storage = true
   elsif ['base-hvac-dual-fuel-air-to-air-heat-pump-var-speed-flex-ihp-pcm-storage-not-grid-connected.xml'].include? hpxml_file
     hpxml.heat_pumps[0].flex = false
+    hpxml.heat_pumps[0].ihp_pcm_storage = true
   elsif ['base-mechvent-multiple.xml',
          'base-bldgtype-multifamily-shared-mechvent-multiple.xml'].include? hpxml_file
     hpxml.hvac_distributions[0].conditioned_floor_area_served /= 2.0
