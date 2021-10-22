@@ -1,0 +1,1010 @@
+schema_version: '0.3'
+buildstock_directory: ../ResStock_abc_sis  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /projects/scout/abc-sis/packages_v01 # <----
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip # Relative to this file or absolute path to zipped weather files
+
+baseline:
+  n_buildings_represented: 133172057 # ACS 5-yr 2016
+
+sampler: 
+  type: residential_quota_downselect
+  args: 
+    n_datapoints: 550000 # N = ~110K after downselect
+    resample: false
+    logic:
+      - or:
+        - Geometry Building Type RECS|Multi-Family with 2 - 4 Units
+        - Geometry Building Type RECS|Multi-Family with 5+ Units
+      - or:
+        - Geometry Stories|1
+        - Geometry Stories|2
+        - Geometry Stories|3
+
+workflow_generator: 
+  type: residential_default
+  args: 
+    timeseries_csv_export: 
+      reporting_frequency: Timestep # <----
+      include_enduse_subcategories: true
+      output_variables: Site Outdoor Air Barometric Pressure, Site Outdoor Air Drybulb Temperature, Site Outdoor Air Relative Humidity, Zone Mean Air Temperature, Zone Mean Air Humidity Ratio
+    residential_simulation_controls: 
+      timesteps_per_hr: 4
+      begin_month: 1
+      begin_day_of_month: 1
+      end_month: 12
+      end_day_of_month: 31
+      calendar_year: 2018
+
+eagle:
+  account: scout
+  n_jobs: 400
+  minutes_per_sim: 3
+  sampling:
+    time: 60
+  postprocessing:
+    time: 2000
+    n_workers: 35
+
+postprocessing:
+  keep_individual_timeseries: true  # default false if omitted
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: abc_sis
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: abc_sis
+      max_crawling_time: 1000 #time to wait for the crawler to complete before aborting it
+
+
+upgrades:
+#### PACKAGE SET I - ENVELOPE [3] ####
+### Package 1
+  - upgrade_name: Air Tight Envelope
+    options:
+## 1. double-pane windows [2]
+      - &window_double_pane_high_gain
+        option: Windows|Double, Low-E, H-Gain #U=0.29
+        apply_logic: 
+          - or:
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Metal, Exterior Clear Storm
+            - Windows|Single, Clear, Non-metal
+            - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+            - Windows|Double, Clear, Metal, Air #U=0.76
+            - Windows|Double, Clear, Metal, Air, Exterior Clear Storm #U=0.55
+            - Windows|Double, Clear, Non-metal, Air #U=0.49
+            - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm #U=0.34
+            - Windows|Double, Low-E, Non-metal, Air, M-Gain #U=0.38
+          - not: State|AZ
+          - not: State|FL
+          - not: State|LA
+          - not: State|TX
+        costs:
+          - value: 44
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &window_double_pane_low_gain
+        option: Windows|Double, Low-E, L-Gain #U=0.26
+        apply_logic:
+          - or:
+            - Windows|Single, Clear, Metal
+            - Windows|Single, Clear, Metal, Exterior Clear Storm
+            - Windows|Single, Clear, Non-metal
+            - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+            - Windows|Double, Clear, Metal, Air #U=0.76
+            - Windows|Double, Clear, Metal, Air, Exterior Clear Storm #U=0.55
+            - Windows|Double, Clear, Non-metal, Air #U=0.49
+            - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm #U=0.34
+            - Windows|Double, Low-E, Non-metal, Air, M-Gain #U=0.38
+          - or:
+            - State|AZ
+            - State|FL
+            - State|LA
+            - State|TX
+        costs:
+          - value: 49
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+## 2. wall insulation - drill & fill frame to R-19 [4]
+      - &drill_and_fill_uninsulated_to_R19
+        option: Insulation Wall|Wood Stud, R-19
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 3.1 # for cellulose fill (fiberglass is 2.9)
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &drill_and_fill_R7_to_R19
+        option: Insulation Wall|Wood Stud, R-19
+        apply_logic: Insulation Wall|Wood Stud, R-7
+        costs: 
+          - value: 1.96 # based on regression of 3.1 for uninsulated
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &drill_and_fill_R11_to_R19
+        option: Insulation Wall|Wood Stud, R-19
+        apply_logic: Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 1.31 # based on regression of 3.1 for uninsulated
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &drill_and_fill_R15_to_R19
+        option: Insulation Wall|Wood Stud, R-19
+        apply_logic: Insulation Wall|Wood Stud, R-15
+        costs: 
+          - value: 0.65 # based on regression of 3.1 for uninsulated
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+## 3. air sealing to 10 ACH50 (no mech vent) [6]
+      - &air_sealing_50_to_10ACH50
+        option: Infiltration|10 ACH50
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 8.55 # based on regression of the values for 15,20,25ACH50 to 10ACH50
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_40_to_10ACH50
+        option: Infiltration|10 ACH50
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 6.45 # based on regression of the values for 15,20,25ACH50 to 10ACH50
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_30_to_10ACH50
+        option: Infiltration|10 ACH50
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 4.35 # based on regression of the values for 15,20,25ACH50 to 10ACH50
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25_to_10ACH50
+        option: Infiltration|10 ACH50
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 3.3
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_20_to_10ACH50
+        option: Infiltration|10 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 2.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_15_to_10ACH50
+        option: Infiltration|10 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+
+### Package 2 - Ultra Air Tight Envelope (Option A)
+  - upgrade_name: Ultra Air Tight Envelope - Mech Vent
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - exterior continuous R-30 [10]
+      - &exterior_r30_frame_uninsulated
+        option: Insulation Wall|Wood Stud, Uninsulated, R-30 XPS
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &exterior_r30_frame_r7
+        option: Insulation Wall|Wood Stud, R-7, R-30 XPS
+        apply_logic: Insulation Wall|Wood Stud, R-7
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &exterior_r30_frame_r11
+        option: Insulation Wall|Wood Stud, R-11, R-30 XPS
+        apply_logic: Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &exterior_r30_frame_r15
+        option: Insulation Wall|Wood Stud, R-15, R-30 XPS
+        apply_logic: Insulation Wall|Wood Stud, R-15
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &exterior_r30_frame_r19
+        option: Insulation Wall|Wood Stud, R-19, R-30 XPS
+        apply_logic: Insulation Wall|Wood Stud, R-19
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &exterior_r30_cmu_uninsulated
+        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-30 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &exterior_r30_cmu_r7
+        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-30 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-7
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &exterior_r30_cmu_r11
+        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-30 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-11
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &exterior_r30_cmu_r15
+        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-30 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-15
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &exterior_r30_cmu_r19
+        option: Insulation Wall|CMU, 6-in Hollow, R-19, R-30 XPS
+        apply_logic: Insulation Wall|CMU, 6-in Hollow, R-19
+        costs: 
+          - value: 3.55 # based on regression of R-5,10,15 XPS costs
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+## 3. air sealing to 1ACH50 (with mech vent) [15]
+      - &air_sealing_50_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 5.1
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_40_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 5.1
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_30_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 5.1
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 5.1
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_20_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 4.1
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_15_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 3
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_10_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_8_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 1.6
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_7_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|7 ACH50
+        costs:
+          - value: 1.4
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_6_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|6 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_5_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|5 ACH50
+        costs:
+          - value: 0.94
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_4_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|4 ACH50
+        costs:
+          - value: 0.73
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_3_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|3 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_2_to_1ACH50
+        option: Infiltration|1 ACH50
+        apply_logic: Infiltration|2 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_mech_vent
+        option: Mechanical Ventilation|Exhaust
+        apply_logic: Mechanical Ventilation|None
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+
+### Package 3 - Ultra Air Tight Envelope (Option B)
+  - upgrade_name: Ultra Air Tight Envelope - Rec Vent
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - exterior continuous R-30 [10]
+      - *exterior_r30_frame_uninsulated
+      - *exterior_r30_frame_r7
+      - *exterior_r30_frame_r11
+      - *exterior_r30_frame_r15
+      - *exterior_r30_frame_r19
+      - *exterior_r30_cmu_uninsulated
+      - *exterior_r30_cmu_r7
+      - *exterior_r30_cmu_r11
+      - *exterior_r30_cmu_r15
+      - *exterior_r30_cmu_r19
+## 3. air sealing to 1ACH50 (with rec vent) [23]
+      - *air_sealing_50_to_1ACH50
+      - *air_sealing_40_to_1ACH50
+      - *air_sealing_30_to_1ACH50
+      - *air_sealing_25_to_1ACH50
+      - *air_sealing_20_to_1ACH50
+      - *air_sealing_15_to_1ACH50
+      - *air_sealing_10_to_1ACH50
+      - *air_sealing_8_to_1ACH50
+      - *air_sealing_7_to_1ACH50
+      - *air_sealing_6_to_1ACH50
+      - *air_sealing_5_to_1ACH50
+      - *air_sealing_4_to_1ACH50
+      - *air_sealing_3_to_1ACH50
+      - *air_sealing_2_to_1ACH50
+ # 3.1. ERV upgrades
+      - &ERVupgrade_sensible_60pct
+        option: Mechanical Ventilation|ERV, 60%
+        apply_logic:
+          or: 
+            - ASHRAE IECC Climate Zone 2004|1A
+            - ASHRAE IECC Climate Zone 2004|2A
+        costs:
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &ERVupgrade_sensible_50pct
+        option: Mechanical Ventilation|ERV, 50%
+        apply_logic:
+          or: 
+            - ASHRAE IECC Climate Zone 2004|2B
+        costs: 
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &ERVupgrade_sensible_70pct
+        option: Mechanical Ventilation|ERV, 70%
+        apply_logic:
+          or: 
+            - ASHRAE IECC Climate Zone 2004|3A
+        costs: 
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &ERVupgrade_sensible_80pct
+        option: Mechanical Ventilation|ERV, 80%
+        apply_logic:
+          or: 
+            - ASHRAE IECC Climate Zone 2004|4A
+        costs: 
+          - value: 940
+            multiplier: Fixed (1)
+        lifetime: 18
+ # 3.2. HRV upgrades
+      - &HRVupgrade_sensible_60pct
+        option: Mechanical Ventilation|HRV, 60%
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|3C
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_70pct
+        option: Mechanical Ventilation|HRV, 70%
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|3B
+            - ASHRAE IECC Climate Zone 2004|4C
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_75pct
+        option: Mechanical Ventilation|HRV, 75%
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|4B
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_80pct
+        option: Mechanical Ventilation|HRV, 80%
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|5B
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+      - &HRVupgrade_sensible_85pct
+        option: Mechanical Ventilation|HRV, 85%
+        apply_logic: 
+          or:
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+        costs: 
+          - value: 980
+            multiplier: Fixed (1)
+        lifetime: 18
+
+
+#### PACKAGE SET II - ENVELOPE + ROOF [2] ####
+### Package 4 - Package 1 + Roof Insulation
+  - upgrade_name: Air Tight Envelope + Roof Insulation
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - drill & fill frame to R-19 [4]
+      - *drill_and_fill_uninsulated_to_R19
+      - *drill_and_fill_R7_to_R19
+      - *drill_and_fill_R11_to_R19
+      - *drill_and_fill_R15_to_R19
+## 3. air sealing to 10 ACH50 (no mech vent) [6]
+      - *air_sealing_50_to_10ACH50
+      - *air_sealing_40_to_10ACH50
+      - *air_sealing_30_to_10ACH50
+      - *air_sealing_25_to_10ACH50
+      - *air_sealing_20_to_10ACH50
+      - *air_sealing_15_to_10ACH50
+## 4. roof insulation [1]
+      - &roof_insulation_r49
+        option: Insulation Roof|Finished, R-49
+        apply_logic: 
+          or:
+            - Insulation Roof|Finished, Uninsulated
+            - Insulation Roof|Finished, R-7
+            - Insulation Roof|Finished, R-13
+            - Insulation Roof|Finished, R-19
+            - Insulation Roof|Finished, R-30
+            - Insulation Roof|Finished, R-38
+        costs:
+          - value: 6.9
+            multiplier: Roof Area (ft^2)
+        lifetime: 999
+
+### Package 5 - Package 2 + Roof Insulation
+  - upgrade_name: Ultra Air Tight Envelope - Mech Vent + Roof Insulation
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - exterior continuous R-30 [10]
+      - *exterior_r30_frame_uninsulated
+      - *exterior_r30_frame_r7
+      - *exterior_r30_frame_r11
+      - *exterior_r30_frame_r15
+      - *exterior_r30_frame_r19
+      - *exterior_r30_cmu_uninsulated
+      - *exterior_r30_cmu_r7
+      - *exterior_r30_cmu_r11
+      - *exterior_r30_cmu_r15
+      - *exterior_r30_cmu_r19
+## 3. air sealing to 1ACH50 (with mech vent) [15]
+      - *air_sealing_50_to_1ACH50
+      - *air_sealing_40_to_1ACH50
+      - *air_sealing_30_to_1ACH50
+      - *air_sealing_25_to_1ACH50
+      - *air_sealing_20_to_1ACH50
+      - *air_sealing_15_to_1ACH50
+      - *air_sealing_10_to_1ACH50
+      - *air_sealing_8_to_1ACH50
+      - *air_sealing_7_to_1ACH50
+      - *air_sealing_6_to_1ACH50
+      - *air_sealing_5_to_1ACH50
+      - *air_sealing_4_to_1ACH50
+      - *air_sealing_3_to_1ACH50
+      - *air_sealing_2_to_1ACH50
+      - *air_sealing_mech_vent
+## 4. roof insulation [1]
+      - *roof_insulation_r49
+
+
+#### PACKAGE SET III - ENVELOPE + MSHP [3] ####
+### Package 6 - Package 1 + MSHP
+  - upgrade_name: Air Tight Envelope + MSHP
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - drill & fill frame to R-19 [4]
+      - *drill_and_fill_uninsulated_to_R19
+      - *drill_and_fill_R7_to_R19
+      - *drill_and_fill_R11_to_R19
+      - *drill_and_fill_R15_to_R19
+## 3. air sealing to 10 ACH50 (no mech vent) [6]
+      - *air_sealing_50_to_10ACH50
+      - *air_sealing_40_to_10ACH50
+      - *air_sealing_30_to_10ACH50
+      - *air_sealing_25_to_10ACH50
+      - *air_sealing_20_to_10ACH50
+      - *air_sealing_15_to_10ACH50
+## 4. MSHP [4]
+      - &mshp_p1
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: 
+          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+          - not: HVAC Heating Type|Ducted Heat Pump
+
+        costs:
+          - value: 710 # prev: 2510
+            multiplier: Fixed (1)
+          - value: 245 # prev: 95, new: 95+1800/12 = 95+150
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &mshp_p2
+        option: HVAC Cooling Type|Heat Pump
+        apply_logic: 
+          - not: HVAC Heating Type|Ducted Heat Pump
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &mshp_p3
+        option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic: 
+          - not: HVAC Heating Type|Ducted Heat Pump
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &mshp_p4
+        option: HVAC Heating Type And Fuel|Electricity MSHP
+        apply_logic: 
+          - not: HVAC Heating Type|Ducted Heat Pump
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+
+### Package 7 - Package 2 + MSHP
+  - upgrade_name: Ultra Air Tight Envelope - Mech Vent + MSHP
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - exterior continuous R-30 [10]
+      - *exterior_r30_frame_uninsulated
+      - *exterior_r30_frame_r7
+      - *exterior_r30_frame_r11
+      - *exterior_r30_frame_r15
+      - *exterior_r30_frame_r19
+      - *exterior_r30_cmu_uninsulated
+      - *exterior_r30_cmu_r7
+      - *exterior_r30_cmu_r11
+      - *exterior_r30_cmu_r15
+      - *exterior_r30_cmu_r19
+## 3. air sealing to 1ACH50 (with mech vent) [15]
+      - *air_sealing_50_to_1ACH50
+      - *air_sealing_40_to_1ACH50
+      - *air_sealing_30_to_1ACH50
+      - *air_sealing_25_to_1ACH50
+      - *air_sealing_20_to_1ACH50
+      - *air_sealing_15_to_1ACH50
+      - *air_sealing_10_to_1ACH50
+      - *air_sealing_8_to_1ACH50
+      - *air_sealing_7_to_1ACH50
+      - *air_sealing_6_to_1ACH50
+      - *air_sealing_5_to_1ACH50
+      - *air_sealing_4_to_1ACH50
+      - *air_sealing_3_to_1ACH50
+      - *air_sealing_2_to_1ACH50
+      - *air_sealing_mech_vent
+## 4. MSHP [4]
+      - *mshp_p1
+      - *mshp_p2
+      - *mshp_p3
+      - *mshp_p4
+
+
+### Package 8 - Package 3 + MSHP
+  - upgrade_name: Ultra Air Tight Envelope - Rec Vent + MSHP
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - exterior continuous R-30 [10]
+      - *exterior_r30_frame_uninsulated
+      - *exterior_r30_frame_r7
+      - *exterior_r30_frame_r11
+      - *exterior_r30_frame_r15
+      - *exterior_r30_frame_r19
+      - *exterior_r30_cmu_uninsulated
+      - *exterior_r30_cmu_r7
+      - *exterior_r30_cmu_r11
+      - *exterior_r30_cmu_r15
+      - *exterior_r30_cmu_r19
+## 3. air sealing to 1ACH50 (with rec vent) [23]
+      - *air_sealing_50_to_1ACH50
+      - *air_sealing_40_to_1ACH50
+      - *air_sealing_30_to_1ACH50
+      - *air_sealing_25_to_1ACH50
+      - *air_sealing_20_to_1ACH50
+      - *air_sealing_15_to_1ACH50
+      - *air_sealing_10_to_1ACH50
+      - *air_sealing_8_to_1ACH50
+      - *air_sealing_7_to_1ACH50
+      - *air_sealing_6_to_1ACH50
+      - *air_sealing_5_to_1ACH50
+      - *air_sealing_4_to_1ACH50
+      - *air_sealing_3_to_1ACH50
+      - *air_sealing_2_to_1ACH50
+      - *ERVupgrade_sensible_60pct
+      - *ERVupgrade_sensible_50pct
+      - *ERVupgrade_sensible_70pct
+      - *ERVupgrade_sensible_80pct
+      - *HRVupgrade_sensible_60pct
+      - *HRVupgrade_sensible_70pct
+      - *HRVupgrade_sensible_75pct
+      - *HRVupgrade_sensible_80pct
+      - *HRVupgrade_sensible_85pct
+## 4. MSHP [4]
+      - *mshp_p1
+      - *mshp_p2
+      - *mshp_p3
+      - *mshp_p4 
+
+
+#### PACKAGE SET IV - ENVELOPE + HPWH [2] ####
+### Package 9 - Package 1 + HPWH
+  - upgrade_name: Air Tight Envelope + HPWH
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - drill & fill frame to R-19 [4]
+      - *drill_and_fill_uninsulated_to_R19
+      - *drill_and_fill_R7_to_R19
+      - *drill_and_fill_R11_to_R19
+      - *drill_and_fill_R15_to_R19
+## 3. air sealing to 10 ACH50 (no mech vent) [6]
+      - *air_sealing_50_to_10ACH50
+      - *air_sealing_40_to_10ACH50
+      - *air_sealing_30_to_10ACH50
+      - *air_sealing_25_to_10ACH50
+      - *air_sealing_20_to_10ACH50
+      - *air_sealing_15_to_10ACH50
+## 4. HPWH [4]
+      - &hpwh_40gal_from_electric
+        option: Water Heater Efficiency|Electric Heat Pump, 40 gal, 3.78 UEF
+        apply_logic: 
+          - or:
+            - Water Heater Efficiency|Electric Premium 
+            - Water Heater Efficiency|Electric Standard  
+            - Water Heater Efficiency|Electric Tankless  
+          - or:
+            - Occupants|1
+        costs:
+          - value: 1650 #Rheem, 1150(eq)+500(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_40gal_from_fuel
+        option: Water Heater Efficiency|Electric Heat Pump, 40 gal, 3.78 UEF
+        apply_logic: 
+          - or:
+            - Water Heater Efficiency|FIXME Fuel Oil Indirect  
+            - Water Heater Efficiency|Fuel Oil Premium 
+            - Water Heater Efficiency|Fuel Oil Standard  
+            - Water Heater Efficiency|Natural Gas Premium  
+            - Water Heater Efficiency|Natural Gas Standard 
+            - Water Heater Efficiency|Natural Gas Tankless 
+            - Water Heater Efficiency|Other Fuel 
+            - Water Heater Efficiency|Propane Premium  
+            - Water Heater Efficiency|Propane Standard 
+            - Water Heater Efficiency|Propane Tankless
+          - or:
+            - Occupants|1
+        costs:
+          - value: 2000 #Rheem, 1150(eq)+850(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_50gal_from_electric
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.86 UEF
+        apply_logic: 
+          - or:
+            - Water Heater Efficiency|Electric Premium 
+            - Water Heater Efficiency|Electric Standard  
+            - Water Heater Efficiency|Electric Tankless  
+          - or:
+            - Occupants|2
+        costs:
+          - value: 2029 #Rheem, 1529(eq)+500(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_50gal_from_fuel
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.86 UEF
+        apply_logic: 
+          - or:
+            - Water Heater Efficiency|FIXME Fuel Oil Indirect  
+            - Water Heater Efficiency|Fuel Oil Premium 
+            - Water Heater Efficiency|Fuel Oil Standard  
+            - Water Heater Efficiency|Natural Gas Premium  
+            - Water Heater Efficiency|Natural Gas Standard 
+            - Water Heater Efficiency|Natural Gas Tankless 
+            - Water Heater Efficiency|Other Fuel 
+            - Water Heater Efficiency|Propane Premium  
+            - Water Heater Efficiency|Propane Standard 
+            - Water Heater Efficiency|Propane Tankless
+          - or:
+            - Occupants|2
+        costs:
+          - value: 2379 #Rheem, 1529(eq)+850(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_65gal_from_electric
+        option: Water Heater Efficiency|Electric Heat Pump, 65 gal, 3.85 UEF
+        apply_logic: 
+          - or:
+            - Water Heater Efficiency|Electric Premium 
+            - Water Heater Efficiency|Electric Standard  
+            - Water Heater Efficiency|Electric Tankless  
+          - or:
+            - Occupants|3
+        costs:
+          - value: 2379 #Rheem, 1879(eq)+500(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_65gal_from_fuel
+        option: Water Heater Efficiency|Electric Heat Pump, 65 gal, 3.85 UEF
+        apply_logic: 
+          - or:
+            - Water Heater Efficiency|FIXME Fuel Oil Indirect  
+            - Water Heater Efficiency|Fuel Oil Premium 
+            - Water Heater Efficiency|Fuel Oil Standard  
+            - Water Heater Efficiency|Natural Gas Premium  
+            - Water Heater Efficiency|Natural Gas Standard 
+            - Water Heater Efficiency|Natural Gas Tankless 
+            - Water Heater Efficiency|Other Fuel 
+            - Water Heater Efficiency|Propane Premium  
+            - Water Heater Efficiency|Propane Standard 
+            - Water Heater Efficiency|Propane Tankless
+          - or:
+            - Occupants|3
+        costs:
+          - value: 2729 #Rheem, 1879(eq)+850(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_80gal_from_electric
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 4.0 UEF
+        apply_logic: 
+          - or:
+            - Water Heater Efficiency|Electric Premium 
+            - Water Heater Efficiency|Electric Standard  
+            - Water Heater Efficiency|Electric Tankless
+          - or:
+            - Occupants|4
+            - Occupants|5
+            - Occupants|6
+            - Occupants|7
+            - Occupants|8
+            - Occupants|9
+            - Occupants|10
+        costs:
+          - value: 2749 #Rheem, 2249(eq)+500(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+      - &hpwh_80gal_from_fuel
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 4.0 UEF
+        apply_logic: 
+          - or:
+            - Water Heater Efficiency|FIXME Fuel Oil Indirect  
+            - Water Heater Efficiency|Fuel Oil Premium 
+            - Water Heater Efficiency|Fuel Oil Standard  
+            - Water Heater Efficiency|Natural Gas Premium  
+            - Water Heater Efficiency|Natural Gas Standard 
+            - Water Heater Efficiency|Natural Gas Tankless 
+            - Water Heater Efficiency|Other Fuel 
+            - Water Heater Efficiency|Propane Premium  
+            - Water Heater Efficiency|Propane Standard 
+            - Water Heater Efficiency|Propane Tankless
+          - or:
+            - Occupants|4
+            - Occupants|5
+            - Occupants|6
+            - Occupants|7
+            - Occupants|8
+            - Occupants|9
+            - Occupants|10
+        costs:
+          - value: 3099 #Rheem, 2249(eq)+850(labor)
+            multiplier: Fixed (1)
+        lifetime: 12
+
+
+### Package 10 - Package 2 + HPWH
+  - upgrade_name: Ultra Air Tight Envelope - Mech Vent + HPWH
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - exterior continuous R-30 [10]
+      - *exterior_r30_frame_uninsulated
+      - *exterior_r30_frame_r7
+      - *exterior_r30_frame_r11
+      - *exterior_r30_frame_r15
+      - *exterior_r30_frame_r19
+      - *exterior_r30_cmu_uninsulated
+      - *exterior_r30_cmu_r7
+      - *exterior_r30_cmu_r11
+      - *exterior_r30_cmu_r15
+      - *exterior_r30_cmu_r19
+## 3. air sealing to 1ACH50 (with mech vent) [15]
+      - *air_sealing_50_to_1ACH50
+      - *air_sealing_40_to_1ACH50
+      - *air_sealing_30_to_1ACH50
+      - *air_sealing_25_to_1ACH50
+      - *air_sealing_20_to_1ACH50
+      - *air_sealing_15_to_1ACH50
+      - *air_sealing_10_to_1ACH50
+      - *air_sealing_8_to_1ACH50
+      - *air_sealing_7_to_1ACH50
+      - *air_sealing_6_to_1ACH50
+      - *air_sealing_5_to_1ACH50
+      - *air_sealing_4_to_1ACH50
+      - *air_sealing_3_to_1ACH50
+      - *air_sealing_2_to_1ACH50
+      - *air_sealing_mech_vent
+
+## 4. HPWH [4]
+      - *hpwh_40gal_from_electric
+      - *hpwh_40gal_from_fuel
+      - *hpwh_50gal_from_electric
+      - *hpwh_50gal_from_fuel
+      - *hpwh_65gal_from_electric
+      - *hpwh_65gal_from_fuel
+      - *hpwh_80gal_from_electric
+      - *hpwh_80gal_from_fuel
+
+
+#### PACKAGE SET V - ENVELOPE + MSHP + HPWH [2] ####
+### Package 11 - Package 1 + MSHP + HPWH
+  - upgrade_name: Air Tight Envelope + MSHP _HPWH
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - drill & fill frame to R-19 [4]
+      - *drill_and_fill_uninsulated_to_R19
+      - *drill_and_fill_R7_to_R19
+      - *drill_and_fill_R11_to_R19
+      - *drill_and_fill_R15_to_R19
+## 3. air sealing to 10 ACH50 (no mech vent) [6]
+      - *air_sealing_50_to_10ACH50
+      - *air_sealing_40_to_10ACH50
+      - *air_sealing_30_to_10ACH50
+      - *air_sealing_25_to_10ACH50
+      - *air_sealing_20_to_10ACH50
+      - *air_sealing_15_to_10ACH50
+## 4. MSHP [4]
+      - *mshp_p1
+      - *mshp_p2
+      - *mshp_p3
+      - *mshp_p4
+## 5. HPWH [4]
+      - *hpwh_40gal_from_electric
+      - *hpwh_40gal_from_fuel
+      - *hpwh_50gal_from_electric
+      - *hpwh_50gal_from_fuel
+      - *hpwh_65gal_from_electric
+      - *hpwh_65gal_from_fuel
+      - *hpwh_80gal_from_electric
+      - *hpwh_80gal_from_fuel
+
+
+### Package 12 - Package 3 + MSHP + HPWH
+  - upgrade_name: Ultra Air Tight Envelope - Rec Vent + MSHP + HPWH
+    options:
+## 1. double-pane windows [2]
+      - *window_double_pane_high_gain
+      - *window_double_pane_low_gain
+## 2. wall insulation - exterior continuous R-30 [10]
+      - *exterior_r30_frame_uninsulated
+      - *exterior_r30_frame_r7
+      - *exterior_r30_frame_r11
+      - *exterior_r30_frame_r15
+      - *exterior_r30_frame_r19
+      - *exterior_r30_cmu_uninsulated
+      - *exterior_r30_cmu_r7
+      - *exterior_r30_cmu_r11
+      - *exterior_r30_cmu_r15
+      - *exterior_r30_cmu_r19
+## 3. air sealing to 1ACH50 (with rec vent) [23]
+      - *air_sealing_50_to_1ACH50
+      - *air_sealing_40_to_1ACH50
+      - *air_sealing_30_to_1ACH50
+      - *air_sealing_25_to_1ACH50
+      - *air_sealing_20_to_1ACH50
+      - *air_sealing_15_to_1ACH50
+      - *air_sealing_10_to_1ACH50
+      - *air_sealing_8_to_1ACH50
+      - *air_sealing_7_to_1ACH50
+      - *air_sealing_6_to_1ACH50
+      - *air_sealing_5_to_1ACH50
+      - *air_sealing_4_to_1ACH50
+      - *air_sealing_3_to_1ACH50
+      - *air_sealing_2_to_1ACH50
+      - *ERVupgrade_sensible_60pct
+      - *ERVupgrade_sensible_50pct
+      - *ERVupgrade_sensible_70pct
+      - *ERVupgrade_sensible_80pct
+      - *HRVupgrade_sensible_60pct
+      - *HRVupgrade_sensible_70pct
+      - *HRVupgrade_sensible_75pct
+      - *HRVupgrade_sensible_80pct
+      - *HRVupgrade_sensible_85pct
+## 4. MSHP [4]
+      - *mshp_p1
+      - *mshp_p2
+      - *mshp_p3
+      - *mshp_p4 
+## 5. HPWH [4]
+      - *hpwh_40gal_from_electric
+      - *hpwh_40gal_from_fuel
+      - *hpwh_50gal_from_electric
+      - *hpwh_50gal_from_fuel
+      - *hpwh_65gal_from_electric
+      - *hpwh_65gal_from_fuel
+      - *hpwh_80gal_from_electric
+      - *hpwh_80gal_from_fuel
+
