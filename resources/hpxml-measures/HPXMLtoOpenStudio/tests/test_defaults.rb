@@ -194,6 +194,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_building_construction_values(hpxml_default, 18000, 6.67, false, 2)
+
+    # Test defaults w/ conditioned crawlspace
+    hpxml = _create_hpxml('base-foundation-conditioned-crawlspace.xml')
+    hpxml.building_construction.conditioned_building_volume = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_building_construction_values(hpxml_default, 16200, 8, false, 2)
   end
 
   def test_infiltration
@@ -216,6 +223,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_infiltration_values(hpxml_default.air_infiltration_measurements[0], 1350 * 8)
+
+    # Test defaults w/ conditioned crawlspace
+    hpxml = _create_hpxml('base-foundation-conditioned-crawlspace.xml')
+    hpxml.air_infiltration_measurements[0].infiltration_volume = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_infiltration_values(hpxml_default.air_infiltration_measurements[0], 1350 * 12)
   end
 
   def test_attics

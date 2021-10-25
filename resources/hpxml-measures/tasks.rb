@@ -171,6 +171,7 @@ def create_hpxmls
     'base-foundation-complex.xml' => 'base.xml',
     'base-foundation-conditioned-basement-slab-insulation.xml' => 'base.xml',
     'base-foundation-conditioned-basement-wall-interior-insulation.xml' => 'base.xml',
+    'base-foundation-conditioned-crawlspace.xml' => 'base.xml',
     'base-foundation-multiple.xml' => 'base-foundation-unconditioned-basement.xml',
     'base-foundation-slab.xml' => 'base.xml',
     'base-foundation-unconditioned-basement.xml' => 'base.xml',
@@ -240,6 +241,7 @@ def create_hpxmls
     'base-hvac-dual-fuel-air-to-air-heat-pump-2-speed.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
     'base-hvac-dual-fuel-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-dual-fuel-mini-split-heat-pump-ducted.xml' => 'base-hvac-mini-split-heat-pump-ducted.xml',
+    'base-hvac-ducts-leakage-cfm50.xml' => 'base.xml',
     'base-hvac-ducts-leakage-percent.xml' => 'base.xml',
     'base-hvac-ducts-area-fractions.xml' => 'base-enclosure-2stories.xml',
     'base-hvac-elec-resistance-only.xml' => 'base.xml',
@@ -454,6 +456,10 @@ def create_hpxmls
 
       puts "Warning: Extra HPXML file found at #{File.absolute_path(hpxml)}"
     end
+  end
+
+  if hpxml_docs.size != hpxmls_files.size
+    return
   end
 
   return hpxml_docs
@@ -1682,9 +1688,9 @@ def set_measure_argument_values(hpxml_file, args)
     args['geometry_unit_cfa'] = 1350.0
     args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
     args['geometry_foundation_height'] = 4.0
+    args['slab_thickness'] = 0.0
     args['floor_over_foundation_assembly_r'] = 18.7
     args['foundation_wall_insulation_distance_to_bottom'] = 4.0
-    args['slab_carpet_r'] = 2.5
     args['ducts_supply_location'] = HPXML::LocationCrawlspaceUnvented
     args['ducts_return_location'] = HPXML::LocationCrawlspaceUnvented
     args['ducts_number_of_return_registers'] = 1
@@ -1694,13 +1700,26 @@ def set_measure_argument_values(hpxml_file, args)
     args['geometry_unit_cfa'] = 1350.0
     args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceVented
     args['geometry_foundation_height'] = 4.0
+    args['slab_thickness'] = 0.0
     args['floor_over_foundation_assembly_r'] = 18.7
     args['foundation_wall_insulation_distance_to_bottom'] = 4.0
-    args['slab_carpet_r'] = 2.5
     args['ducts_supply_location'] = HPXML::LocationCrawlspaceVented
     args['ducts_return_location'] = HPXML::LocationCrawlspaceVented
     args['ducts_number_of_return_registers'] = 1
     args['water_heater_location'] = HPXML::LocationCrawlspaceVented
+    args['misc_plug_loads_other_annual_kwh'] = 1228.5
+  elsif ['base-foundation-conditioned-crawlspace.xml'].include? hpxml_file
+    args['geometry_unit_cfa'] = 1350.0
+    args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceConditioned
+    args['geometry_foundation_height'] = 4.0
+    args['floor_over_foundation_assembly_r'] = 18.7
+    args['foundation_wall_insulation_distance_to_bottom'] = 4.0
+    args['ducts_supply_location'] = HPXML::LocationCrawlspaceConditioned
+    args['ducts_return_location'] = HPXML::LocationCrawlspaceConditioned
+    args['ducts_supply_leakage_to_outside_value'] = 0.0
+    args['ducts_return_leakage_to_outside_value'] = 0.0
+    args['ducts_number_of_return_registers'] = 1
+    args['water_heater_location'] = HPXML::LocationCrawlspaceConditioned
     args['misc_plug_loads_other_annual_kwh'] = 1228.5
   elsif ['base-foundation-walkout-basement.xml'].include? hpxml_file
     args['geometry_foundation_height_above_grade'] = 5.0
@@ -1857,6 +1876,10 @@ def set_measure_argument_values(hpxml_file, args)
     args['heat_pump_backup_fuel'] = HPXML::FuelTypeNaturalGas
     args['heat_pump_backup_heating_efficiency'] = 0.95
     args['heat_pump_backup_heating_switchover_temp'] = 25
+  elsif ['base-hvac-ducts-leakage-cfm50.xml'].include? hpxml_file
+    args['ducts_leakage_units'] = HPXML::UnitsCFM50
+    args['ducts_supply_leakage_to_outside_value'] = 100
+    args['ducts_return_leakage_to_outside_value'] = 125
   elsif ['base-hvac-ducts-leakage-percent.xml'].include? hpxml_file
     args['ducts_leakage_units'] = HPXML::UnitsPercent
     args['ducts_supply_leakage_to_outside_value'] = 0.1
@@ -4745,7 +4768,9 @@ if ARGV[0].to_sym == :update_hpxmls
   hpxml_docs = create_hpxmls()
 
   # Create Schematron file that reflects HPXML schema
-  create_schematron_hpxml_validator(hpxml_docs)
+  if not hpxml_docs.nil?
+    create_schematron_hpxml_validator(hpxml_docs)
+  end
 end
 
 if ARGV[0].to_sym == :cache_weather

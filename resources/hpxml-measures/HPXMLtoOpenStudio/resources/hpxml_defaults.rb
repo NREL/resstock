@@ -228,6 +228,7 @@ class HPXMLDefaults
   end
 
   def self.apply_building_construction(hpxml, cfa, nbeds, infil_volume)
+    cond_crawl_volume = hpxml.inferred_conditioned_crawlspace_volume()
     if hpxml.building_construction.conditioned_building_volume.nil? && hpxml.building_construction.average_ceiling_height.nil?
       if not infil_volume.nil?
         hpxml.building_construction.average_ceiling_height = [infil_volume / cfa, 8.0].min
@@ -235,13 +236,13 @@ class HPXMLDefaults
         hpxml.building_construction.average_ceiling_height = 8.0
       end
       hpxml.building_construction.average_ceiling_height_isdefaulted = true
-      hpxml.building_construction.conditioned_building_volume = cfa * hpxml.building_construction.average_ceiling_height
+      hpxml.building_construction.conditioned_building_volume = cfa * hpxml.building_construction.average_ceiling_height + cond_crawl_volume
       hpxml.building_construction.conditioned_building_volume_isdefaulted = true
     elsif hpxml.building_construction.conditioned_building_volume.nil?
-      hpxml.building_construction.conditioned_building_volume = cfa * hpxml.building_construction.average_ceiling_height
+      hpxml.building_construction.conditioned_building_volume = cfa * hpxml.building_construction.average_ceiling_height + cond_crawl_volume
       hpxml.building_construction.conditioned_building_volume_isdefaulted = true
     elsif hpxml.building_construction.average_ceiling_height.nil?
-      hpxml.building_construction.average_ceiling_height = hpxml.building_construction.conditioned_building_volume / cfa
+      hpxml.building_construction.average_ceiling_height = (hpxml.building_construction.conditioned_building_volume - cond_crawl_volume) / cfa
       hpxml.building_construction.average_ceiling_height_isdefaulted = true
     end
 
@@ -388,7 +389,7 @@ class HPXMLDefaults
         roof.solar_absorptance_isdefaulted = true
       end
       if roof.interior_finish_type.nil?
-        if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? roof.interior_adjacent_to
+        if HPXML::conditioned_finished_locations.include? roof.interior_adjacent_to
           roof.interior_finish_type = HPXML::InteriorFinishGypsumBoard
         else
           roof.interior_finish_type = HPXML::InteriorFinishNone
@@ -472,7 +473,7 @@ class HPXMLDefaults
         end
       end
       if wall.interior_finish_type.nil?
-        if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? wall.interior_adjacent_to
+        if HPXML::conditioned_finished_locations.include? wall.interior_adjacent_to
           wall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
         else
           wall.interior_finish_type = HPXML::InteriorFinishNone
@@ -507,7 +508,7 @@ class HPXMLDefaults
         foundation_wall.area_isdefaulted = true
       end
       if foundation_wall.interior_finish_type.nil?
-        if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? foundation_wall.interior_adjacent_to
+        if HPXML::conditioned_finished_locations.include? foundation_wall.interior_adjacent_to
           foundation_wall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
         else
           foundation_wall.interior_finish_type = HPXML::InteriorFinishNone
@@ -544,7 +545,7 @@ class HPXMLDefaults
       if frame_floor.interior_finish_type.nil?
         if frame_floor.is_floor
           frame_floor.interior_finish_type = HPXML::InteriorFinishNone
-        elsif [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? frame_floor.interior_adjacent_to
+        elsif HPXML::conditioned_finished_locations.include? frame_floor.interior_adjacent_to
           frame_floor.interior_finish_type = HPXML::InteriorFinishGypsumBoard
         else
           frame_floor.interior_finish_type = HPXML::InteriorFinishNone
@@ -567,8 +568,7 @@ class HPXMLDefaults
         slab.thickness = crawl_slab ? 0.0 : 4.0
         slab.thickness_isdefaulted = true
       end
-      conditioned_slab = [HPXML::LocationLivingSpace,
-                          HPXML::LocationBasementConditioned].include?(slab.interior_adjacent_to)
+      conditioned_slab = HPXML::conditioned_finished_locations.include?(slab.interior_adjacent_to)
       if slab.carpet_r_value.nil?
         slab.carpet_r_value = conditioned_slab ? 2.0 : 0.0
         slab.carpet_r_value_isdefaulted = true
