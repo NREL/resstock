@@ -607,7 +607,7 @@ class HPXMLTest < MiniTest::Test
         next if err_line.include? 'Enthalpy out of range (PsyTsatFnHPb)'
       end
       # HP defrost curves
-      if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? hp.heat_pump_type }.size > 0
+      if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP].include? hp.heat_pump_type }.size > 0
         next if err_line.include?('GetDXCoils: Coil:Heating:DX') && err_line.include?('curve values')
       end
       if hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeEvaporativeCooler }.size > 0
@@ -680,6 +680,9 @@ class HPXMLTest < MiniTest::Test
     # Conditioned Floor Area
     if (hpxml.total_fraction_cool_load_served > 0) || (hpxml.total_fraction_heat_load_served > 0) # EnergyPlus will only report conditioned floor area if there is an HVAC system
       hpxml_value = hpxml.building_construction.conditioned_floor_area
+      if hpxml.has_location(HPXML::LocationCrawlspaceConditioned)
+        hpxml_value += hpxml.slabs.select { |s| s.interior_adjacent_to == HPXML::LocationCrawlspaceConditioned }.map { |s| s.area }.sum
+      end
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='InputVerificationandResultsSummary' AND ReportForString='Entire Facility' AND TableName='Zone Summary' AND RowName='Conditioned Total' AND ColumnName='Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_in_epsilon(hpxml_value, sql_value, 0.1)
@@ -1125,62 +1128,22 @@ class HPXMLTest < MiniTest::Test
       end
     end
 
-    # Clothes Washer
-    if (hpxml.clothes_washers.size > 0) && (hpxml.water_heating_systems.size > 0)
-      # Location
-      hpxml_value = hpxml.clothes_washers[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
-        hpxml_value = HPXML::LocationLivingSpace
-      end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameClothesWasher.upcase}')"
-      sql_value = sqlFile.execAndReturnFirstString(query).get
-      assert_equal(hpxml_value.upcase, sql_value)
-    end
+    tabular_map = { HPXML::ClothesWasher => Constants.ObjectNameClothesWasher,
+                    HPXML::ClothesDryer => Constants.ObjectNameClothesDryer,
+                    HPXML::Refrigerator => Constants.ObjectNameRefrigerator,
+                    HPXML::Dishwasher => Constants.ObjectNameDishwasher,
+                    HPXML::CookingRange => Constants.ObjectNameCookingRange }
 
-    # Clothes Dryer
-    if (hpxml.clothes_dryers.size > 0) && (hpxml.water_heating_systems.size > 0)
-      # Location
-      hpxml_value = hpxml.clothes_dryers[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
-        hpxml_value = HPXML::LocationLivingSpace
-      end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameClothesDryer.upcase}')"
-      sql_value = sqlFile.execAndReturnFirstString(query).get
-      assert_equal(hpxml_value.upcase, sql_value)
-    end
+    (hpxml.clothes_washers + hpxml.clothes_dryers + hpxml.refrigerators + hpxml.dishwashers + hpxml.cooking_ranges).each do |appliance|
+      next unless hpxml.water_heating_systems.size > 0
 
-    # Refrigerator
-    if hpxml.refrigerators.size > 0
       # Location
-      hpxml_value = hpxml.refrigerators[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
+      hpxml_value = appliance.location
+      if hpxml_value.nil? || HPXML::conditioned_locations.include?(hpxml_value) || [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
         hpxml_value = HPXML::LocationLivingSpace
       end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameRefrigerator.upcase}')"
-      sql_value = sqlFile.execAndReturnFirstString(query).get
-      assert_equal(hpxml_value.upcase, sql_value)
-    end
-
-    # DishWasher
-    if (hpxml.dishwashers.size > 0) && (hpxml.water_heating_systems.size > 0)
-      # Location
-      hpxml_value = hpxml.dishwashers[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
-        hpxml_value = HPXML::LocationLivingSpace
-      end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameDishwasher.upcase}')"
-      sql_value = sqlFile.execAndReturnFirstString(query).get
-      assert_equal(hpxml_value.upcase, sql_value)
-    end
-
-    # Cooking Range
-    if hpxml.cooking_ranges.size > 0
-      # Location
-      hpxml_value = hpxml.cooking_ranges[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
-        hpxml_value = HPXML::LocationLivingSpace
-      end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameCookingRange.upcase}')"
+      tabular_value = tabular_map[appliance.class]
+      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{tabular_value.upcase}')"
       sql_value = sqlFile.execAndReturnFirstString(query).get
       assert_equal(hpxml_value.upcase, sql_value)
     end

@@ -165,7 +165,7 @@ class HVACSizing
       elsif [HPXML::LocationOutside, HPXML::LocationRoofDeck].include? location
         @cool_design_temps[location] = weather.design.CoolingDrybulb
         @heat_design_temps[location] = weather.design.HeatingDrybulb
-      elsif location == HPXML::LocationBasementConditioned
+      elsif HPXML::conditioned_locations.include? location
         @cool_design_temps[location] = process_design_temp_cooling(weather, HPXML::LocationLivingSpace)
         @heat_design_temps[location] = process_design_temp_heating(weather, HPXML::LocationLivingSpace)
       else
@@ -963,7 +963,7 @@ class HVACSizing
       if slab.interior_adjacent_to == HPXML::LocationLivingSpace # Slab-on-grade
         f_value = calc_slab_f_value(slab)
         bldg_design_loads.Heat_Slabs += f_value * slab.exposed_perimeter * @htd
-      elsif slab.interior_adjacent_to == HPXML::LocationBasementConditioned
+      elsif HPXML::conditioned_below_grade_locations.include? slab.interior_adjacent_to
         # Based on MJ 8th Ed. A12-7 and ASHRAE HoF 2013 pg 18.31 Eq 40
         # FIXME: Assumes slab is uninsulated?
         k_soil = UnitConversions.convert(BaseMaterial.Soil.k_in, 'in', 'ft')
@@ -1104,7 +1104,8 @@ class HVACSizing
     if [HPXML::HVACTypeHeatPumpAirToAir,
         HPXML::HVACTypeHeatPumpMiniSplit,
         HPXML::HVACTypeHeatPumpGroundToAir,
-        HPXML::HVACTypeHeatPumpWaterLoopToAir].include? hvac.HeatType
+        HPXML::HVACTypeHeatPumpWaterLoopToAir,
+        HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType
       hvac.SupplyAirTemp = 105.0 # F
     else
       hvac.SupplyAirTemp = 120.0 # F
@@ -1211,7 +1212,7 @@ class HVACSizing
     elsif [HPXML::LocationGarage].include? duct.Location
       dse_Fregain = 0.05
 
-    elsif [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? duct.Location
+    elsif HPXML::conditioned_locations.include? duct.Location
       dse_Fregain = 1.0
 
     end
@@ -1475,7 +1476,9 @@ class HVACSizing
       hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
       hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[-1] * hvac.CapacityRatioCooling[-1] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
 
-    elsif hvac.CoolType == HPXML::HVACTypeRoomAirConditioner
+    elsif [HPXML::HVACTypeRoomAirConditioner,
+           HPXML::HVACTypePTAC,
+           HPXML::HVACTypeHeatPumpPTHP].include? hvac.CoolType
 
       enteringTemp = weather.design.CoolingDrybulb
       totalCap_CurveValue = MathTools.biquadratic(@wetbulb_indoor_cooling, enteringTemp, hvac.COOL_CAP_FT_SPEC[hvac.SizingSpeed])
@@ -1559,7 +1562,6 @@ class HVACSizing
       hvac_sizing_values.Heat_Airflow = 0.0
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir
-
       if hvac_sizing_values.Cool_Capacity > 0
         process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Cool_Capacity
@@ -1568,9 +1570,10 @@ class HVACSizing
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
       end
+      # airflow sizing following Manual S based on design calculation
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
 
-    elsif hvac.HeatType == HPXML::HVACTypeHeatPumpMiniSplit
+    elsif [HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType
 
       if hvac_sizing_values.Cool_Capacity > 0
         process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
@@ -1580,6 +1583,7 @@ class HVACSizing
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
       end
+      # airflow determined by user setting, not based on design
       hvac_sizing_values.Heat_Airflow = hvac.RatedCFMperTonHeating[-1] * hvac.CapacityRatioHeating[-1] * UnitConversions.convert(hvac_sizing_values.Heat_Capacity, 'Btu/hr', 'ton') # Maximum air flow under heating operation
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpGroundToAir
@@ -1617,7 +1621,7 @@ class HVACSizing
 
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
 
-    elsif hvac.HeatType == HPXML::HVACTypeFurnace
+    elsif [HPXML::HVACTypeFurnace, HPXML::HVACTypePTACHeating].include? hvac.HeatType
 
       hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
       hvac_sizing_values.Heat_Capacity_Supp = 0.0
@@ -2012,9 +2016,9 @@ class HVACSizing
         # Cold winter and no latent cooling load (add a ton rule applies)
         hvac_sizing_values.Cool_Capacity = [(hvac_sizing_values.Cool_Load_Tot + hvac.OverSizeDelta) / totalCap_CurveValue, heatCap_Rated].min
       end
-      if hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir
+      if hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir # airflow sizing following Manual S based on design calculation
         hvac_sizing_values.Cool_Airflow = cfm_per_btuh * hvac_sizing_values.Cool_Capacity
-      elsif hvac.HeatType == HPXML::HVACTypeHeatPumpMiniSplit
+      elsif [HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType # airflow determined by user setting, not based on design
         hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[-1] * hvac.CapacityRatioCooling[-1] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
       end
     end
@@ -2218,14 +2222,14 @@ class HVACSizing
     '''
     uncond_area = { HPXML::DuctTypeSupply => 0.0, HPXML::DuctTypeReturn => 0.0 }
     ducts.each do |duct|
-      next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? duct.Location
+      next if HPXML::conditioned_locations_this_unit.include? duct.Location
 
       uncond_area[duct.Side] += duct.Area
     end
 
     value = { HPXML::DuctTypeSupply => 0.0, HPXML::DuctTypeReturn => 0.0 }
     ducts.each do |duct|
-      next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? duct.Location
+      next if HPXML::conditioned_locations_this_unit.include? duct.Location
 
       if uncond_area[duct.Side] > 0
         value[duct.Side] += values[duct.Side][duct.Location] * duct.Area / uncond_area[duct.Side]
@@ -2244,7 +2248,7 @@ class HVACSizing
 
     areas = { HPXML::DuctTypeSupply => 0.0, HPXML::DuctTypeReturn => 0.0 }
     ducts.each do |duct|
-      next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? duct.Location
+      next if HPXML::conditioned_locations_this_unit.include? duct.Location
 
       areas[duct.Side] += duct.Area
     end
@@ -2259,12 +2263,14 @@ class HVACSizing
 
     cfms = { HPXML::DuctTypeSupply => 0.0, HPXML::DuctTypeReturn => 0.0 }
     ducts.each do |duct|
-      next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? duct.Location
+      next if HPXML::conditioned_locations_this_unit.include? duct.Location
 
       if duct.LeakageFrac.to_f > 0
         cfms[duct.Side] += duct.LeakageFrac * system_cfm
       elsif duct.LeakageCFM25.to_f > 0
         cfms[duct.Side] += duct.LeakageCFM25
+      elsif duct.LeakageCFM50.to_f > 0
+        cfms[duct.Side] += Airflow.calc_air_leakage_at_diff_pressure(0.65, duct.LeakageCFM50, 50.0, 25.0)
       end
     end
 
@@ -2278,7 +2284,7 @@ class HVACSizing
 
     u_factors = { HPXML::DuctTypeSupply => {}, HPXML::DuctTypeReturn => {} }
     ducts.each do |duct|
-      next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? duct.Location
+      next if HPXML::conditioned_locations_this_unit.include? duct.Location
 
       u_factors[duct.Side][duct.Location] = 1.0 / duct.Rvalue
     end
@@ -2483,16 +2489,20 @@ class HVACSizing
           lto[:supply_percent] = m.duct_leakage_value
         elsif m.duct_leakage_units == HPXML::UnitsCFM25 && m.duct_type == HPXML::DuctTypeSupply
           lto[:supply_cfm25] = m.duct_leakage_value
+        elsif m.duct_leakage_units == HPXML::UnitsCFM50 && m.duct_type == HPXML::DuctTypeSupply
+          lto[:supply_cfm50] = m.duct_leakage_value
         elsif m.duct_leakage_units == HPXML::UnitsPercent && m.duct_type == HPXML::DuctTypeReturn
           lto[:return_percent] = m.duct_leakage_value
         elsif m.duct_leakage_units == HPXML::UnitsCFM25 && m.duct_type == HPXML::DuctTypeReturn
           lto[:return_cfm25] = m.duct_leakage_value
+        elsif m.duct_leakage_units == HPXML::UnitsCFM50 && m.duct_type == HPXML::DuctTypeReturn
+          lto[:return_cfm50] = m.duct_leakage_value
         end
       end
       total_uncond_supply_area = hpxml_hvac.distribution_system.total_unconditioned_duct_areas[HPXML::DuctTypeSupply]
       total_uncond_return_area = hpxml_hvac.distribution_system.total_unconditioned_duct_areas[HPXML::DuctTypeReturn]
       hpxml_hvac.distribution_system.ducts.each do |duct|
-        next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? duct.duct_location
+        next if HPXML::conditioned_locations_this_unit.include? duct.duct_location
 
         d = DuctInfo.new
         d.Side = duct.duct_type
@@ -2506,14 +2516,16 @@ class HVACSizing
         if d.Side == HPXML::DuctTypeSupply
           d.LeakageFrac = lto[:supply_percent].to_f * d.Area / total_uncond_supply_area
           d.LeakageCFM25 = lto[:supply_cfm25].to_f * d.Area / total_uncond_supply_area
+          d.LeakageCFM50 = lto[:supply_cfm50].to_f * d.Area / total_uncond_supply_area
         elsif d.Side == HPXML::DuctTypeReturn
           d.LeakageFrac = lto[:return_percent].to_f * d.Area / total_uncond_return_area
           d.LeakageCFM25 = lto[:return_cfm25].to_f * d.Area / total_uncond_return_area
+          d.LeakageCFM50 = lto[:return_cfm50].to_f * d.Area / total_uncond_return_area
         end
         hvac.Ducts << d
       end
       # If all ducts are in conditioned space, treat leakage as going to outside
-      if (lto[:supply_percent].to_f + lto[:supply_cfm25].to_f) > 0 && total_uncond_supply_area == 0
+      if (lto[:supply_percent].to_f + lto[:supply_cfm25].to_f + lto[:supply_cfm50].to_f) > 0 && total_uncond_supply_area == 0
         d = DuctInfo.new
         d.Side = HPXML::DuctTypeSupply
         d.Location = HPXML::LocationOutside
@@ -2521,9 +2533,10 @@ class HVACSizing
         d.Rvalue = Airflow.get_duct_insulation_rvalue(0.0, d.Side)
         d.LeakageFrac = lto[:supply_percent]
         d.LeakageCFM25 = lto[:supply_cfm25]
+        d.LeakageCFM50 = lto[:supply_cfm50]
         hvac.Ducts << d
       end
-      next unless (lto[:return_percent].to_f + lto[:return_cfm25].to_f) > 0 && total_uncond_return_area == 0
+      next unless (lto[:return_percent].to_f + lto[:return_cfm25].to_f + lto[:return_cfm50].to_f) > 0 && total_uncond_return_area == 0
 
       d = DuctInfo.new
       d.Side = HPXML::DuctTypeReturn
@@ -2532,6 +2545,7 @@ class HVACSizing
       d.Rvalue = Airflow.get_duct_insulation_rvalue(0.0, d.Side)
       d.LeakageFrac = lto[:return_percent]
       d.LeakageCFM25 = lto[:return_cfm25]
+      d.LeakageCFM50 = lto[:return_cfm50]
       hvac.Ducts << d
     end
 
@@ -2579,7 +2593,7 @@ class HVACSizing
   end
 
   def self.get_space_ua_values(location, weather)
-    if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? location
+    if HPXML::conditioned_locations.include? location
       fail 'Method should not be called for a conditioned space.'
     end
 
@@ -2594,9 +2608,7 @@ class HVACSizing
 
       if [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationOutside
         space_UAs[HPXML::LocationOutside] += (1.0 / surface.insulation_assembly_r_value) * surface.area
-      elsif [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationLivingSpace
-        space_UAs[HPXML::LocationLivingSpace] += (1.0 / surface.insulation_assembly_r_value) * surface.area
-      elsif [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationBasementConditioned
+      elsif HPXML::conditioned_locations.include?(surface.interior_adjacent_to) || HPXML::conditioned_locations.include?(surface.exterior_adjacent_to)
         space_UAs[HPXML::LocationLivingSpace] += (1.0 / surface.insulation_assembly_r_value) * surface.area
       elsif [surface.interior_adjacent_to, surface.exterior_adjacent_to].include? HPXML::LocationGround
         if surface.is_a? HPXML::FoundationWall
@@ -3421,7 +3433,7 @@ class DuctInfo
   # FUTURE: Remove class; use either airflow.rb Duct class or HPXML Ducts class directly
   def initial
   end
-  attr_accessor(:LeakageFrac, :LeakageCFM25, :Area, :Rvalue, :Location, :Side)
+  attr_accessor(:LeakageFrac, :LeakageCFM25, :LeakageCFM50, :Area, :Rvalue, :Location, :Side)
 end
 
 class Numeric

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Lighting
-  def self.apply(runner, model, epw_file, spaces, lighting_groups, lighting, eri_version, schedules_file)
+  def self.apply(runner, model, epw_file, spaces, lighting_groups, lighting, eri_version, schedules_file, cfa, gfa)
     fractions = {}
     lighting_groups.each do |lg|
       fractions[[lg.location, lg.lighting_type]] = lg.fraction_of_units_in_location
@@ -9,16 +9,6 @@ class Lighting
 
     if fractions[[HPXML::LocationInterior, HPXML::LightingTypeCFL]].nil? # Not the lighting group(s) we're interested in
       return
-    end
-
-    living_space = spaces[HPXML::LocationLivingSpace]
-    garage_space = spaces[HPXML::LocationGarage]
-
-    cfa = UnitConversions.convert(living_space.floorArea, 'm^2', 'ft^2')
-    if not garage_space.nil?
-      gfa = UnitConversions.convert(garage_space.floorArea, 'm^2', 'ft^2')
-    else
-      gfa = 0
     end
 
     int_kwh, ext_kwh, grg_kwh = calc_energy(eri_version, cfa, gfa,
@@ -45,7 +35,7 @@ class Lighting
         interior_sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction)
       end
       exterior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameExteriorLighting + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
-      if not garage_space.nil?
+      if gfa > 0
         garage_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameGarageLighting + ' schedule', lighting.garage_weekday_fractions, lighting.garage_weekend_fractions, lighting.garage_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
       end
       if not lighting.holiday_kwh_per_day.nil?
@@ -72,7 +62,7 @@ class Lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
       ltg = OpenStudio::Model::Lights.new(ltg_def)
       ltg.setName(Constants.ObjectNameInteriorLighting)
-      ltg.setSpace(living_space)
+      ltg.setSpace(spaces[HPXML::LocationLivingSpace])
       ltg.setEndUseSubcategory(Constants.ObjectNameInteriorLighting)
       ltg_def.setName(Constants.ObjectNameInteriorLighting)
       ltg_def.setLightingLevel(design_level)
@@ -97,7 +87,7 @@ class Lighting
       ltg_def = OpenStudio::Model::LightsDefinition.new(model)
       ltg = OpenStudio::Model::Lights.new(ltg_def)
       ltg.setName(Constants.ObjectNameGarageLighting)
-      ltg.setSpace(garage_space)
+      ltg.setSpace(spaces[HPXML::LocationGarage])
       ltg.setEndUseSubcategory(Constants.ObjectNameGarageLighting)
       ltg_def.setName(Constants.ObjectNameGarageLighting)
       ltg_def.setLightingLevel(design_level)

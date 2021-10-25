@@ -336,7 +336,10 @@ class Geometry
   end
 
   def self.calculate_zone_volume(hpxml, location)
-    if [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceUnvented, HPXML::LocationCrawlspaceVented, HPXML::LocationGarage].include? location
+    if [HPXML::LocationBasementUnconditioned,
+        HPXML::LocationCrawlspaceUnvented,
+        HPXML::LocationCrawlspaceVented,
+        HPXML::LocationGarage].include? location
       floor_area = hpxml.slabs.select { |s| s.interior_adjacent_to == location }.map { |s| s.area }.sum(0.0)
       if location == HPXML::LocationGarage
         height = 8.0
@@ -344,7 +347,8 @@ class Geometry
         height = hpxml.foundation_walls.select { |w| w.interior_adjacent_to == location }.map { |w| w.height }.max
       end
       return floor_area * height
-    elsif [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? location
+    elsif [HPXML::LocationAtticUnvented,
+           HPXML::LocationAtticVented].include? location
       floor_area = hpxml.frame_floors.select { |f| [f.interior_adjacent_to, f.exterior_adjacent_to].include? location }.map { |s| s.area }.sum(0.0)
       roofs = hpxml.roofs.select { |r| r.interior_adjacent_to == location }
       avg_pitch = roofs.map { |r| r.pitch }.sum(0.0) / roofs.size
@@ -521,9 +525,6 @@ class Geometry
     occ_rad = 0.558 * occ_sens
     occ_lost = 1 - occ_lat - occ_conv - occ_rad
 
-    space_obj_name = "#{Constants.ObjectNameOccupants}"
-    space_num_occ = num_occ * UnitConversions.convert(space.floorArea, 'm^2', 'ft^2') / cfa
-
     # Create schedule
     if not schedules_file.nil?
       people_sch = schedules_file.create_schedule_file(col_name: 'occupants')
@@ -545,11 +546,11 @@ class Geometry
     # Add people definition for the occ
     occ_def = OpenStudio::Model::PeopleDefinition.new(model)
     occ = OpenStudio::Model::People.new(occ_def)
-    occ.setName(space_obj_name)
+    occ.setName(Constants.ObjectNameOccupants)
     occ.setSpace(space)
-    occ_def.setName(space_obj_name)
+    occ_def.setName(Constants.ObjectNameOccupants)
     occ_def.setNumberOfPeopleCalculationMethod('People', 1)
-    occ_def.setNumberofPeople(space_num_occ)
+    occ_def.setNumberofPeople(num_occ)
     occ_def.setFractionRadiant(occ_rad)
     occ_def.setSensibleHeatFraction(occ_sens)
     occ_def.setMeanRadiantTemperatureCalculationType('ZoneAveraged')

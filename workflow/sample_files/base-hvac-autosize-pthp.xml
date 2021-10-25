@@ -11,6 +11,9 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
+      <HVACSizingControl>
+        <UseMaxLoadForHeatPumps>true</UseMaxLoadForHeatPumps>
+      </HVACSizingControl>
     </extension>
   </SoftwareInfo>
   <Building>
@@ -18,7 +21,7 @@
     <Site>
       <SiteID id='SiteID'/>
       <Address>
-        <StateCode>OR</StateCode>
+        <StateCode>CO</StateCode>
       </Address>
     </Site>
     <ProjectStatus>
@@ -39,25 +42,25 @@
         </BuildingOccupancy>
         <BuildingConstruction>
           <ResidentialFacilityType>single-family detached</ResidentialFacilityType>
-          <NumberofConditionedFloors>1.0</NumberofConditionedFloors>
+          <NumberofConditionedFloors>2.0</NumberofConditionedFloors>
           <NumberofConditionedFloorsAboveGrade>1.0</NumberofConditionedFloorsAboveGrade>
           <AverageCeilingHeight>8.0</AverageCeilingHeight>
           <NumberofBedrooms>3</NumberofBedrooms>
           <NumberofBathrooms>2</NumberofBathrooms>
-          <ConditionedFloorArea>1350.0</ConditionedFloorArea>
-          <ConditionedBuildingVolume>10800.0</ConditionedBuildingVolume>
+          <ConditionedFloorArea>2700.0</ConditionedFloorArea>
+          <ConditionedBuildingVolume>21600.0</ConditionedBuildingVolume>
         </BuildingConstruction>
       </BuildingSummary>
       <ClimateandRiskZones>
         <ClimateZoneIECC>
           <Year>2006</Year>
-          <ClimateZone>4C</ClimateZone>
+          <ClimateZone>5B</ClimateZone>
         </ClimateZoneIECC>
         <WeatherStation>
           <SystemIdentifier id='WeatherStation'/>
-          <Name>USA_OR_Portland.Intl.AP.726980_TMY3</Name>
+          <Name>USA_CO_Denver.Intl.AP.725650_TMY3</Name>
           <extension>
-            <EPWFilePath>USA_OR_Portland.Intl.AP.726980_TMY3.epw</EPWFilePath>
+            <EPWFilePath>USA_CO_Denver.Intl.AP.725650_TMY3.epw</EPWFilePath>
           </extension>
         </WeatherStation>
       </ClimateandRiskZones>
@@ -70,7 +73,7 @@
               <UnitofMeasure>ACH</UnitofMeasure>
               <AirLeakage>3.0</AirLeakage>
             </BuildingAirLeakage>
-            <InfiltrationVolume>10800.0</InfiltrationVolume>
+            <InfiltrationVolume>21600.0</InfiltrationVolume>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
         <Attics>
@@ -91,17 +94,12 @@
           <Foundation>
             <SystemIdentifier id='Foundation1'/>
             <FoundationType>
-              <Crawlspace>
-                <Vented>true</Vented>
-              </Crawlspace>
+              <Basement>
+                <Conditioned>true</Conditioned>
+              </Basement>
             </FoundationType>
-            <VentilationRate>
-              <UnitofMeasure>SLA</UnitofMeasure>
-              <Value>0.00667</Value>
-            </VentilationRate>
             <AttachedToRimJoist idref='RimJoist1'/>
             <AttachedToFoundationWall idref='FoundationWall1'/>
-            <AttachedToFrameFloor idref='FrameFloor2'/>
             <AttachedToSlab idref='Slab1'/>
           </Foundation>
         </Foundations>
@@ -125,7 +123,7 @@
           <RimJoist>
             <SystemIdentifier id='RimJoist1'/>
             <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>crawlspace - vented</InteriorAdjacentTo>
+            <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
             <Area>115.6</Area>
             <Siding>wood siding</Siding>
             <SolarAbsorptance>0.7</SolarAbsorptance>
@@ -178,13 +176,13 @@
           <FoundationWall>
             <SystemIdentifier id='FoundationWall1'/>
             <ExteriorAdjacentTo>ground</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>crawlspace - vented</InteriorAdjacentTo>
-            <Height>4.0</Height>
-            <Area>600.0</Area>
+            <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
+            <Height>8.0</Height>
+            <Area>1200.0</Area>
             <Thickness>8.0</Thickness>
-            <DepthBelowGrade>3.0</DepthBelowGrade>
+            <DepthBelowGrade>7.0</DepthBelowGrade>
             <InteriorFinish>
-              <Type>none</Type>
+              <Type>gypsum board</Type>
             </InteriorFinish>
             <Insulation>
               <SystemIdentifier id='FoundationWall1Insulation'/>
@@ -193,7 +191,7 @@
                 <NominalRValue>8.9</NominalRValue>
                 <extension>
                   <DistanceToTopOfInsulation>0.0</DistanceToTopOfInsulation>
-                  <DistanceToBottomOfInsulation>4.0</DistanceToBottomOfInsulation>
+                  <DistanceToBottomOfInsulation>8.0</DistanceToBottomOfInsulation>
                 </extension>
               </Layer>
               <Layer>
@@ -217,23 +215,13 @@
               <AssemblyEffectiveRValue>39.3</AssemblyEffectiveRValue>
             </Insulation>
           </FrameFloor>
-          <FrameFloor>
-            <SystemIdentifier id='FrameFloor2'/>
-            <ExteriorAdjacentTo>crawlspace - vented</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
-            <Area>1350.0</Area>
-            <Insulation>
-              <SystemIdentifier id='FrameFloor2Insulation'/>
-              <AssemblyEffectiveRValue>18.7</AssemblyEffectiveRValue>
-            </Insulation>
-          </FrameFloor>
         </FrameFloors>
         <Slabs>
           <Slab>
             <SystemIdentifier id='Slab1'/>
-            <InteriorAdjacentTo>crawlspace - vented</InteriorAdjacentTo>
+            <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
             <Area>1350.0</Area>
-            <Thickness>0.0</Thickness>
+            <Thickness>4.0</Thickness>
             <ExposedPerimeter>150.0</ExposedPerimeter>
             <PerimeterInsulationDepth>0.0</PerimeterInsulationDepth>
             <UnderSlabInsulationWidth>0.0</UnderSlabInsulationWidth>
@@ -327,37 +315,30 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatingSystem1'/>
-              <PrimaryCoolingSystem idref='CoolingSystem1'/>
+              <PrimaryHeatingSystem idref='HeatPump1'/>
+              <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
-            <HeatingSystem>
-              <SystemIdentifier id='HeatingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <HeatingSystemType>
-                <Furnace/>
-              </HeatingSystemType>
-              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>24000.0</HeatingCapacity>
-              <AnnualHeatingEfficiency>
-                <Units>AFUE</Units>
-                <Value>0.92</Value>
-              </AnnualHeatingEfficiency>
+            <HeatPump>
+              <SystemIdentifier id='HeatPump1'/>
+              <HeatPumpType>packaged terminal heat pump</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
+              <CoolingSensibleHeatFraction>0.65</CoolingSensibleHeatFraction>
+              <BackupSystemFuel>electricity</BackupSystemFuel>
+              <BackupAnnualHeatingEfficiency>
+                <Units>Percent</Units>
+                <Value>1.0</Value>
+              </BackupAnnualHeatingEfficiency>
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
-            </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
-              <CompressorType>single stage</CompressorType>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
-                <Units>SEER</Units>
-                <Value>13.0</Value>
+                <Units>EER</Units>
+                <Value>11.4</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
+              <AnnualHeatingEfficiency>
+                <Units>COP</Units>
+                <Value>3.6</Value>
+              </AnnualHeatingEfficiency>
+            </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
@@ -365,51 +346,13 @@
             <SetpointTempHeatingSeason>68.0</SetpointTempHeatingSeason>
             <SetpointTempCoolingSeason>78.0</SetpointTempCoolingSeason>
           </HVACControl>
-          <HVACDistribution>
-            <SystemIdentifier id='HVACDistribution1'/>
-            <DistributionSystemType>
-              <AirDistribution>
-                <AirDistributionType>regular velocity</AirDistributionType>
-                <DuctLeakageMeasurement>
-                  <DuctType>supply</DuctType>
-                  <DuctLeakage>
-                    <Units>CFM25</Units>
-                    <Value>75.0</Value>
-                    <TotalOrToOutside>to outside</TotalOrToOutside>
-                  </DuctLeakage>
-                </DuctLeakageMeasurement>
-                <DuctLeakageMeasurement>
-                  <DuctType>return</DuctType>
-                  <DuctLeakage>
-                    <Units>CFM25</Units>
-                    <Value>25.0</Value>
-                    <TotalOrToOutside>to outside</TotalOrToOutside>
-                  </DuctLeakage>
-                </DuctLeakageMeasurement>
-                <Ducts>
-                  <DuctType>supply</DuctType>
-                  <DuctInsulationRValue>4.0</DuctInsulationRValue>
-                  <DuctLocation>crawlspace - vented</DuctLocation>
-                  <DuctSurfaceArea>150.0</DuctSurfaceArea>
-                </Ducts>
-                <Ducts>
-                  <DuctType>return</DuctType>
-                  <DuctInsulationRValue>0.0</DuctInsulationRValue>
-                  <DuctLocation>crawlspace - vented</DuctLocation>
-                  <DuctSurfaceArea>50.0</DuctSurfaceArea>
-                </Ducts>
-                <NumberofReturnRegisters>1</NumberofReturnRegisters>
-              </AirDistribution>
-            </DistributionSystemType>
-            <ConditionedFloorAreaServed>1350.0</ConditionedFloorAreaServed>
-          </HVACDistribution>
         </HVAC>
         <WaterHeating>
           <WaterHeatingSystem>
             <SystemIdentifier id='WaterHeatingSystem1'/>
             <FuelType>electricity</FuelType>
             <WaterHeaterType>storage water heater</WaterHeaterType>
-            <Location>crawlspace - vented</Location>
+            <Location>living space</Location>
             <TankVolume>40.0</TankVolume>
             <FractionDHWLoadServed>1.0</FractionDHWLoadServed>
             <HeatingCapacity>18767.0</HeatingCapacity>
@@ -574,7 +517,7 @@
           <PlugLoadType>other</PlugLoadType>
           <Load>
             <Units>kWh/year</Units>
-            <Value>1228.5</Value>
+            <Value>2457.0</Value>
           </Load>
           <extension>
             <FracSensible>0.855</FracSensible>
