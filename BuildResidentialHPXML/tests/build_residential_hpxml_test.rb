@@ -49,6 +49,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-sfa-slab.xml' => 'base-sfa.xml',
       'extra-sfa-vented-crawlspace.xml' => 'base-sfa.xml',
       'extra-sfa-unvented-crawlspace.xml' => 'base-sfa.xml',
+      'extra-sfa-conditioned-crawlspace.xml' => 'base-sfa.xml',
       'extra-sfa-unconditioned-basement.xml' => 'base-sfa.xml',
 
       'extra-sfa-interior-corridor.xml' => 'base-sfa.xml',
@@ -133,7 +134,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-cooling-system-and-heat-pump.xml' => 'base-sfd.xml',
       'error-non-integer-geometry-num-bathrooms.xml' => 'base-sfd.xml',
       'error-non-integer-ceiling-fan-quantity.xml' => 'base-sfd.xml',
-      'error-sfd-finished-basement-zero-foundation-height.xml' => 'base-sfd.xml',
+      'error-sfd-conditioned-basement-zero-foundation-height.xml' => 'base-sfd.xml',
       'error-sfa-ambient.xml' => 'base-sfa.xml',
       # 'error-mf-bottom-crawlspace-zero-foundation-height.xml' => 'base-mf.xml',
       'error-ducts-location-and-areas-not-same-type.xml' => 'base-sfd.xml',
@@ -173,9 +174,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-cooling-system-and-heat-pump.xml' => 'cooling_system_type=central air conditioner and heat_pump_type=air-to-air',
       'error-non-integer-geometry-num-bathrooms.xml' => 'geometry_unit_num_bathrooms=1.5',
       'error-non-integer-ceiling-fan-quantity.xml' => 'ceiling_fan_quantity=0.5',
-      'error-sfd-finished-basement-zero-foundation-height.xml' => 'geometry_unit_type=single-family detached and geometry_foundation_type=ConditionedBasement and geometry_foundation_height=0.0',
+      'error-sfd-conditioned-basement-zero-foundation-height.xml' => 'geometry_unit_type=single-family detached and geometry_foundation_type=ConditionedBasement and geometry_foundation_height=0.0',
       'error-sfa-ambient.xml' => 'geometry_unit_type=single-family attached and geometry_foundation_type=Ambient',
-      # 'error-mf-bottom-crawlspace-zero-foundation-height.xml' => 'geometry_unit_type=apartment unit and geometry_unit_level=Bottom and geometry_foundation_type=UnventedCrawlspace and geometry_foundation_height=0.0',
+      'error-mf-conditioned-basement' => 'geometry_unit_type=apartment unit and geometry_foundation_type=ConditionedBasement',
+      'error-mf-conditioned-crawlspace' => 'geometry_unit_type=apartment unit and geometry_foundation_type=ConditionedCrawlspace',
+      'error-mf-bottom-crawlspace-zero-foundation-height.xml' => 'geometry_unit_type=apartment unit and geometry_unit_level=Bottom and geometry_foundation_type=UnventedCrawlspace and geometry_foundation_height=0.0',
       'error-ducts-location-and-areas-not-same-type.xml' => 'ducts_supply_location=auto and ducts_supply_surface_area=150.0 and ducts_return_location=attic - unvented and ducts_return_surface_area=50.0',
       'error-second-heating-system-serves-total-heat-load.xml' => 'heating_system_2_type=Fireplace and heating_system_2_fraction_heat_load_served=1.0',
       'error-second-heating-system-but-no-primary-heating.xml' => 'heating_system_type=none and heat_pump_type=none and heating_system_2_type=Fireplace',
@@ -778,6 +781,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_foundation_height'] = 4.0
       args['floor_over_foundation_assembly_r'] = 18.7
       args['foundation_wall_insulation_distance_to_bottom'] = 4.0
+    elsif ['extra-sfa-conditioned-crawlspace.xml'].include? hpxml_file
+      args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceConditioned
+      args['geometry_foundation_height'] = 4.0
+      args['floor_over_foundation_assembly_r'] = 2.1
+      args['foundation_wall_insulation_distance_to_bottom'] = 4.0
     elsif ['extra-sfa-unconditioned-basement.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeBasementUnconditioned
       args['floor_over_foundation_assembly_r'] = 18.7
@@ -915,13 +923,17 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_unit_num_bathrooms'] = 1.5
     elsif ['error-non-integer-ceiling-fan-quantity.xml'].include? hpxml_file
       args['ceiling_fan_quantity'] = 0.5
-    elsif ['error-sfd-finished-basement-zero-foundation-height.xml'].include? hpxml_file
+    elsif ['error-sfd-conditioned-basement-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_height'] = 0.0
       args['foundation_wall_insulation_distance_to_bottom'] = Constants.Auto
     elsif ['error-sfa-ambient.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeAmbient
       args.delete('geometry_rim_joist_height')
       args.delete('rim_joist_assembly_r')
+    elsif ['error-mf-conditioned-basement'].include? hpxml_file
+      args['geometry_foundation_type'] = HPXML::FoundationTypeBasementConditioned
+    elsif ['error-mf-conditioned-crawlspace'].include? hpxml_file
+      args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceConditioned
     elsif ['error-mf-bottom-crawlspace-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
       args['geometry_foundation_height'] = 0.0

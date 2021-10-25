@@ -246,7 +246,7 @@ class OSModel
     add_skylights(runner, model, spaces, weather)
     add_conditioned_floor_area(runner, model, spaces)
     add_thermal_mass(runner, model, spaces)
-    update_conditioned_basement(runner, model, spaces)
+    update_conditioned_below_grade_spaces(runner, model, spaces)
     Geometry.set_zone_volumes(runner, model, spaces, @hpxml, @apply_ashrae140_assumptions)
     Geometry.explode_surfaces(runner, model, @hpxml, @walls_top)
     add_num_occupants(model, runner, spaces)
@@ -301,10 +301,12 @@ class OSModel
     # Initialize
     @remaining_heat_load_frac = 1.0
     @remaining_cool_load_frac = 1.0
-    @cond_bsmnt_surfaces = [] # list of surfaces in conditioned basement, used for modification of some surface properties, eg. solar absorptance, view factor, etc.
+    @cond_below_grade_surfaces = [] # list of surfaces in conditioned basement, used for modification of some surface properties, eg. solar absorptance, view factor, etc.
 
     # Set globals
     @cfa = @hpxml.building_construction.conditioned_floor_area
+    @gfa = @hpxml.slabs.select { |s| s.interior_adjacent_to == HPXML::LocationGarage }.map { |s| s.area }.sum(0.0)
+    @ubfa = @hpxml.slabs.select { |s| s.interior_adjacent_to == HPXML::LocationBasementUnconditioned }.map { |s| s.area }.sum(0.0)
     @ncfl = @hpxml.building_construction.number_of_conditioned_floors
     @ncfl_ag = @hpxml.building_construction.number_of_conditioned_floors_above_grade
     @nbeds = @hpxml.building_construction.number_of_bedrooms
@@ -328,20 +330,20 @@ class OSModel
     SimControls.apply(model, @hpxml)
   end
 
-  def self.update_conditioned_basement(runner, model, spaces)
-    return if @cond_bsmnt_surfaces.empty?
+  def self.update_conditioned_below_grade_spaces(runner, model, spaces)
+    return if @cond_below_grade_surfaces.empty?
 
-    # Update @cond_bsmnt_surfaces to include subsurfaces
-    new_cond_bsmnt_surfaces = @cond_bsmnt_surfaces.dup
-    @cond_bsmnt_surfaces.each do |cond_bsmnt_surface|
+    # Update @cond_below_grade_surfaces to include subsurfaces
+    new_cond_below_grade_surfaces = @cond_below_grade_surfaces.dup
+    @cond_below_grade_surfaces.each do |cond_bsmnt_surface|
       next if cond_bsmnt_surface.is_a? OpenStudio::Model::InternalMassDefinition
       next if cond_bsmnt_surface.subSurfaces.empty?
 
       cond_bsmnt_surface.subSurfaces.each do |ss|
-        new_cond_bsmnt_surfaces << ss
+        new_cond_below_grade_surfaces << ss
       end
     end
-    @cond_bsmnt_surfaces = new_cond_bsmnt_surfaces.dup
+    @cond_below_grade_surfaces = new_cond_below_grade_surfaces.dup
 
     update_solar_absorptances(runner, model)
     assign_view_factors(runner, model, spaces)
@@ -351,7 +353,7 @@ class OSModel
     # modify conditioned basement surface properties
     # zero out interior solar absorptance in conditioned basement
 
-    @cond_bsmnt_surfaces.each do |cond_bsmnt_surface|
+    @cond_below_grade_surfaces.each do |cond_bsmnt_surface|
       # skip windows because windows don't have such property to change.
       next if cond_bsmnt_surface.is_a?(OpenStudio::Model::SubSurface) && (cond_bsmnt_surface.subSurfaceType.downcase == 'fixedwindow')
 
@@ -420,8 +422,8 @@ class OSModel
     end
 
     all_surfaces.each do |surface|
-      if @cond_bsmnt_surfaces.include?(surface) ||
-         ((@cond_bsmnt_surfaces.include? surface.internalMassDefinition) if surface.is_a? OpenStudio::Model::InternalMass)
+      if @cond_below_grade_surfaces.include?(surface) ||
+         ((@cond_below_grade_surfaces.include? surface.internalMassDefinition) if surface.is_a? OpenStudio::Model::InternalMass)
         cond_base_surfaces << surface
       else
         lv_surfaces << surface
@@ -1265,9 +1267,9 @@ class OSModel
     ceiling_surface.additionalProperties.setFeature('SurfaceType', 'InferredCeiling')
     ceiling_surface.additionalProperties.setFeature('Tilt', 0.0)
 
-    if not @cond_bsmnt_surfaces.empty?
+    if not @cond_below_grade_surfaces.empty?
       # assuming added ceiling is in conditioned basement
-      @cond_bsmnt_surfaces << ceiling_surface
+      @cond_below_grade_surfaces << ceiling_surface
     end
 
     # Apply Construction
@@ -1279,22 +1281,22 @@ class OSModel
     if @apply_ashrae140_assumptions
       # 1024 ft2 of interior partition wall mass, no furniture mass
       mat_int_finish = Material.InteriorFinishMaterial(HPXML::InteriorFinishGypsumBoard, 0.5)
-      partition_frac_of_cfa = (1024.0 * 2) / @cfa # Ratio of exposed partition wall area (both sides) to conditioned floor area
+      partition_wall_area = 1024.0 * 2 # Exposed partition wall area (both sides)
       basement_frac_of_cfa = cfa_basement / @cfa
-      Constructions.apply_partition_walls(runner, model, 'PartitionWallConstruction', mat_int_finish, partition_frac_of_cfa,
-                                          basement_frac_of_cfa, @cond_bsmnt_surfaces, spaces[HPXML::LocationLivingSpace])
+      Constructions.apply_partition_walls(runner, model, 'PartitionWallConstruction', mat_int_finish, partition_wall_area,
+                                          basement_frac_of_cfa, @cond_below_grade_surfaces, spaces[HPXML::LocationLivingSpace])
     else
       mat_int_finish = Material.InteriorFinishMaterial(HPXML::InteriorFinishGypsumBoard, 0.5)
-      partition_frac_of_cfa = 1.0 # Ratio of exposed partition wall area (both sides) to conditioned floor area
+      partition_wall_area = 1.0 * @cfa # Exposed partition wall area (both sides) assumed to be equal to conditioned floor area
       basement_frac_of_cfa = cfa_basement / @cfa
-      Constructions.apply_partition_walls(runner, model, 'PartitionWallConstruction', mat_int_finish, partition_frac_of_cfa,
-                                          basement_frac_of_cfa, @cond_bsmnt_surfaces, spaces[HPXML::LocationLivingSpace])
+      Constructions.apply_partition_walls(runner, model, 'PartitionWallConstruction', mat_int_finish, partition_wall_area,
+                                          basement_frac_of_cfa, @cond_below_grade_surfaces, spaces[HPXML::LocationLivingSpace])
 
       mass_lb_per_sqft = 8.0
       density_lb_per_cuft = 40.0
       mat = BaseMaterial.Wood
-      Constructions.apply_furniture(runner, model, mass_lb_per_sqft, density_lb_per_cuft, mat,
-                                    basement_frac_of_cfa, @cond_bsmnt_surfaces, spaces[HPXML::LocationLivingSpace])
+      Constructions.apply_furniture(runner, model, mass_lb_per_sqft, density_lb_per_cuft, mat, @cfa, @ubfa, @gfa,
+                                    basement_frac_of_cfa, @cond_below_grade_surfaces, spaces[HPXML::LocationLivingSpace])
     end
   end
 
@@ -1874,7 +1876,7 @@ class OSModel
 
   def self.add_lighting(runner, model, epw_file, spaces)
     Lighting.apply(runner, model, epw_file, spaces, @hpxml.lighting_groups,
-                   @hpxml.lighting, @eri_version, @schedules_file)
+                   @hpxml.lighting, @eri_version, @schedules_file, @cfa, @gfa)
   end
 
   def self.add_pools_and_hot_tubs(runner, model, spaces)
@@ -1936,7 +1938,7 @@ class OSModel
     leakage_to_outside = { HPXML::DuctTypeSupply => [0.0, nil],
                            HPXML::DuctTypeReturn => [0.0, nil] }
     hvac_distribution.duct_leakage_measurements.each do |duct_leakage_measurement|
-      next unless [HPXML::UnitsCFM25, HPXML::UnitsPercent].include?(duct_leakage_measurement.duct_leakage_units) && (duct_leakage_measurement.duct_leakage_total_or_to_outside == 'to outside')
+      next unless [HPXML::UnitsCFM25, HPXML::UnitsCFM50, HPXML::UnitsPercent].include?(duct_leakage_measurement.duct_leakage_units) && (duct_leakage_measurement.duct_leakage_total_or_to_outside == 'to outside')
       next if duct_leakage_measurement.duct_type.nil?
 
       leakage_to_outside[duct_leakage_measurement.duct_type] = [duct_leakage_measurement.duct_leakage_value, duct_leakage_measurement.duct_leakage_units]
@@ -1946,7 +1948,7 @@ class OSModel
     total_unconditioned_duct_area = { HPXML::DuctTypeSupply => 0.0,
                                       HPXML::DuctTypeReturn => 0.0 }
     hvac_distribution.ducts.each do |ducts|
-      next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? ducts.duct_location
+      next if HPXML::conditioned_locations_this_unit.include? ducts.duct_location
       next if ducts.duct_type.nil?
 
       # Calculate total duct area in unconditioned spaces
@@ -1955,7 +1957,7 @@ class OSModel
 
     # Create duct objects
     hvac_distribution.ducts.each do |ducts|
-      next if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? ducts.duct_location
+      next if HPXML::conditioned_locations_this_unit.include? ducts.duct_location
       next if ducts.duct_type.nil?
       next if total_unconditioned_duct_area[ducts.duct_type] <= 0
 
@@ -1968,14 +1970,16 @@ class OSModel
       duct_leakage_cfm = nil
       duct_leakage_frac = nil
       if duct_leakage_units == HPXML::UnitsCFM25
-        duct_leakage_cfm = duct_leakage_value
+        duct_leakage_cfm25 = duct_leakage_value
+      elsif duct_leakage_units == HPXML::UnitsCFM50
+        duct_leakage_cfm50 = duct_leakage_value
       elsif duct_leakage_units == HPXML::UnitsPercent
         duct_leakage_frac = duct_leakage_value
       else
         fail "#{ducts.duct_type.capitalize} ducts exist but leakage was not specified for distribution system '#{hvac_distribution.id}'."
       end
 
-      air_ducts << Duct.new(ducts.duct_type, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm, ducts.duct_surface_area, ducts.duct_insulation_r_value)
+      air_ducts << Duct.new(ducts.duct_type, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm25, duct_leakage_cfm50, ducts.duct_surface_area, ducts.duct_insulation_r_value)
     end
 
     # If all ducts are in conditioned space, model leakage as going to outside
@@ -1992,14 +1996,16 @@ class OSModel
       duct_leakage_cfm = nil
       duct_leakage_frac = nil
       if duct_leakage_units == HPXML::UnitsCFM25
-        duct_leakage_cfm = duct_leakage_value
+        duct_leakage_cfm25 = duct_leakage_value
+      elsif duct_leakage_units == HPXML::UnitsCFM50
+        duct_leakage_cfm50 = duct_leakage_value
       elsif duct_leakage_units == HPXML::UnitsPercent
         duct_leakage_frac = duct_leakage_value
       else
         fail "#{duct_side.capitalize} ducts exist but leakage was not specified for distribution system '#{hvac_distribution.id}'."
       end
 
-      air_ducts << Duct.new(duct_side, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm, duct_area, duct_rvalue)
+      air_ducts << Duct.new(duct_side, duct_loc_space, duct_loc_schedule, duct_leakage_frac, duct_leakage_cfm25, duct_leakage_cfm50, duct_area, duct_rvalue)
     end
 
     return air_ducts
@@ -2047,12 +2053,14 @@ class OSModel
   end
 
   def self.add_total_loads_output(runner, model, living_zone)
+    # Energy transferred in the conditioned space, used for determining heating (winter) vs cooling (summer)
     liv_load_sensors = {}
     liv_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Heating:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
     liv_load_sensors[:htg].setName('htg_load_liv')
     liv_load_sensors[:clg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Cooling:EnergyTransfer:Zone:#{living_zone.name.to_s.upcase}")
     liv_load_sensors[:clg].setName('clg_load_liv')
 
+    # Total energy transferred (above plus ducts)
     tot_load_sensors = {}
     tot_load_sensors[:htg] = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Heating:EnergyTransfer')
     tot_load_sensors[:htg].setName('htg_load_tot')
@@ -2526,9 +2534,9 @@ class OSModel
 
   def self.set_surface_interior(model, spaces, surface, hpxml_surface)
     interior_adjacent_to = hpxml_surface.interior_adjacent_to
-    if [HPXML::LocationBasementConditioned].include? interior_adjacent_to
+    if HPXML::conditioned_below_grade_locations.include? interior_adjacent_to
       surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationLivingSpace))
-      @cond_bsmnt_surfaces << surface
+      @cond_below_grade_surfaces << surface
     else
       surface.setSpace(create_or_get_space(model, spaces, interior_adjacent_to))
     end
@@ -2547,9 +2555,9 @@ class OSModel
     elsif [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace,
            HPXML::LocationOtherNonFreezingSpace, HPXML::LocationOtherHousingUnit].include? exterior_adjacent_to
       set_surface_otherside_coefficients(surface, exterior_adjacent_to, model, spaces)
-    elsif exterior_adjacent_to == HPXML::LocationBasementConditioned
+    elsif HPXML::conditioned_below_grade_locations.include? exterior_adjacent_to
       surface.createAdjacentSurface(create_or_get_space(model, spaces, HPXML::LocationLivingSpace))
-      @cond_bsmnt_surfaces << surface.adjacentSurface.get
+      @cond_below_grade_surfaces << surface.adjacentSurface.get
     else
       surface.createAdjacentSurface(create_or_get_space(model, spaces, exterior_adjacent_to))
     end
@@ -2659,12 +2667,18 @@ class OSModel
   # Should be called when the object's energy use is sensitive to ambient temperature
   # (e.g., water heaters and ducts).
   def self.get_space_or_schedule_from_location(location, object_name, model, spaces)
-    return if [HPXML::LocationOtherExterior, HPXML::LocationOutside, HPXML::LocationRoofDeck].include? location
+    return if [HPXML::LocationOtherExterior,
+               HPXML::LocationOutside,
+               HPXML::LocationRoofDeck].include? location
 
     sch = nil
     space = nil
-    if [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherMultifamilyBufferSpace,
-        HPXML::LocationOtherNonFreezingSpace, HPXML::LocationExteriorWall, HPXML::LocationUnderSlab].include? location
+    if [HPXML::LocationOtherHeatedSpace,
+        HPXML::LocationOtherHousingUnit,
+        HPXML::LocationOtherMultifamilyBufferSpace,
+        HPXML::LocationOtherNonFreezingSpace,
+        HPXML::LocationExteriorWall,
+        HPXML::LocationUnderSlab].include? location
       # if located in spaces where we don't model a thermal zone, create and return temperature schedule
       sch = get_space_temperature_schedule(model, location, spaces)
     else
@@ -2685,7 +2699,7 @@ class OSModel
 
     num_orig_spaces = spaces.size
 
-    if location == HPXML::LocationBasementConditioned
+    if HPXML::conditioned_locations.include? location
       space = create_or_get_space(model, spaces, HPXML::LocationLivingSpace)
     else
       space = create_or_get_space(model, spaces, location)
