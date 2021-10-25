@@ -228,6 +228,7 @@ class HPXMLDefaults
   end
 
   def self.apply_building_construction(hpxml, cfa, nbeds, infil_volume)
+    cond_crawl_volume = hpxml.inferred_conditioned_crawlspace_volume()
     if hpxml.building_construction.conditioned_building_volume.nil? && hpxml.building_construction.average_ceiling_height.nil?
       if not infil_volume.nil?
         hpxml.building_construction.average_ceiling_height = [infil_volume / cfa, 8.0].min
@@ -235,13 +236,13 @@ class HPXMLDefaults
         hpxml.building_construction.average_ceiling_height = 8.0
       end
       hpxml.building_construction.average_ceiling_height_isdefaulted = true
-      hpxml.building_construction.conditioned_building_volume = cfa * hpxml.building_construction.average_ceiling_height
+      hpxml.building_construction.conditioned_building_volume = cfa * hpxml.building_construction.average_ceiling_height + cond_crawl_volume
       hpxml.building_construction.conditioned_building_volume_isdefaulted = true
     elsif hpxml.building_construction.conditioned_building_volume.nil?
-      hpxml.building_construction.conditioned_building_volume = cfa * hpxml.building_construction.average_ceiling_height
+      hpxml.building_construction.conditioned_building_volume = cfa * hpxml.building_construction.average_ceiling_height + cond_crawl_volume
       hpxml.building_construction.conditioned_building_volume_isdefaulted = true
     elsif hpxml.building_construction.average_ceiling_height.nil?
-      hpxml.building_construction.average_ceiling_height = hpxml.building_construction.conditioned_building_volume / cfa
+      hpxml.building_construction.average_ceiling_height = (hpxml.building_construction.conditioned_building_volume - cond_crawl_volume) / cfa
       hpxml.building_construction.average_ceiling_height_isdefaulted = true
     end
 
@@ -388,7 +389,7 @@ class HPXMLDefaults
         roof.solar_absorptance_isdefaulted = true
       end
       if roof.interior_finish_type.nil?
-        if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? roof.interior_adjacent_to
+        if HPXML::conditioned_finished_locations.include? roof.interior_adjacent_to
           roof.interior_finish_type = HPXML::InteriorFinishGypsumBoard
         else
           roof.interior_finish_type = HPXML::InteriorFinishNone
@@ -472,7 +473,7 @@ class HPXMLDefaults
         end
       end
       if wall.interior_finish_type.nil?
-        if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? wall.interior_adjacent_to
+        if HPXML::conditioned_finished_locations.include? wall.interior_adjacent_to
           wall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
         else
           wall.interior_finish_type = HPXML::InteriorFinishNone
@@ -507,7 +508,7 @@ class HPXMLDefaults
         foundation_wall.area_isdefaulted = true
       end
       if foundation_wall.interior_finish_type.nil?
-        if [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? foundation_wall.interior_adjacent_to
+        if HPXML::conditioned_finished_locations.include? foundation_wall.interior_adjacent_to
           foundation_wall.interior_finish_type = HPXML::InteriorFinishGypsumBoard
         else
           foundation_wall.interior_finish_type = HPXML::InteriorFinishNone
@@ -544,7 +545,7 @@ class HPXMLDefaults
       if frame_floor.interior_finish_type.nil?
         if frame_floor.is_floor
           frame_floor.interior_finish_type = HPXML::InteriorFinishNone
-        elsif [HPXML::LocationLivingSpace, HPXML::LocationBasementConditioned].include? frame_floor.interior_adjacent_to
+        elsif HPXML::conditioned_finished_locations.include? frame_floor.interior_adjacent_to
           frame_floor.interior_finish_type = HPXML::InteriorFinishGypsumBoard
         else
           frame_floor.interior_finish_type = HPXML::InteriorFinishNone
@@ -567,8 +568,7 @@ class HPXMLDefaults
         slab.thickness = crawl_slab ? 0.0 : 4.0
         slab.thickness_isdefaulted = true
       end
-      conditioned_slab = [HPXML::LocationLivingSpace,
-                          HPXML::LocationBasementConditioned].include?(slab.interior_adjacent_to)
+      conditioned_slab = HPXML::conditioned_finished_locations.include?(slab.interior_adjacent_to)
       if slab.carpet_r_value.nil?
         slab.carpet_r_value = conditioned_slab ? 2.0 : 0.0
         slab.carpet_r_value_isdefaulted = true
@@ -748,7 +748,7 @@ class HPXMLDefaults
           heating_system.heating_efficiency_afue = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heating_system_type, heating_system_fuel, HPXML::UnitsAFUE)
         end
         heating_system.heating_efficiency_afue_isdefaulted = true
-      elsif [HPXML::HVACTypeElectricResistance].include? heating_system_type
+      elsif [HPXML::HVACTypeElectricResistance, HPXML::HVACTypePTACHeating].include? heating_system_type
         next unless heating_system.heating_efficiency_percent.nil?
 
         heating_system.heating_efficiency_percent = 1.0
@@ -779,7 +779,7 @@ class HPXMLDefaults
 
         cooling_system.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsSEER)
         cooling_system.cooling_efficiency_seer_isdefaulted = true
-      elsif cooling_system_type == HPXML::HVACTypeRoomAirConditioner
+      elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system_type
         next unless cooling_system.cooling_efficiency_eer.nil? && cooling_system.cooling_efficiency_ceer.nil?
 
         cooling_system.cooling_efficiency_eer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsEER)
@@ -842,7 +842,8 @@ class HPXMLDefaults
           cooling_system.cooling_shr = 0.78
         end
         cooling_system.cooling_shr_isdefaulted = true
-      elsif cooling_system.cooling_system_type == HPXML::HVACTypeRoomAirConditioner
+      elsif cooling_system.cooling_system_type == HPXML::HVACTypeRoomAirConditioner ||
+            cooling_system.cooling_system_type == HPXML::HVACTypePTAC
         cooling_system.cooling_shr = 0.65
         cooling_system.cooling_shr_isdefaulted = true
       elsif cooling_system.cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner
@@ -867,6 +868,9 @@ class HPXMLDefaults
         heat_pump.cooling_shr_isdefaulted = true
       elsif heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir
         heat_pump.cooling_shr = 0.732
+        heat_pump.cooling_shr_isdefaulted = true
+      elsif heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP
+        heat_pump.cooling_shr = 0.65
         heat_pump.cooling_shr_isdefaulted = true
       end
     end
@@ -1012,24 +1016,24 @@ class HPXMLDefaults
     # Detailed HVAC performance
     hpxml.cooling_systems.each do |cooling_system|
       clg_ap = cooling_system.additional_properties
-      if [HPXML::HVACTypeCentralAirConditioner].include? cooling_system.cooling_system_type
+      if [HPXML::HVACTypeCentralAirConditioner,
+          HPXML::HVACTypeRoomAirConditioner,
+          HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type
+        if [HPXML::HVACTypeRoomAirConditioner,
+            HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type
+          use_eer = true
+        else
+          use_eer = false
+        end
         # Note: We use HP cooling curve so that a central AC behaves the same.
         HVAC.set_num_speeds(cooling_system)
-        HVAC.set_fan_power_rated(cooling_system)
+        HVAC.set_fan_power_rated(cooling_system) unless use_eer
         HVAC.set_crankcase_assumptions(cooling_system)
-
         HVAC.set_cool_c_d(cooling_system, clg_ap.num_speeds)
-        HVAC.set_cool_curves_ashp(cooling_system)
+        HVAC.set_cool_curves_central_air_source(cooling_system, use_eer)
         HVAC.set_cool_rated_cfm_per_ton(cooling_system)
         HVAC.set_cool_rated_shrs_gross(cooling_system)
-        HVAC.set_cool_rated_eirs(cooling_system)
-
-      elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system.cooling_system_type
-        HVAC.set_num_speeds(cooling_system)
-        HVAC.set_cool_c_d(cooling_system, clg_ap.num_speeds)
-        HVAC.set_cool_curves_room_ac(cooling_system)
-        HVAC.set_cool_rated_cfm_per_ton(cooling_system)
-        HVAC.set_cool_rated_shrs_gross(cooling_system)
+        HVAC.set_cool_rated_eirs(cooling_system) unless use_eer
 
       elsif [HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
         num_speeds = 10
@@ -1062,22 +1066,28 @@ class HPXMLDefaults
     end
     hpxml.heat_pumps.each do |heat_pump|
       hp_ap = heat_pump.additional_properties
-      if [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type
+      if [HPXML::HVACTypeHeatPumpAirToAir,
+          HPXML::HVACTypeHeatPumpPTHP].include? heat_pump.heat_pump_type
+        if heat_pump.heat_pump_type == HPXML::HVACTypeHeatPumpPTHP
+          use_eer_cop = true
+        else
+          use_eer_cop = false
+        end
         HVAC.set_num_speeds(heat_pump)
-        HVAC.set_fan_power_rated(heat_pump)
+        HVAC.set_fan_power_rated(heat_pump) unless use_eer_cop
         HVAC.set_crankcase_assumptions(heat_pump)
         HVAC.set_heat_pump_temperatures(heat_pump)
 
         HVAC.set_cool_c_d(heat_pump, hp_ap.num_speeds)
-        HVAC.set_cool_curves_ashp(heat_pump)
+        HVAC.set_cool_curves_central_air_source(heat_pump, use_eer_cop)
         HVAC.set_cool_rated_cfm_per_ton(heat_pump)
         HVAC.set_cool_rated_shrs_gross(heat_pump)
-        HVAC.set_cool_rated_eirs(heat_pump)
+        HVAC.set_cool_rated_eirs(heat_pump) unless use_eer_cop
 
         HVAC.set_heat_c_d(heat_pump, hp_ap.num_speeds)
-        HVAC.set_ashp_htg_curves(heat_pump)
+        HVAC.set_heat_curves_central_air_source(heat_pump, use_eer_cop)
         HVAC.set_heat_rated_cfm_per_ton(heat_pump)
-        HVAC.set_heat_rated_eirs(heat_pump)
+        HVAC.set_heat_rated_eirs(heat_pump) unless use_eer_cop
 
       elsif [HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
         num_speeds = 10

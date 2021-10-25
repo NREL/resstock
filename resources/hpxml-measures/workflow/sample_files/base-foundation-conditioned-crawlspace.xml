@@ -18,7 +18,7 @@
     <Site>
       <SiteID id='SiteID'/>
       <Address>
-        <StateCode>OR</StateCode>
+        <StateCode>CO</StateCode>
       </Address>
     </Site>
     <ProjectStatus>
@@ -45,19 +45,19 @@
           <NumberofBedrooms>3</NumberofBedrooms>
           <NumberofBathrooms>2</NumberofBathrooms>
           <ConditionedFloorArea>1350.0</ConditionedFloorArea>
-          <ConditionedBuildingVolume>10800.0</ConditionedBuildingVolume>
+          <ConditionedBuildingVolume>16200.0</ConditionedBuildingVolume>
         </BuildingConstruction>
       </BuildingSummary>
       <ClimateandRiskZones>
         <ClimateZoneIECC>
           <Year>2006</Year>
-          <ClimateZone>4C</ClimateZone>
+          <ClimateZone>5B</ClimateZone>
         </ClimateZoneIECC>
         <WeatherStation>
           <SystemIdentifier id='WeatherStation'/>
-          <Name>USA_OR_Portland.Intl.AP.726980_TMY3</Name>
+          <Name>USA_CO_Denver.Intl.AP.725650_TMY3</Name>
           <extension>
-            <EPWFilePath>USA_OR_Portland.Intl.AP.726980_TMY3.epw</EPWFilePath>
+            <EPWFilePath>USA_CO_Denver.Intl.AP.725650_TMY3.epw</EPWFilePath>
           </extension>
         </WeatherStation>
       </ClimateandRiskZones>
@@ -70,7 +70,7 @@
               <UnitofMeasure>ACH</UnitofMeasure>
               <AirLeakage>3.0</AirLeakage>
             </BuildingAirLeakage>
-            <InfiltrationVolume>10800.0</InfiltrationVolume>
+            <InfiltrationVolume>16200.0</InfiltrationVolume>
           </AirInfiltrationMeasurement>
         </AirInfiltration>
         <Attics>
@@ -92,16 +92,11 @@
             <SystemIdentifier id='Foundation1'/>
             <FoundationType>
               <Crawlspace>
-                <Vented>true</Vented>
+                <Conditioned>true</Conditioned>
               </Crawlspace>
             </FoundationType>
-            <VentilationRate>
-              <UnitofMeasure>SLA</UnitofMeasure>
-              <Value>0.00667</Value>
-            </VentilationRate>
             <AttachedToRimJoist idref='RimJoist1'/>
             <AttachedToFoundationWall idref='FoundationWall1'/>
-            <AttachedToFrameFloor idref='FrameFloor2'/>
             <AttachedToSlab idref='Slab1'/>
           </Foundation>
         </Foundations>
@@ -125,7 +120,7 @@
           <RimJoist>
             <SystemIdentifier id='RimJoist1'/>
             <ExteriorAdjacentTo>outside</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>crawlspace - vented</InteriorAdjacentTo>
+            <InteriorAdjacentTo>crawlspace - conditioned</InteriorAdjacentTo>
             <Area>115.6</Area>
             <Siding>wood siding</Siding>
             <SolarAbsorptance>0.7</SolarAbsorptance>
@@ -178,7 +173,7 @@
           <FoundationWall>
             <SystemIdentifier id='FoundationWall1'/>
             <ExteriorAdjacentTo>ground</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>crawlspace - vented</InteriorAdjacentTo>
+            <InteriorAdjacentTo>crawlspace - conditioned</InteriorAdjacentTo>
             <Height>4.0</Height>
             <Area>600.0</Area>
             <Thickness>8.0</Thickness>
@@ -217,23 +212,13 @@
               <AssemblyEffectiveRValue>39.3</AssemblyEffectiveRValue>
             </Insulation>
           </FrameFloor>
-          <FrameFloor>
-            <SystemIdentifier id='FrameFloor2'/>
-            <ExteriorAdjacentTo>crawlspace - vented</ExteriorAdjacentTo>
-            <InteriorAdjacentTo>living space</InteriorAdjacentTo>
-            <Area>1350.0</Area>
-            <Insulation>
-              <SystemIdentifier id='FrameFloor2Insulation'/>
-              <AssemblyEffectiveRValue>18.7</AssemblyEffectiveRValue>
-            </Insulation>
-          </FrameFloor>
         </FrameFloors>
         <Slabs>
           <Slab>
             <SystemIdentifier id='Slab1'/>
-            <InteriorAdjacentTo>crawlspace - vented</InteriorAdjacentTo>
+            <InteriorAdjacentTo>crawlspace - conditioned</InteriorAdjacentTo>
             <Area>1350.0</Area>
-            <Thickness>0.0</Thickness>
+            <Thickness>4.0</Thickness>
             <ExposedPerimeter>150.0</ExposedPerimeter>
             <PerimeterInsulationDepth>0.0</PerimeterInsulationDepth>
             <UnderSlabInsulationWidth>0.0</UnderSlabInsulationWidth>
@@ -337,7 +322,7 @@
                 <Furnace/>
               </HeatingSystemType>
               <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>24000.0</HeatingCapacity>
+              <HeatingCapacity>36000.0</HeatingCapacity>
               <AnnualHeatingEfficiency>
                 <Units>AFUE</Units>
                 <Value>0.92</Value>
@@ -374,7 +359,7 @@
                   <DuctType>supply</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>75.0</Value>
+                    <Value>0.0</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
@@ -382,20 +367,20 @@
                   <DuctType>return</DuctType>
                   <DuctLeakage>
                     <Units>CFM25</Units>
-                    <Value>25.0</Value>
+                    <Value>0.0</Value>
                     <TotalOrToOutside>to outside</TotalOrToOutside>
                   </DuctLeakage>
                 </DuctLeakageMeasurement>
                 <Ducts>
                   <DuctType>supply</DuctType>
                   <DuctInsulationRValue>4.0</DuctInsulationRValue>
-                  <DuctLocation>crawlspace - vented</DuctLocation>
+                  <DuctLocation>crawlspace - conditioned</DuctLocation>
                   <DuctSurfaceArea>150.0</DuctSurfaceArea>
                 </Ducts>
                 <Ducts>
                   <DuctType>return</DuctType>
                   <DuctInsulationRValue>0.0</DuctInsulationRValue>
-                  <DuctLocation>crawlspace - vented</DuctLocation>
+                  <DuctLocation>crawlspace - conditioned</DuctLocation>
                   <DuctSurfaceArea>50.0</DuctSurfaceArea>
                 </Ducts>
                 <NumberofReturnRegisters>1</NumberofReturnRegisters>
@@ -409,7 +394,7 @@
             <SystemIdentifier id='WaterHeatingSystem1'/>
             <FuelType>electricity</FuelType>
             <WaterHeaterType>storage water heater</WaterHeaterType>
-            <Location>crawlspace - vented</Location>
+            <Location>crawlspace - conditioned</Location>
             <TankVolume>40.0</TankVolume>
             <FractionDHWLoadServed>1.0</FractionDHWLoadServed>
             <HeatingCapacity>18767.0</HeatingCapacity>

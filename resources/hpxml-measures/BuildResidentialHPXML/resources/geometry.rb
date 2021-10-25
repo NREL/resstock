@@ -501,7 +501,12 @@ class Geometry
     end
 
     # Foundation
-    if [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned, HPXML::FoundationTypeBasementConditioned, HPXML::FoundationTypeAmbient].include? foundation_type
+    if [HPXML::FoundationTypeCrawlspaceVented,
+        HPXML::FoundationTypeCrawlspaceUnvented,
+        HPXML::FoundationTypeCrawlspaceConditioned,
+        HPXML::FoundationTypeBasementUnconditioned,
+        HPXML::FoundationTypeBasementConditioned,
+        HPXML::FoundationTypeAmbient].include? foundation_type
 
       z = -foundation_height + foundation_offset
 
@@ -522,6 +527,8 @@ class Geometry
         foundation_space_name = HPXML::LocationCrawlspaceVented
       elsif foundation_type == HPXML::FoundationTypeCrawlspaceUnvented
         foundation_space_name = HPXML::LocationCrawlspaceUnvented
+      elsif foundation_type == HPXML::FoundationTypeCrawlspaceConditioned
+        foundation_space_name = HPXML::LocationCrawlspaceConditioned
       elsif foundation_type == HPXML::FoundationTypeBasementUnconditioned
         foundation_space_name = HPXML::LocationBasementUnconditioned
       elsif foundation_type == HPXML::FoundationTypeBasementConditioned
@@ -1620,10 +1627,6 @@ class Geometry
       runner.registerError('Starting model is not empty.')
       return false
     end
-    if foundation_type.downcase.include?('crawlspace') && ((foundation_height < 1.5) || (foundation_height > 5.0))
-      runner.registerError('The crawlspace height can be set between 1.5 and 5 ft.')
-      return false
-    end
     if (num_units == 1) && has_rear_units
       runner.registerError("Specified building as having rear units, but didn't specify enough units.")
       return false
@@ -1770,13 +1773,19 @@ class Geometry
       foundation_space.setYOrigin(0)
       foundation_space.setZOrigin(0)
 
-      if foundation_type == HPXML::FoundationTypeBasementConditioned
+      if [HPXML::FoundationTypeBasementConditioned,
+          HPXML::FoundationTypeCrawlspaceConditioned].include? foundation_type
+        if foundation_type == HPXML::FoundationTypeCrawlspaceConditioned
+          foundation_space_name = HPXML::LocationCrawlspaceConditioned
+        elsif foundation_type == HPXML::FoundationTypeBasementConditioned
+          foundation_space_name = HPXML::LocationBasementConditioned
+        end
         foundation_zone = OpenStudio::Model::ThermalZone.new(model)
-        foundation_space.setName(HPXML::FoundationTypeBasementConditioned)
-        foundation_zone.setName(HPXML::FoundationTypeBasementConditioned)
+        foundation_space.setName(foundation_type)
+        foundation_zone.setName(foundation_type)
         foundation_space.setThermalZone(foundation_zone)
         foundation_space_type = OpenStudio::Model::SpaceType.new(model)
-        foundation_space_type.setStandardsSpaceType(HPXML::LocationBasementConditioned)
+        foundation_space_type.setStandardsSpaceType(foundation_space_name)
         foundation_space.setSpaceType(foundation_space_type)
       end
 
@@ -1796,7 +1805,9 @@ class Geometry
       OpenStudio::Model.intersectSurfaces(spaces)
       OpenStudio::Model.matchSurfaces(spaces)
 
-      if [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include? foundation_type
+      if [HPXML::FoundationTypeCrawlspaceVented,
+          HPXML::FoundationTypeCrawlspaceUnvented,
+          HPXML::FoundationTypeBasementUnconditioned].include? foundation_type
         # create foundation zone
         foundation_zone = OpenStudio::Model::ThermalZone.new(model)
 
@@ -2082,10 +2093,6 @@ class Geometry
       runner.registerError('Starting model is not empty.')
       return false
     end
-    if foundation_type.downcase.include?('crawlspace') && ((foundation_height < 1.5) || (foundation_height > 5.0)) && level == 'Bottom'
-      runner.registerError('The crawlspace height can be set between 1.5 and 5 ft.')
-      return false
-    end
     if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
       runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
       corridor_position = 'Single Exterior (Front)'
@@ -2329,7 +2336,9 @@ class Geometry
       foundation_spaces << foundation_space
 
       foundation_spaces.each do |foundation_space| # (corridor and foundation)
-        next unless [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(foundation_type)
+        next unless [HPXML::FoundationTypeCrawlspaceVented,
+                     HPXML::FoundationTypeCrawlspaceUnvented,
+                     HPXML::FoundationTypeBasementUnconditioned].include?(foundation_type)
 
         # create foundation zone
         foundation_zone = OpenStudio::Model::ThermalZone.new(model)
@@ -2525,7 +2534,12 @@ class Geometry
         floor_vertices.each_with_index do |fv1, fidx|
           fv2 = floor_vertices[fidx - 1]
           # Wall within floor edge?
-          next unless is_point_between([wv1.x, wv1.y, wv1.z + wall_surface.space.get.zOrigin], [fv1.x, fv1.y, fv1.z + floor_surface.space.get.zOrigin], [fv2.x, fv2.y, fv2.z + floor_surface.space.get.zOrigin]) && is_point_between([wv2.x, wv2.y, wv2.z + wall_surface.space.get.zOrigin], [fv1.x, fv1.y, fv1.z + floor_surface.space.get.zOrigin], [fv2.x, fv2.y, fv2.z + floor_surface.space.get.zOrigin])
+          next unless (is_point_between([wv1.x, wv1.y, wv1.z + wall_surface.space.get.zOrigin],
+                                        [fv1.x, fv1.y, fv1.z + floor_surface.space.get.zOrigin],
+                                        [fv2.x, fv2.y, fv2.z + floor_surface.space.get.zOrigin]) \
+                    && is_point_between([wv2.x, wv2.y, wv2.z + wall_surface.space.get.zOrigin],
+                                        [fv1.x, fv1.y, fv1.z + floor_surface.space.get.zOrigin],
+                                        [fv2.x, fv2.y, fv2.z + floor_surface.space.get.zOrigin]))
 
           if not adjacent_wall_surfaces.include? wall_surface
             adjacent_wall_surfaces << wall_surface
