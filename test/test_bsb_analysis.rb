@@ -9,10 +9,10 @@ require 'zlib'
 
 class TesBuildStockBatch < MiniTest::Test
   def before_setup
-    @testing_baseline = 'project_testing/testing_baseline'
-    @national_baseline = 'project_national/national_baseline'
-    @testing_upgrades = 'project_testing/testing_upgrades'
-    @national_upgrades = 'project_national/national_upgrades'
+    @testing_baseline = 'projects/project_testing/testing_baseline'
+    @national_baseline = 'projects/project_national/national_baseline'
+    @testing_upgrades = 'projects/project_testing/testing_upgrades'
+    @national_upgrades = 'projects/project_national/national_upgrades'
   end
 
   def test_testing_baseline
