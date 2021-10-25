@@ -121,7 +121,7 @@ jobs:
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: bsb
+    needs: build
     steps:
       - name: Show environment
         run: |
@@ -145,22 +145,19 @@ jobs:
       - name: Download base samples and results
         uses: actions/download-artifact@v2
         with:
-          path: |
-            base
+          path: base
           name: base
 
       - name: Download feature samples
         uses: actions/download-artifact@v2
         with:
-          path: |
-            samples
+          path: samples
           name: samples
 
       - name: Download feature results
         uses: actions/download-artifact@v2
         with:
-          path: |
-            results
+          path: results
           name: results
 
       - name: Compare samples and results
@@ -193,7 +190,7 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: bsb
+    needs: build
     steps:
       - uses: actions/checkout@v2
         with:
@@ -202,15 +199,13 @@ jobs:
       - name: Download feature samples
         uses: actions/download-artifact@v2
         with:
-          path: |
-            samples
+          path: samples
           name: samples
 
       - name: Download feature results
         uses: actions/download-artifact@v2
         with:
-          path: |
-            results
+          path: results
           name: results
 
       - name: Commit latest results
