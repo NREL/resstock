@@ -176,7 +176,7 @@ class MoreCompare(BaseCompare):
 
 if __name__ == '__main__':
 
-  default_base_folder = 'test/test_samples_osw/base'
+  default_base_folder = 'test/test_samples_osw/baseline'
   default_feature_folder = 'test/test_samples_osw/results'
   default_export_folder = 'test/test_samples_osw/comparisons'
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]

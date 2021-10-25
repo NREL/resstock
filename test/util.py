@@ -3,7 +3,7 @@ import pandas as pd
 
 # BASELINE
 
-outdir = 'baseline/results'
+outdir = 'baseline'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
@@ -58,7 +58,7 @@ results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 # UPGRADES
 
-outdir = 'upgrades/results'
+outdir = 'upgrades'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
