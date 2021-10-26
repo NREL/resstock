@@ -2206,63 +2206,53 @@ class OSModel
     end
 
     # EMS Sensors: Infiltration, Mechanical Ventilation, Natural Ventilation, Whole House Fan
+    infil_sensors = []
+    natvent_sensors = []
+    whf_sensors = []
+    { Constants.ObjectNameInfiltration => infil_sensors,
+      Constants.ObjectNameNaturalVentilation => natvent_sensors,
+      Constants.ObjectNameWholeHouseFan => whf_sensors }.each do |prefix, array|
+      model.getSpaceInfiltrationDesignFlowRates.sort.each do |i|
+        next unless i.name.to_s.start_with? prefix
+        next unless i.space.get.thermalZone.get.name.to_s == living_zone.name.to_s
 
-    air_gain_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Infiltration Sensible Heat Gain Energy')
-    air_gain_sensor.setName('airflow_gain')
-    air_gain_sensor.setKeyName(living_zone.name.to_s)
+        { 'Infiltration Sensible Heat Gain Energy' => prefix.gsub(' ', '_') + '_' + 'gain',
+          'Infiltration Sensible Heat Loss Energy' => prefix.gsub(' ', '_') + '_' + 'loss' }.each do |var, name|
+          airflow_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
+          airflow_sensor.setName(name)
+          airflow_sensor.setKeyName(i.name.to_s)
+          array << airflow_sensor
+        end
+      end
+    end
 
-    air_loss_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Infiltration Sensible Heat Loss Energy')
-    air_loss_sensor.setName('airflow_loss')
-    air_loss_sensor.setKeyName(living_zone.name.to_s)
-
-    mechvent_sensors = []
+    mechvents_sensors = []
     model.getElectricEquipments.sort.each do |o|
       next unless o.name.to_s.start_with? Constants.ObjectNameMechanicalVentilation
 
+      mechvents_sensors << []
       { 'Electric Equipment Convective Heating Energy' => 'mv_conv',
         'Electric Equipment Radiant Heating Energy' => 'mv_rad' }.each do |var, name|
         mechvent_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
         mechvent_sensor.setName(name)
         mechvent_sensor.setKeyName(o.name.to_s)
-        mechvent_sensors << mechvent_sensor
+        mechvents_sensors[-1] << mechvent_sensor
         objects_already_processed << o
       end
     end
     model.getOtherEquipments.sort.each do |o|
       next unless o.name.to_s.start_with? Constants.ObjectNameMechanicalVentilationHouseFan
 
+      mechvents_sensors << []
       { 'Other Equipment Convective Heating Energy' => 'mv_conv',
         'Other Equipment Radiant Heating Energy' => 'mv_rad' }.each do |var, name|
         mechvent_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
         mechvent_sensor.setName(name)
         mechvent_sensor.setKeyName(o.name.to_s)
-        mechvent_sensors << mechvent_sensor
+        mechvents_sensors[-1] << mechvent_sensor
         objects_already_processed << o
       end
     end
-
-    infil_flow_actuators = []
-    natvent_flow_actuators = []
-    whf_flow_actuators = []
-
-    model.getEnergyManagementSystemActuators.each do |actuator|
-      next unless (actuator.actuatedComponentType == 'Zone Infiltration') && (actuator.actuatedComponentControlType == 'Air Exchange Flow Rate')
-
-      if actuator.name.to_s.start_with? Constants.ObjectNameInfiltration.gsub(' ', '_')
-        infil_flow_actuators << actuator
-      elsif actuator.name.to_s.start_with? Constants.ObjectNameNaturalVentilation.gsub(' ', '_')
-        natvent_flow_actuators << actuator
-      elsif actuator.name.to_s.start_with? Constants.ObjectNameWholeHouseFan.gsub(' ', '_')
-        whf_flow_actuators << actuator
-      end
-    end
-    if (infil_flow_actuators.size != 1) || (natvent_flow_actuators.size != 1) || (whf_flow_actuators.size != 1)
-      fail 'Could not find actuator for component loads.'
-    end
-
-    infil_flow_actuator = infil_flow_actuators[0]
-    natvent_flow_actuator = natvent_flow_actuators[0]
-    whf_flow_actuator = whf_flow_actuators[0]
 
     # EMS Sensors: Ducts
 
@@ -2437,28 +2427,30 @@ class OSModel
     end
 
     # EMS program: Infiltration, Natural Ventilation, Mechanical Ventilation, Ducts
-    program.addLine("Set hr_airflow_rate = #{infil_flow_actuator.name} + #{natvent_flow_actuator.name} + #{whf_flow_actuator.name}")
-    program.addLine('If hr_airflow_rate > 0')
-    program.addLine("  Set hr_infil = (#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{infil_flow_actuator.name} / hr_airflow_rate") # Airflow heat attributed to infiltration
-    program.addLine("  Set hr_natvent = (#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{natvent_flow_actuator.name} / hr_airflow_rate") # Airflow heat attributed to natural ventilation
-    program.addLine("  Set hr_whf = (#{air_loss_sensor.name} - #{air_gain_sensor.name}) * #{whf_flow_actuator.name} / hr_airflow_rate") # Airflow heat attributed to whole house fan
-    program.addLine('Else')
-    program.addLine('  Set hr_infil = 0')
-    program.addLine('  Set hr_natvent = 0')
-    program.addLine('  Set hr_whf = 0')
-    program.addLine('  Set hr_mechvent = 0')
-    program.addLine('EndIf')
-    program.addLine('Set hr_mechvent = 0')
-    mechvent_sensors.each do |sensor|
-      program.addLine("Set hr_mechvent = hr_mechvent - #{sensor.name}")
-    end
-    program.addLine('Set hr_ducts = 0')
-    ducts_sensors.each do |duct_sensors|
-      s = 'Set hr_ducts = hr_ducts'
-      duct_sensors.each do |sensor|
-        s += " - #{sensor.name}"
+    { infil_sensors => 'infil',
+      natvent_sensors => 'natvent',
+      whf_sensors => 'whf' }.each do |sensors, loadtype|
+      program.addLine("Set hr_#{loadtype} = 0")
+      s = "Set hr_#{loadtype} = hr_#{loadtype}"
+      sensors.each do |sensor|
+        if sensor.name.to_s.include? 'gain'
+          s += " - #{sensor.name}"
+        elsif sensor.name.to_s.include? 'loss'
+          s += " + #{sensor.name}"
+        end
       end
-      program.addLine(s) if duct_sensors.size > 0
+      program.addLine(s) if sensors.size > 0
+    end
+    { mechvents_sensors => 'mechvent',
+      ducts_sensors => 'ducts' }.each do |all_sensors, loadtype|
+      program.addLine("Set hr_#{loadtype} = 0")
+      all_sensors.each do |sensors|
+        s = "Set hr_#{loadtype} = hr_#{loadtype}"
+        sensors.each do |sensor|
+          s += " - #{sensor.name}"
+        end
+        program.addLine(s) if sensors.size > 0
+      end
     end
     if (not ducts_mix_loss_sensor.nil?) && (not ducts_mix_gain_sensor.nil?)
       program.addLine("Set hr_ducts = hr_ducts + (#{ducts_mix_loss_sensor.name} - #{ducts_mix_gain_sensor.name})")
@@ -2605,7 +2597,7 @@ class OSModel
     if space_values[:indoor_weight] > 0
       sensor_ia = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Air Temperature')
       sensor_ia.setName('cond_zone_temp')
-      sensor_ia.setKeyName(spaces[HPXML::LocationLivingSpace].name.to_s)
+      sensor_ia.setKeyName(spaces[HPXML::LocationLivingSpace].thermalZone.get.name.to_s)
     end
 
     if space_values[:outdoor_weight] > 0
