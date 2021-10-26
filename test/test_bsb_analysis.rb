@@ -32,8 +32,8 @@ class TesBuildStockBatch < MiniTest::Test
     tar_extract.close
 
     assert(up00.include?('data_point_out.json'))
-    assert(up00.include?('existing.osw'))
-    assert(!up00.include?('upgraded.osw'))
+    assert(up00.include?('existing.xml'))
+    assert(!up00.include?('upgraded.xml'))
     assert(up00.include?('results_timeseries.csv'))
     assert(!up00.include?('in.idf'))
     assert(!up00.include?('schedules.csv'))
@@ -59,8 +59,8 @@ class TesBuildStockBatch < MiniTest::Test
     tar_extract.close
 
     assert(up00.include?('data_point_out.json'))
-    assert(up00.include?('existing.osw'))
-    assert(!up00.include?('upgraded.osw'))
+    assert(up00.include?('existing.xml'))
+    assert(!up00.include?('upgraded.xml'))
     assert(up00.include?('results_timeseries.csv'))
     assert(!up00.include?('in.idf'))
     assert(!up00.include?('schedules.csv'))
@@ -87,8 +87,8 @@ class TesBuildStockBatch < MiniTest::Test
     tar_extract.close
 
     assert(up01.include?('data_point_out.json'))
-    assert(up01.include?('existing.osw'))
-    assert(up01.include?('upgraded.osw'))
+    assert(up01.include?('existing.xml'))
+    assert(up01.include?('upgraded.xml'))
     assert(up01.include?('results_timeseries.csv'))
     assert(!up01.include?('in.idf'))
     assert(!up01.include?('schedules.csv'))
@@ -115,8 +115,8 @@ class TesBuildStockBatch < MiniTest::Test
     tar_extract.close
 
     assert(up01.include?('data_point_out.json'))
-    assert(up01.include?('existing.osw'))
-    assert(up01.include?('upgraded.osw'))
+    assert(up01.include?('existing.xml'))
+    assert(up01.include?('upgraded.xml'))
     assert(up01.include?('results_timeseries.csv'))
     assert(!up01.include?('in.idf'))
     assert(!up01.include?('schedules.csv'))
