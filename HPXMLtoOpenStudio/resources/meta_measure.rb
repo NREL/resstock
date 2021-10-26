@@ -67,7 +67,6 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
   success = report_ft_errors_warnings(forward_translator, rundir)
 
   # Remove objects
-  workspace.getObjectByTypeAndName('LifeCycleCost:NonrecurringCost'.to_IddObjectType, 'Default Cost').get.remove # FUTURE: Can remove this code if https://github.com/NREL/OpenStudio/issues/4404 is fixed
   remove_objects.each do |remove_object|
     workspace.getObjectByTypeAndName(remove_object[0].to_IddObjectType, remove_object[1]).get.remove
   end
@@ -539,17 +538,7 @@ def get_argument_values(runner, arguments, user_arguments)
       when 'Choice'.to_OSArgumentType
         args[argument.name] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
       when 'Boolean'.to_OSArgumentType
-        # TODO: Update this if https://github.com/NREL/OpenStudio/issues/4390 is addressed
-        args[argument.name] = runner.getOptionalStringArgumentValue(argument.name, user_arguments)
-        if args[argument.name].is_initialized
-          if args[argument.name].get.downcase == 'true'
-            args[argument.name] = OpenStudio::OptionalBool.new(true)
-          elsif args[argument.name].get.downcase == 'false'
-            args[argument.name] = OpenStudio::OptionalBool.new(false)
-          else
-            fail 'Unexpected value'
-          end
-        end
+        args[argument.name] = runner.getOptionalBoolArgumentValue(argument.name, user_arguments)
       when 'Double'.to_OSArgumentType
         args[argument.name] = runner.getOptionalDoubleArgumentValue(argument.name, user_arguments)
       when 'Integer'.to_OSArgumentType
