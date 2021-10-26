@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
-require 'minitest/autorun'
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..')
-load 'Rakefile'
 require 'rubygems/package'
 require 'zlib'
 
