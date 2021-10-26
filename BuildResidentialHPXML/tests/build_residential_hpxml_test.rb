@@ -52,7 +52,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-sfa-conditioned-crawlspace.xml' => 'base-sfa.xml',
       'extra-sfa-unconditioned-basement.xml' => 'base-sfa.xml',
 
-      'extra-sfa-interior-corridor.xml' => 'base-sfa.xml',
+      'extra-sfa-rear-units.xml' => 'base-sfa.xml',
       'extra-sfa-exterior-corridor.xml' => 'base-sfa.xml',
 
       'extra-sfa-slab-middle.xml' => 'extra-sfa-slab.xml',
@@ -68,7 +68,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-mf-vented-crawlspace.xml' => 'base-mf.xml',
       'extra-mf-unvented-crawlspace.xml' => 'base-mf.xml',
 
-      'extra-mf-interior-corridor.xml' => 'base-mf.xml',
+      'extra-mf-rear-units.xml' => 'base-mf.xml',
       'extra-mf-exterior-corridor.xml' => 'base-mf.xml',
 
       'extra-mf-slab-left-bottom.xml' => 'extra-mf-slab.xml',
@@ -99,36 +99,36 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-mf-unvented-crawlspace-right-middle.xml' => 'extra-mf-unvented-crawlspace.xml',
       'extra-mf-unvented-crawlspace-right-top.xml' => 'extra-mf-unvented-crawlspace.xml',
 
-      'extra-mf-slab-interior-corridor.xml' => 'extra-mf-slab.xml',
-      'extra-mf-vented-crawlspace-interior-corridor.xml' => 'extra-mf-vented-crawlspace.xml',
-      'extra-mf-unvented-crawlspace-interior-corridor.xml' => 'extra-mf-unvented-crawlspace.xml',
-      'extra-mf-slab-left-bottom-interior-corridor.xml' => 'extra-mf-slab-left-bottom.xml',
-      'extra-mf-slab-left-middle-interior-corridor.xml' => 'extra-mf-slab-left-middle.xml',
-      'extra-mf-slab-left-top-interior-corridor.xml' => 'extra-mf-slab-left-top.xml',
-      'extra-mf-slab-middle-bottom-interior-corridor.xml' => 'extra-mf-slab-middle-bottom.xml',
-      'extra-mf-slab-middle-middle-interior-corridor.xml' => 'extra-mf-slab-middle-middle.xml',
-      'extra-mf-slab-middle-top-interior-corridor.xml' => 'extra-mf-slab-middle-top.xml',
-      'extra-mf-slab-right-bottom-interior-corridor.xml' => 'extra-mf-slab-right-bottom.xml',
-      'extra-mf-slab-right-middle-interior-corridor.xml' => 'extra-mf-slab-right-middle.xml',
-      'extra-mf-slab-right-top-interior-corridor.xml' => 'extra-mf-slab-right-top.xml',
-      'extra-mf-vented-crawlspace-left-bottom-interior-corridor.xml' => 'extra-mf-vented-crawlspace-left-bottom.xml',
-      'extra-mf-vented-crawlspace-left-middle-interior-corridor.xml' => 'extra-mf-vented-crawlspace-left-middle.xml',
-      'extra-mf-vented-crawlspace-left-top-interior-corridor.xml' => 'extra-mf-vented-crawlspace-left-top.xml',
-      'extra-mf-vented-crawlspace-middle-bottom-interior-corridor.xml' => 'extra-mf-vented-crawlspace-middle-bottom.xml',
-      'extra-mf-vented-crawlspace-middle-middle-interior-corridor.xml' => 'extra-mf-vented-crawlspace-middle-middle.xml',
-      'extra-mf-vented-crawlspace-middle-top-interior-corridor.xml' => 'extra-mf-vented-crawlspace-middle-top.xml',
-      'extra-mf-vented-crawlspace-right-bottom-interior-corridor.xml' => 'extra-mf-vented-crawlspace-right-bottom.xml',
-      'extra-mf-vented-crawlspace-right-middle-interior-corridor.xml' => 'extra-mf-vented-crawlspace-right-middle.xml',
-      'extra-mf-vented-crawlspace-right-top-interior-corridor.xml' => 'extra-mf-vented-crawlspace-right-top.xml',
-      'extra-mf-unvented-crawlspace-left-bottom-interior-corridor.xml' => 'extra-mf-unvented-crawlspace-left-bottom.xml',
-      'extra-mf-unvented-crawlspace-left-middle-interior-corridor.xml' => 'extra-mf-unvented-crawlspace-left-middle.xml',
-      'extra-mf-unvented-crawlspace-left-top-interior-corridor.xml' => 'extra-mf-unvented-crawlspace-left-top.xml',
-      'extra-mf-unvented-crawlspace-middle-bottom-interior-corridor.xml' => 'extra-mf-unvented-crawlspace-middle-bottom.xml',
-      'extra-mf-unvented-crawlspace-middle-middle-interior-corridor.xml' => 'extra-mf-unvented-crawlspace-middle-middle.xml',
-      'extra-mf-unvented-crawlspace-middle-top-interior-corridor.xml' => 'extra-mf-unvented-crawlspace-middle-top.xml',
-      'extra-mf-unvented-crawlspace-right-bottom-interior-corridor.xml' => 'extra-mf-unvented-crawlspace-right-bottom.xml',
-      'extra-mf-unvented-crawlspace-right-middle-interior-corridor.xml' => 'extra-mf-unvented-crawlspace-right-middle.xml',
-      'extra-mf-unvented-crawlspace-right-top-interior-corridor.xml' => 'extra-mf-unvented-crawlspace-right-top.xml',
+      'extra-mf-slab-rear-units.xml' => 'extra-mf-slab.xml',
+      'extra-mf-vented-crawlspace-rear-units.xml' => 'extra-mf-vented-crawlspace.xml',
+      'extra-mf-unvented-crawlspace-rear-units.xml' => 'extra-mf-unvented-crawlspace.xml',
+      'extra-mf-slab-left-bottom-rear-units.xml' => 'extra-mf-slab-left-bottom.xml',
+      'extra-mf-slab-left-middle-rear-units.xml' => 'extra-mf-slab-left-middle.xml',
+      'extra-mf-slab-left-top-rear-units.xml' => 'extra-mf-slab-left-top.xml',
+      'extra-mf-slab-middle-bottom-rear-units.xml' => 'extra-mf-slab-middle-bottom.xml',
+      'extra-mf-slab-middle-middle-rear-units.xml' => 'extra-mf-slab-middle-middle.xml',
+      'extra-mf-slab-middle-top-rear-units.xml' => 'extra-mf-slab-middle-top.xml',
+      'extra-mf-slab-right-bottom-rear-units.xml' => 'extra-mf-slab-right-bottom.xml',
+      'extra-mf-slab-right-middle-rear-units.xml' => 'extra-mf-slab-right-middle.xml',
+      'extra-mf-slab-right-top-rear-units.xml' => 'extra-mf-slab-right-top.xml',
+      'extra-mf-vented-crawlspace-left-bottom-rear-units.xml' => 'extra-mf-vented-crawlspace-left-bottom.xml',
+      'extra-mf-vented-crawlspace-left-middle-rear-units.xml' => 'extra-mf-vented-crawlspace-left-middle.xml',
+      'extra-mf-vented-crawlspace-left-top-rear-units.xml' => 'extra-mf-vented-crawlspace-left-top.xml',
+      'extra-mf-vented-crawlspace-middle-bottom-rear-units.xml' => 'extra-mf-vented-crawlspace-middle-bottom.xml',
+      'extra-mf-vented-crawlspace-middle-middle-rear-units.xml' => 'extra-mf-vented-crawlspace-middle-middle.xml',
+      'extra-mf-vented-crawlspace-middle-top-rear-units.xml' => 'extra-mf-vented-crawlspace-middle-top.xml',
+      'extra-mf-vented-crawlspace-right-bottom-rear-units.xml' => 'extra-mf-vented-crawlspace-right-bottom.xml',
+      'extra-mf-vented-crawlspace-right-middle-rear-units.xml' => 'extra-mf-vented-crawlspace-right-middle.xml',
+      'extra-mf-vented-crawlspace-right-top-rear-units.xml' => 'extra-mf-vented-crawlspace-right-top.xml',
+      'extra-mf-unvented-crawlspace-left-bottom-rear-units.xml' => 'extra-mf-unvented-crawlspace-left-bottom.xml',
+      'extra-mf-unvented-crawlspace-left-middle-rear-units.xml' => 'extra-mf-unvented-crawlspace-left-middle.xml',
+      'extra-mf-unvented-crawlspace-left-top-rear-units.xml' => 'extra-mf-unvented-crawlspace-left-top.xml',
+      'extra-mf-unvented-crawlspace-middle-bottom-rear-units.xml' => 'extra-mf-unvented-crawlspace-middle-bottom.xml',
+      'extra-mf-unvented-crawlspace-middle-middle-rear-units.xml' => 'extra-mf-unvented-crawlspace-middle-middle.xml',
+      'extra-mf-unvented-crawlspace-middle-top-rear-units.xml' => 'extra-mf-unvented-crawlspace-middle-top.xml',
+      'extra-mf-unvented-crawlspace-right-bottom-rear-units.xml' => 'extra-mf-unvented-crawlspace-right-bottom.xml',
+      'extra-mf-unvented-crawlspace-right-middle-rear-units.xml' => 'extra-mf-unvented-crawlspace-right-middle.xml',
+      'extra-mf-unvented-crawlspace-right-top-rear-units.xml' => 'extra-mf-unvented-crawlspace-right-top.xml',
 
       'error-heating-system-and-heat-pump.xml' => 'base-sfd.xml',
       'error-cooling-system-and-heat-pump.xml' => 'base-sfd.xml',
@@ -791,7 +791,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['floor_over_foundation_assembly_r'] = 18.7
       args['foundation_wall_insulation_r'] = 0
       args['foundation_wall_insulation_distance_to_bottom'] = 0.0
-    elsif ['extra-sfa-interior-corridor.xml'].include? hpxml_file
+    elsif ['extra-sfa-rear-units.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 4
     elsif ['extra-sfa-exterior-corridor.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 4
@@ -824,7 +824,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_foundation_height'] = 4.0
       args['floor_over_foundation_assembly_r'] = 18.7
       args['foundation_wall_insulation_distance_to_bottom'] = 4.0
-    elsif ['extra-mf-interior-corridor.xml'].include? hpxml_file
+    elsif ['extra-mf-rear-units.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 18
     elsif ['extra-mf-exterior-corridor.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 18
@@ -879,37 +879,37 @@ class BuildResidentialHPXMLTest < MiniTest::Test
            'extra-mf-unvented-crawlspace-right-top.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
       args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
-    elsif ['extra-mf-slab-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-interior-corridor.xml',
-           'extra-mf-slab-left-bottom-interior-corridor.xml',
-           'extra-mf-slab-left-middle-interior-corridor.xml',
-           'extra-mf-slab-left-top-interior-corridor.xml',
-           'extra-mf-slab-middle-bottom-interior-corridor.xml',
-           'extra-mf-slab-middle-middle-interior-corridor.xml',
-           'extra-mf-slab-middle-top-interior-corridor.xml',
-           'extra-mf-slab-right-bottom-interior-corridor.xml',
-           'extra-mf-slab-right-middle-interior-corridor.xml',
-           'extra-mf-slab-right-top-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-left-bottom-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-left-middle-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-left-top-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-middle-bottom-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-middle-middle-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-middle-top-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-right-bottom-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-right-middle-interior-corridor.xml',
-           'extra-mf-vented-crawlspace-right-top-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-left-bottom-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-left-middle-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-left-top-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-middle-bottom-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-middle-middle-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-middle-top-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-right-bottom-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-right-middle-interior-corridor.xml',
-           'extra-mf-unvented-crawlspace-right-top-interior-corridor.xml'].include? hpxml_file
-      ## FIXME: remove these files?
+    elsif ['extra-mf-slab-rear-units.xml',
+           'extra-mf-vented-crawlspace-rear-units.xml',
+           'extra-mf-unvented-crawlspace-rear-units.xml',
+           'extra-mf-slab-left-bottom-rear-units.xml',
+           'extra-mf-slab-left-middle-rear-units.xml',
+           'extra-mf-slab-left-top-rear-units.xml',
+           'extra-mf-slab-middle-bottom-rear-units.xml',
+           'extra-mf-slab-middle-middle-rear-units.xml',
+           'extra-mf-slab-middle-top-rear-units.xml',
+           'extra-mf-slab-right-bottom-rear-units.xml',
+           'extra-mf-slab-right-middle-rear-units.xml',
+           'extra-mf-slab-right-top-rear-units.xml',
+           'extra-mf-vented-crawlspace-left-bottom-rear-units.xml',
+           'extra-mf-vented-crawlspace-left-middle-rear-units.xml',
+           'extra-mf-vented-crawlspace-left-top-rear-units.xml',
+           'extra-mf-vented-crawlspace-middle-bottom-rear-units.xml',
+           'extra-mf-vented-crawlspace-middle-middle-rear-units.xml',
+           'extra-mf-vented-crawlspace-middle-top-rear-units.xml',
+           'extra-mf-vented-crawlspace-right-bottom-rear-units.xml',
+           'extra-mf-vented-crawlspace-right-middle-rear-units.xml',
+           'extra-mf-vented-crawlspace-right-top-rear-units.xml',
+           'extra-mf-unvented-crawlspace-left-bottom-rear-units.xml',
+           'extra-mf-unvented-crawlspace-left-middle-rear-units.xml',
+           'extra-mf-unvented-crawlspace-left-top-rear-units.xml',
+           'extra-mf-unvented-crawlspace-middle-bottom-rear-units.xml',
+           'extra-mf-unvented-crawlspace-middle-middle-rear-units.xml',
+           'extra-mf-unvented-crawlspace-middle-top-rear-units.xml',
+           'extra-mf-unvented-crawlspace-right-bottom-rear-units.xml',
+           'extra-mf-unvented-crawlspace-right-middle-rear-units.xml',
+           'extra-mf-unvented-crawlspace-right-top-rear-units.xml'].include? hpxml_file
+      args['geometry_unit_front_wall_is_adiabatic'] = true
     end
 
     # Error
