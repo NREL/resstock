@@ -525,6 +525,22 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['heat_pump_charge_defect_ratio'] = args['heat_pump_frac_manufacturer_charge'].get - 1.0
     end
 
+    # Error check geometry inputs
+    corridor_width = args['geometry_corridor_width']
+    corridor_position = args['geometry_corridor_position'].to_s
+
+    if (corridor_width == 0) && (corridor_position != 'None')
+      corridor_position = 'None'
+    end
+    if corridor_position == 'None'
+      corridor_width = 0
+    end
+    if corridor_width < 0
+      runner.registerError('Invalid corridor width entered.')
+      return false
+    end
+
+
     # Adiabatic Walls
     args['geometry_unit_left_wall_is_adiabatic'] = false
     args['geometry_unit_right_wall_is_adiabatic'] = false
@@ -535,32 +551,52 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     n_floors = Float(args['geometry_num_floors_above_grade'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       n_units = Float(args['geometry_building_num_units'])
-      aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
       horiz_location = args['geometry_unit_horizontal_location'].to_s
-      corridor_position = args['geometry_corridor_position'].to_s
-      exterior_entry = (corridor_position == 'Double Exterior' || corridor_position == 'None') # door opens to outside (front has outdoor boundary)
-      interior_entry = corridor_position == 'Double-Loaded Interior' # door opens to interior corridor (front is adiabatic)
-
+      aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
+      
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
-        if n_units_per_floor >= 4 && exterior_entry
+        if n_units_per_floor >= 4 && (corridor_position == 'Double Exterior' || corridor_position == 'None')
           has_rear_units = true
           args['geometry_unit_back_wall_is_adiabatic'] = true
-        elsif n_units_per_floor >= 4 && interior_entry
+        elsif n_units_per_floor >= 4 && (corridor_position == 'Double-Loaded Interior')
           has_rear_units = true
-          args['geometry_unit_front_wall_is_adiabatic'] = true
-        elsif (n_units_per_floor == 2) && (horiz_location == 'None') && exterior_entry
+          args['geometry_unit_front_wall_is_adiabatic'] = true    
+        elsif (n_units_per_floor == 2) && (horiz_location == 'None') && (corridor_position == 'Double Exterior' || corridor_position == 'None')
           has_rear_units = true
           args['geometry_unit_back_wall_is_adiabatic'] = true
-        elsif (n_units_per_floor == 2) && (horiz_location == 'None') && interior_entry
+        elsif (n_units_per_floor == 2) && (horiz_location == 'None') && (corridor_position == 'Double-Loaded Interior')
           has_rear_units = true
           args['geometry_unit_front_wall_is_adiabatic'] = true
-        else
+        elsif corridor_position == 'Single Exterior (Front)'
           has_rear_units = false
           args['geometry_unit_front_wall_is_adiabatic'] = false
-          if args['geometry_corridor_position'] != 'None'
-            args['geometry_corridor_position'] = 'Single Exterior (Front)'
-          end
+        else # < 2 units/floor, not single exterior
+          has_rear_units = false
+          args['geometry_unit_front_wall_is_adiabatic'] = false
+        end
+
+        # Error check MF geometry inputs
+        if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
+          runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
+          corridor_position = 'Single Exterior (Front)'
+        end
+        if has_rear_units
+          unit_width = n_units_per_floor/2
+        else
+          unit_width = n_units_per_floor
+        end
+        if (unit_width < 2) && (horiz_location != 'None')
+          runner.registerWarning("No #{horiz_location} location exists, setting horiz_location to 'None'")
+          horiz_location = 'None'
+        end
+        if (unit_width > 1) && (horiz_location == 'None')
+          runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
+          return false
+        end
+        if (unit_width <= 2) && (horz_location == 'Middle')
+          runner.registerError('Invalid horizontal location entered, no middle location exists.')
+          return false
         end
 
         # Model exterior corridors as overhangs

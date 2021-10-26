@@ -2051,9 +2051,18 @@ class Geometry
       rim_joist_height = 0.0
     end
 
+    # Error checking
     if model.getSpaces.size > 0
       runner.registerError('Starting model is not empty.')
       return false
+    end
+    if aspect_ratio < 0
+      runner.registerError('Invalid aspect ratio entered.')
+      return false
+    end
+    if (balcony_depth > 0) && (inset_width * inset_depth == 0)
+      runner.registerWarning('Specified a balcony, but there is no inset.')
+      balcony_depth = 0
     end
 
     if attic_type == HPXML::AtticTypeBelowApartment
@@ -2081,7 +2090,6 @@ class Geometry
     story_hash = { 'Bottom' => 0, 'Middle' => 1, 'Top' => top } # FIXME: is this right?
     z = average_ceiling_height * story_hash[level]
 
-    foundation_corr_polygon = nil
     foundation_front_polygon = nil
     foundation_back_polygon = nil
 
@@ -2209,7 +2217,7 @@ class Geometry
       foundation_space_front << foundation_space
       foundation_spaces << foundation_space
 
-      foundation_spaces.each do |foundation_space| # (corridor and foundation)
+      foundation_spaces.each do |foundation_space|
         next unless [HPXML::FoundationTypeCrawlspaceVented,
                      HPXML::FoundationTypeCrawlspaceUnvented,
                      HPXML::FoundationTypeBasementUnconditioned].include?(foundation_type)
