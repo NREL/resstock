@@ -22,7 +22,6 @@ def run_workflow(yml, measures_only, debug)
 
   measure_dir_names = { 'build_existing_model' => 'BuildExistingModel',
                         'simulation_output_report' => 'ReportSimulationOutput',
-                        'timeseries_csv_export' => 'TimeseriesCSVExport',
                         'server_directory_cleanup' => 'ServerDirectoryCleanup' }
 
   steps = []
