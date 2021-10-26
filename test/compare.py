@@ -22,7 +22,8 @@ cols_to_ignore = ['applicable',
                   'output_format',
                   'timeseries_frequency',
                   'completed_status',
-                  'color_index']
+                  'color_index',
+                  'upgrade_name']
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
@@ -186,7 +187,7 @@ class MoreCompare(BaseCompare):
 
 if __name__ == '__main__':
 
-  default_base_folder = 'test/test_samples_osw/base'
+  default_base_folder = 'test/test_samples_osw/baseline'
   default_feature_folder = 'test/test_samples_osw/results'
   default_export_folder = 'test/test_samples_osw/comparisons'
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]
