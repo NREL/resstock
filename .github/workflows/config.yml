@@ -65,16 +65,10 @@ jobs:
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@restructure-v3
           
-          echo "project_testing/testing_baseline.yml"
           buildstock_docker project_testing/testing_baseline.yml
-          
-          echo "project_national/national_baseline.yml"
           buildstock_docker project_national/national_baseline.yml
           
-          echo "project_testing/testing_upgrades.yml"
           buildstock_docker project_testing/testing_upgrades.yml
-          
-          echo "project_national/national_upgrades.yml"
           buildstock_docker project_national/national_upgrades.yml
 
       - name: Process results

@@ -1616,26 +1616,19 @@ class OSModel
       end
 
       sys_id = cooling_system.id
-      if [HPXML::HVACTypeCentralAirConditioner].include? cooling_system.cooling_system_type
+      if [HPXML::HVACTypeCentralAirConditioner,
+          HPXML::HVACTypeRoomAirConditioner,
+          HPXML::HVACTypeMiniSplitAirConditioner,
+          HPXML::HVACTypePTAC].include? cooling_system.cooling_system_type
 
-        airloop_map[sys_id] = HVAC.apply_central_air_conditioner_furnace(model, runner, cooling_system, heating_system,
-                                                                         sequential_cool_load_fracs, sequential_heat_load_fracs,
-                                                                         living_zone)
-
-      elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system.cooling_system_type
-
-        HVAC.apply_room_air_conditioner(model, runner, cooling_system,
-                                        sequential_cool_load_fracs, living_zone)
+        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, cooling_system, heating_system,
+                                                                 sequential_cool_load_fracs, sequential_heat_load_fracs,
+                                                                 living_zone)
 
       elsif [HPXML::HVACTypeEvaporativeCooler].include? cooling_system.cooling_system_type
 
         airloop_map[sys_id] = HVAC.apply_evaporative_cooler(model, runner, cooling_system,
                                                             sequential_cool_load_fracs, living_zone)
-
-      elsif [HPXML::HVACTypeMiniSplitAirConditioner].include? cooling_system.cooling_system_type
-
-        airloop_map[sys_id] = HVAC.apply_mini_split_air_conditioner(model, runner, cooling_system,
-                                                                    sequential_cool_load_fracs, living_zone)
       end
     end
   end
@@ -1655,17 +1648,20 @@ class OSModel
       if (heating_system.heating_system_type == HPXML::HVACTypeFurnace) && (not cooling_system.nil?)
         next # Already processed combined AC+furnace
       end
+      if (heating_system.heating_system_type == HPXML::HVACTypePTACHeating) && (not cooling_system.nil?)
+        fail 'Unhandled ducted PTAC/PTHP system.'
+      end
 
       # Calculate heating sequential load fractions
       sequential_heat_load_fracs = HVAC.calc_sequential_load_fractions(heating_system.fraction_heat_load_served, @remaining_heat_load_frac, @heating_days)
       @remaining_heat_load_frac -= heating_system.fraction_heat_load_served
 
       sys_id = heating_system.id
-      if [HPXML::HVACTypeFurnace].include? heating_system.heating_system_type
+      if [HPXML::HVACTypeFurnace, HPXML::HVACTypePTACHeating].include? heating_system.heating_system_type
 
-        airloop_map[sys_id] = HVAC.apply_central_air_conditioner_furnace(model, runner, nil, heating_system,
-                                                                         [0], sequential_heat_load_fracs,
-                                                                         living_zone)
+        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, nil, heating_system,
+                                                                 [0], sequential_heat_load_fracs,
+                                                                 living_zone)
 
       elsif [HPXML::HVACTypeBoiler].include? heating_system.heating_system_type
 
@@ -1716,18 +1712,12 @@ class OSModel
                                                                      sequential_heat_load_fracs, sequential_cool_load_fracs,
                                                                      living_zone)
 
-      elsif [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump.heat_pump_type
-
-        airloop_map[sys_id] = HVAC.apply_central_air_to_air_heat_pump(model, runner, heat_pump,
-                                                                      sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                                      living_zone)
-
-      elsif [HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump.heat_pump_type
-
-        airloop_map[sys_id] = HVAC.apply_mini_split_heat_pump(model, runner, heat_pump,
-                                                              sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                                              living_zone)
-
+      elsif [HPXML::HVACTypeHeatPumpAirToAir,
+             HPXML::HVACTypeHeatPumpMiniSplit,
+             HPXML::HVACTypeHeatPumpPTHP].include? heat_pump.heat_pump_type
+        airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, heat_pump, heat_pump,
+                                                                 sequential_cool_load_fracs, sequential_heat_load_fracs,
+                                                                 living_zone)
       elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? heat_pump.heat_pump_type
 
         airloop_map[sys_id] = HVAC.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,

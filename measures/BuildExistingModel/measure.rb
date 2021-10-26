@@ -234,8 +234,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Get software program used and version
-    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = software_program_used
-    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = software_program_version
+    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = Version.software_program_used
+    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version.software_program_version
 
     # Get registered values and pass them to BuildResidentialHPXML
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args['simulation_control_timestep'].get if args['simulation_control_timestep'].is_initialized

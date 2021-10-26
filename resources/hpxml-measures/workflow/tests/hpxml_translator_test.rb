@@ -607,7 +607,7 @@ class HPXMLTest < MiniTest::Test
         next if err_line.include? 'Enthalpy out of range (PsyTsatFnHPb)'
       end
       # HP defrost curves
-      if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? hp.heat_pump_type }.size > 0
+      if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP].include? hp.heat_pump_type }.size > 0
         next if err_line.include?('GetDXCoils: Coil:Heating:DX') && err_line.include?('curve values')
       end
       if hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeEvaporativeCooler }.size > 0

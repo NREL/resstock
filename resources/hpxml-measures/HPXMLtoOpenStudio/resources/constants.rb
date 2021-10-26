@@ -227,6 +227,10 @@ class Constants
     return 'furnace'
   end
 
+  def self.ObjectNamePTACHeating
+    return 'ptac heating'
+  end
+
   def self.ObjectNameFurniture
     return 'furniture'
   end
@@ -301,6 +305,14 @@ class Constants
 
   def self.ObjectNameMiniSplitHeatPump
     return 'mini split heat pump'
+  end
+
+  def self.ObjectNamePTHP
+    return 'packaged terminal heat pump'
+  end
+
+  def self.ObjectNamePTAC
+    return 'packaged terminal air conditioner'
   end
 
   def self.ObjectNameMiscGrill

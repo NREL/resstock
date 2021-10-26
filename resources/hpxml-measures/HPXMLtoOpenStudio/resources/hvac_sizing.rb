@@ -1104,7 +1104,8 @@ class HVACSizing
     if [HPXML::HVACTypeHeatPumpAirToAir,
         HPXML::HVACTypeHeatPumpMiniSplit,
         HPXML::HVACTypeHeatPumpGroundToAir,
-        HPXML::HVACTypeHeatPumpWaterLoopToAir].include? hvac.HeatType
+        HPXML::HVACTypeHeatPumpWaterLoopToAir,
+        HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType
       hvac.SupplyAirTemp = 105.0 # F
     else
       hvac.SupplyAirTemp = 120.0 # F
@@ -1475,7 +1476,9 @@ class HVACSizing
       hvac_sizing_values.Cool_Capacity_Sens = hvac_sizing_values.Cool_Capacity * hvac.SHRRated[hvac.SizingSpeed]
       hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[-1] * hvac.CapacityRatioCooling[-1] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
 
-    elsif hvac.CoolType == HPXML::HVACTypeRoomAirConditioner
+    elsif [HPXML::HVACTypeRoomAirConditioner,
+           HPXML::HVACTypePTAC,
+           HPXML::HVACTypeHeatPumpPTHP].include? hvac.CoolType
 
       enteringTemp = weather.design.CoolingDrybulb
       totalCap_CurveValue = MathTools.biquadratic(@wetbulb_indoor_cooling, enteringTemp, hvac.COOL_CAP_FT_SPEC[hvac.SizingSpeed])
@@ -1559,7 +1562,6 @@ class HVACSizing
       hvac_sizing_values.Heat_Airflow = 0.0
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir
-
       if hvac_sizing_values.Cool_Capacity > 0
         process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Cool_Capacity
@@ -1568,9 +1570,10 @@ class HVACSizing
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
       end
+      # airflow sizing following Manual S based on design calculation
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
 
-    elsif hvac.HeatType == HPXML::HVACTypeHeatPumpMiniSplit
+    elsif [HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType
 
       if hvac_sizing_values.Cool_Capacity > 0
         process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
@@ -1580,6 +1583,7 @@ class HVACSizing
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
       end
+      # airflow determined by user setting, not based on design
       hvac_sizing_values.Heat_Airflow = hvac.RatedCFMperTonHeating[-1] * hvac.CapacityRatioHeating[-1] * UnitConversions.convert(hvac_sizing_values.Heat_Capacity, 'Btu/hr', 'ton') # Maximum air flow under heating operation
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpGroundToAir
@@ -1617,7 +1621,7 @@ class HVACSizing
 
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
 
-    elsif hvac.HeatType == HPXML::HVACTypeFurnace
+    elsif [HPXML::HVACTypeFurnace, HPXML::HVACTypePTACHeating].include? hvac.HeatType
 
       hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
       hvac_sizing_values.Heat_Capacity_Supp = 0.0
@@ -2012,9 +2016,9 @@ class HVACSizing
         # Cold winter and no latent cooling load (add a ton rule applies)
         hvac_sizing_values.Cool_Capacity = [(hvac_sizing_values.Cool_Load_Tot + hvac.OverSizeDelta) / totalCap_CurveValue, heatCap_Rated].min
       end
-      if hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir
+      if hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir # airflow sizing following Manual S based on design calculation
         hvac_sizing_values.Cool_Airflow = cfm_per_btuh * hvac_sizing_values.Cool_Capacity
-      elsif hvac.HeatType == HPXML::HVACTypeHeatPumpMiniSplit
+      elsif [HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType # airflow determined by user setting, not based on design
         hvac_sizing_values.Cool_Airflow = hvac.RatedCFMperTonCooling[-1] * hvac.CapacityRatioCooling[-1] * UnitConversions.convert(hvac_sizing_values.Cool_Capacity, 'Btu/hr', 'ton')
       end
     end
