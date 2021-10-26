@@ -3,7 +3,7 @@
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require 'openstudio'
 
-class TestResStockMeasuresOSW < MiniTest::Test
+class TestRunAnalysis < MiniTest::Test
   def before_setup
     cli_path = OpenStudio.getOpenStudioCLI
     @command = "\"#{cli_path}\" workflow/run_analysis.rb"

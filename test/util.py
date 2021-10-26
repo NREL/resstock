@@ -5,11 +5,11 @@ outdir = 'baseline/results'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
-df_testing = pd.read_csv('project_testing/testing_baseline.csv')
+df_testing = pd.read_csv('project_testing/testing_baseline/results_csvs/results_up00.csv')
 df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}.osw'.format('%04d' % x))
 df_testing.insert(1, 'color_index', 0)
 
-df_national = pd.read_csv('project_national/national_baseline.csv')
+df_national = pd.read_csv('project_national/national_baseline/results_csvs/results_up00.csv')
 df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}.osw'.format('%04d' % x))
 df_national.insert(1, 'color_index', 1)
 

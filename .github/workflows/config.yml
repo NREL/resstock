@@ -8,10 +8,57 @@ on:
   workflow_dispatch:
 
 jobs:
+  bsb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show environment
+        run: |
+          ruby -v
+          python -v
+
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Run buildstockbatch
+        run: |
+          pip install git+https://github.com/NREL/buildstockbatch.git@restructure-v3
+          
+          buildstock_docker project_testing/testing_baseline.yml
+          buildstock_docker project_national/national_baseline.yml
+          
+          buildstock_docker project_testing/testing_upgrades.yml
+          buildstock_docker project_national/national_upgrades.yml
+
+      - name: Upload project folders
+        uses: actions/upload-artifact@v2
+        with:
+          path: |
+            project_testing/testing_baseline
+            project_national/national_baseline
+            project_testing/testing_upgrades
+            project_national/national_upgrades
+          name: projects
+
+      - name: Process results
+        run: |
+          gunzip -v project_national/national_baseline/results_csvs/*.csv.gz          
+          gunzip -v project_testing/testing_baseline/results_csvs/*.csv.gz
+          
+          pip install pandas
+          python test/util.py
+
+      - name: Upload integration results
+        uses: actions/upload-artifact@v2
+        with:
+          path: baseline/results
+          name: results
+
   build:
     runs-on: ubuntu-latest
+    needs: bsb
     container:
-      image: docker://nrel/openstudio:3.2.1
+      image: docker://nrel/openstudio:dev-3.3.0-rc2
     steps:
       - name: Show environment
         run: |
@@ -42,56 +89,26 @@ jobs:
         run: |
           rake workflow:analysis_tests
 
+      - name: Download project folders
+        uses: actions/download-artifact@v2
+        with:
+          path: projects
+          name: projects
+
+      - name: Run bsb tests
+        run: |
+          ruby test/test_bsb_analysis.rb
+
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
         with:
           path: resources/buildstock.csv
           name: samples
 
-  bsb:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Show environment
-        run: |
-          ruby -v
-          python -v
-
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.head_ref }}
-
-      - name: Run buildstockbatch
-        run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@restructure-v3
-          
-          buildstock_docker project_testing/testing_baseline.yml
-          buildstock_docker project_national/national_baseline.yml
-          
-          buildstock_docker project_testing/testing_upgrades.yml
-          buildstock_docker project_national/national_upgrades.yml
-
-      - name: Process results
-        run: |
-          gunzip -v project_national/national_baseline/results_csvs/results_up00.csv.gz
-          mv project_national/national_baseline/results_csvs/results_up00.csv project_national/national_baseline.csv
-          
-          gunzip -v project_testing/testing_baseline/results_csvs/results_up00.csv.gz
-          mv project_testing/testing_baseline/results_csvs/results_up00.csv project_testing/testing_baseline.csv
-          
-          pip install pandas
-          python test/util.py
-
-      - name: Upload integration results
-        uses: actions/upload-artifact@v2
-        with:
-          path: baseline/results
-          name: results
-
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: bsb
+    needs: build
     steps:
       - name: Show environment
         run: |
@@ -115,22 +132,19 @@ jobs:
       - name: Download base samples and results
         uses: actions/download-artifact@v2
         with:
-          path: |
-            base
+          path: base
           name: base
 
       - name: Download feature samples
         uses: actions/download-artifact@v2
         with:
-          path: |
-            samples
+          path: samples
           name: samples
 
       - name: Download feature results
         uses: actions/download-artifact@v2
         with:
-          path: |
-            results
+          path: results
           name: results
 
       - name: Compare samples and results
@@ -177,7 +191,7 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: bsb
+    needs: build
     steps:
       - uses: actions/checkout@v2
         with:
@@ -186,15 +200,13 @@ jobs:
       - name: Download feature samples
         uses: actions/download-artifact@v2
         with:
-          path: |
-            samples
+          path: samples
           name: samples
 
       - name: Download feature results
         uses: actions/download-artifact@v2
         with:
-          path: |
-            results
+          path: results
           name: results
 
       - name: Commit latest results
