@@ -24,11 +24,11 @@ jobs:
         run: |
           pip install git+https://github.com/NREL/buildstockbatch.git@develop
           
-          buildstock_docker project_testing/testing_baseline.yml
           buildstock_docker project_national/national_baseline.yml
+          buildstock_docker project_testing/testing_baseline.yml          
           
-          buildstock_docker project_testing/testing_upgrades.yml
           buildstock_docker project_national/national_upgrades.yml
+          buildstock_docker project_testing/testing_upgrades.yml          
 
       - name: Upload project folders
         uses: actions/upload-artifact@v2
@@ -42,8 +42,11 @@ jobs:
 
       - name: Process results
         run: |
-          gunzip -v project_national/national_baseline/results_csvs/*.csv.gz          
+          gunzip -v project_national/national_baseline/results_csvs/*.csv.gz
           gunzip -v project_testing/testing_baseline/results_csvs/*.csv.gz
+          
+          gunzip -v project_national/national_upgrades/results_csvs/*.csv.gz
+          gunzip -v project_testing/testing_upgrades/results_csvs/*.csv.gz
           
           pip install pandas
           python test/util.py
@@ -51,7 +54,9 @@ jobs:
       - name: Upload integration results
         uses: actions/upload-artifact@v2
         with:
-          path: baseline/results
+          path: |
+            baseline
+            upgrades
           name: results
 
   build:
@@ -132,7 +137,9 @@ jobs:
       - name: Upload base samples and results
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_samples_osw/base
+          path: |
+            test/test_samples_osw/baseline
+            test/test_samples_osw/upgrades
           name: base
 
       - uses: actions/checkout@v2
@@ -159,25 +166,28 @@ jobs:
 
       - name: Compare samples and results
         run: |
-          cp -r base/*.csv test/test_samples_osw/base
-          mkdir test/test_samples_osw/results
-          cp -r samples/buildstock*.csv test/test_samples_osw/results
-          cp -r results/results* test/test_samples_osw/results
-          
           pip install numpy
           pip install pandas
           pip install plotly
           pip install kaleido
           
-          python test/compare.py -a samples
+          mkdir test/test_samples_osw/comparisons
+          mkdir test/test_samples_osw/comparisons/baseline
+          mkdir test/test_samples_osw/comparisons/upgrades
           
-          python test/compare.py -a results
-          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv
+          python test/compare.py -a samples -b base/baseline -f samples -e test/test_samples_osw/comparisons/baseline
           
-          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html
-          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html
-          python test/compare.py -a visualize -dc county -x results_output_county.html
-          python test/compare.py -a visualize -dc geometry_building_type_recs -ac county -af sum -x results_output_county_sum.html
+          python test/compare.py -a results -b base/baseline -f results/baseline -e test/test_samples_osw/comparisons/baseline
+          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline -f results/baseline -e test/test_samples_osw/comparisons/baseline
+          
+          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html -b base/baseline -f results/baseline -e test/test_samples_osw/comparisons/baseline
+          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html -b base/baseline -f results/baseline -e test/test_samples_osw/comparisons/baseline
+          python test/compare.py -a visualize -dc county -x results_output_county.html -b base/baseline -f results/baseline -e test/test_samples_osw/comparisons/baseline
+          python test/compare.py -a visualize -dc geometry_building_type_recs -ac county -af sum -x results_output_county_sum.html -b base/baseline -f results/baseline -e test/test_samples_osw/comparisons/baseline
+                    
+          python test/compare.py -a results -b base/upgrades -f results/upgrades -e test/test_samples_osw/comparisons/upgrades
+          
+          python test/compare.py -a visualize -x results_output.html -b base/upgrades -f results/upgrades -e test/test_samples_osw/comparisons/upgrades
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
@@ -210,9 +220,11 @@ jobs:
         run: |
           branch_name="${{ github.head_ref }}"
           git pull origin $branch_name
-          cp -r samples/buildstock*.csv test/test_samples_osw/base
-          cp -r results/results*.csv test/test_samples_osw/base
-          git add test/test_samples_osw/base
+          cp -r samples/buildstock*.csv test/test_samples_osw/baseline
+          cp -r results/baseline/results*.csv test/test_samples_osw/baseline
+          cp -r results/upgrades/results*.csv test/test_samples_osw/upgrades
+          git add test/test_samples_osw/baseline
+          git add test/test_samples_osw/upgrades
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"

@@ -47,19 +47,75 @@ baseline:
   n_buildings_represented: 110000000
 
 upgrades:
-  - upgrade_name: Windows and Walls
+  - upgrade_name: Windows
     options:
       - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
         costs:
           - value: 45.77
             multiplier: Window Area (ft^2)
         lifetime: 30
+
+  - upgrade_name: Walls
+    options:
       - option: Insulation Wall|Wood Stud, R-13
-        apply_logic: Insulation Wall|Wood Stud, Uninsulated
         costs:
           - value: 2.21
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
+
+  - upgrade_name: Air Leakage
+    options:
+      - option: Infiltration|3 ACH50
+        costs:
+          - value: 3.55
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+
+  - upgrade_name: Refrigerator
+    options:
+      - option: Refrigerator|EF 21.9, 100% Usage
+        costs:
+          - value: 2500.0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+
+  - upgrade_name: Lighting
+    options:
+      - option: Lighting|100% LED
+        costs:
+          - value: 0.75
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 25
+      - option: Lighting Interior Use|100% Usage
+      - option: Lighting Other Use|100% Usage
+      - option: Holiday Lighting|No Exterior Use
+
+  - upgrade_name: ASHP
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 30
+
+  - upgrade_name: HPWH
+    options:
+      - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        costs:
+          - value: 100.0
+            multiplier: Size, Water Heater (gal)
+        lifetime: 12
+      - option: Solar Hot Water|40 sqft, South, Roof Pitch
+
+  - upgrade_name: PV
+    options:
+      - option: Has PV|Yes
+        costs:
+          - value: 15000.0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: PV System Size|5.0 kWDC
+      - option: PV Orientation|South
 
 eagle:
   n_jobs: 3
