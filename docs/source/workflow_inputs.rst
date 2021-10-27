@@ -510,30 +510,32 @@ Each wall that is in contact with the ground should be specified as an ``/HPXML/
 
 Other walls (e.g., wood framed walls) that are connected to a below-grade space but have no contact with the ground should be specified as a ``Wall`` and not a ``FoundationWall``.
 
-  ==============================================================  =================  ================  ===================  =========  ========  ====================================
-  Element                                                         Type               Units             Constraints          Required   Default   Notes
-  ==============================================================  =================  ================  ===================  =========  ========  ====================================
-  ``SystemIdentifier``                                            id                                                        Yes                  Unique identifier
-  ``ExteriorAdjacentTo``                                          string                               See [#]_             Yes                  Exterior adjacent space type [#]_
-  ``InteriorAdjacentTo``                                          string                               See [#]_             Yes                  Interior adjacent space type
-  ``Height``                                                      double             ft                > 0                  Yes                  Total height
-  ``Area`` or ``Length``                                          double             ft2 or ft         > 0                  Yes                  Gross area (including doors/windows) or length
-  ``Azimuth`` or ``Orientation``                                  integer or string  deg or direction  0 - 359 or See [#]_  No         See [#]_  Direction (clockwise from North)
-  ``Thickness``                                                   double             inches            > 0                  No         8.0       Thickness excluding interior framing
-  ``DepthBelowGrade``                                             double             ft                0 - Height           Yes                  Depth below grade [#]_
-  ``InteriorFinish/Type``                                         string                               See [#]_             No         See [#]_  Interior finish material
-  ``InteriorFinish/Thickness``                                    double             in                >= 0                 No         0.5       Interior finish thickness
-  ``Insulation/SystemIdentifier``                                 id                                                        Yes                  Unique identifier
-  ``Insulation/Layer[InstallationType="continuous - interior"]``  element                              0 - 1                See [#]_             Interior insulation layer
-  ``Insulation/Layer[InstallationType="continuous - exterior"]``  element                              0 - 1                See [#]_             Exterior insulation layer
-  ``Insulation/AssemblyEffectiveRValue``                          double             F-ft2-hr/Btu      > 0                  See [#]_             Assembly R-value [#]_
-  ==============================================================  =================  ================  ===================  =========  ========  ====================================
+  ==============================================================  =================  ================  ===================  =========  ==============  ====================================
+  Element                                                         Type               Units             Constraints          Required   Default         Notes
+  ==============================================================  =================  ================  ===================  =========  ==============  ====================================
+  ``SystemIdentifier``                                            id                                                        Yes                        Unique identifier
+  ``ExteriorAdjacentTo``                                          string                               See [#]_             Yes                        Exterior adjacent space type [#]_
+  ``InteriorAdjacentTo``                                          string                               See [#]_             Yes                        Interior adjacent space type
+  ``Type``                                                        string                               See [#]_             No         solid concrete  Type of material
+  ``Height``                                                      double             ft                > 0                  Yes                        Total height
+  ``Area`` or ``Length``                                          double             ft2 or ft         > 0                  Yes                        Gross area (including doors/windows) or length
+  ``Azimuth`` or ``Orientation``                                  integer or string  deg or direction  0 - 359 or See [#]_  No         See [#]_        Direction (clockwise from North)
+  ``Thickness``                                                   double             inches            > 0                  No         8.0             Thickness excluding interior framing
+  ``DepthBelowGrade``                                             double             ft                0 - Height           Yes                        Depth below grade [#]_
+  ``InteriorFinish/Type``                                         string                               See [#]_             No         See [#]_        Interior finish material
+  ``InteriorFinish/Thickness``                                    double             in                >= 0                 No         0.5             Interior finish thickness
+  ``Insulation/SystemIdentifier``                                 id                                                        Yes                        Unique identifier
+  ``Insulation/Layer[InstallationType="continuous - interior"]``  element                              0 - 1                See [#]_                   Interior insulation layer
+  ``Insulation/Layer[InstallationType="continuous - exterior"]``  element                              0 - 1                See [#]_                   Exterior insulation layer
+  ``Insulation/AssemblyEffectiveRValue``                          double             F-ft2-hr/Btu      > 0                  See [#]_                   Assembly R-value [#]_
+  ==============================================================  =================  ================  ===================  =========  ==============  ====================================
 
   .. [#] ExteriorAdjacentTo choices are "ground", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "garage", "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space".
          See :ref:`hpxmllocations` for descriptions.
   .. [#] InteriorAdjacentTo choices are "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", or "garage".
          See :ref:`hpxmllocations` for descriptions.
   .. [#] Interior foundation walls (e.g., between basement and crawlspace) should **not** use "ground" even if the foundation wall has some contact with the ground due to the difference in below-grade depths of the two adjacent spaces.
+  .. [#] Type choices are "solid concrete", "concrete block", "concrete block foam core", "concrete block vermiculite core", "concrete block perlite core", "concrete block solid core", "double brick", or "wood".
   .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
   .. [#] If neither Azimuth nor Orientation provided, modeled as four surfaces of equal area facing every direction.
   .. [#] For exterior foundation walls, depth below grade is relative to the ground plane.

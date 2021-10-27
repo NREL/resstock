@@ -66,6 +66,7 @@ class HPXML < Object
   AirTypeGravity = 'gravity'
   AirTypeHighVelocity = 'high velocity'
   AirTypeRegularVelocity = 'regular velocity'
+  AtticTypeBelowApartment = 'BelowApartment'
   AtticTypeCathedral = 'CathedralCeiling'
   AtticTypeConditioned = 'ConditionedAttic'
   AtticTypeFlatRoof = 'FlatRoof'
@@ -98,6 +99,7 @@ class HPXML < Object
   DWHRFacilitiesConnectedAll = 'all'
   DWHRFacilitiesConnectedOne = 'one'
   ExteriorShadingTypeSolarScreens = 'solar screens'
+  FoundationTypeAboveApartment = 'AboveApartment'
   FoundationTypeAmbient = 'Ambient'
   FoundationTypeBasementConditioned = 'ConditionedBasement'
   FoundationTypeBasementUnconditioned = 'UnconditionedBasement'
@@ -105,6 +107,14 @@ class HPXML < Object
   FoundationTypeCrawlspaceUnvented = 'UnventedCrawlspace'
   FoundationTypeCrawlspaceVented = 'VentedCrawlspace'
   FoundationTypeSlab = 'SlabOnGrade'
+  FoundationWallTypeConcreteBlock = 'concrete block'
+  FoundationWallTypeConcreteBlockFoamCore = 'concrete block foam core'
+  FoundationWallTypeConcreteBlockPerliteCore = 'concrete block perlite core'
+  FoundationWallTypeConcreteBlockSolidCore = 'concrete block solid core'
+  FoundationWallTypeConcreteBlockVermiculiteCore = 'concrete block vermiculite core'
+  FoundationWallTypeDoubleBrick = 'double brick'
+  FoundationWallTypeSolidConcrete = 'solid concrete'
+  FoundationWallTypeWood = 'wood'
   FrameFloorOtherSpaceAbove = 'above'
   FrameFloorOtherSpaceBelow = 'below'
   FuelLoadTypeGrill = 'grill'
@@ -265,6 +275,7 @@ class HPXML < Object
   SolarThermalTypeSingleGlazing = 'single glazing black'
   SurroundingsOneSide = 'attached on one side'
   SurroundingsTwoSides = 'attached on two sides'
+  SurroundingsThreeSides = 'attached on three sides'
   SurroundingsStandAlone = 'stand-alone'
   TypeNone = 'none'
   TypeUnknown = 'unknown'
@@ -284,6 +295,10 @@ class HPXML < Object
   UnitsSEER = 'SEER'
   UnitsSLA = 'SLA'
   UnitsThermPerYear = 'therm/year'
+  VerticalSurroundingsNoAboveOrBelow = 'no units above or below'
+  VerticalSurroundingsAboveAndBelow = 'unit above and below'
+  VerticalSurroundingsBelow = 'unit below'
+  VerticalSurroundingsAbove = 'unit above'
   WallTypeAdobe = 'Adobe'
   WallTypeBrick = 'StructuralBrick'
   WallTypeCMU = 'ConcreteMasonryUnit'
@@ -977,7 +992,7 @@ class HPXML < Object
   end
 
   class Site < BaseElement
-    ATTRS = [:site_type, :surroundings, :shielding_of_home, :orientation_of_front_of_home, :azimuth_of_front_of_home, :fuels]
+    ATTRS = [:site_type, :surroundings, :vertical_surroundings, :shielding_of_home, :orientation_of_front_of_home, :azimuth_of_front_of_home, :fuels]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -991,6 +1006,7 @@ class HPXML < Object
       site = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'BuildingSummary', 'Site'])
       XMLHelper.add_element(site, 'SiteType', @site_type, :string, @site_type_isdefaulted) unless @site_type.nil?
       XMLHelper.add_element(site, 'Surroundings', @surroundings, :string) unless @surroundings.nil?
+      XMLHelper.add_element(site, 'VerticalSurroundings', @vertical_surroundings, :string) unless @vertical_surroundings.nil?
       XMLHelper.add_element(site, 'ShieldingofHome', @shielding_of_home, :string, @shielding_of_home_isdefaulted) unless @shielding_of_home.nil?
       XMLHelper.add_element(site, 'OrientationOfFrontOfHome', @orientation_of_front_of_home, :string) unless @orientation_of_front_of_home.nil?
       XMLHelper.add_element(site, 'AzimuthOfFrontOfHome', @azimuth_of_front_of_home, :integer) unless @azimuth_of_front_of_home.nil?
@@ -1015,6 +1031,7 @@ class HPXML < Object
 
       @site_type = XMLHelper.get_value(site, 'SiteType', :string)
       @surroundings = XMLHelper.get_value(site, 'Surroundings', :string)
+      @vertical_surroundings = XMLHelper.get_value(site, 'VerticalSurroundings', :string)
       @shielding_of_home = XMLHelper.get_value(site, 'ShieldingofHome', :string)
       @orientation_of_front_of_home = XMLHelper.get_value(site, 'OrientationOfFrontOfHome', :string)
       @azimuth_of_front_of_home = XMLHelper.get_value(site, 'AzimuthOfFrontOfHome', :integer)
@@ -1310,15 +1327,11 @@ class HPXML < Object
     def to_location
       return if @attic_type.nil?
 
-      if @attic_type == AtticTypeCathedral
+      if [AtticTypeCathedral, AtticTypeConditioned, AtticTypeFlatRoof, AtticTypeBelowApartment].include? @attic_type
         return LocationLivingSpace
-      elsif @attic_type == AtticTypeConditioned
-        return LocationLivingSpace
-      elsif @attic_type == AtticTypeFlatRoof
-        return LocationLivingSpace
-      elsif @attic_type == AtticTypeUnvented
+      elsif [AtticTypeUnvented].include? @attic_type
         return LocationAtticUnvented
-      elsif @attic_type == AtticTypeVented
+      elsif [AtticTypeVented].include? @attic_type
         return LocationAtticVented
       else
         fail "Unexpected attic type: '#{@attic_type}'."
@@ -1347,10 +1360,12 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       if not @attic_type.nil?
         attic_type_el = XMLHelper.add_element(attic, 'AtticType')
-        if @attic_type == AtticTypeUnvented
+        if [AtticTypeFlatRoof, AtticTypeCathedral, AtticTypeBelowApartment].include? @attic_type
+          XMLHelper.add_element(attic_type_el, @attic_type)
+        elsif [AtticTypeUnvented].include? @attic_type
           attic_type_attic = XMLHelper.add_element(attic_type_el, 'Attic')
           XMLHelper.add_element(attic_type_attic, 'Vented', false, :boolean)
-        elsif @attic_type == AtticTypeVented
+        elsif [AtticTypeVented].include? @attic_type
           attic_type_attic = XMLHelper.add_element(attic_type_el, 'Attic')
           XMLHelper.add_element(attic_type_attic, 'Vented', true, :boolean)
           if not @vented_attic_sla.nil?
@@ -1362,11 +1377,9 @@ class HPXML < Object
             XMLHelper.add_element(ventilation_rate, 'UnitofMeasure', UnitsACHNatural, :string)
             XMLHelper.add_element(ventilation_rate, 'Value', @vented_attic_ach, :float)
           end
-        elsif @attic_type == AtticTypeConditioned
+        elsif [AtticTypeConditioned].include? @attic_type
           attic_type_attic = XMLHelper.add_element(attic_type_el, 'Attic')
           XMLHelper.add_element(attic_type_attic, 'Conditioned', true, :boolean)
-        elsif (@attic_type == AtticTypeFlatRoof) || (@attic_type == AtticTypeCathedral)
-          XMLHelper.add_element(attic_type_el, @attic_type)
         else
           fail "Unhandled attic type '#{@attic_type}'."
         end
@@ -1406,6 +1419,8 @@ class HPXML < Object
         @attic_type = AtticTypeFlatRoof
       elsif XMLHelper.has_element(attic, 'AtticType/CathedralCeiling')
         @attic_type = AtticTypeCathedral
+      elsif XMLHelper.has_element(attic, 'AtticType/BelowApartment')
+        @attic_type = AtticTypeBelowApartment
       end
       if @attic_type == AtticTypeVented
         @vented_attic_sla = XMLHelper.get_value(attic, "VentilationRate[UnitofMeasure='#{UnitsSLA}']/Value", :float)
@@ -1505,15 +1520,17 @@ class HPXML < Object
     def to_location
       return if @foundation_type.nil?
 
-      if @foundation_type == FoundationTypeAmbient
+      if [FoundationTypeSlab, FoundationTypeAboveApartment].include? @foundation_type
+        return LocationLivingSpace
+      elsif [FoundationTypeAmbient].include? @foundation_type
         return LocationOutside
-      elsif @foundation_type == FoundationTypeBasementConditioned
+      elsif [FoundationTypeBasementConditioned].include? @foundation_type
         return LocationBasementConditioned
-      elsif @foundation_type == FoundationTypeBasementUnconditioned
+      elsif [FoundationTypeBasementUnconditioned].include? @foundation_type
         return LocationBasementUnconditioned
-      elsif @foundation_type == FoundationTypeCrawlspaceUnvented
+      elsif [FoundationTypeCrawlspaceUnvented].include? @foundation_type
         return LocationCrawlspaceUnvented
-      elsif @foundation_type == FoundationTypeCrawlspaceVented
+      elsif [FoundationTypeCrawlspaceVented].include? @foundation_type
         return LocationCrawlspaceVented
       elsif @foundation_type == FoundationTypeCrawlspaceConditioned
         return LocationCrawlspaceConditioned
@@ -1563,15 +1580,15 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       if not @foundation_type.nil?
         foundation_type_el = XMLHelper.add_element(foundation, 'FoundationType')
-        if [FoundationTypeSlab, FoundationTypeAmbient].include? @foundation_type
+        if [FoundationTypeSlab, FoundationTypeAmbient, FoundationTypeAboveApartment].include? @foundation_type
           XMLHelper.add_element(foundation_type_el, @foundation_type)
-        elsif @foundation_type == FoundationTypeBasementConditioned
+        elsif [FoundationTypeBasementConditioned].include? @foundation_type
           basement = XMLHelper.add_element(foundation_type_el, 'Basement')
           XMLHelper.add_element(basement, 'Conditioned', true, :boolean)
-        elsif @foundation_type == FoundationTypeBasementUnconditioned
+        elsif [FoundationTypeBasementUnconditioned].include? @foundation_type
           basement = XMLHelper.add_element(foundation_type_el, 'Basement')
           XMLHelper.add_element(basement, 'Conditioned', false, :boolean)
-        elsif @foundation_type == FoundationTypeCrawlspaceVented
+        elsif [FoundationTypeCrawlspaceVented].include? @foundation_type
           crawlspace = XMLHelper.add_element(foundation_type_el, 'Crawlspace')
           XMLHelper.add_element(crawlspace, 'Vented', true, :boolean)
           if not @vented_crawlspace_sla.nil?
@@ -1579,7 +1596,7 @@ class HPXML < Object
             XMLHelper.add_element(ventilation_rate, 'UnitofMeasure', UnitsSLA, :string)
             XMLHelper.add_element(ventilation_rate, 'Value', @vented_crawlspace_sla, :float, @vented_crawlspace_sla_isdefaulted)
           end
-        elsif @foundation_type == FoundationTypeCrawlspaceUnvented
+        elsif [FoundationTypeCrawlspaceUnvented].include? @foundation_type
           crawlspace = XMLHelper.add_element(foundation_type_el, 'Crawlspace')
           XMLHelper.add_element(crawlspace, 'Vented', false, :boolean)
         elsif @foundation_type == FoundationTypeCrawlspaceConditioned
@@ -1640,6 +1657,8 @@ class HPXML < Object
         @foundation_type = FoundationTypeCrawlspaceConditioned
       elsif XMLHelper.has_element(foundation, 'FoundationType/Ambient')
         @foundation_type = FoundationTypeAmbient
+      elsif XMLHelper.has_element(foundation, 'FoundationType/AboveApartment')
+        @foundation_type = FoundationTypeAboveApartment
       end
       if @foundation_type == FoundationTypeCrawlspaceVented
         @vented_crawlspace_sla = XMLHelper.get_value(foundation, "VentilationRate[UnitofMeasure='#{UnitsSLA}']/Value", :float)
@@ -2129,7 +2148,7 @@ class HPXML < Object
 
   class FoundationWall < BaseElement
     ATTRS = [:id, :exterior_adjacent_to, :interior_adjacent_to, :length, :height, :area, :orientation,
-             :azimuth, :thickness, :depth_below_grade, :insulation_id, :insulation_interior_r_value,
+             :type, :azimuth, :thickness, :depth_below_grade, :insulation_id, :insulation_interior_r_value,
              :insulation_interior_distance_to_top, :insulation_interior_distance_to_bottom,
              :insulation_exterior_r_value, :insulation_exterior_distance_to_top,
              :insulation_exterior_distance_to_bottom, :insulation_assembly_r_value,
@@ -2215,6 +2234,7 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       XMLHelper.add_element(foundation_wall, 'ExteriorAdjacentTo', @exterior_adjacent_to, :string) unless @exterior_adjacent_to.nil?
       XMLHelper.add_element(foundation_wall, 'InteriorAdjacentTo', @interior_adjacent_to, :string) unless @interior_adjacent_to.nil?
+      XMLHelper.add_element(foundation_wall, 'Type', @type, :string, @type_isdefaulted) unless @type.nil?
       XMLHelper.add_element(foundation_wall, 'Length', @length, :float) unless @length.nil?
       XMLHelper.add_element(foundation_wall, 'Height', @height, :float) unless @height.nil?
       XMLHelper.add_element(foundation_wall, 'Area', @area, :float, @area_isdefaulted) unless @area.nil?
@@ -2257,6 +2277,7 @@ class HPXML < Object
       @id = HPXML::get_id(foundation_wall)
       @exterior_adjacent_to = XMLHelper.get_value(foundation_wall, 'ExteriorAdjacentTo', :string)
       @interior_adjacent_to = XMLHelper.get_value(foundation_wall, 'InteriorAdjacentTo', :string)
+      @type = XMLHelper.get_value(foundation_wall, 'Type', :string)
       @length = XMLHelper.get_value(foundation_wall, 'Length', :float)
       @height = XMLHelper.get_value(foundation_wall, 'Height', :float)
       @area = XMLHelper.get_value(foundation_wall, 'Area', :float)

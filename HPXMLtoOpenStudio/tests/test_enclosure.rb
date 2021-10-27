@@ -313,6 +313,28 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       _check_surface(hpxml.foundation_walls[0], os_surface, wall_values[:layer_names])
     end
 
+    # Foundation wall w/ different material types
+    walls_values = [{ type: HPXML::FoundationWallTypeSolidConcrete, layer_names: ['concrete'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlock, layer_names: ['concrete block'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlockFoamCore, layer_names: ['concrete block foam core'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlockPerliteCore, layer_names: ['concrete block perlite core'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlockSolidCore, layer_names: ['concrete block solid core'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlockVermiculiteCore, layer_names: ['concrete block vermiculite core'] },
+                    { type: HPXML::FoundationWallTypeDoubleBrick, layer_names: ['double brick'] },
+                    { type: HPXML::FoundationWallTypeWood, layer_names: ['wood'] }]
+
+    hpxml = _create_hpxml('base-foundation-unconditioned-basement-assembly-r.xml')
+    walls_values.each do |wall_values|
+      hpxml.foundation_walls[0].insulation_assembly_r_value = 0.1 # Ensure just a single layer
+      hpxml.foundation_walls[0].type = wall_values[:type]
+      XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+      model, hpxml = _test_measure(args_hash)
+
+      # Check properties
+      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.foundation_walls[0].id }[0]
+      _check_surface(hpxml.foundation_walls[0], os_surface, wall_values[:layer_names])
+    end
+
     # Foundation wall w/ Insulation Layers
     walls_values = [{ interior_r: 0.0, exterior_r: 0.0, layer_names: ['concrete'] },
                     { interior_r: 5.0, exterior_r: 0.0, layer_names: ['concrete', 'interior vertical ins'] },

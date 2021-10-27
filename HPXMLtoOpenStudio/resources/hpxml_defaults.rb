@@ -491,6 +491,10 @@ class HPXMLDefaults
 
   def self.apply_foundation_walls(hpxml)
     hpxml.foundation_walls.each do |foundation_wall|
+      if foundation_wall.type.nil?
+        foundation_wall.type = HPXML::FoundationWallTypeSolidConcrete
+        foundation_wall.type_isdefaulted = true
+      end
       if foundation_wall.azimuth.nil?
         foundation_wall.azimuth = get_azimuth_from_orientation(foundation_wall.orientation)
         foundation_wall.azimuth_isdefaulted = true
