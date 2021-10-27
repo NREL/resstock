@@ -1105,20 +1105,20 @@ class OSModel
     set_surface_interior(model, spaces, surface, foundation_wall)
     set_surface_exterior(model, spaces, surface, foundation_wall)
 
-    concrete_thick_in = foundation_wall.thickness
     assembly_r = foundation_wall.insulation_assembly_r_value
     mat_int_finish = Material.InteriorFinishMaterial(foundation_wall.interior_finish_type, foundation_wall.interior_finish_thickness)
+    mat_wall = Material.FoundationWallMaterial(foundation_wall.type, foundation_wall.thickness)
     if not assembly_r.nil?
       ext_rigid_height = height
       ext_rigid_offset = 0.0
       inside_film = Material.AirFilmVertical
-      mat_concrete = Material.Concrete(concrete_thick_in)
+
       mat_int_finish_rvalue = mat_int_finish.nil? ? 0.0 : mat_int_finish.rvalue
-      ext_rigid_r = assembly_r - mat_concrete.rvalue - mat_int_finish_rvalue - inside_film.rvalue
+      ext_rigid_r = assembly_r - mat_wall.rvalue - mat_int_finish_rvalue - inside_film.rvalue
       int_rigid_r = 0.0
       if ext_rigid_r < 0 # Try without interior finish
         mat_int_finish = nil
-        ext_rigid_r = assembly_r - mat_concrete.rvalue - inside_film.rvalue
+        ext_rigid_r = assembly_r - mat_wall.rvalue - inside_film.rvalue
       end
       if (ext_rigid_r > 0) && (ext_rigid_r < 0.1)
         ext_rigid_r = 0.0 # Prevent tiny strip of insulation
@@ -1140,7 +1140,7 @@ class OSModel
 
     Constructions.apply_foundation_wall(runner, model, [surface], "#{foundation_wall.id} construction",
                                         ext_rigid_offset, int_rigid_offset, ext_rigid_height, int_rigid_height,
-                                        ext_rigid_r, int_rigid_r, mat_int_finish, concrete_thick_in, height_ag)
+                                        ext_rigid_r, int_rigid_r, mat_int_finish, mat_wall, height_ag)
 
     if not assembly_r.nil?
       Constructions.check_surface_assembly_rvalue(runner, [surface], inside_film, nil, assembly_r, match)

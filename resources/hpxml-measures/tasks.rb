@@ -510,10 +510,11 @@ def set_measure_argument_values(hpxml_file, args)
     args['geometry_has_flue_or_chimney'] = Constants.Auto
     args['floor_over_foundation_assembly_r'] = 0
     args['floor_over_garage_assembly_r'] = 0
+    args['foundation_wall_type'] = Constants.Auto
+    args['foundation_wall_thickness'] = 8.0
     args['foundation_wall_insulation_r'] = 8.9
     args['foundation_wall_insulation_distance_to_top'] = 0.0
     args['foundation_wall_insulation_distance_to_bottom'] = 8.0
-    args['foundation_wall_thickness'] = 8.0
     args['rim_joist_assembly_r'] = 23.0
     args['slab_perimeter_insulation_r'] = 0
     args['slab_perimeter_depth'] = 0
@@ -833,10 +834,11 @@ def set_measure_argument_values(hpxml_file, args)
     args['geometry_has_flue_or_chimney'] = Constants.Auto
     args['floor_over_foundation_assembly_r'] = 14.15
     args['floor_over_garage_assembly_r'] = 0
+    args['foundation_wall_type'] = Constants.Auto
+    args['foundation_wall_thickness'] = 6.0
     args['foundation_wall_insulation_r'] = 0
     args['foundation_wall_insulation_distance_to_top'] = 0
     args['foundation_wall_insulation_distance_to_bottom'] = 0
-    args['foundation_wall_thickness'] = 6.0
     args['rim_joist_assembly_r'] = 5.01
     args['slab_perimeter_insulation_r'] = 0
     args['slab_perimeter_depth'] = 0
@@ -1646,6 +1648,7 @@ def set_measure_argument_values(hpxml_file, args)
     args['slab_under_insulation_r'] = 10
     args['slab_under_width'] = 4
   elsif ['base-foundation-conditioned-basement-wall-interior-insulation.xml'].include? hpxml_file
+    args['foundation_wall_type'] = HPXML::FoundationWallTypeConcreteBlockFoamCore
     args['foundation_wall_insulation_r'] = 18.9
     args['foundation_wall_insulation_distance_to_top'] = 1.0
   elsif ['base-foundation-slab.xml'].include? hpxml_file
