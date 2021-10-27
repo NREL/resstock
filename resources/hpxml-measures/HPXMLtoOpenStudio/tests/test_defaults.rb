@@ -422,10 +422,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.foundation_walls[0].insulation_interior_distance_to_bottom = 7.75
     hpxml.foundation_walls[0].insulation_exterior_distance_to_top = 0.75
     hpxml.foundation_walls[0].insulation_exterior_distance_to_bottom = 7.5
+    hpxml.foundation_walls[0].type = HPXML::FoundationWallTypeConcreteBlock
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_foundation_wall_values(hpxml_default.foundation_walls[0], 7.0, HPXML::InteriorFinishGypsumCompositeBoard, 0.625, 123,
-                                         789, 0.5, 7.75, 0.75, 7.5)
+                                         789, 0.5, 7.75, 0.75, 7.5, HPXML::FoundationWallTypeConcreteBlock)
 
     # Test defaults
     hpxml.foundation_walls[0].thickness = nil
@@ -437,10 +438,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.foundation_walls[0].length = 100
     hpxml.foundation_walls[0].insulation_interior_distance_to_bottom = nil
     hpxml.foundation_walls[0].insulation_exterior_distance_to_bottom = nil
+    hpxml.foundation_walls[0].type = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_foundation_wall_values(hpxml_default.foundation_walls[0], 8.0, HPXML::InteriorFinishGypsumBoard, 0.5, 135,
-                                         800, 0.5, 8.0, 0.75, 8.0)
+                                         800, 0.5, 8.0, 0.75, 8.0, HPXML::FoundationWallTypeSolidConcrete)
 
     # Test defaults w/ unconditioned surfaces
     hpxml = _create_hpxml('base-foundation-unconditioned-basement.xml')
@@ -456,10 +458,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.foundation_walls[0].insulation_interior_distance_to_bottom = nil
     hpxml.foundation_walls[0].insulation_exterior_distance_to_top = nil
     hpxml.foundation_walls[0].insulation_exterior_distance_to_bottom = nil
+    hpxml.foundation_walls[0].type = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_foundation_wall_values(hpxml_default.foundation_walls[0], 8.0, HPXML::InteriorFinishNone, nil, 135,
-                                         1000, 0.0, 10.0, 0.0, 10.0)
+                                         1000, 0.0, 10.0, 0.0, 10.0, HPXML::FoundationWallTypeSolidConcrete)
   end
 
   def test_frame_floors
@@ -2812,7 +2815,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   end
 
   def _test_default_foundation_wall_values(foundation_wall, thickness, int_finish_type, int_finish_thickness, azimuth, area,
-                                           ins_int_top, ins_int_bottom, ins_ext_top, ins_ext_bottom)
+                                           ins_int_top, ins_int_bottom, ins_ext_top, ins_ext_bottom, type)
     assert_equal(thickness, foundation_wall.thickness)
     assert_equal(int_finish_type, foundation_wall.interior_finish_type)
     if not int_finish_thickness.nil?
@@ -2826,6 +2829,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(ins_int_bottom, foundation_wall.insulation_interior_distance_to_bottom)
     assert_equal(ins_ext_top, foundation_wall.insulation_exterior_distance_to_top)
     assert_equal(ins_ext_bottom, foundation_wall.insulation_exterior_distance_to_bottom)
+    assert_equal(type, foundation_wall.type)
   end
 
   def _test_default_frame_floor_values(frame_floor, int_finish_type, int_finish_thickness)

@@ -481,6 +481,29 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(28.1)
     args << arg
 
+    foundation_wall_type_choices = OpenStudio::StringVector.new
+    foundation_wall_type_choices << Constants.Auto
+    foundation_wall_type_choices << HPXML::FoundationWallTypeSolidConcrete
+    foundation_wall_type_choices << HPXML::FoundationWallTypeConcreteBlock
+    foundation_wall_type_choices << HPXML::FoundationWallTypeConcreteBlockFoamCore
+    foundation_wall_type_choices << HPXML::FoundationWallTypeConcreteBlockPerliteCore
+    foundation_wall_type_choices << HPXML::FoundationWallTypeConcreteBlockVermiculiteCore
+    foundation_wall_type_choices << HPXML::FoundationWallTypeConcreteBlockSolidCore
+    foundation_wall_type_choices << HPXML::FoundationWallTypeDoubleBrick
+    foundation_wall_type_choices << HPXML::FoundationWallTypeWood
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('foundation_wall_type', true)
+    arg.setDisplayName('Foundation Wall: Type')
+    arg.setDescription('The material type of the foundation wall.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('foundation_wall_thickness', true)
+    arg.setDisplayName('Foundation Wall: Thickness')
+    arg.setDescription('The thickness of the foundation wall.')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('foundation_wall_insulation_r', true)
     arg.setDisplayName('Foundation Wall: Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
@@ -517,12 +540,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Foundation Wall: Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Assembly R-value for the foundation walls. Only applies to basements/crawlspaces. If provided, overrides the previous foundation wall insulation inputs.')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('foundation_wall_thickness', true)
-    arg.setDisplayName('Foundation Wall: Thickness')
-    arg.setDescription('The thickness of the foundation wall.')
-    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_r', false)
@@ -3730,11 +3747,16 @@ class HPXMLFile
         thickness = Float(args[:foundation_wall_thickness])
       end
 
+      if args[:foundation_wall_type] != Constants.Auto
+        type = args[:foundation_wall_type]
+      end
+
       azimuth = Geometry.get_surface_azimuth(surface: surface, orientation: args[:geometry_unit_orientation])
 
       hpxml.foundation_walls.add(id: "FoundationWall#{hpxml.foundation_walls.size + 1}",
                                  exterior_adjacent_to: exterior_adjacent_to,
                                  interior_adjacent_to: interior_adjacent_to,
+                                 type: type,
                                  azimuth: azimuth,
                                  height: args[:geometry_foundation_height],
                                  area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2'),
