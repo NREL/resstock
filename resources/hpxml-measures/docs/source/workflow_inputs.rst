@@ -859,8 +859,8 @@ If electric resistance heating is specified, additional information is entered i
   ``AnnualHeatingEfficiency[Units="Percent"]/Value``  double  frac   0 - 1        No        1.0      Efficiency
   ==================================================  ======  =====  ===========  ========  =======  ==========
 
-PTAC - Heating
-~~~~~~~~~~~~~~
+PTAC Heating
+~~~~~~~~~~~~
 
 If a PTAC with non-heat pump (e.g., electric resistance) heating is specified, additional information is entered in ``HeatingSystem``.
 
@@ -1074,8 +1074,8 @@ If a PTAC is specified, additional information is entered in ``CoolingSystem``.
   ===================================================================  =================  ===========  ===============  ========  =========  ==================================
   Element                                                              Type               Units        Constraints      Required  Default    Notes
   ===================================================================  =================  ===========  ===============  ========  =========  ==================================
-  ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``       integer or double  # or Btu/Wh  > 1600 or > 0    Yes                  Rated cooling efficiency
-  ``CoolingCapacity``                                                  double             Btu/hr       >= 0             No        autosized  Cooling capacity
+  ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``       integer or double  # or Btu/Wh  > 1600 or > 0    Yes                  Rated efficiency
+  ``CoolingCapacity``                                                  double             Btu/hr       >= 0             No        autosized  Cooling output capacity
   ``SensibleHeatFraction``                                             double             frac         0 - 1            No                   Sensible heat fraction
   ===================================================================  =================  ===========  ===============  ========  =========  ==================================
 

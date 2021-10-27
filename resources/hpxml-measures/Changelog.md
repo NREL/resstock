@@ -1,7 +1,7 @@
 ## OpenStudio-HPXML v1.3.0 (Pending)
 
 __New Features__
-- Updates to OpenStudio 3.2.1/EnergyPlus 9.5.0.
+- Updates to OpenStudio 3.3.0/EnergyPlus 9.6.0.
 - **Breaking change**: Replaces "Unmet Load" outputs with "Unmet Hours".
 - **Breaking change**: Renames "Load: Heating" and "Peak Load: Heating" (and Cooling) outputs to include "Delivered".
 - **Breaking change**: Replaces ClothesDryer `extension/IsVented` and `extension/VentedFlowRate` with `Vented` and `VentedFlowRate`.
@@ -43,6 +43,7 @@ __New Features__
 - Removes error-check for number of bedrooms based on conditioned floor area, per RESNET guidance.
 - Updates the reporting measure to register all outputs from the annual CSV with the OS runner (for use in, e.g., PAT).
 - Removes timeseries CSV output columns that are all zeroes to reduce file size and processing time.
+- Improves consistency of installation quality calculations for two/variable-speed air source heat pumps and ground source heat pumps.
 - Relaxes requirement for heating (or cooling) setpoints so that they are only needed if heating (or cooling) equipment is present.
 - Adds an `--ep-input-format` argument to run_simulation.rb to choose epJSON as the EnergyPlus input file format instead of IDF.
 - Eliminates EnergyPlus warnings related to unused objects or invalid output meters/variables.
@@ -55,6 +56,7 @@ __Bugfixes__
 - Negative `DistanceToTopOfInsulation` values are now disallowed.
 - Fixes workflow errors if a `VentilationFan` has zero airflow rate or zero hours of operation.
 - Fixes duct design load calculations for HPXML files with multiple ducted HVAC systems.
+- Fixes ground source heat pump rated airflow.
 - Relaxes `Overhangs` DistanceToBottomOfWindow vs DistanceToBottomOfWindow validation when Depth is zero.
 - Fixes possibility of double-counting HVAC distribution losses if an `HVACDistribution` element has both AirDistribution properties and DSE values
 - Fixes possibility of incorrect "Peak Electricity: Winter Total (W)" and "Peak Electricity: Summer Total (W)" outputs for homes with duct losses.
