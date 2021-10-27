@@ -1112,7 +1112,7 @@ class SchedulesFile
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy
 
-    tmpfile = Tempfile.new('schedules')
+    tmpfile = Tempfile.new(['schedules', '.csv'])
     @tmp_schedules_path = tmpfile.path.to_s
     export
 

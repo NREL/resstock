@@ -257,44 +257,48 @@ class Waterheater
       # Create sensors and actuators
       plant_loop = plantloop_map[combi_sys_id]
       plant_loop.components.each do |c|
-        if c.to_WaterUseConnections.is_initialized
-          wuc = c.to_WaterUseConnections.get
-          wuc.waterUseEquipment.each do |wu|
-            # water use equipment peak mass flow rate
-            wu_peak = wu.waterUseEquipmentDefinition.peakFlowRate
-            equipment_peaks[wu.name.to_s] = wu_peak
-            # mfr fraction schedule sensors
-            wu_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-            wu_sch_sensor.setName("#{wu.name} sch value")
-            wu_sch_sensor.setKeyName(wu.flowRateFractionSchedule.get.name.to_s)
-            equipment_sch_sensors[wu.name.to_s] = wu_sch_sensor
-            # water use equipment target temperature schedule sensors
+        next unless c.to_WaterHeaterMixed.is_initialized
+
+        water_heater = c.to_WaterHeaterMixed.get
+        tank_volume = water_heater.tankVolume.get
+        deadband = water_heater.deadbandTemperatureDifference
+        # Sensors and actuators related to OS water heater object
+        tank_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Tank Temperature')
+        tank_temp_sensor.setName("#{combi_sys_id} Tank Temp")
+        tank_temp_sensor.setKeyName(water_heater.name.to_s)
+        tank_loss_energy_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Heat Loss Energy')
+        tank_loss_energy_sensor.setName("#{combi_sys_id} Tank Loss Energy")
+        tank_loss_energy_sensor.setKeyName(water_heater.name.to_s)
+        tank_spt_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        tank_spt_sensor.setName("#{combi_sys_id} Setpoint Temperature")
+        tank_spt_sensor.setKeyName(water_heater.setpointTemperatureSchedule.get.name.to_s)
+        alt_spt_sch = water_heater.indirectAlternateSetpointTemperatureSchedule.get
+        altsch_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(alt_spt_sch, *EPlus::EMSActuatorScheduleConstantValue)
+        altsch_actuator.setName("#{combi_sys_id} AltSchedOverride")
+      end
+      plant_loop.components.each do |c|
+        next unless c.to_WaterUseConnections.is_initialized
+
+        wuc = c.to_WaterUseConnections.get
+        wuc.waterUseEquipment.each do |wu|
+          # water use equipment peak mass flow rate
+          wu_peak = wu.waterUseEquipmentDefinition.peakFlowRate
+          equipment_peaks[wu.name.to_s] = wu_peak
+          # mfr fraction schedule sensors
+          wu_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+          wu_sch_sensor.setName("#{wu.name} sch value")
+          wu_sch_sensor.setKeyName(wu.flowRateFractionSchedule.get.name.to_s)
+          equipment_sch_sensors[wu.name.to_s] = wu_sch_sensor
+          # water use equipment target temperature schedule sensors
+          if wu.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
             target_temp_sch = wu.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-            target_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-            target_temp_sensor.setName("#{wu.name} target temp")
-            target_temp_sensor.setKeyName(target_temp_sch.name.to_s)
-            equipment_target_temp_sensors[wu.name.to_s] = target_temp_sensor
+          else
+            target_temp_sch = water_heater.setpointTemperatureSchedule.get
           end
-
-        elsif c.to_WaterHeaterMixed.is_initialized
-          water_heater = c.to_WaterHeaterMixed.get
-
-          # Some parameters to use
-          tank_volume = water_heater.tankVolume.get
-          deadband = water_heater.deadbandTemperatureDifference
-          # Sensors and actuators related to OS water heater object
-          tank_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Tank Temperature')
-          tank_temp_sensor.setName("#{combi_sys_id} Tank Temp")
-          tank_temp_sensor.setKeyName(water_heater.name.to_s)
-          tank_loss_energy_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Heat Loss Energy')
-          tank_loss_energy_sensor.setName("#{combi_sys_id} Tank Loss Energy")
-          tank_loss_energy_sensor.setKeyName(water_heater.name.to_s)
-          tank_spt_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-          tank_spt_sensor.setName("#{combi_sys_id} Setpoint Temperature")
-          tank_spt_sensor.setKeyName(water_heater.setpointTemperatureSchedule.get.name.to_s)
-          alt_spt_sch = water_heater.indirectAlternateSetpointTemperatureSchedule.get
-          altsch_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(alt_spt_sch, *EPlus::EMSActuatorScheduleConstantValue)
-          altsch_actuator.setName("#{combi_sys_id} AltSchedOverride")
+          target_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+          target_temp_sensor.setName("#{wu.name} target temp")
+          target_temp_sensor.setKeyName(target_temp_sch.name.to_s)
+          equipment_target_temp_sensors[wu.name.to_s] = target_temp_sensor
         end
       end
       dhw_source_loop = model.getPlantLoops.select { |l| l.demandComponents.include? water_heater }[0]

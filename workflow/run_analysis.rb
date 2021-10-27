@@ -21,7 +21,8 @@ def run_workflow(yml, measures_only, debug)
   workflow_args.update(cfg['workflow_generator']['args'])
 
   measure_dir_names = { 'build_existing_model' => 'BuildExistingModel',
-                        'simulation_output_report' => 'ReportSimulationOutput' }
+                        'simulation_output_report' => 'ReportSimulationOutput',
+                        'server_directory_cleanup' => 'ServerDirectoryCleanup' }
 
   steps = []
   workflow_args.each do |measure_dir_name, arguments|
@@ -29,8 +30,6 @@ def run_workflow(yml, measures_only, debug)
       workflow_args[measure_dir_name].each do |k|
         steps << { 'measure_dir_name' => k['measure_dir_name'] }
       end
-    elsif measure_dir_name == 'server_directory_cleanup'
-      next
     else
       arguments['building_id'] = 1 if measure_dir_name == 'build_existing_model'
       steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
