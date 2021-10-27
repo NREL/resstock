@@ -34,7 +34,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert(up00.include?('data_point_out.json'))
     assert(up00.include?('existing.xml'))
     assert(!up00.include?('upgraded.xml'))
-    assert(up00.include?('results_timeseries.csv'))
+    assert(!up00.include?('results_timeseries.csv'))
     assert(!up00.include?('in.idf'))
     assert(!up00.include?('schedules.csv'))
   end
@@ -61,7 +61,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert(up00.include?('data_point_out.json'))
     assert(up00.include?('existing.xml'))
     assert(!up00.include?('upgraded.xml'))
-    assert(up00.include?('results_timeseries.csv'))
+    assert(!up00.include?('results_timeseries.csv'))
     assert(!up00.include?('in.idf'))
     assert(!up00.include?('schedules.csv'))
   end
