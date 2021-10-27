@@ -6,8 +6,6 @@ The ``options_lookup.tsv`` file, found in the ``resources`` folder, specifies ma
  - :ref:`Could not find parameter and option <could-not-find-parameter-and-option>`
  - :ref:`Required argument not provided <required-argument-not-provided>`
 
-Once you have updated your ``options_lookup.tsv`` file and all integrity checks are passing, you can move on to :doc:`updating_projects`.
-
 .. _could-not-find-parameter-and-option:
 
 Could not find parameter and option
