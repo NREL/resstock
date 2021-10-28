@@ -91,6 +91,15 @@ class MoreCompare(BaseCompare):
 
   def map_columns(self, map_results):
     # Read in files
+
+    ## Characteristics
+    # This is optional since you aren't necessarily going to visualize by characteristics
+    has_characteristics = False
+    if os.path.exists(os.path.join(self.base_folder, 'results_characteristics.csv')) and os.path.exists(os.path.join(self.feature_folder, 'results_characteristics.csv')):
+      has_characteristics = True
+      base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
+      feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
+
     ## Outputs
     base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0)
     feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output.csv'), index_col=0)
@@ -117,12 +126,8 @@ class MoreCompare(BaseCompare):
       df_to_keep  = feature_df
       df_to_map = base_df
 
-    try: # this is optional since you aren't necessarily going to visualize by characteristics
-      # Read in files
-      ## Characteristics
-      base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
-      feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
-
+    ## Characteristics
+    if has_characteristics:
       # Align results_charactersitics columns
       base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
       feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
@@ -136,8 +141,6 @@ class MoreCompare(BaseCompare):
 
       base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
       feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
-    except:
-      pass
 
     # Skip mapping if not needed
     if list(df_to_map.columns) == list(df_to_keep.columns):
