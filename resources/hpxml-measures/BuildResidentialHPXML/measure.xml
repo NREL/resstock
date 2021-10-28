@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>2e88007d-6470-46d0-9bc4-ee0a4b2d2047</version_id>
-  <version_modified>20211026T222502Z</version_modified>
+  <version_id>a333b508-034e-46e9-a99e-363b91131e93</version_id>
+  <version_modified>20211028T174813Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder (Beta)</display_name>
@@ -399,57 +399,85 @@
       </choices>
     </argument>
     <argument>
-      <name>geometry_unit_level</name>
-      <display_name>Geometry: Unit Level</display_name>
-      <description>The level of the unit. This is required for apartment units.</description>
-      <type>Choice</type>
-      <required>false</required>
+      <name>geometry_unit_left_wall_is_adiabatic</name>
+      <display_name>Geometry: Unit Left Wall Is Adiabatic</display_name>
+      <description>Presence of an adiabatic left wall.</description>
+      <type>Boolean</type>
+      <required>true</required>
       <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
       <choices>
         <choice>
-          <value>Bottom</value>
-          <display_name>Bottom</display_name>
+          <value>true</value>
+          <display_name>true</display_name>
         </choice>
         <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Top</value>
-          <display_name>Top</display_name>
+          <value>false</value>
+          <display_name>false</display_name>
         </choice>
       </choices>
     </argument>
     <argument>
-      <name>geometry_unit_horizontal_location</name>
-      <display_name>Geometry: Unit Horizontal Location</display_name>
-      <description>The horizontal location of the unit when viewing the front of the building. This is required for single-family attached and apartment units.</description>
-      <type>Choice</type>
-      <required>false</required>
+      <name>geometry_unit_right_wall_is_adiabatic</name>
+      <display_name>Geometry: Unit Right Wall Is Adiabatic</display_name>
+      <description>Presence of an adiabatic right wall.</description>
+      <type>Boolean</type>
+      <required>true</required>
       <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
       <choices>
         <choice>
-          <value>None</value>
-          <display_name>None</display_name>
+          <value>true</value>
+          <display_name>true</display_name>
         </choice>
         <choice>
-          <value>Left</value>
-          <display_name>Left</display_name>
-        </choice>
-        <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Right</value>
-          <display_name>Right</display_name>
+          <value>false</value>
+          <display_name>false</display_name>
         </choice>
       </choices>
     </argument>
     <argument>
-      <name>geometry_num_floors_above_grade</name>
-      <display_name>Geometry: Number of Floors Above Grade</display_name>
-      <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
+      <name>geometry_unit_front_wall_is_adiabatic</name>
+      <display_name>Geometry: Unit Front Wall Is Adiabatic</display_name>
+      <description>Presence of an adiabatic front wall.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_unit_back_wall_is_adiabatic</name>
+      <display_name>Geometry: Unit Back Wall Is Adiabatic</display_name>
+      <description>Presence of an adiabatic back wall.</description>
+      <type>Boolean</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_unit_num_floors_above_grade</name>
+      <display_name>Geometry: Unit Number of Floors Above Grade</display_name>
+      <description>The number of floors above grade in the unit. Conditioned attics are included. Assumed to be 1 if apartment unit.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -594,43 +622,6 @@
       </choices>
     </argument>
     <argument>
-      <name>geometry_corridor_position</name>
-      <display_name>Geometry: Corridor Position</display_name>
-      <description>The position of the corridor. Only applies to single-family attached and apartment units. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Double-Loaded Interior</default_value>
-      <choices>
-        <choice>
-          <value>Double-Loaded Interior</value>
-          <display_name>Double-Loaded Interior</display_name>
-        </choice>
-        <choice>
-          <value>Single Exterior (Front)</value>
-          <display_name>Single Exterior (Front)</display_name>
-        </choice>
-        <choice>
-          <value>Double Exterior</value>
-          <display_name>Double Exterior</display_name>
-        </choice>
-        <choice>
-          <value>None</value>
-          <display_name>None</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_corridor_width</name>
-      <display_name>Geometry: Corridor Width</display_name>
-      <description>The width of the corridor. Only applies to apartment units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>10</default_value>
-    </argument>
-    <argument>
       <name>geometry_foundation_type</name>
       <display_name>Geometry: Foundation Type</display_name>
       <description>The foundation type of the building.</description>
@@ -667,6 +658,10 @@
           <value>Ambient</value>
           <display_name>Ambient</display_name>
         </choice>
+        <choice>
+          <value>AboveApartment</value>
+          <display_name>AboveApartment</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -699,9 +694,40 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>geometry_attic_type</name>
+      <display_name>Geometry: Attic Type</display_name>
+      <description>The attic type of the building.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>VentedAttic</default_value>
+      <choices>
+        <choice>
+          <value>FlatRoof</value>
+          <display_name>FlatRoof</display_name>
+        </choice>
+        <choice>
+          <value>VentedAttic</value>
+          <display_name>VentedAttic</display_name>
+        </choice>
+        <choice>
+          <value>UnventedAttic</value>
+          <display_name>UnventedAttic</display_name>
+        </choice>
+        <choice>
+          <value>ConditionedAttic</value>
+          <display_name>ConditionedAttic</display_name>
+        </choice>
+        <choice>
+          <value>BelowApartment</value>
+          <display_name>BelowApartment</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>geometry_roof_type</name>
       <display_name>Geometry: Roof Type</display_name>
-      <description>The roof type of the building. Assumed flat for apartment units.</description>
+      <description>The roof type of the building. Ignored if the building has a flat roof.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -714,10 +740,6 @@
         <choice>
           <value>hip</value>
           <display_name>hip</display_name>
-        </choice>
-        <choice>
-          <value>flat</value>
-          <display_name>flat</display_name>
         </choice>
       </choices>
     </argument>
@@ -777,29 +799,6 @@
         <choice>
           <value>12:12</value>
           <display_name>12:12</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_attic_type</name>
-      <display_name>Geometry: Attic Type</display_name>
-      <description>The attic type of the building. Ignored if the building has a flat roof.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>VentedAttic</default_value>
-      <choices>
-        <choice>
-          <value>VentedAttic</value>
-          <display_name>VentedAttic</display_name>
-        </choice>
-        <choice>
-          <value>UnventedAttic</value>
-          <display_name>UnventedAttic</display_name>
-        </choice>
-        <choice>
-          <value>ConditionedAttic</value>
-          <display_name>ConditionedAttic</display_name>
         </choice>
       </choices>
     </argument>
@@ -5745,16 +5744,16 @@
   </attributes>
   <files>
     <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>E12DF4C0</checksum>
-    </file>
-    <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>C2AB19BE</checksum>
+      <checksum>88707F86</checksum>
+    </file>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>E73DC04B</checksum>
     </file>
     <file>
       <version>
@@ -5765,7 +5764,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>7F2F9277</checksum>
+      <checksum>2179F80B</checksum>
     </file>
   </files>
 </measure>
