@@ -594,7 +594,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
           return false
         end
-        if (unit_width <= 2) && (horz_location == 'Middle')
+        if (unit_width <= 2) && (horiz_location == 'Middle')
           runner.registerError('Invalid horizontal location entered, no middle location exists.')
           return false
         end
