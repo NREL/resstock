@@ -13,3 +13,9 @@ ResStock Documentation
    tutorial/index
    advanced_tutorial/index
    upgrade_scenario_config
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`search`
