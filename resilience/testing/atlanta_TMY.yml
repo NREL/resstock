@@ -1,13 +1,13 @@
 schema_version: '0.3'
 buildstock_directory: /home/pwhite/GitHub/resstock
 project_directory: project_national
-output_directory: /projects/resilience/testing/la_2018_hot_short_testv12
-weather_files_path: /home/pwhite/GitHub/resstock/resilience/resilience_weather/la_2018.zip
+output_directory: /projects/resilience/updatedv1/updatedv1/atlanta_TMY
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 eagle:
   n_jobs: 10
   minutes_per_sim: 20
-  account: enduse
+  account: resilience
   sampling:
     time: 700
   postprocessing:
@@ -15,52 +15,28 @@ eagle:
     n_workers: 5
 
 sampler:
-  type: residential_quota_downselect
+  type: precomputed
   args:
-    n_datapoints: 1000
-    resample: true
-    logic:
-      - Geometry Building Type ACS|Single-Family Detached
-      - Vacancy Status|Occupied
-      - County|CA, Los Angeles County
-    
+    sample_file: /home/pwhite/GitHub/resstock/resilience/atlanta/buildstock.csv
+
 workflow_generator:
   type: residential_default
   args:
     timeseries_csv_export:
       output_variables:
-        Site Outdoor Air Drybulb Temperature, Zone Mean Air Temperature, Zone Air Relative Humidity, Zone Thermal Comfort Pierce Model Standard Effective Temperature
+        Site Outdoor Air Drybulb Temperature, Zone Mean Air Temperature, Zone Air Relative Humidity
       reporting_frequency: Hourly
       include_enduse_subcategories: true
-    residential_simulation_controls:
-      calendar_year: 2018
-      timesteps_per_hr: 4
-      begin_month: 6
-      begin_day_of_month: 22
-      end_month: 7
-      end_day_of_month: 20
-    measures:
-      - measure_dir_name: PowerOutage
-        arguments:
-          otg_date: July 6
-          otg_hr: 0
-          otg_len: 96
-          comfort_model_1: Pierce
-    # reporting_measures:
-    #   - measure_dir_name: ResilienceMetricsReport
 
 baseline:
   n_buildings_represented: 133172057
-
-
 
 postprocessing:
   aws:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-resilience
-      prefix: testing/la_2018_hot_short_testv12
-
+      prefix: updatedv1/atlanta_TMY
 
 upgrades:
   - upgrade_name: Package 1

@@ -1,8 +1,8 @@
 schema_version: '0.3'
 buildstock_directory: /home/pwhite/GitHub/resstock
 project_directory: project_national
-output_directory: /projects/resilience/testing/la_2018_hot_short_testv12
-weather_files_path: /home/pwhite/GitHub/resstock/resilience/resilience_weather/la_2018.zip
+output_directory: /projects/resilience/testing/la_2017_hot_long_testv2
+weather_files_path: /home/pwhite/GitHub/resstock/resilience/resilience_weather/la_2017.zip
 
 eagle:
   n_jobs: 10
@@ -18,7 +18,7 @@ sampler:
   type: residential_quota_downselect
   args:
     n_datapoints: 1000
-    resample: true
+    resample: false
     logic:
       - Geometry Building Type ACS|Single-Family Detached
       - Vacancy Status|Occupied
@@ -33,18 +33,18 @@ workflow_generator:
       reporting_frequency: Hourly
       include_enduse_subcategories: true
     residential_simulation_controls:
-      calendar_year: 2018
-      timesteps_per_hr: 4
-      begin_month: 6
-      begin_day_of_month: 22
-      end_month: 7
-      end_day_of_month: 20
+      calendar_year: 2017
+      timesteps_per_hr: 1
+      begin_month: 8
+      begin_day_of_month: 15
+      end_month: 9
+      end_day_of_month: 17
     measures:
       - measure_dir_name: PowerOutage
         arguments:
-          otg_date: July 6
+          otg_date: August 29
           otg_hr: 0
-          otg_len: 96
+          otg_len: 144
           comfort_model_1: Pierce
     # reporting_measures:
     #   - measure_dir_name: ResilienceMetricsReport
@@ -59,7 +59,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-resilience
-      prefix: testing/la_2018_hot_short_testv12
+      prefix: testing/la_2017_hot_long_testv2
 
 
 upgrades:

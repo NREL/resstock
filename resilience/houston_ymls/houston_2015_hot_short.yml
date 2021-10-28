@@ -1,8 +1,8 @@
 schema_version: '0.3'
 buildstock_directory: /home/pwhite/GitHub/resstock
 project_directory: project_national
-output_directory: /projects/resilience/testing/la_2018_hot_short_testv12
-weather_files_path: /home/pwhite/GitHub/resstock/resilience/resilience_weather/la_2018.zip
+output_directory: /projects/resilience/houston_runs/houston_2015_hot_short
+weather_files_path: ../resilience_weather/houston_2015.zip
 
 eagle:
   n_jobs: 10
@@ -15,14 +15,9 @@ eagle:
     n_workers: 5
 
 sampler:
-  type: residential_quota_downselect
+  type: precomputed
   args:
-    n_datapoints: 1000
-    resample: true
-    logic:
-      - Geometry Building Type ACS|Single-Family Detached
-      - Vacancy Status|Occupied
-      - County|CA, Los Angeles County
+    sample_file: /home/pwhite/GitHub/resstock/resilience/houston/buildstock.csv
     
 workflow_generator:
   type: residential_default
@@ -33,18 +28,19 @@ workflow_generator:
       reporting_frequency: Hourly
       include_enduse_subcategories: true
     residential_simulation_controls:
-      calendar_year: 2018
+      calendar_year: 2015
       timesteps_per_hr: 4
-      begin_month: 6
-      begin_day_of_month: 22
-      end_month: 7
-      end_day_of_month: 20
+      begin_month: 7
+      begin_day_of_month: 12
+      end_month: 8
+      end_day_of_month: 14
+
     measures:
       - measure_dir_name: PowerOutage
         arguments:
-          otg_date: July 6
+          otg_date: July 26
           otg_hr: 0
-          otg_len: 96
+          otg_len: 144
           comfort_model_1: Pierce
     # reporting_measures:
     #   - measure_dir_name: ResilienceMetricsReport
@@ -59,7 +55,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-resilience
-      prefix: testing/la_2018_hot_short_testv12
+      prefix: houston_runs/houston_2015_hot_short
 
 
 upgrades:

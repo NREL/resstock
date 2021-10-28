@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /home/pwhite/GitHub/resstock
 project_directory: project_national
-output_directory: /projects/resilience/testing/la_2018_hot_short_testv12
+output_directory: /projects/resilience/la_runs/la_2018_hot_short
 weather_files_path: /home/pwhite/GitHub/resstock/resilience/resilience_weather/la_2018.zip
 
 eagle:
@@ -15,14 +15,9 @@ eagle:
     n_workers: 5
 
 sampler:
-  type: residential_quota_downselect
+  type: precomputed
   args:
-    n_datapoints: 1000
-    resample: true
-    logic:
-      - Geometry Building Type ACS|Single-Family Detached
-      - Vacancy Status|Occupied
-      - County|CA, Los Angeles County
+    sample_file: /home/pwhite/GitHub/resstock/resilience/la/buildstock.csv
     
 workflow_generator:
   type: residential_default
@@ -34,11 +29,11 @@ workflow_generator:
       include_enduse_subcategories: true
     residential_simulation_controls:
       calendar_year: 2018
-      timesteps_per_hr: 4
+      timesteps_per_hr: 1
       begin_month: 6
-      begin_day_of_month: 22
+      begin_day_of_month: 23
       end_month: 7
-      end_day_of_month: 20
+      end_day_of_month: 25
     measures:
       - measure_dir_name: PowerOutage
         arguments:
@@ -59,7 +54,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-resilience
-      prefix: testing/la_2018_hot_short_testv12
+      prefix: la_runs/la_2018_hot_short
 
 
 upgrades:
