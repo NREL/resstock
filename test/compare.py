@@ -91,10 +91,6 @@ class MoreCompare(BaseCompare):
 
   def map_columns(self, map_results):
     # Read in files
-    ## Characteristics
-    base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
-    feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
-
     ## Outputs
     base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0)
     feature_df = pd.read_csv(os.path.join(self.feature_folder, 'results_output.csv'), index_col=0)
@@ -121,19 +117,27 @@ class MoreCompare(BaseCompare):
       df_to_keep  = feature_df
       df_to_map = base_df
 
-    # Align results_charactersitics columns
-    base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
-    feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
+    try: # this is optional since you aren't necessarily going to visualize by characteristics
+      # Read in files
+      ## Characteristics
+      base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
+      feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
 
-    base_df_char.columns = base_cols
-    feature_df_char.columns = feature_cols
+      # Align results_charactersitics columns
+      base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
+      feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
 
-    common_cols = np.intersect1d(base_df_char.columns, feature_df_char.columns)
-    base_df_char = base_df_char[common_cols]
-    feature_df_char = feature_df_char[common_cols]
+      base_df_char.columns = base_cols
+      feature_df_char.columns = feature_cols
 
-    base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
-    feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
+      common_cols = np.intersect1d(base_df_char.columns, feature_df_char.columns)
+      base_df_char = base_df_char[common_cols]
+      feature_df_char = feature_df_char[common_cols]
+
+      base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
+      feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
+    except:
+      pass
 
     # Skip mapping if not needed
     if list(df_to_map.columns) == list(df_to_keep.columns):
