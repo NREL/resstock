@@ -95,7 +95,8 @@ for col in df.columns.values:
   elif col.startswith('qoi_report'):
     qoi_reports.append(col)
   elif col.startswith('apply_upgrade'):
-    apply_upgrades.append(col)
+    if not 'upgrade_name' in col:
+      apply_upgrades.append(col)
 
 # results_output.csv
 results_output = df[['OSW'] + simulation_output_reports + qoi_reports + apply_upgrades]
