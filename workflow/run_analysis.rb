@@ -19,78 +19,89 @@ def run_workflow(yml, measures_only)
     fail "Not supporting 'residential_quota_downselect' at this time."
   end
 
-  workflow_args = {
-    'residential_simulation_controls' => {},
-    'simulation_output' => {}
-  }
-  workflow_args.update(cfg['workflow_generator']['args'])
-
-  measure_dir_names = { 'residential_simulation_controls' => 'ResidentialSimulationControls',
-                        'simulation_output' => 'SimulationOutputReport',
-                        'timeseries_csv_export' => 'TimeseriesCSVExport',
-                        'server_directory_cleanup' => 'ServerDirectoryCleanup' }
-
-  steps = []
-  workflow_args.each do |measure_dir_name, arguments|
-    if measure_dir_name == 'reporting_measures'
-      workflow_args[measure_dir_name].each do |k|
-        steps << { 'measure_dir_name' => k['measure_dir_name'] }
-      end
-    else
-      steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
-                 'arguments' => arguments }
-    end
+  upgrade_names = ['Baseline']
+  cfg['upgrades'].each do |upgrade|
+    upgrade_names << upgrade['upgrade_name'].gsub(' ', '')
   end
 
-  steps.insert(1, { 'measure_dir_name' => 'BuildExistingModel',
-                    'arguments' => {
-                      'building_id' => 1,
-                      'workflow_json' => 'measure-info.json'
-                    } })
+  osw_paths = {}
+  thisdir = File.dirname(__FILE__)
 
-  if cfg.keys.include?('upgrades')
-    measure_d = cfg['upgrades'][0]
-    apply_upgrade_measure = { 'measure_dir_name' => 'ApplyUpgrade',
-                              'arguments' => { 'run_measure' => 1 } }
-    if measure_d.include?('upgrade_name')
-      apply_upgrade_measure['arguments']['upgrade_name'] = measure_d['upgrade_name']
+  upgrade_names.each_with_index do |upgrade_name, upgrade_idx|
+    workflow_args = {
+      'residential_simulation_controls' => {},
+      'simulation_output' => {}
+    }
+    workflow_args.update(cfg['workflow_generator']['args'])
+
+    measure_dir_names = { 'residential_simulation_controls' => 'ResidentialSimulationControls',
+                          'simulation_output' => 'SimulationOutputReport',
+                          'timeseries_csv_export' => 'TimeseriesCSVExport',
+                          'server_directory_cleanup' => 'ServerDirectoryCleanup' }
+
+    steps = []
+    workflow_args.each do |measure_dir_name, arguments|
+      if measure_dir_name == 'reporting_measures'
+        workflow_args[measure_dir_name].each do |k|
+          steps << { 'measure_dir_name' => k['measure_dir_name'] }
+        end
+      else
+        steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
+                   'arguments' => arguments }
+      end
     end
-    measure_d['options'].each_with_index do |option, opt_num|
-      opt_num += 1
-      apply_upgrade_measure['arguments']["option_#{opt_num}"] = option['option']
-      if option.include?('lifetime')
-        apply_upgrade_measure['arguments']["option_#{opt_num}_lifetime"] = option['lifetime']
-      end
-      if option.include?('apply_logic')
-        apply_upgrade_measure['arguments']["option_#{opt_num}_apply_logic"] = option['apply_logic']
-      end
-      option['costs'].each_with_index do |cost, cost_num|
-        cost_num += 1
-        ['value', 'multiplier'].each do |arg|
-          next if !cost.include?(arg)
 
-          apply_upgrade_measure['arguments']["option_#{opt_num}_cost_#{cost_num}_#{arg}"] = cost[arg]
+    steps.insert(1, { 'measure_dir_name' => 'BuildExistingModel',
+                      'arguments' => {
+                        'building_id' => 1,
+                        'workflow_json' => 'measure-info.json'
+                      } })
+
+    if upgrade_idx > 0
+      measure_d = cfg['upgrades'][upgrade_idx - 1]
+      apply_upgrade_measure = { 'measure_dir_name' => 'ApplyUpgrade',
+                                'arguments' => { 'run_measure' => 1 } }
+      if measure_d.include?('upgrade_name')
+        apply_upgrade_measure['arguments']['upgrade_name'] = measure_d['upgrade_name']
+      end
+      measure_d['options'].each_with_index do |option, opt_num|
+        opt_num += 1
+        apply_upgrade_measure['arguments']["option_#{opt_num}"] = option['option']
+        if option.include?('lifetime')
+          apply_upgrade_measure['arguments']["option_#{opt_num}_lifetime"] = option['lifetime']
+        end
+        if option.include?('apply_logic')
+          apply_upgrade_measure['arguments']["option_#{opt_num}_apply_logic"] = option['apply_logic']
+        end
+        next unless option.keys.include?('costs')
+
+        option['costs'].each_with_index do |cost, cost_num|
+          cost_num += 1
+          ['value', 'multiplier'].each do |arg|
+            next if !cost.include?(arg)
+
+            apply_upgrade_measure['arguments']["option_#{opt_num}_cost_#{cost_num}_#{arg}"] = cost[arg]
+          end
         end
       end
+      if measure_d.include?('package_apply_logic')
+        apply_upgrade_measure['arguments']['package_apply_logic'] = measure_d['package_apply_logic']
+      end
+
+      steps.insert(2, apply_upgrade_measure)
     end
-    if measure_d.include?('package_apply_logic')
-      apply_upgrade_measure['arguments']['package_apply_logic'] = measure_d['package_apply_logic']
+
+    osw = {
+      'measure_paths': ['../../../measures'],
+      'steps': steps
+    }
+
+    base, ext = File.basename(yml).split('.')
+
+    osw_paths[upgrade_name] = File.join(thisdir, "#{base}-#{upgrade_name}.osw")
+    File.open(osw_paths[upgrade_name], 'w') do |f|
+      f.write(JSON.pretty_generate(osw))
     end
-
-    steps.insert(2, apply_upgrade_measure)
-  end
-
-  osw = {
-    'measure_paths': ['../../../measures'],
-    'steps': steps
-  }
-
-  thisdir = File.dirname(__FILE__)
-  base, ext = File.basename(yml).split('.')
-
-  osw_path = File.join(thisdir, "#{base}.osw")
-  File.open(osw_path, 'w') do |f|
-    f.write(JSON.pretty_generate(osw))
   end
 
   buildstock_directory = cfg['buildstock_directory']
@@ -136,12 +147,14 @@ def run_workflow(yml, measures_only)
 
   all_results_characteristics = []
   all_results_output = []
-  samples_osw(results_dir, osw_path, n_datapoints, all_results_characteristics, all_results_output, measures_only)
+  osw_paths.each do |upgrade_name, osw_path|
+    samples_osw(results_dir, osw_path, upgrade_name, n_datapoints, all_results_characteristics, all_results_output, measures_only)
+
+    change_building_id(osw_path, 1)
+  end
 
   results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
   results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
-
-  change_building_id(osw_path, 1)
 
   return true
 end
@@ -157,9 +170,12 @@ def create_buildstock_csv(project_dir, num_samples, outfile)
   r.run(project_dir, num_samples, outfile)
 end
 
-def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics, all_results_output, measures_only)
+def samples_osw(results_dir, osw_path, upgrade_name, num_samples, all_results_characteristics, all_results_output, measures_only)
   osw_dir = File.join(results_dir, 'osw')
   Dir.mkdir(osw_dir) unless File.exist?(osw_dir)
+
+  scenario_dir = File.join(results_dir, 'osw', upgrade_name)
+  Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
 
   workflow_and_building_ids = []
   (1..num_samples).to_a.each do |building_id|
@@ -181,7 +197,7 @@ def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics,
 
     finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
 
-    osw = "#{building_id.to_s.rjust(4, '0')}.osw"
+    osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
     result_characteristics['OSW'] = osw
     result_output['OSW'] = osw
 
@@ -192,8 +208,8 @@ def samples_osw(results_dir, osw_path, num_samples, all_results_characteristics,
     all_results_output << result_output
 
     run_dir = File.join(worker_dir, 'run')
-    FileUtils.mv(File.join(run_dir, 'measures.osw'), File.join(osw_dir, "#{building_id}-measures.osw"))
-    FileUtils.mv(File.join(run_dir, 'measures-upgrade.osw'), File.join(osw_dir, "#{building_id}-measures-upgrade.osw")) if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
+    FileUtils.mv(File.join(run_dir, 'measures.osw'), File.join(scenario_dir, "#{building_id}-measures.osw"))
+    FileUtils.mv(File.join(run_dir, 'measures-upgrade.osw'), File.join(scenario_dir, "#{building_id}-measures-upgrade.osw")) if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
   end
 end
 
