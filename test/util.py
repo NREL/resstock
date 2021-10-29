@@ -77,6 +77,7 @@ df = df.rename(columns={'building_id': 'OSW'})
 del df['job_id']
 
 simulation_output_reports = ['color_index']
+upgrade_costs = []
 qoi_reports = []
 apply_upgrades = []
 
@@ -86,19 +87,17 @@ for col in df.columns.values:
 
   elif col.startswith('simulation_output_report'):
     simulation_output_reports.append(col)
+  elif col.startswith('upgrade_costs'):
+    upgrade_costs.append(col)
   elif col.startswith('qoi_report'):
     qoi_reports.append(col)
   elif col.startswith('apply_upgrade'):
-    apply_upgrades.append(col)
+    if not 'upgrade_name' in col:
+      apply_upgrades.append(col)
 
 # results_output.csv
-results_output = df[['OSW'] + simulation_output_reports + qoi_reports + apply_upgrades]
+results_output = df[['OSW'] + simulation_output_reports + upgrade_costs + qoi_reports + apply_upgrades]
 results_output = results_output.dropna(how='all', axis=1)
-results_output = results_output.round(1)
-for col in results_output.columns.values:
-  results_output = results_output.rename(columns={col: col.replace('simulation_output_report.', '')})
-  results_output = results_output.rename(columns={col: col.replace('qoi_report.', 'qoi_')})
-  results_output = results_output.rename(columns={col: col.replace('apply_upgrade.', '')})
 
 results_output = results_output.set_index('OSW')
 results_output = results_output.reindex(sorted(results_output), axis=1)

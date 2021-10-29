@@ -1,7 +1,7 @@
 Installer Setup
 ===============
 
-After you have downloaded the OpenStudio installer, you will want to install Ruby (2.7.2). This will allow you to execute rake tasks contained in the `Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_. Follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
+After you have downloaded the OpenStudio installer, you may want to install Ruby (2.7.2). This will allow you to execute rake tasks contained in the `Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_. Follow the instructions below for :ref:`windows-setup` or :ref:`mac-setup`.
 
 .. _windows-setup:
 

@@ -64,5 +64,3 @@ While the vintage PMF that uses the Miami International Airport weather file, :m
 - 18% in the 2000s.
 
 The **Options** can correspond to a Measure in OpenStudio or can be used as a **Dependency** for other housing characteristics.  For the list of available options for a given housing characteristic, see the ``resources/options_lookup.tsv`` file.  In this file the "Parameter Name" corresponds to the housing characteristic, the "Option Name" corresponds to an available option for the housing characteristic, the "Measure Dir" corresponds to the OpenStudio Measure being used, and the following columns correspond to different arguments needed by the OpenStudio Measure.  Each option used in the housing characteristics tsv files must be in this ``resources/options_lookup.tsv``. These options can be modified by the user to model their particular building stock.
-
-If adding or renaming any housing characteristics tsv files, refer to the :ref:`refresh-outputs` section for instructions on how to get the sampled options to show up in results files.
