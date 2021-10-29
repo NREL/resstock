@@ -374,7 +374,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
                ['4000+', HPXML::ResidentialTypeApartment] => 12291 }
       cfa = cfas[[args['geometry_unit_cfa_bin'], args['geometry_unit_type']]]
       if cfa.nil?
-        runner.registerError("Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
+        runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
         return false
       end
       args['geometry_unit_cfa'] = Float(cfa)
@@ -536,10 +536,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       corridor_width = 0
     end
     if corridor_width < 0
-      runner.registerError('Invalid corridor width entered.')
+      runner.registerError('ResStockArguments: Invalid corridor width entered.')
       return false
     end
-
 
     # Adiabatic Walls
     args['geometry_unit_left_wall_is_adiabatic'] = false
@@ -553,7 +552,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       n_units = Float(args['geometry_building_num_units'])
       horiz_location = args['geometry_unit_horizontal_location'].to_s
       aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
-      
+
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
         if n_units_per_floor >= 4 && (corridor_position == 'Double Exterior' || corridor_position == 'None')
@@ -561,7 +560,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           args['geometry_unit_back_wall_is_adiabatic'] = true
         elsif n_units_per_floor >= 4 && (corridor_position == 'Double-Loaded Interior')
           has_rear_units = true
-          args['geometry_unit_front_wall_is_adiabatic'] = true    
+          args['geometry_unit_front_wall_is_adiabatic'] = true
         elsif (n_units_per_floor == 2) && (horiz_location == 'None') && (corridor_position == 'Double Exterior' || corridor_position == 'None')
           has_rear_units = true
           args['geometry_unit_back_wall_is_adiabatic'] = true
@@ -582,7 +581,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           corridor_position = 'Single Exterior (Front)'
         end
         if has_rear_units
-          unit_width = n_units_per_floor/2
+          unit_width = n_units_per_floor / 2
         else
           unit_width = n_units_per_floor
         end
@@ -591,17 +590,17 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           horiz_location = 'None'
         end
         if (unit_width > 1) && (horiz_location == 'None')
-          runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
+          runner.registerError('ResStockArguments: Specified incompatible horizontal location for the corridor and unit configuration.')
           return false
         end
         if (unit_width <= 2) && (horiz_location == 'Middle')
-          runner.registerError('Invalid horizontal location entered, no middle location exists.')
+          runner.registerError('ResStockArguments: Invalid horizontal location entered, no middle location exists.')
           return false
         end
 
         # Model exterior corridors as overhangs
         if (args['geometry_corridor_position'].include? 'Exterior') && args['geometry_corridor_width'] > 0
-          args['overhangs_front_depth']  = args['geometry_corridor_width']
+          args['overhangs_front_depth'] = args['geometry_corridor_width']
           args['overhangs_front_distance_to_top_of_window'] = 1
         end
 
