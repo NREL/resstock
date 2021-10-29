@@ -540,7 +540,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-
     # Adiabatic Walls
     args['geometry_unit_left_wall_is_adiabatic'] = false
     args['geometry_unit_right_wall_is_adiabatic'] = false
@@ -553,7 +552,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       n_units = Float(args['geometry_building_num_units'])
       horiz_location = args['geometry_unit_horizontal_location'].to_s
       aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
-      
+
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
         if n_units_per_floor >= 4 && (corridor_position == 'Double Exterior' || corridor_position == 'None')
@@ -561,7 +560,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           args['geometry_unit_back_wall_is_adiabatic'] = true
         elsif n_units_per_floor >= 4 && (corridor_position == 'Double-Loaded Interior')
           has_rear_units = true
-          args['geometry_unit_front_wall_is_adiabatic'] = true    
+          args['geometry_unit_front_wall_is_adiabatic'] = true
         elsif (n_units_per_floor == 2) && (horiz_location == 'None') && (corridor_position == 'Double Exterior' || corridor_position == 'None')
           has_rear_units = true
           args['geometry_unit_back_wall_is_adiabatic'] = true
@@ -582,7 +581,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           corridor_position = 'Single Exterior (Front)'
         end
         if has_rear_units
-          unit_width = n_units_per_floor/2
+          unit_width = n_units_per_floor / 2
         else
           unit_width = n_units_per_floor
         end
@@ -601,7 +600,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
         # Model exterior corridors as overhangs
         if (args['geometry_corridor_position'].include? 'Exterior') && args['geometry_corridor_width'] > 0
-          args['overhangs_front_depth']  = args['geometry_corridor_width']
+          args['overhangs_front_depth'] = args['geometry_corridor_width']
           args['overhangs_front_distance_to_top_of_window'] = 1
         end
 
