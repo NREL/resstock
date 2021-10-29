@@ -108,6 +108,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert(File.exist?(File.join(@national_upgrades, 'results_csvs', 'results_up01.csv.gz')))
 
     up01 = []
+    timeseries = []
 
     simulations_job = File.join(@national_upgrades, 'simulation_output', 'simulations_job0.tar.gz')
     assert(File.exist?(simulations_job))
@@ -117,8 +118,12 @@ class TesBuildStockBatch < MiniTest::Test
       next unless entry.file?
 
       scenario, sample, subfolder, filename = entry.full_name.split('/')
-      if subfolder == 'run' && scenario == 'up01'
-        up01 << filename
+      next unless subfolder == 'run' && scenario == 'up01'
+
+      up01 << filename
+
+      if filename == 'results_timeseries.csv'
+        timeseries = entry.read
       end
     end
     tar_extract.close
