@@ -374,7 +374,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
                ['4000+', HPXML::ResidentialTypeApartment] => 12291 }
       cfa = cfas[[args['geometry_unit_cfa_bin'], args['geometry_unit_type']]]
       if cfa.nil?
-        runner.registerError("Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
+        runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
         return false
       end
       args['geometry_unit_cfa'] = Float(cfa)
@@ -536,7 +536,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       corridor_width = 0
     end
     if corridor_width < 0
-      runner.registerError('Invalid corridor width entered.')
+      runner.registerError('ResStockArguments: Invalid corridor width entered.')
       return false
     end
 
@@ -590,11 +590,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           horiz_location = 'None'
         end
         if (unit_width > 1) && (horiz_location == 'None')
-          runner.registerError('Specified incompatible horizontal location for the corridor and unit configuration.')
+          runner.registerError('ResStockArguments: Specified incompatible horizontal location for the corridor and unit configuration.')
           return false
         end
         if (unit_width <= 2) && (horiz_location == 'Middle')
-          runner.registerError('Invalid horizontal location entered, no middle location exists.')
+          runner.registerError('ResStockArguments: Invalid horizontal location entered, no middle location exists.')
           return false
         end
 
