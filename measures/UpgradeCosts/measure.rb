@@ -87,16 +87,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     # Retrieve values from ApplyUpgrade
     values = get_values_from_runner_past_results(runner, 'apply_upgrade')
 
-    # UPGRADE NAME
-    upgrade_name = values['upgrade_name']
-    if upgrade_name.nil?
-      register_value(runner, 'upgrade_name', '')
-      runner.registerInfo('Registering (blank) for upgrade_name.')
-    else
-      register_value(runner, 'upgrade_name', upgrade_name)
-      runner.registerInfo("Registering #{upgrade_name} for upgrade_name.")
-    end
-
     # UPGRADE COSTS
     upgrade_cost_name = 'upgrade_cost_usd'
 
