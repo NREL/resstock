@@ -329,7 +329,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
                ['4000+', HPXML::ResidentialTypeApartment] => 12291 }
       cfa = cfas[[args['geometry_unit_cfa_bin'], args['geometry_unit_type']]]
       if cfa.nil?
-        runner.registerError("Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
+        runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
         return false
       end
       args['geometry_unit_cfa'] = Float(cfa)

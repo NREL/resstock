@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>592dd873-ae76-4de5-aeee-e33afced8310</version_id>
-  <version_modified>20211004T202111Z</version_modified>
+  <version_id>b5e59b64-55d4-4f35-8d15-5d142bf478fc</version_id>
+  <version_modified>20211029T170122Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -618,6 +618,10 @@
           <display_name>UnventedCrawlspace</display_name>
         </choice>
         <choice>
+          <value>ConditionedCrawlspace</value>
+          <display_name>ConditionedCrawlspace</display_name>
+        </choice>
+        <choice>
           <value>UnconditionedBasement</value>
           <display_name>UnconditionedBasement</display_name>
         </choice>
@@ -876,6 +880,24 @@
       <default_value>28.1</default_value>
     </argument>
     <argument>
+      <name>foundation_wall_type</name>
+      <display_name>Foundation Wall: Type</display_name>
+      <description>The material type of the foundation wall.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>foundation_wall_thickness</name>
+      <display_name>Foundation Wall: Thickness</display_name>
+      <description>The thickness of the foundation wall.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
       <name>foundation_wall_insulation_r</name>
       <display_name>Foundation Wall: Insulation Nominal R-value</display_name>
       <description>Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces.</description>
@@ -935,15 +957,6 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>foundation_wall_thickness</name>
-      <display_name>Foundation Wall: Thickness</display_name>
-      <description>The thickness of the foundation wall.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>rim_joist_assembly_r</name>
       <display_name>Rim Joist: Assembly R-value</display_name>
       <description>Assembly R-value for the rim joists. Only applies to basements/crawlspaces.</description>
@@ -995,7 +1008,7 @@
     <argument>
       <name>slab_thickness</name>
       <display_name>Slab: Thickness</display_name>
-      <description>The thickness of the slab.</description>
+      <description>The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1725,6 +1738,10 @@
           <display_name>FixedHeater</display_name>
         </choice>
         <choice>
+          <value>PackagedTerminalAirConditionerHeating</value>
+          <display_name>PackagedTerminalAirConditionerHeating</display_name>
+        </choice>
+        <choice>
           <value>Shared Boiler w/ Baseboard</value>
           <display_name>Shared Boiler w/ Baseboard</display_name>
         </choice>
@@ -1737,7 +1754,7 @@
     <argument>
       <name>heating_system_fuel</name>
       <display_name>Heating System: Fuel Type</display_name>
-      <description>The fuel type of the heating system. Ignored for ElectricResistance.</description>
+      <description>The fuel type of the heating system. Ignored for ElectricResistance and PackagedTerminalAirConditionerHeating.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1832,12 +1849,16 @@
           <value>mini-split</value>
           <display_name>mini-split</display_name>
         </choice>
+        <choice>
+          <value>packaged terminal air conditioner</value>
+          <display_name>packaged terminal air conditioner</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
       <name>cooling_system_cooling_efficiency_type</name>
       <display_name>Cooling System: Efficiency Type</display_name>
-      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER. System type room air conditioner uses EER or CEER. Ignored for system type evaporative cooler.</description>
+      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1921,7 +1942,7 @@
     <argument>
       <name>cooling_system_is_ducted</name>
       <display_name>Cooling System: Is Ducted</display_name>
-      <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted and room air conditioner is not ducted.</description>
+      <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1962,12 +1983,16 @@
           <value>ground-to-air</value>
           <display_name>ground-to-air</display_name>
         </choice>
+        <choice>
+          <value>packaged terminal heat pump</value>
+          <display_name>packaged terminal heat pump</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
       <name>heat_pump_heating_efficiency_type</name>
       <display_name>Heat Pump: Heating Efficiency Type</display_name>
-      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF. System type ground-to-air uses COP.</description>
+      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF. System types ground-to-air and packaged terminal heat pump use COP.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1996,7 +2021,7 @@
     <argument>
       <name>heat_pump_cooling_efficiency_type</name>
       <display_name>Heat Pump: Cooling Efficiency Type</display_name>
-      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER. System type ground-to-air uses EER.</description>
+      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER. System types ground-to-air and packaged terminal heat pump use EER.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2029,7 +2054,7 @@
     <argument>
       <name>heat_pump_cooling_compressor_type</name>
       <display_name>Heat Pump: Cooling Compressor Type</display_name>
-      <description>The compressor type of the heat pump. Only applies to air-to-air and mini-split.</description>
+      <description>The compressor type of the heat pump. Only applies to air-to-air.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2338,11 +2363,15 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>CFM25</default_value>
+      <default_value>Percent</default_value>
       <choices>
         <choice>
           <value>CFM25</value>
           <display_name>CFM25</display_name>
+        </choice>
+        <choice>
+          <value>CFM50</value>
+          <display_name>CFM50</display_name>
         </choice>
         <choice>
           <value>Percent</value>
@@ -2357,7 +2386,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>75</default_value>
+      <default_value>0.1</default_value>
     </argument>
     <argument>
       <name>ducts_return_leakage_to_outside_value</name>
@@ -2366,7 +2395,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>25</default_value>
+      <default_value>0.1</default_value>
     </argument>
     <argument>
       <name>ducts_supply_location</name>
@@ -2400,6 +2429,10 @@
         <choice>
           <value>crawlspace - unvented</value>
           <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
         </choice>
         <choice>
           <value>attic - vented</value>
@@ -2499,6 +2532,10 @@
         <choice>
           <value>crawlspace - unvented</value>
           <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
         </choice>
         <choice>
           <value>attic - vented</value>
@@ -3148,6 +3185,10 @@
         <choice>
           <value>crawlspace - unvented</value>
           <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
         </choice>
         <choice>
           <value>other exterior</value>
@@ -3940,7 +3981,7 @@
       <display_name>Lighting: Present</display_name>
       <description>Whether there is lighting energy use.</description>
       <type>Boolean</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>true</default_value>
       <choices>
@@ -3961,7 +4002,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.4</default_value>
+      <default_value>0.1</default_value>
     </argument>
     <argument>
       <name>lighting_interior_fraction_lfl</name>
@@ -3970,7 +4011,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_interior_fraction_led</name>
@@ -3979,7 +4020,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_interior_usage_multiplier</name>
@@ -3997,7 +4038,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.4</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_fraction_lfl</name>
@@ -4006,7 +4047,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_fraction_led</name>
@@ -4015,7 +4056,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_usage_multiplier</name>
@@ -4033,7 +4074,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.4</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_garage_fraction_lfl</name>
@@ -4042,7 +4083,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_garage_fraction_led</name>
@@ -4051,7 +4092,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_garage_usage_multiplier</name>
@@ -4680,7 +4721,7 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>none</default_value>
       <choices>
         <choice>
           <value>auto</value>
@@ -4750,7 +4791,7 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>none</default_value>
       <choices>
         <choice>
           <value>auto</value>
@@ -4991,7 +5032,7 @@
       <units>deg-F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.5</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_television_present</name>
@@ -5906,7 +5947,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>94BBC8D3</checksum>
+      <checksum>752E948F</checksum>
     </file>
   </files>
 </measure>
