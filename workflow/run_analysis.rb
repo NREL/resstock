@@ -20,8 +20,10 @@ def run_workflow(yml, measures_only)
   end
 
   upgrade_names = ['Baseline']
-  cfg['upgrades'].each do |upgrade|
-    upgrade_names << upgrade['upgrade_name'].gsub(' ', '')
+  if cfg.keys.include?('upgrades')
+    cfg['upgrades'].each do |upgrade|
+      upgrade_names << upgrade['upgrade_name'].gsub(' ', '')
+    end
   end
 
   osw_paths = {}
