@@ -33,7 +33,7 @@ class SetResidentialEPWFileTest < MiniTest::Test
     args_hash['dst_end_date'] = 'NA'
     expected_num_del_objects = {}
     expected_num_new_objects = { 'SiteGroundTemperatureDeep' => 1, 'SiteWaterMainsTemperature' => 1, 'WeatherFile' => 1, 'ClimateZones' => 1, 'Site' => 1 }
-    expected_values = { 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15 }
+    expected_values = { 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15, 'BAZone' => Constants.BAZoneCold }
     _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5)
   end
 
@@ -41,15 +41,24 @@ class SetResidentialEPWFileTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = { 'SiteGroundTemperatureDeep' => 1, 'RunPeriodControlDaylightSavingTime' => 1, 'SiteWaterMainsTemperature' => 1, 'WeatherFile' => 1, 'ClimateZones' => 1, 'Site' => 1 }
-    expected_values = { 'StartDate' => 'Mar-12', 'EndDate' => 'Nov-05', 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15 }
+    expected_values = { 'StartDate' => 'Mar-12', 'EndDate' => 'Nov-05', 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15, 'BAZone' => Constants.BAZoneCold }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5)
     args_hash = {}
     args_hash['dst_start_date'] = 'April 8'
     args_hash['dst_end_date'] = 'October 27'
     expected_num_del_objects = {}
     expected_num_new_objects = {}
-    expected_values = { 'StartDate' => 'Apr-08', 'EndDate' => 'Oct-27', 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15 }
+    expected_values = { 'StartDate' => 'Apr-08', 'EndDate' => 'Oct-27', 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15, 'BAZone' => Constants.BAZoneCold }
     _test_measure(model, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5)
+  end
+
+  def test_building_america_climate_zone
+    args_hash = {}
+    args_hash['ba_zone'] = Constants.BAZoneHotDry
+    expected_num_del_objects = {}
+    expected_num_new_objects = { 'SiteGroundTemperatureDeep' => 1, 'RunPeriodControlDaylightSavingTime' => 1, 'SiteWaterMainsTemperature' => 1, 'WeatherFile' => 1, 'ClimateZones' => 1, 'Site' => 1 }
+    expected_values = { 'StartDate' => 'Mar-12', 'EndDate' => 'Nov-05', 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15, 'BAZone' => Constants.BAZoneHotDry }
+    _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5)
   end
 
   private
@@ -150,6 +159,9 @@ class SetResidentialEPWFileTest < MiniTest::Test
         elsif obj_type == 'SiteWaterMainsTemperature'
           assert_in_epsilon(expected_values['HotWaterAnnualTemp'], new_object.annualAverageOutdoorAirTemperature.get, 0.01)
           assert_in_epsilon(expected_values['HotWaterMaxDiffTemp'], new_object.maximumDifferenceInMonthlyAverageOutdoorAirTemperatures.get, 0.01)
+        elsif obj_type == 'ClimateZones'
+          climate_zones = new_object.getClimateZones(Constants.BuildingAmericaClimateZone)
+          assert(climate_zones[0].value.include?(expected_values['BAZone']))
         end
       end
     end
