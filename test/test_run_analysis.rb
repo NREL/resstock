@@ -50,10 +50,16 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', 'Baseline', '1-upgraded.osw')))
-    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Baseline', '1-upgraded.xml')))
-    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
+    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', 'Baseline', '1-existing.osw')))
+    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Baseline', '1-existing.xml')))
+    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Baseline', '1-existing-defaulted.xml')))
+    assert(!File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', 'Baseline', '1-upgraded.osw')))
+    assert(!File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Baseline', '1-upgraded.xml')))
+    assert(!File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
 
+    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', 'Windows', '1-existing.osw')))
+    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Windows', '1-existing.xml')))
+    assert(!File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Windows', '1-existing-defaulted.xml')))
     assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', 'Windows', '1-upgraded.osw')))
     assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Windows', '1-upgraded.xml')))
     assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'xml', 'Windows', '1-upgraded-defaulted.xml')))
