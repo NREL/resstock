@@ -18,10 +18,10 @@ namespace :test do
     t.verbose = true
   end
 
-  desc 'Run integration tests for sampled datapoints'
-  Rake::TestTask.new('integration_tests') do |t|
+  desc 'Run local analysis tests'
+  Rake::TestTask.new('analysis_tests') do |t|
     t.libs << 'test'
-    t.test_files = Dir['test/test_samples.rb']
+    t.test_files = Dir['test/test_run_analysis.rb']
     t.warning = false
     t.verbose = true
   end
@@ -566,49 +566,6 @@ def get_all_project_dir_names()
     project_dir_names << entry
   end
   return project_dir_names
-end
-
-desc 'Apply rubocop, update all measure xmls, and regenerate example osws'
-Rake::TestTask.new('update_measures') do |t|
-  t.libs << 'test'
-  t.test_files = Dir['test/test_update_measures.rb']
-  t.warning = false
-  t.verbose = true
-end
-
-def update_measures
-  require 'openstudio'
-
-  # Prevent NREL error regarding U: drive when not VPNed in
-  ENV['HOME'] = 'C:' if !ENV['HOME'].nil? && ENV['HOME'].start_with?('U:')
-  ENV['HOMEDRIVE'] = 'C:\\' if !ENV['HOMEDRIVE'].nil? && ENV['HOMEDRIVE'].start_with?('U:')
-
-  # Apply rubocop
-  cops = ['Layout',
-          'Lint/DeprecatedClassMethods',
-          # 'Lint/RedundantStringCoercion', # Enable when rubocop is upgraded
-          'Style/AndOr',
-          'Style/FrozenStringLiteralComment',
-          'Style/HashSyntax',
-          'Style/Next',
-          'Style/NilComparison',
-          'Style/RedundantParentheses',
-          'Style/RedundantSelf',
-          'Style/ReturnNil',
-          'Style/SelfAssignment',
-          'Style/StringLiterals',
-          'Style/StringLiteralsInInterpolation']
-  commands = ["\"require 'rubocop/rake_task'\"",
-              "\"RuboCop::RakeTask.new(:rubocop) do |t| t.options = ['--auto-correct', '--format', 'simple', '--only', '#{cops.join(',')}'] end\"",
-              '"Rake.application[:rubocop].invoke"']
-  command = "#{OpenStudio.getOpenStudioCLI} -e #{commands.join(' -e ')}"
-  puts 'Applying rubocop auto-correct to measures...'
-  system(command)
-
-  # Update measures XMLs
-  command = "#{OpenStudio.getOpenStudioCLI} measure -t '#{File.join(File.dirname(__FILE__), 'measures')}'"
-  puts 'Updating measure.xmls...'
-  system(command, [:out, :err] => File::NULL)
 end
 
 def get_and_proof_measure_order_json()
