@@ -19,7 +19,7 @@ Call the OpenStudio CLI with the provided ``workflow/run_analysis.rb`` script.
 For example:
 ``openstudio workflow/run_analysis.rb -y project_testing/testing_baseline.yml``
 The previous command samples from ``project_testing`` and runs simulations using baseline workflows generated from the specified yml file.
-An "output directory" (as specified in the yml file) is created with all ``measures.osw`` files and simulation results.
+An "output directory" (as specified in the yml file) is created with all ``measures.osw`` files, optional ``measures-upgrade.osw`` files, and simulation results.
 
 You can also request that only measures are applied (i.e., no simulations are run) using the ``--measures_only`` flag.
 For example:
