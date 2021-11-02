@@ -696,6 +696,31 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_door_values(hpxml_default, [90, 90])
   end
 
+  def test_thermal_mass
+    # Test inputs not overridden by defaults
+    hpxml = _create_hpxml('base-enclosure-thermal-mass.xml')
+    hpxml.partition_wall_mass.area_fraction = 0.5
+    hpxml.partition_wall_mass.interior_finish_thickness = 0.75
+    hpxml.partition_wall_mass.interior_finish_type = HPXML::InteriorFinishWood
+    hpxml.furniture_mass.area_fraction = 0.75
+    hpxml.furniture_mass.type = HPXML::FurnitureMassTypeHeavyWeight
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_partition_wall_mass_values(hpxml_default.partition_wall_mass, 0.5, HPXML::InteriorFinishWood, 0.75)
+    _test_default_furniture_mass_values(hpxml_default.furniture_mass, 0.75, HPXML::FurnitureMassTypeHeavyWeight)
+
+    # Test defaults
+    hpxml.partition_wall_mass.area_fraction = nil
+    hpxml.partition_wall_mass.interior_finish_thickness = nil
+    hpxml.partition_wall_mass.interior_finish_type = nil
+    hpxml.furniture_mass.area_fraction = nil
+    hpxml.furniture_mass.type = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_partition_wall_mass_values(hpxml_default.partition_wall_mass, 1.0, HPXML::InteriorFinishGypsumBoard, 0.5)
+    _test_default_furniture_mass_values(hpxml_default.furniture_mass, 0.4, HPXML::FurnitureMassTypeLightWeight)
+  end
+
   def test_central_air_conditioners
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-hvac-central-ac-only-1-speed.xml')
@@ -2874,6 +2899,17 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.doors.each_with_index do |door, idx|
       assert_equal(azimuths[idx], door.azimuth)
     end
+  end
+
+  def _test_default_partition_wall_mass_values(partition_wall_mass, area_fraction, int_finish_type, int_finish_thickness)
+    assert_equal(area_fraction, partition_wall_mass.area_fraction)
+    assert_equal(int_finish_type, partition_wall_mass.interior_finish_type)
+    assert_equal(int_finish_thickness, partition_wall_mass.interior_finish_thickness)
+  end
+
+  def _test_default_furniture_mass_values(furniture_mass, area_fraction, type)
+    assert_equal(area_fraction, furniture_mass.area_fraction)
+    assert_equal(type, furniture_mass.type)
   end
 
   def _test_default_central_air_conditioner_values(cooling_system, shr, compressor_type, fan_watts_per_cfm, charge_defect_ratio,

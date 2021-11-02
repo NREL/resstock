@@ -113,6 +113,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Zip code - used for informational purposes only')
     args << arg
 
+    site_iecc_zone_choices = OpenStudio::StringVector.new
+    ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C',
+     '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].each do |iz|
+      site_iecc_zone_choices << iz
+    end
+
+    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('site_iecc_zone', site_iecc_zone_choices, false)
+    arg.setDisplayName('Site: IECC Zone')
+    arg.setDescription('IECC zone of the home address. If not provided, uses the IECC zone corresponding to the EPW weather file.')
+    args << arg
+
     site_state_code_choices = OpenStudio::StringVector.new
     ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
      'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
@@ -3469,7 +3480,12 @@ class HPXMLFile
 
   def self.set_climate_and_risk_zones(hpxml, runner, args, epw_file)
     hpxml.climate_and_risk_zones.weather_station_id = 'WeatherStation'
-    iecc_zone = Location.get_climate_zone_iecc(epw_file.wmoNumber)
+
+    if args[:site_iecc_zone].is_initialized
+      iecc_zone = args[:site_iecc_zone].get
+    else
+      iecc_zone = Location.get_climate_zone_iecc(epw_file.wmoNumber)
+    end
 
     unless iecc_zone.nil?
       hpxml.climate_and_risk_zones.iecc_year = 2006

@@ -40,6 +40,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-gas-pool-heater-with-zero-kwh.xml' => 'base-sfd.xml',
       'extra-gas-hot-tub-heater-with-zero-kwh.xml' => 'base-sfd.xml',
       'extra-no-rim-joists.xml' => 'base-sfd.xml',
+      'extra-iecc-zone-different-than-epw.xml' => 'base-sfd.xml',
       'extra-state-code-different-than-epw.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
@@ -760,6 +761,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['extra-no-rim-joists.xml'].include? hpxml_file
       args.delete('geometry_rim_joist_height')
       args.delete('rim_joist_assembly_r')
+    elsif ['extra-iecc-zone-different-than-epw.xml'].include? hpxml_file
+      args['site_iecc_zone'] = '6B'
     elsif ['extra-state-code-different-than-epw.xml'].include? hpxml_file
       args['site_state_code'] = 'WY'
     elsif ['extra-sfa-atticroof-conditioned-eaves-gable.xml'].include? hpxml_file
