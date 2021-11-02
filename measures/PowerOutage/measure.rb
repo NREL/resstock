@@ -43,6 +43,15 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    # make a string argument for outage type (partial or full)
+    otg_type = OpenStudio::StringVector.new
+    otg_type << "Partial"
+    otg_type << "Total"
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('otg_type', otg_type, true)
+    arg.setDisplayName("Outage Type")
+    arg.setDescription("OUtage Type. Full outage means there is zero power available, while a partial outage still assumes some power is available but homeowners are trying to reduce their power consumption while maintaining a safe indoor temperature. Partial outages disable all electric equipment except for refrigerators (not including any extra refrigerator/freezer) and HVAC.")
+    args << arg
+
     # make a string argument for for the start date of the outage
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('otg_date', true)
     arg.setDisplayName('Outage Start Date')
@@ -64,6 +73,14 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     arg.setUnits('hours')
     arg.setDescription('Duration of the power outage in hours.')
     arg.setDefaultValue(24)
+    args << arg
+
+    # make a double argument for setpoint change during a partial outage
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('otg_offset', true)
+    arg.setDisplayName('Partial outage setpoint offset')
+    arg.setUnits('degrees F')
+    arg.setDescription('During partial outages, heating and cooling setpoints are shifted by this much to represent occupants trying to minimize power consumption while still maintaining some degree of comfort.')
+    arg.setDefaultValue(5)
     args << arg
 
     # Specify a Thermal Comfort Model type
@@ -118,9 +135,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
+    otg_type = runner.getStringArgumentValue("otg_type", user_arguments)
     otg_date = runner.getStringArgumentValue("otg_date", user_arguments)
     otg_hr = runner.getIntegerArgumentValue("otg_hr", user_arguments)
     otg_len = runner.getIntegerArgumentValue("otg_len", user_arguments)
+    otg_offset = runner.getIntegerArgumentValue("otg_offset", user_arguments)
     comfort_model_1 = runner.getOptionalStringArgumentValue("comfort_model_1", user_arguments)
     comfort_model_2 = runner.getOptionalStringArgumentValue("comfort_model_2", user_arguments)
     comfort_model_3 = runner.getOptionalStringArgumentValue("comfort_model_3", user_arguments)
@@ -183,9 +202,15 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_end.month), otg_period_end.day, otg_period_end.year)
 
     model.getScheduleRulesets.each do |schedule_ruleset|
-      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling)
+      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial')
 
-      otg_val = 0
+      if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint)
+        otg_val = -otg_offset
+      elsif schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+        otg_val = otg_offset
+      else
+        otg_val = 0
+      end
       if otg_period_num_days <= 1 # occurs within one calendar day
         otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
         otg_rule.setName("#{schedule_ruleset.name} Outage Day #{otg_start_date_day}")
@@ -197,7 +222,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
           if (hour < otg_hr) || (hour > ((otg_hr + otg_len) - 1))
             otg_day.addValue(time, unmod_sched.getValue(time))
           else
-            otg_day.addValue(time, otg_val)
+            if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+              otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+            else
+              otg_day.addValue(time, otg_val)
+            end
           end
         end
         set_rule_days_and_dates(otg_rule, otg_start_date, otg_start_date)
@@ -214,11 +243,20 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
               for hour in 0..23
                 time = OpenStudio::Time.new(0, hour + 1, 0, 0)
                 if hour == 0
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
                 elsif (hour < otg_hr) || (hour > ((otg_hr + otg_len) - 1))
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 else
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
+                  
                 end
               end
             else
@@ -227,7 +265,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
                 if (hour < otg_hr) || (hour > ((otg_hr + otg_len) - 1))
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 else
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
                 end
               end
             end
@@ -239,7 +281,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
                 if hour == 0
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 elsif hour < otg_period_end.hour
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
                 else
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 end
@@ -248,7 +294,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
               for hour in 0..23
                 time = OpenStudio::Time.new(0, hour + 1, 0, 0)
                 if hour < otg_period_end.hour
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
                 else
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 end
@@ -258,7 +308,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
           else # any middle days of the outage
             for hour in 0..23
               time = OpenStudio::Time.new(0, hour + 1, 0, 0)
-              otg_day.addValue(time, otg_val)
+              if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+              else
+                otg_day.addValue(time, otg_val)
+              end
             end
             set_rule_days_and_dates(otg_rule, day_date, day_date)
           end
@@ -282,11 +336,13 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_availability_schedule.setName('Outage Availability Schedule')
 
     # set outage availability schedule on all hvac objects
-    model.getThermalZones.each do |thermal_zone|
-      equipments = HVAC.existing_heating_equipment(model, runner, thermal_zone) + HVAC.existing_cooling_equipment(model, runner, thermal_zone)
-      equipments.each do |equipment|
-        equipment.setAvailabilitySchedule(otg_availability_schedule)
-        runner.registerInfo("Modified the availability schedule for '#{equipment.name}'.")
+    if otg_type == 'Total'
+      model.getThermalZones.each do |thermal_zone|
+        equipments = HVAC.existing_heating_equipment(model, runner, thermal_zone) + HVAC.existing_cooling_equipment(model, runner, thermal_zone)
+        equipments.each do |equipment|
+          equipment.setAvailabilitySchedule(otg_availability_schedule)
+          runner.registerInfo("Modified the availability schedule for '#{equipment.name}'.")
+        end
       end
     end
 
