@@ -20,10 +20,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (196.0 + 96.0 * 2 + 429.0 + 292.0 + 525.0 - 96.0 * 2),
       'Door Area (ft^2)' => 30.0,
       'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
-      'Size, Heating System: Primary (kBtu/h)' => 60.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 100.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 60.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 100.0, # backup
       'Size, Water Heater (gal)' => 0.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 180.0,
@@ -45,10 +45,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (106.0 + 96.0 * 2 + 267.0 + 202.0 + 363.0 - 96.0 * 2),
       'Door Area (ft^2)' => 40.0,
       'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 36.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 36.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 0.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 117.0,
@@ -70,10 +70,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (327.0 * 2 + 588.0 * 2),
       'Door Area (ft^2)' => 40.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 3000.0) + (0.05 * 3000.0),
-      'Size, Heating System: Primary (kBtu/h)' => 60.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 100.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 60.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 100.0, # backup
       'Size, Water Heater (gal)' => 50.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -95,10 +95,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 4500.0) + (0.05 * 4500.0),
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 50.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -120,10 +120,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 4500.0) + (0.05 * 4500.0),
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 20.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 20.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 50.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -145,10 +145,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (189.0 * 4 + 339.0 * 4),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (1000.0 * 2)) + (0.75 * 0.05 * 2 * (1000.0 * 2)),
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 40.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -170,10 +170,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (1500.0 * 2)) + (0.75 * 0.05 * 2 * (1500.0 * 2)),
-      'Size, Heating System: Primary (kBtu/h)' => 60.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 100.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 60.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 100.0, # backup
       'Size, Water Heater (gal)' => 0.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -195,10 +195,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 40.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 140.0,
@@ -220,10 +220,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 40.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 140.0,
@@ -245,10 +245,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
       'Door Area (ft^2)' => 30.0,
       'Duct Unconditioned Surface Area (ft^2)' => 0.0, # excludes ducts in conditioned space
-      'Size, Heating System: Primary (kBtu/h)' => 60.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 100.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 60.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 100.0, # backup
       'Size, Water Heater (gal)' => 0.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 140.0,
@@ -270,10 +270,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (189.0 * 4 + 339.0 * 4),
       'Door Area (ft^2)' => 40.0,
       'Duct Unconditioned Surface Area (ft^2)' => 555.0,
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 0.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 0.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 66.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -295,10 +295,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
       'Door Area (ft^2)' => 40.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (1500.0 * 2)) + (0.75 * 0.05 * 2 * (1500.0 * 2)),
-      'Size, Heating System: Primary (kBtu/h)' => 60.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 100.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 60.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 100.0, # backup
       'Size, Water Heater (gal)' => 0.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 138.0,
@@ -320,10 +320,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
       'Door Area (ft^2)' => 40.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (1500.0 * 2)) + (0.75 * 0.05 * 2 * (1500.0 * 2)),
-      'Size, Heating System: Primary (kBtu/h)' => 60.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 15.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 100.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 60.0,
+      'Size, Heating System Secondary (kBtu/h)' => 15.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 100.0, # backup
       'Size, Water Heater (gal)' => 0.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 138.0,
@@ -345,10 +345,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
       'Door Area (ft^2)' => 40.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (1500.0 * 2)) + (0.75 * 0.05 * 2 * (1500.0 * 2)),
-      'Size, Heating System: Primary (kBtu/h)' => 60.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 15.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 100.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 60.0,
+      'Size, Heating System Secondary (kBtu/h)' => 15.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 100.0, # backup
       'Size, Water Heater (gal)' => 0.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 110.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 138.0,
@@ -370,10 +370,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (250.0 * 2)) + (0.75 * 0.05 * 2 * (250.0 * 2)),
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 36.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 36.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 30.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -395,10 +395,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => 0.0, # boiler and roomac don't have ducts
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 36.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 36.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 30.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -420,10 +420,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => (0.75 * 0.27 * (250.0 * 2)) + (0.75 * 0.05 * 2 * (250.0 * 2)),
-      'Size, Heating System: Primary (kBtu/h)' => 60.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 100.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 60.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 100.0, # backup
       'Size, Water Heater (gal)' => 50.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -445,10 +445,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.18 * (139.0 * 2 + 77.0 * 4),
       'Door Area (ft^2)' => 20.0,
       'Duct Unconditioned Surface Area (ft^2)' => 0.0, # boiler and roomac don't have ducts
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 36.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 36.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 30.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 37.0,
@@ -470,10 +470,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
       'Door Area (ft^2)' => 0.0, # door is in the corridor
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 30.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -495,10 +495,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
       'Door Area (ft^2)' => 0.0, # door is in the corridor
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 30.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -520,10 +520,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
       'Door Area (ft^2)' => 0.0, # door is in the corridor
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
-      'Size, Heating System: Primary (kBtu/h)' => 60.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 100.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 60.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 100.0, # backup
       'Size, Water Heater (gal)' => 50.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -545,10 +545,10 @@ class UpgradeCostsTest < MiniTest::Test
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
       'Door Area (ft^2)' => 0.0, # door is in the corridor
       'Duct Unconditioned Surface Area (ft^2)' => (0.27 * 500.0) + (0.05 * 500.0),
-      'Size, Heating System: Primary (kBtu/h)' => 100.0,
-      'Size, Heating System: Secondary (kBtu/h)' => 0.0,
-      'Size, Cooling System: Primary (kBtu/h)' => 60.0,
-      'Size, Heat Pump Backup: Primary (kBtu/h)' => 0.0, # backup
+      'Size, Heating System Primary (kBtu/h)' => 100.0,
+      'Size, Heating System Secondary (kBtu/h)' => 0.0,
+      'Size, Cooling System Primary (kBtu/h)' => 60.0,
+      'Size, Heat Pump Backup Primary (kBtu/h)' => 0.0, # backup
       'Size, Water Heater (gal)' => 30.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
@@ -628,22 +628,22 @@ class UpgradeCostsTest < MiniTest::Test
         hpxml['enclosure_rim_joist_area_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Rim Joist Area')
       elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
         hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Slab Exposed Perimeter Thermal Boundary')
-      elsif cost_mult_type == 'Size, Heating System: Primary (kBtu/h)'
+      elsif cost_mult_type == 'Size, Heating System Primary (kBtu/h)'
         hpxml['primary_systems_heating_capacity_btu_h'] = 0.0
         if cost_multipliers.keys.include?('Primary Systems: Heating Capacity')
           hpxml['primary_systems_heating_capacity_btu_h'] = cost_multipliers['Primary Systems: Heating Capacity'].output
         end
-      elsif cost_mult_type == 'Size, Heating System: Secondary (kBtu/h)'
+      elsif cost_mult_type == 'Size, Heating System Secondary (kBtu/h)'
         hpxml['secondary_systems_heating_capacity_btu_h'] = 0.0
         if cost_multipliers.keys.include?('Secondary Systems: Heating Capacity')
           hpxml['secondary_systems_heating_capacity_btu_h'] = cost_multipliers['Secondary Systems: Heating Capacity'].output
         end
-      elsif cost_mult_type == 'Size, Cooling System: Primary (kBtu/h)'
+      elsif cost_mult_type == 'Size, Cooling System Primary (kBtu/h)'
         hpxml['primary_systems_cooling_capacity_btu_h'] = 0.0
         if cost_multipliers.keys.include?('Primary Systems: Cooling Capacity')
           hpxml['primary_systems_cooling_capacity_btu_h'] = cost_multipliers['Primary Systems: Cooling Capacity'].output
         end
-      elsif cost_mult_type == 'Size, Heat Pump Backup: Primary (kBtu/h)'
+      elsif cost_mult_type == 'Size, Heat Pump Backup Primary (kBtu/h)'
         hpxml['primary_systems_heat_pump_backup_capacity_btu_h'] = 0.0
         if cost_multipliers.keys.include?('Primary Systems: Heat Pump Backup Capacity')
           hpxml['primary_systems_heat_pump_backup_capacity_btu_h'] = cost_multipliers['Primary Systems: Heat Pump Backup Capacity'].output

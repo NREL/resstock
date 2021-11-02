@@ -71,9 +71,14 @@ The cost above is multiplied by this value, which is a function of the building.
    - Window Area (ft^2)
    - Door Area (ft^2)
    - Duct Unconditioned Surface Area (ft^2)
-   - HVAC Heating Capacity (kBtuh)
-   - HVAC Cooling Capacity (kBtuh)
+   - Above-Grade Exterior Rim Joist Area (ft^2)
+   - Exposed Conditioned Slab Perimeter (ft)
+   - Primary HVAC Heating Capacity (kBtuh)
+   - Secondary HVAC Heating Capacity (kBtuh)
+   - Primary HVAC Cooling Capacity (kBtuh)
+   - Primary HVAC Heat Pump Backup Capacity (kBtuh)
    - Water Heater Tank Size (gal)
+   - Mechanical Ventilation Flow Rate (cfm)
 
 Package Apply Logic
 ===================

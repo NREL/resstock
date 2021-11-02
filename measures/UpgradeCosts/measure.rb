@@ -182,19 +182,19 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_rim_joist_area_ft_2']
     elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
       cost_mult += hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft']
-    elsif cost_mult_type == 'Size, Heating System: Primary (kBtu/h)'
+    elsif cost_mult_type == 'Size, Heating System Primary (kBtu/h)'
       if hpxml.keys.include?('primary_systems_heating_capacity_btu_h')
         cost_mult += UnitConversions.convert(hpxml['primary_systems_heating_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
-    elsif cost_mult_type == 'Size, Heating System: Secondary (kBtu/h)'
+    elsif cost_mult_type == 'Size, Heating System Secondary (kBtu/h)'
       if hpxml.keys.include?('secondary_systems_heating_capacity_btu_h')
         cost_mult += UnitConversions.convert(hpxml['secondary_systems_heating_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
-    elsif cost_mult_type == 'Size, Cooling System: Primary (kBtu/h)'
+    elsif cost_mult_type == 'Size, Cooling System Primary (kBtu/h)'
       if hpxml.keys.include?('primary_systems_cooling_capacity_btu_h')
         cost_mult += UnitConversions.convert(hpxml['primary_systems_cooling_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
-    elsif cost_mult_type == 'Size, Heat Pump Backup: Primary (kBtu/h)'
+    elsif cost_mult_type == 'Size, Heat Pump Backup Primary (kBtu/h)'
       if hpxml.keys.include?('primary_systems_heat_pump_backup_capacity_btu_h')
         cost_mult += UnitConversions.convert(hpxml['primary_systems_heat_pump_backup_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
