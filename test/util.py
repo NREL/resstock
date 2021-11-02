@@ -58,7 +58,8 @@ if not os.path.exists(outdir):
 
 frames = []
 
-for i in range(1, 9):
+num_scenarios = sum([len(files) for r, d, files in os.walk('project_testing/testing_upgrades/results_csvs')])
+for i in range(1, num_scenarios):
 
   df_national = pd.read_csv('project_national/national_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
   df_national['building_id'] = df_national['apply_upgrade.upgrade_name'].apply(lambda x: 'project_national-{}.osw'.format(x))
