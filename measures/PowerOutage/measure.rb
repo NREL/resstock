@@ -205,9 +205,9 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial')
 
       if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint)
-        otg_val = -otg_offset
+        otg_val = -otg_offset * (5./9.)
       elsif schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
-        otg_val = otg_offset
+        otg_val = otg_offset * (5./9.)
       else
         otg_val = 0
       end
