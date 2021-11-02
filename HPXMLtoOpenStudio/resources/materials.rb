@@ -358,6 +358,14 @@ class BaseMaterial
     return new(rho: 140.0, cp: 0.2, k_in: 12.5)
   end
 
+  def self.FurnitureLightWeight
+    return new(rho: 40.0, cp: 0.29, k_in: 0.8004)
+  end
+
+  def self.FurnitureHeavyWeight
+    return new(rho: 80.0, cp: 0.35, k_in: 1.1268)
+  end
+
   def self.Gypcrete
     # http://www.maxxon.com/gyp-crete/data
     return new(rho: 100.0, cp: 0.223, k_in: 4.7424)

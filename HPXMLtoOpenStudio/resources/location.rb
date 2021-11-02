@@ -4,7 +4,6 @@ class Location
   def self.apply(model, runner, weather, epw_file, hpxml)
     apply_year(model, hpxml)
     apply_site(model, epw_file)
-    apply_climate_zones(model, epw_file)
     apply_dst(model, hpxml)
     apply_ground_temps(model, weather)
   end
@@ -39,14 +38,6 @@ class Location
     site.setLongitude(epw_file.longitude)
     site.setTimeZone(epw_file.timeZone)
     site.setElevation(epw_file.elevation)
-  end
-
-  def self.apply_climate_zones(model, epw_file)
-    ba_zone = get_climate_zone_ba(epw_file.wmoNumber)
-    return if ba_zone.nil?
-
-    climateZones = model.getClimateZones
-    climateZones.setClimateZone(Constants.BuildingAmericaClimateZone, ba_zone)
   end
 
   def self.apply_year(model, hpxml)
@@ -93,17 +84,6 @@ class Location
     require 'csv'
     CSV.foreach(zones_csv) do |row|
       return row[6].to_s if row[0].to_s == wmo.to_s
-    end
-
-    return
-  end
-
-  def self.get_climate_zone_ba(wmo)
-    zones_csv = get_climate_zones
-
-    require 'csv'
-    CSV.foreach(zones_csv) do |row|
-      return row[5].to_s if row[0].to_s == wmo.to_s
     end
 
     return

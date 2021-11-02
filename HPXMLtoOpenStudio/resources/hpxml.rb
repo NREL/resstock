@@ -52,8 +52,9 @@ class HPXML < Object
   HPXML_ATTRS = [:header, :site, :neighbor_buildings, :building_occupancy, :building_construction,
                  :climate_and_risk_zones, :air_infiltration_measurements, :attics, :foundations,
                  :roofs, :rim_joists, :walls, :foundation_walls, :frame_floors, :slabs, :windows,
-                 :skylights, :doors, :heating_systems, :cooling_systems, :heat_pumps, :hvac_plant,
-                 :hvac_controls, :hvac_distributions, :ventilation_fans, :water_heating_systems,
+                 :skylights, :doors, :partition_wall_mass, :furniture_mass, :heating_systems,
+                 :cooling_systems, :heat_pumps, :hvac_plant, :hvac_controls, :hvac_distributions,
+                 :ventilation_fans, :water_heating_systems,
                  :hot_water_distributions, :water_fixtures, :water_heating, :solar_thermal_systems,
                  :pv_systems, :generators, :clothes_washers, :clothes_dryers, :dishwashers, :refrigerators,
                  :freezers, :dehumidifiers, :cooking_ranges, :ovens, :lighting_groups, :lighting,
@@ -134,6 +135,8 @@ class HPXML < Object
   FuelTypePropane = 'propane'
   FuelTypeWoodCord = 'wood'
   FuelTypeWoodPellets = 'wood pellets'
+  FurnitureMassTypeLightWeight = 'light-weight'
+  FurnitureMassTypeHeavyWeight = 'heavy-weight'
   HeaterTypeElectricResistance = 'electric resistance'
   HeaterTypeGas = 'gas fired'
   HeaterTypeHeatPump = 'heat pump'
@@ -636,6 +639,8 @@ class HPXML < Object
     @windows.to_oga(@doc)
     @skylights.to_oga(@doc)
     @doors.to_oga(@doc)
+    @partition_wall_mass.to_oga(@doc)
+    @furniture_mass.to_oga(@doc)
     @heating_systems.to_oga(@doc)
     @cooling_systems.to_oga(@doc)
     @heat_pumps.to_oga(@doc)
@@ -687,6 +692,8 @@ class HPXML < Object
     @windows = Windows.new(self, hpxml)
     @skylights = Skylights.new(self, hpxml)
     @doors = Doors.new(self, hpxml)
+    @partition_wall_mass = PartitionWallMass.new(self, hpxml)
+    @furniture_mass = FurnitureMass.new(self, hpxml)
     @heating_systems = HeatingSystems.new(self, hpxml)
     @cooling_systems = CoolingSystems.new(self, hpxml)
     @heat_pumps = HeatPumps.new(self, hpxml)
@@ -2925,6 +2932,70 @@ class HPXML < Object
       @azimuth = XMLHelper.get_value(door, 'Azimuth', :integer)
       @orientation = XMLHelper.get_value(door, 'Orientation', :string)
       @r_value = XMLHelper.get_value(door, 'RValue', :float)
+    end
+  end
+
+  class PartitionWallMass < BaseElement
+    ATTRS = [:area_fraction, :interior_finish_type, :interior_finish_thickness]
+    attr_accessor(*ATTRS)
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_oga(doc)
+      return if nil?
+
+      partition_wall_mass = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Enclosure', 'extension', 'PartitionWallMass'])
+      XMLHelper.add_element(partition_wall_mass, 'AreaFraction', @area_fraction, :float, @area_fraction_isdefaulted) unless @area_fraction.nil?
+      if (not @interior_finish_type.nil?) || (not @interior_finish_thickness.nil?)
+        interior_finish = XMLHelper.add_element(partition_wall_mass, 'InteriorFinish')
+        XMLHelper.add_element(interior_finish, 'Type', @interior_finish_type, :string, @interior_finish_type_isdefaulted) unless @interior_finish_type.nil?
+        XMLHelper.add_element(interior_finish, 'Thickness', @interior_finish_thickness, :float, @interior_finish_thickness_isdefaulted) unless @interior_finish_thickness.nil?
+      end
+    end
+
+    def from_oga(hpxml)
+      return if hpxml.nil?
+
+      partition_wall_mass = XMLHelper.get_element(hpxml, 'Building/BuildingDetails/Enclosure/extension/PartitionWallMass')
+      return if partition_wall_mass.nil?
+
+      @area_fraction = XMLHelper.get_value(partition_wall_mass, 'AreaFraction', :float)
+      interior_finish = XMLHelper.get_element(partition_wall_mass, 'InteriorFinish')
+      if not interior_finish.nil?
+        @interior_finish_type = XMLHelper.get_value(interior_finish, 'Type', :string)
+        @interior_finish_thickness = XMLHelper.get_value(interior_finish, 'Thickness', :float)
+      end
+    end
+  end
+
+  class FurnitureMass < BaseElement
+    ATTRS = [:area_fraction, :type]
+    attr_accessor(*ATTRS)
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_oga(doc)
+      return if nil?
+
+      furniture_mass = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Enclosure', 'extension', 'FurnitureMass'])
+      XMLHelper.add_element(furniture_mass, 'AreaFraction', @area_fraction, :float, @area_fraction_isdefaulted) unless @area_fraction.nil?
+      XMLHelper.add_element(furniture_mass, 'Type', @type, :string, @type_isdefaulted) unless @type.nil?
+    end
+
+    def from_oga(hpxml)
+      return if hpxml.nil?
+
+      furniture_mass = XMLHelper.get_element(hpxml, 'Building/BuildingDetails/Enclosure/extension/FurnitureMass')
+      return if furniture_mass.nil?
+
+      @area_fraction = XMLHelper.get_value(furniture_mass, 'AreaFraction', :float)
+      @type = XMLHelper.get_value(furniture_mass, 'Type', :string)
     end
   end
 
