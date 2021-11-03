@@ -1174,10 +1174,19 @@ class HVAC
 
     monthly_temps = weather.data.MonthlyAvgDrybulbs
     heat_design_db = weather.design.HeatingDrybulb
+    is_southern_hemisphere = (weather.header.Latitude < 0)
 
     # create basis lists with zero for every month
     cooling_season_temp_basis = Array.new(monthly_temps.length, 0.0)
     heating_season_temp_basis = Array.new(monthly_temps.length, 0.0)
+
+    if is_southern_hemisphere
+      override_heating_months = [6, 7] # July, August
+      override_cooling_months = [0, 11] # December, January
+    else
+      override_heating_months = [0, 11] # December, January
+      override_cooling_months = [6, 7] # July, August
+    end
 
     monthly_temps.each_with_index do |temp, i|
       if temp < 66.0
@@ -1186,9 +1195,9 @@ class HVAC
         cooling_season_temp_basis[i] = 1.0
       end
 
-      if ((i == 0) || (i == 11)) && (heat_design_db < 59.0)
+      if (override_heating_months.include? i) && (heat_design_db < 59.0)
         heating_season_temp_basis[i] = 1.0
-      elsif (i == 6) || (i == 7)
+      elsif override_cooling_months.include? i
         cooling_season_temp_basis[i] = 1.0
       end
     end
@@ -1196,13 +1205,9 @@ class HVAC
     cooling_season = Array.new(monthly_temps.length, 0.0)
     heating_season = Array.new(monthly_temps.length, 0.0)
 
-    monthly_temps.each_with_index do |temp, i|
+    for i in 0..11
       # Heating overlaps with cooling at beginning of summer
-      if i == 0 # January
-        prevmonth = 11 # December
-      else
-        prevmonth = i - 1
-      end
+      prevmonth = i - 1
 
       if ((heating_season_temp_basis[i] == 1.0) || ((cooling_season_temp_basis[prevmonth] == 0.0) && (cooling_season_temp_basis[i] == 1.0)))
         heating_season[i] = 1.0
@@ -1218,7 +1223,7 @@ class HVAC
     end
 
     # Find the first month of cooling and add one month
-    (1...12).to_a.each do |i|
+    for i in 0..11
       if cooling_season[i] == 1.0
         cooling_season[i - 1] = 1.0
         break
@@ -3706,6 +3711,12 @@ class HVAC
         fault_program.addLine("Set #{cap_fff_act.name} = cap_curve_v_pre_#{suffix} * CAP_IQ_adj_#{suffix}")
         fault_program.addLine("Set #{eir_pow_act.name} = pow_curve_v_pre_#{suffix} * EIR_IQ_adj_#{suffix} * CAP_IQ_adj_#{suffix}") # equationfit power curve modifies power instead of cop/eir, should also multiply capacity adjustment
       end
+      fault_program.addLine("If #{cap_fff_act.name} < 0.0")
+      fault_program.addLine("  Set #{cap_fff_act.name} = 1.0")
+      fault_program.addLine('EndIf')
+      fault_program.addLine("If #{eir_pow_act.name} < 0.0")
+      fault_program.addLine("  Set #{eir_pow_act.name} = 1.0")
+      fault_program.addLine('EndIf')
     end
   end
 

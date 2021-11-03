@@ -520,7 +520,7 @@ class WeatherProcess
     tmains_ratio = 0.4 + 0.01 * (avgOAT - 44)
     tmains_lag = 35 - (avgOAT - 44)
     if latitude < 0
-      sign = 1
+      sign = 1 # southern hemisphere
     else
       sign = -1
     end

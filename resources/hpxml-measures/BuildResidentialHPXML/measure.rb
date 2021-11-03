@@ -113,6 +113,17 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Zip code - used for informational purposes only')
     args << arg
 
+    site_iecc_zone_choices = OpenStudio::StringVector.new
+    ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C',
+     '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].each do |iz|
+      site_iecc_zone_choices << iz
+    end
+
+    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('site_iecc_zone', site_iecc_zone_choices, false)
+    arg.setDisplayName('Site: IECC Zone')
+    arg.setDescription('IECC zone of the home address. If not provided, uses the IECC zone corresponding to the EPW weather file.')
+    args << arg
+
     site_state_code_choices = OpenStudio::StringVector.new
     ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
      'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
@@ -168,7 +179,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('geometry_unit_front_wall_is_adiabatic', true)
     arg.setDisplayName('Geometry: Unit Front Wall Is Adiabatic')
-    arg.setDescription('Presence of an adiabatic front wall.')
+    arg.setDescription('Presence of an adiabatic front wall, for example, the unit is adjacent to a conditioned corridor.')
     arg.setDefaultValue(false)
     args << arg
 
@@ -2999,6 +3010,20 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = (args[:heating_system_type] == 'none') && (args[:heat_pump_type] == 'none') && (args[:heating_system_2_type] != 'none')
     errors << "heating_system_type=#{args[:heating_system_type]} and heat_pump_type=#{args[:heat_pump_type]} and heating_system_2_type=#{args[:heating_system_2_type]}" if error
 
+    # single-family attached and num units, horizontal location not specified
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && !args[:geometry_building_num_units].is_initialized
+    if error
+      error = "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_building_num_units=not provided"
+      errors << error
+    end
+
+    # apartment unit and num units, level, horizontal location not specified
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && !args[:geometry_building_num_units].is_initialized
+    if error
+      error = "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_building_num_units=not provided"
+      errors << error
+    end
+
     # crawlspace or unconditioned basement with foundation wall and ceiling insulation
     warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > 2.1)
     if warning
@@ -3416,14 +3441,12 @@ class HPXMLFile
 
   def self.set_building_construction(hpxml, runner, args)
     if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
-      number_of_conditioned_floors_above_grade = 1
-      number_of_conditioned_floors = 1
-    else
-      number_of_conditioned_floors_above_grade = args[:geometry_unit_num_floors_above_grade]
-      number_of_conditioned_floors = number_of_conditioned_floors_above_grade
-      if args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned
-        number_of_conditioned_floors += 1
-      end
+      args[:geometry_unit_num_floors_above_grade] = 1
+    end
+    number_of_conditioned_floors_above_grade = args[:geometry_unit_num_floors_above_grade]
+    number_of_conditioned_floors = number_of_conditioned_floors_above_grade
+    if args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned
+      number_of_conditioned_floors += 1
     end
 
     if args[:geometry_unit_num_bathrooms] != Constants.Auto
@@ -3451,7 +3474,12 @@ class HPXMLFile
 
   def self.set_climate_and_risk_zones(hpxml, runner, args, epw_file)
     hpxml.climate_and_risk_zones.weather_station_id = 'WeatherStation'
-    iecc_zone = Location.get_climate_zone_iecc(epw_file.wmoNumber)
+
+    if args[:site_iecc_zone].is_initialized
+      iecc_zone = args[:site_iecc_zone].get
+    else
+      iecc_zone = Location.get_climate_zone_iecc(epw_file.wmoNumber)
+    end
 
     unless iecc_zone.nil?
       hpxml.climate_and_risk_zones.iecc_year = 2006
