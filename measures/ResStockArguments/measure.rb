@@ -585,8 +585,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         else
           unit_width = n_units_per_floor
         end
-        if (unit_width < 2) && (horiz_location != 'None')
-          runner.registerWarning("No #{horiz_location} location exists, setting horiz_location to 'None'")
+        if (unit_width <= 1) && (horiz_location != 'None')
+          runner.registerWarning("No #{horiz_location} location exists, setting horizontal location to 'None'")
           horiz_location = 'None'
         end
         if (unit_width > 1) && (horiz_location == 'None')
