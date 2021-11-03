@@ -37,8 +37,11 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', '1-measures.osw')))
-    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', '1-measures-upgrade.osw')))
+    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', 'Baseline', '1-measures.osw')))
+    assert(!File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', 'Baseline', '1-measures-upgrade.osw')))
+
+    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', 'Windows', '1-measures.osw')))
+    assert(File.exist?(File.join(@workflowdir, 'testing_upgrades', 'osw', 'Windows', '1-measures-upgrade.osw')))
 
     FileUtils.rm_rf(File.join(@workflowdir, 'testing_upgrades'))
   end

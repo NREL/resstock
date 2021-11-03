@@ -55,6 +55,20 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('November 5')
     args << arg
 
+    ba_zone_names = OpenStudio::StringVector.new
+    ba_zone_names << Constants.BAZoneCold
+    ba_zone_names << Constants.BAZoneHotDry
+    ba_zone_names << Constants.BAZoneHotHumid
+    ba_zone_names << Constants.BAZoneMarine
+    ba_zone_names << Constants.BAZoneMixedHumid
+    ba_zone_names << Constants.BAZoneMixedDry
+    ba_zone_names << Constants.BAZoneVeryCold
+
+    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('ba_zone', ba_zone_names, false)
+    arg.setDisplayName('Building America Climate Zone')
+    arg.setDescription('Name of the Building America climate zone to assign.')
+    args << arg
+
     return args
   end
 
@@ -72,13 +86,14 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     weather_file_name = runner.getStringArgumentValue('weather_file_name', user_arguments)
     dst_start_date = runner.getStringArgumentValue('dst_start_date', user_arguments)
     dst_end_date = runner.getStringArgumentValue('dst_end_date', user_arguments)
+    ba_zone = runner.getOptionalStringArgumentValue('ba_zone', user_arguments)
 
     unless (Pathname.new weather_directory).absolute?
       weather_directory = File.expand_path(File.join(File.dirname(__FILE__), weather_directory))
     end
     weather_file_path = File.join(weather_directory, weather_file_name)
 
-    success, weather = Location.apply(model, runner, weather_file_path, dst_start_date, dst_end_date)
+    success, weather = Location.apply(model, runner, weather_file_path, dst_start_date, dst_end_date, ba_zone)
     return false if not success
 
     # report final condition
