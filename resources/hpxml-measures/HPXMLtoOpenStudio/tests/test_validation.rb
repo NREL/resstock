@@ -5,6 +5,7 @@ require 'openstudio'
 require 'openstudio/measure/ShowRunnerOutput'
 require 'fileutils'
 require_relative '../measure.rb'
+require 'csv'
 
 class HPXMLtoOpenStudioValidationTest < MiniTest::Test
   def setup
@@ -14,12 +15,14 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     @hpxml_stron_path = File.join(@root_path, 'HPXMLtoOpenStudio', 'resources', 'HPXMLvalidator.xml')
 
     @tmp_hpxml_path = File.join(@sample_files_path, 'tmp.xml')
+    @tmp_csv_path = File.join(@sample_files_path, 'tmp.csv')
     @tmp_output_path = File.join(@sample_files_path, 'tmp_output')
     FileUtils.mkdir_p(@tmp_output_path)
   end
 
   def teardown
     File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
+    File.delete(@tmp_csv_path) if File.exist? @tmp_csv_path
     FileUtils.rm_rf(@tmp_output_path)
   end
 
@@ -589,12 +592,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'refrigerators-no-primary' => ['Could not find a primary refrigerator.'],
                             'repeated-relatedhvac-dhw-indirect' => ["RelatedHVACSystem 'HeatingSystem1' is attached to multiple water heating systems."],
                             'repeated-relatedhvac-desuperheater' => ["RelatedHVACSystem 'CoolingSystem1' is attached to multiple water heating systems."],
-                            'schedule-detailed-bad-values-max-not-one' => ["Schedule max value for column 'plug_loads_vehicle' must be 1. [context: HPXMLtoOpenStudio/resources/schedule_files/invalid-bad-values-max-not-one.csv]"],
-                            'schedule-detailed-bad-values-negative' => ["Schedule min value for column 'plug_loads_well_pump' must be non-negative. [context: HPXMLtoOpenStudio/resources/schedule_files/invalid-bad-values-negative.csv]"],
-                            'schedule-detailed-bad-values-non-numeric' => ["Schedule value must be numeric for column 'hot_water_fixtures'. [context: HPXMLtoOpenStudio/resources/schedule_files/invalid-bad-values-non-numeric.csv]"],
-                            'schedule-detailed-wrong-columns' => ["Schedule column name 'lighting' is invalid. [context: HPXMLtoOpenStudio/resources/schedule_files/invalid-wrong-columns.csv]"],
+                            'schedule-detailed-bad-values-max-not-one' => ["Schedule max value for column 'lighting_interior' must be 1."],
+                            'schedule-detailed-bad-values-negative' => ["Schedule min value for column 'lighting_interior' must be non-negative."],
+                            'schedule-detailed-bad-values-non-numeric' => ["Schedule value must be numeric for column 'lighting_interior'."],
+                            'schedule-detailed-wrong-columns' => ["Schedule column name 'lighting' is invalid."],
                             'schedule-detailed-wrong-filename' => ["Schedules file path 'HPXMLtoOpenStudio/resources/schedule_files/invalid-wrong-filename.csv' does not exist."],
-                            'schedule-detailed-wrong-rows' => ["Schedule has invalid number of rows (8759) for column 'refrigerator'. Must be one of: 8760, 17520, 26280, 35040, 43800, 52560, 87600, 105120, 131400, 175200, 262800, 525600. [context: HPXMLtoOpenStudio/resources/schedule_files/invalid-wrong-rows.csv]"],
+                            'schedule-detailed-wrong-rows' => ["Schedule has invalid number of rows (8759) for column 'occupants'. Must be one of: 8760, 17520, 26280, 35040, 43800, 52560, 87600, 105120, 131400, 175200, 262800, 525600."],
                             'solar-thermal-system-with-combi-tankless' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be a space-heating boiler."],
                             'solar-thermal-system-with-desuperheater' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be attached to a desuperheater."],
                             'solar-thermal-system-with-dhw-indirect' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be a space-heating boiler."],
@@ -812,23 +815,37 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.water_heating_systems << hpxml.water_heating_systems[0].dup
         hpxml.water_heating_systems[1].id = "WaterHeatingSystem#{hpxml.water_heating_systems.size}"
       elsif ['schedule-detailed-bad-values-max-not-one'].include? error_case
+        csv_data = CSV.read(File.join(File.dirname(__FILE__), '../resources/schedule_files/stochastic.csv'))
+        csv_data[1][1] = 1.1
+        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.header.schedules_filepath = 'HPXMLtoOpenStudio/resources/schedule_files/invalid-bad-values-max-not-one.csv'
+        hpxml.header.schedules_filepath = @tmp_csv_path
       elsif ['schedule-detailed-bad-values-negative'].include? error_case
+        csv_data = CSV.read(File.join(File.dirname(__FILE__), '../resources/schedule_files/stochastic.csv'))
+        csv_data[1][1] = -0.5
+        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.header.schedules_filepath = 'HPXMLtoOpenStudio/resources/schedule_files/invalid-bad-values-negative.csv'
+        hpxml.header.schedules_filepath = @tmp_csv_path
       elsif ['schedule-detailed-bad-values-non-numeric'].include? error_case
+        csv_data = CSV.read(File.join(File.dirname(__FILE__), '../resources/schedule_files/stochastic.csv'))
+        csv_data[1][1] = 'NA'
+        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.header.schedules_filepath = 'HPXMLtoOpenStudio/resources/schedule_files/invalid-bad-values-non-numeric.csv'
+        hpxml.header.schedules_filepath = @tmp_csv_path
       elsif ['schedule-detailed-wrong-columns'].include? error_case
+        csv_data = CSV.read(File.join(File.dirname(__FILE__), '../resources/schedule_files/stochastic.csv'))
+        csv_data[0][1] = 'lighting'
+        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.header.schedules_filepath = 'HPXMLtoOpenStudio/resources/schedule_files/invalid-wrong-columns.csv'
+        hpxml.header.schedules_filepath = @tmp_csv_path
       elsif ['schedule-detailed-wrong-filename'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.schedules_filepath = 'HPXMLtoOpenStudio/resources/schedule_files/invalid-wrong-filename.csv'
       elsif ['schedule-detailed-wrong-rows'].include? error_case
+        csv_data = CSV.read(File.join(File.dirname(__FILE__), '../resources/schedule_files/stochastic.csv'))
+        File.write(@tmp_csv_path, csv_data[0..-2].map(&:to_csv).join)
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.header.schedules_filepath = 'HPXMLtoOpenStudio/resources/schedule_files/invalid-wrong-rows.csv'
+        hpxml.header.schedules_filepath = @tmp_csv_path
       elsif ['solar-thermal-system-with-combi-tankless'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-dhw-combi-tankless.xml'))
         hpxml.solar_thermal_systems.add(id: "SolarThermalSystem#{hpxml.solar_thermal_systems.size + 1}",
