@@ -83,7 +83,7 @@ class ApplyUpgradeTest < MiniTest::Test
     # create an instance of the measure
     measure = ApplyUpgrade.new
 
-    system_upgrades = measure.get_system_upgrades([], args_hash)
+    system_upgrades = measure.get_system_upgrades(hpxml, [], args_hash)
     actual_capacities = measure.get_system_capacities(hpxml, system_upgrades)
 
     expected_capacities.each do |str, val|
