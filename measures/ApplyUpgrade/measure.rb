@@ -404,7 +404,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Detect whether we are upgrading the heating system
       if arg.include?('heating_system_type') || arg.include?('heating_system_fuel') || arg.include?('heating_system_heating_efficiency') || arg.include?('heating_system_fraction_heat_load_served')
         hpxml.heating_systems.each do |heating_system|
-          next if heating_system.fraction_heat_load_served < 0.5
+          next unless heating_system.primary_system
 
           system_upgrades << heating_system.id
         end
@@ -413,7 +413,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Detect whether we are upgrading the secondary heating system
       if arg.include?('heating_system_2_type') || arg.include?('heating_system_2_fuel') || arg.include?('heating_system_2_heating_efficiency') || arg.include?('heating_system_2_fraction_heat_load_served')
         hpxml.heating_systems.each do |heating_system|
-          next if heating_system.fraction_heat_load_served >= 0.5
+          next if heating_system.primary_system
 
           system_upgrades << heating_system.id
         end
@@ -441,14 +441,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     capacities = {}
 
     hpxml.heating_systems.each do |heating_system|
-      next if heating_system.fraction_heat_load_served < 0.5
+      next unless heating_system.primary_system
       next if system_upgrades.include?(heating_system.id)
 
       capacities['heating_system_heating_capacity'] = heating_system.heating_capacity
     end
 
     hpxml.heating_systems.each do |heating_system|
-      next if heating_system.fraction_heat_load_served >= 0.5
+      next if heating_system.primary_system
       next if system_upgrades.include?(heating_system.id)
 
       capacities['heating_system_2_heating_capacity'] = heating_system.heating_capacity
