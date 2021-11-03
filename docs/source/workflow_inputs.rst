@@ -822,6 +822,39 @@ Each opaque door is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Do
   .. [#] Orientation choices are "northeast", "east", "southeast", "south", "southwest", "west", "northwest", or "north"
   .. [#] If neither Azimuth nor Orientation nor AttachedToWall azimuth provided, defaults to the azimuth with the largest surface area defined in the HPXML file.
 
+HPXML Partition Wall Mass
+*************************
+
+Partition wall mass in the conditioned space is entered as ``/HPXML/Building/BuildingDetails/Enclosure/extension/PartitionWallMass``.
+
+  ============================================  ======  ============  ===========  ========  ============  =================================================
+  Element                                       Type    Units         Constraints  Required  Default       Notes
+  ============================================  ======  ============  ===========  ========  ============  =================================================
+  ``AreaFraction``                              double  frac          >= 0         No        1.0           Fraction of both sides of wall area to conditioned floor area
+  ``InteriorFinish/Type``                       string                See [#]_     No        gypsum board  Interior finish material
+  ``InteriorFinish/Thickness``                  double  in            >= 0         No        0.5           Interior finish thickness
+  ============================================  ======  ============  ===========  ========  ============  =================================================
+
+  .. [#] InteriorFinish/Type choices are "gypsum board", "gypsum composite board", "plaster", "wood", "other", or "none".
+
+HPXML Furniture Mass
+********************
+
+Furniture mass in the conditioned space is entered as ``/HPXML/Building/BuildingDetails/Enclosure/extension/FurnitureMass``.
+
+  ============================================  ======  ============  ===========  ========  ============  =================================================
+  Element                                       Type    Units         Constraints  Required  Default       Notes
+  ============================================  ======  ============  ===========  ========  ============  =================================================
+  ``AreaFraction``                              double  frac          >= 0         No        0.4           Fraction of conditioned floor area covered by furniture
+  ``Type``                                      string                See [#]_     No        light-weight  Type of furniture
+  ============================================  ======  ============  ===========  ========  ============  =================================================
+
+  .. [#] Type choices are "light-weight" and "heavy-weight". 
+
+.. note::
+
+  Light-weight furniture is modeled with a weight of 8 lb/ft2 of floor area and a density of 40 lb/ft3 while heavy-weight furniture is modeled with a weight of 16 lb/ft2 of floor area and a density of 80 lb/ft3.
+
 HPXML Systems
 -------------
 

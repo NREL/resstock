@@ -1419,6 +1419,7 @@ class Geometry
 
         space.surfaces.each do |surface|
           next unless get_facade_for_surface(surface) == Constants.FacadeFront
+          next unless (surface.outsideBoundaryCondition.downcase == 'outdoors') || (surface.outsideBoundaryCondition.downcase == 'adiabatic') 
           next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
 
           avail_walls << surface
@@ -1567,22 +1568,22 @@ class Geometry
     end
     roof_type = geometry_roof_type
     roof_pitch = geometry_roof_pitch
-    left_wall = geometry_unit_left_wall_is_adiabatic
-    right_wall = geometry_unit_right_wall_is_adiabatic
-    front_wall = geometry_unit_front_wall_is_adiabatic
-    back_wall = geometry_unit_back_wall_is_adiabatic
+    adiabatic_left_wall = geometry_unit_left_wall_is_adiabatic
+    adiabatic_right_wall = geometry_unit_right_wall_is_adiabatic
+    adiabatic_front_wall = geometry_unit_front_wall_is_adiabatic
+    adiabatic_back_wall = geometry_unit_back_wall_is_adiabatic
 
     horizontal_location = 'None'
-    if left_wall && right_wall
+    if adiabatic_left_wall && adiabatic_right_wall
       horizontal_location = 'Middle'
-    elsif left_wall
+    elsif adiabatic_left_wall
       horizontal_location = 'Right'
-    elsif right_wall
+    elsif adiabatic_right_wall
       horizontal_location = 'Left'
     end
 
     has_rear_units = false
-    if back_wall
+    if adiabatic_back_wall
       has_rear_units = true
     end
 
@@ -1682,7 +1683,7 @@ class Geometry
       adb_facade += ['back']
     end
 
-    if front_wall
+    if adiabatic_front_wall
       adb_facade += ['front']
     end
     # Make surfaces adiabatic
@@ -2017,10 +2018,10 @@ class Geometry
     foundation_height = geometry_foundation_height
     rim_joist_height = geometry_rim_joist_height
     attic_type = geometry_attic_type
-    left_wall = geometry_unit_left_wall_is_adiabatic
-    right_wall = geometry_unit_right_wall_is_adiabatic
-    front_wall = geometry_unit_front_wall_is_adiabatic
-    back_wall = geometry_unit_back_wall_is_adiabatic
+    adiabatic_left_wall = geometry_unit_left_wall_is_adiabatic
+    adiabatic_right_wall = geometry_unit_right_wall_is_adiabatic
+    adiabatic_front_wall = geometry_unit_front_wall_is_adiabatic
+    adiabatic_back_wall = geometry_unit_back_wall_is_adiabatic
 
     level = 'Bottom'
     if attic_type == HPXML::AtticTypeBelowApartment && foundation_type == HPXML::FoundationTypeAboveApartment
@@ -2032,16 +2033,16 @@ class Geometry
     end
 
     horz_location = 'None'
-    if left_wall && right_wall
+    if adiabatic_left_wall && adiabatic_right_wall
       horz_location = 'Middle'
-    elsif left_wall
+    elsif adiabatic_left_wall
       horz_location = 'Right'
-    elsif right_wall
+    elsif adiabatic_right_wall
       horz_location = 'Left'
     end
 
     has_rear_units = false
-    if back_wall
+    if adiabatic_back_wall
       has_rear_units = true
     end
 
@@ -2082,13 +2083,6 @@ class Geometry
     footprint = cfa + inset_width * inset_depth
     x = Math.sqrt(footprint / aspect_ratio)
     y = footprint / x
-
-    top = 0
-    if attic_type == HPXML::LocationOtherHousingUnit
-      top = 1
-    end
-    story_hash = { 'Bottom' => 0, 'Middle' => 1, 'Top' => top } # FIXME: is this right?
-    z = average_ceiling_height * story_hash[level]
 
     foundation_front_polygon = nil
     foundation_back_polygon = nil
@@ -2167,13 +2161,13 @@ class Geometry
     adb_level = level_hash[level]
 
     # Check levels
-    if attic_type != HPXML::LocationOtherHousingUnit && foundation_type != HPXML::LocationOtherHousingUnit # FIXME: is this right?
+    if attic_type != HPXML::LocationOtherHousingUnit && foundation_type != HPXML::LocationOtherHousingUnit
       adb_level = []
     end
     if has_rear_units
       adb_facade += ['back']
     end
-    if front_wall
+    if adiabatic_front_wall
       adb_facade += ['front']
     end
 
