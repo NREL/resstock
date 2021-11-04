@@ -5804,7 +5804,7 @@ class HPXML < Object
     XMLHelper.add_attribute(hpxml, 'xmlns', 'http://hpxmlonline.com/2019/10')
     XMLHelper.add_attribute(hpxml, 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
     XMLHelper.add_attribute(hpxml, 'xsi:schemaLocation', 'http://hpxmlonline.com/2019/10')
-    XMLHelper.add_attribute(hpxml, 'schemaVersion', '3.0')
+    XMLHelper.add_attribute(hpxml, 'schemaVersion', Version::HPXML_Version)
     return doc
   end
 

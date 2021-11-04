@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://hpxmlonline.com/2019/10" targetNamespace="http://hpxmlonline.com/2019/10" elementFormDefault="qualified" version="3.0">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://hpxmlonline.com/2019/10" targetNamespace="http://hpxmlonline.com/2019/10" elementFormDefault="qualified" version="4.0">
 	<xs:include schemaLocation="HPXMLDataTypes.xsd"/>
 	<xs:element name="XMLTransactionHeaderInformation">
 		<xs:annotation>
@@ -2036,15 +2036,14 @@
 									</xs:element>
 									<xs:element minOccurs="0" name="BatteryType" type="BatteryType"/>
 									<xs:element minOccurs="0" name="CoolingStrategy" type="BatteryCoolingStrategy"/>
-									<xs:element minOccurs="0" name="NominalCapacity" type="BatteryCapacity">
+									<xs:element minOccurs="0" name="NominalCapacity" type="BatteryCapacityType">
 										<xs:annotation>
-											<xs:documentation>[Ah] The total Ampere hours available when the battery is discharged starting from 100% state of charge until it reaches the cut-off
-												voltage. Capacity is computed by multiplying the discharge current (Amps) by the discharge time (hours).</xs:documentation>
+											<xs:documentation>The total energy available when the battery is discharged starting from 100% state of charge until it reaches the cut-off voltage.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
-									<xs:element minOccurs="0" name="UsableCapacity" type="BatteryCapacity">
+									<xs:element minOccurs="0" name="UsableCapacity" type="BatteryCapacityType">
 										<xs:annotation>
-											<xs:documentation>[Ah] The stored energy that can actually be used. In most cases usable capacity is less than the nominal capacity.</xs:documentation>
+											<xs:documentation>The stored energy that can actually be used. In most cases usable capacity is less than the nominal capacity.</xs:documentation>
 										</xs:annotation>
 									</xs:element>
 									<xs:element minOccurs="0" name="RatedPowerOutput" type="Power">
@@ -3831,6 +3830,17 @@
 				</xs:annotation>
 			</xs:element>
 			<xs:element name="Value" type="Efficiency"/>
+		</xs:sequence>
+		<xs:attribute name="dataSource" type="DataSource"/>
+	</xs:complexType>
+	<xs:complexType name="BatteryCapacityType">
+		<xs:sequence>
+			<xs:element name="Units" type="BatteryCapacity"> </xs:element>
+			<xs:element name="Value" type="BatteryCapacity">
+				<xs:annotation>
+					<xs:documentation>Ah is computed by multiplying the discharge current (Amps) by the discharge time (hours). kWh is computed by multiplying the power output (kW) by the discharge time (hours).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
 	</xs:complexType>

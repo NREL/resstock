@@ -2,6 +2,7 @@
 
 __New Features__
 - Updates to OpenStudio 3.3.0/EnergyPlus 9.6.0.
+- **Breaking change**: HPXML schema version must now be '4.0' (proposed).
 - **Breaking change**: Replaces "Unmet Load" outputs with "Unmet Hours".
 - **Breaking change**: Renames "Load: Heating" and "Peak Load: Heating" (and Cooling) outputs to include "Delivered".
 - **Breaking change**: Replaces ClothesDryer `extension/IsVented` and `extension/VentedFlowRate` with `Vented` and `VentedFlowRate`.
