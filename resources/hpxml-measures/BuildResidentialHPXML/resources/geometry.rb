@@ -1573,56 +1573,26 @@ class Geometry
     adiabatic_front_wall = geometry_unit_front_wall_is_adiabatic
     adiabatic_back_wall = geometry_unit_back_wall_is_adiabatic
 
-    horizontal_location = 'None'
-    if adiabatic_left_wall && adiabatic_right_wall
-      horizontal_location = 'Middle'
-    elsif adiabatic_left_wall
-      horizontal_location = 'Right'
-    elsif adiabatic_right_wall
-      horizontal_location = 'Left'
-    end
-
-    has_rear_units = false
-    if adiabatic_back_wall
-      has_rear_units = true
-    end
-
-    num_units_actual = num_units
-    num_floors_actual = num_floors
-    if has_rear_units
-      unit_width = num_units / 2
-    else
-      unit_width = num_units
-    end
-
     # error checking
     if model.getSpaces.size > 0
       runner.registerError('Starting model is not empty.')
-      return false
-    end
-    if (num_units == 1) && has_rear_units
-      runner.registerError("Specified building as having rear units, but didn't specify enough units.")
       return false
     end
     if aspect_ratio < 0
       runner.registerError('Invalid aspect ratio entered.')
       return false
     end
-    if has_rear_units && (num_units % 2 != 0)
-      runner.registerError('Specified a building with rear units and an odd number of units.')
+    if adiabatic_left_wall && adiabatic_right_wall && adiabatic_front_wall && adiabatic_back_wall
+      runner.registerError('At least one wall must be set to non-adiabatic')
       return false
     end
-    if (unit_width < 3) && (horizontal_location == 'Middle')
-      runner.registerError('Invalid horizontal location entered, no middle location exists.')
+    if foundation_type == HPXML::FoundationTypeAboveApartment
+      runner.registerError('Single-family attached buildings cannot be above another unit')
       return false
     end
-    if (unit_width > 1) && (horizontal_location == 'None')
-      runner.registerError('Invalid horizontal location entered.')
+    if attic_type == HPXML::AtticTypeBelowApartment
+      runner.registerError('Single-family attached buildings cannot be below another unit')
       return false
-    end
-    if (unit_width == 1) && (horizontal_location != 'None')
-      runner.registerWarning("No #{horizontal_location} location exists, setting horizontal_location to 'None'")
-      horizontal_location = 'None'
     end
 
     # Convert to SI
@@ -1675,23 +1645,15 @@ class Geometry
     living_spaces_front << living_space
 
     # Adiabatic surfaces for walls
-    # Map unit location to adiabatic surfaces (#if `key` unit then make `value(s)` adiabatic)
-    horz_hash = { 'Left' => ['right'], 'Right' => ['left'], 'Middle' => ['left', 'right'], 'None' => [] }
-    adb_facade = horz_hash[horizontal_location]
+    adb_facade_hash = { 'left' => adiabatic_left_wall, 'right' => adiabatic_right_wall, 'front' => adiabatic_front_wall, 'back' => adiabatic_back_wall }
+    adb_facades = adb_facade_hash.select { |_, v| v == true }.keys
 
-    if has_rear_units
-      adb_facade += ['back']
-    end
-
-    if adiabatic_front_wall
-      adb_facade += ['front']
-    end
     # Make surfaces adiabatic
     model.getSpaces.each do |space|
       space.surfaces.each do |surface|
         os_facade = get_facade_for_surface(surface)
         next unless surface.surfaceType == 'Wall'
-        next unless adb_facade.include? os_facade
+        next unless adb_facades.include? os_facade
 
         x_ft = UnitConversions.convert(x, 'm', 'ft')
         max_x = getSurfaceXValues([surface]).max
@@ -1815,7 +1777,7 @@ class Geometry
           next if surface.surfaceType.downcase != 'wall'
 
           os_facade = get_facade_for_surface(surface)
-          if adb_facade.include? os_facade
+          if adb_facades.include? os_facade
             surface.setOutsideBoundaryCondition('Adiabatic')
           elsif getSurfaceZValues([surface]).min < 0
             surface.setOutsideBoundaryCondition('Foundation')
@@ -1841,7 +1803,7 @@ class Geometry
       attic_spaces.each do |attic_space|
         attic_space.remove
       end
-      attic_space = get_attic_space(model, x, y, average_ceiling_height, num_floors, num_units, roof_pitch, roof_type, rim_joist_height, has_rear_units)
+      attic_space = get_attic_space(model, x, y, average_ceiling_height, num_floors, num_units, roof_pitch, roof_type, rim_joist_height)
 
       # set these to the attic zone
       if (attic_type == HPXML::AtticTypeVented) || (attic_type == HPXML::AtticTypeUnvented)
@@ -1867,7 +1829,7 @@ class Geometry
       attic_space.surfaces.each do |surface|
         os_facade = get_facade_for_surface(surface)
         next unless surface.surfaceType == 'Wall'
-        next unless adb_facade.include? os_facade
+        next unless adb_facades.include? os_facade
 
         x_ft = UnitConversions.convert(x, 'm', 'ft')
         max_x = getSurfaceXValues([surface]).max
@@ -1898,7 +1860,7 @@ class Geometry
     return true
   end
 
-  def self.get_attic_space(model, x, y, average_ceiling_height, num_floors, num_units, roof_pitch, roof_type, rim_joist_height, has_rear_units = false)
+  def self.get_attic_space(model, x, y, average_ceiling_height, num_floors, num_units, roof_pitch, roof_type, rim_joist_height)
     y_rear = 0
     y_peak = -y / 2
     y_tot = y
@@ -2023,33 +1985,13 @@ class Geometry
     adiabatic_front_wall = geometry_unit_front_wall_is_adiabatic
     adiabatic_back_wall = geometry_unit_back_wall_is_adiabatic
 
-    level = 'Bottom'
-    if attic_type == HPXML::AtticTypeBelowApartment && foundation_type == HPXML::FoundationTypeAboveApartment
-      level = 'Middle'
-    elsif attic_type == HPXML::AtticTypeBelowApartment
-      level = 'Bottom'
-    elsif foundation_type == HPXML::FoundationTypeAboveApartment
-      level = 'Top'
-    end
-
-    horz_location = 'None'
-    if adiabatic_left_wall && adiabatic_right_wall
-      horz_location = 'Middle'
-    elsif adiabatic_left_wall
-      horz_location = 'Right'
-    elsif adiabatic_right_wall
-      horz_location = 'Left'
-    end
-
-    has_rear_units = false
-    if adiabatic_back_wall
-      has_rear_units = true
-    end
-
-    if level != 'Bottom'
+    if foundation_type == HPXML::FoundationTypeAboveApartment
       foundation_type = HPXML::LocationOtherHousingUnit
       foundation_height = 0.0
       rim_joist_height = 0.0
+    end
+    if attic_type == HPXML::AtticTypeBelowApartment
+      attic_type = HPXML::LocationOtherHousingUnit
     end
 
     # Error checking
@@ -2065,9 +2007,9 @@ class Geometry
       runner.registerWarning('Specified a balcony, but there is no inset.')
       balcony_depth = 0
     end
-
-    if attic_type == HPXML::AtticTypeBelowApartment
-      attic_type = HPXML::LocationOtherHousingUnit
+    if adiabatic_left_wall && adiabatic_right_wall && adiabatic_front_wall && adiabatic_back_wall
+      runner.registerError('At least one wall must be set to non-adiabatic')
+      return false
     end
 
     # Convert to SI
@@ -2154,21 +2096,17 @@ class Geometry
     end
     living_spaces_front << living_space
 
-    # Map unit location to adiabatic surfaces
-    horz_hash = { 'Left' => ['right'], 'Right' => ['left'], 'Middle' => ['left', 'right'], 'None' => [] }
-    level_hash = { 'Bottom' => ['RoofCeiling'], 'Top' => ['Floor'], 'Middle' => ['RoofCeiling', 'Floor'], 'None' => [] }
-    adb_facade = horz_hash[horz_location]
-    adb_level = level_hash[level]
+    # Map surface facades to adiabatic walls
+    adb_facade_hash = { 'left' => adiabatic_left_wall, 'right' => adiabatic_right_wall, 'front' => adiabatic_front_wall, 'back' => adiabatic_back_wall }
+    adb_facades = adb_facade_hash.select { |_, v| v == true }.keys
 
-    # Check levels
-    if attic_type != HPXML::LocationOtherHousingUnit && foundation_type != HPXML::LocationOtherHousingUnit
-      adb_level = []
+    # Adiabatic floor/ceiling
+    adb_levels = []
+    if attic_type == HPXML::LocationOtherHousingUnit
+      adb_levels += ['RoofCeiling']
     end
-    if has_rear_units
-      adb_facade += ['back']
-    end
-    if adiabatic_front_wall
-      adb_facade += ['front']
+    if foundation_type == HPXML::LocationOtherHousingUnit
+      adb_levels += ['Floor']
     end
 
     # Make living space surfaces adiabatic
@@ -2176,7 +2114,7 @@ class Geometry
       space.surfaces.each do |surface|
         os_facade = get_facade_for_surface(surface)
         if surface.surfaceType == 'Wall'
-          if adb_facade.include? os_facade
+          if adb_facades.include? os_facade
             x_ft = UnitConversions.convert(x, 'm', 'ft')
             max_x = getSurfaceXValues([surface]).max
             min_x = getSurfaceXValues([surface]).min
@@ -2185,7 +2123,7 @@ class Geometry
             surface.setOutsideBoundaryCondition('Adiabatic')
           end
         else
-          if (adb_level.include? surface.surfaceType)
+          if (adb_levels.include? surface.surfaceType)
             surface.setOutsideBoundaryCondition('Adiabatic')
           end
 
@@ -2258,7 +2196,7 @@ class Geometry
           next unless surface.surfaceType.downcase == 'wall'
 
           os_facade = get_facade_for_surface(surface)
-          if adb_facade.include?(os_facade) && (os_facade != 'RoofCeiling') && (os_facade != 'Floor')
+          if adb_facades.include?(os_facade) && (os_facade != 'RoofCeiling') && (os_facade != 'Floor')
             surface.setOutsideBoundaryCondition('Adiabatic')
           elsif getSurfaceZValues([surface]).min < 0
             surface.setOutsideBoundaryCondition('Foundation')
