@@ -3,6 +3,7 @@
 require 'parallel'
 require 'json'
 require 'yaml'
+require 'zip'
 
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling'
@@ -125,6 +126,8 @@ def run_workflow(yml, measures_only)
   # Create weather folder
   weather_dir = File.join(thisdir, '..', 'weather')
   if !File.exist?(weather_dir)
+    Dir.mkdir(weather_dir)
+
     if cfg.keys.include?('weather_files_url')
       require 'tempfile'
       tmpfile = Tempfile.new('epw')
@@ -138,9 +141,14 @@ def run_workflow(yml, measures_only)
     else
       fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
     end
+
     puts 'Extracting weather files...'
-    unzip_file = OpenStudio::UnzipFile.new(weather_files_path)
-    unzip_file.extractAllFiles(OpenStudio::toPath(weather_dir))
+    Zip::File.open(weather_files_path) do |zip_file|
+      zip_file.each do |f|
+        fpath = File.join(weather_dir, f.name)
+        zip_file.extract(f, fpath) unless File.exist?(fpath)
+      end
+    end
   end
 
   # Create buildstock.csv
