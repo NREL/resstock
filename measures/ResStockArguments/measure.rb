@@ -570,34 +570,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         elsif corridor_position == 'Single Exterior (Front)'
           has_rear_units = false
           args['geometry_unit_front_wall_is_adiabatic'] = false
-        else # < 2 units/floor, not single exterior
+        else
           has_rear_units = false
           args['geometry_unit_front_wall_is_adiabatic'] = false
         end
-
-        # Error check MF geometry inputs
-        if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
-          runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
-          corridor_position = 'Single Exterior (Front)'
-        end
-        if has_rear_units
-          unit_width = n_units_per_floor / 2
-        else
-          unit_width = n_units_per_floor
-        end
-        if (unit_width <= 1) && (horiz_location != 'None')
-          runner.registerWarning("No #{horiz_location} location exists, setting horizontal location to 'None'")
-          horiz_location = 'None'
-        end
-        if (unit_width > 1) && (horiz_location == 'None')
-          runner.registerError('ResStockArguments: Specified incompatible horizontal location for the corridor and unit configuration.')
-          return false
-        end
-        if (unit_width <= 2) && (horiz_location == 'Middle')
-          runner.registerError('ResStockArguments: Invalid horizontal location entered, no middle location exists.')
-          return false
-        end
-
         # Model exterior corridors as overhangs
         if (args['geometry_corridor_position'].include? 'Exterior') && args['geometry_corridor_width'] > 0
           args['overhangs_front_depth'] = args['geometry_corridor_width']
@@ -608,6 +584,30 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         n_floors = 1.0
         n_units_per_floor = n_units
         has_rear_units = false
+        corridor_position = 'None'
+      end
+
+      # Error check MF & SFA geometry
+      if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
+        runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
+        corridor_position = 'Single Exterior (Front)'
+      end
+      if has_rear_units
+        unit_width = n_units_per_floor / 2
+      else
+        unit_width = n_units_per_floor
+      end
+      if (unit_width <= 1) && (horiz_location != 'None')
+        runner.registerWarning("No #{horiz_location} location exists, setting horizontal location to 'None'")
+        horiz_location = 'None'
+      end
+      if (unit_width > 1) && (horiz_location == 'None')
+        runner.registerError('ResStockArguments: Specified incompatible horizontal location for the corridor and unit configuration.')
+        return false
+      end
+      if (unit_width <= 2) && (horiz_location == 'Middle')
+        runner.registerError('ResStockArguments: Invalid horizontal location entered, no middle location exists.')
+        return false
       end
 
       # Infiltration adjustment for SFA/MF units
