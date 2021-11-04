@@ -1,6 +1,12 @@
 import os
 import pandas as pd
 
+col_exclusions = ['applicable',
+                  'include_timeseries_',
+                  'output_format',
+                  'timeseries_frequency',
+                  'upgrade_name']
+
 # BASELINE
 
 outdir = 'baseline'
@@ -26,6 +32,9 @@ upgrade_costs = []
 qoi_reports = []
 
 for col in df.columns.values:
+  if any([col_exclusion in col for col_exclusion in col_exclusions]):
+    continue
+
   if col.startswith('build_existing_model'):
     build_existing_models.append(col)
   elif col.startswith('report_simulation_output'):
@@ -83,18 +92,17 @@ qoi_reports = []
 apply_upgrades = []
 
 for col in df.columns.values:
-  if 'applicable' in col:
+  if any([col_exclusion in col for col_exclusion in col_exclusions]):
     continue
 
-  elif col.startswith('report_simulation_output'):
+  if col.startswith('report_simulation_output'):
     report_simulation_outputs.append(col)
   elif col.startswith('upgrade_costs'):
     upgrade_costs.append(col)
   elif col.startswith('qoi_report'):
     qoi_reports.append(col)
   elif col.startswith('apply_upgrade'):
-    if not 'upgrade_name' in col:
-      apply_upgrades.append(col)
+    apply_upgrades.append(col)
 
 # results_output.csv
 results_output = df[['OSW'] + report_simulation_outputs + upgrade_costs + qoi_reports + apply_upgrades]
