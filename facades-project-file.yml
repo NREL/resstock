@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /projects/enduse/facades/resstock # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/enduse/facades/test10No5
+output_directory: /projects/enduse/facades/test10No6
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 
 sampler:
@@ -480,10 +480,6 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-    #siding update
-      - *siding_upgrade_to_fibercement
-      - *siding_upgrade_to_stucco
-      - *siding_upgrade_to_vinyl
 ######################################################################################################################################################################################################
   - upgrade_name: triple-pane only
     options:
@@ -781,11 +777,6 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 30
-      #siding update
-      - *siding_upgrade_to_fibercement
-      - *siding_upgrade_to_stucco
-      - *siding_upgrade_to_vinyl
-
 ######################################################################################################################################################################################################
   - upgrade_name: Package 1 - 1" polyiso, low-e storms, siding
     options:
@@ -2246,7 +2237,7 @@ aws:
   job_identifier: fac_1
   s3:
     bucket: facades
-    prefix: test10No5
+    prefix: test10No6
   emr:
     worker_instance_count: 1
   region: us-west-2
@@ -2260,8 +2251,8 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: facades
-      prefix: test10No5
+      prefix: test10No6
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: resstock-test10No5
+      database_name: resstock-test10No6
       max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
