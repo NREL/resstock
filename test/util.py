@@ -77,7 +77,7 @@ df = pd.concat(frames)
 df = df.rename(columns={'building_id': 'OSW'})
 del df['job_id']
 
-simulation_output_reports = ['color_index']
+report_simulation_outputs = ['color_index']
 upgrade_costs = []
 qoi_reports = []
 apply_upgrades = []
@@ -86,8 +86,8 @@ for col in df.columns.values:
   if 'applicable' in col:
     continue
 
-  elif col.startswith('simulation_output_report'):
-    simulation_output_reports.append(col)
+  elif col.startswith('report_simulation_output'):
+    report_simulation_outputs.append(col)
   elif col.startswith('upgrade_costs'):
     upgrade_costs.append(col)
   elif col.startswith('qoi_report'):
@@ -97,7 +97,7 @@ for col in df.columns.values:
       apply_upgrades.append(col)
 
 # results_output.csv
-results_output = df[['OSW'] + simulation_output_reports + upgrade_costs + qoi_reports + apply_upgrades]
+results_output = df[['OSW'] + report_simulation_outputs + upgrade_costs + qoi_reports + apply_upgrades]
 results_output = results_output.dropna(how='all', axis=1)
 
 results_output = results_output.set_index('OSW')
