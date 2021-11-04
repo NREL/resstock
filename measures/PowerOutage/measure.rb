@@ -45,11 +45,12 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
 
     # make a string argument for outage type (partial or full)
     otg_type = OpenStudio::StringVector.new
-    otg_type << "Partial"
-    otg_type << "Total"
+    otg_type << 'Partial'
+    otg_type << 'Total'
     arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('otg_type', otg_type, true)
     arg.setDisplayName("Outage Type")
-    arg.setDescription("OUtage Type. Full outage means there is zero power available, while a partial outage still assumes some power is available but homeowners are trying to reduce their power consumption while maintaining a safe indoor temperature. Partial outages disable all electric equipment except for refrigerators (not including any extra refrigerator/freezer) and HVAC.")
+    arg.setDescription("Outage Type. Full outage means there is zero power available, while a partial outage still assumes some power is available but homeowners are trying to reduce their power consumption while maintaining a safe indoor temperature. Partial outages disable all electric equipment except for refrigerators (not including any extra refrigerator/freezer) and HVAC.")
+    arg.setDefaultValue('Total')
     args << arg
 
     # make a string argument for for the start date of the outage
@@ -201,13 +202,15 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_start.month), otg_period_start.day, otg_period_start.year)
     otg_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_end.month), otg_period_end.day, otg_period_end.year)
 
+    #convert outage offset from F to C
+    otg_offset *= (5.0/9.0)
     model.getScheduleRulesets.each do |schedule_ruleset|
       next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial')
 
       if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint)
-        otg_val = -otg_offset * (5./9.)
+        otg_val = -otg_offset
       elsif schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
-        otg_val = otg_offset * (5./9.)
+        otg_val = otg_offset
       else
         otg_val = 0
       end
