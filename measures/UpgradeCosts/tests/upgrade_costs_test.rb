@@ -3,8 +3,8 @@
 require 'openstudio'
 
 require_relative '../measure.rb'
-require_relative '../../../resources/hpxml-measures/ReportHPXMLOutput/measure.rb'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
+require_relative '../../../resources/hpxml-measures/ReportHPXMLOutput/measure.rb'
 
 class UpgradeCostsTest < MiniTest::Test
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH
@@ -593,12 +593,9 @@ class UpgradeCostsTest < MiniTest::Test
     hpxml_path = File.join(this_dir, 'in.xml')
     hpxml_in = HPXML.new(hpxml_path: hpxml_path)
 
-    # create instance of the measures
+    # Create instance of the measures
     hpxml_output_report = ReportHPXMLOutput.new
     upgrade_costs = UpgradeCosts.new
-
-    # create an instance of a runner
-    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
     # Check for correct cost multiplier values
     hpxml_output_report.assign_primary_and_secondary(hpxml_in, cost_multipliers)
