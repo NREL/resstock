@@ -1,0 +1,91 @@
+schema_version: '0.3'
+buildstock_directory: /projects/enduse/resstock-cambium/resstock # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /projects/enduse/resstock-cambium/test
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2012_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 10
+    logic:
+      - Vacancy Status|Occupied
+    resample: false
+
+workflow_generator:
+  type: residential_default
+  args:
+    timeseries_csv_export:
+      reporting_frequency: Hourly
+      include_enduse_subcategories: true
+    residential_simulation_controls:
+      calendar_year: 2012
+
+baseline:
+  n_buildings_represented: 133172057  # Total number of residential dwelling units in contiguous United States, including unoccupied units, resulting from a census tract level query of ACS 5-yr 2016 (i.e. 2012-2016), using this script: https://github.com/NREL/resstock-estimation/blob/master/sources/spatial/tsv_maker.py.
+
+upgrades:
+  - upgrade_name: All LEDs
+  - upgrade_name: Storm Windows
+  - upgrade_name: Exterior Insulation
+    options:
+      #polyiso_1inch
+      - &polyiso_1inch_on_uninsulated_wood
+        #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
+        option: Insulation Wall|Wood Stud, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, Uninsulated
+        costs: &polyiso_1inch_costs
+          - value: 1.4
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_wood
+        option: Insulation Wall|Wood Stud, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+  - upgrade_name: Awesome appliances
+  - upgrade_name: ASHP SEER 16
+  - upgrade_name: ASHP SEER 22
+  - upgrade_name: ASHP minisplit
+  - upgrade_name: ASHP SEER 22, higher min compressor temp
+  - upgrade_name: HPWH
+  - upgrade_name: Thermostat Setbacks
+
+eagle:
+  n_jobs: 8
+  minutes_per_sim: 30
+  account: enduse
+  sampling:
+    time: 60
+  postprocessing:
+    time: 180
+    n_workers: 1
+
+aws:
+  # The job_identifier should be unique, start with alpha, not include dashes, and limited to 10 chars or data loss can occur
+  job_identifier: resstock_cambium_aceee
+  s3:
+    bucket: resstock-cambium
+    prefix: aceeeTest10No1
+  emr:
+    worker_instance_count: 1
+  region: us-west-2
+  use_spot: true
+  batch_array_size: 1000
+  # To receive email updates on job progress accept the request to receive emails that will be sent from Amazon
+  notifications_email: noel.merket@nrel.gov
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resstock-cambium
+      prefix: aceeeTest10No1
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: TODO
+      max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
