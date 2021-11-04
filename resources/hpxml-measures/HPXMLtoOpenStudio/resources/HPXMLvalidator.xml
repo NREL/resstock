@@ -135,13 +135,15 @@
       <sch:assert role='ERROR' test='h:Type[text()="gypsum board" or text()="gypsum composite board" or text()="plaster" or text()="wood" or text()="other" or text()="none"] or not(h:Type)'>Expected Type to be 'gypsum board' or 'gypsum composite board' or 'plaster' or 'wood' or 'other' or 'none'</sch:assert>
       <sch:assert role='ERROR' test='number(h:Thickness) &gt;= 0 or not(h:Thickness)'>Expected Thickness to be greater than or equal to 0</sch:assert>
     </sch:rule>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:FoundationWalls/h:FoundationWall/h:Insulation/h:Layer'>
+      <sch:assert role='ERROR' test='number(h:DistanceToTopOfInsulation) &gt;= 0 or not(h:DistanceToTopOfInsulation)'>Expected DistanceToTopOfInsulation to be greater than or equal to 0</sch:assert>
+      <sch:assert role='ERROR' test='number(h:DistanceToBottomOfInsulation) &gt;= 0 or not(h:DistanceToBottomOfInsulation)'>Expected DistanceToBottomOfInsulation to be greater than or equal to 0</sch:assert>
+      <sch:assert role='ERROR' test='h:InstallationType[text()="cavity" or text()="continuous" or text()="continuous - interior" or text()="continuous - exterior"] or not(h:InstallationType)'>Expected InstallationType to be 'cavity' or 'continuous' or 'continuous - interior' or 'continuous - exterior'</sch:assert>
+      <sch:assert role='ERROR' test='number(h:NominalRValue) &gt;= 0 or not(h:NominalRValue)'>Expected NominalRValue to be greater than or equal to 0</sch:assert>
+    </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:FoundationWalls/h:FoundationWall/h:Insulation'>
       <sch:assert role='ERROR' test='number(h:AssemblyEffectiveRValue) &gt; 0 or not(h:AssemblyEffectiveRValue)'>Expected AssemblyEffectiveRValue to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:SystemIdentifier[@id]) = count(h:SystemIdentifier)'>Expected id attribute for SystemIdentifier</sch:assert>
-    </sch:rule>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:FoundationWalls/h:FoundationWall/h:Insulation/h:Layer'>
-      <sch:assert role='ERROR' test='h:InstallationType[text()="cavity" or text()="continuous" or text()="continuous - interior" or text()="continuous - exterior"] or not(h:InstallationType)'>Expected InstallationType to be 'cavity' or 'continuous' or 'continuous - interior' or 'continuous - exterior'</sch:assert>
-      <sch:assert role='ERROR' test='number(h:NominalRValue) &gt;= 0 or not(h:NominalRValue)'>Expected NominalRValue to be greater than or equal to 0</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:FrameFloors/h:FrameFloor'>
       <sch:assert role='ERROR' test='h:ExteriorAdjacentTo[text()="attic" or text()="attic - conditioned" or text()="attic - unconditioned" or text()="attic - unvented" or text()="attic - vented" or text()="basement" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace" or text()="crawlspace - conditioned" or text()="crawlspace - unconditioned" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="garage" or text()="garage - conditioned" or text()="garage - unconditioned" or text()="ground" or text()="living space" or text()="other" or text()="other heated space" or text()="other housing unit" or text()="other housing unit above" or text()="other housing unit below" or text()="other multifamily buffer space" or text()="other non-freezing space" or text()="outside" or text()="unconditioned space"] or not(h:ExteriorAdjacentTo)'>Expected ExteriorAdjacentTo to be 'attic' or 'attic - conditioned' or 'attic - unconditioned' or 'attic - unvented' or 'attic - vented' or 'basement' or 'basement - conditioned' or 'basement - unconditioned' or 'crawlspace' or 'crawlspace - conditioned' or 'crawlspace - unconditioned' or 'crawlspace - unvented' or 'crawlspace - vented' or 'garage' or 'garage - conditioned' or 'garage - unconditioned' or 'ground' or 'living space' or 'other' or 'other heated space' or 'other housing unit' or 'other housing unit above' or 'other housing unit below' or 'other multifamily buffer space' or 'other non-freezing space' or 'outside' or 'unconditioned space'</sch:assert>
@@ -163,15 +165,15 @@
       <sch:assert role='ERROR' test='number(h:Thickness) &gt;= 0 or not(h:Thickness)'>Expected Thickness to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:Perimeter) &gt;= 0 or not(h:Perimeter)'>Expected Perimeter to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:ExposedPerimeter) &gt;= 0 or not(h:ExposedPerimeter)'>Expected ExposedPerimeter to be greater than or equal to 0</sch:assert>
-      <sch:assert role='ERROR' test='number(h:PerimeterInsulationDepth) &gt;= 0 or not(h:PerimeterInsulationDepth)'>Expected PerimeterInsulationDepth to be greater than or equal to 0</sch:assert>
-      <sch:assert role='ERROR' test='number(h:UnderSlabInsulationWidth) &gt;= 0 or not(h:UnderSlabInsulationWidth)'>Expected UnderSlabInsulationWidth to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:DepthBelowGrade) &gt;= 0 or not(h:DepthBelowGrade)'>Expected DepthBelowGrade to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:SystemIdentifier[@id]) = count(h:SystemIdentifier)'>Expected id attribute for SystemIdentifier</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Slabs/h:Slab/h:PerimeterInsulation/h:Layer'>
+      <sch:assert role='ERROR' test='number(h:InsulationDepth) &gt;= 0 or not(h:InsulationDepth)'>Expected InsulationDepth to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:NominalRValue) &gt;= 0 or not(h:NominalRValue)'>Expected NominalRValue to be greater than or equal to 0</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Slabs/h:Slab/h:UnderSlabInsulation/h:Layer'>
+      <sch:assert role='ERROR' test='number(h:InsulationWidth) &gt;= 0 or not(h:InsulationWidth)'>Expected InsulationWidth to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='number(h:NominalRValue) &gt;= 0 or not(h:NominalRValue)'>Expected NominalRValue to be greater than or equal to 0</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Windows/h:Window'>

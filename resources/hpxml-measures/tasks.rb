@@ -4521,32 +4521,50 @@ def create_schematron_hpxml_validator(hpxml_docs)
       param_type_name = param_type.get('name')
       complex_type_or_group_dict[param_type_name] = {}
 
+      elements = { 'child' => [], 'base' => [] }
       param_type.each_node do |element|
+        elements['child'] << element
         next unless element.is_a? Oga::XML::Element
-        next unless (element.name == 'element' || element.name == 'group')
-        next if element.name == 'element' && (element.get('name').nil? && element.get('ref').nil?)
-        next if element.name == 'group' && element.get('ref').nil?
 
-        ancestors = []
-        element.each_ancestor do |node|
-          next if node.get('name').nil?
-          next if node.get('name') == param_type.get('name') # exclude complexType name from element xpath
+        next unless element.name == 'extension'
 
-          ancestors << node.get('name')
+        base_element_name = element.get('base').to_s
+        base_elements_xsd_doc.xpath("#{param}[@name='#{base_element_name}']").each do |base_element|
+          base_element.each_node do |element|
+            elements['base'] << element
+          end
         end
+      end
 
-        parent_element_names = ancestors.reverse
-        if element.name == 'element'
-          child_element_name = element.get('name')
-          child_element_name = element.get('ref') if child_element_name.nil? # Backup
-          element_type = element.get('type')
-          element_type = element.get('ref') if element_type.nil? # Backup
-        elsif element.name == 'group'
-          child_element_name = nil # exclude group name from the element's xpath
-          element_type = element.get('ref')
+      elements.each do |element_child_or_base, element_list|
+        element_list.each do |element|
+          next unless element.is_a? Oga::XML::Element
+          next unless (element.name == 'element' || element.name == 'group')
+          next if element.name == 'element' && (element.get('name').nil? && element.get('ref').nil?)
+          next if element.name == 'group' && element.get('ref').nil?
+
+          ancestors = []
+          element.each_ancestor do |node|
+            next if node.get('name').nil?
+            next if node.get('name') == param_type.get('name') # exclude complexType name from element xpath
+
+            ancestors << node.get('name')
+          end
+          ancestors.shift if element_child_or_base == 'base'
+
+          parent_element_names = ancestors.reverse
+          if element.name == 'element'
+            child_element_name = element.get('name')
+            child_element_name = element.get('ref') if child_element_name.nil? # Backup
+            element_type = element.get('type')
+            element_type = element.get('ref') if element_type.nil? # Backup
+          elsif element.name == 'group'
+            child_element_name = nil # exclude group name from the element's xpath
+            element_type = element.get('ref')
+          end
+          element_xpath = parent_element_names.push(child_element_name)
+          complex_type_or_group_dict[param_type_name][element_xpath] = element_type
         end
-        element_xpath = parent_element_names.push(child_element_name)
-        complex_type_or_group_dict[param_type_name][element_xpath] = element_type
       end
     end
   end
