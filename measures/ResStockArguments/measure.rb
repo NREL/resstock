@@ -656,7 +656,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Num Floors
-    args['geometry_unit_num_floors_above_grade'] = Integer(args['geometry_num_floors_above_grade'])
+    if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
+      args['geometry_unit_num_floors_above_grade'] = 1
+    else
+      args['geometry_unit_num_floors_above_grade'] = Integer(args['geometry_num_floors_above_grade'])
+    end
 
     # Adiabatic Floor/Ceiling
     if args['geometry_unit_level'].is_initialized
