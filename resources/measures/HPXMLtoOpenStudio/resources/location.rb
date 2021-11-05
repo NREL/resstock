@@ -5,7 +5,7 @@ require_relative 'constants'
 require_relative 'unit_conversions'
 
 class Location
-  def self.apply(model, runner, weather_file_path, dst_start_date, dst_end_date)
+  def self.apply(model, runner, weather_file_path, dst_start_date, dst_end_date, ba_zone)
     success, weather, epw_file = apply_weather_file(model, runner, weather_file_path)
     return false if not success
 
@@ -15,7 +15,7 @@ class Location
     success = apply_site(model, runner, epw_file)
     return false if not success
 
-    success = apply_climate_zones(model, runner, epw_file)
+    success = apply_climate_zones(model, runner, epw_file, ba_zone)
     return false if not success
 
     success = apply_mains_temp(model, runner, weather)
@@ -81,8 +81,12 @@ class Location
     return true
   end
 
-  def self.apply_climate_zones(model, runner, epw_file)
-    ba_zone = get_climate_zone_ba(epw_file.wmoNumber)
+  def self.apply_climate_zones(model, runner, epw_file, ba_zone)
+    if ba_zone.is_initialized
+      ba_zone = ba_zone.get
+    else
+      ba_zone = get_climate_zone_ba(epw_file.wmoNumber)
+    end
     return true if ba_zone.nil?
 
     climateZones = model.getClimateZones
