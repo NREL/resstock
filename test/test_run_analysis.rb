@@ -32,8 +32,6 @@ class TestRunAnalysis < MiniTest::Test
   end
 
   def test_testing_upgrades
-    # FileUtils.rm_rf(File.join(@workflowdir, '../weather'))
-
     yml = ' -y project_testing/testing_upgrades.yml'
     @command += yml
 
