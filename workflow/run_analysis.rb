@@ -125,8 +125,6 @@ def run_workflow(yml, measures_only)
 
   # Create weather folder
   weather_dir = File.join(thisdir, '..', 'weather')
-  puts weather_dir
-  puts File.exist?(weather_dir)
   if !File.exist?(weather_dir)
     Dir.mkdir(weather_dir)
 
