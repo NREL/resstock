@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /projects/enduse/facades/resstock # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/enduse/facades/test10No7
+output_directory: /projects/enduse/facades/test10No8
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 
 sampler:
@@ -313,8 +313,7 @@ upgrades:
         costs: *low-e_storm_costs
         lifetime: 30
       #10% ACH50 reduction for low-E storms replacing clear storms
-      - &decrease_ACH50_10pct_from_1_for_storms
-        option: Infiltration|0.9 ACH50
+      - option: Infiltration|0.9 ACH50
         apply_logic:
           and:
             - Infiltration|1 ACH50
@@ -324,112 +323,98 @@ upgrades:
                 - Windows|Single, Clear, Non-metal, Exterior Clear Storm
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_2_for_storms
-        option: Infiltration|1.8 ACH50
+      - option: Infiltration|1.8 ACH50
         apply_logic:
           and:
             - Infiltration|2 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_3_for_storms
-        option: Infiltration|2.7 ACH50
+      - option: Infiltration|2.7 ACH50
         apply_logic:
           and:
             - Infiltration|3 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_4_for_storms
-        option: Infiltration|3.6 ACH50
+      - option: Infiltration|3.6 ACH50
         apply_logic:
           and:
             - Infiltration|4 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_5_for_storms
-        option: Infiltration|4.5 ACH50
+      - option: Infiltration|4.5 ACH50
         apply_logic:
           and:
             - Infiltration|5 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_6_for_storms
-        option: Infiltration|5.4 ACH50
+      - option: Infiltration|5.4 ACH50
         apply_logic:
           and:
             - Infiltration|6 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_7_for_storms
-        option: Infiltration|6.3 ACH50
+      - option: Infiltration|6.3 ACH50
         apply_logic:
           and:
             - Infiltration|7 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_8_for_storms
-        option: Infiltration|7.2 ACH50
+      - option: Infiltration|7.2 ACH50
         apply_logic:
           and:
             - Infiltration|8 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_10_for_storms
-        option: Infiltration|9 ACH50
+      - option: Infiltration|9 ACH50
         apply_logic:
           and:
             - Infiltration|10 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_15_for_storms
-        option: Infiltration|13.5 ACH50
+      - option: Infiltration|13.5 ACH50
         apply_logic:
           and:
             - Infiltration|15 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_20_for_storms
-        option: Infiltration|18 ACH50
+      - option: Infiltration|18 ACH50
         apply_logic:
           and:
             - Infiltration|20 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_25_for_storms
-        option: Infiltration|22.5 ACH50
+      - option: Infiltration|22.5 ACH50
         apply_logic:
           and:
             - Infiltration|25 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_30_for_storms
-        option: Infiltration|27 ACH50
+      - option: Infiltration|27 ACH50
         apply_logic:
           and:
             - Infiltration|30 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_40_for_storms
-        option: Infiltration|36 ACH50
+      - option: Infiltration|36 ACH50
         apply_logic:
           and:
             - Infiltration|40 ACH50
             - *upgradable_storm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_10pct_from_50_for_storms
-        option: Infiltration|45 ACH50
+      - option: Infiltration|45 ACH50
         apply_logic:
           and:
             - Infiltration|50 ACH50
@@ -437,8 +422,7 @@ upgrades:
         costs: *no_cost
         lifetime: 30
       #15% ACH50 reduction for adding low-E storms where they weren't before
-      - &decrease_ACH50_15pct_from_1_for_storms
-        option: Infiltration|0.85 ACH50
+      - option: Infiltration|0.85 ACH50
         apply_logic:
           and:
             - Infiltration|1 ACH50
@@ -449,112 +433,98 @@ upgrades:
                 - Windows|Single, Clear, Non-metal
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_2_for_storms
-        option: Infiltration|1.7 ACH50
+      - option: Infiltration|1.7 ACH50
         apply_logic:
           and:
             - Infiltration|2 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_3_for_storms
-        option: Infiltration|2.55 ACH50
+      - option: Infiltration|2.55 ACH50
         apply_logic:
           and:
             - Infiltration|3 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_4_for_storms
-        option: Infiltration|3.4 ACH50
+      - option: Infiltration|3.4 ACH50
         apply_logic:
           and:
             - Infiltration|4 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_5_for_storms
-        option: Infiltration|4.25 ACH50
+      - option: Infiltration|4.25 ACH50
         apply_logic:
           and:
             - Infiltration|5 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_6_for_storms
-        option: Infiltration|5.1 ACH50
+      - option: Infiltration|5.1 ACH50
         apply_logic:
           and:
             - Infiltration|6 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_7_for_storms
-        option: Infiltration|5.95 ACH50
+      - option: Infiltration|5.95 ACH50
         apply_logic:
           and:
             - Infiltration|7 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_8_for_storms
-        option: Infiltration|6.8 ACH50
+      - option: Infiltration|6.8 ACH50
         apply_logic:
           and:
             - Infiltration|8 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_10_for_storms
-        option: Infiltration|8.5 ACH50
+      - option: Infiltration|8.5 ACH50
         apply_logic:
           and:
             - Infiltration|10 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_15_for_storms
-        option: Infiltration|12.75 ACH50
+      - option: Infiltration|12.75 ACH50
         apply_logic:
           and:
             - Infiltration|15 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_20_for_storms
-        option: Infiltration|17 ACH50
+      - option: Infiltration|17 ACH50
         apply_logic:
           and:
             - Infiltration|20 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_25_for_storms
-        option: Infiltration|21.25 ACH50
+      - option: Infiltration|21.25 ACH50
         apply_logic:
           and:
             - Infiltration|25 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_30_for_storms
-        option: Infiltration|25.5 ACH50
+      - option: Infiltration|25.5 ACH50
         apply_logic:
           and:
             - Infiltration|30 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_40_for_storms
-        option: Infiltration|34 ACH50
+      - option: Infiltration|34 ACH50
         apply_logic:
           and:
             - Infiltration|40 ACH50
             - *upgradable_nostorm_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_50_for_storms
-        option: Infiltration|42.5 ACH50
+      - option: Infiltration|42.5 ACH50
         apply_logic:
           and:
             - Infiltration|50 ACH50
@@ -576,12 +546,11 @@ upgrades:
                 - Windows|Single, Clear, Metal, Exterior Clear Storm
                 - Windows|Double, Clear, Metal, Air
         costs:
-          - value: 47
+          - value: 46
             multiplier: Window Area (ft^2)
         lifetime: 30
       #15% ACH50 reduction for replacing double with triple pane
-      - &decrease_ACH50_15pct_from_1_for_triples
-        option: Infiltration|0.85 ACH50
+      - option: Infiltration|0.85 ACH50
         apply_logic:
           and:
             - Infiltration|1 ACH50
@@ -590,112 +559,98 @@ upgrades:
                 - Windows|Double, Clear, Metal, Air
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_2_for_triples
-        option: Infiltration|1.7 ACH50
+      - option: Infiltration|1.7 ACH50
         apply_logic:
           and:
             - Infiltration|2 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_3_for_triples
-        option: Infiltration|2.55 ACH50
+      - option: Infiltration|2.55 ACH50
         apply_logic:
           and:
             - Infiltration|3 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_4_for_triples
-        option: Infiltration|3.4 ACH50
+      - option: Infiltration|3.4 ACH50
         apply_logic:
           and:
             - Infiltration|4 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_5_for_triples
-        option: Infiltration|4.25 ACH50
+      - option: Infiltration|4.25 ACH50
         apply_logic:
           and:
             - Infiltration|5 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_6_for_triples
-        option: Infiltration|5.1 ACH50
+      - option: Infiltration|5.1 ACH50
         apply_logic:
           and:
             - Infiltration|6 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_7_for_triples
-        option: Infiltration|5.95 ACH50
+      - option: Infiltration|5.95 ACH50
         apply_logic:
           and:
             - Infiltration|7 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_8_for_triples
-        option: Infiltration|6.8 ACH50
+      - option: Infiltration|6.8 ACH50
         apply_logic:
           and:
             - Infiltration|8 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_10_for_triples
-        option: Infiltration|8.5 ACH50
+      - option: Infiltration|8.5 ACH50
         apply_logic:
           and:
             - Infiltration|10 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_15_for_triples
-        option: Infiltration|12.75 ACH50
+      - option: Infiltration|12.75 ACH50
         apply_logic:
           and:
             - Infiltration|15 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_20_for_triples
-        option: Infiltration|17 ACH50
+      - option: Infiltration|17 ACH50
         apply_logic:
           and:
             - Infiltration|20 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_25_for_triples
-        option: Infiltration|21.25 ACH50
+      - option: Infiltration|21.25 ACH50
         apply_logic:
           and:
             - Infiltration|25 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_30_for_triples
-        option: Infiltration|25.5 ACH50
+      - option: Infiltration|25.5 ACH50
         apply_logic:
           and:
             - Infiltration|30 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_40_for_triples
-        option: Infiltration|34 ACH50
+      - option: Infiltration|34 ACH50
         apply_logic:
           and:
             - Infiltration|40 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_15pct_from_50_for_triples
-        option: Infiltration|42.5 ACH50
+      - option: Infiltration|42.5 ACH50
         apply_logic:
           and:
             - Infiltration|50 ACH50
@@ -703,8 +658,7 @@ upgrades:
         costs: *no_cost
         lifetime: 30
       #30% ACH50 reduction for replacing single pane (with or without storm) with triple pane
-      - &decrease_ACH50_30pct_from_1_for_triples
-        option: Infiltration|0.7 ACH50
+      - option: Infiltration|0.7 ACH50
         apply_logic:
           and:
             - Infiltration|1 ACH50
@@ -716,112 +670,98 @@ upgrades:
                 - Windows|Single, Clear, Metal, Exterior Clear Storm
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_2_for_triples
-        option: Infiltration|1.4 ACH50
+      - option: Infiltration|1.4 ACH50
         apply_logic:
           and:
             - Infiltration|2 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_3_for_triples
-        option: Infiltration|2.1 ACH50
+      - option: Infiltration|2.1 ACH50
         apply_logic:
           and:
             - Infiltration|3 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_4_for_triples
-        option: Infiltration|2.8 ACH50
+      - option: Infiltration|2.8 ACH50
         apply_logic:
           and:
             - Infiltration|4 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_5_for_triples
-        option: Infiltration|3.5 ACH50
+      - option: Infiltration|3.5 ACH50
         apply_logic:
           and:
             - Infiltration|5 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_6_for_triples
-        option: Infiltration|4.2 ACH50
+      - option: Infiltration|4.2 ACH50
         apply_logic:
           and:
             - Infiltration|6 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_7_for_triples
-        option: Infiltration|4.9 ACH50
+      - option: Infiltration|4.9 ACH50
         apply_logic:
           and:
             - Infiltration|7 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_8_for_triples
-        option: Infiltration|5.6 ACH50
+      - option: Infiltration|5.6 ACH50
         apply_logic:
           and:
             - Infiltration|8 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_10_for_triples
-        option: Infiltration|7 ACH50
+      - option: Infiltration|7 ACH50
         apply_logic:
           and:
             - Infiltration|10 ACH50
             - *double_pane_metal_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_15_for_triples
-        option: Infiltration|10.5 ACH50
+      - option: Infiltration|10.5 ACH50
         apply_logic:
           and:
             - Infiltration|15 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_20_for_triples
-        option: Infiltration|14 ACH50
+      - option: Infiltration|14 ACH50
         apply_logic:
           and:
             - Infiltration|20 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_25_for_triples
-        option: Infiltration|17.5 ACH50
+      - option: Infiltration|17.5 ACH50
         apply_logic:
           and:
             - Infiltration|25 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_30_for_triples
-        option: Infiltration|21 ACH50
+      - option: Infiltration|21 ACH50
         apply_logic:
           and:
             - Infiltration|30 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_40_for_triples
-        option: Infiltration|28 ACH50
+      - option: Infiltration|28 ACH50
         apply_logic:
           and:
             - Infiltration|40 ACH50
             - *single_pane_windows
         costs: *no_cost
         lifetime: 30
-      - &decrease_ACH50_30pct_from_50_for_triples
-        option: Infiltration|35 ACH50
+      - option: Infiltration|35 ACH50
         apply_logic:
           and:
             - Infiltration|50 ACH50
@@ -990,36 +930,277 @@ upgrades:
         costs: *no_cost
         lifetime: 30
       # 10% ACH50 reductions for replacing clear storms with low-E storms
-      - *decrease_ACH50_10pct_from_1_for_storms
-      - *decrease_ACH50_10pct_from_2_for_storms
-      - *decrease_ACH50_10pct_from_3_for_storms
-      - *decrease_ACH50_10pct_from_4_for_storms
-      - *decrease_ACH50_10pct_from_5_for_storms
-      - *decrease_ACH50_10pct_from_6_for_storms
-      - *decrease_ACH50_10pct_from_7_for_storms
-      - *decrease_ACH50_10pct_from_8_for_storms
-      - *decrease_ACH50_10pct_from_10_for_storms
-      - *decrease_ACH50_10pct_from_15_for_storms
-      - *decrease_ACH50_10pct_from_20_for_storms
-      - *decrease_ACH50_10pct_from_25_for_storms
-      - *decrease_ACH50_10pct_from_30_for_storms
-      - *decrease_ACH50_10pct_from_40_for_storms
-      - *decrease_ACH50_10pct_from_50_for_storms
-      # 15% ACH50 reductions for adding low-E storms
-      - *decrease_ACH50_15pct_from_1_for_storms
-      - *decrease_ACH50_15pct_from_2_for_storms
-      - *decrease_ACH50_15pct_from_3_for_storms
-      - *decrease_ACH50_15pct_from_4_for_storms
-      - *decrease_ACH50_15pct_from_5_for_storms
-      - *decrease_ACH50_15pct_from_6_for_storms
-      - *decrease_ACH50_15pct_from_8_for_storms
-      - *decrease_ACH50_15pct_from_10_for_storms
-      - *decrease_ACH50_15pct_from_15_for_storms
-      - *decrease_ACH50_15pct_from_20_for_storms
-      - *decrease_ACH50_15pct_from_25_for_storms
-      - *decrease_ACH50_15pct_from_30_for_storms
-      - *decrease_ACH50_15pct_from_40_for_storms
-      - *decrease_ACH50_15pct_from_50_for_storms
+
+      - &decrease_ACH50_10pct_from_1_for_storms
+        option: Infiltration|0.9 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_2_for_storms
+        option: Infiltration|1.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_3_for_storms
+        option: Infiltration|2.7 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_4_for_storms
+        option: Infiltration|3.6 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_5_for_storms
+        option: Infiltration|4.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_6_for_storms
+        option: Infiltration|5.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_7_for_storms
+        option: Infiltration|6.3 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_8_for_storms
+        option: Infiltration|7.2 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_10_for_storms
+        option: Infiltration|9 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_15_for_storms
+        option: Infiltration|13.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_20_for_storms
+        option: Infiltration|18 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_25_for_storms
+        option: Infiltration|22.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_30_for_storms
+        option: Infiltration|27 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_40_for_storms
+        option: Infiltration|36 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_10pct_from_50_for_storms
+        option: Infiltration|45 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - *upgradable_storm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      #15% ACH50 reduction for adding low-E storms where they weren't before
+      - &decrease_ACH50_15pct_from_1_for_storms
+        option: Infiltration|0.85 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_2_for_storms
+        option: Infiltration|1.7 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_3_for_storms
+        option: Infiltration|2.55 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_4_for_storms
+        option: Infiltration|3.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_5_for_storms
+        option: Infiltration|4.25 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_6_for_storms
+        option: Infiltration|5.1 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_7_for_storms
+        option: Infiltration|5.95 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_8_for_storms
+        option: Infiltration|6.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_10_for_storms
+        option: Infiltration|8.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_15_for_storms
+        option: Infiltration|12.75 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_20_for_storms
+        option: Infiltration|17 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_25_for_storms
+        option: Infiltration|21.25 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_30_for_storms
+        option: Infiltration|25.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_40_for_storms
+        option: Infiltration|34 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - &decrease_ACH50_15pct_from_50_for_storms
+        option: Infiltration|42.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - *upgradable_nostorm_windows
+            - not: *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
       # 19% and 10% ACH50 reductions for polyiso, + low-E storms on single or double but not if just replacing a clear storm
       - &decrease_ACH50_19pct_and_10pct_from_1_for_storms
         option: Infiltration|0.729 ACH50
@@ -1333,7 +1514,8 @@ upgrades:
       - *decrease_ACH50_19pct_from_40
       - *decrease_ACH50_19pct_from_50
       #15% decrease for replacing double pane with triple pane, with no insulation upgrade
-      - option: Infiltration|0.85 ACH50
+      - &decrease_ACH50_15pct_from_1_for_triples
+        option: Infiltration|0.85 ACH50
         apply_logic:
           and:
             - Infiltration|1 ACH50
@@ -1341,7 +1523,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|1.7 ACH50
+      - &decrease_ACH50_15pct_from_2_for_triples
+        option: Infiltration|1.7 ACH50
         apply_logic:
           and:
             - Infiltration|2 ACH50
@@ -1349,7 +1532,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|2.55 ACH50
+      - &decrease_ACH50_15pct_from_3_for_triples
+        option: Infiltration|2.55 ACH50
         apply_logic:
           and:
             - Infiltration|3 ACH50
@@ -1357,7 +1541,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|3.4 ACH50
+      - &decrease_ACH50_15pct_from_4_for_triples
+        option: Infiltration|3.4 ACH50
         apply_logic:
           and:
             - Infiltration|4 ACH50
@@ -1365,7 +1550,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|4.25 ACH50
+      - &decrease_ACH50_15pct_from_5_for_triples
+        option: Infiltration|4.25 ACH50
         apply_logic:
           and:
             - Infiltration|5 ACH50
@@ -1373,7 +1559,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|5.1 ACH50
+      - &decrease_ACH50_15pct_from_6_for_triples
+        option: Infiltration|5.1 ACH50
         apply_logic:
           and:
             - Infiltration|6 ACH50
@@ -1381,7 +1568,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|5.95 ACH50
+      - &decrease_ACH50_15pct_from_7_for_triples
+        option: Infiltration|5.95 ACH50
         apply_logic:
           and:
             - Infiltration|7 ACH50
@@ -1389,7 +1577,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|6.8 ACH50
+      - &decrease_ACH50_15pct_from_8_for_triples
+        option: Infiltration|6.8 ACH50
         apply_logic:
           and:
             - Infiltration|8 ACH50
@@ -1397,7 +1586,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|8.5 ACH50
+      - &decrease_ACH50_15pct_from_10_for_triples
+        option: Infiltration|8.5 ACH50
         apply_logic:
           and:
             - Infiltration|10 ACH50
@@ -1405,7 +1595,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|12.75 ACH50
+      - &decrease_ACH50_15pct_from_15_for_triples
+        option: Infiltration|12.75 ACH50
         apply_logic:
           and:
             - Infiltration|15 ACH50
@@ -1413,7 +1604,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|17 ACH50
+      - &decrease_ACH50_15pct_from_20_for_triples
+        option: Infiltration|17 ACH50
         apply_logic:
           and:
             - Infiltration|20 ACH50
@@ -1421,7 +1613,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|21.25 ACH50
+      - &decrease_ACH50_15pct_from_25_for_triples
+        option: Infiltration|21.25 ACH50
         apply_logic:
           and:
             - Infiltration|25 ACH50
@@ -1429,7 +1622,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|25.5 ACH50
+      - &decrease_ACH50_15pct_from_30_for_triples
+        option: Infiltration|25.5 ACH50
         apply_logic:
           and:
             - Infiltration|30 ACH50
@@ -1437,7 +1631,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|34 ACH50
+      - &decrease_ACH50_15pct_from_40_for_triples
+        option: Infiltration|34 ACH50
         apply_logic:
           and:
             - Infiltration|40 ACH50
@@ -1445,7 +1640,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|42.5 ACH50
+      - &decrease_ACH50_15pct_from_50_for_triples
+        option: Infiltration|42.5 ACH50
         apply_logic:
           and:
             - Infiltration|50 ACH50
@@ -1453,8 +1649,9 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      #30% ACH50 redction for replacing single pane (with or without storm) with triple pane witn no insulation upgrade
-      - option: Infiltration|0.7 ACH50
+      #30% ACH50 reduction for replacing single pane (with or without storm) with triple pane
+      - &decrease_ACH50_30pct_from_1_for_triples
+        option: Infiltration|0.7 ACH50
         apply_logic:
           and:
             - Infiltration|1 ACH50
@@ -1462,7 +1659,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|1.4 ACH50
+      - &decrease_ACH50_30pct_from_2_for_triples
+        option: Infiltration|1.4 ACH50
         apply_logic:
           and:
             - Infiltration|2 ACH50
@@ -1470,14 +1668,17 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|2.1 ACH50
+      - &decrease_ACH50_30pct_from_3_for_triples
+        option: Infiltration|2.1 ACH50
         apply_logic:
           and:
             - Infiltration|3 ACH50
             - *single_pane_windows
+            - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|2.8 ACH50
+      - &decrease_ACH50_30pct_from_4_for_triples
+        option: Infiltration|2.8 ACH50
         apply_logic:
           and:
             - Infiltration|4 ACH50
@@ -1485,7 +1686,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|3.5 ACH50
+      - &decrease_ACH50_30pct_from_5_for_triples
+        option: Infiltration|3.5 ACH50
         apply_logic:
           and:
             - Infiltration|5 ACH50
@@ -1493,7 +1695,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|4.2 ACH50
+      - &decrease_ACH50_30pct_from_6_for_triples
+        option: Infiltration|4.2 ACH50
         apply_logic:
           and:
             - Infiltration|6 ACH50
@@ -1501,7 +1704,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|4.9 ACH50
+      - &decrease_ACH50_30pct_from_7_for_triples
+        option: Infiltration|4.9 ACH50
         apply_logic:
           and:
             - Infiltration|7 ACH50
@@ -1509,7 +1713,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|5.6 ACH50
+      - &decrease_ACH50_30pct_from_8_for_triples
+        option: Infiltration|5.6 ACH50
         apply_logic:
           and:
             - Infiltration|8 ACH50
@@ -1517,15 +1722,17 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|7 ACH50
+      - &decrease_ACH50_30pct_from_10_for_triples
+        option: Infiltration|7 ACH50
         apply_logic:
           and:
             - Infiltration|10 ACH50
-            - *double_pane_metal_windows
+            - *single_pane_windows
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|10.5 ACH50
+      - &decrease_ACH50_30pct_from_15_for_triples
+        option: Infiltration|10.5 ACH50
         apply_logic:
           and:
             - Infiltration|15 ACH50
@@ -1533,7 +1740,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|14 ACH50
+      - &decrease_ACH50_30pct_from_20_for_triples
+        option: Infiltration|14 ACH50
         apply_logic:
           and:
             - Infiltration|20 ACH50
@@ -1541,7 +1749,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|17.5 ACH50
+      - &decrease_ACH50_30pct_from_25_for_triples
+        option: Infiltration|17.5 ACH50
         apply_logic:
           and:
             - Infiltration|25 ACH50
@@ -1549,7 +1758,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|21 ACH50
+      - &decrease_ACH50_30pct_from_30_for_triples
+        option: Infiltration|21 ACH50
         apply_logic:
           and:
             - Infiltration|30 ACH50
@@ -1557,7 +1767,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|28 ACH50
+      - &decrease_ACH50_30pct_from_40_for_triples
+        option: Infiltration|28 ACH50
         apply_logic:
           and:
             - Infiltration|40 ACH50
@@ -1565,7 +1776,8 @@ upgrades:
             - not: *upgradable_walls
         costs: *no_cost
         lifetime: 30
-      - option: Infiltration|35 ACH50
+      - &decrease_ACH50_30pct_from_50_for_triples
+        option: Infiltration|35 ACH50
         apply_logic:
           and:
             - Infiltration|50 ACH50
@@ -2170,7 +2382,7 @@ aws:
   job_identifier: fac_1
   s3:
     bucket: facades
-    prefix: test10No6
+    prefix: test10No8
   emr:
     worker_instance_count: 1
   region: us-west-2
@@ -2184,8 +2396,8 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: facades
-      prefix: test10No7
+      prefix: test10No8
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: resstock-test10No7
+      database_name: resstock-test10No8
       max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
