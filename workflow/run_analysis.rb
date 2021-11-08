@@ -3,6 +3,7 @@
 require 'parallel'
 require 'json'
 require 'yaml'
+require 'zip'
 
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling'
@@ -75,8 +76,8 @@ def run_workflow(yml, measures_only, debug)
           end
         end
       end
-      if measure_d.include?('package_apply_logic')
-        apply_upgrade_measure['arguments']['package_apply_logic'] = measure_d['package_apply_logic']
+      if measure_d.keys.include?('package_apply_logic')
+        apply_upgrade_measure['arguments']['package_apply_logic'] = make_apply_logic_arg(measure_d['package_apply_logic'])
       end
 
       steps.insert(1, apply_upgrade_measure)
@@ -121,6 +122,8 @@ def run_workflow(yml, measures_only, debug)
   # Create weather folder
   weather_dir = File.join(thisdir, '..', 'weather')
   if !File.exist?(weather_dir)
+    Dir.mkdir(weather_dir)
+
     if cfg.keys.include?('weather_files_url')
       require 'tempfile'
       tmpfile = Tempfile.new('epw')
@@ -134,9 +137,14 @@ def run_workflow(yml, measures_only, debug)
     else
       fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
     end
+
     puts 'Extracting weather files...'
-    unzip_file = OpenStudio::UnzipFile.new(weather_files_path)
-    unzip_file.extractAllFiles(OpenStudio::toPath(weather_dir))
+    Zip::File.open(weather_files_path) do |zip_file|
+      zip_file.each do |f|
+        fpath = File.join(weather_dir, f.name)
+        zip_file.extract(f, fpath) unless File.exist?(fpath)
+      end
+    end
   end
 
   # Create buildstock.csv
@@ -246,6 +254,24 @@ def check_finished_job(result, finished_job)
   end
 
   return result
+end
+
+def make_apply_logic_arg(logic)
+  if logic.is_a?(Hash)
+    key = logic.keys[0]
+    val = logic[key]
+    if key == 'and'
+      return make_apply_logic_arg(val)
+    elsif key == 'or'
+      return "(#{val.map { |v| make_apply_logic_arg(v) }.join('||')})"
+    elsif key == 'not'
+      return "!#{make_apply_logic_arg(val)}"
+    end
+  elsif logic.is_a?(Array)
+    return "(#{logic.map { |l| make_apply_logic_arg(l) }.join('&&')})"
+  elsif logic.is_a?(String)
+    return logic
+  end
 end
 
 options = {}
