@@ -448,7 +448,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check heating coil
     assert_equal(1, model.getCoilHeatingDXMultiSpeeds.size)
     htg_coil = model.getCoilHeatingDXMultiSpeeds[0]
-    cops = [5.45, 4.66, 3.93, 3.76] # Expected values
+    cops = [5.54, 4.73, 4.00, 3.82] # Expected values
     cops.each_with_index do |cop, i|
       assert_in_epsilon(cop, htg_coil.stages[i].grossRatedHeatingCOP, 0.01)
     end
@@ -489,7 +489,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check heating coil
     assert_equal(1, model.getCoilHeatingDXMultiSpeeds.size)
     htg_coil = model.getCoilHeatingDXMultiSpeeds[0]
-    cops = [5.54, 4.44, 4.06, 3.68] # Expected values
+    cops = [5.42, 4.34, 3.98, 3.60] # Expected values
     cops.each_with_index do |cop, i|
       assert_in_epsilon(cop, htg_coil.stages[i].grossRatedHeatingCOP, 0.01)
     end

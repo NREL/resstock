@@ -4,9 +4,11 @@
 # files lazy loading as needed, as it prevents multiple lookups for the
 # same gem.
 require 'openstudio'
-require 'oga'
+require 'pathname'
 require 'csv'
+require 'oga'
 require_relative 'resources/geometry'
+require_relative '../HPXMLtoOpenStudio/resources/battery'
 require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/constructions'
 require_relative '../HPXMLtoOpenStudio/resources/geometry'
@@ -242,12 +244,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Geometry: Building Number of Units')
     arg.setUnits('#')
     arg.setDescription("The number of units in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s.")
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_building_num_bedrooms', false)
-    arg.setDisplayName('Geometry: Building Number of Bedrooms')
-    arg.setUnits('#')
-    arg.setDescription("The number of bedrooms in the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s with shared PV systems.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_average_ceiling_height', true)
@@ -1104,8 +1100,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     heat_pump_fuel_choices = OpenStudio::StringVector.new
     heat_pump_fuel_choices << HPXML::FuelTypeElectricity
 
+    heat_pump_backup_type_choices = OpenStudio::StringVector.new
+    heat_pump_backup_type_choices << 'none'
+    heat_pump_backup_type_choices << HPXML::HeatPumpBackupTypeIntegrated
+    heat_pump_backup_type_choices << HPXML::HeatPumpBackupTypeSeparate
+
     heat_pump_backup_fuel_choices = OpenStudio::StringVector.new
-    heat_pump_backup_fuel_choices << 'none'
     heat_pump_backup_fuel_choices << HPXML::FuelTypeElectricity
     heat_pump_backup_fuel_choices << HPXML::FuelTypeNaturalGas
     heat_pump_backup_fuel_choices << HPXML::FuelTypeOil
@@ -1189,28 +1189,34 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_backup_type', heat_pump_backup_type_choices, true)
+    arg.setDisplayName('Heat Pump: Backup Type')
+    arg.setDescription("The backup type of the heat pump. If '#{HPXML::HeatPumpBackupTypeIntegrated}', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If '#{HPXML::HeatPumpBackupTypeSeparate}', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.")
+    arg.setDefaultValue(HPXML::HeatPumpBackupTypeIntegrated)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_backup_fuel', heat_pump_backup_fuel_choices, true)
     arg.setDisplayName('Heat Pump: Backup Fuel Type')
-    arg.setDescription("The backup fuel type of the heat pump. Use 'none' if there is no backup heating.")
-    arg.setDefaultValue('none')
+    arg.setDescription("The backup fuel type of the heat pump. Only applies if Backup Type is '#{HPXML::HeatPumpBackupTypeIntegrated}'.")
+    arg.setDefaultValue(HPXML::FuelTypeElectricity)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_efficiency', true)
     arg.setDisplayName('Heat Pump: Backup Rated Efficiency')
-    arg.setDescription('The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise.')
+    arg.setDescription("The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise. Only applies if Backup Type is '#{HPXML::HeatPumpBackupTypeIntegrated}'.")
     arg.setDefaultValue(1)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_backup_heating_capacity', true)
     arg.setDisplayName('Heat Pump: Backup Heating Capacity')
-    arg.setDescription("The backup output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S.")
+    arg.setDescription("The backup output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S. Only applies if Backup Type is '#{HPXML::HeatPumpBackupTypeIntegrated}'.")
     arg.setUnits('Btu/hr')
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_switchover_temp', false)
     arg.setDisplayName('Heat Pump: Backup Heating Switchover Temperature')
-    arg.setDescription('The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient.')
+    arg.setDescription("The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either '#{HPXML::HeatPumpBackupTypeIntegrated}' or '#{HPXML::HeatPumpBackupTypeSeparate}'.")
     arg.setUnits('deg-F')
     args << arg
 
@@ -1269,7 +1275,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_system_2_fraction_heat_load_served', true)
     arg.setDisplayName('Heating System 2: Fraction Heat Load Served')
-    arg.setDescription('The heat load served fraction of the second heating system.')
+    arg.setDescription('The heat load served fraction of the second heating system. Ignored if this heating system serves as a backup system for a heat pump.')
     arg.setUnits('Frac')
     arg.setDefaultValue(0.25)
     args << arg
@@ -2000,7 +2006,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('pv_system_module_type', pv_system_module_type_choices, true)
     arg.setDisplayName('PV System: Module Type')
-    arg.setDescription("Module type of the PV system. Use 'none' if there is no PV system 1.")
+    arg.setDescription("Module type of the PV system. Use 'none' if there is no PV system.")
     arg.setDefaultValue('none')
     args << arg
 
@@ -2040,20 +2046,20 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_inverter_efficiency', false)
     arg.setDisplayName('PV System: Inverter Efficiency')
     arg.setUnits('Frac')
-    arg.setDescription('Inverter efficiency of the PV system.')
+    arg.setDescription('Inverter efficiency of the PV system. If there are two PV systems, this will apply to both.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_system_losses_fraction', false)
     arg.setDisplayName('PV System: System Losses Fraction')
     arg.setUnits('Frac')
-    arg.setDescription('System losses fraction of the PV system.')
+    arg.setDescription('System losses fraction of the PV system. If there are two PV systems, this will apply to both.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('pv_system_num_units_served', true)
-    arg.setDisplayName('PV System: Number of Units Served')
-    arg.setDescription("Number of dwelling units served by PV system. Must be 1 if #{HPXML::ResidentialTypeSFD}. Used to apportion PV generation to the unit.")
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('pv_system_num_bedrooms_served', true)
+    arg.setDisplayName('PV System: Number of Bedrooms Served')
+    arg.setDescription("Number of bedrooms served by PV system. Ignored if #{HPXML::ResidentialTypeSFD}. Used to apportion PV generation to the unit of a SFA/MF building. If there are two PV systems, this will apply to both.")
     arg.setUnits('#')
-    arg.setDefaultValue(1)
+    arg.setDefaultValue(3)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('pv_system_2_module_type', pv_system_module_type_choices, true)
@@ -2095,23 +2101,38 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(4000)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_2_inverter_efficiency', false)
-    arg.setDisplayName('PV System 2: Inverter Efficiency')
-    arg.setUnits('Frac')
-    arg.setDescription('Inverter efficiency of the second PV system.')
+    battery_location_choices = OpenStudio::StringVector.new
+    battery_location_choices << Constants.Auto
+    battery_location_choices << 'none'
+    battery_location_choices << HPXML::LocationLivingSpace
+    battery_location_choices << HPXML::LocationBasementConditioned
+    battery_location_choices << HPXML::LocationBasementUnconditioned
+    battery_location_choices << HPXML::LocationCrawlspaceVented
+    battery_location_choices << HPXML::LocationCrawlspaceUnvented
+    battery_location_choices << HPXML::LocationCrawlspaceConditioned
+    battery_location_choices << HPXML::LocationAtticVented
+    battery_location_choices << HPXML::LocationAtticUnvented
+    battery_location_choices << HPXML::LocationGarage
+    battery_location_choices << HPXML::LocationOutside
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('battery_location', battery_location_choices, true)
+    arg.setDisplayName('Battery: Location')
+    arg.setDescription('The space type for the lithium ion battery location.')
+    arg.setDefaultValue('none')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('pv_system_2_system_losses_fraction', false)
-    arg.setDisplayName('PV System 2: System Losses Fraction')
-    arg.setUnits('Frac')
-    arg.setDescription('System losses fraction of the second PV system.')
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('battery_power', true)
+    arg.setDisplayName('Battery: Rated Power Output')
+    arg.setDescription('The rated power output of the lithium ion battery.')
+    arg.setUnits('W')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('pv_system_2_num_units_served', true)
-    arg.setDisplayName('PV System 2: Number of Units Served')
-    arg.setDescription("Number of dwelling units served by second PV system. Must be 1 if #{HPXML::ResidentialTypeSFD}. Used to apportion PV generation to the unit.")
-    arg.setUnits('#')
-    arg.setDefaultValue(1)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('battery_capacity', true)
+    arg.setDisplayName('Battery: Nominal Capacity')
+    arg.setDescription('The nominal capacity of the lithium ion battery.')
+    arg.setUnits('kWh')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('lighting_present', false)
@@ -3213,6 +3234,7 @@ class HPXMLFile
     set_water_fixtures(hpxml, runner, args)
     set_solar_thermal(hpxml, runner, args, epw_file)
     set_pv_systems(hpxml, runner, args, epw_file)
+    set_battery(hpxml, runner, args)
     set_lighting(hpxml, runner, args)
     set_dehumidifier(hpxml, runner, args)
     set_clothes_washer(hpxml, runner, args)
@@ -4133,9 +4155,6 @@ class HPXMLFile
     end
 
     fraction_heat_load_served = args[:heating_system_fraction_heat_load_served]
-    if args[:heating_system_2_type] != 'none' && fraction_heat_load_served + args[:heating_system_2_fraction_heat_load_served] > 1.0
-      fraction_heat_load_served = 1.0 - args[:heating_system_2_fraction_heat_load_served]
-    end
 
     if heating_system_type.include?('Shared')
       is_shared_system = true
@@ -4237,7 +4256,8 @@ class HPXMLFile
       end
     end
 
-    if args[:heat_pump_backup_fuel] != 'none'
+    if args[:heat_pump_backup_type] == HPXML::HeatPumpBackupTypeIntegrated
+      backup_type = args[:heat_pump_backup_type]
       backup_heating_fuel = args[:heat_pump_backup_fuel]
 
       if args[:heat_pump_backup_heating_capacity] != Constants.Auto
@@ -4249,6 +4269,16 @@ class HPXMLFile
       else
         backup_heating_efficiency_afue = args[:heat_pump_backup_heating_efficiency]
       end
+    elsif args[:heat_pump_backup_type] == HPXML::HeatPumpBackupTypeSeparate
+      if args[:heating_system_2_type] == 'none'
+        fail "Heat pump backup type specified as '#{args[:heat_pump_backup_type]}' but no heating system provided."
+      end
+
+      backup_type = args[:heat_pump_backup_type]
+      backup_system_idref = "HeatingSystem#{hpxml.heating_systems.size + 1}"
+    end
+
+    if args[:heat_pump_backup_type] != 'none'
       if args[:heat_pump_backup_heating_switchover_temp].is_initialized
         if [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? heat_pump_type
           backup_heating_switchover_temp = args[:heat_pump_backup_heating_switchover_temp].get
@@ -4295,10 +4325,6 @@ class HPXMLFile
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
     fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
 
-    if args[:heating_system_2_type] != 'none' && fraction_heat_load_served + args[:heating_system_2_fraction_heat_load_served] > 1.0
-      fraction_heat_load_served = 1.0 - args[:heating_system_2_fraction_heat_load_served]
-    end
-
     if fraction_heat_load_served > 0
       primary_heating_system = true
     end
@@ -4317,6 +4343,8 @@ class HPXMLFile
                          cooling_capacity: cooling_capacity,
                          fraction_heat_load_served: fraction_heat_load_served,
                          fraction_cool_load_served: fraction_cool_load_served,
+                         backup_type: backup_type,
+                         backup_system_idref: backup_system_idref,
                          backup_heating_fuel: backup_heating_fuel,
                          backup_heating_capacity: backup_heating_capacity,
                          backup_heating_efficiency_afue: backup_heating_efficiency_afue,
@@ -4334,8 +4362,9 @@ class HPXMLFile
 
   def self.set_secondary_heating_systems(hpxml, runner, args)
     heating_system_type = args[:heating_system_2_type]
+    heating_system_is_heatpump_backup = (args[:heat_pump_type] != 'none' && args[:heat_pump_backup_type] == HPXML::HeatPumpBackupTypeSeparate)
 
-    return if heating_system_type == 'none'
+    return if heating_system_type == 'none' && (not heating_system_is_heatpump_backup)
 
     if args[:heating_system_2_heating_capacity] != Constants.Auto
       heating_capacity = Float(args[:heating_system_2_heating_capacity])
@@ -4357,11 +4386,15 @@ class HPXMLFile
       heating_system_type = HPXML::HVACTypeBoiler
     end
 
+    if not heating_system_is_heatpump_backup
+      fraction_heat_load_served = args[:heating_system_2_fraction_heat_load_served]
+    end
+
     hpxml.heating_systems.add(id: "HeatingSystem#{hpxml.heating_systems.size + 1}",
                               heating_system_type: heating_system_type,
                               heating_system_fuel: heating_system_fuel,
                               heating_capacity: heating_capacity,
-                              fraction_heat_load_served: args[:heating_system_2_fraction_heat_load_served],
+                              fraction_heat_load_served: fraction_heat_load_served,
                               heating_efficiency_afue: heating_efficiency_afue,
                               heating_efficiency_percent: heating_efficiency_percent)
   end
@@ -5016,18 +5049,19 @@ class HPXMLFile
 
       max_power_output = [args[:pv_system_max_power_output], args[:pv_system_2_max_power_output]][i]
 
-      if [args[:pv_system_inverter_efficiency], args[:pv_system_2_inverter_efficiency]][i].is_initialized
-        inverter_efficiency = [args[:pv_system_inverter_efficiency], args[:pv_system_2_inverter_efficiency]][i].get
+      if args[:pv_system_inverter_efficiency].is_initialized
+        inverter_efficiency = args[:pv_system_inverter_efficiency].get
       end
 
-      if [args[:pv_system_system_losses_fraction], args[:pv_system_2_system_losses_fraction]][i].is_initialized
-        system_losses_fraction = [args[:pv_system_system_losses_fraction], args[:pv_system_2_system_losses_fraction]][i].get
+      if args[:pv_system_system_losses_fraction].is_initialized
+        system_losses_fraction = args[:pv_system_system_losses_fraction].get
       end
 
-      num_units_served = [args[:pv_system_num_units_served], args[:pv_system_2_num_units_served]][i]
-      if num_units_served > 1
-        is_shared_system = true
-        number_of_bedrooms_served = (args[:geometry_building_num_bedrooms].get * num_units_served / args[:geometry_building_num_units].get).to_i
+      if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? args[:geometry_unit_type]
+        if args[:pv_system_num_bedrooms_served] > args[:geometry_unit_num_bedrooms]
+          is_shared_system = true
+          number_of_bedrooms_served = args[:pv_system_num_bedrooms_served]
+        end
       end
 
       hpxml.pv_systems.add(id: "PVSystem#{hpxml.pv_systems.size + 1}",
@@ -5042,6 +5076,28 @@ class HPXMLFile
                            is_shared_system: is_shared_system,
                            number_of_bedrooms_served: number_of_bedrooms_served)
     end
+  end
+
+  def self.set_battery(hpxml, runner, args)
+    return if args[:battery_location] == 'none'
+
+    if args[:battery_location] != Constants.Auto
+      location = args[:battery_location]
+    end
+
+    if args[:battery_power] != Constants.Auto
+      rated_power_output = Float(args[:battery_power])
+    end
+
+    if args[:battery_capacity] != Constants.Auto
+      nominal_capacity_kwh = Float(args[:battery_capacity])
+    end
+
+    hpxml.batteries.add(id: "Battery#{hpxml.batteries.size + 1}",
+                        type: HPXML::BatteryTypeLithiumIon,
+                        location: location,
+                        rated_power_output: rated_power_output,
+                        nominal_capacity_kwh: nominal_capacity_kwh)
   end
 
   def self.set_lighting(hpxml, runner, args)

@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>2ee03841-789d-4cca-9f40-6c7fc473d5e5</version_id>
-  <version_modified>20211104T000219Z</version_modified>
+  <version_id>fa861ac8-721b-44be-814d-9dda53a98186</version_id>
+  <version_modified>20211107T033239Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder (Beta)</display_name>
@@ -638,15 +638,6 @@
       <name>geometry_building_num_units</name>
       <display_name>Geometry: Building Number of Units</display_name>
       <description>The number of units in the building. This is required for single-family attached and apartment units.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>geometry_building_num_bedrooms</name>
-      <display_name>Geometry: Building Number of Bedrooms</display_name>
-      <description>The number of bedrooms in the building. This is required for single-family attached and apartment units with shared PV systems.</description>
       <type>Integer</type>
       <units>#</units>
       <required>false</required>
@@ -2292,18 +2283,37 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>heat_pump_backup_fuel</name>
-      <display_name>Heat Pump: Backup Fuel Type</display_name>
-      <description>The backup fuel type of the heat pump. Use 'none' if there is no backup heating.</description>
+      <name>heat_pump_backup_type</name>
+      <display_name>Heat Pump: Backup Type</display_name>
+      <description>The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>none</default_value>
+      <default_value>integrated</default_value>
       <choices>
         <choice>
           <value>none</value>
           <display_name>none</display_name>
         </choice>
+        <choice>
+          <value>integrated</value>
+          <display_name>integrated</display_name>
+        </choice>
+        <choice>
+          <value>separate</value>
+          <display_name>separate</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_fuel</name>
+      <display_name>Heat Pump: Backup Fuel Type</display_name>
+      <description>The backup fuel type of the heat pump. Only applies if Backup Type is 'integrated'.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>electricity</default_value>
+      <choices>
         <choice>
           <value>electricity</value>
           <display_name>electricity</display_name>
@@ -2325,7 +2335,7 @@
     <argument>
       <name>heat_pump_backup_heating_efficiency</name>
       <display_name>Heat Pump: Backup Rated Efficiency</display_name>
-      <description>The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise.</description>
+      <description>The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise. Only applies if Backup Type is 'integrated'.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2334,7 +2344,7 @@
     <argument>
       <name>heat_pump_backup_heating_capacity</name>
       <display_name>Heat Pump: Backup Heating Capacity</display_name>
-      <description>The backup output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
+      <description>The backup output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S. Only applies if Backup Type is 'integrated'.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>true</required>
@@ -2344,7 +2354,7 @@
     <argument>
       <name>heat_pump_backup_heating_switchover_temp</name>
       <display_name>Heat Pump: Backup Heating Switchover Temperature</display_name>
-      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient.</description>
+      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either 'integrated' or 'separate'.</description>
       <type>Double</type>
       <units>deg-F</units>
       <required>false</required>
@@ -2491,7 +2501,7 @@
     <argument>
       <name>heating_system_2_fraction_heat_load_served</name>
       <display_name>Heating System 2: Fraction Heat Load Served</display_name>
-      <description>The heat load served fraction of the second heating system.</description>
+      <description>The heat load served fraction of the second heating system. Ignored if this heating system serves as a backup system for a heat pump.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -3910,7 +3920,7 @@
     <argument>
       <name>pv_system_module_type</name>
       <display_name>PV System: Module Type</display_name>
-      <description>Module type of the PV system. Use 'none' if there is no PV system 1.</description>
+      <description>Module type of the PV system. Use 'none' if there is no PV system.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -4025,7 +4035,7 @@
     <argument>
       <name>pv_system_inverter_efficiency</name>
       <display_name>PV System: Inverter Efficiency</display_name>
-      <description>Inverter efficiency of the PV system.</description>
+      <description>Inverter efficiency of the PV system. If there are two PV systems, this will apply to both.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -4034,21 +4044,21 @@
     <argument>
       <name>pv_system_system_losses_fraction</name>
       <display_name>PV System: System Losses Fraction</display_name>
-      <description>System losses fraction of the PV system.</description>
+      <description>System losses fraction of the PV system. If there are two PV systems, this will apply to both.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>pv_system_num_units_served</name>
-      <display_name>PV System: Number of Units Served</display_name>
-      <description>Number of dwelling units served by PV system. Must be 1 if single-family detached. Used to apportion PV generation to the unit.</description>
+      <name>pv_system_num_bedrooms_served</name>
+      <display_name>PV System: Number of Bedrooms Served</display_name>
+      <description>Number of bedrooms served by PV system. Ignored if single-family detached. Used to apportion PV generation to the unit of a SFA/MF building. If there are two PV systems, this will apply to both.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>3</default_value>
     </argument>
     <argument>
       <name>pv_system_2_module_type</name>
@@ -4166,32 +4176,83 @@
       <default_value>4000</default_value>
     </argument>
     <argument>
-      <name>pv_system_2_inverter_efficiency</name>
-      <display_name>PV System 2: Inverter Efficiency</display_name>
-      <description>Inverter efficiency of the second PV system.</description>
-      <type>Double</type>
-      <units>Frac</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>pv_system_2_system_losses_fraction</name>
-      <display_name>PV System 2: System Losses Fraction</display_name>
-      <description>System losses fraction of the second PV system.</description>
-      <type>Double</type>
-      <units>Frac</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>pv_system_2_num_units_served</name>
-      <display_name>PV System 2: Number of Units Served</display_name>
-      <description>Number of dwelling units served by second PV system. Must be 1 if single-family detached. Used to apportion PV generation to the unit.</description>
-      <type>Integer</type>
-      <units>#</units>
+      <name>battery_location</name>
+      <display_name>Battery: Location</display_name>
+      <description>The space type for the lithium ion battery location.</description>
+      <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>none</default_value>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>living space</value>
+          <display_name>living space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - vented</value>
+          <display_name>crawlspace - vented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - unvented</value>
+          <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>attic - vented</value>
+          <display_name>attic - vented</display_name>
+        </choice>
+        <choice>
+          <value>attic - unvented</value>
+          <display_name>attic - unvented</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>outside</value>
+          <display_name>outside</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>battery_power</name>
+      <display_name>Battery: Rated Power Output</display_name>
+      <description>The rated power output of the lithium ion battery.</description>
+      <type>String</type>
+      <units>W</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>battery_capacity</name>
+      <display_name>Battery: Nominal Capacity</display_name>
+      <description>The nominal capacity of the lithium ion battery.</description>
+      <type>String</type>
+      <units>kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>lighting_present</name>
@@ -5840,6 +5901,12 @@
       <checksum>11D30CF5</checksum>
     </file>
     <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>BF2EF192</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -5848,13 +5915,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>120823E6</checksum>
-    </file>
-    <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>225E1D64</checksum>
+      <checksum>876777C4</checksum>
     </file>
   </files>
 </measure>

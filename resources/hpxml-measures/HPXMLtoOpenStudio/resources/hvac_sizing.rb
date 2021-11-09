@@ -1560,6 +1560,7 @@ class HVACSizing
       hvac_sizing_values.Heat_Capacity = 0.0
       hvac_sizing_values.Heat_Capacity_Supp = 0.0
       hvac_sizing_values.Heat_Airflow = 0.0
+      hvac_sizing_values.Heat_Airflow_Supp = 0.0
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir
       if hvac_sizing_values.Cool_Capacity > 0
@@ -1572,6 +1573,7 @@ class HVACSizing
       end
       # airflow sizing following Manual S based on design calculation
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
+      hvac_sizing_values.Heat_Airflow_Supp = calc_airflow_rate(hvac_sizing_values.Heat_Capacity_Supp, (120.0 - @heat_setpoint))
 
     elsif [HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType
 
@@ -1585,6 +1587,7 @@ class HVACSizing
       end
       # airflow determined by user setting, not based on design
       hvac_sizing_values.Heat_Airflow = hvac.RatedCFMperTonHeating[-1] * hvac.CapacityRatioHeating[-1] * UnitConversions.convert(hvac_sizing_values.Heat_Capacity, 'Btu/hr', 'ton') # Maximum air flow under heating operation
+      hvac_sizing_values.Heat_Airflow_Supp = calc_airflow_rate(hvac_sizing_values.Heat_Capacity_Supp, (120.0 - @heat_setpoint))
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpGroundToAir
 
@@ -1613,6 +1616,7 @@ class HVACSizing
         hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
       end
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
+      hvac_sizing_values.Heat_Airflow_Supp = calc_airflow_rate(hvac_sizing_values.Heat_Capacity_Supp, (120.0 - @heat_setpoint))
 
     elsif hvac.HeatType == HPXML::HVACTypeHeatPumpWaterLoopToAir
 
@@ -1620,6 +1624,7 @@ class HVACSizing
       hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
 
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
+      hvac_sizing_values.Heat_Airflow_Supp = calc_airflow_rate(hvac_sizing_values.Heat_Capacity_Supp, (120.0 - @heat_setpoint))
 
     elsif [HPXML::HVACTypeFurnace, HPXML::HVACTypePTACHeating].include? hvac.HeatType
 
@@ -1627,6 +1632,7 @@ class HVACSizing
       hvac_sizing_values.Heat_Capacity_Supp = 0.0
 
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
+      hvac_sizing_values.Heat_Airflow_Supp = 0.0
 
     elsif [HPXML::HVACTypeStove,
            HPXML::HVACTypePortableHeater,
@@ -1640,12 +1646,12 @@ class HVACSizing
 
       if hvac.RatedCFMperTonHeating[0] > 0
         # Fixed airflow rate
-        # FIXME: Is this still needed?
         hvac_sizing_values.Heat_Airflow = UnitConversions.convert(hvac_sizing_values.Heat_Capacity, 'Btu/hr', 'ton') * hvac.RatedCFMperTonHeating[0]
       else
         # Autosized airflow rate
         hvac_sizing_values.Heat_Airflow = calc_airflow_rate(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
       end
+      hvac_sizing_values.Heat_Airflow_Supp = 0.0
 
     elsif [HPXML::HVACTypeBoiler,
            HPXML::HVACTypeElectricResistance].include? hvac.HeatType
@@ -1653,12 +1659,14 @@ class HVACSizing
       hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
       hvac_sizing_values.Heat_Capacity_Supp = 0.0
       hvac_sizing_values.Heat_Airflow = 0.0
+      hvac_sizing_values.Heat_Airflow_Supp = 0.0
 
     elsif hvac.HeatType.nil?
 
       hvac_sizing_values.Heat_Capacity = 0.0
       hvac_sizing_values.Heat_Capacity_Supp = 0.0
       hvac_sizing_values.Heat_Airflow = 0.0
+      hvac_sizing_values.Heat_Airflow_Supp = 0.0
 
     else
 
@@ -1849,6 +1857,7 @@ class HVACSizing
       if @hpxml.header.allow_increased_fixed_capacities
         hvac_sizing_values.Heat_Capacity_Supp = [hvac_sizing_values.Heat_Capacity_Supp, prev_capacity].max
       end
+      hvac_sizing_values.Heat_Airflow_Supp = hvac_sizing_values.Heat_Airflow_Supp * hvac_sizing_values.Heat_Capacity_Supp / prev_capacity
     end
   end
 
@@ -2297,14 +2306,18 @@ class HVACSizing
       end
 
       # Capacities
-      if hpxml_hvac.respond_to? :heating_capacity
+      if hpxml_hvac.is_a?(HPXML::HeatingSystem) || hpxml_hvac.is_a?(HPXML::HeatPump)
         hvac.FixedHeatingCapacity = hpxml_hvac.heating_capacity
       end
-      if hpxml_hvac.respond_to? :cooling_capacity
+      if hpxml_hvac.is_a?(HPXML::CoolingSystem) || hpxml_hvac.is_a?(HPXML::HeatPump)
         hvac.FixedCoolingCapacity = hpxml_hvac.cooling_capacity
       end
-      if hpxml_hvac.respond_to? :backup_heating_capacity
-        hvac.FixedSuppHeatingCapacity = hpxml_hvac.backup_heating_capacity
+      if hpxml_hvac.is_a?(HPXML::HeatPump)
+        if not hpxml_hvac.backup_heating_capacity.nil?
+          hvac.FixedSuppHeatingCapacity = hpxml_hvac.backup_heating_capacity
+        elsif not hpxml_hvac.backup_system.nil?
+          hvac.FixedSuppHeatingCapacity = hpxml_hvac.backup_system.heating_capacity
+        end
       end
 
       # Number of speeds
@@ -3360,7 +3373,8 @@ class HVACSizingValues
   end
   attr_accessor(:Cool_Load_Sens, :Cool_Load_Lat, :Cool_Load_Tot,
                 :Cool_Capacity, :Cool_Capacity_Sens, :Cool_Airflow,
-                :Heat_Load, :Heat_Capacity, :Heat_Capacity_Supp, :Heat_Airflow,
+                :Heat_Load, :Heat_Capacity, :Heat_Capacity_Supp,
+                :Heat_Airflow, :Heat_Airflow_Supp,
                 :GSHP_Loop_flow, :GSHP_Bore_Holes, :GSHP_Bore_Depth, :GSHP_G_Functions)
 end
 

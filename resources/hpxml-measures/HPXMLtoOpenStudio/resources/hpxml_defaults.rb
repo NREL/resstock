@@ -62,6 +62,7 @@ class HPXMLDefaults
     apply_fuel_loads(hpxml, cfa, nbeds)
     apply_pv_systems(hpxml)
     apply_generators(hpxml)
+    apply_batteries(hpxml)
 
     # Do HVAC sizing after all other defaults have been applied
     apply_hvac_sizing(hpxml, weather, cfa, nbeds)
@@ -1553,6 +1554,40 @@ class HPXMLDefaults
     end
   end
 
+  def self.apply_batteries(hpxml)
+    default_values = Battery.get_battery_default_values()
+    hpxml.batteries.each do |battery|
+      if battery.location.nil?
+        battery.location = default_values[:location]
+        battery.location_isdefaulted = true
+      end
+      if battery.lifetime_model.nil?
+        battery.lifetime_model = default_values[:lifetime_model]
+        battery.lifetime_model_isdefaulted = true
+      end
+      if battery.nominal_voltage.nil?
+        battery.nominal_voltage = default_values[:nominal_voltage] # V
+        battery.nominal_voltage_isdefaulted = true
+      end
+      if battery.rated_power_output.nil? && battery.nominal_capacity_kwh.nil? && battery.nominal_capacity_ah.nil?
+        battery.rated_power_output = default_values[:rated_power_output] # W
+        battery.rated_power_output_isdefaulted = true
+        battery.nominal_capacity_kwh = default_values[:nominal_capacity_kwh] # kWh
+        battery.nominal_capacity_kwh_isdefaulted = true
+      elsif battery.rated_power_output.nil?
+        nominal_capacity_kwh = battery.nominal_capacity_kwh
+        if nominal_capacity_kwh.nil?
+          nominal_capacity_kwh = Battery.get_kWh_from_Ah(battery.nominal_capacity_ah, battery.nominal_voltage)
+        end
+        battery.rated_power_output = UnitConversions.convert(nominal_capacity_kwh, 'kWh', 'Wh') * 0.5 # W
+        battery.rated_power_output_isdefaulted = true
+      elsif battery.nominal_capacity_kwh.nil? && battery.nominal_capacity_ah.nil?
+        battery.nominal_capacity_kwh = UnitConversions.convert(battery.rated_power_output, 'W', 'kW') / 0.5 # kWh
+        battery.nominal_capacity_kwh_isdefaulted = true
+      end
+    end
+  end
+
   def self.apply_appliances(hpxml, nbeds, eri_version)
     # Default clothes washer
     if hpxml.clothes_washers.size > 0
@@ -2249,7 +2284,7 @@ class HPXMLDefaults
       end
     end
 
-    hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml)
+    hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml, exclude_hp_backup_systems: true)
 
     # Calculate building design loads and equipment capacities/airflows
     bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(weather, hpxml, cfa, nbeds, hvac_systems)
@@ -2322,7 +2357,7 @@ class HPXMLDefaults
         # Heating capacities
         if htg_sys.heating_capacity.nil? || ((htg_sys.heating_capacity - hvac_sizing_values.Heat_Capacity).abs >= 1.0)
           # Heating capacity @ 17F
-          if htg_sys.respond_to? :heating_capacity_17F
+          if htg_sys.is_a? HPXML::HeatPump
             if (not htg_sys.heating_capacity.nil?) && (not htg_sys.heating_capacity_17F.nil?)
               # Fixed value entered; scale w/ heating_capacity in case allow_increased_fixed_capacities=true
               htg_cap_17f = htg_sys.heating_capacity_17F * hvac_sizing_values.Heat_Capacity.round / htg_sys.heating_capacity
@@ -2340,20 +2375,33 @@ class HPXMLDefaults
           htg_sys.heating_capacity = hvac_sizing_values.Heat_Capacity.round
           htg_sys.heating_capacity_isdefaulted = true
         end
-        if htg_sys.respond_to? :backup_heating_capacity
-          if not htg_sys.backup_heating_fuel.nil? # If there is a backup heating source
+        if htg_sys.is_a? HPXML::HeatPump
+          if htg_sys.backup_type.nil?
+            htg_sys.backup_heating_capacity = 0.0
+          elsif htg_sys.backup_type == HPXML::HeatPumpBackupTypeIntegrated
             if htg_sys.backup_heating_capacity.nil? || ((htg_sys.backup_heating_capacity - hvac_sizing_values.Heat_Capacity_Supp).abs >= 1.0)
               htg_sys.backup_heating_capacity = hvac_sizing_values.Heat_Capacity_Supp.round
               htg_sys.backup_heating_capacity_isdefaulted = true
             end
-          else
-            htg_sys.backup_heating_capacity = 0.0
+          elsif htg_sys.backup_type == HPXML::HeatPumpBackupTypeSeparate
+            if htg_sys.backup_system.heating_capacity.nil? || ((htg_sys.backup_system.heating_capacity - hvac_sizing_values.Heat_Capacity_Supp).abs >= 1.0)
+              htg_sys.backup_system.heating_capacity = hvac_sizing_values.Heat_Capacity_Supp.round
+              htg_sys.backup_system.heating_capacity_isdefaulted = true
+            end
           end
         end
 
         # Heating airflow
-        htg_sys.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
-        htg_sys.heating_airflow_cfm_isdefaulted = true
+        if not (htg_sys.is_a?(HPXML::HeatingSystem) &&
+                [HPXML::HVACTypeBoiler,
+                 HPXML::HVACTypeElectricResistance].include?(htg_sys.heating_system_type))
+          htg_sys.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
+          htg_sys.heating_airflow_cfm_isdefaulted = true
+        end
+        if htg_sys.is_a?(HPXML::HeatPump) && (htg_sys.backup_type == HPXML::HeatPumpBackupTypeSeparate)
+          htg_sys.backup_system.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow_Supp.round
+          htg_sys.backup_system.heating_airflow_cfm_isdefaulted = true
+        end
 
         # Heating GSHP loop
         if htg_sys.is_a? HPXML::HeatPump

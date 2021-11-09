@@ -1935,6 +1935,49 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_pv_system_values(hpxml_default, 0.96, 0.186, false, HPXML::LocationRoof, HPXML::PVTrackingTypeFixed, HPXML::PVModuleTypeStandard, 135)
   end
 
+  def test_batteries
+    # Test inputs not overridden by defaults
+    hpxml = _create_hpxml('base-pv-battery-outside.xml')
+    hpxml.batteries[0].nominal_capacity_kwh = 45.0
+    hpxml.batteries[0].nominal_capacity_ah = nil
+    hpxml.batteries[0].rated_power_output = 1234.0
+    hpxml.batteries[0].location = HPXML::LocationBasementConditioned
+    hpxml.batteries[0].lifetime_model = HPXML::BatteryLifetimeModelKandlerSmith
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_battery_values(hpxml_default, 45.0, nil, 1234.0, HPXML::LocationBasementConditioned, HPXML::BatteryLifetimeModelKandlerSmith)
+
+    # Test w/ Ah instead of kWh
+    hpxml.batteries[0].nominal_capacity_kwh = nil
+    hpxml.batteries[0].nominal_capacity_ah = 987.0
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_battery_values(hpxml_default, nil, 987.0, 1234.0, HPXML::LocationBasementConditioned, HPXML::BatteryLifetimeModelKandlerSmith)
+
+    # Test defaults
+    hpxml.batteries[0].nominal_capacity_kwh = nil
+    hpxml.batteries[0].nominal_capacity_ah = nil
+    hpxml.batteries[0].rated_power_output = nil
+    hpxml.batteries[0].location = nil
+    hpxml.batteries[0].lifetime_model = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_battery_values(hpxml_default, 10.0, nil, 5000.0, HPXML::LocationOutside, HPXML::BatteryLifetimeModelNone)
+
+    # Test defaults w/ kWh
+    hpxml.batteries[0].nominal_capacity_kwh = 14.0
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_battery_values(hpxml_default, 14.0, nil, 7000.0, HPXML::LocationOutside, HPXML::BatteryLifetimeModelNone)
+
+    # Test defaults w/ Ah
+    hpxml.batteries[0].nominal_capacity_kwh = nil
+    hpxml.batteries[0].nominal_capacity_ah = 280.0
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_battery_values(hpxml_default, nil, 280.0, 7000.0, HPXML::LocationOutside, HPXML::BatteryLifetimeModelNone)
+  end
+
   def test_generators
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base-misc-generators.xml')
@@ -3348,6 +3391,22 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       assert_equal(module_type, pv.module_type)
       assert_equal(azimuth, pv.array_azimuth)
     end
+  end
+
+  def _test_default_battery_values(hpxml, nominal_capacity_kwh, nominal_capacity_ah, rated_power_output, location, lifetime_model)
+    if nominal_capacity_kwh.nil?
+      assert_nil(hpxml.batteries[0].nominal_capacity_kwh)
+    else
+      assert_equal(nominal_capacity_kwh, hpxml.batteries[0].nominal_capacity_kwh)
+    end
+    if nominal_capacity_ah.nil?
+      assert_nil(hpxml.batteries[0].nominal_capacity_ah)
+    else
+      assert_equal(nominal_capacity_ah, hpxml.batteries[0].nominal_capacity_ah)
+    end
+    assert_equal(rated_power_output, hpxml.batteries[0].rated_power_output)
+    assert_equal(location, hpxml.batteries[0].location)
+    assert_equal(lifetime_model, hpxml.batteries[0].lifetime_model)
   end
 
   def _test_default_generator_values(hpxml, is_shared_system)

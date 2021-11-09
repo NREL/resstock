@@ -13,6 +13,20 @@ class PV
       max_power = pv_system.max_power_output * nbeds.to_f / pv_system.number_of_bedrooms_served.to_f
     end
 
+    elcds = model.getElectricLoadCenterDistributions
+    if elcds.empty?
+      elcd = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
+      elcd.setName('PVSystem elec load center dist')
+
+      ipvwatts = OpenStudio::Model::ElectricLoadCenterInverterPVWatts.new(model)
+      ipvwatts.setName('PVSystem inverter')
+      ipvwatts.setInverterEfficiency(pv_system.inverter_efficiency)
+
+      elcd.setInverter(ipvwatts)
+    else
+      elcd = elcds[0]
+    end
+
     gpvwatts = OpenStudio::Model::GeneratorPVWatts.new(model, max_power)
     gpvwatts.setName("#{obj_name} generator")
     gpvwatts.setSystemLosses(pv_system.system_losses_fraction)
@@ -37,14 +51,7 @@ class PV
       gpvwatts.setModuleType('ThinFilm')
     end
 
-    ipvwatts = OpenStudio::Model::ElectricLoadCenterInverterPVWatts.new(model)
-    ipvwatts.setName("#{obj_name} inverter")
-    ipvwatts.setInverterEfficiency(pv_system.inverter_efficiency)
-
-    elcd = OpenStudio::Model::ElectricLoadCenterDistribution.new(model)
-    elcd.setName("#{obj_name} elec load center dist")
     elcd.addGenerator(gpvwatts)
-    elcd.setInverter(ipvwatts)
   end
 
   def self.calc_module_power_from_year(year_modules_manufactured)

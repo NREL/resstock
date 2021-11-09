@@ -21,8 +21,6 @@ class HPXMLtoOpenStudioPVTest < MiniTest::Test
       generator = g
     end
     model.getElectricLoadCenterInverterPVWattss.each do |i|
-      next unless i.name.to_s.start_with? "#{name} "
-
       inverter = i
     end
     return generator, inverter
