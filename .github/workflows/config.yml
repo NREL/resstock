@@ -22,13 +22,13 @@ jobs:
 
       - name: Run buildstockbatch
         run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@develop
+          pip install git+https://github.com/NREL/buildstockbatch.git@os330
           
           buildstock_docker project_national/national_baseline.yml
-          buildstock_docker project_testing/testing_baseline.yml          
+          buildstock_docker project_testing/testing_baseline.yml
           
           buildstock_docker project_national/national_upgrades.yml
-          buildstock_docker project_testing/testing_upgrades.yml          
+          buildstock_docker project_testing/testing_upgrades.yml
 
       - name: Upload project folders
         uses: actions/upload-artifact@v2
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: bsb
     container:
-      image: docker://nrel/openstudio:3.2.1
+      image: docker://nrel/openstudio:3.3.0
     steps:
       - name: Show environment
         run: |
