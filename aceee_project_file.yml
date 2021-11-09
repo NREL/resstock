@@ -32,7 +32,7 @@ upgrades:
           or:
             - Lighting|100% Incandescent
             - Lighting|100% CFL
-        costs: &no_costs
+        costs: &no_cost
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
@@ -44,7 +44,7 @@ upgrades:
             - or:
                 - Windows|Single, Clear, Metal
                 - Windows|Single, Clear, Metal, Exterior Clear Storm
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 30
       - &low-e_storms_on_single_clear_nonmetal
         option: Windows|Single, Clear, Non-metal, Exterior Low-E Storm
@@ -53,7 +53,7 @@ upgrades:
             - or:
                 - Windows|Single, Clear, Non-metal
                 - Windows|Single, Clear, Non-metal, Exterior Clear Storm
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 30
       - &low-e_storms_on_double_clear_metal
         option: Windows|Double, Clear, Metal, Exterior Low-E Storm
@@ -61,7 +61,7 @@ upgrades:
           and:
             - Windows|Double, Clear, Metal, Air
             - Windows|Double, Clear, Metal, Air, Exterior Clear Storm
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 30
       - &low-e_storms_on_double_clear_nonmetal
         option: Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
@@ -80,7 +80,7 @@ upgrades:
                 - Windows|Single, Clear, Non-metal, Exterior Clear Storm
                 - Windows|Double, Clear, Metal, Exterior Clear Storm
                 - Windows|Double, CLear, Non-metal, Exterior Clear Storm
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 30
       - option: Infiltration|1.8 ACH50
         apply_logic:
@@ -292,8 +292,6 @@ upgrades:
         costs: *no_cost
         lifetime: 30
   - upgrade_name: Exterior Insulation
-    options:
-      #polyiso_1inch
     options:
       #polyiso_1inch
       - &polyiso_1inch_on_uninsulated_wood
@@ -512,8 +510,7 @@ upgrades:
             - *upgradable_walls
         costs: *no_cost
         lifetime: 30
-  - upgrade_name: Awesome appliances
-    - upgrade_name: Advanced ref, w/d, dw
+  - upgrade_name: Awesome appliances (Advanced ref, w/d, dw)
     options:
     - option: Refrigerator|EF 21.9, 100% Usage
       apply_logic: 
@@ -524,28 +521,28 @@ upgrades:
           - Refrigerator|EF 10.5, 100% Usage
           - Refrigerator|EF 10.2, 100% Usage
           - Refrigerator|EF 6.7, 100% Usage
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 17.4
     - option: Dishwasher|199 Rated kWh, 80% Usage
       apply_logic: 
         or:
           - Dishwasher|318 Rated kWh, 80% Usage
           - Dishwasher|290 Rated kWh, 80% Usage
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 11
     - option: Dishwasher|199 Rated kWh, 100% Usage
       apply_logic: 
         or:
           - Dishwasher|318 Rated kWh, 100% Usage
           - Dishwasher|290 Rated kWh, 100% Usage
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 11
     - option: Dishwasher|199 Rated kWh, 120% Usage
       apply_logic: 
         or:
           - Dishwasher|318 Rated kWh, 120% Usage
           - Dishwasher|290 Rated kWh, 120% Usage
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 11
       #Best clothes washer
     - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
@@ -553,7 +550,7 @@ upgrades:
         or:
           - Clothes Washer|EnergyStar, 80% Usage
           - Clothes Washer|Standard, 80% Usage
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 999
     - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
       apply_logic:
@@ -562,29 +559,35 @@ upgrades:
           - Clothes Washer|Standard, 100% Usage
           - Clothes Washer|Standard, 100% Usage, Cold Only
           - Clothes Washer|EnergyStar, Cold Only
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 999
     - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
       apply_logic:
         or:
           - Clothes Washer|EnergyStar, 120% Usage
           - Clothes Washer|Standard, 120% Usage
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 999
       #Best clothes dryer
     - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
       apply_logic: Clothes Dryer|Electric, 80% Usage
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 999
     - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
       apply_logic: Clothes Dryer|Electric, 100% Usage
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 999
     - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
       apply_logic: Clothes Dryer|Electric, 120% Usage
-      costs: *no_costs
+      costs: *no_cost
       lifetime: 999
   - upgrade_name: ASHP SEER 16
+    options:
+    - option: ASHP, SEER 16, 9.0 HSPF
+      apply_logic: 
+        
+      costs: *no_cost
+      lifetime: 999
   - upgrade_name: ASHP SEER 22
   - upgrade_name: ASHP minisplit
   - upgrade_name: ASHP SEER 22, higher min compressor temp
@@ -609,33 +612,33 @@ upgrades:
             - Water Heater Efficiency|Propane Premium
             - Water Heater Efficiency|Propane Standard
             - Water Heater Efficiency|Propane Tankless
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 999
   - upgrade_name: Thermostat Setbacks
       options:
       - option: Heating Setpoint Offset Magnitude|3F
         apply_logic: Heating Setpoint Offset Magnitude|0F
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 999
       - option: Heating Setpoint Offset Magnitude|6F
         apply_logic: Heating Setpoint Offset Magnitude|3F
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 999
       - option: Heating Setpoint Offset Magnitude|12F
         apply_logic: Heating Setpoint Offset Magnitude|6F
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 999
       - option: Cooling Setpoint Offset Magnitude|2F
         apply_logic: Cooling Setpoint Offset Magnitude|0F
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 999
       - option: Cooling Setpoint Offset Magnitude|5F
         apply_logic: Cooling Setpoint Offset Magnitude|2F
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 999
       - option: Cooling Setpoint Offset Magnitude|9F
         apply_logic: Cooling Setpoint Offset Magnitude|5F
-        costs: *no_costs
+        costs: *no_cost
         lifetime: 999
 
 eagle:
