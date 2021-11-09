@@ -53,9 +53,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-sfa-conditioned-crawlspace.xml' => 'base-sfa.xml',
       'extra-sfa-unconditioned-basement.xml' => 'base-sfa.xml',
 
-      'extra-sfa-double-loaded-interior.xml' => 'base-sfa.xml',
-      'extra-sfa-single-exterior-front.xml' => 'base-sfa.xml',
-      'extra-sfa-double-exterior.xml' => 'base-sfa.xml',
+      'extra-sfa-rear-units.xml' => 'base-sfa.xml',
+      'extra-sfa-exterior-corridor.xml' => 'base-sfa.xml',
 
       'extra-sfa-slab-middle.xml' => 'extra-sfa-slab.xml',
       'extra-sfa-slab-right.xml' => 'extra-sfa-slab.xml',
@@ -70,9 +69,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-mf-vented-crawlspace.xml' => 'base-mf.xml',
       'extra-mf-unvented-crawlspace.xml' => 'base-mf.xml',
 
-      'extra-mf-double-loaded-interior.xml' => 'base-mf.xml',
-      'extra-mf-single-exterior-front.xml' => 'base-mf.xml',
-      'extra-mf-double-exterior.xml' => 'base-mf.xml',
+      'extra-mf-rear-units.xml' => 'base-mf.xml',
+      'extra-mf-exterior-corridor.xml' => 'base-mf.xml',
 
       'extra-mf-slab-left-bottom.xml' => 'extra-mf-slab.xml',
       'extra-mf-slab-left-middle.xml' => 'extra-mf-slab.xml',
@@ -102,49 +100,55 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-mf-unvented-crawlspace-right-middle.xml' => 'extra-mf-unvented-crawlspace.xml',
       'extra-mf-unvented-crawlspace-right-top.xml' => 'extra-mf-unvented-crawlspace.xml',
 
-      'extra-mf-slab-double-loaded-interior.xml' => 'extra-mf-slab.xml',
-      'extra-mf-vented-crawlspace-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace.xml',
-      'extra-mf-unvented-crawlspace-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace.xml',
-      'extra-mf-slab-left-bottom-double-loaded-interior.xml' => 'extra-mf-slab-left-bottom.xml',
-      'extra-mf-slab-left-middle-double-loaded-interior.xml' => 'extra-mf-slab-left-middle.xml',
-      'extra-mf-slab-left-top-double-loaded-interior.xml' => 'extra-mf-slab-left-top.xml',
-      'extra-mf-slab-middle-bottom-double-loaded-interior.xml' => 'extra-mf-slab-middle-bottom.xml',
-      'extra-mf-slab-middle-middle-double-loaded-interior.xml' => 'extra-mf-slab-middle-middle.xml',
-      'extra-mf-slab-middle-top-double-loaded-interior.xml' => 'extra-mf-slab-middle-top.xml',
-      'extra-mf-slab-right-bottom-double-loaded-interior.xml' => 'extra-mf-slab-right-bottom.xml',
-      'extra-mf-slab-right-middle-double-loaded-interior.xml' => 'extra-mf-slab-right-middle.xml',
-      'extra-mf-slab-right-top-double-loaded-interior.xml' => 'extra-mf-slab-right-top.xml',
-      'extra-mf-vented-crawlspace-left-bottom-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace-left-bottom.xml',
-      'extra-mf-vented-crawlspace-left-middle-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace-left-middle.xml',
-      'extra-mf-vented-crawlspace-left-top-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace-left-top.xml',
-      'extra-mf-vented-crawlspace-middle-bottom-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace-middle-bottom.xml',
-      'extra-mf-vented-crawlspace-middle-middle-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace-middle-middle.xml',
-      'extra-mf-vented-crawlspace-middle-top-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace-middle-top.xml',
-      'extra-mf-vented-crawlspace-right-bottom-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace-right-bottom.xml',
-      'extra-mf-vented-crawlspace-right-middle-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace-right-middle.xml',
-      'extra-mf-vented-crawlspace-right-top-double-loaded-interior.xml' => 'extra-mf-vented-crawlspace-right-top.xml',
-      'extra-mf-unvented-crawlspace-left-bottom-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace-left-bottom.xml',
-      'extra-mf-unvented-crawlspace-left-middle-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace-left-middle.xml',
-      'extra-mf-unvented-crawlspace-left-top-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace-left-top.xml',
-      'extra-mf-unvented-crawlspace-middle-bottom-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace-middle-bottom.xml',
-      'extra-mf-unvented-crawlspace-middle-middle-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace-middle-middle.xml',
-      'extra-mf-unvented-crawlspace-middle-top-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace-middle-top.xml',
-      'extra-mf-unvented-crawlspace-right-bottom-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace-right-bottom.xml',
-      'extra-mf-unvented-crawlspace-right-middle-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace-right-middle.xml',
-      'extra-mf-unvented-crawlspace-right-top-double-loaded-interior.xml' => 'extra-mf-unvented-crawlspace-right-top.xml',
+      'extra-mf-slab-rear-units.xml' => 'extra-mf-slab.xml',
+      'extra-mf-vented-crawlspace-rear-units.xml' => 'extra-mf-vented-crawlspace.xml',
+      'extra-mf-unvented-crawlspace-rear-units.xml' => 'extra-mf-unvented-crawlspace.xml',
+      'extra-mf-slab-left-bottom-rear-units.xml' => 'extra-mf-slab-left-bottom.xml',
+      'extra-mf-slab-left-middle-rear-units.xml' => 'extra-mf-slab-left-middle.xml',
+      'extra-mf-slab-left-top-rear-units.xml' => 'extra-mf-slab-left-top.xml',
+      'extra-mf-slab-middle-bottom-rear-units.xml' => 'extra-mf-slab-middle-bottom.xml',
+      'extra-mf-slab-middle-middle-rear-units.xml' => 'extra-mf-slab-middle-middle.xml',
+      'extra-mf-slab-middle-top-rear-units.xml' => 'extra-mf-slab-middle-top.xml',
+      'extra-mf-slab-right-bottom-rear-units.xml' => 'extra-mf-slab-right-bottom.xml',
+      'extra-mf-slab-right-middle-rear-units.xml' => 'extra-mf-slab-right-middle.xml',
+      'extra-mf-slab-right-top-rear-units.xml' => 'extra-mf-slab-right-top.xml',
+      'extra-mf-vented-crawlspace-left-bottom-rear-units.xml' => 'extra-mf-vented-crawlspace-left-bottom.xml',
+      'extra-mf-vented-crawlspace-left-middle-rear-units.xml' => 'extra-mf-vented-crawlspace-left-middle.xml',
+      'extra-mf-vented-crawlspace-left-top-rear-units.xml' => 'extra-mf-vented-crawlspace-left-top.xml',
+      'extra-mf-vented-crawlspace-middle-bottom-rear-units.xml' => 'extra-mf-vented-crawlspace-middle-bottom.xml',
+      'extra-mf-vented-crawlspace-middle-middle-rear-units.xml' => 'extra-mf-vented-crawlspace-middle-middle.xml',
+      'extra-mf-vented-crawlspace-middle-top-rear-units.xml' => 'extra-mf-vented-crawlspace-middle-top.xml',
+      'extra-mf-vented-crawlspace-right-bottom-rear-units.xml' => 'extra-mf-vented-crawlspace-right-bottom.xml',
+      'extra-mf-vented-crawlspace-right-middle-rear-units.xml' => 'extra-mf-vented-crawlspace-right-middle.xml',
+      'extra-mf-vented-crawlspace-right-top-rear-units.xml' => 'extra-mf-vented-crawlspace-right-top.xml',
+      'extra-mf-unvented-crawlspace-left-bottom-rear-units.xml' => 'extra-mf-unvented-crawlspace-left-bottom.xml',
+      'extra-mf-unvented-crawlspace-left-middle-rear-units.xml' => 'extra-mf-unvented-crawlspace-left-middle.xml',
+      'extra-mf-unvented-crawlspace-left-top-rear-units.xml' => 'extra-mf-unvented-crawlspace-left-top.xml',
+      'extra-mf-unvented-crawlspace-middle-bottom-rear-units.xml' => 'extra-mf-unvented-crawlspace-middle-bottom.xml',
+      'extra-mf-unvented-crawlspace-middle-middle-rear-units.xml' => 'extra-mf-unvented-crawlspace-middle-middle.xml',
+      'extra-mf-unvented-crawlspace-middle-top-rear-units.xml' => 'extra-mf-unvented-crawlspace-middle-top.xml',
+      'extra-mf-unvented-crawlspace-right-bottom-rear-units.xml' => 'extra-mf-unvented-crawlspace-right-bottom.xml',
+      'extra-mf-unvented-crawlspace-right-middle-rear-units.xml' => 'extra-mf-unvented-crawlspace-right-middle.xml',
+      'extra-mf-unvented-crawlspace-right-top-rear-units.xml' => 'extra-mf-unvented-crawlspace-right-top.xml',
 
       'error-heating-system-and-heat-pump.xml' => 'base-sfd.xml',
       'error-cooling-system-and-heat-pump.xml' => 'base-sfd.xml',
       'error-non-integer-geometry-num-bathrooms.xml' => 'base-sfd.xml',
       'error-non-integer-ceiling-fan-quantity.xml' => 'base-sfd.xml',
       'error-sfd-conditioned-basement-zero-foundation-height.xml' => 'base-sfd.xml',
+      'error-sfd-adiabatic-walls.xml' => 'base-sfd.xml',
       'error-sfa-ambient.xml' => 'base-sfa.xml',
       'error-mf-bottom-crawlspace-zero-foundation-height.xml' => 'base-mf.xml',
       'error-ducts-location-and-areas-not-same-type.xml' => 'base-sfd.xml',
       'error-second-heating-system-serves-total-heat-load.xml' => 'base-sfd.xml',
       'error-second-heating-system-but-no-primary-heating.xml' => 'base-sfd.xml',
-      'error-sfa-no-building-orientation.xml' => 'base-sfa.xml',
-      'error-mf-no-building-orientation.xml' => 'base-mf.xml',
+      'error-sfa-no-building-num-units.xml' => 'base-sfa.xml',
+      'error-sfa-above-apartment.xml' => 'base-sfa.xml',
+      'error-sfa-below-apartment.xml' => 'base-sfa.xml',
+      'error-sfa-all-adiabatic-walls.xml' => 'base-sfa.xml',
+      'error-mf-no-building-num-units.xml' => 'base-mf.xml',
+      'error-mf-all-adiabatic-walls.xml' => 'base-mf.xml',
+      'error-mf-two-stories.xml' => 'base-mf.xml',
       'error-dhw-indirect-without-boiler.xml' => 'base-sfd.xml',
       'error-foundation-wall-insulation-greater-than-height.xml' => 'base-sfd.xml',
       'error-conditioned-attic-with-one-floor-above-grade.xml' => 'base-sfd.xml',
@@ -178,17 +182,23 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-non-integer-geometry-num-bathrooms.xml' => 'geometry_unit_num_bathrooms=1.5',
       'error-non-integer-ceiling-fan-quantity.xml' => 'ceiling_fan_quantity=0.5',
       'error-sfd-conditioned-basement-zero-foundation-height.xml' => 'geometry_unit_type=single-family detached and geometry_foundation_type=ConditionedBasement and geometry_foundation_height=0.0',
+      'error-sfd-adiabatic-walls.xml' => 'No adiabatic surfaces can be applied to single-family detached homes',
       'error-sfa-ambient.xml' => 'geometry_unit_type=single-family attached and geometry_foundation_type=Ambient',
       'error-mf-conditioned-basement' => 'geometry_unit_type=apartment unit and geometry_foundation_type=ConditionedBasement',
       'error-mf-conditioned-crawlspace' => 'geometry_unit_type=apartment unit and geometry_foundation_type=ConditionedCrawlspace',
-      'error-mf-bottom-crawlspace-zero-foundation-height.xml' => 'geometry_unit_type=apartment unit and geometry_unit_level=Bottom and geometry_foundation_type=UnventedCrawlspace and geometry_foundation_height=0.0',
+      'error-mf-bottom-crawlspace-zero-foundation-height.xml' => 'geometry_unit_type=apartment unit and geometry_foundation_type=UnventedCrawlspace and geometry_foundation_height=0.0',
       'error-ducts-location-and-areas-not-same-type.xml' => 'ducts_supply_location=auto and ducts_supply_surface_area=150.0 and ducts_return_location=attic - unvented and ducts_return_surface_area=50.0',
       'error-second-heating-system-serves-total-heat-load.xml' => 'heating_system_2_type=Fireplace and heating_system_2_fraction_heat_load_served=1.0',
       'error-second-heating-system-but-no-primary-heating.xml' => 'heating_system_type=none and heat_pump_type=none and heating_system_2_type=Fireplace',
-      'error-sfa-no-building-orientation.xml' => 'geometry_unit_type=single-family attached and geometry_building_num_units=not provided and geometry_unit_horizontal_location=not provided',
-      'error-mf-no-building-orientation.xml' => 'geometry_unit_type=apartment unit and geometry_building_num_units=not provided and geometry_unit_level=not provided and geometry_unit_horizontal_location=not provided',
+      'error-sfa-no-building-num-units.xml' => 'geometry_unit_type=single-family attached and geometry_building_num_units=not provided',
+      'error-sfa-above-apartment.xml' => 'Single-family attached buildings cannot be above another unit',
+      'error-sfa-below-apartment.xml' => 'Single-family attached buildings cannot be below another unit',
+      'error-sfa-all-adiabatic-walls.xml' => 'At least one wall must be set to non-adiabatic',
+      'error-mf-no-building-num-units.xml' => 'geometry_unit_type=apartment unit and geometry_building_num_units=not provided',
+      'error-mf-all-adiabatic-walls.xml' => 'At least one wall must be set to non-adiabatic',
+      'error-mf-two-stories.xml' => 'Apartment units can only have one above grade floor',
       'error-dhw-indirect-without-boiler.xml' => 'water_heater_type=space-heating boiler with storage tank and heating_system_type=Furnace',
-      'error-conditioned-attic-with-one-floor-above-grade.xml' => 'geometry_num_floors_above_grade=1 and geometry_attic_type=ConditionedAttic',
+      'error-conditioned-attic-with-one-floor-above-grade.xml' => 'geometry_unit_num_floors_above_grade=1 and geometry_attic_type=ConditionedAttic',
       'error-zero-number-of-bedrooms.xml' => 'geometry_unit_num_bedrooms=0',
       'error-sfd-with-shared-system.xml' => 'geometry_unit_type=single-family detached and heating_system_type=Shared Boiler w/ Baseboard',
       'error-rim-joist-height-but-no-assembly-r.xml' => 'geometry_rim_joist_height=9.25 and rim_joist_assembly_r=not provided',
@@ -198,7 +208,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     expected_warnings = {
       'warning-non-electric-heat-pump-water-heater.xml' => 'water_heater_type=heat pump water heater and water_heater_fuel_type=natural gas',
       'warning-sfd-slab-non-zero-foundation-height.xml' => 'geometry_unit_type=single-family detached and geometry_foundation_type=SlabOnGrade and geometry_foundation_height=8.0',
-      'warning-mf-bottom-slab-non-zero-foundation-height.xml' => 'geometry_unit_type=apartment unit and geometry_unit_level=Bottom and geometry_foundation_type=SlabOnGrade and geometry_foundation_height=8.0',
+      'warning-mf-bottom-slab-non-zero-foundation-height.xml' => 'geometry_unit_type=apartment unit and geometry_foundation_type=SlabOnGrade and geometry_foundation_height=8.0',
       'warning-slab-non-zero-foundation-height-above-grade.xml' => 'geometry_foundation_type=SlabOnGrade and geometry_foundation_height_above_grade=1.0',
       'warning-second-heating-system-serves-majority-heat.xml' => 'heating_system_2_type=Fireplace and heating_system_2_fraction_heat_load_served=0.6',
       'warning-vented-crawlspace-with-wall-and-ceiling-insulation.xml' => 'geometry_foundation_type=VentedCrawlspace and foundation_wall_insulation_r=8.9 and foundation_wall_assembly_r=10.0 and floor_over_foundation_assembly_r=10.0',
@@ -260,12 +270,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['site_type'] = HPXML::SiteTypeSuburban
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFD
       args['geometry_unit_cfa'] = 2700.0
-      args['geometry_num_floors_above_grade'] = 1
+      args['geometry_unit_num_floors_above_grade'] = 1
       args['geometry_average_ceiling_height'] = 8.0
       args['geometry_unit_orientation'] = 180.0
       args['geometry_unit_aspect_ratio'] = 1.5
-      args['geometry_corridor_position'] = 'Double-Loaded Interior'
-      args['geometry_corridor_width'] = 10.0
       args['geometry_garage_width'] = 0.0
       args['geometry_garage_depth'] = 20.0
       args['geometry_garage_protrusion'] = 0.0
@@ -580,9 +588,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['base-sfa.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
       args['geometry_unit_cfa'] = 1800.0
-      args['geometry_corridor_position'] = 'None'
       args['geometry_building_num_units'] = 3
-      args['geometry_unit_horizontal_location'] = 'Left'
+      args['geometry_unit_right_wall_is_adiabatic'] = true
       args['window_front_wwr'] = 0.18
       args['window_back_wwr'] = 0.18
       args['window_left_wwr'] = 0.18
@@ -594,13 +601,12 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['base-mf.xml'].include? hpxml_file
       args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
       args['geometry_unit_cfa'] = 900.0
-      args['geometry_corridor_position'] = 'None'
       args['geometry_foundation_type'] = HPXML::FoundationTypeBasementUnconditioned
-      args['geometry_unit_level'] = 'Middle'
-      args['geometry_unit_horizontal_location'] = 'Left'
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
+      args['geometry_unit_right_wall_is_adiabatic'] = true
       args['geometry_building_num_units'] = 6
       args['geometry_building_num_bedrooms'] = 6 * 3
-      args['geometry_num_floors_above_grade'] = 3
       args['window_front_wwr'] = 0.18
       args['window_back_wwr'] = 0.18
       args['window_left_wwr'] = 0.18
@@ -715,7 +721,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['window_area_front'] = 12.0
       args['window_aspect_ratio'] = 5.0 / 1.5
       args['geometry_unit_cfa'] = 4500.0
-      args['geometry_num_floors_above_grade'] = 2
+      args['geometry_unit_num_floors_above_grade'] = 2
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned
       args['floor_over_garage_assembly_r'] = 39.3
       args['ducts_supply_location'] = HPXML::LocationGarage
@@ -726,7 +732,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_foundation_height_above_grade'] = 0.0
       args['foundation_wall_insulation_distance_to_bottom'] = Constants.Auto
       args['geometry_unit_cfa'] = 4500.0
-      args['geometry_num_floors_above_grade'] = 2
+      args['geometry_unit_num_floors_above_grade'] = 2
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned
       args['geometry_eaves_depth'] = 2
       args['ducts_supply_location'] = HPXML::LocationUnderSlab
@@ -745,7 +751,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['extra-zero-dishwasher-kwh.xml'].include? hpxml_file
       args['dishwasher_efficiency'] = 0
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
-      args['geometry_roof_type'] = 'flat'
+      args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0
       args['ducts_return_leakage_to_outside_value'] = 0.0
       args['ducts_supply_location'] = HPXML::LocationBasementConditioned
@@ -766,7 +772,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['extra-state-code-different-than-epw.xml'].include? hpxml_file
       args['site_state_code'] = 'WY'
     elsif ['extra-sfa-atticroof-conditioned-eaves-gable.xml'].include? hpxml_file
-      args['geometry_num_floors_above_grade'] = 2
+      args['geometry_unit_num_floors_above_grade'] = 2
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned
       args['geometry_eaves_depth'] = 2
       args['ducts_supply_location'] = HPXML::LocationLivingSpace
@@ -800,24 +806,21 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['floor_over_foundation_assembly_r'] = 18.7
       args['foundation_wall_insulation_r'] = 0
       args['foundation_wall_insulation_distance_to_bottom'] = 0.0
-    elsif ['extra-sfa-double-loaded-interior.xml'].include? hpxml_file
+    elsif ['extra-sfa-rear-units.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 4
-      args['geometry_corridor_position'] = 'Double-Loaded Interior'
-    elsif ['extra-sfa-single-exterior-front.xml'].include? hpxml_file
-      args['geometry_corridor_position'] = 'Single Exterior (Front)'
-    elsif ['extra-sfa-double-exterior.xml'].include? hpxml_file
+    elsif ['extra-sfa-exterior-corridor.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 4
-      args['geometry_corridor_position'] = 'Double Exterior'
     elsif ['extra-sfa-slab-middle.xml',
            'extra-sfa-vented-crawlspace-middle.xml',
            'extra-sfa-unvented-crawlspace-middle.xml',
            'extra-sfa-unconditioned-basement-middle.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Middle'
+      args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_unit_right_wall_is_adiabatic'] = true
     elsif ['extra-sfa-slab-right.xml',
            'extra-sfa-vented-crawlspace-right.xml',
            'extra-sfa-unvented-crawlspace-right.xml',
            'extra-sfa-unconditioned-basement-right.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Right'
+      args['geometry_unit_left_wall_is_adiabatic'] = true
     elsif ['extra-mf-slab.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 18
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
@@ -836,91 +839,92 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_foundation_height'] = 4.0
       args['floor_over_foundation_assembly_r'] = 18.7
       args['foundation_wall_insulation_distance_to_bottom'] = 4.0
-    elsif ['extra-mf-double-loaded-interior.xml'].include? hpxml_file
+    elsif ['extra-mf-rear-units.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 18
-      args['geometry_corridor_position'] = 'Double-Loaded Interior'
-    elsif ['extra-mf-single-exterior-front.xml'].include? hpxml_file
+    elsif ['extra-mf-exterior-corridor.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 18
-      args['geometry_corridor_position'] = 'Single Exterior (Front)'
-    elsif ['extra-mf-double-exterior.xml'].include? hpxml_file
-      args['geometry_building_num_units'] = 18
-      args['geometry_corridor_position'] = 'Double Exterior'
     elsif ['extra-mf-slab-left-bottom.xml',
            'extra-mf-vented-crawlspace-left-bottom.xml',
            'extra-mf-unvented-crawlspace-left-bottom.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Left'
-      args['geometry_unit_level'] = 'Bottom'
+      args['geometry_unit_right_wall_is_adiabatic'] = true
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['extra-mf-slab-left-middle.xml',
            'extra-mf-vented-crawlspace-left-middle.xml',
            'extra-mf-unvented-crawlspace-left-middle.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Left'
-      args['geometry_unit_level'] = 'Middle'
+      args['geometry_unit_right_wall_is_adiabatic'] = true
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-left-top.xml',
            'extra-mf-vented-crawlspace-left-top.xml',
            'extra-mf-unvented-crawlspace-left-top.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Left'
-      args['geometry_unit_level'] = 'Top'
+      args['geometry_unit_right_wall_is_adiabatic'] = true
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-middle-bottom.xml',
            'extra-mf-vented-crawlspace-middle-bottom.xml',
            'extra-mf-unvented-crawlspace-middle-bottom.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Middle'
-      args['geometry_unit_level'] = 'Bottom'
+      args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_unit_right_wall_is_adiabatic'] = true
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['extra-mf-slab-middle-middle.xml',
            'extra-mf-vented-crawlspace-middle-middle.xml',
            'extra-mf-unvented-crawlspace-middle-middle.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Middle'
-      args['geometry_unit_level'] = 'Middle'
+      args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_unit_right_wall_is_adiabatic'] = true
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-middle-top.xml',
            'extra-mf-vented-crawlspace-middle-top.xml',
            'extra-mf-unvented-crawlspace-middle-top.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Middle'
-      args['geometry_unit_level'] = 'Top'
+      args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_unit_right_wall_is_adiabatic'] = true
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-right-bottom.xml',
            'extra-mf-vented-crawlspace-right-bottom.xml',
            'extra-mf-unvented-crawlspace-right-bottom.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Right'
-      args['geometry_unit_level'] = 'Bottom'
+      args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['extra-mf-slab-right-middle.xml',
            'extra-mf-vented-crawlspace-right-middle.xml',
            'extra-mf-unvented-crawlspace-right-middle.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Right'
-      args['geometry_unit_level'] = 'Middle'
+      args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     elsif ['extra-mf-slab-right-top.xml',
            'extra-mf-vented-crawlspace-right-top.xml',
            'extra-mf-unvented-crawlspace-right-top.xml'].include? hpxml_file
-      args['geometry_unit_horizontal_location'] = 'Right'
-      args['geometry_unit_level'] = 'Top'
-    elsif ['extra-mf-slab-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-double-loaded-interior.xml',
-           'extra-mf-slab-left-bottom-double-loaded-interior.xml',
-           'extra-mf-slab-left-middle-double-loaded-interior.xml',
-           'extra-mf-slab-left-top-double-loaded-interior.xml',
-           'extra-mf-slab-middle-bottom-double-loaded-interior.xml',
-           'extra-mf-slab-middle-middle-double-loaded-interior.xml',
-           'extra-mf-slab-middle-top-double-loaded-interior.xml',
-           'extra-mf-slab-right-bottom-double-loaded-interior.xml',
-           'extra-mf-slab-right-middle-double-loaded-interior.xml',
-           'extra-mf-slab-right-top-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-left-bottom-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-left-middle-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-left-top-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-middle-bottom-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-middle-middle-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-middle-top-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-right-bottom-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-right-middle-double-loaded-interior.xml',
-           'extra-mf-vented-crawlspace-right-top-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-left-bottom-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-left-middle-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-left-top-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-middle-bottom-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-middle-middle-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-middle-top-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-right-bottom-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-right-middle-double-loaded-interior.xml',
-           'extra-mf-unvented-crawlspace-right-top-double-loaded-interior.xml'].include? hpxml_file
-      args['geometry_corridor_position'] = 'Double-Loaded Interior'
+      args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
+    elsif ['extra-mf-slab-rear-units.xml',
+           'extra-mf-vented-crawlspace-rear-units.xml',
+           'extra-mf-unvented-crawlspace-rear-units.xml',
+           'extra-mf-slab-left-bottom-rear-units.xml',
+           'extra-mf-slab-left-middle-rear-units.xml',
+           'extra-mf-slab-left-top-rear-units.xml',
+           'extra-mf-slab-middle-bottom-rear-units.xml',
+           'extra-mf-slab-middle-middle-rear-units.xml',
+           'extra-mf-slab-middle-top-rear-units.xml',
+           'extra-mf-slab-right-bottom-rear-units.xml',
+           'extra-mf-slab-right-middle-rear-units.xml',
+           'extra-mf-slab-right-top-rear-units.xml',
+           'extra-mf-vented-crawlspace-left-bottom-rear-units.xml',
+           'extra-mf-vented-crawlspace-left-middle-rear-units.xml',
+           'extra-mf-vented-crawlspace-left-top-rear-units.xml',
+           'extra-mf-vented-crawlspace-middle-bottom-rear-units.xml',
+           'extra-mf-vented-crawlspace-middle-middle-rear-units.xml',
+           'extra-mf-vented-crawlspace-middle-top-rear-units.xml',
+           'extra-mf-vented-crawlspace-right-bottom-rear-units.xml',
+           'extra-mf-vented-crawlspace-right-middle-rear-units.xml',
+           'extra-mf-vented-crawlspace-right-top-rear-units.xml',
+           'extra-mf-unvented-crawlspace-left-bottom-rear-units.xml',
+           'extra-mf-unvented-crawlspace-left-middle-rear-units.xml',
+           'extra-mf-unvented-crawlspace-left-top-rear-units.xml',
+           'extra-mf-unvented-crawlspace-middle-bottom-rear-units.xml',
+           'extra-mf-unvented-crawlspace-middle-middle-rear-units.xml',
+           'extra-mf-unvented-crawlspace-middle-top-rear-units.xml',
+           'extra-mf-unvented-crawlspace-right-bottom-rear-units.xml',
+           'extra-mf-unvented-crawlspace-right-middle-rear-units.xml',
+           'extra-mf-unvented-crawlspace-right-top-rear-units.xml'].include? hpxml_file
+      args['geometry_unit_front_wall_is_adiabatic'] = true
     end
 
     # Error
@@ -937,6 +941,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['error-sfd-conditioned-basement-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_height'] = 0.0
       args['foundation_wall_insulation_distance_to_bottom'] = Constants.Auto
+    elsif ['error-sfd-adiabatic-walls.xml'].include? hpxml_file
+      args['geometry_unit_left_wall_is_adiabatic'] = true
     elsif ['error-sfa-ambient.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeAmbient
       args.delete('geometry_rim_joist_height')
@@ -948,7 +954,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['error-mf-bottom-crawlspace-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
       args['geometry_foundation_height'] = 0.0
-      args['geometry_unit_level'] = 'Bottom'
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
       args['foundation_wall_insulation_distance_to_bottom'] = Constants.Auto
     elsif ['error-ducts-location-and-areas-not-same-type.xml'].include? hpxml_file
       args['ducts_supply_location'] = Constants.Auto
@@ -958,13 +964,26 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['error-second-heating-system-but-no-primary-heating.xml'].include? hpxml_file
       args['heating_system_type'] = 'none'
       args['heating_system_2_type'] = HPXML::HVACTypeFireplace
-    elsif ['error-sfa-no-building-orientation.xml'].include? hpxml_file
+    elsif ['error-sfa-no-building-num-units.xml'].include? hpxml_file
       args.delete('geometry_building_num_units')
-      args.delete('geometry_unit_horizontal_location')
-    elsif ['error-mf-no-building-orientation.xml'].include? hpxml_file
+    elsif ['error-sfa-above-apartment.xml'].include? hpxml_file
+      args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
+    elsif ['error-sfa-below-apartment.xml'].include? hpxml_file
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+    elsif ['error-sfa-all-adiabatic-walls.xml'].include? hpxml_file
+      args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_unit_right_wall_is_adiabatic'] = true
+      args['geometry_unit_front_wall_is_adiabatic'] = true
+      args['geometry_unit_back_wall_is_adiabatic'] = true
+    elsif ['error-mf-no-building-num-units.xml'].include? hpxml_file
       args.delete('geometry_building_num_units')
-      args.delete('geometry_unit_level')
-      args.delete('geometry_unit_horizontal_location')
+    elsif ['error-mf-all-adiabatic-walls.xml'].include? hpxml_file
+      args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_unit_right_wall_is_adiabatic'] = true
+      args['geometry_unit_front_wall_is_adiabatic'] = true
+      args['geometry_unit_back_wall_is_adiabatic'] = true
+    elsif ['error-mf-two-stories.xml'].include? hpxml_file
+      args['geometry_unit_num_floors_above_grade'] = 2
     elsif ['error-dhw-indirect-without-boiler.xml'].include? hpxml_file
       args['water_heater_type'] = HPXML::WaterHeaterTypeCombiStorage
     elsif ['error-conditioned-attic-with-one-floor-above-grade.xml'].include? hpxml_file
@@ -991,7 +1010,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['warning-mf-bottom-slab-non-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
       args['geometry_foundation_height_above_grade'] = 0.0
-      args['geometry_unit_level'] = 'Bottom'
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['warning-slab-non-zero-foundation-height-above-grade.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
       args['geometry_foundation_height'] = 0.0
@@ -1028,7 +1047,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_foundation_type'] = HPXML::FoundationTypeBasementConditioned
       args['floor_over_foundation_assembly_r'] = 10
     elsif ['warning-conditioned-attic-with-floor-insulation.xml'].include? hpxml_file
-      args['geometry_num_floors_above_grade'] = 2
+      args['geometry_unit_num_floors_above_grade'] = 2
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned
       args['ducts_supply_location'] = HPXML::LocationLivingSpace
       args['ducts_return_location'] = HPXML::LocationLivingSpace
@@ -1071,6 +1090,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       end
       argument_map[arg.name] = temp_arg_var
     end
+    args_hash.keys.each do |arg_name|
+      next if argument_map.keys.include? arg_name
+
+      fail "Unexpected argument name: #{arg_name}"
+    end
 
     # run the measure
     measure.run(model, runner, argument_map)
@@ -1090,9 +1114,19 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
     # check warnings/errors
     if not expected_error.nil?
+      if runner.result.stepErrors.select { |s| s == expected_error }.size <= 0
+        runner.result.stepErrors.each do |s|
+          puts "ERROR: #{s}"
+        end
+      end
       assert(runner.result.stepErrors.select { |s| s == expected_error }.size > 0)
     end
     if not expected_warning.nil?
+      if runner.result.stepWarnings.select { |s| s == expected_warning }.size <= 0
+        runner.result.stepErrors.each do |s|
+          puts "WARNING: #{s}"
+        end
+      end
       assert(runner.result.stepWarnings.select { |s| s == expected_warning }.size > 0)
     end
   end

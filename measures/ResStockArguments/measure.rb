@@ -48,9 +48,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     measure.arguments(model).each do |arg|
       next if Constants.build_residential_hpxml_excludes.include? arg.name
 
-      # Exclude the geometry_unit_cfa arg from BuildResHPXML in lieu of the one below.
-      # We can't add it to Constants.excludes because a geometry_unit_cfa value will still
-      # need to be passed to the BuildResHPXML measure.
+      # Following are arguments with the same namber but different options
       next if arg.name == 'geometry_unit_cfa'
 
       args << arg
@@ -86,6 +84,53 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('vintage', false)
     arg.setDisplayName('Building Construction: Vintage')
     arg.setDescription('The building vintage, used for informational purposes only')
+    args << arg
+
+    level_choices = OpenStudio::StringVector.new
+    level_choices << 'Bottom'
+    level_choices << 'Middle'
+    level_choices << 'Top'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_unit_level', level_choices, false)
+    arg.setDisplayName('Geometry: Unit Level')
+    arg.setDescription("The level of the unit. This is required for #{HPXML::ResidentialTypeApartment}s.")
+    args << arg
+
+    horizontal_location_choices = OpenStudio::StringVector.new
+    horizontal_location_choices << 'None'
+    horizontal_location_choices << 'Left'
+    horizontal_location_choices << 'Middle'
+    horizontal_location_choices << 'Right'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_unit_horizontal_location', horizontal_location_choices, false)
+    arg.setDisplayName('Geometry: Unit Horizontal Location')
+    arg.setDescription("The horizontal location of the unit when viewing the front of the building. This is required for #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_num_floors_above_grade', true)
+    arg.setDisplayName('Geometry: Number of Floors Above Grade')
+    arg.setUnits('#')
+    arg.setDescription("The number of floors above grade (in the unit if #{HPXML::ResidentialTypeSFD} or #{HPXML::ResidentialTypeSFA}, and in the building if #{HPXML::ResidentialTypeApartment}). Conditioned attics are included.")
+    arg.setDefaultValue(2)
+    args << arg
+
+    corridor_position_choices = OpenStudio::StringVector.new
+    corridor_position_choices << 'Double-Loaded Interior'
+    corridor_position_choices << 'Double Exterior'
+    corridor_position_choices << 'Single Exterior (Front)'
+    corridor_position_choices << 'None'
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_corridor_position', corridor_position_choices, true)
+    arg.setDisplayName('Geometry: Corridor Position')
+    arg.setDescription("The position of the corridor. Only applies to #{HPXML::ResidentialTypeSFA} and #{HPXML::ResidentialTypeApartment}s. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.")
+    arg.setDefaultValue('Inside')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_corridor_width', true)
+    arg.setDisplayName('Geometry: Corridor Width')
+    arg.setUnits('ft')
+    arg.setDescription("The width of the corridor. Only applies to #{HPXML::ResidentialTypeApartment}s.")
+    arg.setDefaultValue(10.0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
@@ -480,29 +525,92 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['heat_pump_charge_defect_ratio'] = args['heat_pump_frac_manufacturer_charge'].get - 1.0
     end
 
-    # Infiltration adjustment for SFA/MF units
+    # Error check geometry inputs
+    corridor_width = args['geometry_corridor_width']
+    corridor_position = args['geometry_corridor_position'].to_s
+
+    if (corridor_width == 0) && (corridor_position != 'None')
+      corridor_position = 'None'
+    end
+    if corridor_position == 'None'
+      corridor_width = 0
+    end
+    if corridor_width < 0
+      runner.registerError('ResStockArguments: Invalid corridor width entered.')
+      return false
+    end
+
+    # Adiabatic Walls
+    args['geometry_unit_left_wall_is_adiabatic'] = false
+    args['geometry_unit_right_wall_is_adiabatic'] = false
+    args['geometry_unit_front_wall_is_adiabatic'] = false
+    args['geometry_unit_back_wall_is_adiabatic'] = false
+
+    # Map corridor arguments to adiabatic walls and shading
+    n_floors = Float(args['geometry_num_floors_above_grade'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
       n_units = Float(args['geometry_building_num_units'])
-      n_floors = Float(args['geometry_num_floors_above_grade'])
-      aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
       horiz_location = args['geometry_unit_horizontal_location'].to_s
-      corridor_position = args['geometry_corridor_position'].to_s
+      aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
 
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
-        if (n_units_per_floor >= 4) && (corridor_position != 'Single Exterior (Front)') # assume double-loaded corridor
+        if n_units_per_floor >= 4 && (corridor_position == 'Double Exterior' || corridor_position == 'None')
           has_rear_units = true
-        elsif (n_units_per_floor == 2) && (horiz_location == 'None') # double-loaded corridor for 2 units/story
+          args['geometry_unit_back_wall_is_adiabatic'] = true
+        elsif n_units_per_floor >= 4 && (corridor_position == 'Double-Loaded Interior')
           has_rear_units = true
+          args['geometry_unit_front_wall_is_adiabatic'] = true
+        elsif (n_units_per_floor == 2) && (horiz_location == 'None') && (corridor_position == 'Double Exterior' || corridor_position == 'None')
+          has_rear_units = true
+          args['geometry_unit_back_wall_is_adiabatic'] = true
+        elsif (n_units_per_floor == 2) && (horiz_location == 'None') && (corridor_position == 'Double-Loaded Interior')
+          has_rear_units = true
+          args['geometry_unit_front_wall_is_adiabatic'] = true
+        elsif corridor_position == 'Single Exterior (Front)'
+          has_rear_units = false
+          args['geometry_unit_front_wall_is_adiabatic'] = false
         else
           has_rear_units = false
+          args['geometry_unit_front_wall_is_adiabatic'] = false
         end
+        # Model exterior corridors as overhangs
+        if (args['geometry_corridor_position'].include? 'Exterior') && args['geometry_corridor_width'] > 0
+          args['overhangs_front_depth'] = args['geometry_corridor_width']
+          args['overhangs_front_distance_to_top_of_window'] = 1
+        end
+
       elsif args['geometry_unit_type'] == HPXML::ResidentialTypeSFA
         n_floors = 1.0
         n_units_per_floor = n_units
         has_rear_units = false
+        corridor_position = 'None'
       end
 
+      # Error check MF & SFA geometry
+      if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
+        runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
+        corridor_position = 'Single Exterior (Front)'
+      end
+      if has_rear_units
+        unit_width = n_units_per_floor / 2
+      else
+        unit_width = n_units_per_floor
+      end
+      if (unit_width <= 1) && (horiz_location != 'None')
+        runner.registerWarning("No #{horiz_location} location exists, setting horizontal location to 'None'")
+        horiz_location = 'None'
+      end
+      if (unit_width > 1) && (horiz_location == 'None')
+        runner.registerError('ResStockArguments: Specified incompatible horizontal location for the corridor and unit configuration.')
+        return false
+      end
+      if (unit_width <= 2) && (horiz_location == 'Middle')
+        runner.registerError('ResStockArguments: Invalid horizontal location entered, no middle location exists.')
+        return false
+      end
+
+      # Infiltration adjustment for SFA/MF units
       # Calculate exposed wall area ratio for the unit (unit exposed wall area
       # divided by average unit exposed wall area)
       if (n_units_per_floor <= 2) || (n_units_per_floor == 4 && has_rear_units) # No middle unit(s)
@@ -536,6 +644,36 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Apply adjustment to infiltration value
       args['air_leakage_value'] *= exposed_wall_area_ratio
+
+      if horiz_location == 'Left'
+        args['geometry_unit_right_wall_is_adiabatic'] = true
+      elsif horiz_location == 'Middle'
+        args['geometry_unit_left_wall_is_adiabatic'] = true
+        args['geometry_unit_right_wall_is_adiabatic'] = true
+      elsif horiz_location == 'Right'
+        args['geometry_unit_left_wall_is_adiabatic'] = true
+      end
+    end
+
+    # Num Floors
+    if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
+      args['geometry_unit_num_floors_above_grade'] = 1
+    else
+      args['geometry_unit_num_floors_above_grade'] = Integer(args['geometry_num_floors_above_grade'])
+    end
+
+    # Adiabatic Floor/Ceiling
+    if args['geometry_unit_level'].is_initialized
+      if args['geometry_unit_level'].get == 'Bottom'
+        if args['geometry_num_floors_above_grade'] > 1 # this could be "bottom" of a 1-story building
+          args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+        end
+      elsif args['geometry_unit_level'].get == 'Middle'
+        args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
+        args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
+      elsif args['geometry_unit_level'].get == 'Top'
+        args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
+      end
     end
 
     args.each do |arg_name, arg_value|
