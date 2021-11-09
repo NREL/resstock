@@ -115,69 +115,81 @@ class ReportHPXMLOutputTest < MiniTest::Test
   end
 
   def test_air_source_heat_pump_xml
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-hvac-air-to-air-heat-pump-1-speed.xml' }
-    hpxml_csv = _test_measure(args_hash)
-    assert(File.exist?(hpxml_csv))
+    hpxml_files = ['base-hvac-air-to-air-heat-pump-1-speed.xml',
+                   'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml']
+    hpxml_files.each do |hpxml_file|
+      args_hash = { 'hpxml_path' => "../workflow/sample_files/#{hpxml_file}" }
+      hpxml_csv = _test_measure(args_hash)
+      assert(File.exist?(hpxml_csv))
 
-    expected_multipliers = {
-      'Enclosure: Wall Area Thermal Boundary (ft^2)' => 1200.0,
-      'Enclosure: Wall Area Exterior (ft^2)' => 1425.0,
-      'Enclosure: Foundation Wall Area Exterior (ft^2)' => 1200.0,
-      'Enclosure: Floor Area Conditioned (ft^2)' => 2700.0,
-      'Enclosure: Floor Area Lighting (ft^2)' => 2700.0,
-      'Enclosure: Ceiling Area Thermal Boundary (ft^2)' => 1350.0,
-      'Enclosure: Roof Area (ft^2)' => 1509.4,
-      'Enclosure: Window Area (ft^2)' => 360.0,
-      'Enclosure: Door Area (ft^2)' => 40.0,
-      'Enclosure: Duct Area Unconditioned (ft^2)' => 200.0,
-      'Enclosure: Rim Joist Area (ft^2)' => 115.6,
-      'Enclosure: Slab Exposed Perimeter Thermal Boundary (ft)' => 150.0,
-      'Systems: Heating Capacity (Btu/h)' => 36000.0,
-      'Systems: Cooling Capacity (Btu/h)' => 36000.0,
-      'Systems: Heat Pump Backup Capacity (Btu/h)' => 36000.0,
-      'Systems: Water Heater Tank Volume (gal)' => 40.0,
-      'Systems: Mechanical Ventilation Flow Rate (cfm)' => 0.0,
-      'Primary Systems: Heating Capacity (Btu/h)' => 36000.0,
-      'Primary Systems: Cooling Capacity (Btu/h)' => 36000.0,
-      'Primary Systems: Heat Pump Backup Capacity (Btu/h)' => 36000.0,
-      'Design Loads Heating: Total (Btu/h)' => 31214.0,
-      'Design Loads Heating: Ducts (Btu/h)' => 7508.0,
-      'Design Loads Heating: Windows (Btu/h)' => 7508.0,
-      'Design Loads Heating: Skylights (Btu/h)' => 0.0,
-      'Design Loads Heating: Doors (Btu/h)' => 575.0,
-      'Design Loads Heating: Walls (Btu/h)' => 6409.0,
-      'Design Loads Heating: Roofs (Btu/h)' => 0.0,
-      'Design Loads Heating: Floors (Btu/h)' => 0.0,
-      'Design Loads Heating: Slabs (Btu/h)' => 2446.0,
-      'Design Loads Heating: Ceilings (Btu/h)' => 2171.0,
-      'Design Loads Heating: Infiltration/Ventilation (Btu/h)' => 4597.0,
-      'Design Loads Cooling Sensible: Total (Btu/h)' => 17964.0,
-      'Design Loads Cooling Sensible: Ducts (Btu/h)' => 5216.0,
-      'Design Loads Cooling Sensible: Windows (Btu/h)' => 7127.0,
-      'Design Loads Cooling Sensible: Skylights (Btu/h)' => 0.0,
-      'Design Loads Cooling Sensible: Doors (Btu/h)' => 207.0,
-      'Design Loads Cooling Sensible: Walls (Btu/h)' => 265.0,
-      'Design Loads Cooling Sensible: Roofs (Btu/h)' => 0.0,
-      'Design Loads Cooling Sensible: Floors (Btu/h)' => 0.0,
-      'Design Loads Cooling Sensible: Slabs (Btu/h)' => 0.0,
-      'Design Loads Cooling Sensible: Ceilings (Btu/h)' => 2010.0,
-      'Design Loads Cooling Sensible: Infiltration/Ventilation (Btu/h)' => 619.0,
-      'Design Loads Cooling Sensible: Internal Gains (Btu/h)' => 2520.0,
-      'Design Loads Cooling Latent: Total (Btu/h)' => 0.0,
-      'Design Loads Cooling Latent: Ducts (Btu/h)' => 0.0,
-      'Design Loads Cooling Latent: Infiltration/Ventilation (Btu/h)' => 0.0,
-      'Design Loads Cooling Latent: Internal Gains (Btu/h)' => 0.0
-    }
+      if hpxml_file == 'base-hvac-air-to-air-heat-pump-1-speed.xml'
+        hp_capacity = 36000.0
+        backup_capacity = 36000.0
+      elsif hpxml_file == 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml'
+        hp_capacity = 18000.0
+        backup_capacity = 60000.0
+      end
 
-    actual_multipliers = {}
-    File.readlines(hpxml_csv).each do |line|
-      next if line.strip.empty?
+      expected_multipliers = {
+        'Enclosure: Wall Area Thermal Boundary (ft^2)' => 1200.0,
+        'Enclosure: Wall Area Exterior (ft^2)' => 1425.0,
+        'Enclosure: Foundation Wall Area Exterior (ft^2)' => 1200.0,
+        'Enclosure: Floor Area Conditioned (ft^2)' => 2700.0,
+        'Enclosure: Floor Area Lighting (ft^2)' => 2700.0,
+        'Enclosure: Ceiling Area Thermal Boundary (ft^2)' => 1350.0,
+        'Enclosure: Roof Area (ft^2)' => 1509.4,
+        'Enclosure: Window Area (ft^2)' => 360.0,
+        'Enclosure: Door Area (ft^2)' => 40.0,
+        'Enclosure: Duct Area Unconditioned (ft^2)' => 200.0,
+        'Enclosure: Rim Joist Area (ft^2)' => 115.6,
+        'Enclosure: Slab Exposed Perimeter Thermal Boundary (ft)' => 150.0,
+        'Systems: Heating Capacity (Btu/h)' => hp_capacity,
+        'Systems: Cooling Capacity (Btu/h)' => hp_capacity,
+        'Systems: Heat Pump Backup Capacity (Btu/h)' => backup_capacity,
+        'Systems: Water Heater Tank Volume (gal)' => 40.0,
+        'Systems: Mechanical Ventilation Flow Rate (cfm)' => 0.0,
+        'Primary Systems: Heating Capacity (Btu/h)' => hp_capacity,
+        'Primary Systems: Cooling Capacity (Btu/h)' => hp_capacity,
+        'Primary Systems: Heat Pump Backup Capacity (Btu/h)' => backup_capacity,
+        'Design Loads Heating: Total (Btu/h)' => 31214.0,
+        'Design Loads Heating: Ducts (Btu/h)' => 7508.0,
+        'Design Loads Heating: Windows (Btu/h)' => 7508.0,
+        'Design Loads Heating: Skylights (Btu/h)' => 0.0,
+        'Design Loads Heating: Doors (Btu/h)' => 575.0,
+        'Design Loads Heating: Walls (Btu/h)' => 6409.0,
+        'Design Loads Heating: Roofs (Btu/h)' => 0.0,
+        'Design Loads Heating: Floors (Btu/h)' => 0.0,
+        'Design Loads Heating: Slabs (Btu/h)' => 2446.0,
+        'Design Loads Heating: Ceilings (Btu/h)' => 2171.0,
+        'Design Loads Heating: Infiltration/Ventilation (Btu/h)' => 4597.0,
+        'Design Loads Cooling Sensible: Total (Btu/h)' => 17964.0,
+        'Design Loads Cooling Sensible: Ducts (Btu/h)' => 5216.0,
+        'Design Loads Cooling Sensible: Windows (Btu/h)' => 7127.0,
+        'Design Loads Cooling Sensible: Skylights (Btu/h)' => 0.0,
+        'Design Loads Cooling Sensible: Doors (Btu/h)' => 207.0,
+        'Design Loads Cooling Sensible: Walls (Btu/h)' => 265.0,
+        'Design Loads Cooling Sensible: Roofs (Btu/h)' => 0.0,
+        'Design Loads Cooling Sensible: Floors (Btu/h)' => 0.0,
+        'Design Loads Cooling Sensible: Slabs (Btu/h)' => 0.0,
+        'Design Loads Cooling Sensible: Ceilings (Btu/h)' => 2010.0,
+        'Design Loads Cooling Sensible: Infiltration/Ventilation (Btu/h)' => 619.0,
+        'Design Loads Cooling Sensible: Internal Gains (Btu/h)' => 2520.0,
+        'Design Loads Cooling Latent: Total (Btu/h)' => 0.0,
+        'Design Loads Cooling Latent: Ducts (Btu/h)' => 0.0,
+        'Design Loads Cooling Latent: Infiltration/Ventilation (Btu/h)' => 0.0,
+        'Design Loads Cooling Latent: Internal Gains (Btu/h)' => 0.0
+      }
 
-      key, value = line.split(',').map { |x| x.strip }
-      actual_multipliers[key] = Float(value)
+      actual_multipliers = {}
+      File.readlines(hpxml_csv).each do |line|
+        next if line.strip.empty?
+
+        key, value = line.split(',').map { |x| x.strip }
+        actual_multipliers[key] = Float(value)
+      end
+
+      assert_equal(expected_multipliers, actual_multipliers)
     end
-
-    assert_equal(expected_multipliers, actual_multipliers)
   end
 
   def _test_measure(args_hash)

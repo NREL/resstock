@@ -273,6 +273,8 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       end
     elsif cost_mult_type == 'Systems: Heating Capacity'
       hpxml.heating_systems.each do |heating_system|
+        next if heating_system.is_heat_pump_backup_system
+
         cost_mult += heating_system.heating_capacity
       end
 
@@ -289,7 +291,11 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       end
     elsif cost_mult_type == 'Systems: Heat Pump Backup Capacity'
       hpxml.heat_pumps.each do |heat_pump|
-        cost_mult += heat_pump.backup_heating_capacity
+        if not heat_pump.backup_heating_capacity.nil?
+          cost_mult += heat_pump.backup_heating_capacity
+        elsif not heat_pump.backup_system.nil?
+          cost_mult += heat_pump.backup_system.heating_capacity
+        end
       end
     elsif cost_mult_type == 'Systems: Water Heater Tank Volume'
       hpxml.water_heating_systems.each do |water_heating_system|
@@ -376,6 +382,8 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     has_primary_heating_system = false
     has_secondary_heating_system = false
     hpxml.heating_systems.each do |heating_system|
+      next if heating_system.is_heat_pump_backup_system
+
       has_primary_heating_system = true if heating_system.primary_system
       has_secondary_heating_system = true if !heating_system.primary_system
     end
@@ -418,13 +426,19 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
     if has_primary_heating_system || has_secondary_heating_system
       hpxml.heating_systems.each do |heating_system|
+        next if heating_system.is_heat_pump_backup_system
+
         prefix = heating_system.primary_system ? 'Primary' : 'Secondary'
         cost_multipliers["#{prefix} #{BS::HeatingSystem}"].output += heating_system.heating_capacity
       end
       hpxml.heat_pumps.each do |heat_pump|
         prefix = heat_pump.primary_heating_system ? 'Primary' : 'Secondary'
         cost_multipliers["#{prefix} #{BS::HeatingSystem}"].output += heat_pump.heating_capacity
-        cost_multipliers["#{prefix} #{BS::HeatPumpBackup}"].output += heat_pump.backup_heating_capacity
+        if not heat_pump.backup_heating_capacity.nil?
+          cost_multipliers["#{prefix} #{BS::HeatPumpBackup}"].output += heat_pump.backup_heating_capacity
+        elsif not heat_pump.backup_system.nil?
+          cost_multipliers["#{prefix} #{BS::HeatPumpBackup}"].output += heat_pump.backup_system.heating_capacity
+        end
       end
     end
   end
