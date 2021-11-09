@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>b5e59b64-55d4-4f35-8d15-5d142bf478fc</version_id>
-  <version_modified>20211029T170122Z</version_modified>
+  <version_id>6297591e-383d-4ce2-bd91-dc445ce2f8c1</version_id>
+  <version_modified>20211109T165220Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -119,6 +119,96 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_iecc_zone</name>
+      <display_name>Site: IECC Zone</display_name>
+      <description>IECC zone of the home address. If not provided, uses the IECC zone corresponding to the EPW weather file.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>1A</value>
+          <display_name>1A</display_name>
+        </choice>
+        <choice>
+          <value>1B</value>
+          <display_name>1B</display_name>
+        </choice>
+        <choice>
+          <value>1C</value>
+          <display_name>1C</display_name>
+        </choice>
+        <choice>
+          <value>2A</value>
+          <display_name>2A</display_name>
+        </choice>
+        <choice>
+          <value>2B</value>
+          <display_name>2B</display_name>
+        </choice>
+        <choice>
+          <value>2C</value>
+          <display_name>2C</display_name>
+        </choice>
+        <choice>
+          <value>3A</value>
+          <display_name>3A</display_name>
+        </choice>
+        <choice>
+          <value>3B</value>
+          <display_name>3B</display_name>
+        </choice>
+        <choice>
+          <value>3C</value>
+          <display_name>3C</display_name>
+        </choice>
+        <choice>
+          <value>4A</value>
+          <display_name>4A</display_name>
+        </choice>
+        <choice>
+          <value>4B</value>
+          <display_name>4B</display_name>
+        </choice>
+        <choice>
+          <value>4C</value>
+          <display_name>4C</display_name>
+        </choice>
+        <choice>
+          <value>5A</value>
+          <display_name>5A</display_name>
+        </choice>
+        <choice>
+          <value>5B</value>
+          <display_name>5B</display_name>
+        </choice>
+        <choice>
+          <value>5C</value>
+          <display_name>5C</display_name>
+        </choice>
+        <choice>
+          <value>6A</value>
+          <display_name>6A</display_name>
+        </choice>
+        <choice>
+          <value>6B</value>
+          <display_name>6B</display_name>
+        </choice>
+        <choice>
+          <value>6C</value>
+          <display_name>6C</display_name>
+        </choice>
+        <choice>
+          <value>7</value>
+          <display_name>7</display_name>
+        </choice>
+        <choice>
+          <value>8</value>
+          <display_name>8</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>site_state_code</name>
@@ -375,64 +465,6 @@
       </choices>
     </argument>
     <argument>
-      <name>geometry_unit_level</name>
-      <display_name>Geometry: Unit Level</display_name>
-      <description>The level of the unit. This is required for apartment units.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>Bottom</value>
-          <display_name>Bottom</display_name>
-        </choice>
-        <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Top</value>
-          <display_name>Top</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_unit_horizontal_location</name>
-      <display_name>Geometry: Unit Horizontal Location</display_name>
-      <description>The horizontal location of the unit when viewing the front of the building. This is required for single-family attached and apartment units.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>None</value>
-          <display_name>None</display_name>
-        </choice>
-        <choice>
-          <value>Left</value>
-          <display_name>Left</display_name>
-        </choice>
-        <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Right</value>
-          <display_name>Right</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_num_floors_above_grade</name>
-      <display_name>Geometry: Number of Floors Above Grade</display_name>
-      <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>2</default_value>
-    </argument>
-    <argument>
       <name>geometry_unit_aspect_ratio</name>
       <display_name>Geometry: Unit Aspect Ratio</display_name>
       <description>The ratio of front/back wall length to left/right wall length for the unit, excluding any protruding garage wall area.</description>
@@ -560,43 +592,6 @@
       </choices>
     </argument>
     <argument>
-      <name>geometry_corridor_position</name>
-      <display_name>Geometry: Corridor Position</display_name>
-      <description>The position of the corridor. Only applies to single-family attached and apartment units. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Double-Loaded Interior</default_value>
-      <choices>
-        <choice>
-          <value>Double-Loaded Interior</value>
-          <display_name>Double-Loaded Interior</display_name>
-        </choice>
-        <choice>
-          <value>Single Exterior (Front)</value>
-          <display_name>Single Exterior (Front)</display_name>
-        </choice>
-        <choice>
-          <value>Double Exterior</value>
-          <display_name>Double Exterior</display_name>
-        </choice>
-        <choice>
-          <value>None</value>
-          <display_name>None</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_corridor_width</name>
-      <display_name>Geometry: Corridor Width</display_name>
-      <description>The width of the corridor. Only applies to apartment units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>10</default_value>
-    </argument>
-    <argument>
       <name>geometry_foundation_type</name>
       <display_name>Geometry: Foundation Type</display_name>
       <description>The foundation type of the building.</description>
@@ -633,6 +628,10 @@
           <value>Ambient</value>
           <display_name>Ambient</display_name>
         </choice>
+        <choice>
+          <value>AboveApartment</value>
+          <display_name>AboveApartment</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
@@ -665,9 +664,40 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>geometry_attic_type</name>
+      <display_name>Geometry: Attic Type</display_name>
+      <description>The attic type of the building.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>VentedAttic</default_value>
+      <choices>
+        <choice>
+          <value>FlatRoof</value>
+          <display_name>FlatRoof</display_name>
+        </choice>
+        <choice>
+          <value>VentedAttic</value>
+          <display_name>VentedAttic</display_name>
+        </choice>
+        <choice>
+          <value>UnventedAttic</value>
+          <display_name>UnventedAttic</display_name>
+        </choice>
+        <choice>
+          <value>ConditionedAttic</value>
+          <display_name>ConditionedAttic</display_name>
+        </choice>
+        <choice>
+          <value>BelowApartment</value>
+          <display_name>BelowApartment</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>geometry_roof_type</name>
       <display_name>Geometry: Roof Type</display_name>
-      <description>The roof type of the building. Assumed flat for apartment units.</description>
+      <description>The roof type of the building. Ignored if the building has a flat roof.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -680,10 +710,6 @@
         <choice>
           <value>hip</value>
           <display_name>hip</display_name>
-        </choice>
-        <choice>
-          <value>flat</value>
-          <display_name>flat</display_name>
         </choice>
       </choices>
     </argument>
@@ -743,29 +769,6 @@
         <choice>
           <value>12:12</value>
           <display_name>12:12</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_attic_type</name>
-      <display_name>Geometry: Attic Type</display_name>
-      <description>The attic type of the building. Ignored if the building has a flat roof.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>VentedAttic</default_value>
-      <choices>
-        <choice>
-          <value>VentedAttic</value>
-          <display_name>VentedAttic</display_name>
-        </choice>
-        <choice>
-          <value>UnventedAttic</value>
-          <display_name>UnventedAttic</display_name>
-        </choice>
-        <choice>
-          <value>ConditionedAttic</value>
-          <display_name>ConditionedAttic</display_name>
         </choice>
       </choices>
     </argument>
@@ -5647,6 +5650,100 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>geometry_unit_level</name>
+      <display_name>Geometry: Unit Level</display_name>
+      <description>The level of the unit. This is required for apartment units.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>Bottom</value>
+          <display_name>Bottom</display_name>
+        </choice>
+        <choice>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Top</value>
+          <display_name>Top</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_unit_horizontal_location</name>
+      <display_name>Geometry: Unit Horizontal Location</display_name>
+      <description>The horizontal location of the unit when viewing the front of the building. This is required for single-family attached and apartment units.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+        <choice>
+          <value>Left</value>
+          <display_name>Left</display_name>
+        </choice>
+        <choice>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Right</value>
+          <display_name>Right</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_num_floors_above_grade</name>
+      <display_name>Geometry: Number of Floors Above Grade</display_name>
+      <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2</default_value>
+    </argument>
+    <argument>
+      <name>geometry_corridor_position</name>
+      <display_name>Geometry: Corridor Position</display_name>
+      <description>The position of the corridor. Only applies to single-family attached and apartment units. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>Double-Loaded Interior</value>
+          <display_name>Double-Loaded Interior</display_name>
+        </choice>
+        <choice>
+          <value>Double Exterior</value>
+          <display_name>Double Exterior</display_name>
+        </choice>
+        <choice>
+          <value>Single Exterior (Front)</value>
+          <display_name>Single Exterior (Front)</display_name>
+        </choice>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_corridor_width</name>
+      <display_name>Geometry: Corridor Width</display_name>
+      <description>The width of the corridor. Only applies to apartment units.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>10</default_value>
+    </argument>
+    <argument>
       <name>misc_plug_loads_other_2_usage_multiplier</name>
       <display_name>Plug Loads: Other Usage Multiplier 2</display_name>
       <description>Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.</description>
@@ -5936,7 +6033,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>D92549D7</checksum>
+      <checksum>6FD1C0A1</checksum>
     </file>
     <file>
       <version>
@@ -5947,7 +6044,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>752E948F</checksum>
+      <checksum>1C4338A3</checksum>
     </file>
   </files>
 </measure>

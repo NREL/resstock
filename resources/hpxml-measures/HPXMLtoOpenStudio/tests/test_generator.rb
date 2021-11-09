@@ -13,7 +13,6 @@ class HPXMLtoOpenStudioGeneratorTest < MiniTest::Test
   end
 
   def get_generator(model, name)
-    generator = nil
     model.getGeneratorMicroTurbines.each do |g|
       next unless g.name.to_s.start_with? "#{name} "
 

@@ -56,7 +56,7 @@ class HPXML < Object
                  :cooling_systems, :heat_pumps, :hvac_plant, :hvac_controls, :hvac_distributions,
                  :ventilation_fans, :water_heating_systems,
                  :hot_water_distributions, :water_fixtures, :water_heating, :solar_thermal_systems,
-                 :pv_systems, :generators, :clothes_washers, :clothes_dryers, :dishwashers, :refrigerators,
+                 :pv_systems, :generators, :batteries, :clothes_washers, :clothes_dryers, :dishwashers, :refrigerators,
                  :freezers, :dehumidifiers, :cooking_ranges, :ovens, :lighting_groups, :lighting,
                  :ceiling_fans, :pools, :hot_tubs, :plug_loads, :fuel_loads]
   attr_reader(*HPXML_ATTRS, :doc, :errors, :warnings)
@@ -67,12 +67,16 @@ class HPXML < Object
   AirTypeGravity = 'gravity'
   AirTypeHighVelocity = 'high velocity'
   AirTypeRegularVelocity = 'regular velocity'
+  AtticTypeBelowApartment = 'BelowApartment'
   AtticTypeCathedral = 'CathedralCeiling'
   AtticTypeConditioned = 'ConditionedAttic'
   AtticTypeFlatRoof = 'FlatRoof'
   AtticTypeUnvented = 'UnventedAttic'
   AtticTypeVented = 'VentedAttic'
   AtticWallTypeGable = 'gable'
+  BatteryTypeLithiumIon = 'Li-ion'
+  BatteryLifetimeModelNone = 'None'
+  BatteryLifetimeModelKandlerSmith = 'KandlerSmith'
   CertificationEnergyStar = 'Energy Star'
   ClothesDryerControlTypeMoisture = 'moisture'
   ClothesDryerControlTypeTimer = 'timer'
@@ -99,6 +103,7 @@ class HPXML < Object
   DWHRFacilitiesConnectedAll = 'all'
   DWHRFacilitiesConnectedOne = 'one'
   ExteriorShadingTypeSolarScreens = 'solar screens'
+  FoundationTypeAboveApartment = 'AboveApartment'
   FoundationTypeAmbient = 'Ambient'
   FoundationTypeBasementConditioned = 'ConditionedBasement'
   FoundationTypeBasementUnconditioned = 'UnconditionedBasement'
@@ -140,6 +145,8 @@ class HPXML < Object
   HeaterTypeElectricResistance = 'electric resistance'
   HeaterTypeGas = 'gas fired'
   HeaterTypeHeatPump = 'heat pump'
+  HeatPumpBackupTypeIntegrated = 'integrated'
+  HeatPumpBackupTypeSeparate = 'separate'
   HVACCompressorTypeSingleStage = 'single stage'
   HVACCompressorTypeTwoStage = 'two stage'
   HVACCompressorTypeVariableSpeed = 'variable speed'
@@ -276,12 +283,14 @@ class HPXML < Object
   SolarThermalTypeSingleGlazing = 'single glazing black'
   SurroundingsOneSide = 'attached on one side'
   SurroundingsTwoSides = 'attached on two sides'
+  SurroundingsThreeSides = 'attached on three sides'
   SurroundingsStandAlone = 'stand-alone'
   TypeNone = 'none'
   TypeUnknown = 'unknown'
   UnitsACH = 'ACH'
   UnitsACHNatural = 'ACHnatural'
   UnitsAFUE = 'AFUE'
+  UnitsAh = 'Ah'
   UnitsCFM = 'CFM'
   UnitsCFM25 = 'CFM25'
   UnitsCFM50 = 'CFM50'
@@ -289,12 +298,18 @@ class HPXML < Object
   UnitsEER = 'EER'
   UnitsCEER = 'CEER'
   UnitsHSPF = 'HSPF'
+  UnitsKwh = 'kWh'
   UnitsKwhPerYear = 'kWh/year'
+  UnitsKwhPerDay = 'kWh/day'
   UnitsKwPerTon = 'kW/ton'
   UnitsPercent = 'Percent'
   UnitsSEER = 'SEER'
   UnitsSLA = 'SLA'
   UnitsThermPerYear = 'therm/year'
+  VerticalSurroundingsNoAboveOrBelow = 'no units above or below'
+  VerticalSurroundingsAboveAndBelow = 'unit above and below'
+  VerticalSurroundingsBelow = 'unit below'
+  VerticalSurroundingsAbove = 'unit above'
   WallTypeAdobe = 'Adobe'
   WallTypeBrick = 'StructuralBrick'
   WallTypeCMU = 'ConcreteMasonryUnit'
@@ -654,6 +669,7 @@ class HPXML < Object
     @water_heating.to_oga(@doc)
     @solar_thermal_systems.to_oga(@doc)
     @pv_systems.to_oga(@doc)
+    @batteries.to_oga(@doc)
     @generators.to_oga(@doc)
     @clothes_washers.to_oga(@doc)
     @clothes_dryers.to_oga(@doc)
@@ -707,6 +723,7 @@ class HPXML < Object
     @water_heating = WaterHeating.new(self, hpxml)
     @solar_thermal_systems = SolarThermalSystems.new(self, hpxml)
     @pv_systems = PVSystems.new(self, hpxml)
+    @batteries = Batteries.new(self, hpxml)
     @generators = Generators.new(self, hpxml)
     @clothes_washers = ClothesWashers.new(self, hpxml)
     @clothes_dryers = ClothesDryers.new(self, hpxml)
@@ -992,7 +1009,7 @@ class HPXML < Object
   end
 
   class Site < BaseElement
-    ATTRS = [:site_type, :surroundings, :shielding_of_home, :orientation_of_front_of_home, :azimuth_of_front_of_home, :fuels]
+    ATTRS = [:site_type, :surroundings, :vertical_surroundings, :shielding_of_home, :orientation_of_front_of_home, :azimuth_of_front_of_home, :fuels]
     attr_accessor(*ATTRS)
 
     def check_for_errors
@@ -1006,6 +1023,7 @@ class HPXML < Object
       site = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'BuildingSummary', 'Site'])
       XMLHelper.add_element(site, 'SiteType', @site_type, :string, @site_type_isdefaulted) unless @site_type.nil?
       XMLHelper.add_element(site, 'Surroundings', @surroundings, :string) unless @surroundings.nil?
+      XMLHelper.add_element(site, 'VerticalSurroundings', @vertical_surroundings, :string) unless @vertical_surroundings.nil?
       XMLHelper.add_element(site, 'ShieldingofHome', @shielding_of_home, :string, @shielding_of_home_isdefaulted) unless @shielding_of_home.nil?
       XMLHelper.add_element(site, 'OrientationOfFrontOfHome', @orientation_of_front_of_home, :string) unless @orientation_of_front_of_home.nil?
       XMLHelper.add_element(site, 'AzimuthOfFrontOfHome', @azimuth_of_front_of_home, :integer) unless @azimuth_of_front_of_home.nil?
@@ -1030,6 +1048,7 @@ class HPXML < Object
 
       @site_type = XMLHelper.get_value(site, 'SiteType', :string)
       @surroundings = XMLHelper.get_value(site, 'Surroundings', :string)
+      @vertical_surroundings = XMLHelper.get_value(site, 'VerticalSurroundings', :string)
       @shielding_of_home = XMLHelper.get_value(site, 'ShieldingofHome', :string)
       @orientation_of_front_of_home = XMLHelper.get_value(site, 'OrientationOfFrontOfHome', :string)
       @azimuth_of_front_of_home = XMLHelper.get_value(site, 'AzimuthOfFrontOfHome', :integer)
@@ -1325,15 +1344,11 @@ class HPXML < Object
     def to_location
       return if @attic_type.nil?
 
-      if @attic_type == AtticTypeCathedral
+      if [AtticTypeCathedral, AtticTypeConditioned, AtticTypeFlatRoof, AtticTypeBelowApartment].include? @attic_type
         return LocationLivingSpace
-      elsif @attic_type == AtticTypeConditioned
-        return LocationLivingSpace
-      elsif @attic_type == AtticTypeFlatRoof
-        return LocationLivingSpace
-      elsif @attic_type == AtticTypeUnvented
+      elsif [AtticTypeUnvented].include? @attic_type
         return LocationAtticUnvented
-      elsif @attic_type == AtticTypeVented
+      elsif [AtticTypeVented].include? @attic_type
         return LocationAtticVented
       else
         fail "Unexpected attic type: '#{@attic_type}'."
@@ -1362,10 +1377,12 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       if not @attic_type.nil?
         attic_type_el = XMLHelper.add_element(attic, 'AtticType')
-        if @attic_type == AtticTypeUnvented
+        if [AtticTypeFlatRoof, AtticTypeCathedral, AtticTypeBelowApartment].include? @attic_type
+          XMLHelper.add_element(attic_type_el, @attic_type)
+        elsif [AtticTypeUnvented].include? @attic_type
           attic_type_attic = XMLHelper.add_element(attic_type_el, 'Attic')
           XMLHelper.add_element(attic_type_attic, 'Vented', false, :boolean)
-        elsif @attic_type == AtticTypeVented
+        elsif [AtticTypeVented].include? @attic_type
           attic_type_attic = XMLHelper.add_element(attic_type_el, 'Attic')
           XMLHelper.add_element(attic_type_attic, 'Vented', true, :boolean)
           if not @vented_attic_sla.nil?
@@ -1377,11 +1394,9 @@ class HPXML < Object
             XMLHelper.add_element(ventilation_rate, 'UnitofMeasure', UnitsACHNatural, :string)
             XMLHelper.add_element(ventilation_rate, 'Value', @vented_attic_ach, :float)
           end
-        elsif @attic_type == AtticTypeConditioned
+        elsif [AtticTypeConditioned].include? @attic_type
           attic_type_attic = XMLHelper.add_element(attic_type_el, 'Attic')
           XMLHelper.add_element(attic_type_attic, 'Conditioned', true, :boolean)
-        elsif (@attic_type == AtticTypeFlatRoof) || (@attic_type == AtticTypeCathedral)
-          XMLHelper.add_element(attic_type_el, @attic_type)
         else
           fail "Unhandled attic type '#{@attic_type}'."
         end
@@ -1421,6 +1436,8 @@ class HPXML < Object
         @attic_type = AtticTypeFlatRoof
       elsif XMLHelper.has_element(attic, 'AtticType/CathedralCeiling')
         @attic_type = AtticTypeCathedral
+      elsif XMLHelper.has_element(attic, 'AtticType/BelowApartment')
+        @attic_type = AtticTypeBelowApartment
       end
       if @attic_type == AtticTypeVented
         @vented_attic_sla = XMLHelper.get_value(attic, "VentilationRate[UnitofMeasure='#{UnitsSLA}']/Value", :float)
@@ -1520,15 +1537,17 @@ class HPXML < Object
     def to_location
       return if @foundation_type.nil?
 
-      if @foundation_type == FoundationTypeAmbient
+      if [FoundationTypeSlab, FoundationTypeAboveApartment].include? @foundation_type
+        return LocationLivingSpace
+      elsif [FoundationTypeAmbient].include? @foundation_type
         return LocationOutside
-      elsif @foundation_type == FoundationTypeBasementConditioned
+      elsif [FoundationTypeBasementConditioned].include? @foundation_type
         return LocationBasementConditioned
-      elsif @foundation_type == FoundationTypeBasementUnconditioned
+      elsif [FoundationTypeBasementUnconditioned].include? @foundation_type
         return LocationBasementUnconditioned
-      elsif @foundation_type == FoundationTypeCrawlspaceUnvented
+      elsif [FoundationTypeCrawlspaceUnvented].include? @foundation_type
         return LocationCrawlspaceUnvented
-      elsif @foundation_type == FoundationTypeCrawlspaceVented
+      elsif [FoundationTypeCrawlspaceVented].include? @foundation_type
         return LocationCrawlspaceVented
       elsif @foundation_type == FoundationTypeCrawlspaceConditioned
         return LocationCrawlspaceConditioned
@@ -1578,15 +1597,15 @@ class HPXML < Object
       XMLHelper.add_attribute(sys_id, 'id', @id)
       if not @foundation_type.nil?
         foundation_type_el = XMLHelper.add_element(foundation, 'FoundationType')
-        if [FoundationTypeSlab, FoundationTypeAmbient].include? @foundation_type
+        if [FoundationTypeSlab, FoundationTypeAmbient, FoundationTypeAboveApartment].include? @foundation_type
           XMLHelper.add_element(foundation_type_el, @foundation_type)
-        elsif @foundation_type == FoundationTypeBasementConditioned
+        elsif [FoundationTypeBasementConditioned].include? @foundation_type
           basement = XMLHelper.add_element(foundation_type_el, 'Basement')
           XMLHelper.add_element(basement, 'Conditioned', true, :boolean)
-        elsif @foundation_type == FoundationTypeBasementUnconditioned
+        elsif [FoundationTypeBasementUnconditioned].include? @foundation_type
           basement = XMLHelper.add_element(foundation_type_el, 'Basement')
           XMLHelper.add_element(basement, 'Conditioned', false, :boolean)
-        elsif @foundation_type == FoundationTypeCrawlspaceVented
+        elsif [FoundationTypeCrawlspaceVented].include? @foundation_type
           crawlspace = XMLHelper.add_element(foundation_type_el, 'Crawlspace')
           XMLHelper.add_element(crawlspace, 'Vented', true, :boolean)
           if not @vented_crawlspace_sla.nil?
@@ -1594,7 +1613,7 @@ class HPXML < Object
             XMLHelper.add_element(ventilation_rate, 'UnitofMeasure', UnitsSLA, :string)
             XMLHelper.add_element(ventilation_rate, 'Value', @vented_crawlspace_sla, :float, @vented_crawlspace_sla_isdefaulted)
           end
-        elsif @foundation_type == FoundationTypeCrawlspaceUnvented
+        elsif [FoundationTypeCrawlspaceUnvented].include? @foundation_type
           crawlspace = XMLHelper.add_element(foundation_type_el, 'Crawlspace')
           XMLHelper.add_element(crawlspace, 'Vented', false, :boolean)
         elsif @foundation_type == FoundationTypeCrawlspaceConditioned
@@ -1655,6 +1674,8 @@ class HPXML < Object
         @foundation_type = FoundationTypeCrawlspaceConditioned
       elsif XMLHelper.has_element(foundation, 'FoundationType/Ambient')
         @foundation_type = FoundationTypeAmbient
+      elsif XMLHelper.has_element(foundation, 'FoundationType/AboveApartment')
+        @foundation_type = FoundationTypeAboveApartment
       end
       if @foundation_type == FoundationTypeCrawlspaceVented
         @vented_crawlspace_sla = XMLHelper.get_value(foundation, "VentilationRate[UnitofMeasure='#{UnitsSLA}']/Value", :float)
@@ -2255,15 +2276,15 @@ class HPXML < Object
         layer = XMLHelper.add_element(insulation, 'Layer')
         XMLHelper.add_element(layer, 'InstallationType', 'continuous - exterior', :string)
         XMLHelper.add_element(layer, 'NominalRValue', @insulation_exterior_r_value, :float)
-        XMLHelper.add_extension(layer, 'DistanceToTopOfInsulation', @insulation_exterior_distance_to_top, :float, @insulation_exterior_distance_to_top_isdefaulted) unless @insulation_exterior_distance_to_top.nil?
-        XMLHelper.add_extension(layer, 'DistanceToBottomOfInsulation', @insulation_exterior_distance_to_bottom, :float, @insulation_exterior_distance_to_bottom_isdefaulted) unless @insulation_exterior_distance_to_bottom.nil?
+        XMLHelper.add_element(layer, 'DistanceToTopOfInsulation', @insulation_exterior_distance_to_top, :float, @insulation_exterior_distance_to_top_isdefaulted) unless @insulation_exterior_distance_to_top.nil?
+        XMLHelper.add_element(layer, 'DistanceToBottomOfInsulation', @insulation_exterior_distance_to_bottom, :float, @insulation_exterior_distance_to_bottom_isdefaulted) unless @insulation_exterior_distance_to_bottom.nil?
       end
       if not @insulation_interior_r_value.nil?
         layer = XMLHelper.add_element(insulation, 'Layer')
         XMLHelper.add_element(layer, 'InstallationType', 'continuous - interior', :string)
         XMLHelper.add_element(layer, 'NominalRValue', @insulation_interior_r_value, :float)
-        XMLHelper.add_extension(layer, 'DistanceToTopOfInsulation', @insulation_interior_distance_to_top, :float, @insulation_interior_distance_to_top_isdefaulted) unless @insulation_interior_distance_to_top.nil?
-        XMLHelper.add_extension(layer, 'DistanceToBottomOfInsulation', @insulation_interior_distance_to_bottom, :float, @insulation_interior_distance_to_bottom_isdefaulted) unless @insulation_interior_distance_to_bottom.nil?
+        XMLHelper.add_element(layer, 'DistanceToTopOfInsulation', @insulation_interior_distance_to_top, :float, @insulation_interior_distance_to_top_isdefaulted) unless @insulation_interior_distance_to_top.nil?
+        XMLHelper.add_element(layer, 'DistanceToBottomOfInsulation', @insulation_interior_distance_to_bottom, :float, @insulation_interior_distance_to_bottom_isdefaulted) unless @insulation_interior_distance_to_bottom.nil?
       end
     end
 
@@ -2292,11 +2313,11 @@ class HPXML < Object
         @insulation_assembly_r_value = XMLHelper.get_value(insulation, 'AssemblyEffectiveRValue', :float)
         @insulation_continuous_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous']/NominalRValue", :float)
         @insulation_interior_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - interior']/NominalRValue", :float)
-        @insulation_interior_distance_to_top = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - interior']/extension/DistanceToTopOfInsulation", :float)
-        @insulation_interior_distance_to_bottom = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - interior']/extension/DistanceToBottomOfInsulation", :float)
+        @insulation_interior_distance_to_top = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - interior']/DistanceToTopOfInsulation", :float)
+        @insulation_interior_distance_to_bottom = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - interior']/DistanceToBottomOfInsulation", :float)
         @insulation_exterior_r_value = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - exterior']/NominalRValue", :float)
-        @insulation_exterior_distance_to_top = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - exterior']/extension/DistanceToTopOfInsulation", :float)
-        @insulation_exterior_distance_to_bottom = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - exterior']/extension/DistanceToBottomOfInsulation", :float)
+        @insulation_exterior_distance_to_top = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - exterior']/DistanceToTopOfInsulation", :float)
+        @insulation_exterior_distance_to_bottom = XMLHelper.get_value(insulation, "Layer[InstallationType='continuous - exterior']/DistanceToBottomOfInsulation", :float)
       end
     end
   end
@@ -2511,9 +2532,6 @@ class HPXML < Object
       XMLHelper.add_element(slab, 'Area', @area, :float) unless @area.nil?
       XMLHelper.add_element(slab, 'Thickness', @thickness, :float, @thickness_isdefaulted) unless @thickness.nil?
       XMLHelper.add_element(slab, 'ExposedPerimeter', @exposed_perimeter, :float) unless @exposed_perimeter.nil?
-      XMLHelper.add_element(slab, 'PerimeterInsulationDepth', @perimeter_insulation_depth, :float) unless @perimeter_insulation_depth.nil?
-      XMLHelper.add_element(slab, 'UnderSlabInsulationWidth', @under_slab_insulation_width, :float) unless @under_slab_insulation_width.nil?
-      XMLHelper.add_element(slab, 'UnderSlabInsulationSpansEntireSlab', @under_slab_insulation_spans_entire_slab, :boolean) unless @under_slab_insulation_spans_entire_slab.nil?
       XMLHelper.add_element(slab, 'DepthBelowGrade', @depth_below_grade, :float) unless @depth_below_grade.nil?
       insulation = XMLHelper.add_element(slab, 'PerimeterInsulation')
       sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
@@ -2524,6 +2542,7 @@ class HPXML < Object
       end
       layer = XMLHelper.add_element(insulation, 'Layer')
       XMLHelper.add_element(layer, 'NominalRValue', @perimeter_insulation_r_value, :float) unless @perimeter_insulation_r_value.nil?
+      XMLHelper.add_element(layer, 'InsulationDepth', @perimeter_insulation_depth, :float) unless @perimeter_insulation_depth.nil?
       insulation = XMLHelper.add_element(slab, 'UnderSlabInsulation')
       sys_id = XMLHelper.add_element(insulation, 'SystemIdentifier')
       if not @under_slab_insulation_id.nil?
@@ -2533,6 +2552,8 @@ class HPXML < Object
       end
       layer = XMLHelper.add_element(insulation, 'Layer')
       XMLHelper.add_element(layer, 'NominalRValue', @under_slab_insulation_r_value, :float) unless @under_slab_insulation_r_value.nil?
+      XMLHelper.add_element(layer, 'InsulationWidth', @under_slab_insulation_width, :float) unless @under_slab_insulation_width.nil?
+      XMLHelper.add_element(layer, 'InsulationSpansEntireSlab', @under_slab_insulation_spans_entire_slab, :boolean) unless @under_slab_insulation_spans_entire_slab.nil?
       XMLHelper.add_extension(slab, 'CarpetFraction', @carpet_fraction, :float, @carpet_fraction_isdefaulted) unless @carpet_fraction.nil?
       XMLHelper.add_extension(slab, 'CarpetRValue', @carpet_r_value, :float, @carpet_r_value_isdefaulted) unless @carpet_r_value.nil?
     end
@@ -2545,19 +2566,19 @@ class HPXML < Object
       @area = XMLHelper.get_value(slab, 'Area', :float)
       @thickness = XMLHelper.get_value(slab, 'Thickness', :float)
       @exposed_perimeter = XMLHelper.get_value(slab, 'ExposedPerimeter', :float)
-      @perimeter_insulation_depth = XMLHelper.get_value(slab, 'PerimeterInsulationDepth', :float)
-      @under_slab_insulation_width = XMLHelper.get_value(slab, 'UnderSlabInsulationWidth', :float)
-      @under_slab_insulation_spans_entire_slab = XMLHelper.get_value(slab, 'UnderSlabInsulationSpansEntireSlab', :boolean)
       @depth_below_grade = XMLHelper.get_value(slab, 'DepthBelowGrade', :float)
       perimeter_insulation = XMLHelper.get_element(slab, 'PerimeterInsulation')
       if not perimeter_insulation.nil?
         @perimeter_insulation_id = HPXML::get_id(perimeter_insulation)
         @perimeter_insulation_r_value = XMLHelper.get_value(perimeter_insulation, 'Layer/NominalRValue', :float)
+        @perimeter_insulation_depth = XMLHelper.get_value(perimeter_insulation, 'Layer/InsulationDepth', :float)
       end
       under_slab_insulation = XMLHelper.get_element(slab, 'UnderSlabInsulation')
       if not under_slab_insulation.nil?
         @under_slab_insulation_id = HPXML::get_id(under_slab_insulation)
         @under_slab_insulation_r_value = XMLHelper.get_value(under_slab_insulation, 'Layer/NominalRValue', :float)
+        @under_slab_insulation_width = XMLHelper.get_value(under_slab_insulation, 'Layer/InsulationWidth', :float)
+        @under_slab_insulation_spans_entire_slab = XMLHelper.get_value(under_slab_insulation, 'Layer/InsulationSpansEntireSlab', :boolean)
       end
       @carpet_fraction = XMLHelper.get_value(slab, 'extension/CarpetFraction', :float)
       @carpet_r_value = XMLHelper.get_value(slab, 'extension/CarpetRValue', :float)
@@ -3059,6 +3080,16 @@ class HPXML < Object
       return
     end
 
+    def is_heat_pump_backup_system
+      @hpxml_object.heat_pumps.each do |heat_pump|
+        next if heat_pump.backup_system_idref.nil?
+        next if heat_pump.backup_system_idref != @id
+
+        return true
+      end
+      return false
+    end
+
     def delete
       @hpxml_object.heating_systems.delete(self)
       @hpxml_object.water_heating_systems.each do |water_heating_system|
@@ -3341,7 +3372,7 @@ class HPXML < Object
   class HeatPump < BaseElement
     ATTRS = [:id, :distribution_system_idref, :year_installed, :heat_pump_type, :heat_pump_fuel,
              :heating_capacity, :heating_capacity_17F, :cooling_capacity, :compressor_type,
-             :cooling_shr, :backup_heating_fuel, :backup_heating_capacity,
+             :cooling_shr, :backup_type, :backup_system_idref, :backup_heating_fuel, :backup_heating_capacity,
              :backup_heating_efficiency_percent, :backup_heating_efficiency_afue,
              :backup_heating_switchover_temp, :fraction_heat_load_served, :fraction_cool_load_served,
              :cooling_efficiency_seer, :cooling_efficiency_eer, :cooling_efficiency_ceer, :heating_efficiency_hspf,
@@ -3377,6 +3408,16 @@ class HPXML < Object
       return true if @primary_heating_system || @primary_cooling_system
 
       return false
+    end
+
+    def backup_system
+      return if @backup_system_idref.nil?
+
+      @hpxml_object.heating_systems.each do |heating_system|
+        next unless heating_system.id == @backup_system_idref
+
+        return heating_system
+      end
     end
 
     def delete
@@ -3418,7 +3459,12 @@ class HPXML < Object
       XMLHelper.add_element(heat_pump, 'CoolingCapacity', @cooling_capacity, :float, @cooling_capacity_isdefaulted) unless @cooling_capacity.nil?
       XMLHelper.add_element(heat_pump, 'CompressorType', @compressor_type, :string, @compressor_type_isdefaulted) unless @compressor_type.nil?
       XMLHelper.add_element(heat_pump, 'CoolingSensibleHeatFraction', @cooling_shr, :float, @cooling_shr_isdefaulted) unless @cooling_shr.nil?
-      XMLHelper.add_element(heat_pump, 'BackupSystemFuel', @backup_heating_fuel, :string) unless @backup_heating_fuel.nil?
+      XMLHelper.add_element(heat_pump, 'BackupType', @backup_type, :string, @backup_type_isdefaulted) unless @backup_type.nil?
+      if not @backup_system_idref.nil?
+        backup_system = XMLHelper.add_element(heat_pump, 'BackupSystem')
+        XMLHelper.add_attribute(backup_system, 'idref', @backup_system_idref)
+      end
+      XMLHelper.add_element(heat_pump, 'BackupSystemFuel', @backup_heating_fuel, :string, @backup_heating_fuel_isdefaulted) unless @backup_heating_fuel.nil?
       if not @backup_heating_efficiency_percent.nil?
         backup_eff = XMLHelper.add_element(heat_pump, 'BackupAnnualHeatingEfficiency')
         XMLHelper.add_element(backup_eff, 'Units', UnitsPercent, :string)
@@ -3430,7 +3476,7 @@ class HPXML < Object
         XMLHelper.add_element(backup_eff, 'Value', @backup_heating_efficiency_afue, :float)
       end
       XMLHelper.add_element(heat_pump, 'BackupHeatingCapacity', @backup_heating_capacity, :float, @backup_heating_capacity_isdefaulted) unless @backup_heating_capacity.nil?
-      XMLHelper.add_element(heat_pump, 'BackupHeatingSwitchoverTemperature', @backup_heating_switchover_temp, :float) unless @backup_heating_switchover_temp.nil?
+      XMLHelper.add_element(heat_pump, 'BackupHeatingSwitchoverTemperature', @backup_heating_switchover_temp, :float, @backup_heating_switchover_temp_isdefaulted) unless @backup_heating_switchover_temp.nil?
       XMLHelper.add_element(heat_pump, 'FractionHeatLoadServed', @fraction_heat_load_served, :float, @fraction_heat_load_served_isdefaulted) unless @fraction_heat_load_served.nil?
       XMLHelper.add_element(heat_pump, 'FractionCoolLoadServed', @fraction_cool_load_served, :float, @fraction_cool_load_served_isdefaulted) unless @fraction_cool_load_served.nil?
       if not @cooling_efficiency_seer.nil?
@@ -3494,6 +3540,8 @@ class HPXML < Object
       @cooling_capacity = XMLHelper.get_value(heat_pump, 'CoolingCapacity', :float)
       @compressor_type = XMLHelper.get_value(heat_pump, 'CompressorType', :string)
       @cooling_shr = XMLHelper.get_value(heat_pump, 'CoolingSensibleHeatFraction', :float)
+      @backup_type = XMLHelper.get_value(heat_pump, 'BackupType', :string)
+      @backup_system_idref = HPXML::get_idref(XMLHelper.get_element(heat_pump, 'BackupSystem'))
       @backup_heating_fuel = XMLHelper.get_value(heat_pump, 'BackupSystemFuel', :string)
       @backup_heating_efficiency_percent = XMLHelper.get_value(heat_pump, "BackupAnnualHeatingEfficiency[Units='Percent']/Value", :float)
       @backup_heating_efficiency_afue = XMLHelper.get_value(heat_pump, "BackupAnnualHeatingEfficiency[Units='#{UnitsAFUE}']/Value", :float)
@@ -4724,6 +4772,72 @@ class HPXML < Object
     end
   end
 
+  class Batteries < BaseArrayElement
+    def add(**kwargs)
+      self << Battery.new(@hpxml_object, **kwargs)
+    end
+
+    def from_oga(hpxml)
+      return if hpxml.nil?
+
+      XMLHelper.get_elements(hpxml, 'Building/BuildingDetails/Systems/Batteries/Battery').each do |battery|
+        self << Battery.new(@hpxml_object, battery)
+      end
+    end
+  end
+
+  class Battery < BaseElement
+    ATTRS = [:id, :type, :location, :lifetime_model, :rated_power_output,
+             :nominal_capacity_kwh, :nominal_capacity_ah, :nominal_voltage]
+    attr_accessor(*ATTRS)
+
+    def delete
+      @hpxml_object.batteries.delete(self)
+    end
+
+    def check_for_errors
+      errors = []
+      return errors
+    end
+
+    def to_oga(doc)
+      return if nil?
+
+      batteries = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Systems', 'Batteries'])
+      battery = XMLHelper.add_element(batteries, 'Battery')
+      sys_id = XMLHelper.add_element(battery, 'SystemIdentifier')
+      XMLHelper.add_attribute(sys_id, 'id', @id)
+      XMLHelper.add_element(battery, 'Location', @location, :string, @location_isdefaulted) unless @location.nil?
+      XMLHelper.add_element(battery, 'BatteryType', @type, :string) unless @type.nil?
+      if not @nominal_capacity_kwh.nil?
+        nominal_capacity = XMLHelper.add_element(battery, 'NominalCapacity')
+        XMLHelper.add_element(nominal_capacity, 'Units', UnitsKwh, :string)
+        XMLHelper.add_element(nominal_capacity, 'Value', @nominal_capacity_kwh, :float, @nominal_capacity_kwh_isdefaulted)
+      end
+      if not @nominal_capacity_ah.nil?
+        nominal_capacity = XMLHelper.add_element(battery, 'NominalCapacity')
+        XMLHelper.add_element(nominal_capacity, 'Units', UnitsAh, :string)
+        XMLHelper.add_element(nominal_capacity, 'Value', @nominal_capacity_ah, :float, @nominal_capacity_ah_isdefaulted)
+      end
+      XMLHelper.add_element(battery, 'RatedPowerOutput', @rated_power_output, :float, @rated_power_output_isdefaulted) unless @rated_power_output.nil?
+      XMLHelper.add_element(battery, 'NominalVoltage', @nominal_voltage, :float, @nominal_voltage_isdefaulted) unless @nominal_voltage.nil?
+      XMLHelper.add_extension(battery, 'LifetimeModel', @lifetime_model, :string, @lifetime_model_isdefaulted) unless @lifetime_model.nil?
+    end
+
+    def from_oga(battery)
+      return if battery.nil?
+
+      @id = HPXML::get_id(battery)
+      @location = XMLHelper.get_value(battery, 'Location', :string)
+      @type = XMLHelper.get_value(battery, 'BatteryType', :string)
+      @nominal_capacity_kwh = XMLHelper.get_value(battery, "NominalCapacity[Units='#{UnitsKwh}']/Value", :float)
+      @nominal_capacity_ah = XMLHelper.get_value(battery, "NominalCapacity[Units='#{UnitsAh}']/Value", :float)
+      @rated_power_output = XMLHelper.get_value(battery, 'RatedPowerOutput', :float)
+      @nominal_voltage = XMLHelper.get_value(battery, 'NominalVoltage', :float)
+      @lifetime_model = XMLHelper.get_value(battery, 'extension/LifetimeModel', :string)
+    end
+  end
+
   class ClothesWashers < BaseArrayElement
     def add(**kwargs)
       self << ClothesWasher.new(@hpxml_object, **kwargs)
@@ -5345,7 +5459,7 @@ class HPXML < Object
         exterior_holiday_lighting = XMLHelper.create_elements_as_needed(doc, ['HPXML', 'Building', 'BuildingDetails', 'Lighting', 'extension', 'ExteriorHolidayLighting'])
         if not @holiday_kwh_per_day.nil?
           holiday_lighting_load = XMLHelper.add_element(exterior_holiday_lighting, 'Load')
-          XMLHelper.add_element(holiday_lighting_load, 'Units', 'kWh/day', :string)
+          XMLHelper.add_element(holiday_lighting_load, 'Units', UnitsKwhPerDay, :string)
           XMLHelper.add_element(holiday_lighting_load, 'Value', @holiday_kwh_per_day, :float, @holiday_kwh_per_day_isdefaulted)
         end
         XMLHelper.add_element(exterior_holiday_lighting, 'PeriodBeginMonth', @holiday_period_begin_month, :integer, @holiday_period_begin_month_isdefaulted) unless @holiday_period_begin_month.nil?
@@ -5377,7 +5491,7 @@ class HPXML < Object
       @exterior_monthly_multipliers = XMLHelper.get_value(lighting, 'extension/ExteriorMonthlyScheduleMultipliers', :string)
       if not XMLHelper.get_element(hpxml, 'Building/BuildingDetails/Lighting/extension/ExteriorHolidayLighting').nil?
         @holiday_exists = true
-        @holiday_kwh_per_day = XMLHelper.get_value(lighting, 'extension/ExteriorHolidayLighting/Load[Units="kWh/day"]/Value', :float)
+        @holiday_kwh_per_day = XMLHelper.get_value(lighting, "extension/ExteriorHolidayLighting/Load[Units='#{UnitsKwhPerDay}']/Value", :float)
         @holiday_period_begin_month = XMLHelper.get_value(lighting, 'extension/ExteriorHolidayLighting/PeriodBeginMonth', :integer)
         @holiday_period_begin_day = XMLHelper.get_value(lighting, 'extension/ExteriorHolidayLighting/PeriodBeginDayOfMonth', :integer)
         @holiday_period_end_month = XMLHelper.get_value(lighting, 'extension/ExteriorHolidayLighting/PeriodEndMonth', :integer)
@@ -5793,7 +5907,7 @@ class HPXML < Object
     XMLHelper.add_attribute(hpxml, 'xmlns', 'http://hpxmlonline.com/2019/10')
     XMLHelper.add_attribute(hpxml, 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
     XMLHelper.add_attribute(hpxml, 'xsi:schemaLocation', 'http://hpxmlonline.com/2019/10')
-    XMLHelper.add_attribute(hpxml, 'schemaVersion', '3.0')
+    XMLHelper.add_attribute(hpxml, 'schemaVersion', Version::HPXML_Version)
     return doc
   end
 

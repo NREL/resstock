@@ -69,10 +69,9 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_json_output
     # Check that the simulation produces JSON outputs (instead of CSV outputs) if requested
-    os_cli = OpenStudio.getOpenStudioCLI
     rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
     xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
-    command = "#{os_cli} #{rb_path} -x #{xml} --debug --hourly ALL --output-format json"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --debug --hourly ALL --output-format json"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -95,10 +94,9 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_epjson_input
     # Check that we can run a simulation using epJSON (instead of IDF) if requested
-    os_cli = OpenStudio.getOpenStudioCLI
     rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
     xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
-    command = "#{os_cli} #{rb_path} -x #{xml} --ep-input-format epjson"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --ep-input-format epjson"
     system(command, err: File::NULL)
 
     # Check for epjson file
@@ -116,10 +114,9 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_idf_input
     # Check that we can run a simulation using IDF (instead of epJSON) if requested
-    os_cli = OpenStudio.getOpenStudioCLI
     rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
     xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
-    command = "#{os_cli} #{rb_path} -x #{xml} --ep-input-format idf"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --ep-input-format idf"
     system(command, err: File::NULL)
 
     # Check for idf file
@@ -137,10 +134,9 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_faster_performance
     # Run w/ --skip-validation and w/o --add-component-loads arguments
-    os_cli = OpenStudio.getOpenStudioCLI
     rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
     xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
-    command = "#{os_cli} #{rb_path} -x #{xml} --skip-validation"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --skip-validation"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -165,7 +161,6 @@ class HPXMLTest < MiniTest::Test
     # Check that simulation works using template.osw
     require 'json'
 
-    os_cli = OpenStudio.getOpenStudioCLI
     osw_path = File.join(File.dirname(__FILE__), '..', 'template.osw')
 
     # Create derivative OSW for testing
@@ -185,7 +180,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{os_cli} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -210,7 +205,6 @@ class HPXMLTest < MiniTest::Test
     # Check that simulation works using template.osw
     require 'json'
 
-    os_cli = OpenStudio.getOpenStudioCLI
     osw_path = File.join(File.dirname(__FILE__), '..', 'template-stochastic-schedules.osw')
 
     # Create derivative OSW for testing
@@ -230,7 +224,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{os_cli} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -257,7 +251,6 @@ class HPXMLTest < MiniTest::Test
     # Check that simulation works using template2.osw
     require 'json'
 
-    os_cli = OpenStudio.getOpenStudioCLI
     osw_path = File.join(File.dirname(__FILE__), '..', 'template-build-hpxml-and-stocastic-schedules.osw')
 
     # Create derivative OSW for testing
@@ -277,7 +270,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{os_cli} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -310,18 +303,18 @@ class HPXMLTest < MiniTest::Test
     run_log = File.join(File.dirname(xml), 'run', 'run.log')
 
     # Check successful simulation when providing correct building ID
-    command = "#{os_cli} #{rb_path} -x #{xml} --building-id MyBuilding"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --building-id MyBuilding"
     system(command, err: File::NULL)
     assert_equal(true, File.exist?(csv_output_path))
 
     # Check unsuccessful simulation when providing incorrect building ID
-    command = "#{os_cli} #{rb_path} -x #{xml} --building-id MyFoo"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --building-id MyFoo"
     system(command, err: File::NULL)
     assert_equal(false, File.exist?(csv_output_path))
     assert(File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size > 0)
 
     # Check unsuccessful simulation when not providing building ID
-    command = "#{os_cli} #{rb_path} -x #{xml}"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml}"
     system(command, err: File::NULL)
     assert_equal(false, File.exist?(csv_output_path))
     assert(File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size > 0)
@@ -343,14 +336,23 @@ class HPXMLTest < MiniTest::Test
     assert_equal(2, Dir["#{top_dir}/*.zip"].size)
 
     # Check successful running of simulation from release zips
-    Dir["#{top_dir}/OpenStudio-HPXML*.zip"].each do |zip|
-      unzip_file = OpenStudio::UnzipFile.new(zip)
-      unzip_file.extractAllFiles(OpenStudio::toPath(top_dir))
+    require 'zip'
+    Zip.on_exists_proc = true
+    Dir["#{top_dir}/OpenStudio-HPXML*.zip"].each do |zip_path|
+      Zip::File.open(zip_path) do |zip_file|
+        zip_file.each do |f|
+          FileUtils.mkdir_p(File.dirname(f.name)) unless File.exist?(File.dirname(f.name))
+          zip_file.extract(f, f.name)
+        end
+      end
+
+      # Test run_simulation.rb
       command = "#{OpenStudio.getOpenStudioCLI} OpenStudio-HPXML/workflow/run_simulation.rb -x OpenStudio-HPXML/workflow/sample_files/base.xml"
       system(command)
       assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_annual.csv')
       assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_hpxml.csv')
-      File.delete(zip)
+
+      File.delete(zip_path)
       rm_path('OpenStudio-HPXML')
     end
   end
@@ -449,10 +451,14 @@ class HPXMLTest < MiniTest::Test
     results['heating_airflow [cfm]'] = 0.0
     (hpxml.heating_systems + hpxml.heat_pumps).each do |htg_sys|
       results['heating_capacity [Btuh]'] += htg_sys.heating_capacity
-      if htg_sys.respond_to? :backup_heating_capacity
-        results['heating_backup_capacity [Btuh]'] += htg_sys.backup_heating_capacity
+      if htg_sys.is_a? HPXML::HeatPump
+        if not htg_sys.backup_heating_capacity.nil?
+          results['heating_backup_capacity [Btuh]'] += htg_sys.backup_heating_capacity
+        elsif not htg_sys.backup_system.nil?
+          results['heating_backup_capacity [Btuh]'] += htg_sys.backup_system.heating_capacity
+        end
       end
-      results['heating_airflow [cfm]'] += htg_sys.heating_airflow_cfm
+      results['heating_airflow [cfm]'] += htg_sys.heating_airflow_cfm.to_f
     end
 
     # Cooling capacity/airflows
@@ -558,6 +564,12 @@ class HPXMLTest < MiniTest::Test
       end
       if hpxml.windows.empty?
         next if log_line.include? 'No windows specified, the model will not include window heat transfer.'
+      end
+      if hpxml.pv_systems.empty? && !hpxml.batteries.empty?
+        next if log_line.include? 'Battery without PV specified; battery is assumed to operate as backup and will not be modeled.'
+      end
+      if !hpxml.pv_systems.empty? && !hpxml.batteries.empty?
+        next if log_line.include? "Due to an OpenStudio bug, the battery's rated power output will not be honored; the simulation will proceed without a maximum charge/discharge limit."
       end
 
       flunk "Unexpected warning found in run.log: #{log_line}"
@@ -766,7 +778,8 @@ class HPXMLTest < MiniTest::Test
                                       'base-enclosure-garage.xml' => 2,                  # additional instance for garage
                                       'base-foundation-walkout-basement.xml' => 4,       # 3 foundation walls plus a no-wall exposed perimeter
                                       'base-foundation-complex.xml' => 10,               # lots of foundations for testing
-                                      'base-enclosure-split-surfaces2.xml' => 81 }       # lots of foundations for testing
+                                      'base-enclosure-split-surfaces2.xml' => 81,        # lots of foundations for testing
+                                      'base-pv-battery-garage.xml' => 2 }                # additional instance for garage
 
       if not num_expected_kiva_instances[File.basename(hpxml_path)].nil?
         assert_equal(num_expected_kiva_instances[File.basename(hpxml_path)], num_kiva_instances)
@@ -1216,8 +1229,8 @@ class HPXMLTest < MiniTest::Test
       assert_operator(unmet_hours_htg, :>, 1000)
       assert_operator(unmet_hours_clg, :>, 1000)
     else
-      assert_operator(unmet_hours_htg, :<, 100)
-      assert_operator(unmet_hours_clg, :<, 100)
+      assert_operator(unmet_hours_htg, :<, 150)
+      assert_operator(unmet_hours_clg, :<, 150)
     end
 
     sqlFile.close
