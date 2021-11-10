@@ -3166,7 +3166,7 @@ class HPXMLFile
 
     @surface_ids = {}
 
-    # Sorting of objects to make the measure deterministic
+    # Sorting of objects by location and azimuth to make the measure more deterministic
     def self.surface_order(s)
       order_map = { HPXML::LocationLivingSpace => 0,
                     HPXML::LocationAtticUnvented => 1,
@@ -3199,8 +3199,25 @@ class HPXMLFile
       return order
     end
 
+    # Sorting of objects by sum of coordinate distances to origin to make the measure more deterministic
+    def self.d_order(s)
+      z_origin = 0
+      if s.space.is_initialized
+        z_origin = s.space.get.zOrigin
+      end
+
+      d = 0
+      s.vertices.each do |v|
+        v1 = Vector[0, 0, 0]
+        v2 = Vector[v.x, v.y, v.z + z_origin]
+        d += (v1 - v2).magnitude
+      end
+      return d
+    end
+
     sorted_surfaces = model.getSurfaces.sort_by { |s| surface_order(s) }
     sorted_subsurfaces = model.getSubSurfaces.sort_by { |s| surface_order(s.surface.get) } # Sorted by azimuth
+    sorted_subsurfaces = sorted_subsurfaces.sort_by { |ss| d_order(ss) }
 
     hpxml = HPXML.new
 
