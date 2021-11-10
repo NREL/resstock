@@ -3215,9 +3215,8 @@ class HPXMLFile
       return d
     end
 
-    sorted_surfaces = model.getSurfaces.sort_by { |s| surface_order(s) }
-    sorted_subsurfaces = model.getSubSurfaces.sort_by { |s| surface_order(s.surface.get) } # Sorted by azimuth
-    sorted_subsurfaces = sorted_subsurfaces.sort_by { |ss| d_order(ss) }
+    sorted_surfaces = model.getSurfaces.sort_by { |s| [surface_order(s), d_order(s)] }
+    sorted_subsurfaces = model.getSubSurfaces.sort_by { |s| [surface_order(s.surface.get), d_order(s.surface.get)] }
 
     hpxml = HPXML.new
 
