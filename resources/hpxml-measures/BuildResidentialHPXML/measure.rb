@@ -3208,9 +3208,7 @@ class HPXMLFile
 
       d = 0
       s.vertices.each do |v|
-        v1 = Vector[0, 0, 0]
-        v2 = Vector[v.x, v.y, v.z + z_origin]
-        d += (v1 - v2).magnitude
+        d += ((0.0 - v.x)**2.0 + (0.0 - v.y)**2.0 + (0 - v.z)**2.0)**(1.0 / 2.0)
       end
       return d
     end
