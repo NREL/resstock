@@ -4,6 +4,14 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
+end
+require File.join(resources_path, 'meta_measure')
 
 require_relative 'resources/constants'
 
@@ -402,7 +410,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   def get_system_upgrades(hpxml, system_upgrades, args_hash)
     args_hash.each do |arg, value|
       # Detect whether we are upgrading the heating system
-      if arg.include?('heating_system_type') || arg.include?('heating_system_fuel') || arg.include?('heating_system_heating_efficiency') || arg.include?('heating_system_fraction_heat_load_served')
+      if arg.start_with?('heating_system_') && (not arg.start_with?('heating_system_2_'))
         hpxml.heating_systems.each do |heating_system|
           next unless heating_system.primary_system
 
@@ -411,7 +419,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Detect whether we are upgrading the secondary heating system
-      if arg.include?('heating_system_2_type') || arg.include?('heating_system_2_fuel') || arg.include?('heating_system_2_heating_efficiency') || arg.include?('heating_system_2_fraction_heat_load_served')
+      if arg.start_with?('heating_system_2_')
         hpxml.heating_systems.each do |heating_system|
           next if heating_system.primary_system
 
@@ -420,14 +428,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Detect whether we are upgrading the cooling system
-      if arg.include?('cooling_system_type') || arg.include?('cooling_system_cooling_efficiency') || arg.include?('cooling_system_fraction_cool_load_served')
+      if arg.start_with?('cooling_system_')
         hpxml.cooling_systems.each do |cooling_system|
           system_upgrades << cooling_system.id
         end
       end
 
       # Detect whether we are upgrading the heat pump
-      next unless arg.include?('heat_pump_type') || arg.include?('heat_pump_heating_efficiency_hspf') || arg.include?('heat_pump_heating_efficiency_cop') || arg.include?('heat_pump_cooling_efficiency_seer') || arg.include?('heat_pump_cooling_efficiency_eer') || arg.include?('heat_pump_fraction_heat_load_served') || arg.include?('heat_pump_fraction_cool_load_served')
+      next unless arg.start_with?('heat_pump_')
 
       hpxml.heat_pumps.each do |heat_pump|
         system_upgrades << heat_pump.id
