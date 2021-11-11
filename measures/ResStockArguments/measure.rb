@@ -414,6 +414,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # PV
     if args['pv_system_module_type'] != 'none'
       args['pv_system_num_bedrooms_served'] = Integer(args['geometry_unit_num_bedrooms'])
+    else
+      args['pv_system_num_bedrooms_served'] = 0
     end
 
     # Setpoints
