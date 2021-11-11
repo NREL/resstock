@@ -131,7 +131,6 @@ class Airflow
       end
 
       unit_ag_ext_wall_area = Geometry.calculate_above_grade_exterior_wall_area(unit.spaces)
-      unit_ag_ffa = Geometry.get_above_grade_finished_floor_area_from_spaces(unit.spaces, runner)
       unit_ffa = Geometry.get_finished_floor_area_from_spaces(unit.spaces, runner)
       unit_window_area = Geometry.get_window_area_from_spaces(unit.spaces)
 
@@ -168,10 +167,10 @@ class Airflow
       tout_sensor.setName("#{obj_name_airflow} tt s")
       tout_sensor.setKeyName(unit_living.zone.name.to_s)
 
-      success, infil_output = process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ag_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
+      success, infil_output = process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
       return false if not success
 
-      success, mv_output = process_mech_vent_for_unit(model, runner, obj_name_mech_vent, unit, infil.is_existing_home, infil_output.a_o, mech_vent, building, nbeds, nbaths, weather, unit_ffa, unit_living, units.size, has_forced_air_equipment)
+      success, mv_output = process_mech_vent_for_unit(model, runner, obj_name_mech_vent, unit, mech_vent, building, nbeds, nbaths, weather, unit_ffa, unit_living, units.size, has_forced_air_equipment)
       return false if not success
 
       cfis_programs = {}
@@ -406,6 +405,10 @@ class Airflow
     # Remove existing ducts
 
     model.getThermalZones.each do |thermal_zone|
+      thermal_zone.airLoopHVACs.each do |air_loop|
+        thermal_zone.removeReturnPlenum(air_loop)
+      end
+
       next unless thermal_zone.name.to_s.start_with? obj_name_ducts
 
       thermal_zone.spaces.each do |space|
@@ -415,9 +418,6 @@ class Airflow
           end
         end
         space.remove
-      end
-      thermal_zone.airLoopHVACs.each do |air_loop|
-        thermal_zone.removeReturnPlenum(air_loop)
       end
       thermal_zone.remove
     end
@@ -522,7 +522,7 @@ class Airflow
       building.garage.inf_method = @infMethodSG
       building.garage.hor_lk_frac = 0.4 # DOE-2 Default
       building.garage.neutral_level = 0.5 # DOE-2 Default
-      building.garage.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.garage_ach50, 0.67, building.garage.area, building.garage.volume)
+      building.garage.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.garage_ach50, 0.65, building.garage.area, building.garage.volume)
       building.garage.ACH = Airflow.get_infiltration_ACH_from_SLA(building.garage.SLA, 1.0, weather)
       building.garage.inf_flow = building.garage.ACH / UnitConversions.convert(1.0, 'hr', 'min') * building.garage.volume # cfm
     end
@@ -566,7 +566,7 @@ class Airflow
     return true
   end
 
-  def self.process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ag_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
+  def self.process_infiltration_for_unit(model, runner, obj_name_infil, infil, wind_speed, building, weather, unit_ffa, unit_ag_ext_wall_area, unit_living, unit_finished_basement)
     spaces = []
     spaces << unit_living
     spaces << unit_finished_basement if not unit_finished_basement.nil?
@@ -583,7 +583,7 @@ class Airflow
       # Wind Driven Air Infiltration Calculations" by Walker and Wilson (1998)
 
       # Pressure Exponent
-      n_i = 0.67
+      n_i = 0.65
 
       # Calculate SLA for above-grade portion of the building
       building.SLA = Airflow.get_infiltration_SLA_from_ACH50(infil.living_ach50, n_i, building.ag_ffa, building.above_grade_volume)
@@ -623,18 +623,18 @@ class Airflow
           end
         end
 
-        building_ag_ffa = unit_ag_ffa * n_units
-        mf_building_ELA = building_ag_ffa * building.SLA
+        building_ffa = unit_ffa * n_units
 
-        if Geometry.get_building_type(model) == Constants.BuildingTypeMultifamily
+        if building_type == Constants.BuildingTypeMultifamily
           num_units_per_floor = n_units / num_floors
-        elsif Geometry.get_building_type(model) == Constants.BuildingTypeSingleFamilyAttached
+        elsif building_type == Constants.BuildingTypeSingleFamilyAttached
           num_floors = 1.0
           num_units_per_floor = n_units
         end
 
-        if (num_units_per_floor == 1) || (num_units_per_floor == 2) || ((num_units_per_floor == 4) && has_rear_units) # No middle unit(s)
+        if (num_units_per_floor <= 2) || ((num_units_per_floor == 4) && has_rear_units) # No middle unit(s)
           a_o_frac = 1 / num_floors / num_units_per_floor # all units have same exterior wall area
+          mf_building_ELA = building_ffa * building.SLA
           a_o = mf_building_ELA * a_o_frac
         else # Has middle unit(s)
           if has_rear_units
@@ -652,17 +652,15 @@ class Airflow
             ext_wall_area_building = (n_end_units * ext_wall_area_end) + (n_mid_units * ext_wall_area_mid)
             ext_wall_area_building = UnitConversions.convert(ext_wall_area_building, 'm^2', 'ft^2')
           end
-          a_o = building.SLA * building_ag_ffa * (unit_ag_ext_wall_area / ext_wall_area_building) # Effective Leakage Area (ft^2) - Unit
+          a_o = building.SLA * building_ffa * (unit_ag_ext_wall_area / ext_wall_area_building) # Effective Leakage Area (ft^2) - Unit
         end
       else # SFD
         num_floors = building.stories
-        a_o = building.SLA * building.ag_ffa * (unit_ag_ext_wall_area / building.ag_ext_wall_area) # Effective Leakage Area (ft^2) - Unit
-        building_ag_ffa = building.ag_ffa
-        ext_wall_area_building = building.ag_ext_wall_area
+        a_o = building.SLA * unit_ffa * (unit_ag_ext_wall_area / building.ag_ext_wall_area) # Effective Leakage Area (ft^2) - Unit
       end
 
       # Calculate SLA for unit
-      unit_living.SLA = a_o / unit_ag_ffa
+      unit_living.SLA = a_o / unit_ffa
 
       # Flow Coefficient (cfm/inH2O^n) (based on ASHRAE HoF)
       c_i = a_o * (2.0 / outside_air_density)**0.5 * delta_pref**(0.5 - n_i) * inf_conv_factor
@@ -847,7 +845,7 @@ class Airflow
     end
   end
 
-  def self.process_mech_vent_for_unit(model, runner, obj_name_mech_vent, unit, is_existing_home, ela, mech_vent, building, nbeds, nbaths, weather, unit_ffa, unit_living, num_units, has_forced_air_equipment)
+  def self.process_mech_vent_for_unit(model, runner, obj_name_mech_vent, unit, mech_vent, building, nbeds, nbaths, weather, unit_ffa, unit_living, num_units, has_forced_air_equipment)
     if mech_vent.type == Constants.VentTypeCFIS
       if not has_forced_air_equipment
         runner.registerError('A CFIS ventilation system has been selected but the building does not have central, forced air equipment.')
@@ -855,37 +853,10 @@ class Airflow
       end
     end
 
-    if not mech_vent.frac_62_2.nil?
-      # Get ASHRAE 62.2 required ventilation rate (excluding infiltration credit)
-      ashrae_mv_without_infil_credit = Airflow.get_mech_vent_whole_house_cfm(1, nbeds, unit_ffa, mech_vent.ashrae_std)
-
-      # Determine mechanical ventilation infiltration credit (per ASHRAE 62.2)
-      rate_credit = 0 # default to no credit
-      if mech_vent.infil_credit
-        if (mech_vent.ashrae_std == '2010') && is_existing_home
-          # ASHRAE Standard 62.2 2010
-          # Only applies to existing buildings
-          # 2 cfm per 100ft^2 of occupiable floor area
-          default_rate = 2.0 * unit_ffa / 100.0 # cfm
-          # Half the excess infiltration rate above the default rate is credited toward mech vent:
-          rate_credit = [(unit_living.inf_flow - default_rate) / 2.0, 0].max
-        elsif (mech_vent.ashrae_std == '2013') && (num_units == 1)
-          # ASHRAE Standard 62.2 2013
-          # Only applies to single-family homes (Section 8.2.1: "The required mechanical ventilation
-          # rate shall not be reduced as described in Section 4.1.3.").
-          nl = 1000.0 * ela / unit_living.area * (unit_living.height / 8.2)**0.4 # Normalized leakage, eq. 4.4
-          qinf = nl * weather.data.WSF * unit_living.area / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
-          rate_credit = [(2.0 / 3.0) * ashrae_mv_without_infil_credit, qinf].min
-        end
-      end
-
-      # Apply infiltration credit (if any)
-      ashrae_vent_rate = [ashrae_mv_without_infil_credit - rate_credit, 0.0].max # cfm
-
-      # Apply fraction of ASHRAE value
-      whole_house_vent_rate = mech_vent.frac_62_2 * ashrae_vent_rate # cfm
-    elsif not mech_vent.whole_house_cfm.nil?
-      whole_house_vent_rate = mech_vent.whole_house_cfm
+    whole_house_vent_rate = 0.0
+    if mech_vent.type != Constants.VentTypeNone
+      building_type = Geometry.get_building_type(model)
+      whole_house_vent_rate = Airflow.get_mech_vent_whole_house_cfm(nbeds, unit_ffa, mech_vent, unit_living, weather, unit, building_type, building)
     end
 
     # Spot Ventilation
@@ -2139,7 +2110,6 @@ class Airflow
     end
 
     infil_program.addLine("Set Tdiff = #{tin_sensor.name}-#{tout_sensor.name}")
-    infil_program.addLine('Set dT = @Abs Tdiff')
     infil_program.addLine("Set QWHV = #{wh_sch_sensor.name}*#{UnitConversions.convert(mv_output.whole_house_vent_rate, 'cfm', 'm^3/s').round(4)}")
 
     cfis_outdoor_airflow = 0.0
@@ -2231,8 +2201,6 @@ class Airflow
       infil_program.addLine('Set Qdryer = 0.0')
     end
     infil_program.addLine("Set Qbath = #{bath_sch_sensor.name}*#{UnitConversions.convert(mv_output.bathroom_hour_avg_exhaust, 'cfm', 'm^3/s').round(4)}")
-    infil_program.addLine('Set QhpwhOut = 0')
-    infil_program.addLine('Set QhpwhIn = 0')
     infil_program.addLine('Set QductsOut = 0')
     infil_program.addLine('Set QductsIn = 0')
     duct_lks.each do |obj_name_ducts, value|
@@ -2241,21 +2209,15 @@ class Airflow
       infil_program.addLine("Set QductsIn = QductsIn+#{duct_lk_supply_fan_equiv_var.name}")
     end
     if mech_vent.type == Constants.VentTypeBalanced
-      infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut')
-      infil_program.addLine('Set Qin = QhpwhIn+QductsIn')
-      infil_program.addLine('Set Qu = (@Abs (Qout-Qin))')
-      infil_program.addLine('Set Qb = QWHV + (@Min Qout Qin)')
+      infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QductsOut')
+      infil_program.addLine('Set Qin = QductsIn')
     else
       if mech_vent.type == Constants.VentTypeExhaust
-        infil_program.addLine('Set Qout = QWHV+Qrange+Qbath+Qdryer+QhpwhOut+QductsOut')
-        infil_program.addLine('Set Qin = QhpwhIn+QductsIn')
-        infil_program.addLine('Set Qu = (@Abs (Qout-Qin))')
-        infil_program.addLine('Set Qb = (@Min Qout Qin)')
+        infil_program.addLine('Set Qout = QWHV+Qrange+Qbath+Qdryer+QductsOut')
+        infil_program.addLine('Set Qin = QductsIn')
       else # mech_vent.type == Constants.VentTypeSupply
-        infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QhpwhOut+QductsOut')
-        infil_program.addLine('Set Qin = QWHV+QhpwhIn+QductsIn')
-        infil_program.addLine('Set Qu = @Abs (Qout- Qin)')
-        infil_program.addLine('Set Qb = (@Min Qout Qin)')
+        infil_program.addLine('Set Qout = Qrange+Qbath+Qdryer+QductsOut')
+        infil_program.addLine('Set Qin = QWHV+QductsIn')
       end
     end
     if mech_vent.type != Constants.VentTypeCFIS
@@ -2275,9 +2237,21 @@ class Airflow
 
     infil_program.addLine("Set #{range_hood_fan_actuator.name} = (Qrange*300)/faneff_sp")
     infil_program.addLine("Set #{bath_exhaust_sch_fan_actuator.name} = (Qbath*300)/faneff_sp")
-    infil_program.addLine('Set Q_acctd_for_elsewhere = QhpwhOut+QhpwhIn+QductsOut+QductsIn')
-    infil_program.addLine("Set #{infil_flow_actuator.name} = (((Qu^2)+(Qn^2))^0.5)-Q_acctd_for_elsewhere")
-    infil_program.addLine("Set #{infil_flow_actuator.name} = (@Max #{infil_flow_actuator.name} 0)")
+    infil_program.addLine('Set Qfan = (@Max Qout Qin)')
+    # Follow ASHRAE 62.2-2016, Normative Appendix C equations for time-varying total airflow
+    infil_program.addLine('If Qfan > 0')
+    # Balanced system if the total supply airflow and total exhaust airflow are within 10% of their average.
+    infil_program.addLine('  Set Qavg = ((Qout + Qin) / 2.0)')
+    infil_program.addLine('  If ((@Abs (Qout - Qavg)) / Qavg) <= 0.1') # Only need to check Qout, Qin will give same result
+    infil_program.addLine('    Set phi = 1')
+    infil_program.addLine('  Else')
+    infil_program.addLine('    Set phi = (Qn / (Qn + Qfan))')
+    infil_program.addLine('  EndIf')
+    infil_program.addLine('  Set Qinf_adj = phi * Qn')
+    infil_program.addLine('Else')
+    infil_program.addLine('  Set Qinf_adj = Qn')
+    infil_program.addLine('EndIf')
+    infil_program.addLine("Set #{infil_flow_actuator.name} = Qfan + Qinf_adj")
 
     return infil_program
   end
@@ -2469,13 +2443,26 @@ class Airflow
     return num_returns.to_i
   end
 
-  def self.get_mech_vent_whole_house_cfm(frac622, num_beds, ffa, std)
-    # Returns the ASHRAE 62.2 whole house mechanical ventilation rate, excluding any infiltration credit.
-    if std == '2013'
-      return frac622 * ((num_beds + 1.0) * 7.5 + 0.03 * ffa)
+  def self.get_mech_vent_whole_house_cfm(num_beds, ffa, mech_vent, unit_living, weather, unit, building_type, building)
+    # Returns the ASHRAE 62.2 whole house mechanical ventilation rate.
+    q_tot = (num_beds + 1.0) * 7.5 + 0.03 * ffa
+
+    infil_a_ext = 1.0
+    if [Constants.BuildingTypeSingleFamilyAttached, Constants.BuildingTypeMultifamily].include? building_type
+      infil_a_ext = Geometry.calculate_exterior_boundary_area(unit.spaces) / Geometry.calculate_boundary_area(unit.spaces)
     end
 
-    return frac622 * ((num_beds + 1.0) * 7.5 + 0.01 * ffa)
+    nl = 1000.0 * unit_living.SLA * (unit_living.height / 8.2)**0.4 # Normalized leakage, eq. 4.4
+    q_inf = nl * weather.data.WSF * ffa / 7.3 # Effective annual average infiltration rate, cfm, eq. 4.5a
+
+    if mech_vent.type == Constants.VentTypeBalanced
+      phi = 1.0
+    else
+      phi = q_inf / q_tot
+    end
+    q_fan = q_tot - phi * (q_inf * infil_a_ext)
+
+    return [q_fan, 0].max
   end
 
   def self.calc_infiltration_w_factor(weather)
@@ -2527,7 +2514,7 @@ class DuctsOutput
 end
 
 class Infiltration
-  def initialize(living_ach50, living_constant_ach, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, unfinished_attic_const_ach, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, is_existing_home, terrain)
+  def initialize(living_ach50, living_constant_ach, shelter_coef, garage_ach50, crawl_ach, unfinished_attic_sla, unfinished_attic_const_ach, unfinished_basement_ach, finished_basement_ach, pier_beam_ach, has_flue_chimney, terrain)
     @living_ach50 = living_ach50
     @living_constant_ach = living_constant_ach
     @shelter_coef = shelter_coef
@@ -2539,10 +2526,9 @@ class Infiltration
     @finished_basement_ach = finished_basement_ach
     @pier_beam_ach = pier_beam_ach
     @has_flue_chimney = has_flue_chimney
-    @is_existing_home = is_existing_home
     @terrain = terrain
   end
-  attr_accessor(:living_ach50, :living_constant_ach, :shelter_coef, :garage_ach50, :crawl_ach, :unfinished_attic_sla, :unfinished_attic_const_ach, :unfinished_basement_ach, :finished_basement_ach, :pier_beam_ach, :has_flue_chimney, :is_existing_home, :terrain)
+  attr_accessor(:living_ach50, :living_constant_ach, :shelter_coef, :garage_ach50, :crawl_ach, :unfinished_attic_sla, :unfinished_attic_const_ach, :unfinished_basement_ach, :finished_basement_ach, :pier_beam_ach, :has_flue_chimney, :terrain)
 end
 
 class InfiltrationOutput
@@ -2589,22 +2575,18 @@ class NaturalVentilationOutput
 end
 
 class MechanicalVentilation
-  def initialize(type, infil_credit, total_efficiency, frac_62_2, whole_house_cfm, fan_power, sensible_efficiency, ashrae_std, dryer_exhaust, range_exhaust, range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour)
+  def initialize(type, total_efficiency, fan_power, sensible_efficiency, dryer_exhaust, range_exhaust, range_exhaust_hour, bathroom_exhaust, bathroom_exhaust_hour)
     @type = type
-    @infil_credit = infil_credit
     @total_efficiency = total_efficiency
-    @frac_62_2 = frac_62_2
-    @whole_house_cfm = whole_house_cfm
     @fan_power = fan_power
     @sensible_efficiency = sensible_efficiency
-    @ashrae_std = ashrae_std
     @dryer_exhaust = dryer_exhaust
     @range_exhaust = range_exhaust
     @range_exhaust_hour = range_exhaust_hour
     @bathroom_exhaust = bathroom_exhaust
     @bathroom_exhaust_hour = bathroom_exhaust_hour
   end
-  attr_accessor(:type, :infil_credit, :total_efficiency, :frac_62_2, :whole_house_cfm, :fan_power, :sensible_efficiency, :ashrae_std, :dryer_exhaust, :range_exhaust, :range_exhaust_hour, :bathroom_exhaust, :bathroom_exhaust_hour)
+  attr_accessor(:type, :total_efficiency, :fan_power, :sensible_efficiency, :dryer_exhaust, :range_exhaust, :range_exhaust_hour, :bathroom_exhaust, :bathroom_exhaust_hour)
 end
 
 class MechanicalVentilationOutput

@@ -73,14 +73,6 @@ class Constants
     return 1e-9
   end
 
-  def self.PeakFlowRate
-    return 500 # gal/min
-  end
-
-  def self.PeakPower
-    return 100 # kWh
-  end
-
   # Strings --------------------
 
   def self.AirFilm
@@ -113,38 +105,6 @@ class Constants
 
   def self.CoordAbsolute
     return 'absolute'
-  end
-
-  def self.BAZoneCold
-    return 'Cold'
-  end
-
-  def self.BAZoneHotDry
-    return 'Hot-Dry'
-  end
-
-  def self.BAZoneSubarctic
-    return 'Subarctic'
-  end
-
-  def self.BAZoneHotHumid
-    return 'Hot-Humid'
-  end
-
-  def self.BAZoneMixedHumid
-    return 'Mixed-Humid'
-  end
-
-  def self.BAZoneMixedDry
-    return 'Mixed-Dry'
-  end
-
-  def self.BAZoneMarine
-    return 'Marine'
-  end
-
-  def self.BAZoneVeryCold
-    return 'Very Cold'
   end
 
   def self.BoilerTypeCondensing
@@ -189,10 +149,6 @@ class Constants
 
   def self.BoreConfigUconfig
     return 'u-config'
-  end
-
-  def self.BuildingAmericaClimateZone
-    return 'Building America'
   end
 
   def self.BuildingTypeMultifamily
@@ -341,6 +297,10 @@ class Constants
 
   def self.FuelTypeWood
     return 'wood'
+  end
+
+  def self.IECCClimateZone
+    return 'IECC'
   end
 
   def self.LocationInterior

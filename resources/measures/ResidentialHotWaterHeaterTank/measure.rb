@@ -196,15 +196,15 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Get Building America climate zone
-    ba_cz_name = nil
+    # Get IECC climate zone
+    iecc_cz_name = nil
     model.getClimateZones.climateZones.each do |climateZone|
-      next if climateZone.institution != Constants.BuildingAmericaClimateZone
+      next if climateZone.institution != Constants.IECCClimateZone
 
-      ba_cz_name = climateZone.value.to_s
+      iecc_cz_name = climateZone.value.to_s
     end
 
-    location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
+    location_hierarchy = Waterheater.get_location_hierarchy(iecc_cz_name)
 
     if setpoint_type == Constants.WaterHeaterSetpointTypeScheduled
       unless (Pathname.new schedule_directory).absolute?
@@ -303,54 +303,50 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
   def calc_nom_tankvol(vol, fuel, num_beds, num_baths)
     # Calculates the volume of a water heater
     if vol == Constants.Auto
-      # Based on the BA HSP
-      if fuel == Constants.FuelTypeElectric
-        # Source: Table 5 HUD-FHA Minimum Water Heater Capacities for One- and
-        # Two-Family Living Units (ASHRAE HVAC Applications 2007)
-        if num_baths < 2
-          if num_beds < 2
-            return 20
-          elsif num_beds < 3
-            return 30
-          else
-            return 40
-          end
-        elsif num_baths < 3
-          if num_beds < 3
-            return 40
-          elsif num_beds < 5
-            return 50
-          else
-            return 66
-          end
-        else
-          if num_beds < 4
-            return 50
-          elsif num_beds < 6
-            return 66
-          else
-            return 80
-          end
-        end
-
-      else # Non-electric tank WHs
-        # Source: 2010 HSP Addendum
+      # Source: Table 8. Benchmark DHW Storage and Burner Capacity in 2014 BA HSP
+      if fuel != Constants.FuelTypeElectric
         if num_beds <= 2
-          return 30
+          return 30.0
         elsif num_beds == 3
           if num_baths <= 1.5
-            return 30
+            return 30.0
           else
-            return 40
+            return 40.0
           end
         elsif num_beds == 4
           if num_baths <= 2.5
-            return 40
+            return 40.0
           else
-            return 50
+            return 50.0
           end
         else
-          return 50
+          return 50.0
+        end
+      else
+        if num_beds == 1
+          return 30.0
+        elsif num_beds == 2
+          if num_baths <= 1.5
+            return 30.0
+          else
+            return 40.0
+          end
+        elsif num_beds == 3
+          if num_baths <= 1.5
+            return 40.0
+          else
+            return 50.0
+          end
+        elsif num_beds == 4
+          if num_baths <= 2.5
+            return 50.0
+          else
+            return 66.0
+          end
+        elsif num_beds == 5
+          return 66.0
+        else
+          return 80.0
         end
       end
     else # user entered volume

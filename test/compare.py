@@ -19,13 +19,9 @@ enum_maps = {'geometry_building_type_recs': {'Single-Family Detached': 'SFD',
                                              'Multi-Family with 5+ Units': 'MF'} }
 
 cols_to_ignore = ['include_',
-                  'timeseries_',
-                  'output_format_',
-                  'completed_status_',
-                  'applicable',
-                  'upgrade_name_',
-                  'upgrade_cost_',
-                  'color_index']
+                  'completed_status',
+                  'color_index',
+                  'upgrade_name']
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
@@ -180,7 +176,7 @@ class MoreCompare(BaseCompare):
 
 if __name__ == '__main__':
 
-  default_base_folder = 'test/test_samples_osw/base'
+  default_base_folder = 'test/test_samples_osw/baseline'
   default_feature_folder = 'test/test_samples_osw/results'
   default_export_folder = 'test/test_samples_osw/comparisons'
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]
@@ -188,6 +184,7 @@ if __name__ == '__main__':
                        'county']
   aggregate_functions = ['sum', 'mean']
   display_columns = ['geometry_building_type_recs',
+                     'geometry_foundation_type',
                      'county']
   map_result_choices = ['base', 'feature']
 
