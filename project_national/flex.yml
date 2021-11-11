@@ -1,26 +1,25 @@
 schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /lustre/eaglefs/projects/scout/flex_measures/3.6k_test_12
+output_directory: /lustre/eaglefs/projects/scout/flex_measures/flex_full
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 3600 #180,000
-    resample: false
+    n_datapoints: 180000
 
 workflow_generator:
   type: residential_hpxml
   args:
     build_existing_model:
-      simulation_control_timestep: 60
+      simulation_control_timestep: 10
       simulation_control_run_period_begin_month: 1
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
       simulation_control_run_period_end_day_of_month: 31
-      simulation_control_run_period_calendar_year: 2007
+      simulation_control_run_period_calendar_year: 2006
       debug: false
     simulation_output_report:
       timeseries_frequency: hourly
@@ -34,7 +33,7 @@ workflow_generator:
       include_timeseries_weather: true
 
 baseline:
-  n_buildings_represented: 110000000
+  n_buildings_represented: 180000
 
 upgrades:
 ## Dual Source
@@ -216,7 +215,7 @@ upgrades:
 
 ## Modulating
   ##### (3) BASE 2 MODULATING
-  - upgrade_name: Modulating Air Source Heat Pump
+  - upgrade_name: Modulating Air Source Heat Pump, Base
     package_apply_logic:
         - or:
           - or:
@@ -367,14 +366,15 @@ upgrades:
       - option: HVAC Cooling Efficiency|None
 
 eagle:
-  n_jobs: 5
-  minutes_per_sim: 2
+  n_jobs: 1000
+  minutes_per_sim: 5
   account: scout
   sampling:
-    time: 10
+    time: 100
   postprocessing:
-    time: 30
-    n_workers: 1
+    time: 500
+    n_workers: 25
+    node_memory_mb: 751616
 
 postprocessing:
   keep_individual_timeseries: false
