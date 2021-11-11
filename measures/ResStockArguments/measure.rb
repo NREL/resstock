@@ -411,6 +411,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # PV
+    if args['pv_system_module_type'] != 'none'
+      args['pv_system_num_bedrooms_served'] = Integer(args['geometry_unit_num_bedrooms'])
+    end
+
     # Setpoints
     weekday_heating_setpoints = [args['hvac_control_heating_weekday_setpoint_temp']] * 24
     weekend_heating_setpoints = [args['hvac_control_heating_weekend_setpoint_temp']] * 24
