@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /lustre/eaglefs/projects/scout/flex_measures/flex_full
+output_directory: /lustre/eaglefs/projects/scout/flex_measures/flex_full_1_dualsource_storage
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
@@ -36,7 +36,6 @@ baseline:
   n_buildings_represented: 180000
 
 upgrades:
-# PART 1 - Dual Source + Storage (4 upgrades)#
 ## Dual Source
   ##### (1) BASE 1 DUAL SOURCE
   - upgrade_name: Base Dual Source Air Source Heat Pump
@@ -214,131 +213,8 @@ upgrades:
               - Heating Fuel|Fuel Oil
               - not: HVAC Heating Type And Fuel|None 
 
-# PART 2 - Modulating (4 upgrades)#
-## Modulating
-  ##### (3) BASE 2 MODULATING
-  - upgrade_name: Modulating Air Source Heat Pump, Base
-    package_apply_logic:
-        - or:
-          - or:
-            - HVAC Heating Type|Ducted Heat Pump
-            - HVAC Heating Type|Non-Ducted Heat Pump 
-          - and:
-            - not: HVAC Cooling Type|None
-            - HVAC Has Ducts|Yes
-    options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating, Base
-      - option: HVAC Cooling Efficiency|None
-
-  ##### (4) UPGRADE 2a MODULATING (Speed = 0)
-  - upgrade_name: Modulating Air Source Heat Pump, Speed 0
-    package_apply_logic:
-        - or:
-          - or:
-            - HVAC Heating Type|Ducted Heat Pump
-            - HVAC Heating Type|Non-Ducted Heat Pump 
-          - and:
-            - not: HVAC Cooling Type|None
-            - HVAC Has Ducts|Yes
-    options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating
-      - option: Max Flex Speed|0
-      - option: HVAC Cooling Efficiency|None
-
-  ##### (5) UPGRADE 2b MODULATING (Speed = 1)
-  - upgrade_name: Modulating Air Source Heat Pump, Speed 1
-    package_apply_logic:
-        - or:
-          - or:
-            - HVAC Heating Type|Ducted Heat Pump
-            - HVAC Heating Type|Non-Ducted Heat Pump 
-          - and:
-            - not: HVAC Cooling Type|None
-            - HVAC Has Ducts|Yes
-    options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating
-      - option: Max Flex Speed|1
-      - option: HVAC Cooling Efficiency|None
-
-  ##### (6) UPGRADE 2c MODULATING (Speed = 2)
-  - upgrade_name: Modulating Air Source Heat Pump, Speed 2
-    package_apply_logic:
-        - or:
-          - or:
-            - HVAC Heating Type|Ducted Heat Pump
-            - HVAC Heating Type|Non-Ducted Heat Pump 
-          - and:
-            - not: HVAC Cooling Type|None
-            - HVAC Has Ducts|Yes
-    options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, Modulating
-      - option: Max Flex Speed|2
-      - option: HVAC Cooling Efficiency|None
-
-# PART 3 - IHP (4 upgrades)#
-## IHP
-  ##### (7) BASE 3 IHP
-  - upgrade_name: IHP Grid AC Source Heat Pump, Base
-    package_apply_logic:
-        - or:
-          - or:
-            - HVAC Heating Type|Ducted Heat Pump
-            - HVAC Heating Type|Non-Ducted Heat Pump 
-          - and:
-            - not: HVAC Cooling Type|None
-            - HVAC Has Ducts|Yes
-    options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC, Base
-      - option: HVAC Cooling Efficiency|None
-
-  ##### (8) UPGRADE 3a IHP (Speed = 0)
-  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 0
-    package_apply_logic:
-        - or:
-          - or:
-            - HVAC Heating Type|Ducted Heat Pump
-            - HVAC Heating Type|Non-Ducted Heat Pump 
-          - and:
-            - not: HVAC Cooling Type|None
-            - HVAC Has Ducts|Yes
-    options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
-      - option: Max Flex Speed|0
-      - option: HVAC Cooling Efficiency|None
-
-  ##### (9) UPGRADE 3b IHP (Speed = 1)
-  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 1
-    package_apply_logic:
-        - or:
-          - or:
-            - HVAC Heating Type|Ducted Heat Pump
-            - HVAC Heating Type|Non-Ducted Heat Pump 
-          - and:
-            - not: HVAC Cooling Type|None
-            - HVAC Has Ducts|Yes
-    options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
-      - option: Max Flex Speed|1
-      - option: HVAC Cooling Efficiency|None
-
-  ##### (10) UPGRADE 3c IHP (Speed = 2)
-  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 2
-    package_apply_logic:
-        - or:
-          - or:
-            - HVAC Heating Type|Ducted Heat Pump
-            - HVAC Heating Type|Non-Ducted Heat Pump 
-          - and:
-            - not: HVAC Cooling Type|None
-            - HVAC Has Ducts|Yes
-    options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
-      - option: Max Flex Speed|2
-      - option: HVAC Cooling Efficiency|None
-
-# PART 1 - Dual Source + Storage (4 upgrades)#
 ## Ice Storage
-  ##### (11) UPGRADE 4 IHP + Ice Storage
+  ##### (3)(11) UPGRADE 4 IHP + Ice Storage
   - upgrade_name: Ice Storage IHP Grid AC Source Heat Pump, Speed 0
     package_apply_logic:
         - or:
@@ -354,7 +230,7 @@ upgrades:
       - option: HVAC Cooling Efficiency|None
 
 ## PCM Storage
-  ##### (12) UPGRADE 5 IHP + PCM Storage
+  ##### (4)(12) UPGRADE 5 IHP + PCM Storage
   - upgrade_name: PCM Storage IHP Grid AC Source Heat Pump, Speed 0
     package_apply_logic:
         - or:
@@ -370,15 +246,15 @@ upgrades:
       - option: HVAC Cooling Efficiency|None
 
 eagle:
-  n_jobs: 1000
+  n_jobs: 350
   minutes_per_sim: 5
   account: scout
   sampling:
     time: 100
   postprocessing:
     time: 500
-    n_workers: 25
-    node_memory_mb: 751616
+    n_workers: 32
+    # node_memory_mb: 751616
 
 postprocessing:
   keep_individual_timeseries: false
