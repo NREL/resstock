@@ -1,0 +1,41 @@
+schema_version: '0.3'
+buildstock_directory: /projects/abctypol/repos/resstock  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /projects/abctypol/resstock_runs/baseline/test_2k
+# weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+# weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
+baseline:
+  n_buildings_represented: 133172057
+
+sampler: 
+  type: residential_quota
+  args: 
+    n_datapoints: 2000 #550000
+
+workflow_generator: 
+  type: residential_default
+  args: 
+    reporting_measures: 
+      - measure_dir_name: LoadComponentsReport
+    
+    # timeseries_csv_export: 
+      # reporting_frequency: Hourly
+      # include_enduse_subcategories: true
+      
+    # residential_simulation_controls: 
+    #   timesteps_per_hr: 6
+    #   begin_month: 1
+    #   begin_day_of_month: 1
+    #   end_month: 12
+    #   end_day_of_month: 31
+    #   calendar_year: 2007
+
+eagle:
+  account: enduse
+  n_jobs: 10 #1000
+  minutes_per_sim: 20
+  sampling:
+    time: 60
+  postprocessing:
+    time: 180
