@@ -87,8 +87,8 @@ def run_workflow(yml, measures_only)
           end
         end
       end
-      if measure_d.include?('package_apply_logic')
-        apply_upgrade_measure['arguments']['package_apply_logic'] = measure_d['package_apply_logic']
+      if measure_d.keys.include?('package_apply_logic')
+        apply_upgrade_measure['arguments']['package_apply_logic'] = make_apply_logic_arg(measure_d['package_apply_logic'])
       end
 
       steps.insert(2, apply_upgrade_measure)
@@ -242,6 +242,24 @@ def check_finished_job(result, finished_job)
   end
 
   return result
+end
+
+def make_apply_logic_arg(logic)
+  if logic.is_a?(Hash)
+    key = logic.keys[0]
+    val = logic[key]
+    if key == 'and'
+      return make_apply_logic_arg(val)
+    elsif key == 'or'
+      return "(#{val.map { |v| make_apply_logic_arg(v) }.join('||')})"
+    elsif key == 'not'
+      return "!#{make_apply_logic_arg(val)}"
+    end
+  elsif logic.is_a?(Array)
+    return "(#{logic.map { |l| make_apply_logic_arg(l) }.join('&&')})"
+  elsif logic.is_a?(String)
+    return logic
+  end
 end
 
 options = {}
