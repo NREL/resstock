@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /projects/enduse/facades/resstock # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/enduse/facades/full1
+output_directory: /projects/enduse/facades/full3
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 
 sampler:
@@ -2368,21 +2368,21 @@ upgrades:
 
 
 eagle:
-  n_jobs: 8
-  minutes_per_sim: 30
+  n_jobs: 500
+  minutes_per_sim: 10
   account: enduse
   sampling:
     time: 60
   postprocessing:
-    time: 180
-    n_workers: 1
+    time: 480
+    n_workers: 32
 
 aws:
   # The job_identifier should be unique, start with alpha, not include dashes, and limited to 10 chars or data loss can occur
   job_identifier: fac_1
   s3:
     bucket: facades
-    prefix: full1
+    prefix: full3
   emr:
     worker_instance_count: 1
   region: us-west-2
@@ -2396,8 +2396,8 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: facades
-      prefix: full1
+      prefix: full3
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
-      database_name: resstock-full1
+      database_name: resstock-full3
       max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
