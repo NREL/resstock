@@ -446,13 +446,16 @@ class RunOSWs
 
     system(command)
 
-    finished_job = File.join(parent_dir, 'run/finished.job')
     result_characteristics = {}
     result_output = {}
 
+    out = File.join(parent_dir, 'out.osw')
+    out = JSON.parse(File.read(File.expand_path(out)))
+    completed_status = out['completed_status']
+
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
 
-    return finished_job, result_characteristics, result_output if measures_only || !File.exist?(data_point_out)
+    return completed_status, result_characteristics, result_output if measures_only || !File.exist?(data_point_out)
 
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     if rows.keys.include? 'BuildExistingModel'
@@ -471,7 +474,7 @@ class RunOSWs
       result_output = get_qoi_report(result_output, rows)
     end
 
-    return finished_job, result_characteristics, result_output
+    return completed_status, result_characteristics, result_output
   end
 
   def self.get_build_existing_model(result, rows)
