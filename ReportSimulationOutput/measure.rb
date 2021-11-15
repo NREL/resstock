@@ -137,6 +137,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     super(runner, user_arguments)
 
     result = OpenStudio::IdfObjectVector.new
+    return result if runner.halted
 
     model = runner.lastOpenStudioModel
     if model.empty?

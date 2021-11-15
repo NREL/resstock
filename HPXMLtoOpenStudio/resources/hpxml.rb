@@ -6110,31 +6110,6 @@ class HPXML < Object
       end
     end
 
-    # Check for objects referencing SFA/MF spaces where the building type is not SFA/MF
-    if [ResidentialTypeSFD, ResidentialTypeManufactured].include? @building_construction.residential_facility_type
-      mf_spaces = [LocationOtherHeatedSpace, LocationOtherHousingUnit, LocationOtherMultifamilyBufferSpace, LocationOtherNonFreezingSpace]
-      (@roofs + @rim_joists + @walls + @foundation_walls + @frame_floors + @slabs).each do |surface|
-        if mf_spaces.include? surface.interior_adjacent_to
-          errors << "The building is of type '#{@building_construction.residential_facility_type}' but the surface '#{surface.id}' is adjacent to Attached/Multifamily space '#{surface.interior_adjacent_to}'."
-        end
-        if mf_spaces.include? surface.exterior_adjacent_to
-          errors << "The building is of type '#{@building_construction.residential_facility_type}' but the surface '#{surface.id}' is adjacent to Attached/Multifamily space '#{surface.exterior_adjacent_to}'."
-        end
-      end
-      (@water_heating_systems + @clothes_washers + @clothes_dryers + @dishwashers + @refrigerators + @cooking_ranges).each do |object|
-        if mf_spaces.include? object.location
-          errors << "The building is of type '#{@building_construction.residential_facility_type}' but the object '#{object.id}' is located in Attached/Multifamily space '#{object.location}'."
-        end
-      end
-      @hvac_distributions.each do |hvac_distribution|
-        hvac_distribution.ducts.each do |duct|
-          if mf_spaces.include? duct.duct_location
-            errors << "The building is of type '#{@building_construction.residential_facility_type}' but the HVAC distribution '#{hvac_distribution.id}' has a duct located in Attached/Multifamily space '#{duct.duct_location}'."
-          end
-        end
-      end
-    end
-
     # Check for correct PrimaryIndicator values across all refrigerators
     if @refrigerators.size > 1
       primary_indicators = @refrigerators.select { |r| r.primary_indicator }.size

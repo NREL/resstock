@@ -1983,5 +1983,35 @@
       <sch:assert role='ERROR' test='count(h:Enclosure/*/*[h:InteriorAdjacentTo="attic - unvented" or h:ExteriorAdjacentTo="attic - unvented"]) &gt;= 1'>A location is specified as "attic - unvented" but no surfaces were found adjacent to this space type.</sch:assert>
     </sch:rule>
   </sch:pattern>
+  
+  <!-- Rules below check for the appropriate building type when there are objects referencing SFA/MF locations -->
+  
+  <sch:pattern>
+    <sch:title>[BuildingTypeCheck=OtherHousingUnit]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="other housing unit"] | h:Systems/*/*[h:Location="other housing unit"] | h:Systems/*/*/*/*/*[h:DuctLocation="other housing unit"] | h:Enclosure[*/*[h:InteriorAdjacentTo="other housing unit" or h:ExteriorAdjacentTo="other housing unit"]]]'>
+      <sch:assert role='ERROR' test='h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"] or not(h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType)'>There are references to "other housing unit" but ResidentialFacilityType is not "single-family attached" or "apartment unit".</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[BuildingTypeCheck=OtherHeatedSpace]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="other heated space"] | h:Systems/*/*[h:Location="other heated space"] | h:Systems/*/*/*/*/*[h:DuctLocation="other heated space"] | h:Enclosure[*/*[h:InteriorAdjacentTo="other heated space" or h:ExteriorAdjacentTo="other heated space"]]]'>
+      <sch:assert role='ERROR' test='h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"] or not(h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType)'>There are references to "other heated space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[BuildingTypeCheck=OtherMultifamilyBufferSpace]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="other multifamily buffer space"] | h:Systems/*/*[h:Location="other multifamily buffer space"] | h:Systems/*/*/*/*/*[h:DuctLocation="other multifamily buffer space"] | h:Enclosure[*/*[h:InteriorAdjacentTo="other multifamily buffer space" or h:ExteriorAdjacentTo="other multifamily buffer space"]]]'>
+      <sch:assert role='ERROR' test='h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"] or not(h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType)'>There are references to "other multifamily buffer space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[BuildingTypeCheck=OtherNonFreezingSpace]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails[h:Appliances/*[h:Location="other non-freezing space"] | h:Systems/*/*[h:Location="other non-freezing space"] | h:Systems/*/*/*/*/*[h:DuctLocation="other non-freezing space"] | h:Enclosure[*/*[h:InteriorAdjacentTo="other non-freezing space" or h:ExteriorAdjacentTo="other non-freezing space"]]]'>
+      <sch:assert role='ERROR' test='h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"] or not(h:BuildingSummary/h:BuildingConstruction/h:ResidentialFacilityType)'>There are references to "other non-freezing space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".</sch:assert>
+    </sch:rule>
+  </sch:pattern>
 
 </sch:schema>

@@ -906,7 +906,9 @@ If a PTAC with non-heat pump (e.g., electric resistance) heating is specified, a
   ``AnnualHeatingEfficiency[Units="Percent"]/Value``  double  frac       0 - 1        No        1.0      Efficiency
   ==================================================  ======  =========  ===========  ========  =======  ==================================
 
-  .. [#] A cooling system of type "packaged terminal air conditioner" must be specified in ``/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem``.
+.. note::
+
+  A cooling system of type "packaged terminal air conditioner" must be specified in ``/HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/CoolingSystem``.
 
 Furnace
 ~~~~~~~
