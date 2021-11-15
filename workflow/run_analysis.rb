@@ -214,10 +214,10 @@ def samples_osw(results_dir, osw_path, upgrade_name, num_samples, all_results_ch
     completed_status, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
 
     osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
-    
+
     result_characteristics['OSW'] = osw
     result_characteristics['completed_status'] = completed_status
-    
+
     result_output['OSW'] = osw
     result_output['completed_status'] = completed_status
 
