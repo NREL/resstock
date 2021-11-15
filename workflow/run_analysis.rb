@@ -209,14 +209,15 @@ def samples_osw(results_dir, osw_path, upgrade_name, num_samples, all_results_ch
 
     change_building_id(osw, building_id)
 
-    finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
+    completed_status, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
 
     osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
-    result_characteristics['OSW'] = osw
-    result_output['OSW'] = osw
 
-    check_finished_job(result_characteristics, finished_job)
-    check_finished_job(result_output, finished_job)
+    result_characteristics['OSW'] = osw
+    result_characteristics['completed_status'] = completed_status
+
+    result_output['OSW'] = osw
+    result_output['completed_status'] = completed_status
 
     all_results_characteristics << result_characteristics
     all_results_output << result_output
@@ -241,15 +242,6 @@ def change_building_id(osw, building_id)
   File.open(osw, 'w') do |f|
     f.write(JSON.pretty_generate(json))
   end
-end
-
-def check_finished_job(result, finished_job)
-  result['completed_status'] = 'Fail'
-  if File.exist?(finished_job)
-    result['completed_status'] = 'Success'
-  end
-
-  return result
 end
 
 def make_apply_logic_arg(logic)
