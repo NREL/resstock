@@ -8,6 +8,9 @@ require 'fileutils'
 
 class BuildResidentialHPXMLTest < MiniTest::Test
   def test_workflows
+    this_dir = File.dirname(__FILE__)
+    tests_dir = File.join(this_dir, 'extra_files')
+
     # Extra buildings that don't correspond with sample files
     hpxmls_files = {
       # Base files to derive from
@@ -150,7 +153,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-mf-all-adiabatic-walls.xml' => 'base-mf.xml',
       'error-mf-two-stories.xml' => 'base-mf.xml',
       'error-dhw-indirect-without-boiler.xml' => 'base-sfd.xml',
-      'error-foundation-wall-insulation-greater-than-height.xml' => 'base-sfd.xml',
       'error-conditioned-attic-with-one-floor-above-grade.xml' => 'base-sfd.xml',
       'error-zero-number-of-bedrooms.xml' => 'base-sfd.xml',
       'error-sfd-with-shared-system.xml' => 'base-sfd.xml',
@@ -225,8 +227,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'warning-multipliers-without-fuel-loads.xml' => 'misc_fuel_loads_grill_present=false and misc_fuel_loads_grill_usage_multiplier=1.0 and misc_fuel_loads_lighting_present=false and misc_fuel_loads_lighting_usage_multiplier=1.0 and misc_fuel_loads_fireplace_present=false and misc_fuel_loads_fireplace_usage_multiplier=1.0',
     }
 
+    puts "Generating #{hpxmls_files.size} HPXML files..."
+
     hpxmls_files.each_with_index do |(hpxml_file, parent), i|
-      puts "[#{i + 1}/#{hpxmls_files.size}] Testing #{hpxml_file}..."
+      puts "[#{i + 1}/#{hpxmls_files.size}] Generating #{hpxml_file}..."
 
       begin
         all_hpxml_files = [hpxml_file]
@@ -247,9 +251,38 @@ class BuildResidentialHPXMLTest < MiniTest::Test
           _set_measure_argument_values(f, args)
         end
 
-        File.delete(args['hpxml_path']) if File.exist? args['hpxml_path']
-        _test_measure(args, expected_errors[hpxml_file], expected_warnings[hpxml_file])
-        File.delete(args['hpxml_path']) if File.exist? args['hpxml_path']
+        measures_dir = File.join(File.dirname(__FILE__), '../..')
+        measures = { 'BuildResidentialHPXML' => [args] }
+        model = OpenStudio::Model::Model.new
+        runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
+        # Apply measure
+        success = apply_measures(measures_dir, measures, runner, model)
+
+        _test_measure(runner, expected_errors[hpxml_file], expected_warnings[hpxml_file])
+
+        next if not success
+
+        hpxml_path = File.absolute_path(File.join(tests_dir, hpxml_file))
+        hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
+        hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
+        hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
+
+        hpxml_doc = hpxml.to_oga()
+        XMLHelper.write_file(hpxml_doc, hpxml_path)
+
+        # Validate file against HPXML schema
+        schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio/resources'))
+        errors = XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), nil)
+        if errors.size > 0
+          fail "ERRORS: #{errors}"
+        end
+
+        # Check for errors
+        errors = hpxml.check_for_errors()
+        if errors.size > 0
+          fail "ERRORS: #{errors}"
+        end
       rescue Exception => e
         puts "\n#{e}\n#{e.backtrace.join('\n')}"
         puts "\nError: Did not successfully generate #{hpxml_file}."
@@ -261,7 +294,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   private
 
   def _set_measure_argument_values(hpxml_file, args)
-    args['hpxml_path'] = File.absolute_path(File.join(File.dirname(__FILE__), hpxml_file))
+    args['hpxml_path'] = "tests/extra_files/#{hpxml_file}"
 
     # Base
     if ['base-sfd.xml'].include? hpxml_file
@@ -270,6 +303,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['site_type'] = HPXML::SiteTypeSuburban
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFD
       args['geometry_unit_cfa'] = 2700.0
+      args['geometry_unit_left_wall_is_adiabatic'] = false
+      args['geometry_unit_right_wall_is_adiabatic'] = false
+      args['geometry_unit_front_wall_is_adiabatic'] = false
+      args['geometry_unit_back_wall_is_adiabatic'] = false
       args['geometry_unit_num_floors_above_grade'] = 1
       args['geometry_average_ceiling_height'] = 8.0
       args['geometry_unit_orientation'] = 180.0
@@ -292,10 +329,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_has_flue_or_chimney'] = Constants.Auto
       args['floor_over_foundation_assembly_r'] = 0
       args['floor_over_garage_assembly_r'] = 0
+      args['foundation_wall_type'] = Constants.Auto
+      args['foundation_wall_thickness'] = 8.0
       args['foundation_wall_insulation_r'] = 8.9
       args['foundation_wall_insulation_distance_to_top'] = 0.0
       args['foundation_wall_insulation_distance_to_bottom'] = 8.0
-      args['foundation_wall_thickness'] = 8.0
       args['rim_joist_assembly_r'] = 23.0
       args['slab_perimeter_insulation_r'] = 0
       args['slab_perimeter_depth'] = 0
@@ -479,6 +517,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['pv_system_2_array_azimuth'] = 180
       args['pv_system_2_array_tilt'] = 20
       args['pv_system_2_max_power_output'] = 4000
+      args['battery_location'] = 'none'
+      args['battery_power'] = Constants.Auto
+      args['battery_capacity'] = Constants.Auto
       args['lighting_interior_fraction_cfl'] = 0.4
       args['lighting_interior_fraction_lfl'] = 0.1
       args['lighting_interior_fraction_led'] = 0.25
@@ -1067,50 +1108,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     end
   end
 
-  def _test_measure(args_hash, expected_error, expected_warning)
-    # create an instance of the measure
-    measure = BuildResidentialHPXML.new
-
-    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    model = OpenStudio::Model::Model.new
-
-    # get arguments
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
-
-    # populate argument with specified hash value if specified
-    arguments.each do |arg|
-      temp_arg_var = arg.clone
-      if args_hash.has_key?(arg.name)
-        retval = temp_arg_var.setValue(args_hash[arg.name])
-        if not retval # Try passing as string instead
-          assert(temp_arg_var.setValue(args_hash[arg.name].to_s))
-        end
-      end
-      argument_map[arg.name] = temp_arg_var
-    end
-    args_hash.keys.each do |arg_name|
-      next if argument_map.keys.include? arg_name
-
-      fail "Unexpected argument name: #{arg_name}"
-    end
-
-    # run the measure
-    measure.run(model, runner, argument_map)
-    result = runner.result
-
-    # assert whether it ran correctly
-    if expected_error.nil?
-      # show the output
-      show_output(result) unless result.value.valueName == 'Success'
-
-      assert_equal('Success', result.value.valueName)
-      assert(File.exist?(args_hash['hpxml_path']))
-    else
-      assert_equal('Fail', result.value.valueName)
-      assert(!File.exist?(args_hash['hpxml_path']))
-    end
-
+  def _test_measure(runner, expected_error, expected_warning)
     # check warnings/errors
     if not expected_error.nil?
       if runner.result.stepErrors.select { |s| s == expected_error }.size <= 0
