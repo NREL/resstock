@@ -130,13 +130,10 @@ class Geometry
   end
 
   def self.assign_surface_indexes(model, polygon, space)
-    ix = indexer(model)
-
     space.surfaces.each do |surface|
       next if surface.surfaceType != 'Floor'
 
-      surface.additionalProperties.setFeature('Index', ix)
-      ix += 1
+      surface.additionalProperties.setFeature('Index', indexer(model))
     end
 
     num_points = polygon.size
@@ -159,16 +156,24 @@ class Geometry
         end
         next if j < 2
 
-        surface.additionalProperties.setFeature('Index', ix)
-        ix += 1
+        surface.additionalProperties.setFeature('Index', indexer(model))
       end
     end
 
     space.surfaces.each do |surface|
       next if surface.surfaceType != 'RoofCeiling'
 
-      surface.additionalProperties.setFeature('Index', ix)
-      ix += 1
+      surface.additionalProperties.setFeature('Index', indexer(model))
+    end
+  end
+
+  def self.assign_remaining_surface_indexes(model)
+    # index remaining surfaces created from intersecting/matching
+    # we can't deterministically assign indexes to these surfaces
+    model.getSurfaces.each do |surface|
+      next if surface.additionalProperties.getFeatureAsInteger('Index').is_initialized
+
+      surface.additionalProperties.setFeature('Index', indexer(model))
     end
   end
 
@@ -185,19 +190,13 @@ class Geometry
   end
 
   def self.indexer(model)
-    surfaces = model.getSurfaces.select { |s| s.additionalProperties.getFeatureAsInteger('Index').is_initialized }.size
-    sub_surfaces = model.getSubSurfaces.select { |ss| ss.additionalProperties.getFeatureAsInteger('Index').is_initialized }.size
-    return surfaces + sub_surfaces
-  end
+    indexes = [0]
+    (model.getSurfaces + model.getSubSurfaces).each do |s|
+      next if !s.additionalProperties.getFeatureAsInteger('Index').is_initialized
 
-  def self.assign_remaining_surface_indexes(model)
-    # index remaining surfaces (created from intersecting/matching) with the same index
-    # we can't deterministically assign indexes to these surfaces
-    model.getSurfaces.each do |surface|
-      next if surface.additionalProperties.getFeatureAsInteger('Index').is_initialized
-
-      surface.additionalProperties.setFeature('Index', indexer(model))
+      indexes << s.additionalProperties.getFeatureAsInteger('Index').get
     end
+    return indexes.max + 1
   end
 
   def self.create_single_family_detached(runner:,
@@ -976,7 +975,8 @@ class Geometry
                       'none' => [] }
 
     get_conditioned_spaces(model.getSpaces).each do |space|
-      space.surfaces.each do |surface|
+      sorted_surfaces = space.surfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
+      sorted_surfaces.each do |surface|
         next unless (surface.surfaceType.downcase == 'wall') && (surface.outsideBoundaryCondition.downcase == 'outdoors')
         next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
 
@@ -987,7 +987,8 @@ class Geometry
       end
     end
     model.getSpaces.each do |space|
-      space.surfaces.each do |surface|
+      sorted_surfaces = space.surfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
+      sorted_surfaces.each do |surface|
         next unless (surface.surfaceType.downcase == 'roofceiling') && (surface.outsideBoundaryCondition.downcase == 'outdoors')
 
         facade = get_facade_for_surface(surface)
@@ -1496,7 +1497,8 @@ class Geometry
       get_conditioned_spaces(model.getSpaces).each do |space|
         next if space_is_below_grade(space)
 
-        space.surfaces.each do |surface|
+        sorted_surfaces = space.surfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
+        sorted_surfaces.each do |surface|
           next unless get_facade_for_surface(surface) == Constants.FacadeFront
           next unless (surface.outsideBoundaryCondition.downcase == 'outdoors') || (surface.outsideBoundaryCondition.downcase == 'adiabatic')
           next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall

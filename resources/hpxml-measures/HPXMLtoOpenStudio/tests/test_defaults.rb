@@ -1210,7 +1210,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def test_hvac_controls
     # Test inputs not overridden by defaults
-    hpxml = _create_hpxml('base-hvac-programmable-thermostat.xml')
+    hpxml = _create_hpxml('base-hvac-setpoints-daily-setbacks.xml')
     hpxml.hvac_controls[0].heating_setback_start_hour = 12
     hpxml.hvac_controls[0].cooling_setup_start_hour = 12
     hpxml.hvac_controls[0].seasons_heating_begin_month = 1
