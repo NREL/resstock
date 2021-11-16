@@ -105,7 +105,6 @@ class Geometry
       rim_joist_polygon = p
 
       # make space
-      # rim_joist_space = from_floor_print(rim_joist_polygon, rim_joist_height, model)
       rim_joist_space = OpenStudio::Model::Space::fromFloorPrint(rim_joist_polygon, rim_joist_height, model)
       rim_joist_space = rim_joist_space.get
       assign_surface_indexes(model, rim_joist_polygon, rim_joist_space)
@@ -128,68 +127,6 @@ class Geometry
 
       rim_joist_space.remove
     end
-  end
-
-  def self.from_floor_print(floorPrint, floorHeight, model)
-    # check floor height
-    if floorHeight <= 0
-      fail "Cannot create a space with floorHeight #{floorHeight}."
-    end
-
-    # check floor print
-    numPoints = floorPrint.size
-
-    z = floorPrint[0].z
-    tol = 0.000001
-    floorPrint.each do |point|
-      if (point.z - z).abs > tol
-        fail 'Inconsistent z height in floorPrint.'
-      end
-    end
-
-    outwardNormal = OpenStudio::getOutwardNormal(floorPrint)
-    if !outwardNormal.is_initialized
-      fail 'Cannot compute outwardNormal for floorPrint.'
-    end
-
-    if outwardNormal.get.z > -1 + tol
-      fail 'OutwardNormal of floorPrint must point down to create space.'
-    end
-
-    # we are good to go, create the space
-    space = OpenStudio::Model::Space.new(model)
-
-    # create the floor
-    points = OpenStudio::Point3dVector.new
-    floorPrint.each do |elem|
-      points << OpenStudio::Point3d.new(elem.x, elem.y, elem.z)
-    end
-    floor = create_surface(points, model)
-    floor.additionalProperties.setFeature('Index', indexer(model))
-    floor.setSpace(space)
-
-    # create each wall
-    (1..numPoints).to_a.each do |i|
-      points = OpenStudio::Point3dVector.new
-      points << OpenStudio::Point3d.new(floorPrint[i % numPoints].x, floorPrint[i % numPoints].y, z + floorHeight)
-      points << OpenStudio::Point3d.new(floorPrint[i % numPoints].x, floorPrint[i % numPoints].y, z)
-      points << OpenStudio::Point3d.new(floorPrint[i - 1].x, floorPrint[i - 1].y, z)
-      points << OpenStudio::Point3d.new(floorPrint[i - 1].x, floorPrint[i - 1].y, z + floorHeight)
-
-      wall = create_surface(points, model)
-      wall.additionalProperties.setFeature('Index', indexer(model))
-      wall.setSpace(space)
-    end
-
-    points = OpenStudio::Point3dVector.new
-    (0...numPoints).to_a.reverse.each do |i|
-      points << OpenStudio::Point3d.new(floorPrint[i].x, floorPrint[i].y, z + floorHeight)
-    end
-    roofCeiling = create_surface(points, model)
-    roofCeiling.additionalProperties.setFeature('Index', indexer(model))
-    roofCeiling.setSpace(space)
-
-    return space
   end
 
   def self.assign_surface_indexes(model, polygon, space)
@@ -248,7 +185,9 @@ class Geometry
   end
 
   def self.indexer(model)
-    return model.getSurfaces.size + model.getSubSurfaces.size
+    surfaces = model.getSurfaces.select { |s| s.additionalProperties.getFeatureAsInteger('Index').is_initialized }.size
+    sub_surfaces = model.getSubSurfaces.select { |ss| ss.additionalProperties.getFeatureAsInteger('Index').is_initialized }.size
+    return surfaces + sub_surfaces
   end
 
   def self.assign_remaining_surface_indexes(model)
@@ -410,7 +349,6 @@ class Geometry
         end
 
         # make space
-        # garage_space = from_floor_print(garage_polygon, average_ceiling_height, model)
         garage_space = OpenStudio::Model::Space::fromFloorPrint(garage_polygon, average_ceiling_height, model)
         garage_space = garage_space.get
         assign_surface_indexes(model, garage_polygon, garage_space)
@@ -503,7 +441,6 @@ class Geometry
       end
 
       # make space
-      # living_space = from_floor_print(living_polygon, average_ceiling_height, model)
       living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, average_ceiling_height, model)
       living_space = living_space.get
       assign_surface_indexes(model, living_polygon, living_space)
@@ -659,7 +596,6 @@ class Geometry
       foundation_polygon = p
 
       # make space
-      # foundation_space = from_floor_print(foundation_polygon, foundation_height, model)
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_polygon, foundation_height, model)
       foundation_space = foundation_space.get
       assign_surface_indexes(model, foundation_polygon, foundation_space)
@@ -1777,7 +1713,6 @@ class Geometry
 
     # first floor front
     living_spaces_front = []
-    # living_space = from_floor_print(living_polygon, average_ceiling_height, model)
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, average_ceiling_height, model)
     living_space = living_space.get
     assign_surface_indexes(model, living_polygon, living_space)
@@ -1847,7 +1782,6 @@ class Geometry
 
       # foundation front
       foundation_space_front = []
-      # foundation_space = from_floor_print(foundation_front_polygon, foundation_height, model)
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
       foundation_space = foundation_space.get
       assign_surface_indexes(model, foundation_front_polygon, foundation_space)
@@ -2229,7 +2163,6 @@ class Geometry
 
     # first floor front
     living_spaces_front = []
-    # living_space = from_floor_print(living_polygon, average_ceiling_height, model)
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, average_ceiling_height, model)
     living_space = living_space.get
     assign_surface_indexes(model, living_polygon, living_space)
@@ -2288,7 +2221,6 @@ class Geometry
 
       # foundation front
       foundation_space_front = []
-      # foundation_space = from_floor_print(foundation_front_polygon, foundation_height, model)
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
       foundation_space = foundation_space.get
       assign_surface_indexes(model, foundation_front_polygon, foundation_space)
