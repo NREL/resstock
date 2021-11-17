@@ -261,7 +261,16 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
         _test_measure(runner, expected_errors[hpxml_file], expected_warnings[hpxml_file])
 
-        next if not success
+        if not success
+          runner.result.stepErrors.each do |s|
+            puts "Error: #{s}"
+          end
+
+          next if hpxml_file.start_with?('error')
+
+          puts "\nError: Did not successfully generate #{hpxml_file}."
+          exit!
+        end
 
         hpxml_path = File.absolute_path(File.join(tests_dir, hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
@@ -427,7 +436,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_backup_heating_efficiency'] = 1
       args['heat_pump_backup_heating_capacity'] = 36000.0
-      args['hvac_control_type'] = HPXML::HVACControlTypeManual
       args['hvac_control_heating_weekday_setpoint'] = 68
       args['hvac_control_heating_weekend_setpoint'] = 68
       args['hvac_control_cooling_weekday_setpoint'] = 78
