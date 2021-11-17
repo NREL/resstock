@@ -16,10 +16,6 @@ start_time = Time.now
 def run_workflow(yml, measures_only)
   cfg = YAML.load_file(yml)
 
-  if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
-    fail "Not supporting 'residential_quota_downselect' at this time."
-  end
-
   upgrade_names = ['Baseline']
   if cfg.keys.include?('upgrades')
     cfg['upgrades'].each do |upgrade|
@@ -59,6 +55,14 @@ def run_workflow(yml, measures_only)
                         'building_id' => 1,
                         'workflow_json' => 'measure-info.json'
                       } })
+
+    if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
+      if cfg['sampler']['args']['resample']
+        fail "Not supporting residential_quota_downselect's 'resample' at this time."
+      end
+
+      steps[1]['arguments']['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
+    end
 
     if upgrade_idx > 0
       measure_d = cfg['upgrades'][upgrade_idx - 1]
@@ -205,21 +209,26 @@ def samples_osw(results_dir, osw_path, upgrade_name, num_samples, all_results_ch
 
     change_building_id(osw, building_id)
 
-    finished_job, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
+    completed_status, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
 
     osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
-    result_characteristics['OSW'] = osw
-    result_output['OSW'] = osw
 
-    check_finished_job(result_characteristics, finished_job)
-    check_finished_job(result_output, finished_job)
+    result_characteristics['OSW'] = osw
+    result_characteristics['completed_status'] = completed_status
+
+    result_output['OSW'] = osw
+    result_output['completed_status'] = completed_status
 
     all_results_characteristics << result_characteristics
     all_results_output << result_output
 
     run_dir = File.join(worker_dir, 'run')
-    FileUtils.mv(File.join(run_dir, 'measures.osw'), File.join(scenario_dir, "#{building_id}-measures.osw"))
-    FileUtils.mv(File.join(run_dir, 'measures-upgrade.osw'), File.join(scenario_dir, "#{building_id}-measures-upgrade.osw")) if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
+    if File.exist?(File.join(run_dir, 'measures.osw'))
+      FileUtils.mv(File.join(run_dir, 'measures.osw'), File.join(scenario_dir, "#{building_id}-measures.osw"))
+    end
+    if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
+      FileUtils.mv(File.join(run_dir, 'measures-upgrade.osw'), File.join(scenario_dir, "#{building_id}-measures-upgrade.osw")) if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
+    end
   end
 end
 
@@ -233,15 +242,6 @@ def change_building_id(osw, building_id)
   File.open(osw, 'w') do |f|
     f.write(JSON.pretty_generate(json))
   end
-end
-
-def check_finished_job(result, finished_job)
-  result['completed_status'] = 'Fail'
-  if File.exist?(finished_job)
-    result['completed_status'] = 'Success'
-  end
-
-  return result
 end
 
 def make_apply_logic_arg(logic)
