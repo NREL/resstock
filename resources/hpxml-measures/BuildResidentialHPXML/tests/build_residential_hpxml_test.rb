@@ -281,7 +281,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         XMLHelper.write_file(hpxml_doc, hpxml_path)
 
         # Validate file against HPXML schema
-        schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio/resources'))
+        schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources'))
         errors = XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), nil)
         if errors.size > 0
           fail "ERRORS: #{errors}"
