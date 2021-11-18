@@ -270,6 +270,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['site_type'] = HPXML::SiteTypeSuburban
       args['geometry_unit_type'] = HPXML::ResidentialTypeSFD
       args['geometry_unit_cfa'] = 2700.0
+      args['geometry_unit_left_wall_is_adiabatic'] = false
+      args['geometry_unit_right_wall_is_adiabatic'] = false
+      args['geometry_unit_front_wall_is_adiabatic'] = false
+      args['geometry_unit_back_wall_is_adiabatic'] = false
       args['geometry_unit_num_floors_above_grade'] = 1
       args['geometry_average_ceiling_height'] = 8.0
       args['geometry_unit_orientation'] = 180.0
@@ -292,10 +296,11 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_has_flue_or_chimney'] = Constants.Auto
       args['floor_over_foundation_assembly_r'] = 0
       args['floor_over_garage_assembly_r'] = 0
+      args['foundation_wall_type'] = Constants.Auto
+      args['foundation_wall_thickness'] = 8.0
       args['foundation_wall_insulation_r'] = 8.9
       args['foundation_wall_insulation_distance_to_top'] = 0.0
       args['foundation_wall_insulation_distance_to_bottom'] = 8.0
-      args['foundation_wall_thickness'] = 8.0
       args['rim_joist_assembly_r'] = 23.0
       args['slab_perimeter_insulation_r'] = 0
       args['slab_perimeter_depth'] = 0
@@ -389,7 +394,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_backup_heating_efficiency'] = 1
       args['heat_pump_backup_heating_capacity'] = 36000.0
-      args['hvac_control_type'] = HPXML::HVACControlTypeManual
       args['hvac_control_heating_weekday_setpoint'] = 68
       args['hvac_control_heating_weekend_setpoint'] = 68
       args['hvac_control_cooling_weekday_setpoint'] = 78
@@ -479,6 +483,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['pv_system_2_array_azimuth'] = 180
       args['pv_system_2_array_tilt'] = 20
       args['pv_system_2_max_power_output'] = 4000
+      args['battery_location'] = 'none'
+      args['battery_power'] = Constants.Auto
+      args['battery_capacity'] = Constants.Auto
       args['lighting_interior_fraction_cfl'] = 0.4
       args['lighting_interior_fraction_lfl'] = 0.1
       args['lighting_interior_fraction_led'] = 0.25
@@ -617,7 +624,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['ducts_supply_location'] = HPXML::LocationLivingSpace
       args['ducts_return_location'] = HPXML::LocationLivingSpace
       args['ducts_supply_insulation_r'] = 0.0
-      args['ducts_return_insulation_r'] = 0.0
       args['ducts_number_of_return_registers'] = 1
       args['door_area'] = 20.0
     end
@@ -673,8 +679,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['cooling_system_type'] = 'none'
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
       args['heat_pump_heating_capacity_17_f'] = 22680.0
-      args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
-      args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_heating_capacity'] = 48000.0
       args['heat_pump_fraction_heat_load_served'] = 0.75
       args['ducts_supply_leakage_to_outside_value'] = 0.0
@@ -702,8 +706,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['heat_pump_heating_efficiency'] = 3.6
       args['heat_pump_cooling_efficiency_type'] = HPXML::UnitsEER
       args['heat_pump_cooling_efficiency'] = 16.6
-      args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
-      args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_fraction_heat_load_served'] = 0.75
       args['heating_system_2_type'] = HPXML::HVACTypeBoiler
     elsif ['extra-enclosure-windows-shading.xml'].include? hpxml_file
@@ -953,7 +955,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['error-mf-bottom-crawlspace-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
       args['geometry_foundation_height'] = 0.0
-      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
       args['foundation_wall_insulation_distance_to_bottom'] = Constants.Auto
     elsif ['error-ducts-location-and-areas-not-same-type.xml'].include? hpxml_file
       args['ducts_supply_location'] = Constants.Auto
@@ -971,14 +972,12 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['error-sfa-all-adiabatic-walls.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
-      args['geometry_unit_right_wall_is_adiabatic'] = true
       args['geometry_unit_front_wall_is_adiabatic'] = true
       args['geometry_unit_back_wall_is_adiabatic'] = true
     elsif ['error-mf-no-building-num-units.xml'].include? hpxml_file
       args.delete('geometry_building_num_units')
     elsif ['error-mf-all-adiabatic-walls.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
-      args['geometry_unit_right_wall_is_adiabatic'] = true
       args['geometry_unit_front_wall_is_adiabatic'] = true
       args['geometry_unit_back_wall_is_adiabatic'] = true
     elsif ['error-mf-two-stories.xml'].include? hpxml_file
@@ -1009,7 +1008,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['warning-mf-bottom-slab-non-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
       args['geometry_foundation_height_above_grade'] = 0.0
-      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['warning-slab-non-zero-foundation-height-above-grade.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
       args['geometry_foundation_height'] = 0.0
@@ -1040,10 +1038,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['ducts_supply_location'] = HPXML::LocationAtticVented
       args['ducts_return_location'] = HPXML::LocationAtticVented
     elsif ['warning-unvented-attic-with-floor-and-roof-insulation.xml'].include? hpxml_file
-      args['geometry_attic_type'] = HPXML::AtticTypeUnvented
       args['roof_assembly_r'] = 10
     elsif ['warning-conditioned-basement-with-ceiling-insulation.xml'].include? hpxml_file
-      args['geometry_foundation_type'] = HPXML::FoundationTypeBasementConditioned
       args['floor_over_foundation_assembly_r'] = 10
     elsif ['warning-conditioned-attic-with-floor-insulation.xml'].include? hpxml_file
       args['geometry_unit_num_floors_above_grade'] = 2
@@ -1086,6 +1082,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         if not retval # Try passing as string instead
           assert(temp_arg_var.setValue(args_hash[arg.name].to_s))
         end
+      else
+        next if !arg.required
+
+        fail "Did not provide required argument: #{arg.name}"
       end
       argument_map[arg.name] = temp_arg_var
     end
