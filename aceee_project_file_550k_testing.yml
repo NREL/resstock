@@ -1,0 +1,709 @@
+schema_version: '0.3'
+buildstock_directory: /home/pwhite/grid-impacts-aceee/resstock # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /projects/enduse/grid-impacts-aceee/CA_NY_MI_TX_runs/full_run_v1
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2012_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 550000
+    logic:
+      - or:
+        - State|CA
+        - State|NY
+        - State|MI
+        - State|TX
+      - Geometry Building Type ACS|Single-Family Detached
+      - Vacancy Status|Occupied
+    resample: false
+
+workflow_generator:
+  type: residential_default
+  args:
+    timeseries_csv_export:
+      reporting_frequency: Hourly
+      include_enduse_subcategories: true
+    residential_simulation_controls:
+      calendar_year: 2012
+
+baseline:
+  n_buildings_represented: 133172057  # Total number of residential dwelling units in contiguous United States, including unoccupied units, resulting from a census tract level query of ACS 5-yr 2016 (i.e. 2012-2016), using this script: https://github.com/NREL/resstock-estimation/blob/master/sources/spatial/tsv_maker.py.
+
+
+eagle:
+  n_jobs: 10
+  minutes_per_sim: 20
+  account: enduse
+  sampling:
+    time: 60
+  postprocessing:
+    time: 720
+    n_workers: 12
+
+# aws:
+#   # The job_identifier should be unique, start with alpha, not include dashes, and limited to 10 chars or data loss can occur
+#   job_identifier: resstock_cambium_aceee
+#   s3:
+#     bucket: resstock-cambium
+#     prefix: aceeeTest10No1
+#   emr:
+#     worker_instance_count: 1
+#   region: us-west-2
+#   use_spot: true
+#   batch_array_size: 1000
+#   # To receive email updates on job progress accept the request to receive emails that will be sent from Amazon
+#   notifications_email: noel.merket@nrel.gov
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: eulp
+      prefix: grid-impacts-aceee/CA_NY_MI_TX_runs/full_run_v1
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: grid_impacts_aceee
+      max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
+
+upgrades:
+  - upgrade_name: All LEDs
+    options:
+      - option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|100% CFL
+        costs: &no_cost
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+  - upgrade_name: Storm Windows
+    options:
+      - &low-e_storms_on_single_clear_metal
+        option: Windows|Single, Clear, Metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+      - &low-e_storms_on_single_clear_nonmetal
+        option: Windows|Single, Clear, Non-metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+      - &low-e_storms_on_double_clear_metal
+        option: Windows|Double, Clear, Metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - Windows|Double, Clear, Metal, Air
+            - Windows|Double, Clear, Metal, Air, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+      - &low-e_storms_on_double_clear_nonmetal
+        option: Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
+        apply_logic:
+          and:
+            - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
+            - Windows|Double, Clear, Non-metal, Air
+      #10% ACH50 reduction for low-E storms replacing clear storms
+      - option: Infiltration|0.9 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - &upgradable_storm_windows
+              or: 
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+                - Windows|Double, Clear, Metal, Air, Exterior Clear Storm
+                - Windows|Double, Clear, Non-metal, Air, Exterior Clear Storm
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|1.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|2.7 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|3.6 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|4.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|5.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|6.3 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|7.2 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|9 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|13.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|18 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|22.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|27 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|36 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|45 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - *upgradable_storm_windows
+        costs: *no_cost
+        lifetime: 30
+      #15% ACH50 reduction for adding low-E storms where they weren't before
+      - option: Infiltration|0.85 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - &upgradable_nostorm_windows
+              or:
+                - Windows|Double, Clear, Metal, Air
+                - Windows|Double, Clear, Non-metal, Air
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Non-metal
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|1.7 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|2.55 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|3.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|4.25 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|5.1 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|5.95 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|6.8 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|8.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|12.75 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|17 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|21.25 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|25.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|34 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|42.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - *upgradable_nostorm_windows
+        costs: *no_cost
+        lifetime: 30
+  - upgrade_name: Exterior Insulation
+    options:
+      #polyiso_1inch
+      - &polyiso_1inch_on_uninsulated_wood
+        #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
+        option: Insulation Wall|Wood Stud, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, Uninsulated
+        costs: &polyiso_1inch_costs
+          - value: 1.4
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_wood
+        option: Insulation Wall|Wood Stud, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_wood
+        option: Insulation Wall|Wood Stud, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-11
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-13_wood
+        option: Insulation Wall|Wood Stud, R-13, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-13
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_wood
+        option: Insulation Wall|Wood Stud, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-15
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+        #19% ACH50 reductions are for 1" or 2" polyiso without window upgrade
+      - option: Infiltration|0.81 ACH50
+        apply_logic:
+          and:
+            - Infiltration|1 ACH50
+            - &upgradable_walls
+              or: 
+                - Insulation Wall|Wood Stud, Uninsulated
+                - Insulation Wall|Wood Stud, R-7
+                - Insulation Wall|Wood Stud, R-11
+                - Insulation Wall|Wood Stud, R-13
+                - Insulation Wall|Wood Stud, R-15
+                - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+                - Insulation Wall|CMU, 6-in Hollow, R-7
+                - Insulation Wall|CMU, 6-in Hollow, R-11
+                - Insulation Wall|CMU, 6-in Hollow, R-15
+                - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+                - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+                - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+                - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|1.62 ACH50
+        apply_logic:
+          and:
+            - Infiltration|2 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|2.43 ACH50
+        apply_logic:
+          and:
+            - Infiltration|3 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|3.24 ACH50
+        apply_logic:
+          and:
+            - Infiltration|4 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|4.05 ACH50
+        apply_logic:
+          and:
+            - Infiltration|5 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|4.86 ACH50
+        apply_logic:
+          and:
+            - Infiltration|6 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|5.67 ACH50
+        apply_logic:
+          and:
+            - Infiltration|7 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|6.48 ACH50
+        apply_logic:
+          and:
+            - Infiltration|8 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|8.1 ACH50
+        apply_logic:
+          and:
+            - Infiltration|10 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|12.15 ACH50
+        apply_logic:
+          and:
+            - Infiltration|15 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|16.2 ACH50
+        apply_logic:
+          and:
+            - Infiltration|20 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|20.25 ACH50
+        apply_logic:
+          and:
+            - Infiltration|25 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|24.3 ACH50
+        apply_logic:
+          and:
+            - Infiltration|30 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|32.4 ACH50
+        apply_logic:
+          and:
+            - Infiltration|40 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+      - option: Infiltration|40.5 ACH50
+        apply_logic:
+          and:
+            - Infiltration|50 ACH50
+            - *upgradable_walls
+        costs: *no_cost
+        lifetime: 30
+  - upgrade_name: Awesome appliances (Advanced ref, w/d, dw)
+    options:
+    - option: Refrigerator|EF 21.9, 100% Usage
+      apply_logic: 
+        or:
+          - Refrigerator|EF 19.9, 100% Usage
+          - Refrigerator|EF 17.6, 100% Usage
+          - Refrigerator|EF 15.9, 100% Usage
+          - Refrigerator|EF 10.5, 100% Usage
+          - Refrigerator|EF 10.2, 100% Usage
+          - Refrigerator|EF 6.7, 100% Usage
+      costs: *no_cost
+      lifetime: 17.4
+    - option: Dishwasher|144 Rated kWh, 80% Usage
+      apply_logic: 
+        or:
+          - Dishwasher|318 Rated kWh, 80% Usage
+          - Dishwasher|290 Rated kWh, 80% Usage
+      costs: *no_cost
+      lifetime: 11
+    - option: Dishwasher|144 Rated kWh, 100% Usage
+      apply_logic: 
+        or:
+          - Dishwasher|318 Rated kWh, 100% Usage
+          - Dishwasher|290 Rated kWh, 100% Usage
+      costs: *no_cost
+      lifetime: 11
+    - option: Dishwasher|144 Rated kWh, 120% Usage
+      apply_logic: 
+        or:
+          - Dishwasher|318 Rated kWh, 120% Usage
+          - Dishwasher|290 Rated kWh, 120% Usage
+      costs: *no_cost
+      lifetime: 11
+      #Best clothes washer
+    - option: Clothes Washer|EnergyStar Most Efficient, 80% Usage
+      apply_logic:
+        or:
+          - Clothes Washer|EnergyStar, 80% Usage
+          - Clothes Washer|Standard, 80% Usage
+      costs: *no_cost
+      lifetime: 999
+    - option: Clothes Washer|EnergyStar Most Efficient, 100% Usage
+      apply_logic:
+        or:
+          - Clothes Washer|EnergyStar, 100% Usage
+          - Clothes Washer|Standard, 100% Usage
+          - Clothes Washer|Standard, 100% Usage, Cold Only
+          - Clothes Washer|EnergyStar, Cold Only
+      costs: *no_cost
+      lifetime: 999
+    - option: Clothes Washer|EnergyStar Most Efficient, 120% Usage
+      apply_logic:
+        or:
+          - Clothes Washer|EnergyStar, 120% Usage
+          - Clothes Washer|Standard, 120% Usage
+      costs: *no_cost
+      lifetime: 999
+      #Best clothes dryer
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage
+      apply_logic: Clothes Dryer|Electric, 80% Usage
+      costs: *no_cost
+      lifetime: 999
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage
+      apply_logic: Clothes Dryer|Electric, 100% Usage
+      costs: *no_cost
+      lifetime: 999
+    - option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage
+      apply_logic: Clothes Dryer|Electric, 120% Usage
+      costs: *no_cost
+      lifetime: 999
+  - upgrade_name: ASHP SEER 16 (Good)
+    options:
+    - option: HVAC Heating Efficiency|ASHP, SEER 16, 9.0 HSPF
+      apply_logic:
+        - HVAC Has Ducts|Yes
+      costs: 
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+  - upgrade_name: ASHP SEER 22 (Better)
+    options:
+    - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+      apply_logic:
+        - HVAC Has Ducts|Yes
+      costs: 
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+  - upgrade_name: MSHP SEER 29.3 (Best)
+    options:
+    - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+      apply_logic:
+        - HVAC Has Ducts|Yes
+      costs: 
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+  - upgrade_name: ASHP SEER 22, higher min compressor temp
+    options:
+    - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, 20F min
+      apply_logic:
+        - HVAC Has Ducts|Yes
+      costs: 
+        - value: 0
+          multiplier: Fixed (1)
+      lifetime: 999
+  - upgrade_name: HPWH
+    options:
+      - option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic: 
+          or:
+            - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - Water Heater Efficiency|Electric Heat Pump, 80 gal
+            - Water Heater Efficiency|Electric Premium
+            - Water Heater Efficiency|Electric Standard
+            - Water Heater Efficiency|Electric Tankless
+            - Water Heater Efficiency|FIXME Fuel Oil Indirect
+            - Water Heater Efficiency|Fuel Oil Premium
+            - Water Heater Efficiency|Fuel Oil Standard
+            - Water Heater Efficiency|Natural Gas Premium
+            - Water Heater Efficiency|Natural Gas Standard
+            - Water Heater Efficiency|Natural Gas Tankless
+            - Water Heater Efficiency|Other Fuel
+            - Water Heater Efficiency|Propane Premium
+            - Water Heater Efficiency|Propane Standard
+            - Water Heater Efficiency|Propane Tankless
+        costs: *no_cost
+        lifetime: 999
+  - upgrade_name: Thermostat Setbacks
+    options:
+      - option: Heating Setpoint Offset Magnitude|3F
+        apply_logic: Heating Setpoint Offset Magnitude|0F
+        costs: *no_cost
+        lifetime: 999
+      - option: Heating Setpoint Offset Magnitude|6F
+        apply_logic: Heating Setpoint Offset Magnitude|3F
+        costs: *no_cost
+        lifetime: 999
+      - option: Heating Setpoint Offset Magnitude|12F
+        apply_logic: Heating Setpoint Offset Magnitude|6F
+        costs: *no_cost
+        lifetime: 999
+      - option: Cooling Setpoint Offset Magnitude|2F
+        apply_logic: Cooling Setpoint Offset Magnitude|0F
+        costs: *no_cost
+        lifetime: 999
+      - option: Cooling Setpoint Offset Magnitude|5F
+        apply_logic: Cooling Setpoint Offset Magnitude|2F
+        costs: *no_cost
+        lifetime: 999
+      - option: Cooling Setpoint Offset Magnitude|9F
+        apply_logic: Cooling Setpoint Offset Magnitude|5F
+        costs: *no_cost
+        lifetime: 999
