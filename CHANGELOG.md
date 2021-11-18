@@ -31,6 +31,7 @@ Features
 - Updates mechanical ventilation options/model to ASHRAE 62.2-2019 and adds a "Flow Rate, Mechanical Ventilation (cfm)" output ([#675](https://github.com/NREL/resstock/pull/675))
 - Add PV ownership and PV system size distributions using 2019 Tracking the Sun and GTM report on solar installation. ([#673](https://github.com/NREL/resstock/pull/673))
 - Add optional argument to ResidentialLocation measure for setting the IECC climate zone ([#755](https://github.com/NREL/resstock/pull/764))
+- Add Geometry Story Bin tsv and Geometry Story Bin dep to Geometry Wall Type. ([#759](https://github.com/NREL/resstock/pull/759))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
@@ -50,6 +51,7 @@ Fixes
 - Exclude adiabatic doors when outputting the door area cost multiplier ([#674](https://github.com/NREL/resstock/pull/674))
 - Disaggregate the shared fan coil's fan energy use into heating and cooling ([#694](https://github.com/NREL/resstock/pull/694))
 - Fixes hours setpoint not met output to exclude A) no heating and/or cooling equipment and B) finished basements ([#700](https://github.com/NREL/resstock/pull/700))
+- Revert fix to make all Brick >1960 to Wood Frame + Brick facade ([#759](https://github.com/NREL/resstock/pull/759))
 
 ## ResStock v2.4.0
 
