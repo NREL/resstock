@@ -372,13 +372,13 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
     hpxml = _create_hpxml('base-foundation-vented-crawlspace.xml')
     ceilings_values.each do |ceiling_values|
-      hpxml.frame_floors[0].insulation_assembly_r_value = ceiling_values[:assembly_r]
+      hpxml.frame_floors[1].insulation_assembly_r_value = ceiling_values[:assembly_r]
       XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.frame_floors[0].id }[0]
-      _check_surface(hpxml.frame_floors[0], os_surface, ceiling_values[:layer_names])
+      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.frame_floors[1].id }[0]
+      _check_surface(hpxml.frame_floors[1], os_surface, ceiling_values[:layer_names])
     end
 
     # Floors
@@ -388,13 +388,13 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
     hpxml = _create_hpxml('base-foundation-vented-crawlspace.xml')
     floors_values.each do |floor_values|
-      hpxml.frame_floors[1].insulation_assembly_r_value = floor_values[:assembly_r]
+      hpxml.frame_floors[0].insulation_assembly_r_value = floor_values[:assembly_r]
       XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.frame_floors[1].id }[0]
-      _check_surface(hpxml.frame_floors[1], os_surface, floor_values[:layer_names])
+      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.frame_floors[0].id }[0]
+      _check_surface(hpxml.frame_floors[0], os_surface, floor_values[:layer_names])
     end
   end
 

@@ -3157,16 +3157,6 @@ class HPXMLFile
     @surface_ids = {}
 
     # Sorting of objects to make the measure deterministic
-    # h = {}
-    # model.getSurfaces.each do |surface|
-    # h[surface.additionalProperties.getFeatureAsInteger('Index').get] = "#{surface.name} - #{surface.surfaceType} - #{surface.space.get.name}"
-    # end
-    # model.getSubSurfaces.each do |sub_surface|
-    # h[sub_surface.additionalProperties.getFeatureAsInteger('Index').get] = "#{sub_surface.name} - #{sub_surface.space.get.name}"
-    # end
-    # h.sort.each do |k, v|
-    # puts v
-    # end
     sorted_surfaces = model.getSurfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
     sorted_subsurfaces = model.getSubSurfaces.sort_by { |ss| ss.additionalProperties.getFeatureAsInteger('Index').get }
 
