@@ -483,11 +483,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     # Test defaults w/ floor
     hpxml = _create_hpxml('base-foundation-vented-crawlspace.xml')
-    hpxml.frame_floors[1].interior_finish_type = nil
-    hpxml.frame_floors[1].interior_finish_thickness = nil
+    hpxml.frame_floors[0].interior_finish_type = nil
+    hpxml.frame_floors[0].interior_finish_thickness = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_frame_floor_values(hpxml_default.frame_floors[1], HPXML::InteriorFinishNone, nil)
+    _test_default_frame_floor_values(hpxml_default.frame_floors[0], HPXML::InteriorFinishNone, nil)
   end
 
   def test_slabs
