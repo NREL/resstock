@@ -170,8 +170,8 @@ class Geometry
   end
 
   def self.assign_remaining_surface_indexes(model)
-    # index remaining surfaces created from intersecting/matching
-    # we can't deterministically assign indexes to these surfaces
+    # Index any remaining surfaces created from intersecting/matching
+    # We can't deterministically assign indexes to these surfaces
     model.getSurfaces.each do |surface|
       next if surface.additionalProperties.getFeatureAsInteger('Index').is_initialized
 
@@ -1763,6 +1763,7 @@ class Geometry
     # additional floors
     (2..num_floors).to_a.each do |story|
       new_living_space = living_space.clone.to_Space.get
+      assign_indexes(model, living_polygon, new_living_space)
       new_living_space.setName("living space|story #{story}")
       new_living_space.setSpaceType(living_space_type)
 
