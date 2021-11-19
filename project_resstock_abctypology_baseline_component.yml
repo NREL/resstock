@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /projects/abctypol/repos/resstock  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/abctypol/resstock_runs/baseline/test_2k
+output_directory: /projects/enduse/abc_typology/runs/baseline/load_components
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 # weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
@@ -11,7 +11,7 @@ baseline:
 sampler: 
   type: residential_quota
   args: 
-    n_datapoints: 2000 #550000
+    n_datapoints: 550000
 
 workflow_generator: 
   type: residential_default
@@ -33,9 +33,9 @@ workflow_generator:
 
 eagle:
   account: enduse
-  n_jobs: 10 #1000
+  n_jobs: 1000
   minutes_per_sim: 20
   sampling:
     time: 60
   postprocessing:
-    time: 180
+    time: 480
