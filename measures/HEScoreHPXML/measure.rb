@@ -60,37 +60,15 @@ class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
     args = get_argument_values(runner, arguments(model), user_arguments)
   
     hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
-    runner.registerWarning("Running hescorehpxml measures (resstock)")
     outfile = File.expand_path('../testingout.json')
 
-    # output = `hpxml2hescore #{hpxml_path} -o #{outfile} --resstock`
-    # puts("system result: #{output}")
-    # puts($?) unless output
-
-    stdout, stderr, status = Open3.capture2e("python3", "-m", "hescorehpxml", "\"#{hpxml_path}\"", "-o", "\"#{outfile}\"", "--resstock")
-    puts("stdout: #{stdout}")
-    puts("stderr: #{stderr}")
-    puts("status: #{status}")
-
-    runner.registerWarning("Ran translator with hpxml2hescore \"#{hpxml_path}\" -o \"#{outfile}\"--resstock")
-
-    files = Dir['/var/simdata/openstudio/run/*']
-    puts("----------/var/simdata/openstudio/run")
-    puts(files)
-
-    files = Dir['/var/simdata/openstudio/*']
-    puts("----------/var/simdata/openstudio ")
-    puts(files)
+    runner.registerWarning("Translating xml to HES json")
+    stdout, stderr, status = Open3.capture2e("hpxml2hescore", hpxml_path, "-o", outfile, "--resstock")
+    runner.registerWarning("Translated xml to HES json, output #{outfile}")
 
     return true
-
-    ###############################################################
-
-    # assign the user inputs to variables
-    args = get_argument_values(runner, arguments(model), user_arguments)
-
-    measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
-    arg_names = []
+  end
+end
 
 
 # register the measure to be used by the application
