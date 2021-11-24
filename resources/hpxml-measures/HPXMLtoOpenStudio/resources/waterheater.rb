@@ -23,8 +23,6 @@ class Waterheater
                                    model: model,
                                    ua: ua,
                                    eta_c: eta_c)
-    set_parasitic_power_for_storage_wh(water_heater: new_heater)
-
     loop.addSupplyBranchForComponent(new_heater)
 
     add_ec_adj(model, new_heater, ec_adj, loc_space, water_heating_system)
@@ -56,7 +54,6 @@ class Waterheater
                                    model: model,
                                    ua: ua,
                                    eta_c: eta_c)
-    set_parasitic_power_for_tankless_wh(nbeds: nbeds, water_heater: new_heater)
 
     loop.addSupplyBranchForComponent(new_heater)
 
@@ -178,7 +175,6 @@ class Waterheater
                                    model: model,
                                    ua: ua,
                                    is_combi: true)
-    set_parasitic_power_for_storage_wh(water_heater: new_heater)
     new_heater.setSourceSideDesignFlowRate(100) # set one large number, override by EMS
 
     # Store combi assumed EF for ERI calculation
@@ -261,44 +257,48 @@ class Waterheater
       # Create sensors and actuators
       plant_loop = plantloop_map[combi_sys_id]
       plant_loop.components.each do |c|
-        if c.to_WaterUseConnections.is_initialized
-          wuc = c.to_WaterUseConnections.get
-          wuc.waterUseEquipment.each do |wu|
-            # water use equipment peak mass flow rate
-            wu_peak = wu.waterUseEquipmentDefinition.peakFlowRate
-            equipment_peaks[wu.name.to_s] = wu_peak
-            # mfr fraction schedule sensors
-            wu_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-            wu_sch_sensor.setName("#{wu.name} sch value")
-            wu_sch_sensor.setKeyName(wu.flowRateFractionSchedule.get.name.to_s)
-            equipment_sch_sensors[wu.name.to_s] = wu_sch_sensor
-            # water use equipment target temperature schedule sensors
+        next unless c.to_WaterHeaterMixed.is_initialized
+
+        water_heater = c.to_WaterHeaterMixed.get
+        tank_volume = water_heater.tankVolume.get
+        deadband = water_heater.deadbandTemperatureDifference
+        # Sensors and actuators related to OS water heater object
+        tank_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Tank Temperature')
+        tank_temp_sensor.setName("#{combi_sys_id} Tank Temp")
+        tank_temp_sensor.setKeyName(water_heater.name.to_s)
+        tank_loss_energy_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Heat Loss Energy')
+        tank_loss_energy_sensor.setName("#{combi_sys_id} Tank Loss Energy")
+        tank_loss_energy_sensor.setKeyName(water_heater.name.to_s)
+        tank_spt_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        tank_spt_sensor.setName("#{combi_sys_id} Setpoint Temperature")
+        tank_spt_sensor.setKeyName(water_heater.setpointTemperatureSchedule.get.name.to_s)
+        alt_spt_sch = water_heater.indirectAlternateSetpointTemperatureSchedule.get
+        altsch_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(alt_spt_sch, *EPlus::EMSActuatorScheduleConstantValue)
+        altsch_actuator.setName("#{combi_sys_id} AltSchedOverride")
+      end
+      plant_loop.components.each do |c|
+        next unless c.to_WaterUseConnections.is_initialized
+
+        wuc = c.to_WaterUseConnections.get
+        wuc.waterUseEquipment.each do |wu|
+          # water use equipment peak mass flow rate
+          wu_peak = wu.waterUseEquipmentDefinition.peakFlowRate
+          equipment_peaks[wu.name.to_s] = wu_peak
+          # mfr fraction schedule sensors
+          wu_sch_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+          wu_sch_sensor.setName("#{wu.name} sch value")
+          wu_sch_sensor.setKeyName(wu.flowRateFractionSchedule.get.name.to_s)
+          equipment_sch_sensors[wu.name.to_s] = wu_sch_sensor
+          # water use equipment target temperature schedule sensors
+          if wu.waterUseEquipmentDefinition.targetTemperatureSchedule.is_initialized
             target_temp_sch = wu.waterUseEquipmentDefinition.targetTemperatureSchedule.get
-            target_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-            target_temp_sensor.setName("#{wu.name} target temp")
-            target_temp_sensor.setKeyName(target_temp_sch.name.to_s)
-            equipment_target_temp_sensors[wu.name.to_s] = target_temp_sensor
+          else
+            target_temp_sch = water_heater.setpointTemperatureSchedule.get
           end
-
-        elsif c.to_WaterHeaterMixed.is_initialized
-          water_heater = c.to_WaterHeaterMixed.get
-
-          # Some parameters to use
-          tank_volume = water_heater.tankVolume.get
-          deadband = water_heater.deadbandTemperatureDifference
-          # Sensors and actuators related to OS water heater object
-          tank_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Tank Temperature')
-          tank_temp_sensor.setName("#{combi_sys_id} Tank Temp")
-          tank_temp_sensor.setKeyName(water_heater.name.to_s)
-          tank_loss_energy_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Heat Loss Energy')
-          tank_loss_energy_sensor.setName("#{combi_sys_id} Tank Loss Energy")
-          tank_loss_energy_sensor.setKeyName(water_heater.name.to_s)
-          tank_spt_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-          tank_spt_sensor.setName("#{combi_sys_id} Setpoint Temperature")
-          tank_spt_sensor.setKeyName(water_heater.setpointTemperatureSchedule.get.name.to_s)
-          alt_spt_sch = water_heater.indirectAlternateSetpointTemperatureSchedule.get
-          altsch_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(alt_spt_sch, *EPlus::EMSActuatorScheduleConstantValue)
-          altsch_actuator.setName("#{combi_sys_id} AltSchedOverride")
+          target_temp_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+          target_temp_sensor.setName("#{wu.name} target temp")
+          target_temp_sensor.setKeyName(target_temp_sch.name.to_s)
+          equipment_target_temp_sensors[wu.name.to_s] = target_temp_sensor
         end
       end
       dhw_source_loop = model.getPlantLoops.select { |l| l.demandComponents.include? water_heater }[0]
@@ -1027,7 +1027,6 @@ class Waterheater
                                      model: model,
                                      ua: assumed_ua,
                                      is_dsh_storage: true)
-    set_parasitic_power_for_storage_wh(water_heater: storage_tank)
 
     loop.addSupplyBranchForComponent(storage_tank)
     tank.addToNode(storage_tank.supplyOutletModelObject.get.to_Node.get)
@@ -1570,7 +1569,7 @@ class Waterheater
     OpenStudio::Model::SetpointManagerScheduled.new(model, new_schedule)
   end
 
-  def self.create_new_heater(name:, water_heating_system: nil, act_vol:, t_set_c: nil, loc_space:, loc_schedule: nil, model:, ua:, eta_c: nil, oncycle_p: 0.0, is_dsh_storage: false, is_combi: false)
+  def self.create_new_heater(name:, water_heating_system: nil, act_vol:, t_set_c: nil, loc_space:, loc_schedule: nil, model:, ua:, eta_c: nil, is_dsh_storage: false, is_combi: false)
     # storage tank doesn't require water_heating_system class argument being passed
     if is_dsh_storage || is_combi
       fuel = nil
@@ -1602,7 +1601,7 @@ class Waterheater
     new_heater.setHeaterMaximumCapacity(UnitConversions.convert(cap, 'kBtu/hr', 'W'))
     new_heater.setHeaterMinimumCapacity(0.0)
     new_heater.setTankVolume(UnitConversions.convert(act_vol, 'gal', 'm^3'))
-    set_wh_parasitic_parameters(oncycle_p, water_heating_system, new_heater, is_dsh_storage)
+    set_wh_parasitic_parameters(water_heating_system, new_heater, is_dsh_storage)
     set_wh_ambient(loc_space, loc_schedule, model, new_heater)
 
     ua_w_k = UnitConversions.convert(ua, 'Btu/(hr*F)', 'W/K')
@@ -1616,10 +1615,14 @@ class Waterheater
       new_heater.additionalProperties.setFeature('IsCombiBoiler', true) # Used by reporting measure
     end
 
+    # FUTURE: These are always zero right now; develop smart defaults.
+    new_heater.setOnCycleParasiticFuelConsumptionRate(0.0)
+    new_heater.setOffCycleParasiticFuelConsumptionRate(0.0)
+
     return new_heater
   end
 
-  def self.set_wh_parasitic_parameters(oncycle_p, water_heating_system, water_heater, is_dsh_storage)
+  def self.set_wh_parasitic_parameters(water_heating_system, water_heater, is_dsh_storage)
     water_heater.setOnCycleParasiticFuelType(EPlus::FuelTypeElectricity)
     water_heater.setOnCycleParasiticHeatFractiontoTank(0)
     water_heater.setOnCycleLossFractiontoThermalZone(1.0)
@@ -1632,46 +1635,21 @@ class Waterheater
     skinlossfrac = 1.0
     if (not is_dsh_storage) && (water_heating_system.fuel_type != HPXML::FuelTypeElectricity) && (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage)
       # Fuel storage water heater
-      # FUTURE: We currently always end up with oncycle_p (i.e., natural draft); revise this algorithm.
-      if oncycle_p == 0.0
+      # EF cutoffs derived from Figure 2 of http://title24stakeholders.com/wp-content/uploads/2017/10/2013_CASE-Report_High-efficiency-Water-Heater-Ready.pdf
+      # FUTURE: Add an optional HPXML input for water heater type for a user to specify this (and default based on EF as below)
+      ef = water_heating_system.energy_factor
+      if ef.nil?
+        ef = calc_ef_from_uef(water_heating_system)
+      end
+      if ef < 0.64
         skinlossfrac = 0.64 # Natural draft
-      elsif water_heating_system.energy_factor < 0.8
+      elsif ef < 0.77
         skinlossfrac = 0.91 # Power vent
       else
         skinlossfrac = 0.96 # Condensing
       end
     end
     water_heater.setOffCycleLossFractiontoThermalZone(skinlossfrac)
-  end
-
-  def self.set_parasitic_power_for_tankless_wh(nbeds:, oncycle_p: 0.0, offcycle_p: 0.0, water_heater:)
-    # Set parasitic power consumption for tankless water heater
-    # Tankless WHs are set to "modulate", not "cycle", so they end up
-    # effectively always on. Thus, we need to use a weighted-average of
-    # on-cycle and off-cycle parasitics.
-    # Values used here are based on the average across 10 units originally used when modeling MF buildings
-    avg_runtime_frac = [0.0268, 0.0333, 0.0397, 0.0462, 0.0529]
-    if nbeds <= 5
-      if nbeds == 0
-        runtime_frac = avg_runtime_frac[0]
-      else
-        runtime_frac = avg_runtime_frac[nbeds - 1]
-      end
-    else
-      runtime_frac = avg_runtime_frac[4]
-    end
-    avg_elec = oncycle_p * runtime_frac + offcycle_p * (1 - runtime_frac)
-
-    # FUTURE: These are always zero right now; develop smart defaults.
-    water_heater.setOnCycleParasiticFuelConsumptionRate(avg_elec)
-    water_heater.setOffCycleParasiticFuelConsumptionRate(avg_elec)
-  end
-
-  def self.set_parasitic_power_for_storage_wh(oncycle_p: 0.0, offcycle_p: 0.0, water_heater:)
-    # Set parasitic power consumption
-    # FUTURE: These are always zero right now; develop smart defaults.
-    water_heater.setOnCycleParasiticFuelConsumptionRate(oncycle_p)
-    water_heater.setOffCycleParasiticFuelConsumptionRate(offcycle_p)
   end
 
   def self.set_wh_ambient(loc_space, loc_schedule, model, wh_obj)

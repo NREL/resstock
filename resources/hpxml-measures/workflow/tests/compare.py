@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
 
+
 class BaseCompare:
     def __init__(self, base_folder, feature_folder, export_folder, export_file):
         self.base_folder = base_folder
@@ -16,15 +17,15 @@ class BaseCompare:
 
     @staticmethod
     def intersect_rows(df1, df2):
-          return df1[df1.index.isin(df2.index)]
+        return df1[df1.index.isin(df2.index)]
 
     @staticmethod
     def union_columns(df1, df2):
-          cols = sorted(list(set(df1.columns) | set(df2.columns)))
-          for col in cols:
-              if not col in df1.columns:
-                  df1[col] = np.nan
-          return df1[cols]
+        cols = sorted(list(set(df1.columns) | set(df2.columns)))
+        for col in cols:
+            if col not in df1.columns:
+                df1[col] = np.nan
+        return df1[cols]
 
     def results(self, aggregate_column=None, aggregate_function=None, excludes=[], enum_maps={}):
         aggregate_columns = []
@@ -72,8 +73,10 @@ class BaseCompare:
                 sim_ct_base = len(base_df)
                 sim_ct_feature = len(feature_df)
                 if aggregate_columns:
-                    base_df = group_df.merge(base_df, 'outer', left_index=True, right_index=True).groupby(aggregate_columns)
-                    feature_df = group_df.merge(feature_df, 'outer', left_index=True, right_index=True).groupby(aggregate_columns)
+                    base_df = group_df.merge(base_df, 'outer', left_index=True, right_index=True)\
+                                      .groupby(aggregate_columns)
+                    feature_df = group_df.merge(feature_df, 'outer', left_index=True, right_index=True)\
+                                         .groupby(aggregate_columns)
                     if aggregate_function == 'sum':
                         base_df = base_df.sum(min_count=1).stack(dropna=False)
                         feature_df = feature_df.sum(min_count=1).stack(dropna=False)
@@ -97,7 +100,8 @@ class BaseCompare:
         deltas['feature'] = feature_df
         deltas['diff'] = deltas['feature'] - deltas['base']
         deltas_non_zero = deltas[deltas['base'] != 0].index
-        deltas.loc[deltas_non_zero, '% diff'] = 100 * (deltas.loc[deltas_non_zero, 'diff'] / deltas.loc[deltas_non_zero, 'base'])
+        deltas.loc[deltas_non_zero, '% diff'] = (100 * (deltas.loc[deltas_non_zero, 'diff'] /
+                                                 deltas.loc[deltas_non_zero, 'base']))
         deltas = deltas.round(2)
         deltas.reset_index(level=aggregate_columns, inplace=True)
         deltas.index.name = 'enduse'
@@ -122,7 +126,8 @@ class BaseCompare:
                 self.export_folder,
                 self.export_file))
 
-    def visualize(self, aggregate_column=None, aggregate_function=None, display_column=None, excludes=[], enum_maps={}, cols_to_ignore=[]):
+    def visualize(self, aggregate_column=None, aggregate_function=None, display_column=None,
+                  excludes=[], enum_maps={}, cols_to_ignore=[]):
         colors = px.colors.qualitative.Dark24
 
         aggregate_columns = []
@@ -169,13 +174,15 @@ class BaseCompare:
             return(min_value, max_value)
 
         def add_error_lines(fig, showlegend, row, col, min_value, max_value):
-            fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value], line=dict(
-                color='black', dash='dash', width=1), mode='lines', showlegend=showlegend, name='0% Error'), row=row, col=col)
+            fig.add_trace(go.Scatter(x=[min_value, max_value], y=[min_value, max_value],
+                                     line=dict(color='black', dash='dash', width=1), mode='lines',
+                                     showlegend=showlegend, name='0% Error'), row=row, col=col)
             fig.add_trace(go.Scatter(x=[min_value, max_value], y=[0.9 * min_value, 0.9 * max_value],
-                                     line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=showlegend, name='+/- 10% Error'),
-                          row=row, col=col)
+                                     line=dict(color='black', dash='dashdot', width=1), mode='lines',
+                                     showlegend=showlegend, name='+/- 10% Error'), row=row, col=col)
             fig.add_trace(go.Scatter(x=[min_value, max_value], y=[1.1 * min_value, 1.1 * max_value],
-                                     line=dict(color='black', dash='dashdot', width=1), mode='lines', showlegend=False), row=row, col=col)
+                                     line=dict(color='black', dash='dashdot', width=1), mode='lines',
+                                     showlegend=False), row=row, col=col)
 
         def remove_columns(cols):
             for col in cols[:]:
@@ -297,7 +304,7 @@ class BaseCompare:
             # Re-locate row titles above plots
             increment = (1/n_cols/2)*0.95
             for i in fig['layout']['annotations']:
-                text = i['text'].replace('<b>','').replace('</b>','')
+                text = i['text'].replace('<b>', '').replace('</b>', '')
                 if text in cols:
                     i['textangle'] = 0
                     i['x'] = 0
@@ -308,7 +315,9 @@ class BaseCompare:
             if self.export_file:
                 filename = self.export_file
 
-            plotly.offline.plot(fig, filename=os.path.join(self.export_folder, '{filename}'.format(filename=filename)), auto_open=False)
+            plotly.offline.plot(fig,
+                                filename=os.path.join(self.export_folder, '{filename}'.format(filename=filename)),
+                                auto_open=False)
 
 
 if __name__ == '__main__':
@@ -319,11 +328,11 @@ if __name__ == '__main__':
     actions = [method for method in dir(BaseCompare) if method.startswith('__') is False]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-b', '--base_folder', default=default_base_folder, help='The path of the base folder.')
-    parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='The path of the feature folder.')
-    parser.add_argument('-e', '--export_folder', default=default_export_folder, help='The path of the export folder.')
-    parser.add_argument('-x', '--export_file', help='The path of the export file.')
-    parser.add_argument('-a', '--actions', action='append', choices=actions, help='The method to call.')
+    parser.add_argument('-b', '--base_folder', default=default_base_folder, help='Path of the base folder.')
+    parser.add_argument('-f', '--feature_folder', default=default_feature_folder, help='Path of the feature folder.')
+    parser.add_argument('-e', '--export_folder', default=default_export_folder, help='Path of the export folder.')
+    parser.add_argument('-x', '--export_file', help='Path of the export file.')
+    parser.add_argument('-a', '--actions', action='append', choices=actions, help='Method to call.')
     args = parser.parse_args()
     print(args)
 

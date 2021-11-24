@@ -14,6 +14,6 @@ If your changes are intended to be merged into the develop branch of the `ResSto
    modifying_probability_distributions
    writing_housing_characteristics
    installer_setup
-   rake_tasks
+   tasks
    options_lookup
    increasing_upgrade_options

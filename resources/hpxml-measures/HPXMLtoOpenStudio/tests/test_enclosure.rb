@@ -313,6 +313,28 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       _check_surface(hpxml.foundation_walls[0], os_surface, wall_values[:layer_names])
     end
 
+    # Foundation wall w/ different material types
+    walls_values = [{ type: HPXML::FoundationWallTypeSolidConcrete, layer_names: ['concrete'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlock, layer_names: ['concrete block'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlockFoamCore, layer_names: ['concrete block foam core'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlockPerliteCore, layer_names: ['concrete block perlite core'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlockSolidCore, layer_names: ['concrete block solid core'] },
+                    { type: HPXML::FoundationWallTypeConcreteBlockVermiculiteCore, layer_names: ['concrete block vermiculite core'] },
+                    { type: HPXML::FoundationWallTypeDoubleBrick, layer_names: ['double brick'] },
+                    { type: HPXML::FoundationWallTypeWood, layer_names: ['wood'] }]
+
+    hpxml = _create_hpxml('base-foundation-unconditioned-basement-assembly-r.xml')
+    walls_values.each do |wall_values|
+      hpxml.foundation_walls[0].insulation_assembly_r_value = 0.1 # Ensure just a single layer
+      hpxml.foundation_walls[0].type = wall_values[:type]
+      XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+      model, hpxml = _test_measure(args_hash)
+
+      # Check properties
+      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.foundation_walls[0].id }[0]
+      _check_surface(hpxml.foundation_walls[0], os_surface, wall_values[:layer_names])
+    end
+
     # Foundation wall w/ Insulation Layers
     walls_values = [{ interior_r: 0.0, exterior_r: 0.0, layer_names: ['concrete'] },
                     { interior_r: 5.0, exterior_r: 0.0, layer_names: ['concrete', 'interior vertical ins'] },
@@ -428,36 +450,47 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     end
 
     # Check window shading
-    args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-windows-shading.xml'))
-    model, hpxml = _test_measure(args_hash)
+    ['USA_CO_Denver.Intl.AP.725650_TMY3.epw',
+     'ZAF_Cape.Town.688160_IWEC.epw'].each do |epw_path| # Test both northern & southern hemisphere
+      args_hash = {}
+      args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+      hpxml = _create_hpxml('base-enclosure-windows-shading.xml')
+      hpxml.climate_and_risk_zones.weather_station_epw_filepath = epw_path
+      XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+      model, hpxml = _test_measure(args_hash)
 
-    summer_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('June'), 1, model.yearDescription.get.assumedYear)
-    winter_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('January'), 1, model.yearDescription.get.assumedYear)
-
-    hpxml.windows.each do |window|
-      sf_summer = window.interior_shading_factor_summer
-      sf_winter = window.interior_shading_factor_winter
-      sf_summer *= window.exterior_shading_factor_summer unless window.exterior_shading_factor_summer.nil?
-      sf_winter *= window.exterior_shading_factor_winter unless window.exterior_shading_factor_winter.nil?
-
-      # Check shading transmittance for sky beam and sky diffuse
-      os_shading_surface = model.getShadingSurfaces.select { |ss| ss.name.to_s.start_with? window.id }[0]
-      if (sf_summer == 1) && (sf_winter == 1)
-        assert_nil(os_shading_surface) # No shading
-      else
-        refute_nil(os_shading_surface) # Shading
-        summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
-        winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
-        assert_equal(sf_summer, summer_transmittance)
-        assert_equal(sf_winter, winter_transmittance)
+      if epw_path == 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
+        summer_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('June'), 1, model.yearDescription.get.assumedYear)
+        winter_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('January'), 1, model.yearDescription.get.assumedYear)
+      elsif epw_path == 'ZAF_Cape.Town.688160_IWEC.epw'
+        winter_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('June'), 1, model.yearDescription.get.assumedYear)
+        summer_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('January'), 1, model.yearDescription.get.assumedYear)
       end
 
-      # Check subsurface view factor to ground
-      subsurface_view_factor = 0.5
-      window_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == window.id }[0]
-      program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'fixedwindow view factor to ground program')
-      assert_equal(subsurface_view_factor, program_values["#{window_actuator.name}"][0])
+      hpxml.windows.each do |window|
+        sf_summer = window.interior_shading_factor_summer
+        sf_winter = window.interior_shading_factor_winter
+        sf_summer *= window.exterior_shading_factor_summer unless window.exterior_shading_factor_summer.nil?
+        sf_winter *= window.exterior_shading_factor_winter unless window.exterior_shading_factor_winter.nil?
+
+        # Check shading transmittance for sky beam and sky diffuse
+        os_shading_surface = model.getShadingSurfaces.select { |ss| ss.name.to_s.start_with? window.id }[0]
+        if (sf_summer == 1) && (sf_winter == 1)
+          assert_nil(os_shading_surface) # No shading
+        else
+          refute_nil(os_shading_surface) # Shading
+          summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
+          winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
+          assert_equal(sf_summer, summer_transmittance)
+          assert_equal(sf_winter, winter_transmittance)
+        end
+
+        # Check subsurface view factor to ground
+        subsurface_view_factor = 0.5
+        window_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == window.id }[0]
+        program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'fixedwindow view factor to ground program')
+        assert_equal(subsurface_view_factor, program_values["#{window_actuator.name}"][0])
+      end
     end
   end
 
@@ -476,36 +509,47 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     end
 
     # Check skylight shading
-    args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-skylights-shading.xml'))
-    model, hpxml = _test_measure(args_hash)
+    ['USA_CO_Denver.Intl.AP.725650_TMY3.epw',
+     'ZAF_Cape.Town.688160_IWEC.epw'].each do |epw_path| # Test both northern & southern hemisphere
+      args_hash = {}
+      args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+      hpxml = _create_hpxml('base-enclosure-skylights-shading.xml')
+      hpxml.climate_and_risk_zones.weather_station_epw_filepath = epw_path
+      XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+      model, hpxml = _test_measure(args_hash)
 
-    summer_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('June'), 1, model.yearDescription.get.assumedYear)
-    winter_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('January'), 1, model.yearDescription.get.assumedYear)
-
-    hpxml.skylights.each do |skylight|
-      sf_summer = skylight.interior_shading_factor_summer
-      sf_winter = skylight.interior_shading_factor_winter
-      sf_summer *= skylight.exterior_shading_factor_summer unless skylight.exterior_shading_factor_summer.nil?
-      sf_winter *= skylight.exterior_shading_factor_winter unless skylight.exterior_shading_factor_winter.nil?
-
-      # Check shading transmittance for sky beam and sky diffuse
-      os_shading_surface = model.getShadingSurfaces.select { |ss| ss.name.to_s.start_with? skylight.id }[0]
-      if (sf_summer == 1) && (sf_winter == 1)
-        assert_nil(os_shading_surface) # No shading
-      else
-        refute_nil(os_shading_surface) # Shading
-        summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
-        winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
-        assert_equal(sf_summer, summer_transmittance)
-        assert_equal(sf_winter, winter_transmittance)
+      if epw_path == 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
+        summer_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('June'), 1, model.yearDescription.get.assumedYear)
+        winter_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('January'), 1, model.yearDescription.get.assumedYear)
+      elsif epw_path == 'ZAF_Cape.Town.688160_IWEC.epw'
+        winter_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('June'), 1, model.yearDescription.get.assumedYear)
+        summer_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new('January'), 1, model.yearDescription.get.assumedYear)
       end
 
-      # Check subsurface view factor to ground
-      subsurface_view_factor = 0.05 # 6:12 pitch
-      skylight_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == skylight.id }[0]
-      program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'skylight view factor to ground program')
-      assert_equal(subsurface_view_factor, program_values["#{skylight_actuator.name}"][0])
+      hpxml.skylights.each do |skylight|
+        sf_summer = skylight.interior_shading_factor_summer
+        sf_winter = skylight.interior_shading_factor_winter
+        sf_summer *= skylight.exterior_shading_factor_summer unless skylight.exterior_shading_factor_summer.nil?
+        sf_winter *= skylight.exterior_shading_factor_winter unless skylight.exterior_shading_factor_winter.nil?
+
+        # Check shading transmittance for sky beam and sky diffuse
+        os_shading_surface = model.getShadingSurfaces.select { |ss| ss.name.to_s.start_with? skylight.id }[0]
+        if (sf_summer == 1) && (sf_winter == 1)
+          assert_nil(os_shading_surface) # No shading
+        else
+          refute_nil(os_shading_surface) # Shading
+          summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
+          winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
+          assert_equal(sf_summer, summer_transmittance)
+          assert_equal(sf_winter, winter_transmittance)
+        end
+
+        # Check subsurface view factor to ground
+        subsurface_view_factor = 0.05 # 6:12 pitch
+        skylight_actuator = model.getEnergyManagementSystemActuators.select { |w| w.actuatedComponent.get.name.to_s == skylight.id }[0]
+        program_values = get_ems_values(model.getEnergyManagementSystemPrograms, 'skylight view factor to ground program')
+        assert_equal(subsurface_view_factor, program_values["#{skylight_actuator.name}"][0])
+      end
     end
   end
 
@@ -528,6 +572,38 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       os_surface = model.getSubSurfaces.select { |s| s.name.to_s == hpxml.doors[0].id }[0]
       _check_surface(hpxml.doors[0], os_surface, door_values[:layer_names])
     end
+  end
+
+  def test_partition_wall_mass
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+
+    # Thermal masses
+    partition_wall_mass_layer_names = ['gypsum board', 'wall stud and cavity', 'gypsum board']
+
+    hpxml = _create_hpxml('base-enclosure-thermal-mass.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    model, hpxml = _test_measure(args_hash)
+
+    # Check properties
+    os_surface = model.getInternalMassDefinitions.select { |s| s.name.to_s.start_with? 'partition wall mass above' }[0]
+    _check_surface(hpxml.partition_wall_mass, os_surface, partition_wall_mass_layer_names)
+  end
+
+  def test_furniture_mass
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+
+    # Thermal masses
+    furniture_mass_layer_names = ['furniture material living space']
+
+    hpxml = _create_hpxml('base-enclosure-thermal-mass.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    model, hpxml = _test_measure(args_hash)
+
+    # Check properties
+    os_surface = model.getInternalMassDefinitions.select { |s| s.name.to_s.start_with?('furniture mass living space') && s.name.to_s.include?('above') }[0]
+    _check_surface(hpxml.furniture_mass, os_surface, furniture_mass_layer_names)
   end
 
   def test_compartmentaliztion_area

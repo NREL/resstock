@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>592dd873-ae76-4de5-aeee-e33afced8310</version_id>
-  <version_modified>20211004T202111Z</version_modified>
+  <version_id>14c8f22c-0b0a-4cc0-9ac6-8f1e5b5dab63</version_id>
+  <version_modified>20211111T020031Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -119,6 +119,96 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>site_iecc_zone</name>
+      <display_name>Site: IECC Zone</display_name>
+      <description>IECC zone of the home address. If not provided, uses the IECC zone corresponding to the EPW weather file.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>1A</value>
+          <display_name>1A</display_name>
+        </choice>
+        <choice>
+          <value>1B</value>
+          <display_name>1B</display_name>
+        </choice>
+        <choice>
+          <value>1C</value>
+          <display_name>1C</display_name>
+        </choice>
+        <choice>
+          <value>2A</value>
+          <display_name>2A</display_name>
+        </choice>
+        <choice>
+          <value>2B</value>
+          <display_name>2B</display_name>
+        </choice>
+        <choice>
+          <value>2C</value>
+          <display_name>2C</display_name>
+        </choice>
+        <choice>
+          <value>3A</value>
+          <display_name>3A</display_name>
+        </choice>
+        <choice>
+          <value>3B</value>
+          <display_name>3B</display_name>
+        </choice>
+        <choice>
+          <value>3C</value>
+          <display_name>3C</display_name>
+        </choice>
+        <choice>
+          <value>4A</value>
+          <display_name>4A</display_name>
+        </choice>
+        <choice>
+          <value>4B</value>
+          <display_name>4B</display_name>
+        </choice>
+        <choice>
+          <value>4C</value>
+          <display_name>4C</display_name>
+        </choice>
+        <choice>
+          <value>5A</value>
+          <display_name>5A</display_name>
+        </choice>
+        <choice>
+          <value>5B</value>
+          <display_name>5B</display_name>
+        </choice>
+        <choice>
+          <value>5C</value>
+          <display_name>5C</display_name>
+        </choice>
+        <choice>
+          <value>6A</value>
+          <display_name>6A</display_name>
+        </choice>
+        <choice>
+          <value>6B</value>
+          <display_name>6B</display_name>
+        </choice>
+        <choice>
+          <value>6C</value>
+          <display_name>6C</display_name>
+        </choice>
+        <choice>
+          <value>7</value>
+          <display_name>7</display_name>
+        </choice>
+        <choice>
+          <value>8</value>
+          <display_name>8</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>site_state_code</name>
@@ -375,64 +465,6 @@
       </choices>
     </argument>
     <argument>
-      <name>geometry_unit_level</name>
-      <display_name>Geometry: Unit Level</display_name>
-      <description>The level of the unit. This is required for apartment units.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>Bottom</value>
-          <display_name>Bottom</display_name>
-        </choice>
-        <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Top</value>
-          <display_name>Top</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_unit_horizontal_location</name>
-      <display_name>Geometry: Unit Horizontal Location</display_name>
-      <description>The horizontal location of the unit when viewing the front of the building. This is required for single-family attached and apartment units.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>None</value>
-          <display_name>None</display_name>
-        </choice>
-        <choice>
-          <value>Left</value>
-          <display_name>Left</display_name>
-        </choice>
-        <choice>
-          <value>Middle</value>
-          <display_name>Middle</display_name>
-        </choice>
-        <choice>
-          <value>Right</value>
-          <display_name>Right</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_num_floors_above_grade</name>
-      <display_name>Geometry: Number of Floors Above Grade</display_name>
-      <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>2</default_value>
-    </argument>
-    <argument>
       <name>geometry_unit_aspect_ratio</name>
       <display_name>Geometry: Unit Aspect Ratio</display_name>
       <description>The ratio of front/back wall length to left/right wall length for the unit, excluding any protruding garage wall area.</description>
@@ -486,15 +518,6 @@
       <name>geometry_building_num_units</name>
       <display_name>Geometry: Building Number of Units</display_name>
       <description>The number of units in the building. This is required for single-family attached and apartment units.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>geometry_building_num_bedrooms</name>
-      <display_name>Geometry: Building Number of Bedrooms</display_name>
-      <description>The number of bedrooms in the building. This is required for single-family attached and apartment units with shared PV systems.</description>
       <type>Integer</type>
       <units>#</units>
       <required>false</required>
@@ -560,43 +583,6 @@
       </choices>
     </argument>
     <argument>
-      <name>geometry_corridor_position</name>
-      <display_name>Geometry: Corridor Position</display_name>
-      <description>The position of the corridor. Only applies to single-family attached and apartment units. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Double-Loaded Interior</default_value>
-      <choices>
-        <choice>
-          <value>Double-Loaded Interior</value>
-          <display_name>Double-Loaded Interior</display_name>
-        </choice>
-        <choice>
-          <value>Single Exterior (Front)</value>
-          <display_name>Single Exterior (Front)</display_name>
-        </choice>
-        <choice>
-          <value>Double Exterior</value>
-          <display_name>Double Exterior</display_name>
-        </choice>
-        <choice>
-          <value>None</value>
-          <display_name>None</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_corridor_width</name>
-      <display_name>Geometry: Corridor Width</display_name>
-      <description>The width of the corridor. Only applies to apartment units.</description>
-      <type>Double</type>
-      <units>ft</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>10</default_value>
-    </argument>
-    <argument>
       <name>geometry_foundation_type</name>
       <display_name>Geometry: Foundation Type</display_name>
       <description>The foundation type of the building.</description>
@@ -618,6 +604,10 @@
           <display_name>UnventedCrawlspace</display_name>
         </choice>
         <choice>
+          <value>ConditionedCrawlspace</value>
+          <display_name>ConditionedCrawlspace</display_name>
+        </choice>
+        <choice>
           <value>UnconditionedBasement</value>
           <display_name>UnconditionedBasement</display_name>
         </choice>
@@ -628,6 +618,10 @@
         <choice>
           <value>Ambient</value>
           <display_name>Ambient</display_name>
+        </choice>
+        <choice>
+          <value>AboveApartment</value>
+          <display_name>AboveApartment</display_name>
         </choice>
       </choices>
     </argument>
@@ -661,9 +655,40 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>geometry_attic_type</name>
+      <display_name>Geometry: Attic Type</display_name>
+      <description>The attic type of the building.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>VentedAttic</default_value>
+      <choices>
+        <choice>
+          <value>FlatRoof</value>
+          <display_name>FlatRoof</display_name>
+        </choice>
+        <choice>
+          <value>VentedAttic</value>
+          <display_name>VentedAttic</display_name>
+        </choice>
+        <choice>
+          <value>UnventedAttic</value>
+          <display_name>UnventedAttic</display_name>
+        </choice>
+        <choice>
+          <value>ConditionedAttic</value>
+          <display_name>ConditionedAttic</display_name>
+        </choice>
+        <choice>
+          <value>BelowApartment</value>
+          <display_name>BelowApartment</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>geometry_roof_type</name>
       <display_name>Geometry: Roof Type</display_name>
-      <description>The roof type of the building. Assumed flat for apartment units.</description>
+      <description>The roof type of the building. Ignored if the building has a flat roof.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -676,10 +701,6 @@
         <choice>
           <value>hip</value>
           <display_name>hip</display_name>
-        </choice>
-        <choice>
-          <value>flat</value>
-          <display_name>flat</display_name>
         </choice>
       </choices>
     </argument>
@@ -739,29 +760,6 @@
         <choice>
           <value>12:12</value>
           <display_name>12:12</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>geometry_attic_type</name>
-      <display_name>Geometry: Attic Type</display_name>
-      <description>The attic type of the building. Ignored if the building has a flat roof.</description>
-      <type>Choice</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>VentedAttic</default_value>
-      <choices>
-        <choice>
-          <value>VentedAttic</value>
-          <display_name>VentedAttic</display_name>
-        </choice>
-        <choice>
-          <value>UnventedAttic</value>
-          <display_name>UnventedAttic</display_name>
-        </choice>
-        <choice>
-          <value>ConditionedAttic</value>
-          <display_name>ConditionedAttic</display_name>
         </choice>
       </choices>
     </argument>
@@ -876,6 +874,24 @@
       <default_value>28.1</default_value>
     </argument>
     <argument>
+      <name>foundation_wall_type</name>
+      <display_name>Foundation Wall: Type</display_name>
+      <description>The material type of the foundation wall.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>foundation_wall_thickness</name>
+      <display_name>Foundation Wall: Thickness</display_name>
+      <description>The thickness of the foundation wall.</description>
+      <type>String</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
       <name>foundation_wall_insulation_r</name>
       <display_name>Foundation Wall: Insulation Nominal R-value</display_name>
       <description>Nominal R-value for the foundation wall insulation. Only applies to basements/crawlspaces.</description>
@@ -935,15 +951,6 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>foundation_wall_thickness</name>
-      <display_name>Foundation Wall: Thickness</display_name>
-      <description>The thickness of the foundation wall.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-    </argument>
-    <argument>
       <name>rim_joist_assembly_r</name>
       <display_name>Rim Joist: Assembly R-value</display_name>
       <description>Assembly R-value for the rim joists. Only applies to basements/crawlspaces.</description>
@@ -995,7 +1002,7 @@
     <argument>
       <name>slab_thickness</name>
       <display_name>Slab: Thickness</display_name>
-      <description>The thickness of the slab.</description>
+      <description>The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1725,6 +1732,10 @@
           <display_name>FixedHeater</display_name>
         </choice>
         <choice>
+          <value>PackagedTerminalAirConditionerHeating</value>
+          <display_name>PackagedTerminalAirConditionerHeating</display_name>
+        </choice>
+        <choice>
           <value>Shared Boiler w/ Baseboard</value>
           <display_name>Shared Boiler w/ Baseboard</display_name>
         </choice>
@@ -1737,7 +1748,7 @@
     <argument>
       <name>heating_system_fuel</name>
       <display_name>Heating System: Fuel Type</display_name>
-      <description>The fuel type of the heating system. Ignored for ElectricResistance.</description>
+      <description>The fuel type of the heating system. Ignored for ElectricResistance and PackagedTerminalAirConditionerHeating.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1832,12 +1843,16 @@
           <value>mini-split</value>
           <display_name>mini-split</display_name>
         </choice>
+        <choice>
+          <value>packaged terminal air conditioner</value>
+          <display_name>packaged terminal air conditioner</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
       <name>cooling_system_cooling_efficiency_type</name>
       <display_name>Cooling System: Efficiency Type</display_name>
-      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER. System type room air conditioner uses EER or CEER. Ignored for system type evaporative cooler.</description>
+      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1921,7 +1936,7 @@
     <argument>
       <name>cooling_system_is_ducted</name>
       <display_name>Cooling System: Is Ducted</display_name>
-      <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted and room air conditioner is not ducted.</description>
+      <description>Whether the cooling system is ducted or not. Only used for mini-split and evaporative cooler. It's assumed that central air conditioner is ducted, and room air conditioner and packaged terminal air conditioner are not ducted.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1962,12 +1977,16 @@
           <value>ground-to-air</value>
           <display_name>ground-to-air</display_name>
         </choice>
+        <choice>
+          <value>packaged terminal heat pump</value>
+          <display_name>packaged terminal heat pump</display_name>
+        </choice>
       </choices>
     </argument>
     <argument>
       <name>heat_pump_heating_efficiency_type</name>
       <display_name>Heat Pump: Heating Efficiency Type</display_name>
-      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF. System type ground-to-air uses COP.</description>
+      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF. System types ground-to-air and packaged terminal heat pump use COP.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -1996,7 +2015,7 @@
     <argument>
       <name>heat_pump_cooling_efficiency_type</name>
       <display_name>Heat Pump: Cooling Efficiency Type</display_name>
-      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER. System type ground-to-air uses EER.</description>
+      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER. System types ground-to-air and packaged terminal heat pump use EER.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2029,7 +2048,7 @@
     <argument>
       <name>heat_pump_cooling_compressor_type</name>
       <display_name>Heat Pump: Cooling Compressor Type</display_name>
-      <description>The compressor type of the heat pump. Only applies to air-to-air and mini-split.</description>
+      <description>The compressor type of the heat pump. Only applies to air-to-air.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2108,18 +2127,37 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>heat_pump_backup_fuel</name>
-      <display_name>Heat Pump: Backup Fuel Type</display_name>
-      <description>The backup fuel type of the heat pump. Use 'none' if there is no backup heating.</description>
+      <name>heat_pump_backup_type</name>
+      <display_name>Heat Pump: Backup Type</display_name>
+      <description>The backup type of the heat pump. If 'integrated', represents e.g. built-in electric strip heat or dual-fuel integrated furnace. If 'separate', represents e.g. electric baseboard or boiler based on the Heating System 2 specified below. Use 'none' if there is no backup heating.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>none</default_value>
+      <default_value>integrated</default_value>
       <choices>
         <choice>
           <value>none</value>
           <display_name>none</display_name>
         </choice>
+        <choice>
+          <value>integrated</value>
+          <display_name>integrated</display_name>
+        </choice>
+        <choice>
+          <value>separate</value>
+          <display_name>separate</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_fuel</name>
+      <display_name>Heat Pump: Backup Fuel Type</display_name>
+      <description>The backup fuel type of the heat pump. Only applies if Backup Type is 'integrated'.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>electricity</default_value>
+      <choices>
         <choice>
           <value>electricity</value>
           <display_name>electricity</display_name>
@@ -2141,7 +2179,7 @@
     <argument>
       <name>heat_pump_backup_heating_efficiency</name>
       <display_name>Heat Pump: Backup Rated Efficiency</display_name>
-      <description>The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise.</description>
+      <description>The backup rated efficiency value of the heat pump. Percent for electricity fuel type. AFUE otherwise. Only applies if Backup Type is 'integrated'.</description>
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2150,7 +2188,7 @@
     <argument>
       <name>heat_pump_backup_heating_capacity</name>
       <display_name>Heat Pump: Backup Heating Capacity</display_name>
-      <description>The backup output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
+      <description>The backup output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S. Only applies if Backup Type is 'integrated'.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>true</required>
@@ -2160,7 +2198,7 @@
     <argument>
       <name>heat_pump_backup_heating_switchover_temp</name>
       <display_name>Heat Pump: Backup Heating Switchover Temperature</display_name>
-      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient.</description>
+      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either 'integrated' or 'separate'.</description>
       <type>Double</type>
       <units>deg-F</units>
       <required>false</required>
@@ -2289,7 +2327,7 @@
     <argument>
       <name>heating_system_2_fraction_heat_load_served</name>
       <display_name>Heating System 2: Fraction Heat Load Served</display_name>
-      <description>The heat load served fraction of the second heating system.</description>
+      <description>The heat load served fraction of the second heating system. Ignored if this heating system serves as a backup system for a heat pump.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>true</required>
@@ -2338,11 +2376,15 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>CFM25</default_value>
+      <default_value>Percent</default_value>
       <choices>
         <choice>
           <value>CFM25</value>
           <display_name>CFM25</display_name>
+        </choice>
+        <choice>
+          <value>CFM50</value>
+          <display_name>CFM50</display_name>
         </choice>
         <choice>
           <value>Percent</value>
@@ -2357,7 +2399,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>75</default_value>
+      <default_value>0.1</default_value>
     </argument>
     <argument>
       <name>ducts_return_leakage_to_outside_value</name>
@@ -2366,7 +2408,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>25</default_value>
+      <default_value>0.1</default_value>
     </argument>
     <argument>
       <name>ducts_supply_location</name>
@@ -2400,6 +2442,10 @@
         <choice>
           <value>crawlspace - unvented</value>
           <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
         </choice>
         <choice>
           <value>attic - vented</value>
@@ -2499,6 +2545,10 @@
         <choice>
           <value>crawlspace - unvented</value>
           <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
         </choice>
         <choice>
           <value>attic - vented</value>
@@ -3150,6 +3200,10 @@
           <display_name>crawlspace - unvented</display_name>
         </choice>
         <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
+        </choice>
+        <choice>
           <value>other exterior</value>
           <display_name>other exterior</display_name>
         </choice>
@@ -3652,7 +3706,7 @@
     <argument>
       <name>pv_system_module_type</name>
       <display_name>PV System: Module Type</display_name>
-      <description>Module type of the PV system. Use 'none' if there is no PV system 1.</description>
+      <description>Module type of the PV system. Use 'none' if there is no PV system.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -3767,7 +3821,7 @@
     <argument>
       <name>pv_system_inverter_efficiency</name>
       <display_name>PV System: Inverter Efficiency</display_name>
-      <description>Inverter efficiency of the PV system.</description>
+      <description>Inverter efficiency of the PV system. If there are two PV systems, this will apply to both.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
@@ -3776,21 +3830,11 @@
     <argument>
       <name>pv_system_system_losses_fraction</name>
       <display_name>PV System: System Losses Fraction</display_name>
-      <description>System losses fraction of the PV system.</description>
+      <description>System losses fraction of the PV system. If there are two PV systems, this will apply to both.</description>
       <type>Double</type>
       <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>pv_system_num_units_served</name>
-      <display_name>PV System: Number of Units Served</display_name>
-      <description>Number of dwelling units served by PV system. Must be 1 if single-family detached. Used to apportion PV generation to the unit.</description>
-      <type>Integer</type>
-      <units>#</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>pv_system_2_module_type</name>
@@ -3908,39 +3952,90 @@
       <default_value>4000</default_value>
     </argument>
     <argument>
-      <name>pv_system_2_inverter_efficiency</name>
-      <display_name>PV System 2: Inverter Efficiency</display_name>
-      <description>Inverter efficiency of the second PV system.</description>
-      <type>Double</type>
-      <units>Frac</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>pv_system_2_system_losses_fraction</name>
-      <display_name>PV System 2: System Losses Fraction</display_name>
-      <description>System losses fraction of the second PV system.</description>
-      <type>Double</type>
-      <units>Frac</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>pv_system_2_num_units_served</name>
-      <display_name>PV System 2: Number of Units Served</display_name>
-      <description>Number of dwelling units served by second PV system. Must be 1 if single-family detached. Used to apportion PV generation to the unit.</description>
-      <type>Integer</type>
-      <units>#</units>
+      <name>battery_location</name>
+      <display_name>Battery: Location</display_name>
+      <description>The space type for the lithium ion battery location.</description>
+      <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>none</default_value>
+      <choices>
+        <choice>
+          <value>auto</value>
+          <display_name>auto</display_name>
+        </choice>
+        <choice>
+          <value>none</value>
+          <display_name>none</display_name>
+        </choice>
+        <choice>
+          <value>living space</value>
+          <display_name>living space</display_name>
+        </choice>
+        <choice>
+          <value>basement - conditioned</value>
+          <display_name>basement - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>basement - unconditioned</value>
+          <display_name>basement - unconditioned</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - vented</value>
+          <display_name>crawlspace - vented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - unvented</value>
+          <display_name>crawlspace - unvented</display_name>
+        </choice>
+        <choice>
+          <value>crawlspace - conditioned</value>
+          <display_name>crawlspace - conditioned</display_name>
+        </choice>
+        <choice>
+          <value>attic - vented</value>
+          <display_name>attic - vented</display_name>
+        </choice>
+        <choice>
+          <value>attic - unvented</value>
+          <display_name>attic - unvented</display_name>
+        </choice>
+        <choice>
+          <value>garage</value>
+          <display_name>garage</display_name>
+        </choice>
+        <choice>
+          <value>outside</value>
+          <display_name>outside</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>battery_power</name>
+      <display_name>Battery: Rated Power Output</display_name>
+      <description>The rated power output of the lithium ion battery.</description>
+      <type>String</type>
+      <units>W</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>battery_capacity</name>
+      <display_name>Battery: Nominal Capacity</display_name>
+      <description>The nominal capacity of the lithium ion battery.</description>
+      <type>String</type>
+      <units>kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>lighting_present</name>
       <display_name>Lighting: Present</display_name>
       <description>Whether there is lighting energy use.</description>
       <type>Boolean</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>true</default_value>
       <choices>
@@ -3961,7 +4056,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.4</default_value>
+      <default_value>0.1</default_value>
     </argument>
     <argument>
       <name>lighting_interior_fraction_lfl</name>
@@ -3970,7 +4065,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_interior_fraction_led</name>
@@ -3979,7 +4074,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_interior_usage_multiplier</name>
@@ -3997,7 +4092,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.4</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_fraction_lfl</name>
@@ -4006,7 +4101,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_fraction_led</name>
@@ -4015,7 +4110,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_usage_multiplier</name>
@@ -4033,7 +4128,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.4</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_garage_fraction_lfl</name>
@@ -4042,7 +4137,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.1</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_garage_fraction_led</name>
@@ -4051,7 +4146,7 @@
       <type>Double</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.25</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>lighting_garage_usage_multiplier</name>
@@ -4680,7 +4775,7 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>none</default_value>
       <choices>
         <choice>
           <value>auto</value>
@@ -4750,7 +4845,7 @@
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>none</default_value>
       <choices>
         <choice>
           <value>auto</value>
@@ -4991,7 +5086,7 @@
       <units>deg-F</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>0.5</default_value>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_television_present</name>
@@ -5606,6 +5701,100 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>geometry_unit_level</name>
+      <display_name>Geometry: Unit Level</display_name>
+      <description>The level of the unit. This is required for apartment units.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>Bottom</value>
+          <display_name>Bottom</display_name>
+        </choice>
+        <choice>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Top</value>
+          <display_name>Top</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_unit_horizontal_location</name>
+      <display_name>Geometry: Unit Horizontal Location</display_name>
+      <description>The horizontal location of the unit when viewing the front of the building. This is required for single-family attached and apartment units.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+        <choice>
+          <value>Left</value>
+          <display_name>Left</display_name>
+        </choice>
+        <choice>
+          <value>Middle</value>
+          <display_name>Middle</display_name>
+        </choice>
+        <choice>
+          <value>Right</value>
+          <display_name>Right</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_num_floors_above_grade</name>
+      <display_name>Geometry: Number of Floors Above Grade</display_name>
+      <description>The number of floors above grade (in the unit if single-family detached or single-family attached, and in the building if apartment unit). Conditioned attics are included.</description>
+      <type>Integer</type>
+      <units>#</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>2</default_value>
+    </argument>
+    <argument>
+      <name>geometry_corridor_position</name>
+      <display_name>Geometry: Corridor Position</display_name>
+      <description>The position of the corridor. Only applies to single-family attached and apartment units. Exterior corridors are shaded, but not enclosed. Interior corridors are enclosed and conditioned.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>Double-Loaded Interior</value>
+          <display_name>Double-Loaded Interior</display_name>
+        </choice>
+        <choice>
+          <value>Double Exterior</value>
+          <display_name>Double Exterior</display_name>
+        </choice>
+        <choice>
+          <value>Single Exterior (Front)</value>
+          <display_name>Single Exterior (Front)</display_name>
+        </choice>
+        <choice>
+          <value>None</value>
+          <display_name>None</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>geometry_corridor_width</name>
+      <display_name>Geometry: Corridor Width</display_name>
+      <description>The width of the corridor. Only applies to apartment units.</description>
+      <type>Double</type>
+      <units>ft</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>10</default_value>
+    </argument>
+    <argument>
       <name>misc_plug_loads_other_2_usage_multiplier</name>
       <display_name>Plug Loads: Other Usage Multiplier 2</display_name>
       <description>Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.</description>
@@ -5895,7 +6084,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>D92549D7</checksum>
+      <checksum>5473255A</checksum>
     </file>
     <file>
       <version>
@@ -5906,7 +6095,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>94BBC8D3</checksum>
+      <checksum>91B81FCF</checksum>
     </file>
   </files>
 </measure>

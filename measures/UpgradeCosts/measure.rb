@@ -87,16 +87,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     # Retrieve values from ApplyUpgrade
     values = get_values_from_runner_past_results(runner, 'apply_upgrade')
 
-    # UPGRADE NAME
-    upgrade_name = values['upgrade_name']
-    if upgrade_name.nil?
-      register_value(runner, 'upgrade_name', '')
-      runner.registerInfo('Registering (blank) for upgrade_name.')
-    else
-      register_value(runner, 'upgrade_name', upgrade_name)
-      runner.registerInfo("Registering #{upgrade_name} for upgrade_name.")
-    end
-
     # UPGRADE COSTS
     upgrade_cost_name = 'upgrade_cost_usd'
 
@@ -192,21 +182,21 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_rim_joist_area_ft_2']
     elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
       cost_mult += hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft']
-    elsif cost_mult_type == 'Size, Heating System: Primary (kBtu/h)'
-      if hpxml.keys.include?('primary_systems_heating_capacity_k_btu_h')
-        cost_mult += hpxml['primary_systems_heating_capacity_k_btu_h']
+    elsif cost_mult_type == 'Size, Heating System Primary (kBtu/h)'
+      if hpxml.keys.include?('primary_systems_heating_capacity_btu_h')
+        cost_mult += UnitConversions.convert(hpxml['primary_systems_heating_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
-    elsif cost_mult_type == 'Size, Heating System: Secondary (kBtu/h)'
-      if hpxml.keys.include?('secondary_systems_heating_capacity_k_btu_h')
-        cost_mult += hpxml['secondary_systems_heating_capacity_k_btu_h']
+    elsif cost_mult_type == 'Size, Heating System Secondary (kBtu/h)'
+      if hpxml.keys.include?('secondary_systems_heating_capacity_btu_h')
+        cost_mult += UnitConversions.convert(hpxml['secondary_systems_heating_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
-    elsif cost_mult_type == 'Size, Cooling System: Primary (kBtu/h)'
-      if hpxml.keys.include?('primary_systems_cooling_capacity_k_btu_h')
-        cost_mult += hpxml['primary_systems_cooling_capacity_k_btu_h']
+    elsif cost_mult_type == 'Size, Cooling System Primary (kBtu/h)'
+      if hpxml.keys.include?('primary_systems_cooling_capacity_btu_h')
+        cost_mult += UnitConversions.convert(hpxml['primary_systems_cooling_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
-    elsif cost_mult_type == 'Size, Heat Pump Backup: Primary (kBtu/h)'
-      if hpxml.keys.include?('primary_systems_heat_pump_backup_capacity_k_btu_h')
-        cost_mult += hpxml['primary_systems_heat_pump_backup_capacity_k_btu_h']
+    elsif cost_mult_type == 'Size, Heat Pump Backup Primary (kBtu/h)'
+      if hpxml.keys.include?('primary_systems_heat_pump_backup_capacity_btu_h')
+        cost_mult += UnitConversions.convert(hpxml['primary_systems_heat_pump_backup_capacity_btu_h'], 'btu/hr', 'kbtu/hr')
       end
     elsif cost_mult_type == 'Size, Water Heater (gal)'
       cost_mult += hpxml['systems_water_heater_tank_volume_gal']

@@ -230,6 +230,32 @@ class Material
     fail "Unexpected type: #{type}."
   end
 
+  def self.FoundationWallMaterial(type, thick_in)
+    if type == HPXML::FoundationWallTypeSolidConcrete
+      return Material.Concrete(thick_in)
+    elsif type == HPXML::FoundationWallTypeDoubleBrick
+      return new(name: "#{type} #{thick_in} in.", thick_in: thick_in, mat_base: BaseMaterial.Brick, tAbs: 0.9)
+    elsif type == HPXML::FoundationWallTypeWood
+      # Open wood cavity wall, so just assume 0.5" of sheathing
+      return new(name: "#{type} #{thick_in} in.", thick_in: 0.5, mat_base: BaseMaterial.Wood, tAbs: 0.9)
+    # Concrete block conductivity values below derived from Table 2 of
+    # https://ncma.org/resource/rvalues-ufactors-of-single-wythe-concrete-masonry-walls/. Values
+    # for 6-in thickness and 115 pcf, with interior/exterior films removed (R-0.68/R-0.17).
+    elsif type == HPXML::FoundationWallTypeConcreteBlockSolidCore
+      return new(name: "#{type} #{thick_in} in.", thick_in: thick_in, k_in: 8.5, rho: 115.0, cp: 0.2, tAbs: 0.9)
+    elsif type == HPXML::FoundationWallTypeConcreteBlock
+      return new(name: "#{type} #{thick_in} in.", thick_in: thick_in, k_in: 5.0, rho: 45.0, cp: 0.2, tAbs: 0.9)
+    elsif type == HPXML::FoundationWallTypeConcreteBlockPerliteCore
+      return new(name: "#{type} #{thick_in} in.", thick_in: thick_in, k_in: 2.0, rho: 67.0, cp: 0.2, tAbs: 0.9)
+    elsif type == HPXML::FoundationWallTypeConcreteBlockFoamCore
+      return new(name: "#{type} #{thick_in} in.", thick_in: thick_in, k_in: 1.8, rho: 67.0, cp: 0.2, tAbs: 0.9)
+    elsif type == HPXML::FoundationWallTypeConcreteBlockVermiculiteCore
+      return new(name: "#{type} #{thick_in} in.", thick_in: thick_in, k_in: 2.1, rho: 67.0, cp: 0.2, tAbs: 0.9)
+    end
+
+    fail "Unexpected type: #{type}."
+  end
+
   def self.InteriorFinishMaterial(type, thick_in = nil)
     if (type == HPXML::InteriorFinishNone) || (!thick_in.nil? && thick_in <= 0)
       return
@@ -330,6 +356,14 @@ class BaseMaterial
 
   def self.Concrete
     return new(rho: 140.0, cp: 0.2, k_in: 12.5)
+  end
+
+  def self.FurnitureLightWeight
+    return new(rho: 40.0, cp: 0.29, k_in: 0.8004)
+  end
+
+  def self.FurnitureHeavyWeight
+    return new(rho: 80.0, cp: 0.35, k_in: 1.1268)
   end
 
   def self.Gypcrete

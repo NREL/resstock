@@ -22,7 +22,8 @@ cols_to_ignore = ['applicable',
                   'output_format',
                   'timeseries_frequency',
                   'completed_status',
-                  'color_index']
+                  'color_index',
+                  'upgrade_name']
 
 class MoreCompare(BaseCompare):
   def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
@@ -90,9 +91,14 @@ class MoreCompare(BaseCompare):
 
   def map_columns(self, map_results):
     # Read in files
+
     ## Characteristics
-    base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
-    feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
+    # This is optional since you aren't necessarily going to visualize by characteristics
+    has_characteristics = False
+    if os.path.exists(os.path.join(self.base_folder, 'results_characteristics.csv')) and os.path.exists(os.path.join(self.feature_folder, 'results_characteristics.csv')):
+      has_characteristics = True
+      base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
+      feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
 
     ## Outputs
     base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0)
@@ -120,19 +126,21 @@ class MoreCompare(BaseCompare):
       df_to_keep  = feature_df
       df_to_map = base_df
 
-    # Align results_charactersitics columns
-    base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
-    feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
+    ## Characteristics
+    if has_characteristics:
+      # Align results_charactersitics columns
+      base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
+      feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
 
-    base_df_char.columns = base_cols
-    feature_df_char.columns = feature_cols
+      base_df_char.columns = base_cols
+      feature_df_char.columns = feature_cols
 
-    common_cols = np.intersect1d(base_df_char.columns, feature_df_char.columns)
-    base_df_char = base_df_char[common_cols]
-    feature_df_char = feature_df_char[common_cols]
+      common_cols = np.intersect1d(base_df_char.columns, feature_df_char.columns)
+      base_df_char = base_df_char[common_cols]
+      feature_df_char = feature_df_char[common_cols]
 
-    base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
-    feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
+      base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
+      feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
 
     # Skip mapping if not needed
     if list(df_to_map.columns) == list(df_to_keep.columns):
@@ -186,7 +194,7 @@ class MoreCompare(BaseCompare):
 
 if __name__ == '__main__':
 
-  default_base_folder = 'test/test_samples_osw/base'
+  default_base_folder = 'test/test_samples_osw/baseline'
   default_feature_folder = 'test/test_samples_osw/results'
   default_export_folder = 'test/test_samples_osw/comparisons'
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]

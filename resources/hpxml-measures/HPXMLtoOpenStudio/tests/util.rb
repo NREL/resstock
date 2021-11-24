@@ -15,7 +15,7 @@ def get_ems_values(ems_objects, name)
       # eg. "Q = Q + 1.5"
       if rhs.include? '+'
         rhs_els = rhs.split('+')
-        rhs = rhs_els.map { |s| s.to_f }.sum(0.0)
+        rhs = rhs_els.map { |s| s.tr('()', '').to_f }.sum(0.0)
       else
         rhs = rhs.to_f
       end

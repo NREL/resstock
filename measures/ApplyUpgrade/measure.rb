@@ -4,6 +4,14 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
+end
+require File.join(resources_path, 'meta_measure')
 
 require_relative 'resources/constants'
 
@@ -215,6 +223,15 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # Get defaulted hpxml
+    hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
+    if File.exist?(hpxml_path)
+      hpxml = HPXML.new(hpxml_path: hpxml_path)
+    else
+      runner.registerWarning("ApplyUpgrade measure could not find '#{hpxml_path}'.")
+      return true
+    end
+
     measures = {}
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
     if apply_package_upgrade
@@ -262,7 +279,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         # Get measure name and arguments associated with the option
         options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
         options_measure_args[option_name].each do |measure_subdir, args_hash|
-          system_upgrades = get_system_upgrades(system_upgrades, args_hash)
+          system_upgrades = get_system_upgrades(hpxml, system_upgrades, args_hash)
           update_args_hash(measures, measure_subdir, args_hash, add_new = false)
         end
       end
@@ -323,13 +340,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Retain HVAC capacities
-    hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
-    if File.exist?(hpxml_path)
-      hpxml = HPXML.new(hpxml_path: hpxml_path)
-    else
-      runner.registerWarning("ApplyUpgrade measure could not find '#{hpxml_path}'.")
-      return true
-    end
 
     capacities = get_system_capacities(hpxml, system_upgrades)
 
@@ -358,8 +368,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Get software program used and version
-    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = software_program_used
-    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = software_program_version
+    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = Version.software_program_used
+    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version.software_program_version
 
     # Get registered values and pass them to BuildResidentialHPXML
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = values['simulation_control_timestep']
@@ -397,26 +407,38 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def get_system_upgrades(system_upgrades, args_hash)
+  def get_system_upgrades(hpxml, system_upgrades, args_hash)
     args_hash.each do |arg, value|
       # Detect whether we are upgrading the heating system
-      if arg.include?('heating_system_type') || arg.include?('heating_system_fuel') || arg.include?('heating_system_heating_efficiency') || arg.include?('heating_system_fraction_heat_load_served')
-        system_upgrades << Constants.heating_system_id
+      if arg.start_with?('heating_system_') && (not arg.start_with?('heating_system_2_'))
+        hpxml.heating_systems.each do |heating_system|
+          next unless heating_system.primary_system
+
+          system_upgrades << heating_system.id
+        end
       end
 
       # Detect whether we are upgrading the secondary heating system
-      if arg.include?('heating_system_2_type') || arg.include?('heating_system_2_fuel') || arg.include?('heating_system_2_heating_efficiency') || arg.include?('heating_system_2_fraction_heat_load_served')
-        system_upgrades << Constants.second_heating_system_id
+      if arg.start_with?('heating_system_2_')
+        hpxml.heating_systems.each do |heating_system|
+          next if heating_system.primary_system
+
+          system_upgrades << heating_system.id
+        end
       end
 
       # Detect whether we are upgrading the cooling system
-      if arg.include?('cooling_system_type') || arg.include?('cooling_system_cooling_efficiency') || arg.include?('cooling_system_fraction_cool_load_served')
-        system_upgrades << Constants.cooling_system_id
+      if arg.start_with?('cooling_system_')
+        hpxml.cooling_systems.each do |cooling_system|
+          system_upgrades << cooling_system.id
+        end
       end
 
       # Detect whether we are upgrading the heat pump
-      if arg.include?('heat_pump_type') || arg.include?('heat_pump_heating_efficiency_hspf') || arg.include?('heat_pump_heating_efficiency_cop') || arg.include?('heat_pump_cooling_efficiency_seer') || arg.include?('heat_pump_cooling_efficiency_eer') || arg.include?('heat_pump_fraction_heat_load_served') || arg.include?('heat_pump_fraction_cool_load_served')
-        system_upgrades << Constants.heat_pump_id
+      next unless arg.start_with?('heat_pump_')
+
+      hpxml.heat_pumps.each do |heat_pump|
+        system_upgrades << heat_pump.id
       end
     end
 
@@ -427,27 +449,27 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     capacities = {}
 
     hpxml.heating_systems.each do |heating_system|
-      next if system_upgrades.include?(Constants.heating_system_id)
-      next if heating_system.id != Constants.heating_system_id
+      next unless heating_system.primary_system
+      next if system_upgrades.include?(heating_system.id)
 
       capacities['heating_system_heating_capacity'] = heating_system.heating_capacity
     end
 
     hpxml.heating_systems.each do |heating_system|
-      next if system_upgrades.include?(Constants.second_heating_system_id)
-      next if heating_system.id != Constants.second_heating_system_id
+      next if heating_system.primary_system
+      next if system_upgrades.include?(heating_system.id)
 
       capacities['heating_system_2_heating_capacity'] = heating_system.heating_capacity
     end
 
     hpxml.cooling_systems.each do |cooling_system|
-      next if system_upgrades.include?(Constants.cooling_system_id)
+      next if system_upgrades.include?(cooling_system.id)
 
       capacities['cooling_system_cooling_capacity'] = cooling_system.cooling_capacity
     end
 
     hpxml.heat_pumps.each do |heat_pump|
-      next if system_upgrades.include?(Constants.heat_pump_id)
+      next if system_upgrades.include?(heat_pump.id)
 
       capacities['heat_pump_heating_capacity'] = heat_pump.heating_capacity
       capacities['heat_pump_cooling_capacity'] = heat_pump.cooling_capacity

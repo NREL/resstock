@@ -25,28 +25,12 @@ class Constants
       'Duct Unconditioned Surface Area (ft^2)',
       'Rim Joist Area, Above-Grade, Exterior (ft^2)',
       'Slab Perimeter, Exposed, Conditioned (ft)',
-      'Size, Heating System: Primary (kBtu/h)',
-      'Size, Heating System: Secondary (kBtu/h)',
-      'Size, Cooling System: Primary (kBtu/h)',
-      'Size, Heat Pump Backup: Primary (kBtu/h)',
+      'Size, Heating System Primary (kBtu/h)',
+      'Size, Heating System Secondary (kBtu/h)',
+      'Size, Cooling System Primary (kBtu/h)',
+      'Size, Heat Pump Backup Primary (kBtu/h)',
       'Size, Water Heater (gal)',
       'Flow Rate, Mechanical Ventilation (cfm)'
     ]
-  end
-
-  def self.heating_system_id
-    return 'HeatingSystem'
-  end
-
-  def self.second_heating_system_id
-    return 'SecondHeatingSystem'
-  end
-
-  def self.cooling_system_id
-    return 'CoolingSystem'
-  end
-
-  def self.heat_pump_id
-    return 'HeatPump'
   end
 end

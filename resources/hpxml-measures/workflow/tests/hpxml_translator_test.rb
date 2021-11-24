@@ -69,10 +69,9 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_json_output
     # Check that the simulation produces JSON outputs (instead of CSV outputs) if requested
-    os_cli = OpenStudio.getOpenStudioCLI
     rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
     xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
-    command = "#{os_cli} #{rb_path} -x #{xml} --debug --hourly ALL --output-format json"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --debug --hourly ALL --output-format json"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -95,10 +94,9 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_epjson_input
     # Check that we can run a simulation using epJSON (instead of IDF) if requested
-    os_cli = OpenStudio.getOpenStudioCLI
     rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
     xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
-    command = "#{os_cli} #{rb_path} -x #{xml} --ep-input-format epjson"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --ep-input-format epjson"
     system(command, err: File::NULL)
 
     # Check for epjson file
@@ -116,10 +114,9 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_idf_input
     # Check that we can run a simulation using IDF (instead of epJSON) if requested
-    os_cli = OpenStudio.getOpenStudioCLI
     rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
     xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
-    command = "#{os_cli} #{rb_path} -x #{xml} --ep-input-format idf"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --ep-input-format idf"
     system(command, err: File::NULL)
 
     # Check for idf file
@@ -137,10 +134,9 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_faster_performance
     # Run w/ --skip-validation and w/o --add-component-loads arguments
-    os_cli = OpenStudio.getOpenStudioCLI
     rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
     xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
-    command = "#{os_cli} #{rb_path} -x #{xml} --skip-validation"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --skip-validation"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -165,7 +161,6 @@ class HPXMLTest < MiniTest::Test
     # Check that simulation works using template.osw
     require 'json'
 
-    os_cli = OpenStudio.getOpenStudioCLI
     osw_path = File.join(File.dirname(__FILE__), '..', 'template.osw')
 
     # Create derivative OSW for testing
@@ -185,7 +180,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{os_cli} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -210,7 +205,6 @@ class HPXMLTest < MiniTest::Test
     # Check that simulation works using template.osw
     require 'json'
 
-    os_cli = OpenStudio.getOpenStudioCLI
     osw_path = File.join(File.dirname(__FILE__), '..', 'template-stochastic-schedules.osw')
 
     # Create derivative OSW for testing
@@ -230,7 +224,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{os_cli} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -257,7 +251,6 @@ class HPXMLTest < MiniTest::Test
     # Check that simulation works using template2.osw
     require 'json'
 
-    os_cli = OpenStudio.getOpenStudioCLI
     osw_path = File.join(File.dirname(__FILE__), '..', 'template-build-hpxml-and-stocastic-schedules.osw')
 
     # Create derivative OSW for testing
@@ -277,7 +270,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{os_cli} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
     system(command, err: File::NULL)
 
     # Check for output files
@@ -310,18 +303,18 @@ class HPXMLTest < MiniTest::Test
     run_log = File.join(File.dirname(xml), 'run', 'run.log')
 
     # Check successful simulation when providing correct building ID
-    command = "#{os_cli} #{rb_path} -x #{xml} --building-id MyBuilding"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --building-id MyBuilding"
     system(command, err: File::NULL)
     assert_equal(true, File.exist?(csv_output_path))
 
     # Check unsuccessful simulation when providing incorrect building ID
-    command = "#{os_cli} #{rb_path} -x #{xml} --building-id MyFoo"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --building-id MyFoo"
     system(command, err: File::NULL)
     assert_equal(false, File.exist?(csv_output_path))
     assert(File.readlines(run_log).select { |l| l.include? "Could not find Building element with ID 'MyFoo'." }.size > 0)
 
     # Check unsuccessful simulation when not providing building ID
-    command = "#{os_cli} #{rb_path} -x #{xml}"
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml}"
     system(command, err: File::NULL)
     assert_equal(false, File.exist?(csv_output_path))
     assert(File.readlines(run_log).select { |l| l.include? 'Multiple Building elements defined in HPXML file; Building ID argument must be provided.' }.size > 0)
@@ -343,14 +336,23 @@ class HPXMLTest < MiniTest::Test
     assert_equal(2, Dir["#{top_dir}/*.zip"].size)
 
     # Check successful running of simulation from release zips
-    Dir["#{top_dir}/OpenStudio-HPXML*.zip"].each do |zip|
-      unzip_file = OpenStudio::UnzipFile.new(zip)
-      unzip_file.extractAllFiles(OpenStudio::toPath(top_dir))
+    require 'zip'
+    Zip.on_exists_proc = true
+    Dir["#{top_dir}/OpenStudio-HPXML*.zip"].each do |zip_path|
+      Zip::File.open(zip_path) do |zip_file|
+        zip_file.each do |f|
+          FileUtils.mkdir_p(File.dirname(f.name)) unless File.exist?(File.dirname(f.name))
+          zip_file.extract(f, f.name)
+        end
+      end
+
+      # Test run_simulation.rb
       command = "#{OpenStudio.getOpenStudioCLI} OpenStudio-HPXML/workflow/run_simulation.rb -x OpenStudio-HPXML/workflow/sample_files/base.xml"
       system(command)
       assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_annual.csv')
       assert(File.exist? 'OpenStudio-HPXML/workflow/sample_files/run/results_hpxml.csv')
-      File.delete(zip)
+
+      File.delete(zip_path)
       rm_path('OpenStudio-HPXML')
     end
   end
@@ -449,10 +451,14 @@ class HPXMLTest < MiniTest::Test
     results['heating_airflow [cfm]'] = 0.0
     (hpxml.heating_systems + hpxml.heat_pumps).each do |htg_sys|
       results['heating_capacity [Btuh]'] += htg_sys.heating_capacity
-      if htg_sys.respond_to? :backup_heating_capacity
-        results['heating_backup_capacity [Btuh]'] += htg_sys.backup_heating_capacity
+      if htg_sys.is_a? HPXML::HeatPump
+        if not htg_sys.backup_heating_capacity.nil?
+          results['heating_backup_capacity [Btuh]'] += htg_sys.backup_heating_capacity
+        elsif not htg_sys.backup_system.nil?
+          results['heating_backup_capacity [Btuh]'] += htg_sys.backup_system.heating_capacity
+        end
       end
-      results['heating_airflow [cfm]'] += htg_sys.heating_airflow_cfm
+      results['heating_airflow [cfm]'] += htg_sys.heating_airflow_cfm.to_f
     end
 
     # Cooling capacity/airflows
@@ -559,6 +565,12 @@ class HPXMLTest < MiniTest::Test
       if hpxml.windows.empty?
         next if log_line.include? 'No windows specified, the model will not include window heat transfer.'
       end
+      if hpxml.pv_systems.empty? && !hpxml.batteries.empty?
+        next if log_line.include? 'Battery without PV specified; battery is assumed to operate as backup and will not be modeled.'
+      end
+      if !hpxml.pv_systems.empty? && !hpxml.batteries.empty?
+        next if log_line.include? "Due to an OpenStudio bug, the battery's rated power output will not be honored; the simulation will proceed without a maximum charge/discharge limit."
+      end
 
       flunk "Unexpected warning found in run.log: #{log_line}"
     end
@@ -597,6 +609,9 @@ class HPXMLTest < MiniTest::Test
       next if err_line.include? 'Coil control failed for AirLoopHVAC:UnitarySystem'
       next if err_line.include? 'sensible part-load ratio out of range error continues'
       next if err_line.include? 'Iteration limit exceeded in calculating sensible part-load ratio error continues'
+      next if err_line.include?('setupIHGOutputs: Output variables=Zone Other Equipment') && err_line.include?('are not available.')
+      next if err_line.include?('setupIHGOutputs: Output variables=Space Other Equipment') && err_line.include?('are not available')
+      next if err_line.include? 'Actual air mass flow rate is smaller than 25% of water-to-air heat pump coil rated air flow rate.' # FUTURE: Remove this when https://github.com/NREL/EnergyPlus/issues/9125 is resolved
 
       # HPWHs
       if hpxml.water_heating_systems.select { |wh| wh.water_heater_type == HPXML::WaterHeaterTypeHeatPump }.size > 0
@@ -607,7 +622,7 @@ class HPXMLTest < MiniTest::Test
         next if err_line.include? 'Enthalpy out of range (PsyTsatFnHPb)'
       end
       # HP defrost curves
-      if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit].include? hp.heat_pump_type }.size > 0
+      if hpxml.heat_pumps.select { |hp| [HPXML::HVACTypeHeatPumpAirToAir, HPXML::HVACTypeHeatPumpMiniSplit, HPXML::HVACTypeHeatPumpPTHP].include? hp.heat_pump_type }.size > 0
         next if err_line.include?('GetDXCoils: Coil:Heating:DX') && err_line.include?('curve values')
       end
       if hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeEvaporativeCooler }.size > 0
@@ -680,6 +695,9 @@ class HPXMLTest < MiniTest::Test
     # Conditioned Floor Area
     if (hpxml.total_fraction_cool_load_served > 0) || (hpxml.total_fraction_heat_load_served > 0) # EnergyPlus will only report conditioned floor area if there is an HVAC system
       hpxml_value = hpxml.building_construction.conditioned_floor_area
+      if hpxml.has_location(HPXML::LocationCrawlspaceConditioned)
+        hpxml_value += hpxml.slabs.select { |s| s.interior_adjacent_to == HPXML::LocationCrawlspaceConditioned }.map { |s| s.area }.sum
+      end
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='InputVerificationandResultsSummary' AND ReportForString='Entire Facility' AND TableName='Zone Summary' AND RowName='Conditioned Total' AND ColumnName='Area' AND Units='m2'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
       assert_in_epsilon(hpxml_value, sql_value, 0.1)
@@ -760,7 +778,8 @@ class HPXMLTest < MiniTest::Test
                                       'base-enclosure-garage.xml' => 2,                  # additional instance for garage
                                       'base-foundation-walkout-basement.xml' => 4,       # 3 foundation walls plus a no-wall exposed perimeter
                                       'base-foundation-complex.xml' => 10,               # lots of foundations for testing
-                                      'base-enclosure-split-surfaces2.xml' => 81 }       # lots of foundations for testing
+                                      'base-enclosure-split-surfaces2.xml' => 81,        # lots of foundations for testing
+                                      'base-pv-battery-garage.xml' => 2 }                # additional instance for garage
 
       if not num_expected_kiva_instances[File.basename(hpxml_path)].nil?
         assert_equal(num_expected_kiva_instances[File.basename(hpxml_path)], num_kiva_instances)
@@ -997,12 +1016,12 @@ class HPXMLTest < MiniTest::Test
         hpxml_value = 1.0 / (1.0 / hpxml_value - Material.AirFilmVertical.rvalue)
         hpxml_value = 1.0 / (1.0 / hpxml_value - Material.AirFilmVertical.rvalue)
       end
+      if subsurface.is_a? HPXML::Skylight
+        hpxml_value /= 1.2 # Convert from NFRC 20-degree slope to vertical position
+      end
       hpxml_value = [hpxml_value, UnitConversions.convert(7.0, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')].min # FUTURE: Remove when U-factor restriction is lifted in EnergyPlus
       query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='#{col_name}' AND Units='W/m2-K'"
       sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
-      if subsurface.is_a? HPXML::Skylight
-        sql_value *= 1.2 # Convert back from vertical position to NFRC 20-degree slope
-      end
       assert_in_epsilon(hpxml_value, sql_value, 0.02)
 
       next unless subsurface.is_exterior
@@ -1125,62 +1144,22 @@ class HPXMLTest < MiniTest::Test
       end
     end
 
-    # Clothes Washer
-    if (hpxml.clothes_washers.size > 0) && (hpxml.water_heating_systems.size > 0)
-      # Location
-      hpxml_value = hpxml.clothes_washers[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
-        hpxml_value = HPXML::LocationLivingSpace
-      end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameClothesWasher.upcase}')"
-      sql_value = sqlFile.execAndReturnFirstString(query).get
-      assert_equal(hpxml_value.upcase, sql_value)
-    end
+    tabular_map = { HPXML::ClothesWasher => Constants.ObjectNameClothesWasher,
+                    HPXML::ClothesDryer => Constants.ObjectNameClothesDryer,
+                    HPXML::Refrigerator => Constants.ObjectNameRefrigerator,
+                    HPXML::Dishwasher => Constants.ObjectNameDishwasher,
+                    HPXML::CookingRange => Constants.ObjectNameCookingRange }
 
-    # Clothes Dryer
-    if (hpxml.clothes_dryers.size > 0) && (hpxml.water_heating_systems.size > 0)
-      # Location
-      hpxml_value = hpxml.clothes_dryers[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
-        hpxml_value = HPXML::LocationLivingSpace
-      end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameClothesDryer.upcase}')"
-      sql_value = sqlFile.execAndReturnFirstString(query).get
-      assert_equal(hpxml_value.upcase, sql_value)
-    end
+    (hpxml.clothes_washers + hpxml.clothes_dryers + hpxml.refrigerators + hpxml.dishwashers + hpxml.cooking_ranges).each do |appliance|
+      next unless hpxml.water_heating_systems.size > 0
 
-    # Refrigerator
-    if hpxml.refrigerators.size > 0
       # Location
-      hpxml_value = hpxml.refrigerators[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
+      hpxml_value = appliance.location
+      if hpxml_value.nil? || HPXML::conditioned_locations.include?(hpxml_value) || [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
         hpxml_value = HPXML::LocationLivingSpace
       end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameRefrigerator.upcase}')"
-      sql_value = sqlFile.execAndReturnFirstString(query).get
-      assert_equal(hpxml_value.upcase, sql_value)
-    end
-
-    # DishWasher
-    if (hpxml.dishwashers.size > 0) && (hpxml.water_heating_systems.size > 0)
-      # Location
-      hpxml_value = hpxml.dishwashers[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
-        hpxml_value = HPXML::LocationLivingSpace
-      end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameDishwasher.upcase}')"
-      sql_value = sqlFile.execAndReturnFirstString(query).get
-      assert_equal(hpxml_value.upcase, sql_value)
-    end
-
-    # Cooking Range
-    if hpxml.cooking_ranges.size > 0
-      # Location
-      hpxml_value = hpxml.cooking_ranges[0].location
-      if hpxml_value.nil? || [HPXML::LocationBasementConditioned, HPXML::LocationOtherHousingUnit, HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
-        hpxml_value = HPXML::LocationLivingSpace
-      end
-      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{Constants.ObjectNameCookingRange.upcase}')"
+      tabular_value = tabular_map[appliance.class]
+      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{tabular_value.upcase}')"
       sql_value = sqlFile.execAndReturnFirstString(query).get
       assert_equal(hpxml_value.upcase, sql_value)
     end
@@ -1250,8 +1229,8 @@ class HPXMLTest < MiniTest::Test
       assert_operator(unmet_hours_htg, :>, 1000)
       assert_operator(unmet_hours_clg, :>, 1000)
     else
-      assert_operator(unmet_hours_htg, :<, 100)
-      assert_operator(unmet_hours_clg, :<, 100)
+      assert_operator(unmet_hours_htg, :<, 150)
+      assert_operator(unmet_hours_clg, :<, 150)
     end
 
     sqlFile.close

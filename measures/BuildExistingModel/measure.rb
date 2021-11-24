@@ -106,7 +106,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
     arg.setDisplayName('Add annual component loads output')
-    arg.setDescription('If true, output the annual component loads')
+    arg.setDescription('If true, output the annual component loads.')
     args << arg
 
     return args
@@ -213,6 +213,15 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Get the absolute paths relative to this meta measure in the run directory
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
     if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+      new_runner.result.warnings.each do |warning|
+        runner.registerWarning(warning.logMessage)
+      end
+      new_runner.result.info.each do |info|
+        runner.registerInfo(info.logMessage)
+      end
+      new_runner.result.errors.each do |error|
+        runner.registerError(error.logMessage)
+      end
       return false
     end
 
@@ -234,8 +243,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Get software program used and version
-    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = software_program_used
-    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = software_program_version
+    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = Version.software_program_used
+    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version.software_program_version
 
     # Get registered values and pass them to BuildResidentialHPXML
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args['simulation_control_timestep'].get if args['simulation_control_timestep'].is_initialized

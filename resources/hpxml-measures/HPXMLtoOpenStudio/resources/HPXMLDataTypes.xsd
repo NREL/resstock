@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://hpxmlonline.com/2019/10" targetNamespace="http://hpxmlonline.com/2019/10" elementFormDefault="qualified" version="3.0">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://hpxmlonline.com/2019/10" targetNamespace="http://hpxmlonline.com/2019/10" elementFormDefault="qualified" version="4.0">
 	<xs:simpleType name="DataSource">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="user"/>
@@ -57,7 +57,7 @@
 	</xs:complexType>
 	<xs:simpleType name="schemaVersionType">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="3.0"/>
+			<xs:enumeration value="4.0"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<!--Address Information Below-->
@@ -1135,6 +1135,8 @@
 			<xs:enumeration value="concrete block"/>
 			<xs:enumeration value="concrete block foam core"/>
 			<xs:enumeration value="concrete block vermiculite core"/>
+			<xs:enumeration value="concrete block perlite core"/>
+			<xs:enumeration value="concrete block solid core"/>
 			<xs:enumeration value="double brick"/>
 			<xs:enumeration value="wood"/>
 		</xs:restriction>
@@ -4755,6 +4757,19 @@
 	<xs:complexType name="StormLocation">
 		<xs:simpleContent>
 			<xs:extension base="StormLocation_simple">
+				<xs:attribute name="dataSource" type="DataSource"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="BatteryCapacityUnits_simple">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="kWh"/>
+			<xs:enumeration value="Ah"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="BatteryCapacityUnits">
+		<xs:simpleContent>
+			<xs:extension base="BatteryCapacityUnits_simple">
 				<xs:attribute name="dataSource" type="DataSource"/>
 			</xs:extension>
 		</xs:simpleContent>

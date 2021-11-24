@@ -425,25 +425,6 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
   fail msg
 end
 
-def version
-  data = {}
-  File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
-    file.each_line do |line|
-      key, value = line.split(' = ')
-      data[key] = value.chomp.gsub("'", '')
-    end
-  end
-  return data
-end
-
-def software_program_used
-  return version['__title__']
-end
-
-def software_program_version
-  return version['__version__']
-end
-
 class RunOSWs
   require 'csv'
   require 'json'
@@ -457,13 +438,16 @@ class RunOSWs
 
     system(command)
 
-    finished_job = File.join(parent_dir, 'run/finished.job')
     result_characteristics = {}
     result_output = {}
 
+    out = File.join(parent_dir, 'out.osw')
+    out = JSON.parse(File.read(File.expand_path(out)))
+    completed_status = out['completed_status']
+
     results = File.join(parent_dir, 'run/results.json')
 
-    return finished_job, result_characteristics, result_output if measures_only || !File.exist?(results)
+    return completed_status, result_characteristics, result_output if measures_only || !File.exist?(results)
 
     rows = {}
     old_rows = JSON.parse(File.read(File.expand_path(results)))
@@ -480,7 +464,7 @@ class RunOSWs
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
     result_output = get_measure_results(rows, result_output, 'QOIReport')
 
-    return finished_job, result_characteristics, result_output
+    return completed_status, result_characteristics, result_output
   end
 
   def self.get_measure_results(rows, result, measure)
@@ -531,5 +515,26 @@ class RunOSWs
 
       sleep(0.01)
     end
+  end
+end
+
+class Version
+  def self.version
+    version = {}
+    File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
+      file.each_line do |line|
+        key, value = line.split(' = ')
+        version[key] = value.chomp.gsub("'", '')
+      end
+    end
+    return version
+  end
+
+  def self.software_program_used
+    return version['__title__']
+  end
+
+  def self.software_program_version
+    return version['__resstock_version__']
   end
 end

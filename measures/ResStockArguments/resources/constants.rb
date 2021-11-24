@@ -6,6 +6,11 @@ class Constants
     return ['hpxml_path',
             'software_info_program_used',
             'software_info_program_version',
+            'geometry_unit_left_wall_is_adiabatic',
+            'geometry_unit_right_wall_is_adiabatic',
+            'geometry_unit_front_wall_is_adiabatic',
+            'geometry_unit_back_wall_is_adiabatic',
+            'geometry_unit_num_floors_above_grade',
             'hvac_control_heating_weekday_setpoint',
             'hvac_control_heating_weekend_setpoint',
             'hvac_control_cooling_weekday_setpoint',
@@ -17,7 +22,8 @@ class Constants
             'heat_pump_airflow_defect_ratio',
             'heat_pump_charge_defect_ratio',
             'misc_plug_loads_television_annual_kwh',
-            'misc_plug_loads_television_usage_multiplier']
+            'misc_plug_loads_television_usage_multiplier',
+            'pv_system_num_bedrooms_served']
   end
 
   def self.build_residential_schedule_file_excludes
