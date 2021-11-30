@@ -55,6 +55,17 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('November 5')
     args << arg
 
+    iecc_zone_choices = OpenStudio::StringVector.new
+    ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C',
+     '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].each do |iz|
+      iecc_zone_choices << iz
+    end
+
+    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('iecc_zone', iecc_zone_choices, false)
+    arg.setDisplayName('IECC Zone')
+    arg.setDescription('IECC zone of the home address. If not provided, uses the IECC zone corresponding to the EPW weather file.')
+    args << arg
+
     return args
   end
 
@@ -72,13 +83,14 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     weather_file_name = runner.getStringArgumentValue('weather_file_name', user_arguments)
     dst_start_date = runner.getStringArgumentValue('dst_start_date', user_arguments)
     dst_end_date = runner.getStringArgumentValue('dst_end_date', user_arguments)
+    iecc_zone = runner.getOptionalStringArgumentValue('iecc_zone', user_arguments)
 
     unless (Pathname.new weather_directory).absolute?
       weather_directory = File.expand_path(File.join(File.dirname(__FILE__), weather_directory))
     end
     weather_file_path = File.join(weather_directory, weather_file_name)
 
-    success, weather = Location.apply(model, runner, weather_file_path, dst_start_date, dst_end_date)
+    success, weather = Location.apply(model, runner, weather_file_path, dst_start_date, dst_end_date, iecc_zone)
     return false if not success
 
     # report final condition

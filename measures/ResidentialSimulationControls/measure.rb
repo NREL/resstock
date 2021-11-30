@@ -16,6 +16,7 @@ else
 end
 require File.join(resources_path, 'constants')
 require File.join(resources_path, 'simulation')
+require File.join(resources_path, 'version')
 
 # start the measure
 class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
@@ -92,6 +93,8 @@ class ResidentialSimulationControls < OpenStudio::Measure::ModelMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
+
+    Version.check_openstudio_version()
 
     timesteps_per_hr = runner.getIntegerArgumentValue('timesteps_per_hr', user_arguments)
     begin_month = runner.getIntegerArgumentValue('begin_month', user_arguments)
