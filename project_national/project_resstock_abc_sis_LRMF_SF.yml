@@ -10,7 +10,7 @@ baseline:
 sampler: 
   type: residential_quota_downselect
   args: 
-    n_datapoints: 550000 # N = ~110K MF + K SFD + K SFA after downselect
+    n_datapoints: 550000 # N = 489k = 110k MF + 346k SFD + 32k SFA after downselect
     resample: false
     logic:
       - or:
@@ -40,13 +40,13 @@ workflow_generator:
 
 eagle:
   account: scout
-  n_jobs: 200
+  n_jobs: 400
   minutes_per_sim: 3
   sampling:
-    time: 60
+    time: 30
   postprocessing:
     time: 2000
-    n_workers: 20
+    n_workers: 50
 
 postprocessing:
   keep_individual_timeseries: true  # default false if omitted
@@ -439,7 +439,7 @@ upgrades:
         lifetime: 999
       - &exterior_r30_brick_r7
         option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-30 XPS
-        apply_logic: Insulation Brick, 12-in, 3-wythe, R-7
+        apply_logic: Insulation Wall|Brick, 12-in, 3-wythe, R-7
         costs: 
           - value: 3.55 # based on regression of R-5,10,15 XPS costs
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
