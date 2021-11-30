@@ -15,7 +15,6 @@ require File.join(resources_path, 'location')
 require File.join(resources_path, 'meta_measure')
 require File.join(resources_path, 'weather')
 require 'pycall'
-require 'open3'
 
 # start the measure
 class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
@@ -63,7 +62,8 @@ class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
     outfile = File.expand_path('../testingout.json')
 
     runner.registerWarning("Translating xml to HES json")
-    stdout, stderr, status = Open3.capture2e("hpxml2hescore", hpxml_path, "-o", outfile, "--resstock")
+    command = "hpxml2hescore #{hpxml_path} -o #{outfile} --resstock"
+    system(command)
     runner.registerWarning("Translated xml to HES json, output #{outfile}")
 
     return true
