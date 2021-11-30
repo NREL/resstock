@@ -107,6 +107,38 @@ class Constants
     return 'absolute'
   end
 
+  def self.BAZoneCold
+    return 'Cold'
+  end
+
+  def self.BAZoneHotDry
+    return 'Hot-Dry'
+  end
+
+  def self.BAZoneSubarctic
+    return 'Subarctic'
+  end
+
+  def self.BAZoneHotHumid
+    return 'Hot-Humid'
+  end
+
+  def self.BAZoneMixedHumid
+    return 'Mixed-Humid'
+  end
+
+  def self.BAZoneMixedDry
+    return 'Mixed-Dry'
+  end
+
+  def self.BAZoneMarine
+    return 'Marine'
+  end
+
+  def self.BAZoneVeryCold
+    return 'Very Cold'
+  end
+
   def self.BoilerTypeCondensing
     return 'hot water, condensing'
   end
@@ -149,6 +181,10 @@ class Constants
 
   def self.BoreConfigUconfig
     return 'u-config'
+  end
+
+  def self.BuildingAmericaClimateZone
+    return 'Building America'
   end
 
   def self.BuildingTypeMultifamily
@@ -297,10 +333,6 @@ class Constants
 
   def self.FuelTypeWood
     return 'wood'
-  end
-
-  def self.IECCClimateZone
-    return 'IECC'
   end
 
   def self.LocationInterior

@@ -5,7 +5,7 @@ require_relative 'constants'
 require_relative 'unit_conversions'
 
 class Location
-  def self.apply(model, runner, weather_file_path, dst_start_date, dst_end_date, iecc_zone)
+  def self.apply(model, runner, weather_file_path, dst_start_date, dst_end_date)
     success, weather, epw_file = apply_weather_file(model, runner, weather_file_path)
     return false if not success
 
@@ -15,7 +15,7 @@ class Location
     success = apply_site(model, runner, epw_file)
     return false if not success
 
-    success = apply_climate_zones(model, runner, epw_file, iecc_zone)
+    success = apply_climate_zones(model, runner, epw_file)
     return false if not success
 
     success = apply_mains_temp(model, runner, weather)
@@ -81,17 +81,13 @@ class Location
     return true
   end
 
-  def self.apply_climate_zones(model, runner, epw_file, iecc_zone)
-    if iecc_zone.is_initialized
-      iecc_zone = iecc_zone.get
-    else
-      iecc_zone = get_climate_zone_iecc(epw_file.wmoNumber)
-    end
-    return true if iecc_zone.nil?
+  def self.apply_climate_zones(model, runner, epw_file)
+    ba_zone = get_climate_zone_ba(epw_file.wmoNumber)
+    return true if ba_zone.nil?
 
     climateZones = model.getClimateZones
-    climateZones.setClimateZone(Constants.IECCClimateZone, iecc_zone)
-    runner.registerInfo("Setting #{Constants.IECCClimateZone} climate zone to #{iecc_zone}.")
+    climateZones.setClimateZone(Constants.BuildingAmericaClimateZone, ba_zone)
+    runner.registerInfo("Setting #{Constants.BuildingAmericaClimateZone} climate zone to #{ba_zone}.")
 
     return true
   end
@@ -159,13 +155,13 @@ class Location
     return zones_csv
   end
 
-  def self.get_climate_zone_iecc(wmo)
+  def self.get_climate_zone_ba(wmo)
     zones_csv = get_climate_zones
     return if zones_csv.nil?
 
     require 'csv'
     CSV.foreach(zones_csv) do |row|
-      return row[6].to_s if row[0].to_s == wmo.to_s
+      return row[5].to_s if row[0].to_s == wmo.to_s
     end
 
     return

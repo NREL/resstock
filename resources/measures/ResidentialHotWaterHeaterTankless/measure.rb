@@ -148,15 +148,15 @@ class ResidentialHotWaterHeaterTankless < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Get IECC climate zone
-    iecc_cz_name = nil
+    # Get Building America climate zone
+    ba_cz_name = nil
     model.getClimateZones.climateZones.each do |climateZone|
-      next if climateZone.institution != Constants.IECCClimateZone
+      next if climateZone.institution != Constants.BuildingAmericaClimateZone
 
-      iecc_cz_name = climateZone.value.to_s
+      ba_cz_name = climateZone.value.to_s
     end
 
-    location_hierarchy = Waterheater.get_location_hierarchy(iecc_cz_name)
+    location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
 
     Waterheater.remove(model, runner)
 
