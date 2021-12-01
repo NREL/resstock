@@ -199,11 +199,11 @@ if __name__ == '__main__':
   default_export_folder = 'test/test_samples_osw/comparisons'
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]
   aggregate_columns = ['build_existing_model.geometry_building_type_recs',
-                       'build_existing_model.county']
+                       'build_existing_model.ashrae_iecc_climate_zone_2004']
   aggregate_functions = ['sum', 'mean']
   display_columns = ['build_existing_model.geometry_building_type_recs',
                      'build_existing_model.geometry_foundation_type',
-                     'build_existing_model.county']
+                     'build_existing_model.ashrae_iecc_climate_zone_2004']
   map_result_choices = ['base', 'feature']
 
   parser = argparse.ArgumentParser()
