@@ -1490,9 +1490,8 @@ class Waterheater
   def self.configure_setpoint_schedule(new_heater, set_type, t_set, sch_file, wh_type, model, runner)
     if set_type == Constants.WaterHeaterSetpointTypeConstant
       set_temp_c = UnitConversions.convert(t_set, 'F', 'C')
-      new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-      new_schedule.setName('WH Setpoint Temp')
-      new_schedule.setValue(set_temp_c)
+      new_schedule = MonthWeekdayWeekendSchedule.new(model, runner, 'WH Setpoint Temp', Array.new(24, 1), Array.new(24, 1), Array.new(12,set_temp_c), 1.0, 1.0, false)
+      new_schedule = new_schedule.schedule
     elsif set_type == Constants.WaterHeaterSetpointTypeScheduled
       new_schedule = HourlySchedule.new(model, runner, 'WH Setpoint Temp', sch_file, 0, true, [], fill_value = 125)
       if not new_schedule.validated?
@@ -1507,7 +1506,6 @@ class Waterheater
     if new_heater.setpointTemperatureSchedule.is_initialized
       new_heater.setpointTemperatureSchedule.get.remove
     end
-
     new_heater.setSetpointTemperatureSchedule(new_schedule)
   end
 

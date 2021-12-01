@@ -205,8 +205,8 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     #convert outage offset from F to C
     otg_offset *= (5.0/9.0)
     model.getScheduleRulesets.each do |schedule_ruleset|
-      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial')
-
+      #next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial')
+      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial')
       if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint)
         otg_val = -otg_offset
       elsif schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
