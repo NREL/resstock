@@ -1901,6 +1901,8 @@ class OSModel
       next if pool.type == HPXML::TypeNone
 
       MiscLoads.apply_pool_or_hot_tub_heater(model, pool, Constants.ObjectNameMiscPoolHeater, spaces[HPXML::LocationLivingSpace], @schedules_file)
+      next if pool.pump_type == HPXML::TypeNone
+
       MiscLoads.apply_pool_or_hot_tub_pump(model, pool, Constants.ObjectNameMiscPoolPump, spaces[HPXML::LocationLivingSpace], @schedules_file)
     end
 
@@ -1908,6 +1910,8 @@ class OSModel
       next if hot_tub.type == HPXML::TypeNone
 
       MiscLoads.apply_pool_or_hot_tub_heater(model, hot_tub, Constants.ObjectNameMiscHotTubHeater, spaces[HPXML::LocationLivingSpace], @schedules_file)
+      next if hot_tub.pump_type == HPXML::TypeNone
+
       MiscLoads.apply_pool_or_hot_tub_pump(model, hot_tub, Constants.ObjectNameMiscHotTubPump, spaces[HPXML::LocationLivingSpace], @schedules_file)
     end
   end

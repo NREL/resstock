@@ -509,13 +509,42 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
   def test_schematron_warning_messages
     # Test case => Warning message
-    all_expected_warnings = { 'dhw-efficiencies-low' => ['EnergyFactor should typically be greater than or equal to 0.45.',
+    all_expected_warnings = { 'battery-pv-output-power-low' => ['Max power output should typically be greater than or equal to 500 W.',
+                                                                'Max power output should typically be greater than or equal to 500 W.',
+                                                                'Rated power output should typically be greater than or equal to 1000 W.'],
+                              'dhw-capacities-low' => ['Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                       'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                       'No space cooling specified, the model will not include space cooling energy use.'],
+                              'dhw-efficiencies-low' => ['EnergyFactor should typically be greater than or equal to 0.45.',
+                                                         'EnergyFactor should typically be greater than or equal to 0.45.',
+                                                         'EnergyFactor should typically be greater than or equal to 0.45.',
                                                          'EnergyFactor should typically be greater than or equal to 0.45.',
                                                          'No space cooling specified, the model will not include space cooling energy use.'],
                               'dhw-setpoint-low' => ['Hot water setpoint should typically be greater than or equal to 110 deg-F.'],
                               'hvac-dse-low' => ['Heating DSE should typically be greater than or equal to 0.5.',
                                                  'Cooling DSE should typically be greater than or equal to 0.5.'],
+                              'hvac-capacities-low' => ['Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Cooling capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Cooling capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Cooling capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Cooling capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Cooling capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Cooling capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Backup heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Backup heating capacity should typically be greater than or equal to 1000 Btu/hr.',
+                                                        'Backup heating capacity should typically be greater than or equal to 1000 Btu/hr.'],
                               'hvac-efficiencies-low' => ['Percent efficiency should typically be greater than or equal to 0.95.',
+                                                          'AFUE should typically be greater than or equal to 0.6.',
+                                                          'AFUE should typically be greater than or equal to 0.6.',
                                                           'AFUE should typically be greater than or equal to 0.6.',
                                                           'AFUE should typically be greater than or equal to 0.6.',
                                                           'AFUE should typically be greater than or equal to 0.6.',
@@ -532,16 +561,31 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                         'Cooling setpoint should typically be less than or equal to 86 deg-F.'],
                               'hvac-setpoints-low' => ['Heating setpoint should typically be greater than or equal to 58 deg-F.',
                                                        'Cooling setpoint should typically be greater than or equal to 68 deg-F.'],
-                              'slab-zero-exposed-perimeter' => ['Slab has zero exposed perimeter, this may indicate an input error.'],
-                              'battery-no-pv' => ['Battery without PV specified; battery is assumed to operate as backup and will not be modeled.'] }
+                              'slab-zero-exposed-perimeter' => ['Slab has zero exposed perimeter, this may indicate an input error.'] }
 
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
       # Create HPXML object
-      if ['dhw-efficiencies-low'].include? warning_case
+      if ['battery-pv-output-power-low'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-pv-battery-outside.xml'))
+        hpxml.batteries[0].rated_power_output = 0.1
+        hpxml.pv_systems[0].max_power_output = 0.1
+        hpxml.pv_systems[1].max_power_output = 0.1
+      elsif ['dhw-capacities-low'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-dhw-multiple.xml'))
-        hpxml.water_heating_systems.select { |w| w.water_heater_type == HPXML::WaterHeaterTypeStorage }[0].energy_factor = 0.1
-        hpxml.water_heating_systems.select { |w| w.water_heater_type == HPXML::WaterHeaterTypeTankless }[0].energy_factor = 0.1
+        hpxml.water_heating_systems.each do |water_heating_system|
+          if [HPXML::WaterHeaterTypeStorage].include? water_heating_system.water_heater_type
+            water_heating_system.heating_capacity = 0.1
+          end
+        end
+      elsif ['dhw-efficiencies-low'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-dhw-multiple.xml'))
+        hpxml.water_heating_systems.each do |water_heating_system|
+          if [HPXML::WaterHeaterTypeStorage,
+              HPXML::WaterHeaterTypeTankless].include? water_heating_system.water_heater_type
+            water_heating_system.energy_factor = 0.1
+          end
+        end
       elsif ['dhw-setpoint-low'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.water_heating_systems[0].temperature = 100
@@ -549,21 +593,48 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-dse.xml'))
         hpxml.hvac_distributions[0].annual_heating_dse = 0.1
         hpxml.hvac_distributions[0].annual_cooling_dse = 0.1
+      elsif ['hvac-capacities-low'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-multiple.xml'))
+        hpxml.hvac_systems.each do |hvac_system|
+          if hvac_system.is_a? HPXML::HeatingSystem
+            hvac_system.heating_capacity = 0.1
+          elsif hvac_system.is_a? HPXML::CoolingSystem
+            hvac_system.cooling_capacity = 0.1
+          elsif hvac_system.is_a? HPXML::HeatPump
+            hvac_system.heating_capacity = 0.1
+            hvac_system.cooling_capacity = 0.1
+            hvac_system.backup_heating_capacity = 0.1
+          end
+        end
       elsif ['hvac-efficiencies-low'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-multiple.xml'))
-        hpxml.heating_systems.select { |h| h.heating_system_type == HPXML::HVACTypeElectricResistance }[0].heating_efficiency_percent = 0.1
-        hpxml.heating_systems.select { |h| h.heating_system_type == HPXML::HVACTypeFurnace }[0].heating_efficiency_afue = 0.1
-        hpxml.heating_systems.select { |h| h.heating_system_type == HPXML::HVACTypeWallFurnace }[0].heating_efficiency_afue = 0.1
-        hpxml.heating_systems.select { |h| h.heating_system_type == HPXML::HVACTypeBoiler }[0].heating_efficiency_afue = 0.1
-        hpxml.heating_systems.select { |h| h.heating_system_type == HPXML::HVACTypeStove }[0].heating_efficiency_percent = 0.1
-        hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeCentralAirConditioner }[0].cooling_efficiency_seer = 0.1
-        hpxml.cooling_systems.select { |c| c.cooling_system_type == HPXML::HVACTypeRoomAirConditioner }[0].cooling_efficiency_eer = 0.1
-        hpxml.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpAirToAir }[0].cooling_efficiency_seer = 0.1
-        hpxml.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpAirToAir }[0].heating_efficiency_hspf = 0.1
-        hpxml.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit }[0].cooling_efficiency_seer = 0.1
-        hpxml.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit }[0].heating_efficiency_hspf = 0.1
-        hpxml.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }[0].cooling_efficiency_eer = 0.1
-        hpxml.heat_pumps.select { |hp| hp.heat_pump_type == HPXML::HVACTypeHeatPumpGroundToAir }[0].heating_efficiency_cop = 0.1
+        hpxml.hvac_systems.each do |hvac_system|
+          if hvac_system.is_a? HPXML::HeatingSystem
+            if [HPXML::HVACTypeElectricResistance,
+                HPXML::HVACTypeStove].include? hvac_system.heating_system_type
+              hvac_system.heating_efficiency_percent = 0.1
+            elsif [HPXML::HVACTypeFurnace,
+                   HPXML::HVACTypeWallFurnace,
+                   HPXML::HVACTypeBoiler].include? hvac_system.heating_system_type
+              hvac_system.heating_efficiency_afue = 0.1
+            end
+          elsif hvac_system.is_a? HPXML::CoolingSystem
+            if [HPXML::HVACTypeCentralAirConditioner].include? hvac_system.cooling_system_type
+              hvac_system.cooling_efficiency_seer = 0.1
+            elsif [HPXML::HVACTypeRoomAirConditioner].include? hvac_system.cooling_system_type
+              hvac_system.cooling_efficiency_eer = 0.1
+            end
+          elsif hvac_system.is_a? HPXML::HeatPump
+            if [HPXML::HVACTypeHeatPumpAirToAir,
+                HPXML::HVACTypeHeatPumpMiniSplit].include? hvac_system.heat_pump_type
+              hvac_system.cooling_efficiency_seer = 0.1
+              hvac_system.heating_efficiency_hspf = 0.1
+            elsif [HPXML::HVACTypeHeatPumpGroundToAir].include? hvac_system.heat_pump_type
+              hvac_system.cooling_efficiency_eer = 0.1
+              hvac_system.heating_efficiency_cop = 0.1
+            end
+          end
+        end
       elsif ['hvac-setpoints-high'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.hvac_controls[0].heating_setpoint_temp = 100
@@ -575,8 +646,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['slab-zero-exposed-perimeter'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.slabs[0].exposed_perimeter = 0
-      elsif ['battery-no-pv'].include? warning_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-battery-outside.xml'))
       else
         fail "Unhandled case: #{warning_case}."
       end
