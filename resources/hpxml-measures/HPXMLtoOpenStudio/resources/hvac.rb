@@ -3136,7 +3136,7 @@ class HVAC
             clg_coil = OpenStudio::Model::CoilCoolingDXVariableSpeed.new(model, plf_fplr_curve)
             clg_coil.setNominalSpeedLevel(4) # FIXME
             if cooling_system.ihp_ice_storage || cooling_system.ihp_pcm_storage
-              clg_coil.setNominalSpeedLevel(2) # FIXME
+              clg_coil.setNominalSpeedLevel(4) # FIXME
             end
             clg_coil.setGrossRatedTotalCoolingCapacityAtSelectedNominalSpeedLevel(UnitConversions.convert(cooling_system.cooling_capacity, 'Btu/hr', 'W')) # FIXME
             clg_coil.setRatedAirFlowRateAtSelectedNominalSpeedLevel(calc_rated_airflow(cooling_system.cooling_capacity, clg_ap.cool_rated_cfm_per_ton[i], 1.0)) # FIXME
