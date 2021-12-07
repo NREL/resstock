@@ -102,11 +102,11 @@ class HVACSizing
 
     @cool_design_grains = UnitConversions.convert(weather.design.CoolingHumidityRatio, 'lbm/lbm', 'grains')
 
-    # # Calculate the design temperature differences
-    @ctd = weather.design.CoolingDrybulb - @cool_setpoint
-    @htd = @heat_setpoint - weather.design.HeatingDrybulb
+    # Calculate the design temperature differences
+    @ctd = [weather.design.CoolingDrybulb - @cool_setpoint, 0.0].max
+    @htd = [@heat_setpoint - weather.design.HeatingDrybulb, 0.0].max
 
-    # # Calculate the average Daily Temperature Range (DTR) to determine the class (low, medium, high)
+    # Calculate the average Daily Temperature Range (DTR) to determine the class (low, medium, high)
     dtr = weather.design.DailyTemperatureRange
 
     if dtr < 16.0

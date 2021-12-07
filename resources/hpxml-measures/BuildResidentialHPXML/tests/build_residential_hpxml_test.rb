@@ -8,6 +8,9 @@ require 'fileutils'
 
 class BuildResidentialHPXMLTest < MiniTest::Test
   def test_workflows
+    this_dir = File.dirname(__FILE__)
+    tests_dir = File.join(this_dir, 'extra_files')
+
     # Extra buildings that don't correspond with sample files
     hpxmls_files = {
       # Base files to derive from
@@ -150,7 +153,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-mf-all-adiabatic-walls.xml' => 'base-mf.xml',
       'error-mf-two-stories.xml' => 'base-mf.xml',
       'error-dhw-indirect-without-boiler.xml' => 'base-sfd.xml',
-      'error-foundation-wall-insulation-greater-than-height.xml' => 'base-sfd.xml',
       'error-conditioned-attic-with-one-floor-above-grade.xml' => 'base-sfd.xml',
       'error-zero-number-of-bedrooms.xml' => 'base-sfd.xml',
       'error-sfd-with-shared-system.xml' => 'base-sfd.xml',
@@ -225,8 +227,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'warning-multipliers-without-fuel-loads.xml' => 'misc_fuel_loads_grill_present=false and misc_fuel_loads_grill_usage_multiplier=1.0 and misc_fuel_loads_lighting_present=false and misc_fuel_loads_lighting_usage_multiplier=1.0 and misc_fuel_loads_fireplace_present=false and misc_fuel_loads_fireplace_usage_multiplier=1.0',
     }
 
+    puts "Generating #{hpxmls_files.size} HPXML files..."
+
     hpxmls_files.each_with_index do |(hpxml_file, parent), i|
-      puts "[#{i + 1}/#{hpxmls_files.size}] Testing #{hpxml_file}..."
+      puts "[#{i + 1}/#{hpxmls_files.size}] Generating #{hpxml_file}..."
 
       begin
         all_hpxml_files = [hpxml_file]
@@ -247,9 +251,47 @@ class BuildResidentialHPXMLTest < MiniTest::Test
           _set_measure_argument_values(f, args)
         end
 
-        File.delete(args['hpxml_path']) if File.exist? args['hpxml_path']
-        _test_measure(args, expected_errors[hpxml_file], expected_warnings[hpxml_file])
-        File.delete(args['hpxml_path']) if File.exist? args['hpxml_path']
+        measures_dir = File.join(File.dirname(__FILE__), '../..')
+        measures = { 'BuildResidentialHPXML' => [args] }
+        model = OpenStudio::Model::Model.new
+        runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
+
+        # Apply measure
+        success = apply_measures(measures_dir, measures, runner, model)
+
+        _test_measure(runner, expected_errors[hpxml_file], expected_warnings[hpxml_file])
+
+        if not success
+          runner.result.stepErrors.each do |s|
+            puts "Error: #{s}"
+          end
+
+          next if hpxml_file.start_with?('error')
+
+          puts "\nError: Did not successfully generate #{hpxml_file}."
+          exit!
+        end
+
+        hpxml_path = File.absolute_path(File.join(tests_dir, hpxml_file))
+        hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
+        hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
+        hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
+
+        hpxml_doc = hpxml.to_oga()
+        XMLHelper.write_file(hpxml_doc, hpxml_path)
+
+        # Validate file against HPXML schema
+        schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources'))
+        errors = XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), nil)
+        if errors.size > 0
+          fail "ERRORS: #{errors}"
+        end
+
+        # Check for errors
+        errors = hpxml.check_for_errors()
+        if errors.size > 0
+          fail "ERRORS: #{errors}"
+        end
       rescue Exception => e
         puts "\n#{e}\n#{e.backtrace.join('\n')}"
         puts "\nError: Did not successfully generate #{hpxml_file}."
@@ -261,7 +303,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   private
 
   def _set_measure_argument_values(hpxml_file, args)
-    args['hpxml_path'] = File.absolute_path(File.join(File.dirname(__FILE__), hpxml_file))
+    args['hpxml_path'] = "tests/extra_files/#{hpxml_file}"
 
     # Base
     if ['base-sfd.xml'].include? hpxml_file
@@ -624,6 +666,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['ducts_supply_location'] = HPXML::LocationLivingSpace
       args['ducts_return_location'] = HPXML::LocationLivingSpace
       args['ducts_supply_insulation_r'] = 0.0
+      args['ducts_return_insulation_r'] = 0.0
       args['ducts_number_of_return_registers'] = 1
       args['door_area'] = 20.0
     end
@@ -679,6 +722,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['cooling_system_type'] = 'none'
       args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
       args['heat_pump_heating_capacity_17_f'] = 22680.0
+      args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
+      args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_heating_capacity'] = 48000.0
       args['heat_pump_fraction_heat_load_served'] = 0.75
       args['ducts_supply_leakage_to_outside_value'] = 0.0
@@ -706,6 +751,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['heat_pump_heating_efficiency'] = 3.6
       args['heat_pump_cooling_efficiency_type'] = HPXML::UnitsEER
       args['heat_pump_cooling_efficiency'] = 16.6
+      args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
+      args['heat_pump_backup_fuel'] = HPXML::FuelTypeElectricity
       args['heat_pump_fraction_heat_load_served'] = 0.75
       args['heating_system_2_type'] = HPXML::HVACTypeBoiler
     elsif ['extra-enclosure-windows-shading.xml'].include? hpxml_file
@@ -955,6 +1002,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['error-mf-bottom-crawlspace-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeCrawlspaceUnvented
       args['geometry_foundation_height'] = 0.0
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
       args['foundation_wall_insulation_distance_to_bottom'] = Constants.Auto
     elsif ['error-ducts-location-and-areas-not-same-type.xml'].include? hpxml_file
       args['ducts_supply_location'] = Constants.Auto
@@ -972,12 +1020,14 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['error-sfa-all-adiabatic-walls.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_unit_right_wall_is_adiabatic'] = true
       args['geometry_unit_front_wall_is_adiabatic'] = true
       args['geometry_unit_back_wall_is_adiabatic'] = true
     elsif ['error-mf-no-building-num-units.xml'].include? hpxml_file
       args.delete('geometry_building_num_units')
     elsif ['error-mf-all-adiabatic-walls.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
+      args['geometry_unit_right_wall_is_adiabatic'] = true
       args['geometry_unit_front_wall_is_adiabatic'] = true
       args['geometry_unit_back_wall_is_adiabatic'] = true
     elsif ['error-mf-two-stories.xml'].include? hpxml_file
@@ -1008,6 +1058,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     elsif ['warning-mf-bottom-slab-non-zero-foundation-height.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
       args['geometry_foundation_height_above_grade'] = 0.0
+      args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     elsif ['warning-slab-non-zero-foundation-height-above-grade.xml'].include? hpxml_file
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
       args['geometry_foundation_height'] = 0.0
@@ -1038,8 +1089,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['ducts_supply_location'] = HPXML::LocationAtticVented
       args['ducts_return_location'] = HPXML::LocationAtticVented
     elsif ['warning-unvented-attic-with-floor-and-roof-insulation.xml'].include? hpxml_file
+      args['geometry_attic_type'] = HPXML::AtticTypeUnvented
       args['roof_assembly_r'] = 10
     elsif ['warning-conditioned-basement-with-ceiling-insulation.xml'].include? hpxml_file
+      args['geometry_foundation_type'] = HPXML::FoundationTypeBasementConditioned
       args['floor_over_foundation_assembly_r'] = 10
     elsif ['warning-conditioned-attic-with-floor-insulation.xml'].include? hpxml_file
       args['geometry_unit_num_floors_above_grade'] = 2
@@ -1063,54 +1116,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     end
   end
 
-  def _test_measure(args_hash, expected_error, expected_warning)
-    # create an instance of the measure
-    measure = BuildResidentialHPXML.new
-
-    runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
-    model = OpenStudio::Model::Model.new
-
-    # get arguments
-    arguments = measure.arguments(model)
-    argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
-
-    # populate argument with specified hash value if specified
-    arguments.each do |arg|
-      temp_arg_var = arg.clone
-      if args_hash.has_key?(arg.name)
-        retval = temp_arg_var.setValue(args_hash[arg.name])
-        if not retval # Try passing as string instead
-          assert(temp_arg_var.setValue(args_hash[arg.name].to_s))
-        end
-      else
-        next if !arg.required
-
-        fail "Did not provide required argument: #{arg.name}"
-      end
-      argument_map[arg.name] = temp_arg_var
-    end
-    args_hash.keys.each do |arg_name|
-      next if argument_map.keys.include? arg_name
-
-      fail "Unexpected argument name: #{arg_name}"
-    end
-
-    # run the measure
-    measure.run(model, runner, argument_map)
-    result = runner.result
-
-    # assert whether it ran correctly
-    if expected_error.nil?
-      # show the output
-      show_output(result) unless result.value.valueName == 'Success'
-
-      assert_equal('Success', result.value.valueName)
-      assert(File.exist?(args_hash['hpxml_path']))
-    else
-      assert_equal('Fail', result.value.valueName)
-      assert(!File.exist?(args_hash['hpxml_path']))
-    end
-
+  def _test_measure(runner, expected_error, expected_warning)
     # check warnings/errors
     if not expected_error.nil?
       if runner.result.stepErrors.select { |s| s == expected_error }.size <= 0

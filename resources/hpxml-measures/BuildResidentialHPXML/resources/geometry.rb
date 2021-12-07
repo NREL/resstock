@@ -107,6 +107,7 @@ class Geometry
       # make space
       rim_joist_space = OpenStudio::Model::Space::fromFloorPrint(rim_joist_polygon, rim_joist_height, model)
       rim_joist_space = rim_joist_space.get
+      assign_indexes(model, rim_joist_polygon, rim_joist_space)
 
       space.surfaces.each do |surface|
         next if surface.surfaceType.downcase != 'roofceiling'
@@ -126,6 +127,84 @@ class Geometry
 
       rim_joist_space.remove
     end
+  end
+
+  def self.assign_indexes(model, footprint_polygon, space)
+    space.additionalProperties.setFeature('Index', indexer(model))
+
+    space.surfaces.each do |surface|
+      next if surface.surfaceType != 'Floor'
+
+      surface.additionalProperties.setFeature('Index', indexer(model))
+    end
+
+    num_points = footprint_polygon.size
+    (1..num_points).to_a.each do |i|
+      pt1 = footprint_polygon[(i + 1) % num_points]
+      pt2 = footprint_polygon[i % num_points]
+      polygon_points = [pt1, pt2]
+
+      space.surfaces.each do |surface|
+        next if surface.surfaceType != 'Wall'
+
+        num_points_matched = 0
+        polygon_points.each do |polygon_point|
+          surface.vertices.each do |surface_point|
+            x = polygon_point.x - surface_point.x
+            y = polygon_point.y - surface_point.y
+            z = polygon_point.z - surface_point.z
+            num_points_matched += 1 if x.abs < Constants.small && y.abs < Constants.small && z.abs < Constants.small
+          end
+        end
+        next if num_points_matched < 2 # match at least 2 points of the footprint_polygon and you've found the correct wall surface
+
+        surface.additionalProperties.setFeature('Index', indexer(model))
+      end
+    end
+
+    space.surfaces.each do |surface|
+      next if surface.surfaceType != 'RoofCeiling'
+
+      surface.additionalProperties.setFeature('Index', indexer(model))
+    end
+  end
+
+  def self.assign_remaining_surface_indexes(model)
+    # Index any remaining surfaces created from intersecting/matching
+    # We can't deterministically assign indexes to these surfaces
+    model.getSurfaces.each do |surface|
+      next if surface.additionalProperties.getFeatureAsInteger('Index').is_initialized
+
+      surface.additionalProperties.setFeature('Index', indexer(model))
+    end
+  end
+
+  def self.create_space(model)
+    space = OpenStudio::Model::Space.new(model)
+    space.additionalProperties.setFeature('Index', indexer(model))
+    return space
+  end
+
+  def self.create_surface(polygon, model)
+    surface = OpenStudio::Model::Surface.new(polygon, model)
+    surface.additionalProperties.setFeature('Index', indexer(model))
+    return surface
+  end
+
+  def self.create_sub_surface(polygon, model)
+    sub_surface = OpenStudio::Model::SubSurface.new(polygon, model)
+    sub_surface.additionalProperties.setFeature('Index', indexer(model))
+    return sub_surface
+  end
+
+  def self.indexer(model)
+    indexes = [0]
+    (model.getSpaces + model.getSurfaces + model.getSubSurfaces).each do |s|
+      next if !s.additionalProperties.getFeatureAsInteger('Index').is_initialized
+
+      indexes << s.additionalProperties.getFeatureAsInteger('Index').get
+    end
+    return indexes.max + 1
   end
 
   def self.create_single_family_detached(runner:,
@@ -279,6 +358,7 @@ class Geometry
         # make space
         garage_space = OpenStudio::Model::Space::fromFloorPrint(garage_polygon, average_ceiling_height, model)
         garage_space = garage_space.get
+        assign_indexes(model, garage_polygon, garage_space)
         garage_space.setName(garage_space_name)
         garage_space_type = OpenStudio::Model::SpaceType.new(model)
         garage_space_type.setStandardsSpaceType(garage_space_name)
@@ -370,6 +450,8 @@ class Geometry
       # make space
       living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, average_ceiling_height, model)
       living_space = living_space.get
+      assign_indexes(model, living_polygon, living_space)
+
       if floor > 0
         living_space_name = "#{HPXML::LocationLivingSpace}|story #{floor + 1}"
       else
@@ -448,24 +530,24 @@ class Geometry
       end
 
       # make surfaces
-      surface_floor = OpenStudio::Model::Surface.new(polygon_floor, model)
+      surface_floor = create_surface(polygon_floor, model)
       surface_floor.setSurfaceType('Floor')
       surface_floor.setOutsideBoundaryCondition('Surface')
-      surface_s_roof = OpenStudio::Model::Surface.new(polygon_s_roof, model)
-      surface_s_roof.setSurfaceType('RoofCeiling')
-      surface_s_roof.setOutsideBoundaryCondition('Outdoors')
-      surface_n_roof = OpenStudio::Model::Surface.new(polygon_n_roof, model)
+      surface_n_roof = create_surface(polygon_n_roof, model)
       surface_n_roof.setSurfaceType('RoofCeiling')
       surface_n_roof.setOutsideBoundaryCondition('Outdoors')
-      surface_w_wall = OpenStudio::Model::Surface.new(polygon_w_wall, model)
-      surface_w_wall.setSurfaceType(side_type)
-      surface_w_wall.setOutsideBoundaryCondition('Outdoors')
-      surface_e_wall = OpenStudio::Model::Surface.new(polygon_e_wall, model)
+      surface_e_wall = create_surface(polygon_e_wall, model)
       surface_e_wall.setSurfaceType(side_type)
       surface_e_wall.setOutsideBoundaryCondition('Outdoors')
+      surface_s_roof = create_surface(polygon_s_roof, model)
+      surface_s_roof.setSurfaceType('RoofCeiling')
+      surface_s_roof.setOutsideBoundaryCondition('Outdoors')
+      surface_w_wall = create_surface(polygon_w_wall, model)
+      surface_w_wall.setSurfaceType(side_type)
+      surface_w_wall.setOutsideBoundaryCondition('Outdoors')
 
       # assign surfaces to the space
-      attic_space = OpenStudio::Model::Space.new(model)
+      attic_space = create_space(model)
       surface_floor.setSpace(attic_space)
       surface_s_roof.setSpace(attic_space)
       surface_n_roof.setSpace(attic_space)
@@ -523,6 +605,7 @@ class Geometry
       # make space
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_polygon, foundation_height, model)
       foundation_space = foundation_space.get
+      assign_indexes(model, foundation_polygon, foundation_space)
       if foundation_type == HPXML::FoundationTypeCrawlspaceVented
         foundation_space_name = HPXML::LocationCrawlspaceVented
       elsif foundation_type == HPXML::FoundationTypeCrawlspaceUnvented
@@ -657,19 +740,19 @@ class Geometry
         polygon_n_wall = make_polygon(nw_point, roof_n_point, ne_point)
         polygon_s_wall = make_polygon(sw_point, se_point, roof_s_point)
 
-        deck_w = OpenStudio::Model::Surface.new(polygon_w_roof, model)
-        deck_w.setSurfaceType('RoofCeiling')
-        deck_w.setOutsideBoundaryCondition('Outdoors')
-        deck_e = OpenStudio::Model::Surface.new(polygon_e_roof, model)
+        wall_n = create_surface(polygon_n_wall, model)
+        wall_n.setSurfaceType('Wall')
+        deck_e = create_surface(polygon_e_roof, model)
         deck_e.setSurfaceType('RoofCeiling')
         deck_e.setOutsideBoundaryCondition('Outdoors')
-        wall_n = OpenStudio::Model::Surface.new(polygon_n_wall, model)
-        wall_n.setSurfaceType('Wall')
-        wall_s = OpenStudio::Model::Surface.new(polygon_s_wall, model)
+        wall_s = create_surface(polygon_s_wall, model)
         wall_s.setSurfaceType('Wall')
         wall_s.setOutsideBoundaryCondition('Outdoors')
+        deck_w = create_surface(polygon_w_roof, model)
+        deck_w.setSurfaceType('RoofCeiling')
+        deck_w.setOutsideBoundaryCondition('Outdoors')
 
-        garage_attic_space = OpenStudio::Model::Space.new(model)
+        garage_attic_space = create_space(model)
         deck_w.setSpace(garage_attic_space)
         deck_e.setSpace(garage_attic_space)
         wall_n.setSpace(garage_attic_space)
@@ -689,6 +772,7 @@ class Geometry
         end
 
         surface.createAdjacentSurface(garage_attic_space) # garage attic floor
+        surface.adjacentSurface.get.additionalProperties.setFeature('Index', indexer(model))
         garage_attic_space.setName(garage_attic_space_name)
         garage_attic_space_type = OpenStudio::Model::SpaceType.new(model)
         garage_attic_space_type.setStandardsSpaceType(garage_attic_space_name)
@@ -789,6 +873,8 @@ class Geometry
       end
     end
 
+    assign_remaining_surface_indexes(model)
+
     return true
   end
 
@@ -804,7 +890,7 @@ class Geometry
   end
 
   def self.make_one_space_from_multiple_spaces(model, spaces)
-    new_space = OpenStudio::Model::Space.new(model)
+    new_space = create_space(model)
     spaces.each do |space|
       space.surfaces.each do |surface|
         if surface.adjacentSurface.is_initialized && (surface.surfaceType.downcase == 'wall')
@@ -869,24 +955,24 @@ class Geometry
                                         skylight_area_left:,
                                         skylight_area_right:,
                                         **remainder)
-    facades = [Constants.FacadeFront, Constants.FacadeBack, Constants.FacadeLeft, Constants.FacadeRight]
+    facades = [Constants.FacadeBack, Constants.FacadeRight, Constants.FacadeFront, Constants.FacadeLeft]
 
     wwrs = {}
-    wwrs[Constants.FacadeFront] = window_front_wwr
     wwrs[Constants.FacadeBack] = window_back_wwr
-    wwrs[Constants.FacadeLeft] = window_left_wwr
     wwrs[Constants.FacadeRight] = window_right_wwr
+    wwrs[Constants.FacadeFront] = window_front_wwr
+    wwrs[Constants.FacadeLeft] = window_left_wwr
     window_areas = {}
-    window_areas[Constants.FacadeFront] = window_area_front
     window_areas[Constants.FacadeBack] = window_area_back
-    window_areas[Constants.FacadeLeft] = window_area_left
     window_areas[Constants.FacadeRight] = window_area_right
+    window_areas[Constants.FacadeFront] = window_area_front
+    window_areas[Constants.FacadeLeft] = window_area_left
 
     skylight_areas = {}
-    skylight_areas[Constants.FacadeFront] = skylight_area_front
     skylight_areas[Constants.FacadeBack] = skylight_area_back
-    skylight_areas[Constants.FacadeLeft] = skylight_area_left
     skylight_areas[Constants.FacadeRight] = skylight_area_right
+    skylight_areas[Constants.FacadeFront] = skylight_area_front
+    skylight_areas[Constants.FacadeLeft] = skylight_area_left
     skylight_areas['none'] = 0
 
     # Store surfaces that should get windows by facade
@@ -896,8 +982,10 @@ class Geometry
                       Constants.FacadeLeft => [], Constants.FacadeRight => [],
                       'none' => [] }
 
-    get_conditioned_spaces(model.getSpaces).each do |space|
-      space.surfaces.each do |surface|
+    sorted_spaces = model.getSpaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
+    get_conditioned_spaces(sorted_spaces).each do |space|
+      sorted_surfaces = space.surfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
+      sorted_surfaces.each do |surface|
         next unless (surface.surfaceType.downcase == 'wall') && (surface.outsideBoundaryCondition.downcase == 'outdoors')
         next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
 
@@ -907,8 +995,9 @@ class Geometry
         wall_surfaces[facade] << surface
       end
     end
-    model.getSpaces.each do |space|
-      space.surfaces.each do |surface|
+    sorted_spaces.each do |space|
+      sorted_surfaces = space.surfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
+      sorted_surfaces.each do |surface|
         next unless (surface.surfaceType.downcase == 'roofceiling') && (surface.outsideBoundaryCondition.downcase == 'outdoors')
 
         facade = get_facade_for_surface(surface)
@@ -1200,7 +1289,7 @@ class Geometry
           skylight_polygon << skylight_vertex
         end
 
-        sub_surface = OpenStudio::Model::SubSurface.new(skylight_polygon, model)
+        sub_surface = create_sub_surface(skylight_polygon, model)
         sub_surface.setName("#{surface.name} - Skylight")
         sub_surface.setSurface(surface)
 
@@ -1332,7 +1421,7 @@ class Geometry
       window_vertex = OpenStudio::Point3d.new(newx, newy, newz)
       window_polygon << window_vertex
     end
-    sub_surface = OpenStudio::Model::SubSurface.new(window_polygon, model)
+    sub_surface = create_sub_surface(window_polygon, model)
     sub_surface.setName("#{surface.name} - Window #{win_num}")
     sub_surface.setSurface(surface)
     sub_surface.setSubSurfaceType('FixedWindow')
@@ -1414,10 +1503,12 @@ class Geometry
     facades = [Constants.FacadeFront, Constants.FacadeBack]
     avail_walls = []
     facades.each do |facade|
-      get_conditioned_spaces(model.getSpaces).each do |space|
+      sorted_spaces = model.getSpaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
+      get_conditioned_spaces(sorted_spaces).each do |space|
         next if space_is_below_grade(space)
 
-        space.surfaces.each do |surface|
+        sorted_surfaces = space.surfaces.sort_by { |s| s.additionalProperties.getFeatureAsInteger('Index').get }
+        sorted_surfaces.each do |surface|
           next unless get_facade_for_surface(surface) == Constants.FacadeFront
           next unless (surface.outsideBoundaryCondition.downcase == 'outdoors') || (surface.outsideBoundaryCondition.downcase == 'adiabatic')
           next if (90 - surface.tilt * 180 / Math::PI).abs > 0.01 # Not a vertical wall
@@ -1509,7 +1600,7 @@ class Geometry
         door_polygon << door_vertex
       end
 
-      door_sub_surface = OpenStudio::Model::SubSurface.new(door_polygon, model)
+      door_sub_surface = create_sub_surface(door_polygon, model)
       door_sub_surface.setName("#{min_story_avail_wall.name} - Door")
       door_sub_surface.setSurface(min_story_avail_wall)
       door_sub_surface.setSubSurfaceType('Door')
@@ -1636,6 +1727,7 @@ class Geometry
     living_spaces_front = []
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, average_ceiling_height, model)
     living_space = living_space.get
+    assign_indexes(model, living_polygon, living_space)
     living_space.setName(HPXML::LocationLivingSpace)
     living_space_type = OpenStudio::Model::SpaceType.new(model)
     living_space_type.setStandardsSpaceType(HPXML::LocationLivingSpace)
@@ -1671,6 +1763,7 @@ class Geometry
     # additional floors
     (2..num_floors).to_a.each do |story|
       new_living_space = living_space.clone.to_Space.get
+      assign_indexes(model, living_polygon, new_living_space)
       new_living_space.setName("living space|story #{story}")
       new_living_space.setSpaceType(living_space_type)
 
@@ -1704,6 +1797,7 @@ class Geometry
       foundation_space_front = []
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
       foundation_space = foundation_space.get
+      assign_indexes(model, foundation_front_polygon, foundation_space)
       m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       m[2, 3] = foundation_height
       foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
@@ -1857,6 +1951,8 @@ class Geometry
       surface.setOutsideBoundaryCondition('Foundation')
     end
 
+    assign_remaining_surface_indexes(model)
+
     return true
   end
 
@@ -1920,23 +2016,23 @@ class Geometry
       side_type = 'RoofCeiling'
     end
 
-    surface_floor = OpenStudio::Model::Surface.new(attic_polygon, model)
+    surface_floor = create_surface(attic_polygon, model)
     surface_floor.setSurfaceType('Floor')
     surface_floor.setOutsideBoundaryCondition('Surface')
-    surface_w_roof = OpenStudio::Model::Surface.new(polygon_w_roof, model)
+    surface_w_roof = create_surface(polygon_w_roof, model)
     surface_w_roof.setSurfaceType('RoofCeiling')
     surface_w_roof.setOutsideBoundaryCondition('Outdoors')
-    surface_e_roof = OpenStudio::Model::Surface.new(polygon_e_roof, model)
+    surface_e_roof = create_surface(polygon_e_roof, model)
     surface_e_roof.setSurfaceType('RoofCeiling')
     surface_e_roof.setOutsideBoundaryCondition('Outdoors')
-    surface_s_wall = OpenStudio::Model::Surface.new(polygon_s_wall, model)
+    surface_s_wall = create_surface(polygon_s_wall, model)
     surface_s_wall.setSurfaceType(side_type)
     surface_s_wall.setOutsideBoundaryCondition('Outdoors')
-    surface_n_wall = OpenStudio::Model::Surface.new(polygon_n_wall, model)
+    surface_n_wall = create_surface(polygon_n_wall, model)
     surface_n_wall.setSurfaceType(side_type)
     surface_n_wall.setOutsideBoundaryCondition('Outdoors')
 
-    attic_space = OpenStudio::Model::Space.new(model)
+    attic_space = create_space(model)
 
     surface_floor.setSpace(attic_space)
     surface_w_roof.setSpace(attic_space)
@@ -2082,6 +2178,7 @@ class Geometry
     living_spaces_front = []
     living_space = OpenStudio::Model::Space::fromFloorPrint(living_polygon, average_ceiling_height, model)
     living_space = living_space.get
+    assign_indexes(model, living_polygon, living_space)
     living_space.setName(HPXML::LocationLivingSpace)
     living_space_type = OpenStudio::Model::SpaceType.new(model)
     living_space_type.setStandardsSpaceType(HPXML::LocationLivingSpace)
@@ -2139,6 +2236,7 @@ class Geometry
       foundation_space_front = []
       foundation_space = OpenStudio::Model::Space::fromFloorPrint(foundation_front_polygon, foundation_height, model)
       foundation_space = foundation_space.get
+      assign_indexes(model, foundation_front_polygon, foundation_space)
       m = initialize_transformation_matrix(OpenStudio::Matrix.new(4, 4, 0))
       m[2, 3] = foundation_height + rim_joist_height
       foundation_space.changeTransformation(OpenStudio::Transformation.new(m))
@@ -2223,6 +2321,8 @@ class Geometry
 
       surface.setOutsideBoundaryCondition('Foundation')
     end
+
+    assign_remaining_surface_indexes(model)
 
     return true
   end
