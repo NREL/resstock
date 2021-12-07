@@ -295,8 +295,6 @@ class HVAC
         # Grid AC
         if heat_pump.ihp_grid_ac
           grid_clg_coil = create_dx_cooling_coil(model, obj_name, heat_pump, cooling_grid_signal_schedule)
-          grid_clg_coil.setLowerBoundToApplyGridResponsiveControl(1000.0)
-          grid_clg_coil.setMaxSpeedLevelDuringGridResponsiveControl(1)
         end
 
         # Storage
@@ -372,8 +370,8 @@ class HVAC
     unless grid_signal_schedule.nil?
       chiller_coil.setGridSignalSchedule(grid_signal_schedule)
     end
-    chiller_coil.setLowerBoundToApplyGridResponsiveControl(0.1)
-    chiller_coil.setUpperBoundToApplyGridResponsiveControl(1000.0)
+    chiller_coil.setLowerBoundToApplyGridResponsiveControl(1)
+    chiller_coil.setUpperBoundToApplyGridResponsiveControl(1)
     chiller_coil.setMaxSpeedLevelDuringGridResponsiveControl(0)
     chiller_coil_speed_1 = OpenStudio::Model::CoilChillerAirSourceVariableSpeedSpeedData.new(model)
     chiller_coil.addSpeed(chiller_coil_speed_1)
@@ -1190,7 +1188,6 @@ class HVAC
     cooling_setpoint = HourlyByDaySchedule.new(model, Constants.ObjectNameCoolingSetpoint, clg_weekday_setpoints, clg_weekend_setpoints, nil, false)
 
     # Set the setpoint schedules
-    thermostat_setpoint = living_zone.thermostatSetpointDualSetpoint
     thermostat_setpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
     thermostat_setpoint.setName("#{living_zone.name} temperature setpoint")
     thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
@@ -1200,12 +1197,12 @@ class HVAC
 
   def self.get_default_heating_setpoint(control_type)
     # Per ANSI/RESNET/ICC 301
-    htg_sp = 68 # F
+    htg_sp = 68.0 # F
     htg_setback_sp = nil
     htg_setback_hrs_per_week = nil
     htg_setback_start_hr = nil
     if control_type == HPXML::HVACControlTypeProgrammable
-      htg_setback_sp = 66 # F
+      htg_setback_sp = 66.0 # F
       htg_setback_hrs_per_week = 7 * 7 # 11 p.m. to 5:59 a.m., 7 days a week
       htg_setback_start_hr = 23 # 11 p.m.
     elsif control_type != HPXML::HVACControlTypeManual
@@ -1216,12 +1213,12 @@ class HVAC
 
   def self.get_default_cooling_setpoint(control_type)
     # Per ANSI/RESNET/ICC 301
-    clg_sp = 78 # F
+    clg_sp = 78.0 # F
     clg_setup_sp = nil
     clg_setup_hrs_per_week = nil
     clg_setup_start_hr = nil
     if control_type == HPXML::HVACControlTypeProgrammable
-      clg_setup_sp = 80 # F
+      clg_setup_sp = 80.0 # F
       clg_setup_hrs_per_week = 6 * 7 # 9 a.m. to 2:59 p.m., 7 days a week
       clg_setup_start_hr = 9 # 9 a.m.
     elsif control_type != HPXML::HVACControlTypeManual

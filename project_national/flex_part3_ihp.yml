@@ -1,0 +1,120 @@
+schema_version: '0.3'
+buildstock_directory: ../../resstock # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /lustre/eaglefs/projects/scout/flex_measures/flex_full_3_ihp
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 180000
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 10
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2006
+      debug: false
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_hot_water_uses: false
+      include_timeseries_total_loads: false
+      include_timeseries_component_loads: false
+      include_timeseries_zone_temperatures: true
+      include_timeseries_airflows: true
+      include_timeseries_weather: true
+
+baseline:
+  n_buildings_represented: 180000
+
+upgrades:
+## IHP
+  ##### (1)(7) BASE 3 IHP
+  - upgrade_name: IHP Grid AC Source Heat Pump, Base
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC, Base
+      - option: HVAC Cooling Efficiency|None
+
+  ##### (2)(8) UPGRADE 3a IHP (Speed = 0)
+  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 0
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: Max Flex Speed|0
+      - option: HVAC Cooling Efficiency|None
+
+  ##### (3)(9) UPGRADE 3b IHP (Speed = 1)
+  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 1
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: Max Flex Speed|1
+      - option: HVAC Cooling Efficiency|None
+
+  ##### (4)(10) UPGRADE 3c IHP (Speed = 2)
+  - upgrade_name: IHP Grid AC Source Heat Pump, Speed 2
+    package_apply_logic:
+        - or:
+          - or:
+            - HVAC Heating Type|Ducted Heat Pump
+            - HVAC Heating Type|Non-Ducted Heat Pump 
+          - and:
+            - not: HVAC Cooling Type|None
+            - HVAC Has Ducts|Yes
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, IHP Grid AC
+      - option: Max Flex Speed|2
+      - option: HVAC Cooling Efficiency|None
+
+eagle:
+  n_jobs: 350
+  minutes_per_sim: 3
+  account: scout
+  sampling:
+    time: 100
+  postprocessing:
+    time: 500
+    n_workers: 32
+    # node_memory_mb: 751616
+
+postprocessing:
+  keep_individual_timeseries: false
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resbldg-datasets
+      prefix: flex-measures/
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: flex_measures
+      max_crawling_time: 300 #seconds to wait for the crawler to complete before aborting it

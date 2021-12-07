@@ -83,6 +83,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('2000')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('vintage', false)
+    arg.setDisplayName('Building Construction: Vintage')
+    arg.setDescription('The building vintage, used for informational purposes only')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
@@ -330,6 +335,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['geometry_unit_cfa'] = Float(cfa)
     else
       args['geometry_unit_cfa'] = Float(args['geometry_unit_cfa'])
+    end
+
+    # Vintage
+    if args['vintage'].is_initialized
+      args['year_built'] = Integer(Float(args['vintage'].get.gsub(/[^0-9]/, ''))) # strip non-numeric
     end
 
     # Num Occupants
