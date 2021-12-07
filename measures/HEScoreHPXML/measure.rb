@@ -34,29 +34,9 @@ class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
     return ''
   end
 
-  # define the arguments that the user will input
-  def arguments(model)
-    args = OpenStudio::Measure::OSArgumentVector.new
-
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('os_hescore_directory', false)
-    arg.setDisplayName('OpenStudio-HEScore Directory')
-    arg.setDescription(" ")
-    args << arg
-
-    return args
-  end
-
   # define what happens when the measure is run
   def run(model, runner, user_arguments)
     super(model, runner, user_arguments)
-
-    # use the built-in error checking
-    if !runner.validateUserArguments(arguments(model), user_arguments)
-      return false
-    end
-
-    # assign the user inputs to variables
-    args = get_argument_values(runner, arguments(model), user_arguments)
   
     hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
     outfile = File.expand_path('../testingout.json')
