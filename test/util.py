@@ -105,18 +105,23 @@ if not os.path.exists(outdir):
   os.makedirs(outdir)
 
 frames = []
+upgrades = {}
 
 num_scenarios = sum([len(files) for r, d, files in os.walk('project_testing/testing_upgrades/results_csvs')])
 for i in range(1, num_scenarios):
 
   df_national = pd.read_csv('project_national/national_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
-  df_national['building_id'] = df_national['apply_upgrade.upgrade_name'].apply(lambda x: 'project_national-{}.osw'.format(x))
+  df_testing = pd.read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
+
+  assert df_national['apply_upgrade.upgrade_name'][0] == df_testing['apply_upgrade.upgrade_name'][0]
+  upgrades[i] = df_national['apply_upgrade.upgrade_name'][0]
+
+  df_national['building_id'] = 'project_national-{}.osw'.format(upgrades[i])
   df_national.insert(1, 'color_index', 1)
 
   frames.append(df_national)
-
-  df_testing = pd.read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
-  df_testing['building_id'] = df_testing['apply_upgrade.upgrade_name'].apply(lambda x: 'project_testing-{}.osw'.format(x))
+  
+  df_testing['building_id'] = 'project_testing-{}.osw'.format(upgrades[i])
   df_testing.insert(1, 'color_index', 0)
 
   frames.append(df_testing)
@@ -152,4 +157,35 @@ for col in results_output.columns.values:
 
 results_output = results_output.set_index('OSW')
 results_output = results_output.reindex(sorted(results_output), axis=1)
+results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
+
+# Timeseries
+
+outdir = 'upgrades/timeseries'
+if not os.path.exists(outdir):
+  os.makedirs(outdir)
+
+frames = []
+index_col = ['Time', 'TimeDST', 'TimeUTC']
+
+for i in range(1, num_scenarios):
+  df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col)
+  s = df_national.max() # FIXME
+  df_national = pd.DataFrame([s.tolist()], columns=s.index)
+  df_national.insert(0, 'OSW', 'project_national-{}.osw'.format(upgrades[i]))
+  df_national.insert(1, 'color_index', 1)
+
+  frames.append(df_national)
+
+  df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col)
+  s = df_testing.max() # FIXME
+  df_testing = pd.DataFrame([s.tolist()], columns=s.index)
+  df_testing.insert(0, 'OSW', 'project_testing-{}.osw'.format(upgrades[i]))
+  df_testing.insert(1, 'color_index', 0)
+
+  frames.append(df_testing)
+
+# results_output.csv
+results_output = pd.concat(frames)
+results_output = results_output.set_index('OSW')
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))

@@ -29,7 +29,9 @@ jobs:
           
           buildstock_docker project_national/national_upgrades.yml
           buildstock_docker project_testing/testing_upgrades.yml
-          
+
+      - name: Run tests
+        run: |
           ruby test/test_bsb_analysis.rb
 
       - name: Process results
@@ -42,6 +44,9 @@ jobs:
           
           tar -xvf project_national/national_baseline/simulation_output/*.tar.gz -C project_national/national_baseline/simulation_output
           tar -xvf project_testing/testing_baseline/simulation_output/*.tar.gz -C project_testing/testing_baseline/simulation_output
+          
+          tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output
+          tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output
           
           pip install pandas
           python test/util.py
@@ -186,9 +191,15 @@ jobs:
           
           mkdir test/base_results/comparisons/upgrades/annual
           
-          python test/compare.py -a results -b base/upgrades -f results/upgrades -e test/base_results/comparisons/upgrades/annual
+          python test/compare.py -a results -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
           
-          python test/compare.py -a visualize -b base/upgrades -f results/upgrades -e test/base_results/comparisons/upgrades/annual
+          python test/compare.py -a visualize -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
+          
+          mkdir test/base_results/comparisons/upgrades/timeseries
+          
+          python test/compare.py -a results -b base/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
+          
+          python test/compare.py -a visualize -b base/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2

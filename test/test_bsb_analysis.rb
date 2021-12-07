@@ -1,18 +1,18 @@
 # frozen_string_literal: true
 
-require_relative 'minitest_helper'
+# require_relative 'minitest_helper'
 require 'minitest/autorun'
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..')
-load 'Rakefile'
+# $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..')
+# load 'Rakefile'
 require 'rubygems/package'
 require 'zlib'
 
 class TesBuildStockBatch < MiniTest::Test
   def before_setup
-    @testing_baseline = 'projects/project_testing/testing_baseline'
-    @national_baseline = 'projects/project_national/national_baseline'
-    @testing_upgrades = 'projects/project_testing/testing_upgrades'
-    @national_upgrades = 'projects/project_national/national_upgrades'
+    @testing_baseline = 'project_testing/testing_baseline'
+    @national_baseline = 'project_national/national_baseline'
+    @testing_upgrades = 'project_testing/testing_upgrades'
+    @national_upgrades = 'project_national/national_upgrades'
   end
 
   def test_testing_baseline
