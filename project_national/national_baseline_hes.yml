@@ -1,14 +1,16 @@
 schema_version: '0.3'
 buildstock_directory: ../../resstock-2 # Relative to this file or absolute
-project_directory: project_testing # Relative to buildstock_directory
-output_directory: testing_baseline_hes
+project_directory: project_national # Relative to buildstock_directory
+output_directory: national_baseline_hes
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota
+  type: residential_quota_downselect
   args:
-    n_datapoints: 1
+    n_datapoints: 10
+    logic: Geometry Building Type RECS|Single-Family Detached
+    resample: false
 
 workflow_generator:
   type: residential_hpxml_hes
@@ -26,9 +28,6 @@ workflow_generator:
     
     simulation_output_report:
       timeseries_frequency: none
-
-    reporting_measures:
-      - measure_dir_name: QOIReport
 
     server_directory_cleanup:
       retain_in_idf: false
