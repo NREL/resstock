@@ -68,10 +68,7 @@ class MoreCompare(BaseCompare):
     for col in df.columns:
       units = col.split('_')[-1]
       if units == 'kwh':
-        if col == 'simulation_output_report.electricity_heating_supplemental_kwh':
-            df[col] *= 3412.14/1000 # to kbtu
-        else:
-            df[col] *= 3412.14/1000000  # to mbtu
+          df[col] *= 3412.14/1000000  # to mbtu
       elif units == 'therm':
           df[col] *= 0.1  # to mbtu
 
