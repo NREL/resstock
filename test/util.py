@@ -71,15 +71,15 @@ if not os.path.exists(outdir):
 frames = []
 index_col = ['Time', 'TimeDST', 'TimeUTC']
 
-for dp in os.listdir('project_national/national_upgrades/simulation_output/up00'):
-  df = pd.read_csv('project_national/national_upgrades/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
+for dp in os.listdir('project_national/national_baseline/simulation_output/up00'):
+  df = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
   s = df.max() # FIXME
   df = pd.DataFrame([s.tolist()], columns=s.index)
   df['OSW'] = 'project_national-{}.osw'.format(dp[-4:])
   frames.append(df)
 
-for dp in os.listdir('project_testing/testing_upgrades/simulation_output/up00'):
-  df = pd.read_csv('project_testing/testing_upgrades/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
+for dp in os.listdir('project_testing/testing_baseline/simulation_output/up00'):
+  df = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
   s = df.max() # FIXME
   df = pd.DataFrame([s.tolist()], columns=s.index)
   df['OSW'] = 'project_testing-{}.osw'.format(dp[-4:])

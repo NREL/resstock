@@ -29,16 +29,8 @@ jobs:
           
           buildstock_docker project_national/national_upgrades.yml
           buildstock_docker project_testing/testing_upgrades.yml
-
-      - name: Upload project folders
-        uses: actions/upload-artifact@v2
-        with:
-          path: |
-            project_testing/testing_baseline
-            project_national/national_baseline
-            project_testing/testing_upgrades
-            project_national/national_upgrades
-          name: projects
+          
+          ruby test/test_bsb_analysis.rb
 
       - name: Process results
         run: |
@@ -100,16 +92,6 @@ jobs:
       - name: Run local analysis tests
         run: |
           rake test:analysis_tests
-
-      - name: Download project folders
-        uses: actions/download-artifact@v2
-        with:
-          path: projects
-          name: projects
-
-      - name: Run bsb tests
-        run: |
-          ruby test/test_bsb_analysis.rb
 
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
@@ -189,8 +171,16 @@ jobs:
           python test/compare.py -a visualize -dc geometry_building_type_recs -ac census_region -af sum -x results_output_cr_sum.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
           
           mkdir test/base_results/comparisons/baseline/timeseries
+                    
+          python test/compare.py -a samples -b base/baseline/timeseries -f samples -e test/base_results/comparisons/baseline/timeseries
           
+          python test/compare.py -a results -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
+          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
           
+          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
+          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
+          python test/compare.py -a visualize -dc census_region -x results_output_cr.html -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
+          python test/compare.py -a visualize -dc geometry_building_type_recs -ac census_region -af sum -x results_output_cr_sum.html -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
           
           mkdir test/base_results/comparisons/upgrades
           
@@ -235,8 +225,7 @@ jobs:
           cp -r results/baseline/annual/results*.csv test/base_results/baseline/annual
           cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
           cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
-          git add test/base_results/baseline
-          git add test/base_results/upgrades
+          git add test/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
