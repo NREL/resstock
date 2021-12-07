@@ -56,6 +56,28 @@ results_output = results_output.set_index('OSW')
 results_output = results_output.reindex(sorted(results_output), axis=1)
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
+# results_timeseries.csv
+frames = []
+index_col = ['Time', 'TimeDST', 'TimeUTC']
+
+for dp in os.listdir('project_national/national_baseline/simulation_output/up00'):
+  df = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
+  s = df.max() # FIXME
+  df = pd.DataFrame([s.tolist()], columns=s.index)
+  df['OSW'] = 'project_national-{}.osw'.format(dp[-4:])
+  frames.append(df)
+
+for dp in os.listdir('project_testing/testing_baseline/simulation_output/up00'):
+  df = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
+  s = df.max() # FIXME
+  df = pd.DataFrame([s.tolist()], columns=s.index)
+  df['OSW'] = 'project_testing-{}.osw'.format(dp[-4:])
+  frames.append(df)
+
+results_timeseries = pd.concat(frames)
+results_timeseries = results_timeseries.set_index('OSW')
+results_timeseries.to_csv(os.path.join(outdir, 'results_timeseries.csv'))
+
 # UPGRADES
 
 outdir = 'upgrades'
