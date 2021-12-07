@@ -140,9 +140,7 @@ jobs:
       - name: Upload base samples and results
         uses: actions/upload-artifact@v2
         with:
-          path: |
-            test/base_results/baseline
-            test/base_results/upgrades
+          path: test/base_results
           name: base
 
       - uses: actions/checkout@v2
@@ -175,22 +173,32 @@ jobs:
           pip install kaleido
           
           mkdir test/base_results/comparisons
+          
           mkdir test/base_results/comparisons/baseline
+          
+          mkdir test/base_results/comparisons/baseline/annual
+          
+          python test/compare.py -a samples -b base/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual
+          
+          python test/compare.py -a results -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          
+          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc census_region -x results_output_cr.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc geometry_building_type_recs -ac census_region -af sum -x results_output_cr_sum.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          
+          mkdir test/base_results/comparisons/baseline/timeseries
+          
+          
+          
           mkdir test/base_results/comparisons/upgrades
           
-          python test/compare.py -a samples -b base/baseline -f samples -e test/base_results/comparisons/baseline
+          mkdir test/base_results/comparisons/upgrades/annual
           
-          python test/compare.py -a results -b base/baseline -f results/baseline -e test/base_results/comparisons/baseline
-          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline -f results/baseline -e test/base_results/comparisons/baseline
+          python test/compare.py -a results -b base/upgrades -f results/upgrades -e test/base_results/comparisons/upgrades/annual
           
-          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html -b base/baseline -f results/baseline -e test/base_results/comparisons/baseline
-          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html -b base/baseline -f results/baseline -e test/base_results/comparisons/baseline
-          python test/compare.py -a visualize -dc census_region -x results_output_cr.html -b base/baseline -f results/baseline -e test/base_results/comparisons/baseline
-          python test/compare.py -a visualize -dc geometry_building_type_recs -ac census_region -af sum -x results_output_cr_sum.html -b base/baseline -f results/baseline -e test/base_results/comparisons/baseline
-          
-          python test/compare.py -a results -b base/upgrades -f results/upgrades -e test/base_results/comparisons/upgrades
-          
-          python test/compare.py -a visualize -b base/upgrades -f results/upgrades -e test/base_results/comparisons/upgrades
+          python test/compare.py -a visualize -b base/upgrades -f results/upgrades -e test/base_results/comparisons/upgrades/annual
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
@@ -224,8 +232,9 @@ jobs:
           branch_name="${{ github.head_ref }}"
           git pull origin $branch_name
           cp -r samples/buildstock*.csv test/base_results/baseline
-          cp -r results/baseline/results*.csv test/base_results/baseline
-          cp -r results/upgrades/results*.csv test/base_results/upgrades
+          cp -r results/baseline/annual/results*.csv test/base_results/baseline/annual
+          cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
+          cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
           git add test/base_results/baseline
           git add test/base_results/upgrades
           git status
