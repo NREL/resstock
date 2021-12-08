@@ -109,6 +109,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('If true, output the annual component loads.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('build_hpxml_only', false)
+    arg.setDisplayName('Build only the HPXML file')
+    arg.setDescription('If true, measure stops after running BuildResidentialHPXML')
+    args << arg
+
     return args
   end
 
@@ -266,7 +271,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
 
-    if not apply_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
+
+    if build_hpxml_only
+      measure_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML']}
+    else
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
+    end
+
+    if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
       new_runner.result.warnings.each do |warning|
         runner.registerWarning(warning.logMessage)
       end

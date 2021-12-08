@@ -39,7 +39,7 @@ class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
     super(model, runner, user_arguments)
   
     hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
-    outfile = File.expand_path('../testingout.json')
+    outfile = File.expand_path('../hes.json')
 
     runner.registerWarning("Translating xml to HES json")
     command = "hpxml2hescore #{hpxml_path} -o #{outfile} --resstock"
