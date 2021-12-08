@@ -34,13 +34,6 @@ for col in df.columns.values:
   elif col.startswith('qoi_report'):
     qoi_reports.append(col)
 
-results_characteristics = df[['OSW'] + build_existing_models]
-for col in results_characteristics.columns.values:
-  results_characteristics = results_characteristics.rename(columns={col: col.replace('build_existing_model.', '')})
-
-results_characteristics = results_characteristics.set_index('OSW')
-results_characteristics = results_characteristics.reindex(sorted(results_characteristics), axis=1)
-
 # Annual
 
 outdir = 'baseline/annual'
@@ -48,6 +41,12 @@ if not os.path.exists(outdir):
   os.makedirs(outdir)
 
 # results_characteristics.csv
+results_characteristics = df[['OSW'] + build_existing_models]
+for col in results_characteristics.columns.values:
+  results_characteristics = results_characteristics.rename(columns={col: col.replace('build_existing_model.', '')})
+
+results_characteristics = results_characteristics.set_index('OSW')
+results_characteristics = results_characteristics.reindex(sorted(results_characteristics), axis=1)
 results_characteristics.to_csv(os.path.join(outdir, 'results_characteristics.csv'))
 
 # results_output.csv
@@ -70,23 +69,20 @@ if not os.path.exists(outdir):
 
 frames = []
 index_col = ['Time', 'TimeDST', 'TimeUTC']
+usecols = index_col + ['total_site_energy_mbtu']
+n_dps = 10
 
-for dp in os.listdir('project_national/national_baseline/simulation_output/up00'):
-  df = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
-  s = df.max() # FIXME
-  df = pd.DataFrame([s.tolist()], columns=s.index)
-  df['OSW'] = 'project_national-{}.osw'.format(dp[-4:])
-  frames.append(df)
+for dp in os.listdir('project_national/national_baseline/simulation_output/up00')[0:n_dps]:
+  df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col, usecols=usecols)
+  df_national['OSW'] = 'project_national-{}.osw'.format(dp[-4:])
 
-for dp in os.listdir('project_testing/testing_baseline/simulation_output/up00'):
-  df = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
-  s = df.max() # FIXME
-  df = pd.DataFrame([s.tolist()], columns=s.index)
-  df['OSW'] = 'project_testing-{}.osw'.format(dp[-4:])
-  frames.append(df)
+  frames.append(df_national)
 
-# results_characteristics.csv
-results_characteristics.to_csv(os.path.join(outdir, 'results_characteristics.csv'))
+for dp in os.listdir('project_testing/testing_baseline/simulation_output/up00')[0:n_dps]:
+  df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col, usecols=usecols)
+  df_testing['OSW'] = 'project_testing-{}.osw'.format(dp[-4:])
+
+  frames.append(df_testing)
 
 # results_output.csv
 results_output = pd.concat(frames)
@@ -167,21 +163,16 @@ if not os.path.exists(outdir):
 
 frames = []
 index_col = ['Time', 'TimeDST', 'TimeUTC']
+usecols = index_col + ['total_site_energy_mbtu']
 
 for i in range(1, num_scenarios):
-  df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col)
-  s = df_national.max() # FIXME
-  df_national = pd.DataFrame([s.tolist()], columns=s.index)
-  df_national.insert(0, 'OSW', 'project_national-{}.osw'.format(upgrades[i]))
-  df_national.insert(1, 'color_index', 1)
+  df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col, usecols=usecols)
+  df_national['OSW'] = 'project_national-{}.osw'.format(upgrades[i])
 
   frames.append(df_national)
 
-  df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col)
-  s = df_testing.max() # FIXME
-  df_testing = pd.DataFrame([s.tolist()], columns=s.index)
-  df_testing.insert(0, 'OSW', 'project_testing-{}.osw'.format(upgrades[i]))
-  df_testing.insert(1, 'color_index', 0)
+  df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col, usecols=usecols)
+  df_testing['OSW'] = 'project_testing-{}.osw'.format(upgrades[i])
 
   frames.append(df_testing)
 

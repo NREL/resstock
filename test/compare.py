@@ -171,12 +171,61 @@ class MoreCompare(BaseCompare):
 
     return
 
+  def timeseries(self):
+    files = []
+    for file in os.listdir(self.base_folder):
+      files.append(file)
+
+    def cvrmse(b, f):
+      s = np.sum((b - f) ** 2)
+      s /= (len(b) - 1)
+      s **= (0.5)
+      s /= np.mean(b)
+      s *= 100
+      return s
+
+    def nmbe(b, f):
+      s = np.sum(b - f)
+      s /= (len(b) - 1)
+      s /= np.mean(b)
+      s *= 100
+      return s
+
+    metrics = ['cvrmse', 'nmbe']
+
+    for file in sorted(files):
+      base_df = pd.read_csv(os.path.join(self.base_folder, file), index_col=0)
+      feature_df = pd.read_csv(os.path.join(self.feature_folder, file), index_col=0)
+
+      base_df = self.intersect_rows(base_df, feature_df)
+      feature_df = self.intersect_rows(feature_df, base_df)
+
+      cols = sorted(list(set(base_df.columns) & set(feature_df.columns)))
+
+      cvrmses = []
+      nmbes = []
+      g = base_df.groupby('OSW')
+      groups = g.groups.keys()
+      for group in groups:
+        b_df = base_df.copy()
+        f_df = feature_df.copy()
+        for col in cols:
+          b = b_df.loc[group][col].values
+          f = f_df.loc[group][col].values
+          cvrmses.append(cvrmse(b, f))
+          nmbes.append(nmbe(b, f))
+
+      data = {'CVRMSE': cvrmses, 'NMBE': nmbes}
+      df = pd.DataFrame(data=data, index=groups)
+      df.to_csv(os.path.join(self.export_folder, file))
+
 if __name__ == '__main__':
 
   default_base_folder = 'test/test_samples_osw/baseline'
   default_feature_folder = 'test/test_samples_osw/results'
   default_export_folder = 'test/test_samples_osw/comparisons'
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]
+  actions += ['timeseries']
   aggregate_columns = ['geometry_building_type_recs',
                        'census_region']
   aggregate_functions = ['sum', 'mean']
@@ -215,3 +264,5 @@ if __name__ == '__main__':
     elif action == 'visualize':
       excludes = ['buildstock.csv', 'results_characteristics.csv']
       compare.visualize(args.aggregate_column, args.aggregate_function, args.display_column, excludes, enum_maps, cols_to_ignore)
+    elif action == 'timeseries':
+      compare.timeseries()
