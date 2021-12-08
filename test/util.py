@@ -187,4 +187,5 @@ for i in range(1, national_num_scenarios):
 # results_output.csv
 results_output = pd.concat(frames)
 results_output = results_output.set_index('OSW')
+results_output = results_output.reindex(sorted(results_output), axis=1)
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
