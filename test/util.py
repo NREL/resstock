@@ -69,7 +69,7 @@ if not os.path.exists(outdir):
 
 frames = []
 index_col = ['Time', 'TimeDST', 'TimeUTC']
-usecols = index_col + ['total_site_energy_mbtu']
+usecols = index_col + ['total_site_electricity_kwh', 'total_site_natural_gas_therm']
 n_dps = 10
 
 listdirs = sorted(os.listdir('project_national/national_baseline/simulation_output/up00'))
@@ -170,8 +170,6 @@ if not os.path.exists(outdir):
   os.makedirs(outdir)
 
 frames = []
-index_col = ['Time', 'TimeDST', 'TimeUTC']
-usecols = index_col + ['total_site_energy_mbtu']
 
 for i in range(1, national_num_scenarios):
   df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col, usecols=usecols)
