@@ -46,7 +46,7 @@ for col in results_characteristics.columns.values:
   results_characteristics = results_characteristics.rename(columns={col: col.replace('build_existing_model.', '')})
 
 results_characteristics = results_characteristics.set_index('OSW')
-results_characteristics = results_characteristics.reindex(sorted(results_characteristics), axis=1)
+results_characteristics = results_characteristics.sort_index()
 results_characteristics.to_csv(os.path.join(outdir, 'results_characteristics.csv'))
 
 # results_output.csv
@@ -58,7 +58,7 @@ for col in results_output.columns.values:
   results_output = results_output.rename(columns={col: col.replace('qoi_report.', 'qoi_')})
 
 results_output = results_output.set_index('OSW')
-results_output = results_output.reindex(sorted(results_output), axis=1)
+results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 # Timeseries
@@ -91,7 +91,7 @@ for dp in dps:
 # results_output.csv
 results_output = pd.concat(frames)
 results_output = results_output.set_index('OSW')
-results_output = results_output.reindex(sorted(results_output), axis=1)
+results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 # UPGRADES
@@ -160,7 +160,7 @@ for col in results_output.columns.values:
   results_output = results_output.rename(columns={col: col.replace('apply_upgrade.', '')})
 
 results_output = results_output.set_index('OSW')
-results_output = results_output.reindex(sorted(results_output), axis=1)
+results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 # Timeseries
@@ -187,5 +187,5 @@ for i in range(1, national_num_scenarios):
 # results_output.csv
 results_output = pd.concat(frames)
 results_output = results_output.set_index('OSW')
-results_output = results_output.reindex(sorted(results_output), axis=1)
+results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
