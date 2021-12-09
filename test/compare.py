@@ -177,6 +177,9 @@ class MoreCompare(BaseCompare):
       files.append(file)
 
     def cvrmse(b, f):
+      if np.all(b == 0):
+        return 'NA'
+
       s = np.sum((b - f) ** 2)
       s /= (len(b) - 1)
       s **= (0.5)
@@ -185,6 +188,9 @@ class MoreCompare(BaseCompare):
       return s
 
     def nmbe(b, f):
+      if np.all(b == 0):
+        return 'NA'
+
       s = np.sum(b - f)
       s /= (len(b) - 1)
       s /= np.mean(b)
@@ -202,21 +208,29 @@ class MoreCompare(BaseCompare):
 
       cols = sorted(list(set(base_df.columns) & set(feature_df.columns)))
 
-      cvrmses = []
-      nmbes = []
       g = base_df.groupby('OSW')
       groups = g.groups.keys()
+
+      dfs = []
       for group in groups:
         b_df = base_df.copy()
         f_df = feature_df.copy()
+
+        cdfs = []
         for col in cols:
           b = b_df.loc[group][col].values
           f = f_df.loc[group][col].values
-          cvrmses.append(cvrmse(b, f))
-          nmbes.append(nmbe(b, f))
 
-      data = {'CVRMSE': cvrmses, 'NMBE': nmbes}
-      df = pd.DataFrame(data=data, index=groups)
+          data = {'CVRMSE': [cvrmse(b, f)], 'NMBE': [nmbe(b, f)]}
+          df = pd.DataFrame(data=data, index=[group])
+          columns = [(col, 'CVRMSE'), (col, 'NMBE')]
+          df.columns = pd.MultiIndex.from_tuples(columns)
+          cdfs.append(df)
+
+        df = pd.concat(cdfs, axis=1)
+        dfs.append(df)
+
+      df = pd.concat(dfs)
       df.to_csv(os.path.join(self.export_folder, file))
 
 if __name__ == '__main__':
