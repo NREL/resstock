@@ -72,7 +72,7 @@ index_col = ['Time', 'TimeDST', 'TimeUTC']
 usecols = index_col + ['total_site_energy_mbtu']
 n_dps = 10
 
-listdirs = os.listdir('project_national/national_baseline/simulation_output/up00')
+listdirs = sorted(os.listdir('project_national/national_baseline/simulation_output/up00'))
 dps = listdirs[0:n_dps]
 for dp in dps:
   df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col, usecols=usecols)
@@ -80,7 +80,7 @@ for dp in dps:
 
   frames.append(df_national)
 
-listdirs = os.listdir('project_testing/testing_baseline/simulation_output/up00')
+listdirs = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00'))
 dps = listdirs[0:n_dps]
 for dp in dps:
   df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col, usecols=usecols)
