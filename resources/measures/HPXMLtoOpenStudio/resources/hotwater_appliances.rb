@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 # This file, which has 301 calculations, will eventually replace appliances.rb,
 # which has Building America calculations.
 
-require_relative "constants"
+require_relative 'constants'
 
 class HotWaterAndAppliances
   def self.apply(model, unit, runner, weather,
@@ -36,7 +38,7 @@ class HotWaterAndAppliances
     start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, assumed_year)
     timestep_interval = OpenStudio::Time.new(0, 0, timestep_minutes)
     timestep_day = OpenStudio::Time.new(0, 0, 60 * 24)
-    temp_sch_limits = model.getScheduleTypeLimitsByName("Temperature")
+    temp_sch_limits = model.getScheduleTypeLimitsByName('Temperature')
 
     if not dist_type.nil?
 
@@ -61,7 +63,7 @@ class HotWaterAndAppliances
       end
 
       if setpoint_temps.values.max - setpoint_temps.values.min > 0.1
-        runner.registerError("Cannot handle different water heater setpoints.")
+        runner.registerError('Cannot handle different water heater setpoints.')
         return false
       end
       setpoint_temp = setpoint_temps.values.reduce(:+) / setpoint_temps.size.to_f # average
@@ -76,9 +78,9 @@ class HotWaterAndAppliances
         end
       end
       sum_fractions_hw = fractions_hw.reduce(:+).to_f
-      time_series_hw = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(fractions_hw), "")
+      time_series_hw = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(fractions_hw), '')
       schedule_hw = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_hw, model).get
-      schedule_hw.setName("Hot Water Draw Profile")
+      schedule_hw.setName('Hot Water Draw Profile')
       Schedule.set_schedule_type_limits(model, schedule_hw, Constants.ScheduleTypeLimitsFraction)
 
       # Create mixed water draw profile schedule
@@ -93,15 +95,15 @@ class HotWaterAndAppliances
           end
         end
       end
-      time_series_mw = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(fractions_mw), "")
+      time_series_mw = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(fractions_mw), '')
       schedule_mw = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_mw, model).get
-      schedule_mw.setName("Mixed Water Draw Profile")
+      schedule_mw.setName('Mixed Water Draw Profile')
       Schedule.set_schedule_type_limits(model, schedule_mw, Constants.ScheduleTypeLimitsFraction)
 
       # Replace mains water temperature schedule with water heater inlet temperature schedule.
       # These are identical unless there is a DWHR.
-      daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map { |t| UnitConversions.convert(t, "F", "C") }
-      time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(daily_wh_inlet_temperatures_c), "")
+      daily_wh_inlet_temperatures_c = daily_wh_inlet_temperatures.map { |t| UnitConversions.convert(t, 'F', 'C') }
+      time_series_tmains = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(daily_wh_inlet_temperatures_c), '')
       schedule_tmains = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_tmains, model).get
       model.getSiteWaterMainsTemperature.setTemperatureSchedule(schedule_tmains)
     end
@@ -110,11 +112,11 @@ class HotWaterAndAppliances
                           Constants.SpaceTypeFinishedBasement]
 
     # Clothes washer
-    if not dist_type.nil? and not cw_mef.nil?
-      cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = self.calc_clothes_washer_energy_gpd(eri_version, nbeds, cw_ler, cw_elec_rate, cw_gas_rate, cw_agc, cw_cap)
+    if (not dist_type.nil?) && (not cw_mef.nil?)
+      cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, cw_ler, cw_elec_rate, cw_gas_rate, cw_agc, cw_cap)
       cw_name = Constants.ObjectNameClothesWasher(unit.name.to_s)
       cw_peak_flow_gpm = cw_gpd / sum_fractions_hw / timestep_minutes * num_days_in_year
-      cw_design_level_w = UnitConversions.convert(cw_annual_kwh * 60.0 / (cw_gpd * num_days_in_year / cw_peak_flow_gpm), "kW", "W")
+      cw_design_level_w = UnitConversions.convert(cw_annual_kwh * 60.0 / (cw_gpd * num_days_in_year / cw_peak_flow_gpm), 'kW', 'W')
       add_electric_equipment(model, cw_name, cw_space, cw_design_level_w, cw_frac_sens, cw_frac_lat, schedule_hw)
       dhw_loop_fracs.each do |dhw_loop, dhw_load_frac|
         add_water_use_equipment(model, cw_name, cw_peak_flow_gpm * dhw_load_frac, schedule_hw, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
@@ -122,11 +124,11 @@ class HotWaterAndAppliances
     end
 
     # Clothes dryer
-    if not cw_mef.nil? and not cd_ef.nil?
-      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = self.calc_clothes_dryer_energy(nbeds, cd_fuel, cd_ef, cd_control, cw_ler, cw_cap, cw_mef)
+    if (not cw_mef.nil?) && (not cd_ef.nil?)
+      cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(nbeds, cd_fuel, cd_ef, cd_control, cw_ler, cw_cap, cw_mef)
       cd_name = Constants.ObjectNameClothesDryer(cd_fuel, unit.name.to_s)
-      cd_weekday_sch = "0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024"
-      cd_monthly_sch = "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0"
+      cd_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
+      cd_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
       cd_schedule = MonthWeekdayWeekendSchedule.new(model, runner, cd_name, cd_weekday_sch, cd_weekday_sch, cd_monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       cd_design_level_e = cd_schedule.calcDesignLevelFromDailykWh(cd_annual_kwh / num_days_in_year)
       cd_design_level_f = cd_schedule.calcDesignLevelFromDailyTherm(cd_annual_therm / num_days_in_year)
@@ -135,12 +137,12 @@ class HotWaterAndAppliances
     end
 
     # Dishwasher
-    if not dist_type.nil? and not dw_ef.nil?
-      dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = self.calc_dishwasher_energy_gpd(eri_version, nbeds, dw_ef, dw_cap, num_days_in_year)
+    if (not dist_type.nil?) && (not dw_ef.nil?)
+      dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dw_ef, dw_cap, num_days_in_year)
       dw_name = Constants.ObjectNameDishwasher(unit.name.to_s)
       dw_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
       dw_peak_flow_gpm = dw_gpd / sum_fractions_hw / timestep_minutes * num_days_in_year
-      dw_design_level_w = UnitConversions.convert(dw_annual_kwh * 60.0 / (dw_gpd * num_days_in_year / dw_peak_flow_gpm), "kW", "W")
+      dw_design_level_w = UnitConversions.convert(dw_annual_kwh * 60.0 / (dw_gpd * num_days_in_year / dw_peak_flow_gpm), 'kW', 'W')
       add_electric_equipment(model, dw_name, dw_space, dw_design_level_w, dw_frac_sens, dw_frac_lat, schedule_hw)
       dhw_loop_fracs.each do |dhw_loop, dhw_load_frac|
         add_water_use_equipment(model, dw_name, dw_peak_flow_gpm * dhw_load_frac, schedule_hw, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
@@ -150,8 +152,8 @@ class HotWaterAndAppliances
     # Refrigerator
     if not fridge_annual_kwh.nil?
       fridge_name = Constants.ObjectNameRefrigerator(unit.name.to_s)
-      fridge_weekday_sch = "0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041"
-      fridge_monthly_sch = "0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837"
+      fridge_weekday_sch = '0.040, 0.039, 0.038, 0.037, 0.036, 0.036, 0.038, 0.040, 0.041, 0.041, 0.040, 0.040, 0.042, 0.042, 0.042, 0.041, 0.044, 0.048, 0.050, 0.048, 0.047, 0.046, 0.044, 0.041'
+      fridge_monthly_sch = '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
       fridge_schedule = MonthWeekdayWeekendSchedule.new(model, runner, fridge_name, fridge_weekday_sch, fridge_weekday_sch, fridge_monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       fridge_design_level = fridge_schedule.calcDesignLevelFromDailykWh(fridge_annual_kwh / num_days_in_year)
       add_electric_equipment(model, fridge_name, fridge_space, fridge_design_level, 1.0, 0.0, fridge_schedule.schedule)
@@ -159,10 +161,10 @@ class HotWaterAndAppliances
 
     # Cooking Range
     if not cook_fuel_type.nil?
-      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = self.calc_range_oven_energy(nbeds, cook_fuel_type, cook_is_induction, oven_is_convection, num_days_in_year)
+      cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cook_fuel_type, cook_is_induction, oven_is_convection, num_days_in_year)
       cook_name = Constants.ObjectNameCookingRange(cook_fuel_type, unit.name.to_s)
-      cook_weekday_sch = "0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011"
-      cook_monthly_sch = "1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097"
+      cook_weekday_sch = '0.007, 0.007, 0.004, 0.004, 0.007, 0.011, 0.025, 0.042, 0.046, 0.048, 0.042, 0.050, 0.057, 0.046, 0.057, 0.044, 0.092, 0.150, 0.117, 0.060, 0.035, 0.025, 0.016, 0.011'
+      cook_monthly_sch = '1.097, 1.097, 0.991, 0.987, 0.991, 0.890, 0.896, 0.896, 0.890, 1.085, 1.085, 1.097'
       cook_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
       cook_schedule = MonthWeekdayWeekendSchedule.new(model, runner, cook_name, cook_weekday_sch, cook_weekday_sch, cook_monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       cook_design_level_e = cook_schedule.calcDesignLevelFromDailykWh(cook_annual_kwh / num_days_in_year)
@@ -180,11 +182,11 @@ class HotWaterAndAppliances
       fx_obj_name_lat = "#{fx_obj_name} Latent"
       fx_peak_flow_gpm = fx_gpd / sum_fractions_hw / timestep_minutes * num_days_in_year
       fx_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
-      fx_weekday_sch = "0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024"
-      fx_monthly_sch = "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0"
-      fx_schedule = MonthWeekdayWeekendSchedule.new(model, runner, fx_obj_name, fx_weekday_sch, fx_weekday_sch, fx_monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, lower_limit_value = 0, upper_limit_value = 1, numeric_type = "Continuous")
-      fx_design_level_sens = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_sens_btu, "Btu", "kWh") / num_days_in_year)
-      fx_design_level_lat = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_lat_btu, "Btu", "kWh") / num_days_in_year)
+      fx_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
+      fx_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+      fx_schedule = MonthWeekdayWeekendSchedule.new(model, runner, fx_obj_name, fx_weekday_sch, fx_weekday_sch, fx_monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, lower_limit_value = 0, upper_limit_value = 1, numeric_type = 'Continuous')
+      fx_design_level_sens = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_sens_btu, 'Btu', 'kWh') / num_days_in_year)
+      fx_design_level_lat = fx_schedule.calcDesignLevelFromDailykWh(UnitConversions.convert(fx_lat_btu, 'Btu', 'kWh') / num_days_in_year)
       dhw_loop_fracs.each do |dhw_loop, dhw_load_frac|
         add_water_use_equipment(model, fx_obj_name, fx_peak_flow_gpm * dhw_load_frac, schedule_mw, setpoint_scheds[dhw_loop], water_use_connections[dhw_loop])
       end
@@ -202,15 +204,15 @@ class HotWaterAndAppliances
       # Recirculation pump
       dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(dist_type, recirc_control_type, recirc_pump_power)
       dist_pump_obj_name = Constants.ObjectNameHotWaterRecircPump(unit.name.to_s)
-      dist_pump_weekday_sch = "0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024"
-      dist_pump_monthly_sch = "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0"
+      dist_pump_weekday_sch = '0.010, 0.006, 0.004, 0.002, 0.004, 0.006, 0.016, 0.032, 0.048, 0.068, 0.078, 0.081, 0.074, 0.067, 0.057, 0.061, 0.055, 0.054, 0.051, 0.051, 0.052, 0.054, 0.044, 0.024'
+      dist_pump_monthly_sch = '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
       dist_pump_schedule = MonthWeekdayWeekendSchedule.new(model, runner, dist_pump_obj_name, dist_pump_weekday_sch, dist_pump_weekday_sch, dist_pump_monthly_sch, mult_weekday = 1.0, mult_weekend = 1.0, normalize_values = true, create_sch_object = true, winter_design_day_sch = nil, summer_design_day_sch = nil, schedule_type_limits_name = Constants.ScheduleTypeLimitsFraction)
       dist_pump_space = Geometry.get_space_from_location(unit, Constants.Auto, location_hierarchy)
       dist_pump_design_level = dist_pump_schedule.calcDesignLevelFromDailykWh(dist_pump_annual_kwh / num_days_in_year)
       dhw_loop_fracs.each do |dhw_loop, dhw_load_frac|
         dist_pump = add_electric_equipment(model, dist_pump_obj_name, dist_pump_space, dist_pump_design_level * dhw_load_frac, 0.0, 0.0, dist_pump_schedule.schedule)
         if not dist_pump.nil?
-          dhw_loop.additionalProperties.setFeature("PlantLoopRecircPump", dist_pump.name.to_s)
+          dhw_loop.additionalProperties.setFeature('PlantLoopRecircPump', dist_pump.name.to_s)
         end
       end
     end
@@ -240,7 +242,7 @@ class HotWaterAndAppliances
     if fuel_type != Constants.FuelTypeElectric
       annual_kwh = 22.6 + 2.7 * nbeds
       annual_therm = oven_ef * (22.6 + 2.7 * nbeds)
-      tot_btu = UnitConversions.convert(annual_kwh, "kWh", "Btu") + UnitConversions.convert(annual_therm, "therm", "Btu")
+      tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu') + UnitConversions.convert(annual_therm, 'therm', 'Btu')
       gains_sens = (4086.0 + 488.0 * nbeds) * num_days_in_year # Btu
       gains_lat = (1037.0 + 124.0 * nbeds) * num_days_in_year # Btu
       frac_sens = gains_sens / tot_btu
@@ -248,7 +250,7 @@ class HotWaterAndAppliances
     else
       annual_kwh = burner_ef * oven_ef * (331 + 39.0 * nbeds)
       annual_therm = 0.0
-      tot_btu = UnitConversions.convert(annual_kwh, "kWh", "Btu") + UnitConversions.convert(annual_therm, "therm", "Btu")
+      tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu') + UnitConversions.convert(annual_therm, 'therm', 'Btu')
       gains_sens = (2228.0 + 262.0 * nbeds) * num_days_in_year # Btu
       gains_lat = (248.0 + 29.0 * nbeds) * num_days_in_year # Btu
       frac_sens = gains_sens / tot_btu
@@ -268,14 +270,14 @@ class HotWaterAndAppliances
   def self.calc_dishwasher_energy_gpd(eri_version, nbeds, ef, cap, num_days_in_year)
     dwcpy = (88.4 + 34.9 * nbeds) * (12.0 / cap) # Eq 4.2-8a (dWcpy)
     annual_kwh = ((86.3 + 47.73 / ef) / 215.0) * dwcpy # Eq 4.2-8a
-    tot_btu = UnitConversions.convert(annual_kwh, "kWh", "Btu")
+    tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu')
 
     gains_sens = (219.0 + 87.0 * nbeds) * num_days_in_year # Btu
     gains_lat = (219.0 + 87.0 * nbeds) * num_days_in_year # Btu
     frac_sens = gains_sens / tot_btu
     frac_lat = gains_lat / tot_btu
 
-    if eri_version.include? "A"
+    if eri_version.include? 'A'
       gpd = dwcpy * (4.6415 * (1.0 / ef) - 1.9295) / num_days_in_year # Eq. 4.2-11 (DWgpd)
     else
       gpd = 30.0 + 10.0 * nbeds # Table 4.2.2(1) Service water heating systems
@@ -322,7 +324,7 @@ class HotWaterAndAppliances
       annual_therm = annual_kwh * 3412.0 * (1.0 - 0.07) * (3.01 / ef) / 100000 # Eq 4.2-7a
       annual_kwh = annual_kwh * 0.07 * (3.01 / ef)
     end
-    tot_btu = UnitConversions.convert(annual_kwh, "kWh", "Btu") + UnitConversions.convert(annual_therm, "therm", "Btu")
+    tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu') + UnitConversions.convert(annual_therm, 'therm', 'Btu')
 
     if fuel_type != Constants.FuelTypeElectric
       gains_sens = (738.0 + 209.0 * nbeds) * num_days_in_year # Btu
@@ -368,12 +370,12 @@ class HotWaterAndAppliances
   def self.calc_clothes_washer_energy_gpd(eri_version, nbeds, ler, elec_rate, gas_rate, agc, cap)
     # Eq 4.2-9a
     ncy = (3.0 / 2.847) * (164 + nbeds * 45.6)
-    if eri_version.include? "A"
+    if eri_version.include? 'A'
       ncy = (3.0 / 2.847) * (164 + nbeds * 46.5)
     end
     acy = ncy * ((3.0 * 2.08 + 1.59) / (cap * 2.08 + 1.59)) # Adjusted Cycles per Year
     annual_kwh = ((ler / 392.0) - ((ler * elec_rate - agc) / (21.9825 * elec_rate - gas_rate) / 392.0) * 21.9825) * acy
-    tot_btu = UnitConversions.convert(annual_kwh, "kWh", "Btu")
+    tot_btu = UnitConversions.convert(annual_kwh, 'kWh', 'Btu')
 
     gains_sens = (95.0 + 26.0 * nbeds) * num_days_in_year # Btu
     gains_lat = (11.0 + 3.0 * nbeds) * num_days_in_year # Btu
@@ -381,7 +383,7 @@ class HotWaterAndAppliances
     frac_lat = gains_lat / tot_btu
 
     gpd = 60.0 * ((ler * elec_rate - agc) / (21.9825 * elec_rate - gas_rate) / 392.0) * acy / num_days_in_year
-    if not eri_version.include? "A"
+    if not eri_version.include? 'A'
       gpd -= 3.97 # Section 4.2.2.5.2.10
     end
 
@@ -404,9 +406,9 @@ class HotWaterAndAppliances
     ocd_eff = 0.0 # TODO: Need an HPXML input for this?
     sew_fact = ew_fact - oew_fact
     ref_pipe_l = get_default_std_pipe_length(has_uncond_bsmnt, cfa, ncfl)
-    if dist_type == "standard"
+    if dist_type == 'standard'
       pe_ratio = std_pipe_length / ref_pipe_l
-    elsif dist_type == "recirculation"
+    elsif dist_type == 'recirculation'
       ref_loop_l = get_default_recirc_loop_length(ref_pipe_l)
       pe_ratio = recirc_loop_length / ref_loop_l
     end
@@ -455,7 +457,7 @@ class HotWaterAndAppliances
     oe.setName(obj_name)
     oe.setEndUseSubcategory(obj_name)
     if fuel_type.nil?
-      oe.setFuelType("None")
+      oe.setFuelType('None')
     else
       oe.setFuelType(HelperMethods.eplus_fuel_map(fuel_type))
     end
@@ -477,7 +479,7 @@ class HotWaterAndAppliances
     wu = OpenStudio::Model::WaterUseEquipment.new(wu_def)
     wu.setName(obj_name)
     wu_def.setName(obj_name)
-    wu_def.setPeakFlowRate(UnitConversions.convert(peak_flow_gpm, "gal/min", "m^3/s"))
+    wu_def.setPeakFlowRate(UnitConversions.convert(peak_flow_gpm, 'gal/min', 'm^3/s'))
     wu_def.setEndUseSubcategory(obj_name)
     wu.setFlowRateFractionSchedule(schedule)
     wu_def.setTargetTemperatureSchedule(temp_schedule)
@@ -498,9 +500,9 @@ class HotWaterAndAppliances
 
     iFrac = 0.56 + 0.015 * nbeds - 0.0004 * nbeds**2 # fraction of hot water use impacted by DWHR
 
-    if dist_type == "recirculation"
+    if dist_type == 'recirculation'
       pLength = recirc_branch_length
-    elsif dist_type == "standard"
+    elsif dist_type == 'standard'
       pLength = std_pipe_length
     end
     plc = 1 - 0.0002 * pLength # piping loss coefficient
@@ -513,9 +515,9 @@ class HotWaterAndAppliances
     end
 
     # Fixture Factor
-    if facilities_connected == "all"
+    if facilities_connected == 'all'
       fixF = 1.0
-    elsif facilities_connected == "one"
+    elsif facilities_connected == 'one'
       fixF = 0.5
     end
 
@@ -561,20 +563,20 @@ class HotWaterAndAppliances
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
     # Table 4.2.2.5.2.11(5) Annual electricity consumption factor for hot water recirculation system pumps
-    if dist_type == "recirculation"
-      if recirc_control_type == "no control" or recirc_control_type == "timer"
+    if dist_type == 'recirculation'
+      if (recirc_control_type == 'no control') || (recirc_control_type == 'timer')
         return 8.76 * recirc_pump_power
-      elsif recirc_control_type == "temperature"
+      elsif recirc_control_type == 'temperature'
         return 1.46 * recirc_pump_power
-      elsif recirc_control_type == "presence sensor demand control"
+      elsif recirc_control_type == 'presence sensor demand control'
         return 0.15 * recirc_pump_power
-      elsif recirc_control_type == "manual demand control"
+      elsif recirc_control_type == 'manual demand control'
         return 0.10 * recirc_pump_power
       end
-    elsif dist_type == "standard"
+    elsif dist_type == 'standard'
       return 0.0
     end
-    return nil
+    return
   end
 
   def self.get_fixtures_effectiveness(has_low_flow_fixtures)
@@ -586,7 +588,7 @@ class HotWaterAndAppliances
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
 
-    if not eri_version.include? "A"
+    if not eri_version.include? 'A'
       # Hot (not mixed) water GPD defined, so added to dishwasher instead.
       # Mixed water GPD here set to zero.
       return 0.0
@@ -611,7 +613,7 @@ class HotWaterAndAppliances
     # Amendment on Domestic Hot Water (DHW) Systems
     # 4.2.2.5.2.11 Service Hot Water Use
 
-    if not eri_version.include? "A"
+    if not eri_version.include? 'A'
       # Hot (not mixed) water GPD defined, so added to dishwasher instead.
       # Mixed water GPD here set to zero.
       return 0.0
@@ -619,13 +621,13 @@ class HotWaterAndAppliances
 
     # Table 4.2.2.5.2.11(2) Hot Water Distribution System Insulation Factors
     sys_factor = nil
-    if dist_type == "recirculation" and pipe_r < 3.0
+    if (dist_type == 'recirculation') && (pipe_r < 3.0)
       sys_factor = 1.11
-    elsif dist_type == "recirculation" and pipe_r >= 3.0
+    elsif (dist_type == 'recirculation') && (pipe_r >= 3.0)
       sys_factor = 1.0
-    elsif dist_type == "standard" and pipe_r >= 3.0
+    elsif (dist_type == 'standard') && (pipe_r >= 3.0)
       sys_factor = 0.90
-    elsif dist_type == "standard" and pipe_r < 3.0
+    elsif (dist_type == 'standard') && (pipe_r < 3.0)
       sys_factor = 1.0
     end
 
@@ -633,9 +635,9 @@ class HotWaterAndAppliances
     o_frac = 0.25
     o_cd_eff = 0.0
 
-    if dist_type == "recirculation"
+    if dist_type == 'recirculation'
       p_ratio = recirc_branch_length / 10.0
-    elsif dist_type == "standard"
+    elsif dist_type == 'standard'
       ref_pipe_l = get_default_std_pipe_length(has_uncond_bsmnt, cfa, ncfl)
       p_ratio = std_pipe_length / ref_pipe_l
     end
@@ -644,9 +646,9 @@ class HotWaterAndAppliances
     s_w_gpd = (ref_w_gpd - ref_w_gpd * o_frac) * p_ratio * sys_factor # Eq. 4.2-13
 
     # Table 4.2.2.5.2.11(3) Distribution system water use effectiveness
-    if dist_type == "recirculation"
+    if dist_type == 'recirculation'
       wd_eff = 0.1
-    elsif dist_type == "standard"
+    elsif dist_type == 'standard'
       wd_eff = 1.0
     end
 
@@ -661,39 +663,39 @@ class HotWaterAndAppliances
     # ANSI/RESNET 301-2014 Addendum A-2015
     # Amendment on Domestic Hot Water (DHW) Systems
     # Table 4.2.2.5.2.11(6) Hot water distribution system relative annual energy waste factors
-    if dist_type == "recirculation"
-      if recirc_control_type == "no control" or recirc_control_type == "timer"
+    if dist_type == 'recirculation'
+      if (recirc_control_type == 'no control') || (recirc_control_type == 'timer')
         if pipe_r < 3.0
           return 500.0
         else
           return 250.0
         end
-      elsif recirc_control_type == "temperature"
+      elsif recirc_control_type == 'temperature'
         if pipe_r < 3.0
           return 375.0
         else
           return 187.5
         end
-      elsif recirc_control_type == "presence sensor demand control"
+      elsif recirc_control_type == 'presence sensor demand control'
         if pipe_r < 3.0
           return 64.8
         else
           return 43.2
         end
-      elsif recirc_control_type == "manual demand control"
+      elsif recirc_control_type == 'manual demand control'
         if pipe_r < 3.0
           return 43.2
         else
           return 28.8
         end
       end
-    elsif dist_type == "standard"
+    elsif dist_type == 'standard'
       if pipe_r < 3.0
         return 32.0
       else
         return 28.8
       end
     end
-    return nil
+    return
   end
 end

@@ -1,19 +1,21 @@
-require "csv"
-require "matrix"
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+# frozen_string_literal: true
+
+require 'csv'
+require 'matrix'
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "unit_conversions")
-require File.join(resources_path, "appliances")
-require File.join(resources_path, "weather")
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'unit_conversions')
+require File.join(resources_path, 'appliances')
+require File.join(resources_path, 'weather')
 
 # start the measure
 class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
   def name
-    return "Generate Appliance schedules"
+    return 'Generate Appliance schedules'
   end
 
   def description
@@ -21,7 +23,7 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "TODO"
+    return 'TODO'
   end
 
   # define the arguments that the user will input
@@ -29,28 +31,28 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # Make a integer argument for occupants (integer or string of integers)
-    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument("num_occupants", true)
-    arg.setDisplayName("Number of Occupants")
-    arg.setDescription("Specify the number of occupants.")
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('num_occupants', true)
+    arg.setDisplayName('Number of Occupants')
+    arg.setDescription('Specify the number of occupants.')
     arg.setDefaultValue(2)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument("state", true)
-    arg.setDisplayName("State")
-    arg.setDescription("Specify the state for which the schedule is to be generated")
-    arg.setDefaultValue("")
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('state', true)
+    arg.setDisplayName('State')
+    arg.setDescription('Specify the state for which the schedule is to be generated')
+    arg.setDefaultValue('')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument("vacancy_start_date", true)
-    arg.setDisplayName("Vacancy Start Date")
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('vacancy_start_date', true)
+    arg.setDisplayName('Vacancy Start Date')
     arg.setDescription("Set to 'NA' if never vacant.")
-    arg.setDefaultValue("NA")
+    arg.setDefaultValue('NA')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument("vacancy_end_date", true)
-    arg.setDisplayName("Vacancy End Date")
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('vacancy_end_date', true)
+    arg.setDisplayName('Vacancy End Date')
     arg.setDescription("Set to 'NA' if never vacant.")
-    arg.setDefaultValue("NA")
+    arg.setDefaultValue('NA')
     args << arg
 
     return args
@@ -66,10 +68,10 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    args = { :num_occupants => runner.getIntegerArgumentValue("num_occupants", user_arguments),
-             :state => runner.getStringArgumentValue("state", user_arguments),
-             :vacancy_start_date => runner.getStringArgumentValue("vacancy_start_date", user_arguments),
-             :vacancy_end_date => runner.getStringArgumentValue("vacancy_end_date", user_arguments) }
+    args = { num_occupants: runner.getIntegerArgumentValue('num_occupants', user_arguments),
+             state: runner.getStringArgumentValue('state', user_arguments),
+             vacancy_start_date: runner.getStringArgumentValue('vacancy_start_date', user_arguments),
+             vacancy_end_date: runner.getStringArgumentValue('vacancy_end_date', user_arguments) }
 
     # error checking
     if not args[:num_occupants] > 0
@@ -77,9 +79,9 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    model.getBuilding.additionalProperties.setFeature("num_occupants", args[:num_occupants])
+    model.getBuilding.additionalProperties.setFeature('num_occupants', args[:num_occupants])
 
-    args[:schedules_path] = File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources/schedules")
+    args[:schedules_path] = File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources/schedules')
 
     weather = WeatherProcess.new(model, runner) # required for lighting schedule generation
     if weather.error?
@@ -93,12 +95,12 @@ class ResidentialScheduleGenerator < OpenStudio::Measure::ModelMeasure
     return false if not success
 
     # export the schedule
-    output_csv_file = File.expand_path("../schedules.csv")
+    output_csv_file = File.expand_path('../schedules.csv')
     success = schedule_generator.export(output_path: output_csv_file)
     return false if not success
 
     runner.registerInfo("Generated schedule file: #{output_csv_file}")
-    model.getBuilding.additionalProperties.setFeature("Schedules Path", output_csv_file)
+    model.getBuilding.additionalProperties.setFeature('Schedules Path', output_csv_file)
 
     return true
   end

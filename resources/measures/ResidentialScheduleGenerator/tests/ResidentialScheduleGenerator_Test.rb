@@ -1,100 +1,102 @@
+# frozen_string_literal: true
+
 require_relative '../../../../test/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
 require_relative '../measure.rb'
 require 'fileutils'
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
 
-require File.join(resources_path, "weather")
+require File.join(resources_path, 'weather')
 
 class ResidentialScheduleGeneratorTest < MiniTest::Test
   @@design_levels_e = {
-    "cooking_range" => 224.799466698323, # test_new_construction_electric
-    "plug_loads" => 97.542065513059 + 97.542065513059 + 170.698614647853, # test_new_construction_energy_use
-    "lighting_interior" => 239.813313104278 + 137.03617891673 + 137.03617891673, # test_new_construction_100_incandescent
-    "lighting_exterior" => 105.096505339876, # test_new_construction_100_incandescent
-    "lighting_garage" => 14.4960697020519, # test_new_construction_100_incandescent
-    "lighting_exterior_holiday" => 311.901700057588, # test_new_construction_holiday_schedule_overlap_years
-    "clothes_washer" => 70491.5361082842, # test_new_construction_standard
-    "clothes_dryer" => 187100.865402176, # test_new_construction_standard_elec
-    "dishwasher" => 182309.775344607, # test_new_construction_318_rated_kwh
-    "baths" => 65146.3417951306, # test_new_construction_standard
-    "showers" => 507081.308470722, # test_new_construction_standard
-    "sinks" => 158036.112491921, # test_new_construction_standard
-    "ceiling_fan" => 22.5, # test_specified_num
-    "plug_loads_vehicle" => 228.31050228310502, # test_electric_vehicle_new_construction_electric
-    "plug_loads_well_pump" => 110.01639291891935 # test_well_pump_new_construction_electric
+    'cooking_range' => 224.799466698323, # test_new_construction_electric
+    'plug_loads' => 97.542065513059 + 97.542065513059 + 170.698614647853, # test_new_construction_energy_use
+    'lighting_interior' => 239.813313104278 + 137.03617891673 + 137.03617891673, # test_new_construction_100_incandescent
+    'lighting_exterior' => 105.096505339876, # test_new_construction_100_incandescent
+    'lighting_garage' => 14.4960697020519, # test_new_construction_100_incandescent
+    'lighting_exterior_holiday' => 311.901700057588, # test_new_construction_holiday_schedule_overlap_years
+    'clothes_washer' => 70491.5361082842, # test_new_construction_standard
+    'clothes_dryer' => 187100.865402176, # test_new_construction_standard_elec
+    'dishwasher' => 182309.775344607, # test_new_construction_318_rated_kwh
+    'baths' => 65146.3417951306, # test_new_construction_standard
+    'showers' => 507081.308470722, # test_new_construction_standard
+    'sinks' => 158036.112491921, # test_new_construction_standard
+    'ceiling_fan' => 22.5, # test_specified_num
+    'plug_loads_vehicle' => 228.31050228310502, # test_electric_vehicle_new_construction_electric
+    'plug_loads_well_pump' => 110.01639291891935 # test_well_pump_new_construction_electric
   }
 
   @@design_levels_g = {
-    "fuel_loads_grill" => 427.95296983055385, # test_gas_grill_new_construction_gas
-    "fuel_loads_lighting" => 153.15245454386806, # test_gas_lighting_new_construction_gas
-    "fuel_loads_fireplace" => 483.6393301385308 # test_gas_fireplace_new_construction_gas
+    'fuel_loads_grill' => 427.95296983055385, # test_gas_grill_new_construction_gas
+    'fuel_loads_lighting' => 153.15245454386806, # test_gas_lighting_new_construction_gas
+    'fuel_loads_fireplace' => 483.6393301385308 # test_gas_fireplace_new_construction_gas
   }
 
   @@peak_flow_rates = {
-    "clothes_washer" => 0.00629935656948612, # test_new_construction_standard
-    "dishwasher" => 0.00195236583980626, # test_new_construction_318_rated_kwh
-    "baths" => 0.00441642226310263, # test_new_construction_standard
-    "showers" => 0.0176468149892557, # test_new_construction_standard
-    "sinks" => 0.0157378848223646 # test_new_construction_standard
+    'clothes_washer' => 0.00629935656948612, # test_new_construction_standard
+    'dishwasher' => 0.00195236583980626, # test_new_construction_318_rated_kwh
+    'baths' => 0.00441642226310263, # test_new_construction_standard
+    'showers' => 0.0176468149892557, # test_new_construction_standard
+    'sinks' => 0.0157378848223646 # test_new_construction_standard
   }
 
   def test_sweep_building_ids_and_num_occupants
-    full_load_hours = { "schedules_length" => [], "building_id" => [], "num_occupants" => [] }
-    annual_energy_use = { "schedules_length" => [], "building_id" => [], "num_occupants" => [] }
-    hot_water_gpd = { "schedules_length" => [], "building_id" => [], "num_occupants" => [] }
+    full_load_hours = { 'schedules_length' => [], 'building_id' => [], 'num_occupants' => [] }
+    annual_energy_use = { 'schedules_length' => [], 'building_id' => [], 'num_occupants' => [] }
+    hot_water_gpd = { 'schedules_length' => [], 'building_id' => [], 'num_occupants' => [] }
     args_hash = {}
 
-    expected_values = { "SchedulesLength" => 8760, "SchedulesWidth" => 23 } # these are the old schedules
-    full_load_hours["building_id"] << 1
-    full_load_hours["num_occupants"] << 2.64
-    annual_energy_use["building_id"] << 1
-    annual_energy_use["num_occupants"] << 2.64
-    hot_water_gpd["building_id"] << 1
-    hot_water_gpd["num_occupants"] << 2.64
-    full_load_hours, annual_energy_use, hot_water_gpd = _test_generator("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, "8760", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
+    expected_values = { 'SchedulesLength' => 8760, 'SchedulesWidth' => 23 } # these are the old schedules
+    full_load_hours['building_id'] << 1
+    full_load_hours['num_occupants'] << 2.64
+    annual_energy_use['building_id'] << 1
+    annual_energy_use['num_occupants'] << 2.64
+    hot_water_gpd['building_id'] << 1
+    hot_water_gpd['num_occupants'] << 2.64
+    full_load_hours, annual_energy_use, hot_water_gpd = _test_generator('SFD_2000sqft_2story_FB_UA_Denver.osm', args_hash, expected_values, '8760', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', full_load_hours, annual_energy_use, hot_water_gpd)
 
-    expected_values = { "SchedulesLength" => 8784, "SchedulesWidth" => 23 } # these are the old schedules
-    full_load_hours["building_id"] << 1
-    full_load_hours["num_occupants"] << 2.64
-    annual_energy_use["building_id"] << 1
-    annual_energy_use["num_occupants"] << 2.64
-    hot_water_gpd["building_id"] << 1
-    hot_water_gpd["num_occupants"] << 2.64
-    full_load_hours, annual_energy_use, hot_water_gpd = _test_generator("SFD_Successful_EnergyPlus_Run_AMY_PV.osm", args_hash, expected_values, "8784", "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
+    expected_values = { 'SchedulesLength' => 8784, 'SchedulesWidth' => 23 } # these are the old schedules
+    full_load_hours['building_id'] << 1
+    full_load_hours['num_occupants'] << 2.64
+    annual_energy_use['building_id'] << 1
+    annual_energy_use['num_occupants'] << 2.64
+    hot_water_gpd['building_id'] << 1
+    hot_water_gpd['num_occupants'] << 2.64
+    full_load_hours, annual_energy_use, hot_water_gpd = _test_generator('SFD_Successful_EnergyPlus_Run_AMY_PV.osm', args_hash, expected_values, '8784', 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', full_load_hours, annual_energy_use, hot_water_gpd)
 
     num_building_ids = 1
     num_occupants = [2]
-    vacancy_start_date = "NA"
-    vacancy_end_date = "NA"
-    expected_values = { "SchedulesLength" => 52560, "SchedulesWidth" => 24 }
+    vacancy_start_date = 'NA'
+    vacancy_end_date = 'NA'
+    expected_values = { 'SchedulesLength' => 52560, 'SchedulesWidth' => 24 }
     prng = Random.new(1) # initialize with certain seed
     (1..num_building_ids).to_a.each do |building_id|
       building_id = rand(1..450000)
       # building_id = prng.rand(1..450000) # uncomment to use deterministic testing
       num_occupants.each do |num_occupant|
         puts "\nBUILDING ID: #{building_id}, NUM_OCCUPANTS: #{num_occupant}"
-        full_load_hours["building_id"] << building_id
-        full_load_hours["num_occupants"] << num_occupant
-        annual_energy_use["building_id"] << building_id
-        annual_energy_use["num_occupants"] << num_occupant
-        hot_water_gpd["building_id"] << building_id
-        hot_water_gpd["num_occupants"] << num_occupant
+        full_load_hours['building_id'] << building_id
+        full_load_hours['num_occupants'] << num_occupant
+        annual_energy_use['building_id'] << building_id
+        annual_energy_use['num_occupants'] << num_occupant
+        hot_water_gpd['building_id'] << building_id
+        hot_water_gpd['num_occupants'] << num_occupant
         args_hash[:building_id] = building_id
         args_hash[:num_occupants] = num_occupant
         args_hash[:vacancy_start_date] = vacancy_start_date
         args_hash[:vacancy_end_date] = vacancy_end_date
-        full_load_hours, annual_energy_use, hot_water_gpd = _test_generator("SFD_2000sqft_2story_FB_UA_Denver.osm", args_hash, expected_values, __method__, "USA_CO_Denver.Intl.AP.725650_TMY3.epw", full_load_hours, annual_energy_use, hot_water_gpd)
+        full_load_hours, annual_energy_use, hot_water_gpd = _test_generator('SFD_2000sqft_2story_FB_UA_Denver.osm', args_hash, expected_values, __method__, 'USA_CO_Denver.Intl.AP.725650_TMY3.epw', full_load_hours, annual_energy_use, hot_water_gpd)
       end
     end
 
-    csv_path = File.join(test_dir(__method__), "full_load_hours.csv")
-    CSV.open(csv_path, "wb") do |csv|
+    csv_path = File.join(test_dir(__method__), 'full_load_hours.csv')
+    CSV.open(csv_path, 'wb') do |csv|
       csv << full_load_hours.keys
       rows = full_load_hours.values.transpose
       rows.each do |row|
@@ -102,8 +104,8 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
       end
     end
 
-    csv_path = File.join(test_dir(__method__), "annual_electricity_use.csv")
-    CSV.open(csv_path, "wb") do |csv|
+    csv_path = File.join(test_dir(__method__), 'annual_electricity_use.csv')
+    CSV.open(csv_path, 'wb') do |csv|
       csv << annual_energy_use.keys
       rows = annual_energy_use.values.transpose
       rows.each do |row|
@@ -111,8 +113,8 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
       end
     end
 
-    csv_path = File.join(test_dir(__method__), "hot_water_gpd.csv")
-    CSV.open(csv_path, "wb") do |csv|
+    csv_path = File.join(test_dir(__method__), 'hot_water_gpd.csv')
+    CSV.open(csv_path, 'wb') do |csv|
       csv << hot_water_gpd.keys
       rows = hot_water_gpd.values.transpose
       rows.each do |row|
@@ -123,45 +125,45 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
   def test_argument_error_num_occ_nonpositive
     args_hash = {}
-    args_hash["num_occupants"] = "0"
-    result = _test_error_or_NA("Denver.osm", args_hash)
+    args_hash['num_occupants'] = '0'
+    result = _test_error_or_NA('Denver.osm', args_hash)
     assert(result.errors.size == 1)
-    assert_equal("Fail", result.value.valueName)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Number of Occupants '#{args_hash["num_occupants"]} must be greater than 0.")
+    assert_equal('Fail', result.value.valueName)
+    assert_includes(result.errors.map { |x| x.logMessage }, "Number of Occupants '#{args_hash['num_occupants']} must be greater than 0.")
   end
 
   def test_error_invalid_vacancy
     args_hash = {}
     args_hash['state'] = 'CO'
-    args_hash["vacancy_start_date"] = "April 31"
-    result = _test_error_or_NA("Denver.osm", args_hash)
+    args_hash['vacancy_start_date'] = 'April 31'
+    result = _test_error_or_NA('Denver.osm', args_hash)
     assert(result.errors.size == 1)
-    assert_equal("Fail", result.value.valueName)
-    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid vacancy date(s) specified.")
+    assert_equal('Fail', result.value.valueName)
+    assert_includes(result.errors.map { |x| x.logMessage }, 'Invalid vacancy date(s) specified.')
   end
 
   def test_NA_vacancy
     args_hash = {}
     args_hash['state'] = 'CO'
-    args_hash["vacancy_start_date"] = "NA"
-    args_hash["vacancy_end_date"] = "NA"
+    args_hash['vacancy_start_date'] = 'NA'
+    args_hash['vacancy_end_date'] = 'NA'
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Building" => 1 }
+    expected_num_new_objects = { 'Building' => 1 }
     expected_values = {}
-    _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
+    _test_measure('Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
   end
 
   def test_change_vacancy
     args_hash = {}
     args_hash['state'] = 'CO'
     expected_num_del_objects = {}
-    expected_num_new_objects = { "Building" => 1 }
+    expected_num_new_objects = { 'Building' => 1 }
     expected_values = {}
-    model = _test_measure("Denver.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
+    model = _test_measure('Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
     args_hash = {}
     args_hash['state'] = 'CO'
-    args_hash["vacancy_start_date"] = "April 8"
-    args_hash["vacancy_end_date"] = "October 27"
+    args_hash['vacancy_start_date'] = 'April 8'
+    args_hash['vacancy_end_date'] = 'October 27'
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
@@ -192,13 +194,13 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
     model = get_model(File.dirname(__FILE__), osm_file_or_model)
 
-    args_hash[:schedules_path] = File.join(File.dirname(__FILE__), "../../HPXMLtoOpenStudio/resources/schedules")
+    args_hash[:schedules_path] = File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources/schedules')
     args_hash[:state] = 'CO' # use an arbitrary state for testing
 
-    if "#{test_name}".include? "8760"
-      schedules_path = File.join(File.dirname(__FILE__), "../../../../files/8760.csv")
-    elsif "#{test_name}".include? "8784"
-      schedules_path = File.join(File.dirname(__FILE__), "../../../../files/8784.csv")
+    if "#{test_name}".include? '8760'
+      schedules_path = File.join(File.dirname(__FILE__), '../../../../files/8760.csv')
+    elsif "#{test_name}".include? '8784'
+      schedules_path = File.join(File.dirname(__FILE__), '../../../../files/8784.csv')
     else
       if !File.exist?("#{test_dir(test_name)}")
         FileUtils.mkdir_p("#{test_dir(test_name)}")
@@ -215,16 +217,16 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     end
 
     # make sure the enduse report file exists
-    if expected_values.keys.include? "SchedulesLength" and expected_values.keys.include? "SchedulesWidth"
+    if expected_values.keys.include?('SchedulesLength') && expected_values.keys.include?('SchedulesWidth')
       assert(File.exist?(schedules_path))
 
       # make sure you're reporting at correct frequency
       schedules_length, schedules_width, full_load_hours, annual_energy_use, hot_water_gpd = get_schedule_file(model, runner, schedules_path, full_load_hours, annual_energy_use, hot_water_gpd)
-      assert_equal(expected_values["SchedulesLength"], schedules_length)
-      assert_equal(expected_values["SchedulesWidth"], schedules_width)
-      full_load_hours["schedules_length"] << schedules_length
-      annual_energy_use["schedules_length"] << schedules_length
-      hot_water_gpd["schedules_length"] << schedules_length
+      assert_equal(expected_values['SchedulesLength'], schedules_length)
+      assert_equal(expected_values['SchedulesWidth'], schedules_width)
+      full_load_hours['schedules_length'] << schedules_length
+      annual_energy_use['schedules_length'] << schedules_length
+      hot_water_gpd['schedules_length'] << schedules_length
     end
 
     return full_load_hours, annual_energy_use, hot_water_gpd
@@ -299,7 +301,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     show_output(result) unless result.value.valueName == 'Success'
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
     assert_equal(num_infos, result.info.size)
     assert_equal(num_warnings, result.warnings.size)
 
@@ -312,8 +314,8 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     all_del_objects = get_object_additions(final_objects, initial_objects, obj_type_exclusions)
 
     # check we have the expected number of new/deleted objects
-    check_num_objects(all_new_objects, expected_num_new_objects, "added")
-    check_num_objects(all_del_objects, expected_num_del_objects, "deleted")
+    check_num_objects(all_new_objects, expected_num_new_objects, 'added')
+    check_num_objects(all_del_objects, expected_num_del_objects, 'deleted')
 
     return model
   end
@@ -334,19 +336,19 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
 
   def check_columns(col_names, schedules_file, full_load_hours, annual_energy_use, hot_water_gpd)
     col_names.each do |col_name|
-      next if col_name.include? "sleep"
+      next if col_name.include? 'sleep'
 
       flh = schedules_file.annual_equivalent_full_load_hrs(col_name: col_name)
       aeu = nil
       if @@design_levels_e.keys.include? col_name
-        aeu = UnitConversions.convert(flh * @@design_levels_e[col_name], "Wh", "kWh")
+        aeu = UnitConversions.convert(flh * @@design_levels_e[col_name], 'Wh', 'kWh')
       end
       if @@design_levels_g.keys.include? col_name
-        aeu = UnitConversions.convert(flh * @@design_levels_g[col_name], "Wh", "therm")
+        aeu = UnitConversions.convert(flh * @@design_levels_g[col_name], 'Wh', 'therm')
       end
       hwg = nil
       if @@peak_flow_rates.keys.include? col_name
-        hwg = UnitConversions.convert(flh * @@peak_flow_rates[col_name], "m^3/s", "gal/min") * 60.0 / 365.0
+        hwg = UnitConversions.convert(flh * @@peak_flow_rates[col_name], 'm^3/s', 'gal/min') * 60.0 / 365.0
       end
 
       full_load_hours[col_name] = [] unless full_load_hours.keys.include? col_name

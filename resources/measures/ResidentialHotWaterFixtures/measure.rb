@@ -1,21 +1,23 @@
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+# frozen_string_literal: true
+
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "schedules")
-require File.join(resources_path, "constants")
-require File.join(resources_path, "util")
-require File.join(resources_path, "weather")
-require File.join(resources_path, "unit_conversions")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "waterheater")
+require File.join(resources_path, 'schedules')
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'util')
+require File.join(resources_path, 'weather')
+require File.join(resources_path, 'unit_conversions')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'waterheater')
 
 # start the measure
 class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Hot Water Fixtures"
+    return 'Set Residential Hot Water Fixtures'
   end
 
   def description
@@ -23,7 +25,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "Creates three new WaterUse:Equipment objects to represent showers, sinks, and baths in a home. OtherEquipment objects are also added to take into account the heat gain in the space due to hot water use."
+    return 'Creates three new WaterUse:Equipment objects to represent showers, sinks, and baths in a home. OtherEquipment objects are also added to take into account the heat gain in the space due to hot water use.'
   end
 
   def arguments(model)
@@ -33,23 +35,23 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     args = ruleset::OSArgumentVector.new
 
     # Shower hot water use multiplier
-    shower_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("shower_mult", true)
-    shower_mult.setDisplayName("Multiplier on shower hot water use")
-    shower_mult.setDescription("Multiplier on Building America HSP shower hot water consumption. HSP prescribes shower hot water consumption of 14 + 4.67 * n_bedrooms gal/day at 110 F.")
+    shower_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument('shower_mult', true)
+    shower_mult.setDisplayName('Multiplier on shower hot water use')
+    shower_mult.setDescription('Multiplier on Building America HSP shower hot water consumption. HSP prescribes shower hot water consumption of 14 + 4.67 * n_bedrooms gal/day at 110 F.')
     shower_mult.setDefaultValue(1.0)
     args << shower_mult
 
     # Sink hot water use multiplier
-    sink_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("sink_mult", true)
-    sink_mult.setDisplayName("Multiplier on sink hot water use")
-    sink_mult.setDescription("Multiplier on Building America HSP sink hot water consumption. HSP prescribes sink hot water consumption of 12.5 + 4.16 * n_bedrooms gal/day at 110 F.")
+    sink_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument('sink_mult', true)
+    sink_mult.setDisplayName('Multiplier on sink hot water use')
+    sink_mult.setDescription('Multiplier on Building America HSP sink hot water consumption. HSP prescribes sink hot water consumption of 12.5 + 4.16 * n_bedrooms gal/day at 110 F.')
     sink_mult.setDefaultValue(1.0)
     args << sink_mult
 
     # Bath hot water use multiplier
-    bath_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument("bath_mult", true)
-    bath_mult.setDisplayName("Multiplier on bath hot water use")
-    bath_mult.setDescription("Multiplier on Building America HSP bath hot water consumption. HSP prescribes bath hot water consumption of 3.5 + 1.17 * n_bedrooms gal/day at 110 F.")
+    bath_mult = OpenStudio::Measure::OSArgument::makeDoubleArgument('bath_mult', true)
+    bath_mult.setDisplayName('Multiplier on bath hot water use')
+    bath_mult.setDescription('Multiplier on Building America HSP bath hot water consumption. HSP prescribes bath hot water consumption of 3.5 + 1.17 * n_bedrooms gal/day at 110 F.')
     bath_mult.setDefaultValue(1.0)
     args << bath_mult
 
@@ -60,8 +62,8 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     plant_loops.each do |plant_loop|
       plant_loop_args << plant_loop.name.to_s
     end
-    plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument("plant_loop", plant_loop_args, true, true)
-    plant_loop.setDisplayName("Plant Loop")
+    plant_loop = OpenStudio::Measure::OSArgument::makeChoiceArgument('plant_loop', plant_loop_args, true, true)
+    plant_loop.setDisplayName('Plant Loop')
     plant_loop.setDescription("Select the plant loop for the hot water fixtures. '#{Constants.Auto}' will try to choose the plant loop associated with the specified space. For multifamily buildings, '#{Constants.Auto}' will choose the plant loop for each unit of the building.")
     plant_loop.setDefaultValue(Constants.Auto)
     args << plant_loop
@@ -79,22 +81,22 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    sh_mult = runner.getDoubleArgumentValue("shower_mult", user_arguments)
-    s_mult = runner.getDoubleArgumentValue("sink_mult", user_arguments)
-    b_mult = runner.getDoubleArgumentValue("bath_mult", user_arguments)
-    plant_loop_s = runner.getStringArgumentValue("plant_loop", user_arguments)
+    sh_mult = runner.getDoubleArgumentValue('shower_mult', user_arguments)
+    s_mult = runner.getDoubleArgumentValue('sink_mult', user_arguments)
+    b_mult = runner.getDoubleArgumentValue('bath_mult', user_arguments)
+    plant_loop_s = runner.getStringArgumentValue('plant_loop', user_arguments)
 
     # Check for valid and reasonable inputs
     if sh_mult < 0
-      runner.registerError("Shower hot water usage multiplier must be greater than or equal to 0.")
+      runner.registerError('Shower hot water usage multiplier must be greater than or equal to 0.')
       return false
     end
     if s_mult < 0
-      runner.registerError("Sink hot water usage multiplier must be greater than or equal to 0.")
+      runner.registerError('Sink hot water usage multiplier must be greater than or equal to 0.')
       return false
     end
     if b_mult < 0
-      runner.registerError("Bath hot water usage multiplier must be greater than or equal to 0.")
+      runner.registerError('Bath hot water usage multiplier must be greater than or equal to 0.')
       return false
     end
 
@@ -126,10 +128,10 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
     mixed_use_t = Constants.MixedUseT # F
 
-    if sh_mult > 0 or s_mult > 0 or b_mult > 0
+    if (sh_mult > 0) || (s_mult > 0) || (b_mult > 0)
       temperature_sch = OpenStudio::Model::ScheduleConstant.new(model)
-      temperature_sch.setValue(UnitConversions.convert(mixed_use_t, "F", "C"))
-      temperature_sch.setName("fixtures temperature schedule")
+      temperature_sch.setValue(UnitConversions.convert(mixed_use_t, 'F', 'C'))
+      temperature_sch.setName('fixtures temperature schedule')
       Schedule.set_schedule_type_limits(model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
     end
 
@@ -143,7 +145,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     units.each_with_index do |unit, unit_index|
       # Get unit beds/baths/occupants
       nbeds, nbaths = Geometry.get_unit_beds_baths(model, unit, runner)
-      if nbeds.nil? or nbaths.nil?
+      if nbeds.nil? || nbaths.nil?
         return false
       end
 
@@ -173,19 +175,19 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         # Shower internal gains
         sh_sens_load = (741 + 247 * (-0.68 + 1.09 * noccupants)) * sh_mult # Btu/day
         sh_lat_load = (703 + 235 * (-0.68 + 1.09 * noccupants)) * sh_mult # Btu/day
-        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
+        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, 'Btu', 'kWh') # kWh/day
         sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
 
         # Sink internal gains
         s_sens_load = (310 + 103 * (-0.68 + 1.09 * noccupants)) * s_mult # Btu/day
         s_lat_load = (140 + 47 * (-0.68 + 1.09 * noccupants)) * s_mult # Btu/day
-        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
+        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, 'Btu', 'kWh') # kWh/day
         s_lat = s_lat_load / (s_lat_load + s_sens_load)
 
         # Bath internal gains
         b_sens_load = (185 + 62 * (-0.68 + 1.09 * noccupants)) * b_mult # Btu/day
         b_lat_load = 0 # Btu/day
-        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
+        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, 'Btu', 'kWh') # kWh/day
         b_lat = b_lat_load / (b_lat_load + b_sens_load)
       elsif [Constants.BuildingTypeSingleFamilyDetached].include? Geometry.get_building_type(model) # single-family equation
         # Calc daily gpm and annual gain of each end use
@@ -196,23 +198,23 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         # Shower internal gains
         sh_sens_load = (741 + 247 * (-1.47 + 1.69 * noccupants)) * sh_mult # Btu/day
         sh_lat_load = (703 + 235 * (-1.47 + 1.69 * noccupants)) * sh_mult # Btu/day
-        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, "Btu", "kWh") # kWh/day
+        sh_tot_load = UnitConversions.convert(sh_sens_load + sh_lat_load, 'Btu', 'kWh') # kWh/day
         sh_lat = sh_lat_load / (sh_lat_load + sh_sens_load)
 
         # Sink internal gains
         s_sens_load = (310 + 103 * (-1.47 + 1.69 * noccupants)) * s_mult # Btu/day
         s_lat_load = (140 + 47 * (-1.47 + 1.69 * noccupants)) * s_mult # Btu/day
-        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, "Btu", "kWh") # kWh/day
+        s_tot_load = UnitConversions.convert(s_sens_load + s_lat_load, 'Btu', 'kWh') # kWh/day
         s_lat = s_lat_load / (s_lat_load + s_sens_load)
 
         # Bath internal gains
         b_sens_load = (185 + 62 * (-1.47 + 1.69 * noccupants)) * b_mult # Btu/day
         b_lat_load = 0 # Btu/day
-        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, "Btu", "kWh") # kWh/day
+        b_tot_load = UnitConversions.convert(b_sens_load + b_lat_load, 'Btu', 'kWh') # kWh/day
         b_lat = b_lat_load / (b_lat_load + b_sens_load)
       end
 
-      if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
+      if (sh_gpd > 0) || (s_gpd > 0) || (b_gpd > 0)
 
         # Reuse existing water use connection if possible
         water_use_connection = nil
@@ -233,7 +235,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       # Showers
       if sh_gpd > 0
 
-        col_name = "showers"
+        col_name = 'showers'
         if sch_sh.nil?
           # Create schedule
           sch_sh = schedules_file.create_schedule_file(col_name: col_name)
@@ -271,15 +273,15 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         space.otherEquipment.each do |space_equipment|
           next if not space_equipment.name.to_s.start_with? Constants.ObjectNameShower
 
-          if space_equipment.schedule.is_initialized
-            # Check if there is a recirc pump referencing this schedule
-            model.getElectricEquipments.each do |ee|
-              next if ee.name.to_s != obj_name_recirc_pump
-              next if not ee.schedule.is_initialized
-              next if ee.schedule.get.handle.to_s != space_equipment.schedule.get.handle.to_s
+          next unless space_equipment.schedule.is_initialized
 
-              recirc_pump = ee
-            end
+          # Check if there is a recirc pump referencing this schedule
+          model.getElectricEquipments.each do |ee|
+            next if ee.name.to_s != obj_name_recirc_pump
+            next if not ee.schedule.is_initialized
+            next if ee.schedule.get.handle.to_s != space_equipment.schedule.get.handle.to_s
+
+            recirc_pump = ee
           end
         end
         if not recirc_pump.nil?
@@ -288,13 +290,13 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
 
         tot_sh_gpd += sh_gpd
         # Unmet Shower Energy
-        obj_name_sh = obj_name_sh.gsub("unit ", "").gsub("|", "_")
+        obj_name_sh = obj_name_sh.gsub('unit ', '').gsub('|', '_')
 
-        vol_shower = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Use Equipment Hot Water Volume")
+        vol_shower = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Use Equipment Hot Water Volume')
         vol_shower.setName("#{obj_name_sh} vol")
         vol_shower.setKeyName(sh_wu.name.to_s)
 
-        t_out_wh = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Water Heater Use Side Outlet Temperature")
+        t_out_wh = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Use Side Outlet Temperature')
         t_out_wh.setName("#{obj_name_sh} tout")
         model.getPlantLoops.each do |pl|
           next if not pl.name.to_s.start_with? Constants.PlantLoopDomesticWater
@@ -306,56 +308,56 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
           t_out_wh.setKeyName(wh.name.to_s)
         end
 
-        mix_sp_hw = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Schedule Value")
+        mix_sp_hw = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
         mix_sp_hw.setName("#{obj_name_sh} mixsp")
         mix_sp_hw.setKeyName(sh_wu_def.targetTemperatureSchedule.get.name.to_s)
 
         program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
         program.setName("#{obj_name_sh} sag")
         program.addLine("If #{vol_shower.name} > 0")
-        program.addLine("Set ShowerTime=SystemTimeStep")
-        program.addLine("Else")
-        program.addLine("Set ShowerTime=0")
-        program.addLine("EndIf")
+        program.addLine('Set ShowerTime=SystemTimeStep')
+        program.addLine('Else')
+        program.addLine('Set ShowerTime=0')
+        program.addLine('EndIf')
         program.addLine("If (#{vol_shower.name} > 0) && (#{mix_sp_hw.name} > #{t_out_wh.name})")
-        program.addLine("Set ShowerSag=SystemTimeStep")
+        program.addLine('Set ShowerSag=SystemTimeStep')
         program.addLine("Set ShowerE=#{vol_shower.name}*4141170*(#{mix_sp_hw.name}-#{t_out_wh.name})")
-        program.addLine("Else")
-        program.addLine("Set ShowerSag=0")
-        program.addLine("Set ShowerE=0")
-        program.addLine("EndIf")
+        program.addLine('Else')
+        program.addLine('Set ShowerSag=0')
+        program.addLine('Set ShowerE=0')
+        program.addLine('EndIf')
 
         program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
         program_calling_manager.setName("#{obj_name_sh} sag")
-        program_calling_manager.setCallingPoint("EndOfSystemTimestepAfterHVACReporting")
+        program_calling_manager.setCallingPoint('EndOfSystemTimestepAfterHVACReporting')
         program_calling_manager.addProgram(program)
 
-        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerE")
+        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, 'ShowerE')
         ems_output_var.setName("Unmet Shower Energy|#{unit.name}")
-        ems_output_var.setTypeOfDataInVariable("Summed")
-        ems_output_var.setUpdateFrequency("SystemTimestep")
+        ems_output_var.setTypeOfDataInVariable('Summed')
+        ems_output_var.setUpdateFrequency('SystemTimestep')
         ems_output_var.setEMSProgramOrSubroutineName(program)
-        ems_output_var.setUnits("J")
+        ems_output_var.setUnits('J')
 
-        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerSag")
+        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, 'ShowerSag')
         ems_output_var.setName("Unmet Shower Time|#{unit.name}")
-        ems_output_var.setTypeOfDataInVariable("Summed")
-        ems_output_var.setUpdateFrequency("SystemTimestep")
+        ems_output_var.setTypeOfDataInVariable('Summed')
+        ems_output_var.setUpdateFrequency('SystemTimestep')
         ems_output_var.setEMSProgramOrSubroutineName(program)
-        ems_output_var.setUnits("hr")
+        ems_output_var.setUnits('hr')
 
-        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "ShowerTime")
+        ems_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, 'ShowerTime')
         ems_output_var.setName("Shower Draw Time|#{unit.name}")
-        ems_output_var.setTypeOfDataInVariable("Summed")
-        ems_output_var.setUpdateFrequency("SystemTimestep")
+        ems_output_var.setTypeOfDataInVariable('Summed')
+        ems_output_var.setUpdateFrequency('SystemTimestep')
         ems_output_var.setEMSProgramOrSubroutineName(program)
-        ems_output_var.setUnits("hr")
+        ems_output_var.setUnits('hr')
       end
 
       # Sinks
       if s_gpd > 0
 
-        col_name = "sinks"
+        col_name = 'sinks'
         if sch_s.nil?
           # Create schedule
           sch_s = schedules_file.create_schedule_file(col_name: col_name)
@@ -394,7 +396,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       # Baths
       if b_gpd > 0
 
-        col_name = "baths"
+        col_name = 'baths'
         if sch_b.nil?
           # Create schedule
           sch_b = schedules_file.create_schedule_file(col_name: col_name)
@@ -430,14 +432,14 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         tot_b_gpd += b_gpd
       end
 
-      if sh_gpd > 0 or s_gpd > 0 or b_gpd > 0
-        msgs << "Shower, sinks, and bath fixtures drawing #{sh_gpd.round(1)}, #{s_gpd.round(1)}, and #{b_gpd.round(1)} gal/day respectively have been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name.to_s}'."
+      if (sh_gpd > 0) || (s_gpd > 0) || (b_gpd > 0)
+        msgs << "Shower, sinks, and bath fixtures drawing #{sh_gpd.round(1)}, #{s_gpd.round(1)}, and #{b_gpd.round(1)} gal/day respectively have been added to plant loop '#{plant_loop.name}' and assigned to space '#{space.name}'."
       end
     end
 
-    schedules_file.set_vacancy(col_name: "showers")
-    schedules_file.set_vacancy(col_name: "sinks")
-    schedules_file.set_vacancy(col_name: "baths")
+    schedules_file.set_vacancy(col_name: 'showers')
+    schedules_file.set_vacancy(col_name: 'sinks')
+    schedules_file.set_vacancy(col_name: 'baths')
 
     # Reporting
     if msgs.size > 1
@@ -448,7 +450,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
     elsif msgs.size == 1
       runner.registerFinalCondition(msgs[0])
     else
-      runner.registerFinalCondition("No shower, sink, or bath fixtures have been assigned.")
+      runner.registerFinalCondition('No shower, sink, or bath fixtures have been assigned.')
     end
 
     return true
@@ -475,7 +477,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    unmet_sh_outputs = ["Unmet Shower Energy", "Unmet Shower Time", "Shower Draw Time"]
+    unmet_sh_outputs = ['Unmet Shower Energy', 'Unmet Shower Time', 'Shower Draw Time']
     model.getEnergyManagementSystemOutputVariables.each do |ems_output_var|
       unmet_sh_outputs.each do |unmet_sh_output|
         if ems_output_var.name.to_s.start_with? unmet_sh_output
@@ -490,7 +492,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       found = false
       obj_names.each do |obj_name|
         next if not space_equipment.name.to_s.start_with? obj_name
-        next if space_equipment.name.to_s.include? "=" # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties
+        next if space_equipment.name.to_s.include? '=' # TODO: Skip dummy distribution objects; can remove once we are using AdditionalProperties
 
         found = true
       end
@@ -522,7 +524,7 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing showers, sinks, and baths from space '#{space.name.to_s}'.")
+      runner.registerInfo("Removed existing showers, sinks, and baths from space '#{space.name}'.")
     end
     objects_to_remove.uniq.each do |object|
       begin

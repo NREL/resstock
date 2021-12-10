@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class EnergyPlusValidator
   def self.run_validator(hpxml_doc)
     # A hash of hashes that defines the XML elements used by the EnergyPlus HPXML Use Case.
@@ -703,7 +705,7 @@ class EnergyPlusValidator
 
     # Check sum of FractionDHWLoadServed == 1
     frac_dhw_load = hpxml_doc.elements['sum(/HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem/FractionDHWLoadServed/text())']
-    if frac_dhw_load > 0 and (frac_dhw_load < 0.99 or frac_dhw_load > 1.01)
+    if (frac_dhw_load > 0) && ((frac_dhw_load < 0.99) || (frac_dhw_load > 1.01))
       errors << "Expected FractionDHWLoadServed to sum to 1, but calculated sum is #{frac_dhw_load}."
     end
 
@@ -714,7 +716,7 @@ class EnergyPlusValidator
     if expected_sizes.size > 0
       return if expected_sizes.include?(actual_size)
 
-      errors << "Expected #{expected_sizes.to_s} element(s) but found #{actual_size.to_s} element(s) for xpath: #{xpath}"
+      errors << "Expected #{expected_sizes} element(s) but found #{actual_size} element(s) for xpath: #{xpath}"
     else
       return if actual_size > 0
 
@@ -725,7 +727,7 @@ class EnergyPlusValidator
   def self.combine_into_xpath(parent, child)
     if parent.nil?
       return child
-    elsif child.start_with?("[")
+    elsif child.start_with?('[')
       return [parent, child].join('')
     end
 

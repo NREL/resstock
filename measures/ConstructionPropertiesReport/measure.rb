@@ -1,20 +1,22 @@
+# frozen_string_literal: true
+
 # insert your copyright here
 
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'erb'
-if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "unit_conversions")
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'unit_conversions')
 
 # start the measure
 class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
@@ -35,13 +37,13 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments
+  def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make an bool argument for whether to register to results csv or export to csv
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument("register_values", true)
-    arg.setDisplayName("Register Values")
-    arg.setDescription("Whether to register values to results csv or export to separate csv.")
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('register_values', true)
+    arg.setDisplayName('Register Values')
+    arg.setDescription('Whether to register values to results csv or export to separate csv.')
     arg.setDefaultValue(true)
     args << arg
 
@@ -49,51 +51,51 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def metrics
-    return ["thermal_mass", "ua"]
+    return ['thermal_mass', 'ua']
   end
 
   # define the outputs that the measure will create
   def outputs
     constructions = [
-      "floor_fin_ins_unfin_attic", # unfinished attic floor
-      "floor_fin_ins_unfin", # interzonal or cantilevered floor
-      "floor_fin_unins_fin", # floor between 1st/2nd story living spaces
-      "floor_unfin_unins_unfin", # floor between garage and attic
-      "floor_fnd_grnd_fin_b", # finished basement floor
-      "floor_fnd_grnd_unfin_b", # unfinished basement floor
-      "floor_fnd_grnd_fin_slab", # finished slab
-      "floor_fnd_grnd_unfin_slab", # garage slab
-      "floor_unfin_b_ins_fin", # unfinished basement ceiling
-      "floor_cs_ins_fin", # crawlspace ceiling
-      "floor_pb_ins_fin", # pier beam ceiling
-      "floor_fnd_grnd_cs", # crawlspace floor
-      "roof_unfin_unins_ext", # garage roof
-      "roof_unfin_ins_ext", # unfinished attic roof
-      "roof_fin_ins_ext", # finished attic roof
-      "wall_ext_ins_fin", # living exterior wall
-      "wall_ext_ins_unfin", # attic gable wall under insulated roof
-      "wall_ext_unins_unfin", # garage exterior wall or attic gable wall under uninsulated roof
-      "wall_fnd_grnd_fin_b", # finished basement wall
-      "wall_fnd_grnd_unfin_b", # unfinished basement wall
-      "wall_fnd_grnd_cs", # crawlspace wall
-      "wall_int_fin_ins_unfin", # interzonal wall
-      "wall_int_fin_unins_fin", # wall between two finished spaces
-      "wall_int_unfin_unins_unfin", # wall between two unfinished spaces
-      "living_space_footing_construction", # living space footing construction
-      "garage_space_footing_construction", # garage space footing construction
+      'floor_fin_ins_unfin_attic', # unfinished attic floor
+      'floor_fin_ins_unfin', # interzonal or cantilevered floor
+      'floor_fin_unins_fin', # floor between 1st/2nd story living spaces
+      'floor_unfin_unins_unfin', # floor between garage and attic
+      'floor_fnd_grnd_fin_b', # finished basement floor
+      'floor_fnd_grnd_unfin_b', # unfinished basement floor
+      'floor_fnd_grnd_fin_slab', # finished slab
+      'floor_fnd_grnd_unfin_slab', # garage slab
+      'floor_unfin_b_ins_fin', # unfinished basement ceiling
+      'floor_cs_ins_fin', # crawlspace ceiling
+      'floor_pb_ins_fin', # pier beam ceiling
+      'floor_fnd_grnd_cs', # crawlspace floor
+      'roof_unfin_unins_ext', # garage roof
+      'roof_unfin_ins_ext', # unfinished attic roof
+      'roof_fin_ins_ext', # finished attic roof
+      'wall_ext_ins_fin', # living exterior wall
+      'wall_ext_ins_unfin', # attic gable wall under insulated roof
+      'wall_ext_unins_unfin', # garage exterior wall or attic gable wall under uninsulated roof
+      'wall_fnd_grnd_fin_b', # finished basement wall
+      'wall_fnd_grnd_unfin_b', # unfinished basement wall
+      'wall_fnd_grnd_cs', # crawlspace wall
+      'wall_int_fin_ins_unfin', # interzonal wall
+      'wall_int_fin_unins_fin', # wall between two finished spaces
+      'wall_int_unfin_unins_unfin', # wall between two unfinished spaces
+      'living_space_footing_construction', # living space footing construction
+      'garage_space_footing_construction', # garage space footing construction
       # "window_construction", # exterior window
-      "door", # exterior door
-      "res_furniture_construction_living_space", # furniture in living
-      "res_furniture_construction_living_space_story_2", # furniture in living, second floor
-      "res_furniture_construction_unfinished_basement_space", # furniture in unfinished basement
-      "res_furniture_construction_finished_basement_space", # furniture in finished basement
-      "res_furniture_construction_garage_space", # furniture in garage
-      "living_zone", # living space air
-      "garage_zone", # garage space air
-      "unfinished_basement_zone", # unfinished basement space air
-      "finished_basement_zone", # finished basement space air
-      "crawl_zone", # crawl space air
-      "unfinished_attic_zone" # unfinished attic space air
+      'door', # exterior door
+      'res_furniture_construction_living_space', # furniture in living
+      'res_furniture_construction_living_space_story_2', # furniture in living, second floor
+      'res_furniture_construction_unfinished_basement_space', # furniture in unfinished basement
+      'res_furniture_construction_finished_basement_space', # furniture in finished basement
+      'res_furniture_construction_garage_space', # furniture in garage
+      'living_zone', # living space air
+      'garage_zone', # garage space air
+      'unfinished_basement_zone', # unfinished basement space air
+      'finished_basement_zone', # finished basement space air
+      'crawl_zone', # crawl space air
+      'unfinished_attic_zone' # unfinished attic space air
     ]
 
     result = OpenStudio::Measure::OSOutputVector.new
@@ -109,25 +111,23 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
   def run(runner, user_arguments)
     super(runner, user_arguments)
 
-    # use the built-in error checking
-    if !runner.validateUserArguments(arguments, user_arguments)
-      return false
-    end
-
-    register_values = runner.getBoolArgumentValue("register_values", user_arguments)
-
-    # get the last model and sql file
-
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError("Cannot find last model.")
+      runner.registerError('Cannot find OpenStudio model.')
       return false
     end
     model = model.get
 
+    # use the built-in error checking
+    if !runner.validateUserArguments(arguments(model), user_arguments)
+      return false
+    end
+
+    register_values = runner.getBoolArgumentValue('register_values', user_arguments)
+
     sqlFile = runner.lastEnergyPlusSqlFile
     if sqlFile.empty?
-      runner.registerError("Cannot find last sql file.")
+      runner.registerError('Cannot find last sql file.')
       return false
     end
     sqlFile = sqlFile.get
@@ -153,9 +153,9 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
         next unless areas.keys.include? name
 
         case metric
-        when "thermal_mass"
+        when 'thermal_mass'
           calculations[metric][name] = get_thermal_capacitance(construction, areas[name])
-        when "ua"
+        when 'ua'
           calculations[metric][name] = get_ua(construction, areas[name])
         end
       end
@@ -167,17 +167,17 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
       next unless vol > 0
 
       val = 1.004 * 1.225 # air specific heat and density
-      calculations["thermal_mass"][name] = get_thermal_capacitance(nil, nil, val, UnitConversions.convert(vol, "ft^3", "m^3"))
+      calculations['thermal_mass'][name] = get_thermal_capacitance(nil, nil, val, UnitConversions.convert(vol, 'ft^3', 'm^3'))
     end
 
     if register_values
       metrics.each do |metric|
         desired_units = nil
         case metric
-        when "thermal_mass"
-          desired_units = "kj/k"
-        when "ua"
-          desired_units = "w/k"
+        when 'thermal_mass'
+          desired_units = 'kj/k'
+        when 'ua'
+          desired_units = 'w/k'
         end
         values = calculations[metric]
         values.each do |name, val|
@@ -190,7 +190,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
     else
       metrics.each do |metric|
         csv_path = File.expand_path("../#{metric}.csv")
-        CSV.open(csv_path, "wb") do |csv|
+        CSV.open(csv_path, 'wb') do |csv|
           values = calculations[metric]
           values.each do |name, val|
             next unless val > 0
@@ -207,7 +207,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_thermal_capacitance(construction, area, val = nil, vol = nil)
-    if not val.nil? and not vol.nil?
+    if (not val.nil?) && (not vol.nil?)
       return val * vol
     else
       val = 0
@@ -277,7 +277,7 @@ class ConstructionPropertiesReport < OpenStudio::Measure::ReportingMeasure
 
       total_val += val.get * percent_of_val
     end
-    if os_units.nil? or desired_units.nil? or os_units == desired_units
+    if os_units.nil? || desired_units.nil? || (os_units == desired_units)
       valInUnits = total_val
     else
       valInUnits = OpenStudio::convert(total_val, os_units, desired_units).get

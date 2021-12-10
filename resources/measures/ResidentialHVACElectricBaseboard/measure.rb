@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://openstudio.nrel.gov/openstudio-measure-writing-guide
 
@@ -7,20 +9,20 @@
 # see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "constants")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "hvac")
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'hvac')
 
 # start the measure
 class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Electric Baseboard"
+    return 'Set Residential Electric Baseboard'
   end
 
   def description
@@ -28,7 +30,7 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. An HVAC baseboard convective electric is added to the living zone, as well as to the finished basement if it exists."
+    return 'Any heating components or baseboard convective electrics/waters are removed from any existing air/plant loops or zones. An HVAC baseboard convective electric is added to the living zone, as well as to the finished basement if it exists.'
   end
 
   # define the arguments that the user will input
@@ -36,18 +38,18 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make an argument for entering baseboard efficiency
-    efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument("efficiency", true)
-    efficiency.setDisplayName("Efficiency")
-    efficiency.setUnits("Btu/Btu")
-    efficiency.setDescription("The efficiency of the electric baseboard.")
+    efficiency = OpenStudio::Measure::OSArgument::makeDoubleArgument('efficiency', true)
+    efficiency.setDisplayName('Efficiency')
+    efficiency.setUnits('Btu/Btu')
+    efficiency.setDescription('The efficiency of the electric baseboard.')
     efficiency.setDefaultValue(1.0)
     args << efficiency
 
     # make a string argument for baseboard heating output capacity
-    capacity = OpenStudio::Measure::OSArgument::makeStringArgument("capacity", true)
-    capacity.setDisplayName("Heating Capacity")
+    capacity = OpenStudio::Measure::OSArgument::makeStringArgument('capacity', true)
+    capacity.setDisplayName('Heating Capacity')
     capacity.setDescription("The output heating capacity of the electric baseboard. If using '#{Constants.SizingAuto}', the autosizing algorithm will use ACCA Manual S to set the capacity.")
-    capacity.setUnits("kBtu/hr")
+    capacity.setUnits('kBtu/hr')
     capacity.setDefaultValue(Constants.SizingAuto)
     args << capacity
 
@@ -63,10 +65,10 @@ class ProcessElectricBaseboard < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    efficiency = runner.getDoubleArgumentValue("efficiency", user_arguments)
-    capacity = runner.getStringArgumentValue("capacity", user_arguments)
+    efficiency = runner.getDoubleArgumentValue('efficiency', user_arguments)
+    capacity = runner.getStringArgumentValue('capacity', user_arguments)
     unless capacity == Constants.SizingAuto
-      capacity = UnitConversions.convert(capacity.to_f, "kBtu/hr", "Btu/hr")
+      capacity = UnitConversions.convert(capacity.to_f, 'kBtu/hr', 'Btu/hr')
     end
     frac_heat_load_served = 1.0
 
