@@ -6,18 +6,9 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota_downselect
+  type: residential_quota
   args:
     n_datapoints: 1
-    logic:
-      or:
-        - County|AZ, Maricopa County
-        - County|CA, Los Angeles County
-        - County|GA, Fulton County
-        - County|IL, Cook County
-        - County|TX, Harris County
-        - County|WA, King County
-    resample: false
 
 workflow_generator:
   type: residential_default
