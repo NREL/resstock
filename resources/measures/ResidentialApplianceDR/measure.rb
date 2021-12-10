@@ -7,24 +7,24 @@
 # see the URL below for access to C++ documentation on model objects (click on "model" in the main window to view model objects)
 # http://openstudio.nrel.gov/sites/openstudio.nrel.gov/files/nv_data/cpp_documentation_it/model/html/namespaces.html
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
 
-require File.join(resources_path, "constants")
-require File.join(resources_path, "weather")
-require File.join(resources_path, "hvac")
-require File.join(resources_path, "schedules")
-require File.join(resources_path, "geometry")
-require File.join(File.dirname(__FILE__), "./schedule_modifier.rb")
+require File.join(resources_path, 'constants')
+require File.join(resources_path, 'weather')
+require File.join(resources_path, 'hvac')
+require File.join(resources_path, 'schedules')
+require File.join(resources_path, 'geometry')
+require File.join(File.dirname(__FILE__), './schedule_modifier.rb')
 
 # start the measure
 class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Appliance Demand Response Schedule"
+    return 'Set Appliance Demand Response Schedule'
   end
 
   def description
@@ -32,7 +32,7 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "This measure applies hourly demand response controls to existing heating and cooling temperature setpoint schedules. Up to two user-defined DR schedules are inputted as csvs for heating and/or cooling to indicate specific hours of setup and setback. The csvs should contain a value of -1, 0, or 1 for every hour of the simulation period or for an entire year. Offset magnitudes for heating and cooling are also specified by the user, which is multiplied by each row of the DR schedules to generate an hourly offset schedule on-the-fly. The existing cooling and heating setpoint schedules are fetched from the model object, restructured as an hourly schedule for the simulation period, and summed with their respective hourly offset schedules. These new hourly setpoint schedules are assigned to the thermostat object in every zone. Future development of this measure may include on/off DR schedules for appliances or use with water heaters."
+    return 'This measure applies hourly demand response controls to existing heating and cooling temperature setpoint schedules. Up to two user-defined DR schedules are inputted as csvs for heating and/or cooling to indicate specific hours of setup and setback. The csvs should contain a value of -1, 0, or 1 for every hour of the simulation period or for an entire year. Offset magnitudes for heating and cooling are also specified by the user, which is multiplied by each row of the DR schedules to generate an hourly offset schedule on-the-fly. The existing cooling and heating setpoint schedules are fetched from the model object, restructured as an hourly schedule for the simulation period, and summed with their respective hourly offset schedules. These new hourly setpoint schedules are assigned to the thermostat object in every zone. Future development of this measure may include on/off DR schedules for appliances or use with water heaters.'
   end
 
   # define the arguments that the user will input
@@ -40,69 +40,69 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make an argument for hourly DR schedule directory
-    dr_directory = OpenStudio::Measure::OSArgument::makeStringArgument("dr_directory", false)
-    dr_directory.setDisplayName("Demand Response Schedule Directory")
-    dr_directory.setDescription("Absolute or relative directory that contains the DR csv files")
-    dr_directory.setDefaultValue("../HPXMLtoOpenStudio/resources")
+    dr_directory = OpenStudio::Measure::OSArgument::makeStringArgument('dr_directory', false)
+    dr_directory.setDisplayName('Demand Response Schedule Directory')
+    dr_directory.setDescription('Absolute or relative directory that contains the DR csv files')
+    dr_directory.setDefaultValue('../HPXMLtoOpenStudio/resources')
     args << dr_directory
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("summer_peak_hours", false)
-    dr_arg.setDisplayName("Peak hours for the summer time")
-    dr_arg.setDescription("Peak period for the summer months in 24-hour format a-b,c-d inclusive all hours")
+    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument('summer_peak_hours', false)
+    dr_arg.setDisplayName('Peak hours for the summer time')
+    dr_arg.setDescription('Peak period for the summer months in 24-hour format a-b,c-d inclusive all hours')
     dr_arg.setDefaultValue('18-22')
     args << dr_arg
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("summer_take_hours", false)
-    dr_arg.setDisplayName("Hours for the summer during which the load is low")
-    dr_arg.setDescription("Period for the summer months in 24-hour format a-b,c-d inclusive all hours, when the load is low")
+    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument('summer_take_hours', false)
+    dr_arg.setDisplayName('Hours for the summer during which the load is low')
+    dr_arg.setDescription('Period for the summer months in 24-hour format a-b,c-d inclusive all hours, when the load is low')
     dr_arg.setDefaultValue('3-7')
     args << dr_arg
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("winter_peak_hours", false)
-    dr_arg.setDisplayName("Peak hours for the winter time")
-    dr_arg.setDescription("Peak period for the winter months in 24-hour format a-b,c-d inclusive all hours")
+    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument('winter_peak_hours', false)
+    dr_arg.setDisplayName('Peak hours for the winter time')
+    dr_arg.setDescription('Peak period for the winter months in 24-hour format a-b,c-d inclusive all hours')
     dr_arg.setDefaultValue('5-9,18-22')
     args << dr_arg
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("winter_take_hours", false)
-    dr_arg.setDisplayName("Hours for the winter during which the load is low")
-    dr_arg.setDescription("Period for the winter months in 24-hour format a-b,c-d inclusive all hours, when the load is low")
+    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument('winter_take_hours', false)
+    dr_arg.setDisplayName('Hours for the winter during which the load is low')
+    dr_arg.setDescription('Period for the winter months in 24-hour format a-b,c-d inclusive all hours, when the load is low')
     dr_arg.setDefaultValue('10-14')
     args << dr_arg
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("summer_months", false)
-    dr_arg.setDisplayName("Which months count as summer")
-    dr_arg.setDescription("List of months that count as summer months")
+    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument('summer_months', false)
+    dr_arg.setDisplayName('Which months count as summer')
+    dr_arg.setDescription('List of months that count as summer months')
     dr_arg.setDefaultValue('4-10')
     args << dr_arg
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument("winter_months", false)
-    dr_arg.setDisplayName("Which months count as winter")
-    dr_arg.setDescription("List of months that count as winter months")
+    dr_arg = OpenStudio::Measure::OSArgument::makeStringArgument('winter_months', false)
+    dr_arg.setDisplayName('Which months count as winter')
+    dr_arg.setDescription('List of months that count as winter months')
     dr_arg.setDefaultValue('1-3,11-12')
     args << dr_arg
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CW", false)
-    dr_arg.setDisplayName("If clothes washer operation should be shifted to avoid the peaks")
-    dr_arg.setDescription("The operation of clothes washer would be delayed or started earlier to avoid the peak hours.")
+    dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument('shift_CW', false)
+    dr_arg.setDisplayName('If clothes washer operation should be shifted to avoid the peaks')
+    dr_arg.setDescription('The operation of clothes washer would be delayed or started earlier to avoid the peak hours.')
     dr_arg.setDefaultValue(false)
     args << dr_arg
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_CD", false)
-    dr_arg.setDisplayName("If clothes dryer operation should be shifted to avoid the peaks")
-    dr_arg.setDescription("The operation of clothes dryer would be delayed or started earlier to avoid the peak hours.")
+    dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument('shift_CD', false)
+    dr_arg.setDisplayName('If clothes dryer operation should be shifted to avoid the peaks')
+    dr_arg.setDescription('The operation of clothes dryer would be delayed or started earlier to avoid the peak hours.')
     dr_arg.setDefaultValue(false)
     args << dr_arg
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_DW", false)
-    dr_arg.setDisplayName("If dish washer operation should be shifted to avoid the peaks")
-    dr_arg.setDescription("The operation of dishwasher would be delayed or started earlier to avoid the peak hours")
+    dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument('shift_DW', false)
+    dr_arg.setDisplayName('If dish washer operation should be shifted to avoid the peaks')
+    dr_arg.setDescription('The operation of dishwasher would be delayed or started earlier to avoid the peak hours')
     dr_arg.setDefaultValue(false)
     args << dr_arg
 
-    dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument("shift_PP", false)
-    dr_arg.setDisplayName("If pool pump operation should be shifted to avoid the peaks")
-    dr_arg.setDescription("The operation of pool pump would be shifted form peak hours to the take hours")
+    dr_arg = OpenStudio::Measure::OSArgument::makeBoolArgument('shift_PP', false)
+    dr_arg.setDisplayName('If pool pump operation should be shifted to avoid the peaks')
+    dr_arg.setDescription('The operation of pool pump would be shifted form peak hours to the take hours')
     dr_arg.setDefaultValue(false)
     args << dr_arg
 
@@ -121,14 +121,14 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    dr_dir = runner.getStringArgumentValue("dr_directory", user_arguments)
+    dr_dir = runner.getStringArgumentValue('dr_directory', user_arguments)
 
-    summer_peak_hours = runner.getStringArgumentValue("summer_peak_hours", user_arguments)
-    summer_take_hours = runner.getStringArgumentValue("summer_take_hours", user_arguments)
-    winter_peak_hours = runner.getStringArgumentValue("winter_peak_hours", user_arguments)
-    winter_take_hours = runner.getStringArgumentValue("winter_take_hours", user_arguments)
-    summer_months = runner.getStringArgumentValue("summer_months", user_arguments)
-    winter_months = runner.getStringArgumentValue("winter_months", user_arguments)
+    summer_peak_hours = runner.getStringArgumentValue('summer_peak_hours', user_arguments)
+    summer_take_hours = runner.getStringArgumentValue('summer_take_hours', user_arguments)
+    winter_peak_hours = runner.getStringArgumentValue('winter_peak_hours', user_arguments)
+    winter_take_hours = runner.getStringArgumentValue('winter_take_hours', user_arguments)
+    summer_months = runner.getStringArgumentValue('summer_months', user_arguments)
+    winter_months = runner.getStringArgumentValue('winter_months', user_arguments)
 
     def expand_interval_input(x)
       return x.split(',').map { |x| x.split('-').map { |x| x.to_i } }.sort.map { |x| (x[0]..x[1]).to_a }.flatten
@@ -146,10 +146,10 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
     winter_take_hours = array_interval_input(winter_take_hours)
     summer_months = expand_interval_input(summer_months)
     winter_months = expand_interval_input(winter_months)
-    shift_CW = runner.getBoolArgumentValue("shift_CW", user_arguments)
-    shift_CD = runner.getBoolArgumentValue("shift_CD", user_arguments)
-    shift_DW = runner.getBoolArgumentValue("shift_DW", user_arguments)
-    shift_PP = runner.getBoolArgumentValue("shift_PP", user_arguments)
+    shift_CW = runner.getBoolArgumentValue('shift_CW', user_arguments)
+    shift_CD = runner.getBoolArgumentValue('shift_CD', user_arguments)
+    shift_DW = runner.getBoolArgumentValue('shift_DW', user_arguments)
+    shift_PP = runner.getBoolArgumentValue('shift_PP', user_arguments)
 
     def avoid_peaks(day_sch, peak_hours, model, take_hour = [], simple_shifting = false)
       def create_new_day_schedule(times, values, model)
@@ -193,8 +193,8 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
       return day_sch
     end
 
-    if (shift_CW == false) and (shift_CD == false) and (shift_DW == false) and (shift_PP == false)
-      runner.registerInfo("No appliance DR defined, ResidentialApplianceDR measure not applied")
+    if (shift_CW == false) && (shift_CD == false) && (shift_DW == false) && (shift_PP == false)
+      runner.registerInfo('No appliance DR defined, ResidentialApplianceDR measure not applied')
       return true
     end
 
@@ -203,22 +203,22 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
     units.each_with_index do |unit, unit_index|
       pool_pump_name = Constants.ObjectNamePoolPump(unit.name.to_s)
       model.getElectricEquipments.each do |ee|
-        if ee.name.to_s == pool_pump_name
-          puts("Hooray! found a pool pump #{ee}")
-          puts("It's schedule is: #{ee.schedule.get}")
-          existing_schedule = ee.schedule.get
-          if not existing_schedule.to_ScheduleRuleset.empty?
-            ruleset = existing_schedule.to_ScheduleRuleset.get
-            rules = ruleset.scheduleRules()
-            puts("Pool Rules vector: #{rules}")
-            rules.each_with_index do |rule, index|
-              day_sch = rule.daySchedule
-              puts("Pool The #{index} day schedule is values ##{day_sch.times.map { |x| x.to_s }},#{day_sch.values}")
-              puts("Pool For this specific dates #{rule.specificDates[0]}")
-              puts("Start date: #{rule.startDate.get} and End date: #{rule.endDate.get}")
-              puts("Month is #{rule.startDate.get.monthOfYear.value}")
-            end
-          end
+        next unless ee.name.to_s == pool_pump_name
+
+        puts("Hooray! found a pool pump #{ee}")
+        puts("It's schedule is: #{ee.schedule.get}")
+        existing_schedule = ee.schedule.get
+        next unless not existing_schedule.to_ScheduleRuleset.empty?
+
+        ruleset = existing_schedule.to_ScheduleRuleset.get
+        rules = ruleset.scheduleRules()
+        puts("Pool Rules vector: #{rules}")
+        rules.each_with_index do |rule, index|
+          day_sch = rule.daySchedule
+          puts("Pool The #{index} day schedule is values ##{day_sch.times.map { |x| x.to_s }},#{day_sch.values}")
+          puts("Pool For this specific dates #{rule.specificDates[0]}")
+          puts("Start date: #{rule.startDate.get} and End date: #{rule.endDate.get}")
+          puts("Month is #{rule.startDate.get.monthOfYear.value}")
         end
       end
     end
@@ -226,23 +226,23 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
     units.each_with_index do |unit, unit_index|
       appliance_names = []
       appliance_names << Constants.ObjectNameClothesWasher(unit.name.to_s)
-      appliance_names << Constants.ObjectNameClothesDryer("electric", unit.name.to_s)
+      appliance_names << Constants.ObjectNameClothesDryer('electric', unit.name.to_s)
       appliance_names << Constants.ObjectNameDishwasher(unit.name.to_s)
       appliance_names << Constants.ObjectNamePoolPump(unit.name.to_s)
       model.getElectricEquipments.each do |ee|
-        puts("Checking EE: #{(ee.name.to_s)}")
+        puts("Checking EE: #{ee.name}")
         next if not appliance_names.include?(ee.name.to_s)
 
-        puts("EE is to be rescheduled")
-        puts("For unit #{unit.name.to_s} found ee named: #{ee.name.to_s}")
+        puts('EE is to be rescheduled')
+        puts("For unit #{unit.name} found ee named: #{ee.name}")
         if not ee.schedule.empty?
-          puts("EE does have schedule")
+          puts('EE does have schedule')
           existing_schedule = ee.schedule.get
           new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
           new_schedule.setName('DR_' + existing_schedule.name.get)
 
           if not existing_schedule.to_ScheduleRuleset.empty?
-            puts("EE does have ruleset schedule ...")
+            puts('EE does have ruleset schedule ...')
             ruleset = existing_schedule.to_ScheduleRuleset.get
             rules = ruleset.scheduleRules()
             puts("Rules vector: #{rules}")
@@ -262,7 +262,7 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
 
                   # use only the first take_hour if a list is provided.
                   summer_sch = avoid_peaks(day_sch, summer_peak_hours, model, summer_take_hours[0], true)
-                  puts("Pool pump, Before after the schedule is: ")
+                  puts('Pool pump, Before after the schedule is: ')
                   puts("#{day_sch.times.map { |t| t.to_s }}")
                   puts("#{summer_sch.times.map { |t| t.to_s }}")
                   puts("#{day_sch.values}")
@@ -275,7 +275,7 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
                   Schedule.set_weekend_rule(summer_rule)
                 elsif winter_months.include?(start_date.monthOfYear.value)
                   winter_sch = avoid_peaks(day_sch, winter_peak_hours, model, winter_take_hours[0], true)
-                  puts("Pool pump, Before after the schedule is: ")
+                  puts('Pool pump, Before after the schedule is: ')
                   puts("#{day_sch.times.map { |t| t.to_s }}")
                   puts("#{winter_sch.times.map { |t| t.to_s }}")
                   puts("#{day_sch.values}")
@@ -314,7 +314,7 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
             end
             if ee.name.to_s == Constants.ObjectNamePoolPump(unit.name.to_s)
               # reset the schedule limit to 2 if it is a pool_pump
-              puts("Printing design level")
+              puts('Printing design level')
               puts(ee.designLevel.get)
               old_level = ee.designLevel.get
               equip_def = ee.electricEquipmentDefinition
@@ -335,22 +335,22 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
                   begin
                     puts("Pool For this specific dates #{rule.specificDates[0]}")
                   rescue
-                    puts("No specific dates")
+                    puts('No specific dates')
                   end
 
                   begin
                     puts("Start date: #{rule.startDate.get} and End date: #{rule.endDate.get}")
                   rescue
-                    puts("no start/end date")
+                    puts('no start/end date')
                   end
                 end
               end
             end
 
-            puts("Applying new schedule: #{ee.name.to_s}")
+            puts("Applying new schedule: #{ee.name}")
             print_schedule(new_schedule)
             ee.setSchedule(new_schedule)
-            puts("After updating the schedule #{ee.name.to_s}")
+            puts("After updating the schedule #{ee.name}")
             existing_schedule = ee.schedule.get
             print_schedule(existing_schedule)
 
@@ -358,7 +358,7 @@ class ApplianceDemandResponse < OpenStudio::Measure::ModelMeasure
             runner.registerError("Expecting Ruleset schedule. Found #{existing_schedule} instead")
           end
         else
-          runner.registerError("No schedule attached to clothes washer")
+          runner.registerError('No schedule attached to clothes washer')
         end
       end
     end

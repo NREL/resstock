@@ -12,8 +12,8 @@ class UnmetShowerEnergyReportTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = {}
-    expected_values = { "unmet_shower_energy_kbtu" => 1.420, "unmet_shower_time_hr" => 0.700, "shower_draw_time_hr" => 139.0 }
-    _test_measure("SFD_Successful_EnergyPlus_Run_TMY_Fixtures_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver_Intl_AP_725650_TMY3.epw", 3, 0, 3 * num_units)
+    expected_values = { 'unmet_shower_energy_kbtu' => 1.420, 'unmet_shower_time_hr' => 0.700, 'shower_draw_time_hr' => 139.0 }
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY_Fixtures_PV.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, 'USA_CO_Denver_Intl_AP_725650_TMY3.epw', 3, 0, 3 * num_units)
   end
 
   def test_functionality_mf
@@ -22,12 +22,12 @@ class UnmetShowerEnergyReportTest < MiniTest::Test
     args_hash = {}
     expected_num_del_objects = {}
     expected_num_new_objects = {}
-    expected_values = { "unmet_shower_energy_kbtu" => 1.579, "unmet_shower_time_hr" => 1.528, "shower_draw_time_hr" => 278.0 }
-    _test_measure("MF_Successful_EnergyPlus_Run_TMY_Fixtures_PV.osm", args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, "USA_CO_Denver_Intl_AP_725650_TMY3.epw", 3, 0, 3 * num_units)
+    expected_values = { 'unmet_shower_energy_kbtu' => 1.579, 'unmet_shower_time_hr' => 1.528, 'shower_draw_time_hr' => 278.0 }
+    _test_measure('MF_Successful_EnergyPlus_Run_TMY_Fixtures_PV.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, __method__, 'USA_CO_Denver_Intl_AP_725650_TMY3.epw', 3, 0, 3 * num_units)
   end
 
   def model_in_path_default(osm_file_or_model)
-    return File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "..", "test", "osm_files", osm_file_or_model))
+    return File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test', 'osm_files', osm_file_or_model))
   end
 
   def epw_path_default(epw_name)
@@ -58,7 +58,7 @@ class UnmetShowerEnergyReportTest < MiniTest::Test
   # create test files if they do not exist when the test first runs
   def setup_test(osm_file_or_model, test_name, idf_output_requests, epw_path, model_in_path)
     # convert output requests to OSM for testing, OS App and PAT will add these to the E+ Idf
-    workspace = OpenStudio::Workspace.new("Draft".to_StrictnessLevel, "EnergyPlus".to_IddFileType)
+    workspace = OpenStudio::Workspace.new('Draft'.to_StrictnessLevel, 'EnergyPlus'.to_IddFileType)
     workspace.addObjects(idf_output_requests)
     rt = OpenStudio::EnergyPlus::ReverseTranslator.new
     request_model = rt.translateWorkspace(workspace)
@@ -70,7 +70,7 @@ class UnmetShowerEnergyReportTest < MiniTest::Test
     model.addObjects(request_model.objects)
     model.save(model_out_path(osm_file_or_model, test_name), true)
 
-    osw_path = File.join(run_dir(test_name), "in.osw")
+    osw_path = File.join(run_dir(test_name), 'in.osw')
     osw_path = File.absolute_path(osw_path)
 
     workflow = OpenStudio::WorkflowJSON.new
@@ -161,7 +161,7 @@ class UnmetShowerEnergyReportTest < MiniTest::Test
     end
 
     # assert that it ran correctly
-    assert_equal("Success", result.value.valueName)
+    assert_equal('Success', result.value.valueName)
     assert_equal(num_infos, result.info.size)
     assert_equal(num_warnings, result.warnings.size)
 

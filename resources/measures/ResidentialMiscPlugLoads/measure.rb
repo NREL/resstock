@@ -84,9 +84,9 @@ class ResidentialMiscElectricLoads < OpenStudio::Measure::ModelMeasure
     lat_frac.setDefaultValue(0.021)
     args << lat_frac
 
-    fraction_shed = OpenStudio::Measure::OSArgument::makeDoubleArgument("fraction_shed", false)
-    fraction_shed.setDisplayName("Plug Load Fraction Shed")
-    fraction_shed.setDescription("Fraction of plug load energy use is shed")
+    fraction_shed = OpenStudio::Measure::OSArgument::makeDoubleArgument('fraction_shed', false)
+    fraction_shed.setDisplayName('Plug Load Fraction Shed')
+    fraction_shed.setDescription('Fraction of plug load energy use is shed')
     fraction_shed.setDefaultValue(0.0)
     args << fraction_shed
 

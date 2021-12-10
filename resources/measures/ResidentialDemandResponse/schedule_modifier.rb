@@ -6,7 +6,7 @@ def get_cluster(sch, period, timeClass, cluster_gap_minute = 30, after_margin = 
   sch.values.each_with_index do |value, index|
     time = sch.times[index]
     minute = time.totalMinutes
-    if (cluster_minutes[-1] and (minute - cluster_minutes[-1]) < cluster_gap_minute)
+    if (cluster_minutes[-1] && ((minute - cluster_minutes[-1]) < cluster_gap_minute))
       # this value is less than gap-time after last value join to cluster
       cluster << [time, value]
       cluster_minutes << minute
@@ -20,7 +20,7 @@ def get_cluster(sch, period, timeClass, cluster_gap_minute = 30, after_margin = 
         # if it is zero and that too coming after more than an gap_minute
         if time.totalMinutes >= period[1] * 60 + after_margin
           # we are past the period
-          if cluster_minutes[-1] and cluster_minutes[-1] > period[0] * 60
+          if cluster_minutes[-1] && (cluster_minutes[-1] > period[0] * 60)
             # the last cluster entered the period, so return it
             return cluster
           else
@@ -35,7 +35,7 @@ def get_cluster(sch, period, timeClass, cluster_gap_minute = 30, after_margin = 
         else
           # we have entered the period.
           # discard the last cluster if it didn't touch, otherwise add to it
-          if cluster_minutes[-1] and cluster_minutes[-1] > period[0] * 60
+          if cluster_minutes[-1] && (cluster_minutes[-1] > period[0] * 60)
             # the last cluster had entered the period. Just keep adding to it
             cluster << [time, value]
             cluster_minutes << minute
@@ -53,7 +53,7 @@ def get_cluster(sch, period, timeClass, cluster_gap_minute = 30, after_margin = 
 end
 
 def move_cluster(sch, cluster_times, distance, timeClass)
-  if not cluster_times or cluster_times.length == 0
+  if (not cluster_times) || (cluster_times.length == 0)
     return sch.times, sch.values
   end
 
@@ -61,14 +61,14 @@ def move_cluster(sch, cluster_times, distance, timeClass)
   to_remove_schedule_indexs = []
   moved_cluster = []
   sch.times.each_with_index do |time, index|
-    if cluster_times.include?(time)
-      new_total_minutes = time.totalMinutes + distance
-      hour = (new_total_minutes / 60).to_i
-      min = (new_total_minutes % 60)
-      new_time = timeClass.new("#{hour}:#{min}:00")
-      moved_cluster << [new_time, sch.values[index]]
-      to_remove_schedule_indexs << index
-    end
+    next unless cluster_times.include?(time)
+
+    new_total_minutes = time.totalMinutes + distance
+    hour = (new_total_minutes / 60).to_i
+    min = (new_total_minutes % 60)
+    new_time = timeClass.new("#{hour}:#{min}:00")
+    moved_cluster << [new_time, sch.values[index]]
+    to_remove_schedule_indexs << index
   end
 
   # remove the to be moved schedules
@@ -92,7 +92,7 @@ def move_cluster(sch, cluster_times, distance, timeClass)
       break
     end
   end
-  if sch_times[insert_just_before_index] and sch_times[insert_just_before_index].totalMinutes == moved_cluster_end_time
+  if sch_times[insert_just_before_index] && (sch_times[insert_just_before_index].totalMinutes == moved_cluster_end_time)
     if sch_values[insert_just_before_index] < 1e-8
       sch_times.reject!.with_index { |t, i| i == insert_just_before_index }
       sch_values.reject!.with_index { |t, i| i == insert_just_before_index }
@@ -115,7 +115,7 @@ end
 
 def dodge_peak(sch, peak_period, all_peaks, timeClass)
   cluster = get_cluster(sch, peak_period, timeClass)
-  if cluster == nil or cluster.length == 0 or not cluster.transpose[0][0]
+  if cluster.nil? || (cluster.length == 0) || (not cluster.transpose[0][0])
     return sch.times, sch.values
   end
 
@@ -148,11 +148,11 @@ def dodge_peak(sch, peak_period, all_peaks, timeClass)
             # find when that obstruction ends
             found_next_slot = false
             (indx..sch.times.length - 1).each do |i|
-              if sch.values[i] > 1e-8 and sch.values[i + 1] and sch.values[i + 1] < 1e-8
-                found_next_slot = true
-                earliest_start_time_after = sch.times[i].totalMinutes
-                break
-              end
+              next unless (sch.values[i] > 1e-8) && sch.values[i + 1] && (sch.values[i + 1] < 1e-8)
+
+              found_next_slot = true
+              earliest_start_time_after = sch.times[i].totalMinutes
+              break
             end
             if not found_next_slot
               return false, sch.times, sch.values
@@ -215,11 +215,11 @@ def dodge_peak(sch, peak_period, all_peaks, timeClass)
             # find when that obstruction ends
             found_next_slot = false
             (indx - 1).downto(0) do |i|
-              if sch.values[i] < 1e-8
-                found_next_slot = true
-                latest_end_time_before = sch.times[i].totalMinutes
-                break
-              end
+              next unless sch.values[i] < 1e-8
+
+              found_next_slot = true
+              latest_end_time_before = sch.times[i].totalMinutes
+              break
             end
             if not found_next_slot
               return false, sch.times, sch.values
@@ -300,7 +300,7 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass, fraction = [0, 
     entered_peak = false
     times.each_with_index do |time, index|
       cur_val = vals[index]
-      if (time.totalMinutes >= peak_period[0] * 60) and (not entered_peak)
+      if (time.totalMinutes >= peak_period[0] * 60) && (not entered_peak)
         prev_index = index - 1
         new_sch_times = times[0, prev_index + 1] # indexes upto prev index
         new_sch_vals = vals[0, prev_index + 1]
@@ -311,25 +311,24 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass, fraction = [0, 
         end
       end
 
-      if time.totalMinutes >= peak_period[1] * 60
+      next unless time.totalMinutes >= peak_period[1] * 60
 
-        if time.totalMinutes == peak_period[1] * 60
-          # if this entry is exactly at the ending boundary, just make it 0
-          new_sch_times << time
+      if time.totalMinutes == peak_period[1] * 60
+        # if this entry is exactly at the ending boundary, just make it 0
+        new_sch_times << time
+        new_sch_vals << 0
+        new_sch_times += times[index + 1..-1]
+        new_sch_vals += vals[index + 1..-1]
+      else
+        if cur_val > 0
+          # add a point at the ending boundary with value 0 if it isn't already 0
+          new_sch_times << timeClass.new("#{peak_period[1]}:00:00")
           new_sch_vals << 0
-          new_sch_times += times[index + 1..-1]
-          new_sch_vals += vals[index + 1..-1]
-        else
-          if cur_val > 0
-            # add a point at the ending boundary with value 0 if it isn't already 0
-            new_sch_times << timeClass.new("#{peak_period[1]}:00:00")
-            new_sch_vals << 0
-          end
-          new_sch_times += times[index..-1]
-          new_sch_vals += vals[index..-1]
         end
-        break
+        new_sch_times += times[index..-1]
+        new_sch_vals += vals[index..-1]
       end
+      break
     end
   else
     # reduce the energy during peak period to a certain fraction
@@ -338,7 +337,7 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass, fraction = [0, 
     entered = false
     times.each_with_index do |time, index|
       cur_val = vals[index]
-      if time.totalMinutes >= peak_period[0] * 60 and (time.totalMinutes < peak_period[1] * 60 or not entered)
+      if (time.totalMinutes >= peak_period[0] * 60) && ((time.totalMinutes < peak_period[1] * 60) || (not entered))
         if not entered
           entered = true
           if time.totalMinutes == peak_period[0] * 60
@@ -385,7 +384,7 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass, fraction = [0, 
   entered = false
   new_sch_times.each_with_index do |time, index|
     cur_val = new_sch_vals[index]
-    if time.totalMinutes >= take_period[0] * 60 and (time.totalMinutes < take_period[1] * 60 or not entered)
+    if (time.totalMinutes >= take_period[0] * 60) && ((time.totalMinutes < take_period[1] * 60) || (not entered))
       if not entered
         entered = true
         if time.totalMinutes == take_period[0] * 60

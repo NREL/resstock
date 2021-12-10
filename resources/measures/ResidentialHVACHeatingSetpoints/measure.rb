@@ -119,9 +119,9 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     season_end_month.setDefaultValue('Dec')
     args << season_end_month
 
-    apply_offset = OpenStudio::Measure::OSArgument::makeBoolArgument("apply_offset", true)
-    apply_offset.setDisplayName("Apply Heating Setpoint Offset")
-    apply_offset.setDescription("Specifies whether to apply the setpoint offsets defined in weekend_offset_schedule and weekday_offset_schedule. If false, the offsets are set to 0 and the constant heating setpoint is used.")
+    apply_offset = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_offset', true)
+    apply_offset.setDisplayName('Apply Heating Setpoint Offset')
+    apply_offset.setDescription('Specifies whether to apply the setpoint offsets defined in weekend_offset_schedule and weekday_offset_schedule. If false, the offsets are set to 0 and the constant heating setpoint is used.')
     apply_offset.setDefaultValue(true)
     args << apply_offset
 
@@ -150,7 +150,7 @@ class ProcessHeatingSetpoints < OpenStudio::Measure::ModelMeasure
     season_start_month = runner.getOptionalStringArgumentValue('season_start_month', user_arguments)
     season_end_month = runner.getOptionalStringArgumentValue('season_end_month', user_arguments)
 
-    apply_offset = runner.getBoolArgumentValue("apply_offset", user_arguments)
+    apply_offset = runner.getBoolArgumentValue('apply_offset', user_arguments)
 
     weather = WeatherProcess.new(model, runner)
     if weather.error?

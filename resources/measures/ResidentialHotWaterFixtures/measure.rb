@@ -540,18 +540,18 @@ class ResidentialHotWaterFixtures < OpenStudio::Measure::ModelMeasure
         end
       end
       model.getEnergyManagementSystemSensors.each do |sensor|
-        if sensor.name.to_s.start_with? obj_name.gsub(" ", "_").gsub("unit ", "").gsub("|", "_")
+        if sensor.name.to_s.start_with? obj_name.gsub(' ', '_').gsub('unit ', '').gsub('|', '_')
           sensor.remove
         end
       end
       programs = []
       model.getEnergyManagementSystemOutputVariables.each do |var|
-        if var.emsProgramOrSubroutineName.to_s.start_with? obj_name.gsub(" ", "_").gsub("unit ", "").gsub("|", "_")
-          unless programs.include? var.emsProgram.get
-            programs << var.emsProgram.get
-          end
-          var.remove
+        next unless var.emsProgramOrSubroutineName.to_s.start_with? obj_name.gsub(' ', '_').gsub('unit ', '').gsub('|', '_')
+
+        unless programs.include? var.emsProgram.get
+          programs << var.emsProgram.get
         end
+        var.remove
       end
       programs.each do |program|
         program.remove

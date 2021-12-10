@@ -7,7 +7,7 @@ def get_cluster(sch, period, timeClass, cluster_gap_minute = 30, after_margin = 
     time = sch.times[index]
     puts("Get cluster is processing #{time},#{value} (totalMinutes: #{time.totalMinutes}, totalHours: #{time.totalHours})")
     minute = time.totalMinutes
-    if (cluster_minutes[-1] and (minute - cluster_minutes[-1]) < cluster_gap_minute)
+    if (cluster_minutes[-1] && ((minute - cluster_minutes[-1]) < cluster_gap_minute))
       # this value is less than gap-time after last value join to cluster
       puts("#{time} is less than gap time (#{minute}-#{cluster_minutes[-1]} < #{cluster_gap_minute}). Joining cluster")
       cluster << [time, value]
@@ -23,7 +23,7 @@ def get_cluster(sch, period, timeClass, cluster_gap_minute = 30, after_margin = 
         # if it is zero and that too coming after more than an gap_minute
         if time.totalMinutes >= period[1] * 60 + after_margin
           # we are past the period
-          if cluster_minutes[-1] and cluster_minutes[-1] > period[0] * 60
+          if cluster_minutes[-1] && (cluster_minutes[-1] > period[0] * 60)
             # the last cluster entered the period, so return it
             return cluster
           else
@@ -38,9 +38,9 @@ def get_cluster(sch, period, timeClass, cluster_gap_minute = 30, after_margin = 
         else
           # we have entered the period.
           # discard the last cluster if it didn't touch, otherwise add to it
-          if cluster_minutes[-1] and cluster_minutes[-1] > period[0] * 60
+          if cluster_minutes[-1] && (cluster_minutes[-1] > period[0] * 60)
             # the last cluster had entered the period. Just keep adding to it
-            puts("The last cluster already entered the period, and this schedule also inside period so adding to it")
+            puts('The last cluster already entered the period, and this schedule also inside period so adding to it')
             cluster << [time, value]
             cluster_minutes << minute
           else
@@ -58,7 +58,7 @@ def get_cluster(sch, period, timeClass, cluster_gap_minute = 30, after_margin = 
 end
 
 def move_cluster(sch, cluster_times, distance, timeClass)
-  if not cluster_times or cluster_times.length == 0
+  if (not cluster_times) || (cluster_times.length == 0)
     return sch.times, sch.values
   end
 
@@ -66,14 +66,14 @@ def move_cluster(sch, cluster_times, distance, timeClass)
   to_remove_schedule_indexs = []
   moved_cluster = []
   sch.times.each_with_index do |time, index|
-    if cluster_times.include?(time)
-      new_total_minutes = time.totalMinutes + distance
-      hour = (new_total_minutes / 60).to_i
-      min = (new_total_minutes % 60)
-      new_time = timeClass.new("#{hour}:#{min}:00")
-      moved_cluster << [new_time, sch.values[index]]
-      to_remove_schedule_indexs << index
-    end
+    next unless cluster_times.include?(time)
+
+    new_total_minutes = time.totalMinutes + distance
+    hour = (new_total_minutes / 60).to_i
+    min = (new_total_minutes % 60)
+    new_time = timeClass.new("#{hour}:#{min}:00")
+    moved_cluster << [new_time, sch.values[index]]
+    to_remove_schedule_indexs << index
   end
 
   # remove the to be moved schedules
@@ -91,10 +91,10 @@ def move_cluster(sch, cluster_times, distance, timeClass)
   sch_times.each_with_index do |time, index|
     if time.totalMinutes == moved_cluster_start_time
       if sch_values[index] < 1e-8
-        puts("Something wrong with algorithm and assumptions. The cluster is being moved on top of existing schedule")
-        puts("Existing schedule at #{time.to_s}, #{sch_values[index]}")
+        puts('Something wrong with algorithm and assumptions. The cluster is being moved on top of existing schedule')
+        puts("Existing schedule at #{time}, #{sch_values[index]}")
       else
-        puts("The cluster is to be moved into a right edge of existing schedule at #{time.to_s}. So, first 0 of cluster is removed")
+        puts("The cluster is to be moved into a right edge of existing schedule at #{time}. So, first 0 of cluster is removed")
       end
       insert_just_before_index = index + 1
       moved_cluster.delete_at(0)
@@ -107,14 +107,14 @@ def move_cluster(sch, cluster_times, distance, timeClass)
       break
     end
   end
-  if sch_times[insert_just_before_index] and sch_times[insert_just_before_index].totalMinutes == moved_cluster_end_time
-    puts("The cluster will end into the left-edge of existing schedule at #{moved_cluster_end_time.to_s}. So, that edge will be removed")
+  if sch_times[insert_just_before_index] && (sch_times[insert_just_before_index].totalMinutes == moved_cluster_end_time)
+    puts("The cluster will end into the left-edge of existing schedule at #{moved_cluster_end_time}. So, that edge will be removed")
     if sch_values[insert_just_before_index] < 1e-8
       sch_times.reject!.with_index { |t, i| i == insert_just_before_index }
       sch_values.reject!.with_index { |t, i| i == insert_just_before_index }
       puts("After removing left-edge: #{sch_times}, #{sch_values}")
     else
-      puts("Something wrong with algorithm assumption. The cluster being moved will extend into existing schedule at #{moved_cluster_end_time.to_s} ")
+      puts("Something wrong with algorithm assumption. The cluster being moved will extend into existing schedule at #{moved_cluster_end_time} ")
     end
   end
   if insert_just_before_index > 0
@@ -131,8 +131,8 @@ def dodge_peak(sch, peak_period, all_peaks, timeClass)
   puts("Pasing schedule #{sch} to get_cluster")
   cluster = get_cluster(sch, peak_period, timeClass)
   # puts("Got Cluster #{cluster.transpose[0].map{|x| x.to_s}}")
-  if cluster == nil or cluster.length == 0 or not cluster.transpose[0][0]
-    puts("Returning as it is")
+  if cluster.nil? || (cluster.length == 0) || (not cluster.transpose[0][0])
+    puts('Returning as it is')
     return sch.times, sch.values
   end
 
@@ -164,15 +164,15 @@ def dodge_peak(sch, peak_period, all_peaks, timeClass)
           if sch.values[indx] < 1e-8
             # we found an obstruction
             # find when that obstruction ends
-            puts("Found obstructiion at #{sch.times[indx].to_s}")
+            puts("Found obstructiion at #{sch.times[indx]}")
             found_next_slot = false
             (indx..sch.times.length - 1).each do |i|
-              puts("Looking at #{sch.times[i].to_s},#{sch.values[i]} and next #{sch.times[i + 1].to_s},#{sch.values[i + 1]} ")
-              if sch.values[i] > 1e-8 and sch.values[i + 1] and sch.values[i + 1] < 1e-8
-                found_next_slot = true
-                earliest_start_time_after = sch.times[i].totalMinutes
-                break
-              end
+              puts("Looking at #{sch.times[i]},#{sch.values[i]} and next #{sch.times[i + 1]},#{sch.values[i + 1]} ")
+              next unless (sch.values[i] > 1e-8) && sch.values[i + 1] && (sch.values[i + 1] < 1e-8)
+
+              found_next_slot = true
+              earliest_start_time_after = sch.times[i].totalMinutes
+              break
             end
             if not found_next_slot
               puts("Can't find a place to move the cluster")
@@ -207,7 +207,7 @@ def dodge_peak(sch, peak_period, all_peaks, timeClass)
       t, v = move_cluster(sch, times, total_move_distance, timeClass)
       return true, t, v
     else
-      puts("Not enough room to move cluster")
+      puts('Not enough room to move cluster')
       return false, sch.times, sch.values
     end
   }
@@ -238,15 +238,15 @@ def dodge_peak(sch, peak_period, all_peaks, timeClass)
           if sch.values[indx] > 1e-8
             # we found an obstruction
             # find when that obstruction ends
-            puts("Found obstructiion at #{sch.times[indx].to_s}")
+            puts("Found obstructiion at #{sch.times[indx]}")
             found_next_slot = false
             (indx - 1).downto(0) do |i|
-              puts("Looking at #{sch.times[i].to_s},#{sch.values[i]}")
-              if sch.values[i] < 1e-8
-                found_next_slot = true
-                latest_end_time_before = sch.times[i].totalMinutes
-                break
-              end
+              puts("Looking at #{sch.times[i]},#{sch.values[i]}")
+              next unless sch.values[i] < 1e-8
+
+              found_next_slot = true
+              latest_end_time_before = sch.times[i].totalMinutes
+              break
             end
             if not found_next_slot
               puts("Can't find a place to move the cluster")
@@ -289,7 +289,7 @@ def dodge_peak(sch, peak_period, all_peaks, timeClass)
 
   is_sucess, fmoved_times, fmoved_values = move_forward.call()
   if not is_sucess
-    puts ("moving forward failed. Moving back instead")
+    puts ('moving forward failed. Moving back instead')
     is_sucess, bmoved_times, bmoved_values = move_backward.call()
     puts ("Did backward moving succeed: #{is_sucess}")
     return bmoved_times, bmoved_values
@@ -335,7 +335,7 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass)
   entered_peak = false
   times.each_with_index do |time, index|
     cur_val = vals[index]
-    if (time.totalMinutes >= peak_period[0] * 60) and (not entered_peak)
+    if (time.totalMinutes >= peak_period[0] * 60) && (not entered_peak)
       prev_index = index - 1
       new_sch_times = times[0, prev_index + 1] # indexes upto prev index
       new_sch_vals = vals[0, prev_index + 1]
@@ -344,45 +344,44 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass)
         new_sch_times << timeClass.new("#{peak_period[0]}:00:00")
         new_sch_vals << cur_val
       end
-      puts("Peakclearing: Processing #{time.to_s} which entered peak period. Starting with #{new_sch_times.map { |x| x.to_s }}, #{new_sch_vals}")
+      puts("Peakclearing: Processing #{time} which entered peak period. Starting with #{new_sch_times.map { |x| x.to_s }}, #{new_sch_vals}")
     end
 
-    if time.totalMinutes >= peak_period[1] * 60
+    next unless time.totalMinutes >= peak_period[1] * 60
 
-      if time.totalMinutes == peak_period[1] * 60
-        # if this entry is exactly at the ending boundary, just make it 0
-        new_sch_times << time
+    if time.totalMinutes == peak_period[1] * 60
+      # if this entry is exactly at the ending boundary, just make it 0
+      new_sch_times << time
+      new_sch_vals << 0
+      new_sch_times += times[index + 1..-1]
+      new_sch_vals += vals[index + 1..-1]
+      puts("Peakclearing: Processing #{time} which at the end-boundary of peak period. Schedule changed to: #{new_sch_times.map { |x| x.to_s }}, #{new_sch_vals}")
+
+    else
+      if cur_val > 0
+        # add a point at the ending boundary with value 0 if it isn't already 0
+        new_sch_times << timeClass.new("#{peak_period[1]}:00:00")
         new_sch_vals << 0
-        new_sch_times += times[index + 1..-1]
-        new_sch_vals += vals[index + 1..-1]
-        puts("Peakclearing: Processing #{time.to_s} which at the end-boundary of peak period. Schedule changed to: #{new_sch_times.map { |x| x.to_s }}, #{new_sch_vals}")
-
-      else
-        if cur_val > 0
-          # add a point at the ending boundary with value 0 if it isn't already 0
-          new_sch_times << timeClass.new("#{peak_period[1]}:00:00")
-          new_sch_vals << 0
-        end
-        new_sch_times += times[index..-1]
-        new_sch_vals += vals[index..-1]
-        puts("Peakclearing: Processing #{time.to_s} which past the end-boundary of peak period. Schedule changed to: #{new_sch_times.map { |x| x.to_s }}, #{new_sch_vals}")
-
       end
-      break
+      new_sch_times += times[index..-1]
+      new_sch_vals += vals[index..-1]
+      puts("Peakclearing: Processing #{time} which past the end-boundary of peak period. Schedule changed to: #{new_sch_times.map { |x| x.to_s }}, #{new_sch_vals}")
+
     end
+    break
   end
   puts("After clearing the peak period #{new_sch_times.map { |x| x.to_s }}, #{new_sch_vals}")
 
   # put the energy back into take period
   energy_addition = energy_sum.to_f / ((take_period[1] - take_period[0]) * 60)
-  puts("#{energy_sum} / #{((take_period[1] - take_period[0]) * 60)} gives energy additon of #{energy_addition}")
+  puts("#{energy_sum} / #{(take_period[1] - take_period[0]) * 60} gives energy additon of #{energy_addition}")
   take_added_sch_time = []
   take_added_sch_vals = []
   entered = false
   new_sch_times.each_with_index do |time, index|
     cur_val = new_sch_vals[index]
-    puts("Processing #{time.to_s}, #{cur_val}. So far built this schedule: #{take_added_sch_time.map { |x| x.to_s }}, #{take_added_sch_vals}")
-    if time.totalMinutes >= take_period[0] * 60 and (time.totalMinutes < take_period[1] * 60 or not entered)
+    puts("Processing #{time}, #{cur_val}. So far built this schedule: #{take_added_sch_time.map { |x| x.to_s }}, #{take_added_sch_vals}")
+    if (time.totalMinutes >= take_period[0] * 60) && ((time.totalMinutes < take_period[1] * 60) || (not entered))
       if not entered
         entered = true
         if time.totalMinutes == take_period[0] * 60
@@ -400,8 +399,8 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass)
         take_added_sch_time << time
         take_added_sch_vals << cur_val + energy_addition
       end
-      puts("Time #{time.to_s} is at or past the start of the take_period. We built #{take_added_sch_time.map { |x| x.to_s }}, #{take_added_sch_vals}")
-      puts("Ok...")
+      puts("Time #{time} is at or past the start of the take_period. We built #{take_added_sch_time.map { |x| x.to_s }}, #{take_added_sch_vals}")
+      puts('Ok...')
     end
     if time.totalMinutes >= take_period[1] * 60
       if time.totalMinutes == take_period[1] * 60
@@ -415,7 +414,7 @@ def shift_peak_to_take(sch, peak_period, take_period, timeClass)
         take_added_sch_time += new_sch_times[index..-1]
         take_added_sch_vals += new_sch_vals[index..-1]
       end
-      puts("Time #{time.to_s} is at or past the end of the take_period start. We built #{take_added_sch_time.map { |x| x.to_s }}, #{take_added_sch_vals}")
+      puts("Time #{time} is at or past the end of the take_period start. We built #{take_added_sch_time.map { |x| x.to_s }}, #{take_added_sch_vals}")
       break
     end
     if time.totalMinutes < take_period[0] * 60

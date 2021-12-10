@@ -143,8 +143,8 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     tank_model_type_display_name = OpenStudio::StringVector.new
     tank_model_type_display_name << Constants.WaterHeaterTypeTankModelTypeMixed
     tank_model_type_display_name << Constants.WaterHeaterTypeTankModelTypeStratified
-    tank_model_type = OpenStudio::Measure::OSArgument::makeChoiceArgument("tank_model_type", tank_model_type_display_name, true)
-    tank_model_type.setDisplayName("Tank Type")
+    tank_model_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('tank_model_type', tank_model_type_display_name, true)
+    tank_model_type.setDisplayName('Tank Type')
     tank_model_type.setDescription("Type of tank model to use. The '#{Constants.WaterHeaterTypeTankModelTypeStratified}' tank generally provide more accurate results, but may significantly increase run time.")
     tank_model_type.setDefaultValue(Constants.WaterHeaterTypeTankModelTypeMixed)
     args << tank_model_type

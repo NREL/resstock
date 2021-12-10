@@ -558,11 +558,11 @@ class HotWaterSchedule
     @sch_name = sch_name
     @schedule = nil
     @temperature_sch_name = temperature_sch_name
-    @nbeds = ([num_bedrooms, 5].min).to_i
-    @target_water_temperature = UnitConversions.convert(target_water_temperature, "F", "C")
+    @nbeds = [num_bedrooms, 5].min.to_i
+    @target_water_temperature = UnitConversions.convert(target_water_temperature, 'F', 'C')
     @schedule_type_limits_name = schedule_type_limits_name
-    if file_prefix == "ClothesDryer"
-      @file_prefix = "ClothesWasher"
+    if file_prefix == 'ClothesDryer'
+      @file_prefix = 'ClothesWasher'
     else
       @file_prefix = file_prefix
     end
@@ -579,7 +579,7 @@ class HotWaterSchedule
       @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
     end
 
-    if data.nil? or @totflow.nil? or @maxflow.nil? or @ontime.nil?
+    if data.nil? || @totflow.nil? || @maxflow.nil? || @ontime.nil?
       @validated = false
       return
     end
@@ -593,19 +593,19 @@ class HotWaterSchedule
   end
 
   def calcDesignLevelFromDailykWh(daily_kWh)
-    return UnitConversions.convert(daily_kWh * Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * 60 / (Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * @totflow / @maxflow), "kW", "W")
+    return UnitConversions.convert(daily_kWh * Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * 60 / (Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * @totflow / @maxflow), 'kW', 'W')
   end
 
   def calcPeakFlowFromDailygpm(daily_water)
-    return UnitConversions.convert(@maxflow * daily_water / @totflow, "gal/min", "m^3/s")
+    return UnitConversions.convert(@maxflow * daily_water / @totflow, 'gal/min', 'm^3/s')
   end
 
   def calcDailyGpmFromPeakFlow(peak_flow)
-    return UnitConversions.convert(@totflow * peak_flow / @maxflow, "m^3/s", "gal/min")
+    return UnitConversions.convert(@totflow * peak_flow / @maxflow, 'm^3/s', 'gal/min')
   end
 
   def calcDesignLevelFromDailyTherm(daily_therm)
-    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, "therm", "kWh"))
+    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, 'therm', 'kWh'))
   end
 
   def schedule
@@ -636,7 +636,7 @@ class HotWaterSchedule
     minute_draw_profile = File.join(File.dirname(__FILE__), "HotWater#{@file_prefix}Schedule_#{@nbeds}bed.csv")
     if not File.file?(minute_draw_profile)
       @runner.registerError("Unable to find file: #{minute_draw_profile}")
-      return nil
+      return
     end
 
     minutes_in_year = 8760 * 60
@@ -688,9 +688,9 @@ class HotWaterSchedule
 
     totflow_column_header = "#{column_header} Sum"
     maxflow_column_header = "#{column_header} Max"
-    ontime_column_header = "On-time Fraction"
+    ontime_column_header = 'On-time Fraction'
 
-    draw_file = File.join(File.dirname(__FILE__), "HotWaterMinuteDrawProfilesMaxFlows.csv")
+    draw_file = File.join(File.dirname(__FILE__), 'HotWaterMinuteDrawProfilesMaxFlows.csv')
 
     datafound = false
     skippedheader = false
@@ -707,19 +707,19 @@ class HotWaterSchedule
         ontime_col_num = linedata.index(ontime_column_header)
         next
       end
-      if linedata[0].to_i == @nbeds
-        datafound = true
-        if not totflow_col_num.nil?
-          totflow = linedata[totflow_col_num].to_f
-        end
-        if not maxflow_col_num.nil?
-          maxflow = linedata[maxflow_col_num].to_f
-        end
-        if not ontime_col_num.nil?
-          ontime = linedata[ontime_col_num].to_f
-        end
-        break
+      next unless linedata[0].to_i == @nbeds
+
+      datafound = true
+      if not totflow_col_num.nil?
+        totflow = linedata[totflow_col_num].to_f
       end
+      if not maxflow_col_num.nil?
+        maxflow = linedata[maxflow_col_num].to_f
+      end
+      if not ontime_col_num.nil?
+        ontime = linedata[ontime_col_num].to_f
+      end
+      break
     end
 
     if not datafound
@@ -731,7 +731,7 @@ class HotWaterSchedule
 
   def createSchedule(data, timestep_minutes, weeks)
     if data.size == 0
-      return nil
+      return
     end
 
     year_description = @model.getYearDescription

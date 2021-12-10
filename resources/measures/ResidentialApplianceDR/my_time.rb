@@ -24,14 +24,14 @@ class MyTime
   end
 
   def to_s
-    return "#{"%02d" % self.hours}:#{"%02d" % self.minutes}:#{"%02d" % self.seconds}"
+    return "#{'%02d' % hours}:#{'%02d' % minutes}:#{'%02d' % seconds}"
   end
 
   def inspect
-    return "#{"%02d" % self.hours}:#{"%02d" % self.minutes}:#{"%02d" % self.seconds}"
+    return "#{'%02d' % hours}:#{'%02d' % minutes}:#{'%02d' % seconds}"
   end
 
   def <=>(other)
-    self.totalMinutes <=> other.totalMinutes
+    totalMinutes <=> other.totalMinutes
   end
 end

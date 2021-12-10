@@ -74,7 +74,7 @@ def test_get_cluster()
       [['08:10:00', 0.0], ['08:30:00', 0.05]],
     ]
   ]
-  puts("testing get_cluster... ")
+  puts('testing get_cluster... ')
   pass_count = 0
   times_values_peak_answercluster_array.each_with_index do |test_case, index|
     times = test_case[0]
@@ -90,7 +90,7 @@ def test_get_cluster()
       puts("Testing with: #{times} and #{values} and #{peak}")
       puts("Expecting #{answer_cluster}")
       puts("Got #{new_a_cluster}")
-      puts("********")
+      puts('********')
     else
       puts("Test #{index} passed")
       pass_count += 1
@@ -175,7 +175,7 @@ def test_move_cluster()
       [0.0, 0.05, 0.0, 0.05, 0.0, 0.0422513, 0.139377, 0.0, 0.0351558, 0.0]
     ]
   ]
-  puts("testing get_move_cluster... ")
+  puts('testing get_move_cluster... ')
   pass_count = 0
   times_values_peak_distance_answertimes.each_with_index do |test_case, index|
     times = test_case[0]
@@ -199,9 +199,9 @@ def test_move_cluster()
     avalues = new_sch.values
     puts("After moving: \n Got Times: #{atimes} \n Exp Times: #{answer_times}")
     puts("After moving: \n Got Values: #{avalues} \n Exp Values: #{answer_values}")
-    if not (atimes == answer_times and avalues == answer_values)
+    if not ((atimes == answer_times) && (avalues == answer_values))
       puts("****Test #{index} failed***")
-      puts("********")
+      puts('********')
     else
       puts("Test #{index} passed")
       pass_count += 1
@@ -302,7 +302,7 @@ def test_dodge_peaks()
       [0.0, 0.0069146, 0.1094272, 0.0062714, 0.086794, 0.0340302, 0.02313, 0.0, 0.0524824, 0.0, 0.0193769, 0.0, 0.0743518, 0.0]
     ]
   ]
-  puts("testing dodge_peaks... ")
+  puts('testing dodge_peaks... ')
   pass_count = 0
   times_values_peaks_answertimes.each_with_index do |test_case, index|
     times = test_case[0]
@@ -330,7 +330,7 @@ def test_dodge_peaks()
     avalues = new_sch.values
     puts("After dodging: \n Got Times: #{atimes} \n Exp Times: #{answer_times}")
     puts("After dodging: \n Got Values: #{avalues} \n Exp Values: #{answer_values}")
-    if not (atimes == answer_times and avalues == answer_values)
+    if not ((atimes == answer_times) && (avalues == answer_values))
       puts("****Test #{index} failed***")
     else
       puts("Test #{index} passed")
@@ -378,36 +378,36 @@ def test_shift_peak_to_take()
     ],
     # test3
     [
-      ["03:00:00", "04:00:0", "05:00:00", "06:00:00", "07:00:00", "08:00:00", "09:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00", "15:00:00", "16:00:00", "17:00:00", "18:00:00", "19:00:00", "20:00:00", "21:00:00", "24:00:00"],
+      ['03:00:00', '04:00:0', '05:00:00', '06:00:00', '07:00:00', '08:00:00', '09:00:00', '10:00:00', '11:00:00', '12:00:00', '13:00:00', '14:00:00', '15:00:00', '16:00:00', '17:00:00', '18:00:00', '19:00:00', '20:00:00', '21:00:00', '24:00:00'],
       [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
       [15, 19],
       [1, 5],
-      ["01:00:00", "03:00:00", "04:00:00", "05:00:00", "06:00:00", "07:00:00", "08:00:00", "09:00:00", "10:00:00", "11:00:00", "12:00:00", "13:00:00", "14:00:00", "15:00:00", "19:00:00", "20:00:00", "21:00:00", "24:00:00"],
+      ['01:00:00', '03:00:00', '04:00:00', '05:00:00', '06:00:00', '07:00:00', '08:00:00', '09:00:00', '10:00:00', '11:00:00', '12:00:00', '13:00:00', '14:00:00', '15:00:00', '19:00:00', '20:00:00', '21:00:00', '24:00:00'],
       [1, 2.5, 3.5, 2.5, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 0, 2, 1, 2]
     ],
     # test4
     [
-      ["14:00:00", "15:00:00", "17:00:00", "18:00:00", "19:00:00", "23:00:00", "24:00:00"],
+      ['14:00:00', '15:00:00', '17:00:00', '18:00:00', '19:00:00', '23:00:00', '24:00:00'],
       [0, 1, 0, 1, 0, 1, 0],
       [15, 19],
       [1, 5],
-      ["01:00:00", "05:00:00", "14:00:00", "15:00:00", "19:00:00", "23:00:00", "24:00:00"],
+      ['01:00:00', '05:00:00', '14:00:00', '15:00:00', '19:00:00', '23:00:00', '24:00:00'],
       [0, 0.25, 0, 1, 0, 1, 0]
 
     ],
     # test5
     [
-      ["14:00:00", "15:00:00", "16:00:00", "19:00:00", "23:00:00", "24:00:00"],
+      ['14:00:00', '15:00:00', '16:00:00', '19:00:00', '23:00:00', '24:00:00'],
       [0, 1, 2, 0, 1, 0],
       [15, 19],
       [1, 5],
-      ["01:00:00", "05:00:00", "14:00:00", "15:00:00", "19:00:00", "23:00:00", "24:00:00"],
+      ['01:00:00', '05:00:00', '14:00:00', '15:00:00', '19:00:00', '23:00:00', '24:00:00'],
       [0, 0.5, 0, 1, 0, 1, 0]
 
     ]
 
   ]
-  puts("testing test_shift_peak_to_take... ")
+  puts('testing test_shift_peak_to_take... ')
   pass_count = 0
   times_values_peaks_take_answertimes_answervals.each_with_index do |test_case, index|
     times = test_case[0]
@@ -426,7 +426,7 @@ def test_shift_peak_to_take()
     avalues = new_sch.values
     puts("After shifting: \n Got Times: #{atimes} \n Exp Times: #{answer_times}")
     puts("After shifting: \n Got Values: #{avalues} \n Exp Values: #{answer_values}")
-    if not (atimes == answer_times and avalues == answer_values)
+    if not ((atimes == answer_times) && (avalues == answer_values))
       puts("****Test #{index} failed***")
     else
       puts("Test #{index} passed")
