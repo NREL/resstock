@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from functools import reduce
 
 # BASELINE
 
@@ -67,30 +68,35 @@ outdir = 'baseline/timeseries'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
-frames = []
-index_col = ['Time', 'TimeDST', 'TimeUTC']
-usecols = index_col + ['total_site_electricity_kwh', 'total_site_natural_gas_therm']
-n_dps = 10
+df_nationals = []
+df_testings = []
+index_col = ['Time']
+drops = ['TimeDST', 'TimeUTC']
 
-listdirs = sorted(os.listdir('project_national/national_baseline/simulation_output/up00'))
-dps = listdirs[0:n_dps]
+dps = sorted(os.listdir('project_national/national_baseline/simulation_output/up00'))
 for dp in dps:
-  df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col, usecols=usecols)
-  df_national['OSW'] = 'project_national-{}.osw'.format(dp[-4:])
+  df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
+  df_national = df_national.drop(drops, axis=1)
 
-  frames.append(df_national)
+  df_nationals.append(df_national)
 
-listdirs = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00'))
-dps = listdirs[0:n_dps]
+dps = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00'))
 for dp in dps:
-  df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col, usecols=usecols)
-  df_testing['OSW'] = 'project_testing-{}.osw'.format(dp[-4:])
+  df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
+  df_testing = df_testing.drop(drops, axis=1)
 
-  frames.append(df_testing)
+  df_testings.append(df_testing)
 
 # results_output.csv
-results_output = pd.concat(frames)
-results_output = results_output.set_index('OSW')
+
+df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals)
+df_national['PROJECT'] = 'project_national'
+
+df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
+df_testing['PROJECT'] = 'project_testing'
+
+results_output = pd.concat([df_national, df_testing]).round(2)
+results_output = results_output.set_index('PROJECT')
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
@@ -169,21 +175,29 @@ outdir = 'upgrades/timeseries'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
-frames = []
+df_nationals = []
+df_testings = []
 
 for i in range(1, national_num_scenarios):
-  df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col, usecols=usecols)
-  df_national['OSW'] = 'project_national-{}.osw'.format(upgrades[i])
+  df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col)
+  df_national = df_national.drop(drops, axis=1)
 
-  frames.append(df_national)
+  df_nationals.append(df_national)
 
-  df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col, usecols=usecols)
-  df_testing['OSW'] = 'project_testing-{}.osw'.format(upgrades[i])
+  df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col)
+  df_testing = df_testing.drop(drops, axis=1)
 
-  frames.append(df_testing)
+  df_testings.append(df_testing)
 
 # results_output.csv
-results_output = pd.concat(frames)
-results_output = results_output.set_index('OSW')
+
+df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals)
+df_national['PROJECT'] = 'project_national'
+
+df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
+df_testing['PROJECT'] = 'project_testing'
+
+results_output = pd.concat([df_national, df_testing]).round(2)
+results_output = results_output.set_index('PROJECT')
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))

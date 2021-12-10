@@ -184,7 +184,7 @@ class MoreCompare(BaseCompare):
       s /= (len(b) - 1)
       s **= (0.5)
       s /= np.mean(b)
-      s *= 100
+      s *= 100.0
       return s
 
     def nmbe(b, f):
@@ -194,7 +194,7 @@ class MoreCompare(BaseCompare):
       s = np.sum(b - f)
       s /= (len(b) - 1)
       s /= np.mean(b)
-      s *= 100
+      s *= 100.0
       return s
 
     metrics = ['cvrmse', 'nmbe']
@@ -208,7 +208,7 @@ class MoreCompare(BaseCompare):
 
       cols = sorted(list(set(base_df.columns) & set(feature_df.columns)))
 
-      g = base_df.groupby('OSW')
+      g = base_df.groupby('PROJECT')
       groups = g.groups.keys()
 
       dfs = []
@@ -221,17 +221,17 @@ class MoreCompare(BaseCompare):
           b = b_df.loc[group][col].values
           f = f_df.loc[group][col].values
 
-          data = {'CVRMSE': [cvrmse(b, f)], 'NMBE': [nmbe(b, f)]}
+          data = {'CVRMSE (%)': [cvrmse(b, f)], 'NMBE (%)': [nmbe(b, f)]}
           df = pd.DataFrame(data=data, index=[group])
-          columns = [(col, 'CVRMSE'), (col, 'NMBE')]
+          columns = [(col, 'CVRMSE (%)'), (col, 'NMBE (%)')]
           df.columns = pd.MultiIndex.from_tuples(columns)
           cdfs.append(df)
 
         df = pd.concat(cdfs, axis=1)
         dfs.append(df)
 
-      df = pd.concat(dfs)
-      df.to_csv(os.path.join(self.export_folder, file))
+      df = pd.concat(dfs).transpose()
+      df.to_csv(os.path.join(self.export_folder, 'cvrmse_nmbe.csv'))
 
 if __name__ == '__main__':
 
