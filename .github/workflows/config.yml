@@ -227,6 +227,12 @@ jobs:
           path: results
           name: results
 
+      - name: Download comparisons
+        uses: actions/download-artifact@v2
+        with:
+          path: comparisons
+          name: comparisons
+
       - name: Commit latest results
         shell: bash        
         run: |
@@ -237,6 +243,8 @@ jobs:
           cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
           cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
           cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
+          cp -r comparisons/baseline/timeseries/*.csv test/base_results/baseline/timeseries
+          cp -r comparisons/upgrades/timeseries/*.csv test/base_results/upgrades/timeseries
           git add test/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
