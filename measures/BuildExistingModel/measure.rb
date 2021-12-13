@@ -273,7 +273,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
 
     # FIXME - see if # of measures can be limited
-    if args['build_hpxml_only']
+    build_hpxml_only = args['build_hpxml_only'].get if args['build_hpxml_only'].is_initialized
+    if build_hpxml_only
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
     else
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
