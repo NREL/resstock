@@ -210,9 +210,9 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     model.getScheduleRulesets.each do |schedule_ruleset|
       #next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial' && !(schedule_ruleset.name.to_s.include?("extra")))
       next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial')
-      if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint)
+      if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == "Partial"
         otg_val = -otg_offset
-      elsif schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+      elsif schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == "Partial"
         otg_val = otg_offset
       else
         otg_val = 0
@@ -381,6 +381,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
         schedules_file.import(col_name: col_name)
         schedules_file.set_outage(col_name: col_name, outage_start_date: otg_date, outage_start_hour: otg_hr, outage_length: otg_len)
       end
+      #puts "Hit the schedule adjustment!"
       runner.registerInfo("Modified the schedule '#{col_name}'.")
     end
 
