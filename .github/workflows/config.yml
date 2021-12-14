@@ -30,6 +30,16 @@ jobs:
           buildstock_docker project_national/national_upgrades.yml
           buildstock_docker project_testing/testing_upgrades.yml
 
+      - name: Upload project folders
+        uses: actions/upload-artifact@v2
+        with:
+          path: |
+            project_testing/testing_baseline
+            project_national/national_baseline
+            project_testing/testing_upgrades
+            project_national/national_upgrades
+          name: projects
+
       - name: Run tests
         run: |
           ruby test/test_bsb_analysis.rb

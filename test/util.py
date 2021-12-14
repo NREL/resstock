@@ -74,18 +74,18 @@ if not os.path.exists(outdir):
 df_nationals = []
 df_testings = []
 index_col = ['Time']
-drops = ['TimeDST', 'TimeUTC']
+drops = []
 
 dps = sorted(os.listdir('project_national/national_baseline/simulation_output/up00'))
 for dp in dps:
-  df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
+  df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
   df_national = df_national.drop(drops, axis=1)
 
   df_nationals.append(df_national)
 
 dps = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00'))
 for dp in dps:
-  df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/enduse_timeseries.csv'.format(dp), index_col=index_col)
+  df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testings.append(df_testing)
@@ -179,12 +179,12 @@ df_nationals = []
 df_testings = []
 
 for i in range(1, national_num_scenarios):
-  df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col)
+  df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/results_timeseries.csv'.format('%02d' % i), index_col=index_col)
   df_national = df_national.drop(drops, axis=1)
 
   df_nationals.append(df_national)
 
-  df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/enduse_timeseries.csv'.format('%02d' % i), index_col=index_col)
+  df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/results_timeseries.csv'.format('%02d' % i), index_col=index_col)
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testings.append(df_testing)
