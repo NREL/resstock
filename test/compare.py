@@ -120,7 +120,7 @@ class MoreCompare(BaseCompare):
       df_to_keep = base_df
       df_to_map = feature_df
     elif map_results == 'feature':
-      df_to_keep  = feature_df
+      df_to_keep = feature_df
       df_to_map = base_df
 
     ## Characteristics

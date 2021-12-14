@@ -67,6 +67,14 @@ results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 # Timeseries
 
+def rename_ts_col(col):
+  col = col.lower()
+  col = col.replace(': ', '_')
+  col = col.replace(' ', '_')
+  col = col.replace('/', '_')
+  col = 'simulation_output_report.{}'.format(col)
+  return col
+
 outdir = 'baseline/timeseries'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
@@ -79,6 +87,12 @@ drops = []
 dps = sorted(os.listdir('project_national/national_baseline/simulation_output/up00'))
 for dp in dps:
   df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
+
+  for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
+    new_col = rename_ts_col('{}_{}'.format(col, units))
+    df_national = df_national.rename(columns={col: new_col})
+  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
+
   df_national = df_national.drop(drops, axis=1)
 
   df_nationals.append(df_national)
@@ -86,6 +100,12 @@ for dp in dps:
 dps = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00'))
 for dp in dps:
   df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
+
+  for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
+    new_col = rename_ts_col('{}_{}'.format(col, units))
+    df_testing = df_testing.rename(columns={col: new_col})
+  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
+
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testings.append(df_testing)
@@ -98,7 +118,7 @@ df_national['PROJECT'] = 'project_national'
 df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
-results_output = pd.concat([df_national, df_testing]).round(2)
+results_output = pd.concat([df_national, df_testing]).fillna(0).round(2)
 results_output = results_output.set_index('PROJECT')
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
@@ -180,11 +200,23 @@ df_testings = []
 
 for i in range(1, national_num_scenarios):
   df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/results_timeseries.csv'.format('%02d' % i), index_col=index_col)
+
+  for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
+    new_col = rename_ts_col('{}_{}'.format(col, units))
+    df_national = df_national.rename(columns={col: new_col})
+  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
+
   df_national = df_national.drop(drops, axis=1)
 
   df_nationals.append(df_national)
 
   df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/results_timeseries.csv'.format('%02d' % i), index_col=index_col)
+
+  for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
+    new_col = rename_ts_col('{}_{}'.format(col, units))
+    df_testing = df_testing.rename(columns={col: new_col})
+  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
+
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testings.append(df_testing)
@@ -197,7 +229,7 @@ df_national['PROJECT'] = 'project_national'
 df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
-results_output = pd.concat([df_national, df_testing]).round(2)
+results_output = pd.concat([df_national, df_testing]).fillna(0).round(2)
 results_output = results_output.set_index('PROJECT')
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
