@@ -879,6 +879,34 @@ class Schedule
   def self.FuelLoadsFireplaceMonthlyMultipliers
     return '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
   end
+
+  def self.parse_date_range(runner, date_range)
+    begin_end_dates = date_range.split('-').map { |v| v.strip }
+    if begin_end_dates.size != 2
+      runner.registerError("Invalid date format specified for '#{date_range}'.")
+      return false
+    end
+
+    begin_values = begin_end_dates[0].split(' ').map { |v| v.strip }
+    end_values = begin_end_dates[1].split(' ').map { |v| v.strip }
+
+    if (begin_values.size != 2) || (end_values.size != 2)
+      runner.registerError("Invalid date format specified for '#{date_range}'.")
+      return false
+    end
+
+    require 'date'
+    begin_month = Date::ABBR_MONTHNAMES.index(begin_values[0].capitalize)
+    end_month = Date::ABBR_MONTHNAMES.index(end_values[0].capitalize)
+    begin_day = begin_values[1].to_i
+    end_day = end_values[1].to_i
+    if begin_month.nil? || end_month.nil? || begin_day == 0 || end_day == 0
+      runner.registerError("Invalid date format specified for '#{date_range}'.")
+      return false
+    end
+
+    return begin_month, begin_day, end_month, end_day
+  end
 end
 
 class ScheduleGenerator

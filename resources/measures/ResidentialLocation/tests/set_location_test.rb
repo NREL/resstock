@@ -20,17 +20,16 @@ class SetResidentialEPWFileTest < MiniTest::Test
 
   def test_error_invalid_daylight_saving
     args_hash = {}
-    args_hash['dst_start_date'] = 'April 31'
+    args_hash['daylight_saving_period'] = 'April 31'
     result = _test_error_or_NA(nil, args_hash)
     assert(result.errors.size == 1)
     assert_equal('Fail', result.value.valueName)
-    assert_includes(result.errors.map { |x| x.logMessage }, 'Invalid daylight saving date(s) specified.')
+    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid date format specified for 'April 31'.")
   end
 
   def test_NA_daylight_saving
     args_hash = {}
-    args_hash['dst_start_date'] = 'NA'
-    args_hash['dst_end_date'] = 'NA'
+    args_hash['daylight_saving_enabled'] = false
     expected_num_del_objects = {}
     expected_num_new_objects = { 'SiteGroundTemperatureDeep' => 1, 'SiteWaterMainsTemperature' => 1, 'WeatherFile' => 1, 'ClimateZones' => 1, 'Site' => 1 }
     expected_values = { 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15, 'IECCZone' => '5B' }
@@ -44,8 +43,7 @@ class SetResidentialEPWFileTest < MiniTest::Test
     expected_values = { 'StartDate' => 'Mar-12', 'EndDate' => 'Nov-05', 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15, 'IECCZone' => '5B' }
     model = _test_measure(nil, args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 5)
     args_hash = {}
-    args_hash['dst_start_date'] = 'April 8'
-    args_hash['dst_end_date'] = 'October 27'
+    args_hash['daylight_saving_period'] = 'Apr 8 - Oct 27'
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = { 'StartDate' => 'Apr-08', 'EndDate' => 'Oct-27', 'HotWaterAnnualTemp' => 10.88, 'HotWaterMaxDiffTemp' => 23.15, 'IECCZone' => '5B' }
