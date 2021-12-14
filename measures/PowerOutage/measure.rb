@@ -210,10 +210,18 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     model.getScheduleRulesets.each do |schedule_ruleset|
       #next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial' && !(schedule_ruleset.name.to_s.include?("extra")))
       next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial')
-      if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == "Partial"
-        otg_val = -otg_offset
-      elsif schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == "Partial"
-        otg_val = otg_offset
+      if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint)
+        if otg_type == "Partial"
+          otg_val = -otg_offset
+        else
+          otg_val = -100.0 #Large value to adjust setpoint by enough that HVAC should never trigger
+        end
+      elsif schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) 
+        if otg_type == "Partial"
+          otg_val = otg_offset
+        else
+          otg_val = 100.0
+        end
       else
         otg_val = 0
       end
