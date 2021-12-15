@@ -99,6 +99,16 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('annual_output_file_name', false)
+    arg.setDisplayName('Annual Output File Name')
+    arg.setDescription("If not provided, defaults to 'results_annual.csv' (or 'results_annual.json').")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('timeseries_output_file_name', false)
+    arg.setDisplayName('Timeseries Output File Name')
+    arg.setDescription("If not provided, defaults to 'results_timeseries.csv' (or 'results_timeseries.json').")
+    args << arg
+
     return args
   end
 
@@ -325,6 +335,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       include_timeseries_airflows = runner.getBoolArgumentValue('include_timeseries_airflows', user_arguments)
       include_timeseries_weather = runner.getBoolArgumentValue('include_timeseries_weather', user_arguments)
     end
+    annual_output_file_name = runner.getOptionalStringArgumentValue('annual_output_file_name', user_arguments)
+    timeseries_output_file_name = runner.getOptionalStringArgumentValue('timeseries_output_file_name', user_arguments)
 
     sqlFile = runner.lastEnergyPlusSqlFile
     if sqlFile.empty?
@@ -352,13 +364,21 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       output_dir = File.dirname(hpxml_path)
       hpxml_name = File.basename(hpxml_path).gsub('.xml', '')
       annual_output_path = File.join(output_dir, "#{hpxml_name}.#{output_format}")
-      eri_output_path = File.join(output_dir, "#{hpxml_name}_ERI.csv")
       timeseries_output_path = File.join(output_dir, "#{hpxml_name}_#{timeseries_frequency.capitalize}.#{output_format}")
+      eri_output_path = File.join(output_dir, "#{hpxml_name}_ERI.csv")
     else
       output_dir = File.dirname(@sqlFile.path.to_s)
-      annual_output_path = File.join(output_dir, "results_annual.#{output_format}")
+      if annual_output_file_name.is_initialized
+        annual_output_path = File.join(output_dir, annual_output_file_name.get)
+      else
+        annual_output_path = File.join(output_dir, "results_annual.#{output_format}")
+      end
+      if timeseries_output_file_name.is_initialized
+        timeseries_output_path = File.join(output_dir, timeseries_output_file_name.get)
+      else
+        timeseries_output_path = File.join(output_dir, "results_timeseries.#{output_format}")
+      end
       eri_output_path = nil
-      timeseries_output_path = File.join(output_dir, "results_timeseries.#{output_format}")
     end
 
     @timestamps = get_timestamps(timeseries_frequency)

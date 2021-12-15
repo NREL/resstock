@@ -42,16 +42,23 @@ class HotWaterAndAppliances
     if not clothes_washer.nil?
       cw_annual_kwh, cw_frac_sens, cw_frac_lat, cw_gpd = calc_clothes_washer_energy_gpd(eri_version, nbeds, clothes_washer, clothes_washer.additional_properties.space.nil?)
 
+      # Create schedule
+      power_cw_schedule = nil
       if not schedules_file.nil?
-        cw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: 'clothes_washer', daily_kwh: cw_annual_kwh / 365.0)
-        power_cw_schedule = schedules_file.create_schedule_file(col_name: 'clothes_washer')
-      else
+        cw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: ScheduleColumns.ClothesWasher, daily_kwh: cw_annual_kwh / 365.0)
+        power_cw_schedule = schedules_file.create_schedule_file(col_name: ScheduleColumns.ClothesWasher)
+      end
+      if power_cw_schedule.nil?
         cw_weekday_sch = clothes_washer.weekday_fractions
         cw_weekend_sch = clothes_washer.weekend_fractions
         cw_monthly_sch = clothes_washer.monthly_multipliers
         cw_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameClothesWasher, cw_weekday_sch, cw_weekend_sch, cw_monthly_sch, Constants.ScheduleTypeLimitsFraction)
         cw_design_level_w = cw_schedule_obj.calcDesignLevelFromDailykWh(cw_annual_kwh / 365.0)
         power_cw_schedule = cw_schedule_obj.schedule
+      else
+        runner.registerWarning("Both '#{ScheduleColumns.ClothesWasher}' schedule file and weekday fractions provided; the latter will be ignored.") if !clothes_washer.weekday_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.ClothesWasher}' schedule file and weekend fractions provided; the latter will be ignored.") if !clothes_washer.weekend_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.ClothesWasher}' schedule file and monthly multipliers provided; the latter will be ignored.") if !clothes_washer.monthly_multipliers.nil?
       end
 
       cw_space = clothes_washer.additional_properties.space
@@ -63,11 +70,14 @@ class HotWaterAndAppliances
     if not clothes_dryer.nil?
       cd_annual_kwh, cd_annual_therm, cd_frac_sens, cd_frac_lat = calc_clothes_dryer_energy(eri_version, nbeds, clothes_dryer, clothes_washer, clothes_dryer.additional_properties.space.nil?)
 
+      # Create schedule
+      cd_schedule = nil
       if not schedules_file.nil?
-        cd_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: 'clothes_dryer', annual_kwh: cd_annual_kwh)
-        cd_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: 'clothes_dryer', annual_therm: cd_annual_therm)
-        cd_schedule = schedules_file.create_schedule_file(col_name: 'clothes_dryer')
-      else
+        cd_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: ScheduleColumns.ClothesDryer, annual_kwh: cd_annual_kwh)
+        cd_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: ScheduleColumns.ClothesDryer, annual_therm: cd_annual_therm)
+        cd_schedule = schedules_file.create_schedule_file(col_name: ScheduleColumns.ClothesDryer)
+      end
+      if cd_schedule.nil?
         cd_weekday_sch = clothes_dryer.weekday_fractions
         cd_weekend_sch = clothes_dryer.weekend_fractions
         cd_monthly_sch = clothes_dryer.monthly_multipliers
@@ -75,6 +85,10 @@ class HotWaterAndAppliances
         cd_design_level_e = cd_schedule_obj.calcDesignLevelFromDailykWh(cd_annual_kwh / 365.0)
         cd_design_level_f = cd_schedule_obj.calcDesignLevelFromDailyTherm(cd_annual_therm / 365.0)
         cd_schedule = cd_schedule_obj.schedule
+      else
+        runner.registerWarning("Both '#{ScheduleColumns.ClothesDryer}' schedule file and weekday fractions provided; the latter will be ignored.") if !clothes_dryer.weekday_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.ClothesDryer}' schedule file and weekend fractions provided; the latter will be ignored.") if !clothes_dryer.weekend_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.ClothesDryer}' schedule file and monthly multipliers provided; the latter will be ignored.") if !clothes_dryer.monthly_multipliers.nil?
       end
 
       cd_space = clothes_dryer.additional_properties.space
@@ -87,16 +101,23 @@ class HotWaterAndAppliances
     if not dishwasher.nil?
       dw_annual_kwh, dw_frac_sens, dw_frac_lat, dw_gpd = calc_dishwasher_energy_gpd(eri_version, nbeds, dishwasher, dishwasher.additional_properties.space.nil?)
 
+      # Create schedule
+      power_dw_schedule = nil
       if not schedules_file.nil?
-        dw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: 'dishwasher', daily_kwh: dw_annual_kwh / 365.0)
-        power_dw_schedule = schedules_file.create_schedule_file(col_name: 'dishwasher')
-      else
+        dw_design_level_w = schedules_file.calc_design_level_from_daily_kwh(col_name: ScheduleColumns.Dishwasher, daily_kwh: dw_annual_kwh / 365.0)
+        power_dw_schedule = schedules_file.create_schedule_file(col_name: ScheduleColumns.Dishwasher)
+      end
+      if power_dw_schedule.nil?
         dw_weekday_sch = dishwasher.weekday_fractions
         dw_weekend_sch = dishwasher.weekend_fractions
         dw_monthly_sch = dishwasher.monthly_multipliers
         dw_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameDishwasher, dw_weekday_sch, dw_weekend_sch, dw_monthly_sch, Constants.ScheduleTypeLimitsFraction)
         dw_design_level_w = dw_schedule_obj.calcDesignLevelFromDailykWh(dw_annual_kwh / 365.0)
         power_dw_schedule = dw_schedule_obj.schedule
+      else
+        runner.registerWarning("Both '#{ScheduleColumns.Dishwasher}' schedule file and weekday fractions provided; the latter will be ignored.") if !dishwasher.weekday_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.Dishwasher}' schedule file and weekend fractions provided; the latter will be ignored.") if !dishwasher.weekend_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.Dishwasher}' schedule file and monthly multipliers provided; the latter will be ignored.") if !dishwasher.monthly_multipliers.nil?
       end
 
       dw_space = dishwasher.additional_properties.space
@@ -108,17 +129,24 @@ class HotWaterAndAppliances
     hpxml.refrigerators.each do |refrigerator|
       rf_annual_kwh, rf_frac_sens, rf_frac_lat = calc_refrigerator_or_freezer_energy(refrigerator, refrigerator.additional_properties.space.nil?)
 
+      # Create schedule
+      fridge_schedule = nil
       if not schedules_file.nil?
-        fridge_col_name = refrigerator.primary_indicator ? 'refrigerator' : 'extra_refrigerator'
+        fridge_col_name = refrigerator.primary_indicator ? ScheduleColumns.Refrigerator : ScheduleColumns.ExtraRefrigerator
         fridge_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: fridge_col_name, annual_kwh: rf_annual_kwh)
         fridge_schedule = schedules_file.create_schedule_file(col_name: fridge_col_name)
-      else
+      end
+      if fridge_schedule.nil?
         fridge_weekday_sch = refrigerator.weekday_fractions
         fridge_weekend_sch = refrigerator.weekend_fractions
         fridge_monthly_sch = refrigerator.monthly_multipliers
         fridge_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameRefrigerator, fridge_weekday_sch, fridge_weekend_sch, fridge_monthly_sch, Constants.ScheduleTypeLimitsFraction)
         fridge_design_level = fridge_schedule_obj.calcDesignLevelFromDailykWh(rf_annual_kwh / 365.0)
         fridge_schedule = fridge_schedule_obj.schedule
+      else
+        runner.registerWarning("Both '#{fridge_col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !refrigerator.weekday_fractions.nil?
+        runner.registerWarning("Both '#{fridge_col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !refrigerator.weekend_fractions.nil?
+        runner.registerWarning("Both '#{fridge_col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !refrigerator.monthly_multipliers.nil?
       end
 
       rf_space = refrigerator.additional_properties.space
@@ -130,16 +158,23 @@ class HotWaterAndAppliances
     hpxml.freezers.each do |freezer|
       fz_annual_kwh, fz_frac_sens, fz_frac_lat = calc_refrigerator_or_freezer_energy(freezer, freezer.additional_properties.space.nil?)
 
+      # Create schedule
+      freezer_schedule = nil
       if not schedules_file.nil?
-        freezer_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'freezer', annual_kwh: fz_annual_kwh)
-        freezer_schedule = schedules_file.create_schedule_file(col_name: 'freezer')
-      else
+        freezer_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: ScheduleColumns.Freezer, annual_kwh: fz_annual_kwh)
+        freezer_schedule = schedules_file.create_schedule_file(col_name: ScheduleColumns.Freezer)
+      end
+      if freezer_schedule.nil?
         freezer_weekday_sch = freezer.weekday_fractions
         freezer_weekend_sch = freezer.weekend_fractions
         freezer_monthly_sch = freezer.monthly_multipliers
         freezer_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameFreezer, freezer_weekday_sch, freezer_weekend_sch, freezer_monthly_sch, Constants.ScheduleTypeLimitsFraction)
         freezer_design_level = freezer_schedule_obj.calcDesignLevelFromDailykWh(fz_annual_kwh / 365.0)
         freezer_schedule = freezer_schedule_obj.schedule
+      else
+        runner.registerWarning("Both '#{ScheduleColumns.Freezer}' schedule file and weekday fractions provided; the latter will be ignored.") if !freezer.weekday_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.Freezer}' schedule file and weekend fractions provided; the latter will be ignored.") if !freezer.weekend_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.Freezer}' schedule file and monthly multipliers provided; the latter will be ignored.") if !freezer.monthly_multipliers.nil?
       end
 
       fz_space = freezer.additional_properties.space
@@ -151,11 +186,14 @@ class HotWaterAndAppliances
     if not cooking_range.nil?
       cook_annual_kwh, cook_annual_therm, cook_frac_sens, cook_frac_lat = calc_range_oven_energy(nbeds, cooking_range, oven, cooking_range.additional_properties.space.nil?)
 
+      # Create schedule
+      cook_schedule = nil
       if not schedules_file.nil?
-        cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: 'cooking_range', annual_kwh: cook_annual_kwh)
-        cook_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: 'cooking_range', annual_therm: cook_annual_therm)
-        cook_schedule = schedules_file.create_schedule_file(col_name: 'cooking_range')
-      else
+        cook_design_level_e = schedules_file.calc_design_level_from_annual_kwh(col_name: ScheduleColumns.CookingRange, annual_kwh: cook_annual_kwh)
+        cook_design_level_f = schedules_file.calc_design_level_from_annual_therm(col_name: ScheduleColumns.CookingRange, annual_therm: cook_annual_therm)
+        cook_schedule = schedules_file.create_schedule_file(col_name: ScheduleColumns.CookingRange)
+      end
+      if cook_schedule.nil?
         cook_weekday_sch = cooking_range.weekday_fractions
         cook_weekend_sch = cooking_range.weekend_fractions
         cook_monthly_sch = cooking_range.monthly_multipliers
@@ -163,6 +201,10 @@ class HotWaterAndAppliances
         cook_design_level_e = cook_schedule_obj.calcDesignLevelFromDailykWh(cook_annual_kwh / 365.0)
         cook_design_level_f = cook_schedule_obj.calcDesignLevelFromDailyTherm(cook_annual_therm / 365.0)
         cook_schedule = cook_schedule_obj.schedule
+      else
+        runner.registerWarning("Both '#{ScheduleColumns.CookingRange}' schedule file and weekday fractions provided; the latter will be ignored.") if !cooking_range.weekday_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.CookingRange}' schedule file and weekend fractions provided; the latter will be ignored.") if !cooking_range.weekend_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.CookingRange}' schedule file and monthly multipliers provided; the latter will be ignored.") if !cooking_range.monthly_multipliers.nil?
       end
 
       cook_space = cooking_range.additional_properties.space
@@ -203,14 +245,21 @@ class HotWaterAndAppliances
       mw_temp_schedule.setValue(UnitConversions.convert(t_mix, 'F', 'C'))
       Schedule.set_schedule_type_limits(model, mw_temp_schedule, Constants.ScheduleTypeLimitsTemperature)
 
+      # Create schedule
+      fixtures_schedule = nil
       if not schedules_file.nil?
-        fixtures_schedule = schedules_file.create_schedule_file(col_name: 'hot_water_fixtures')
-      else
+        fixtures_schedule = schedules_file.create_schedule_file(col_name: ScheduleColumns.HotWaterFixtures)
+      end
+      if fixtures_schedule.nil?
         fixtures_weekday_sch = hpxml.water_heating.water_fixtures_weekday_fractions
         fixtures_weekend_sch = hpxml.water_heating.water_fixtures_weekend_fractions
         fixtures_monthly_sch = hpxml.water_heating.water_fixtures_monthly_multipliers
         fixtures_schedule_obj = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameFixtures, fixtures_weekday_sch, fixtures_weekend_sch, fixtures_monthly_sch, Constants.ScheduleTypeLimitsFraction)
         fixtures_schedule = fixtures_schedule_obj.schedule
+      else
+        runner.registerWarning("Both '#{ScheduleColumns.HotWaterFixtures}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.water_heating.water_fixtures_weekday_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.HotWaterFixtures}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml.water_heating.water_fixtures_weekend_fractions.nil?
+        runner.registerWarning("Both '#{ScheduleColumns.HotWaterFixtures}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml.water_heating.water_fixtures_monthly_multipliers.nil?
       end
     end
 
@@ -224,8 +273,8 @@ class HotWaterAndAppliances
         w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution, fixtures_all_low_flow, fixtures_usage_multiplier)
 
         if not schedules_file.nil?
-          fx_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: 'hot_water_fixtures', daily_water: fx_gpd)
-          dist_water_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: 'hot_water_fixtures', daily_water: w_gpd)
+          fx_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: ScheduleColumns.HotWaterFixtures, daily_water: fx_gpd)
+          dist_water_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: ScheduleColumns.HotWaterFixtures, daily_water: w_gpd)
         else
           fx_peak_flow = fixtures_schedule_obj.calcPeakFlowFromDailygpm(fx_gpd)
           dist_water_peak_flow = fixtures_schedule_obj.calcPeakFlowFromDailygpm(w_gpd)
@@ -241,7 +290,7 @@ class HotWaterAndAppliances
         dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(hot_water_distribution)
         if dist_pump_annual_kwh > 0
           if not schedules_file.nil?
-            dist_pump_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: 'hot_water_fixtures', daily_kwh: dist_pump_annual_kwh / 365.0)
+            dist_pump_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: ScheduleColumns.HotWaterFixtures, daily_kwh: dist_pump_annual_kwh / 365.0)
           else
             dist_pump_design_level = fixtures_schedule_obj.calcDesignLevelFromDailykWh(dist_pump_annual_kwh / 365.0)
           end
@@ -261,10 +310,13 @@ class HotWaterAndAppliances
           gpd_frac = water_heating_system.fraction_dhw_load_served
         end
         if not gpd_frac.nil?
+          # Create schedule
+          water_cw_schedule = nil
           if not schedules_file.nil?
-            cw_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: 'hot_water_clothes_washer', daily_water: cw_gpd)
-            water_cw_schedule = schedules_file.create_schedule_file(col_name: 'hot_water_clothes_washer')
-          else
+            cw_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: ScheduleColumns.HotWaterClothesWasher, daily_water: cw_gpd)
+            water_cw_schedule = schedules_file.create_schedule_file(col_name: ScheduleColumns.HotWaterClothesWasher)
+          end
+          if water_cw_schedule.nil?
             cw_peak_flow = cw_schedule_obj.calcPeakFlowFromDailygpm(cw_gpd)
             water_cw_schedule = cw_schedule_obj.schedule
           end
@@ -283,10 +335,13 @@ class HotWaterAndAppliances
       end
       next unless not gpd_frac.nil?
 
+      # Create schedule
+      water_dw_schedule = nil
       if not schedules_file.nil?
-        dw_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: 'hot_water_dishwasher', daily_water: dw_gpd)
-        water_dw_schedule = schedules_file.create_schedule_file(col_name: 'hot_water_dishwasher')
-      else
+        dw_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: ScheduleColumns.HotWaterDishwasher, daily_water: dw_gpd)
+        water_dw_schedule = schedules_file.create_schedule_file(col_name: ScheduleColumns.HotWaterDishwasher)
+      end
+      if water_dw_schedule.nil?
         dw_peak_flow = dw_schedule_obj.calcPeakFlowFromDailygpm(dw_gpd)
         water_dw_schedule = dw_schedule_obj.schedule
       end
@@ -298,8 +353,8 @@ class HotWaterAndAppliances
       # Floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.
       water_sens_btu, water_lat_btu = get_water_gains_sens_lat(nbeds)
       if not schedules_file.nil?
-        water_design_level_sens = schedules_file.calc_design_level_from_daily_kwh(col_name: 'hot_water_fixtures', daily_kwh: UnitConversions.convert(water_sens_btu, 'Btu', 'kWh') / 365.0)
-        water_design_level_lat = schedules_file.calc_design_level_from_daily_kwh(col_name: 'hot_water_fixtures', daily_kwh: UnitConversions.convert(water_lat_btu, 'Btu', 'kWh') / 365.0)
+        water_design_level_sens = schedules_file.calc_design_level_from_daily_kwh(col_name: ScheduleColumns.HotWaterFixtures, daily_kwh: UnitConversions.convert(water_sens_btu, 'Btu', 'kWh') / 365.0)
+        water_design_level_lat = schedules_file.calc_design_level_from_daily_kwh(col_name: ScheduleColumns.HotWaterFixtures, daily_kwh: UnitConversions.convert(water_lat_btu, 'Btu', 'kWh') / 365.0)
       else
         water_design_level_sens = fixtures_schedule_obj.calcDesignLevelFromDailykWh(UnitConversions.convert(water_sens_btu, 'Btu', 'kWh') / 365.0)
         water_design_level_lat = fixtures_schedule_obj.calcDesignLevelFromDailykWh(UnitConversions.convert(water_lat_btu, 'Btu', 'kWh') / 365.0)

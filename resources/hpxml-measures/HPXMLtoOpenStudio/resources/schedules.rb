@@ -1093,21 +1093,28 @@ class Schedule
 
     return begin_month, begin_day, end_month, end_day
   end
+
+  def self.schedules_file_includes_col_name(schedules_file, col_name)
+    schedules_file_includes_col_name = false
+    if not schedules_file.nil?
+      if schedules_file.schedules.keys.include?(col_name)
+        schedules_file_includes_col_name = true
+      end
+    end
+    return schedules_file_includes_col_name
+  end
 end
 
 class SchedulesFile
   def initialize(runner: nil,
                  model: nil,
-                 year: nil,
-                 schedules_path:,
-                 **remainder)
+                 schedules_path:)
 
     @runner = runner
     @model = model
-    @year = year
     @schedules_path = schedules_path
 
-    import(col_names: Constants.ScheduleColNames.keys)
+    import(col_names: ScheduleColumns.ColNames.keys)
 
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy
@@ -1123,43 +1130,48 @@ class SchedulesFile
     @schedules = {}
     columns = CSV.read(@schedules_path).transpose
     columns.each do |col|
-      unless col_names.include? col[0]
-        fail "Schedule column name '#{col[0]}' is invalid. [context: #{@schedules_path}]"
+      col_name = col[0]
+      unless col_names.include? col_name
+        fail "Schedule column name '#{col_name}' is invalid. [context: #{@schedules_path}]"
       end
 
       values = col[1..-1].reject { |v| v.nil? }
-      values = validate_schedule(col_name: col[0], values: values)
-      @schedules[col[0]] = values
+
+      begin
+        values = values.map { |v| Float(v) }
+      rescue ArgumentError
+        fail "Schedule value must be numeric for column '#{col_name}'. [context: #{@schedules_path}]"
+      end
+
+      @schedules[col_name] = values
     end
   end
 
-  def validate_schedule(col_name:,
-                        values:)
-
+  def validate_schedules(year:)
+    @year = year
     num_hrs_in_year = Constants.NumHoursInYear(@year)
-    schedule_length = values.length
 
-    begin
+    columns = CSV.read(@schedules_path).transpose
+    columns.each do |col|
+      col_name = col[0]
+      values = col[1..-1].reject { |v| v.nil? }
       values = values.map { |v| Float(v) }
-    rescue ArgumentError
-      fail "Schedule value must be numeric for column '#{col_name}'. [context: #{@schedules_path}]"
-    end
+      schedule_length = values.length
 
-    if (1.0 - values.max).abs > 0.01
-      fail "Schedule max value for column '#{col_name}' must be 1. [context: #{@schedules_path}]"
-    end
+      if (1.0 - values.max).abs > 0.01
+        fail "Schedule max value for column '#{col_name}' must be 1. [context: #{@schedules_path}]"
+      end
 
-    if values.min < 0
-      fail "Schedule min value for column '#{col_name}' must be non-negative. [context: #{@schedules_path}]"
-    end
+      if values.min < 0
+        fail "Schedule min value for column '#{col_name}' must be non-negative. [context: #{@schedules_path}]"
+      end
 
-    valid_minutes_per_item = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
-    valid_num_rows = valid_minutes_per_item.map { |min_per_item| (60.0 * num_hrs_in_year / min_per_item).to_i }
-    unless valid_num_rows.include? schedule_length
-      fail "Schedule has invalid number of rows (#{schedule_length}) for column '#{col_name}'. Must be one of: #{valid_num_rows.reverse.join(', ')}. [context: #{@schedules_path}]"
+      valid_minutes_per_item = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
+      valid_num_rows = valid_minutes_per_item.map { |min_per_item| (60.0 * num_hrs_in_year / min_per_item).to_i }
+      unless valid_num_rows.include? schedule_length
+        fail "Schedule has invalid number of rows (#{schedule_length}) for column '#{col_name}'. Must be one of: #{valid_num_rows.reverse.join(', ')}. [context: #{@schedules_path}]"
+      end
     end
-
-    return values
   end
 
   def export
@@ -1203,8 +1215,7 @@ class SchedulesFile
     end
 
     if @schedules[col_name].nil?
-      @runner.registerError("Could not find the '#{col_name}' schedule.")
-      return false
+      return
     end
 
     col_index = get_col_index(col_name: col_name)
@@ -1295,7 +1306,7 @@ class SchedulesFile
     return unless @tmp_schedules.keys.include? 'vacancy'
     return if @tmp_schedules['vacancy'].all? { |i| i == 0 }
 
-    col_names = Constants.ScheduleColNames
+    col_names = ScheduleColumns.ColNames
 
     @tmp_schedules[col_names.keys[0]].each_with_index do |ts, i|
       col_names.keys.each do |col_name|

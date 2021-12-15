@@ -989,7 +989,7 @@ class HVACSizing
 
     # FUTURE: Consolidate code w/ airflow.rb
     infil_volume = @hpxml.air_infiltration_measurements.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
-    infil_height = @hpxml.inferred_infiltration_height(infil_volume)
+    infil_height = @hpxml.air_infiltration_measurements.select { |i| !i.infiltration_height.nil? }[0].infiltration_height
     sla = nil
     @hpxml.air_infiltration_measurements.each do |measurement|
       if [HPXML::UnitsACH, HPXML::UnitsCFM].include?(measurement.unit_of_measure) && !measurement.house_pressure.nil?

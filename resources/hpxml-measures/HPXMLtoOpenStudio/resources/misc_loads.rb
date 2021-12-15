@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class MiscLoads
-  def self.apply_plug(model, plug_load, obj_name, living_space, apply_ashrae140_assumptions, schedules_file)
+  def self.apply_plug(model, runner, plug_load, obj_name, living_space, apply_ashrae140_assumptions, schedules_file)
     kwh = 0
     if not plug_load.nil?
       kwh = plug_load.kWh_per_year * plug_load.usage_multiplier
@@ -9,22 +9,29 @@ class MiscLoads
 
     return if kwh <= 0
 
+    # Create schedule
+    sch = nil
     if not schedules_file.nil?
       if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
-        col_name = 'plug_loads_other'
+        col_name = ScheduleColumns.PlugLoadsOther
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeTelevision
-        col_name = 'plug_loads_tv'
+        col_name = ScheduleColumns.PlugLoadsTV
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeElectricVehicleCharging
-        col_name = 'plug_loads_vehicle'
+        col_name = ScheduleColumns.PlugLoadsVehicle
       elsif plug_load.plug_load_type == HPXML::PlugLoadTypeWellPump
-        col_name = 'plug_loads_well_pump'
+        col_name = ScheduleColumns.PlugLoadsWellPump
       end
       space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: kwh)
       sch = schedules_file.create_schedule_file(col_name: col_name)
-    else
+    end
+    if sch.nil?
       sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', plug_load.weekday_fractions, plug_load.weekend_fractions, plug_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
       space_design_level = sch.calcDesignLevelFromDailykWh(kwh / 365.0)
       sch = sch.schedule
+    else
+      runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !plug_load.weekday_fractions.nil?
+      runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !plug_load.weekend_fractions.nil?
+      runner.registerWarning("Both '#{col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !plug_load.monthly_multipliers.nil?
     end
 
     sens_frac = plug_load.frac_sensible
@@ -51,25 +58,33 @@ class MiscLoads
     mel.setSchedule(sch)
   end
 
-  def self.apply_fuel(model, fuel_load, obj_name, living_space, schedules_file)
+  def self.apply_fuel(model, runner, fuel_load, obj_name, living_space, schedules_file)
     therm = 0
 
     if not fuel_load.nil?
       therm = fuel_load.therm_per_year * fuel_load.usage_multiplier
+
+      # Create schedule
+      sch = nil
       if not schedules_file.nil?
         if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
-          col_name = 'fuel_loads_grill'
+          col_name = ScheduleColumns.FuelLoadsGrill
         elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeLighting
-          col_name = 'fuel_loads_lighting'
+          col_name = ScheduleColumns.FuelLoadsLighting
         elsif fuel_load.fuel_load_type == HPXML::FuelLoadTypeFireplace
-          col_name = 'fuel_loads_fireplace'
+          col_name = ScheduleColumns.FuelLoadsFireplace
         end
         space_design_level = schedules_file.calc_design_level_from_annual_therm(col_name: col_name, annual_therm: therm)
         sch = schedules_file.create_schedule_file(col_name: col_name)
-      else
+      end
+      if sch.nil?
         sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', fuel_load.weekday_fractions, fuel_load.weekend_fractions, fuel_load.monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
         space_design_level = sch.calcDesignLevelFromDailyTherm(therm / 365.0)
         sch = sch.schedule
+      else
+        runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !fuel_load.weekday_fractions.nil?
+        runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !fuel_load.weekend_fractions.nil?
+        runner.registerWarning("Both '#{col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !fuel_load.monthly_multipliers.nil?
       end
     end
 
@@ -99,6 +114,8 @@ class MiscLoads
     heater_kwh = 0
     heater_therm = 0
 
+    # Create schedule
+    heater_sch = nil
     if not schedules_file.nil?
       if obj_name.include?('pool')
         col_name = 'pool_heater'
@@ -106,8 +123,13 @@ class MiscLoads
         col_name = 'hot_tub_heater'
       end
       heater_sch = schedules_file.create_schedule_file(col_name: col_name)
-    else
+    end
+    if heater_sch.nil?
       heater_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.heater_weekday_fractions, pool_or_hot_tub.heater_weekend_fractions, pool_or_hot_tub.heater_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+    else
+      runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !pool_or_hot_tub.heater_weekday_fractions.nil?
+      runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !pool_or_hot_tub.heater_weekend_fractions.nil?
+      runner.registerWarning("Both '#{col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !pool_or_hot_tub.heater_monthly_multipliers.nil?
     end
 
     if pool_or_hot_tub.heater_load_units == HPXML::UnitsKwhPerYear
@@ -163,6 +185,8 @@ class MiscLoads
   def self.apply_pool_or_hot_tub_pump(model, pool_or_hot_tub, obj_name, living_space, schedules_file)
     pump_kwh = 0
 
+    # Create schedule
+    pump_sch = nil
     if not schedules_file.nil?
       if obj_name.include?('pool')
         col_name = 'pool_pump'
@@ -170,8 +194,13 @@ class MiscLoads
         col_name = 'hot_tub_pump'
       end
       pump_sch = schedules_file.create_schedule_file(col_name: col_name)
-    else
+    end
+    if pump_sch.nil?
       pump_sch = MonthWeekdayWeekendSchedule.new(model, obj_name + ' schedule', pool_or_hot_tub.pump_weekday_fractions, pool_or_hot_tub.pump_weekend_fractions, pool_or_hot_tub.pump_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+    else
+      runner.registerWarning("Both '#{col_name}' schedule file and weekday fractions provided; the latter will be ignored.") if !pool_or_hot_tub.pump_weekday_fractions.nil?
+      runner.registerWarning("Both '#{col_name}' schedule file and weekend fractions provided; the latter will be ignored.") if !pool_or_hot_tub.pump_weekend_fractions.nil?
+      runner.registerWarning("Both '#{col_name}' schedule file and monthly multipliers provided; the latter will be ignored.") if !pool_or_hot_tub.pump_monthly_multipliers.nil?
     end
 
     if not pool_or_hot_tub.pump_kwh_per_year.nil?
