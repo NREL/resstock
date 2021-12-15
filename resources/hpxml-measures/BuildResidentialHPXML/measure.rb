@@ -2878,7 +2878,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_defaults', false)
     arg.setDisplayName('Apply default values')
-    arg.setDescription('Sets default values to the HPXML object')
+    arg.setDescription('Sets OS-HPXML default values in the HPXML output file')
     arg.setDefaultValue(false)
     args << arg
 
@@ -3263,11 +3263,7 @@ class HPXMLFile
 
     if apply_defaults
       eri_version = Constants.ERIVersions[-1]
-      epw_path = args[:weather_station_epw_filepath]
-      if not File.exist? epw_path
-        epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
-      end
-      weather, epw_file = Location.apply_weather_file(model, runner, epw_path, '')
+      weather = WeatherProcess.new(model, runner)
       HPXMLDefaults.apply(hpxml, eri_version, weather, epw_file: epw_file)
     end
 
