@@ -8,21 +8,29 @@ require 'pathname'
 require 'csv'
 require 'oga'
 require_relative 'resources/geometry'
+require_relative '../HPXMLtoOpenStudio/resources/airflow'
 require_relative '../HPXMLtoOpenStudio/resources/battery'
 require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/constructions'
 require_relative '../HPXMLtoOpenStudio/resources/geometry'
+require_relative '../HPXMLtoOpenStudio/resources/hotwater_appliances'
+require_relative '../HPXMLtoOpenStudio/resources/hpxml_defaults'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../HPXMLtoOpenStudio/resources/hvac'
+require_relative '../HPXMLtoOpenStudio/resources/hvac_sizing'
 require_relative '../HPXMLtoOpenStudio/resources/lighting'
 require_relative '../HPXMLtoOpenStudio/resources/location'
 require_relative '../HPXMLtoOpenStudio/resources/materials'
+require_relative '../HPXMLtoOpenStudio/resources/misc_loads'
 require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../HPXMLtoOpenStudio/resources/psychrometrics'
+require_relative '../HPXMLtoOpenStudio/resources/pv'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
+require_relative '../HPXMLtoOpenStudio/resources/util'
 require_relative '../HPXMLtoOpenStudio/resources/validator'
 require_relative '../HPXMLtoOpenStudio/resources/version'
+require_relative '../HPXMLtoOpenStudio/resources/waterheater'
 require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
 
 # start the measure
@@ -2868,6 +2876,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('write_default_hpxml', false)
+    arg.setDisplayName('Write default hpxml')
+    arg.setDescription('Sets default values to the hpxml object and writes to in.xml')
+    arg.setDefaultValue(false)
+    args << arg
+
     return args
   end
 
@@ -3117,7 +3131,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   def validate_hpxml(runner, hpxml_path, hpxml_doc)
-    schemas_dir = File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources')
+    schemas_dir = File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources/hpxml_schema')
+    schematron_dir = File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources/hpxml_schematron')
 
     is_valid = true
 
@@ -3128,8 +3143,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     end
 
     # Validate input HPXML against schematron docs
-    stron_paths = [File.join(schemas_dir, 'HPXMLvalidator.xml'),
-                   File.join(schemas_dir, 'EPvalidator.xml')]
+    stron_paths = [File.join(schematron_dir, 'HPXMLvalidator.xml'),
+                   File.join(schematron_dir, 'EPvalidator.xml')]
     errors, warnings = Validator.run_validators(hpxml_doc, stron_paths)
     errors.each do |error|
       runner.registerError("#{hpxml_path}: #{error}")
@@ -3241,6 +3256,20 @@ class HPXMLFile
     end
 
     hpxml_doc = hpxml.to_oga()
+
+    if write_default_hpxml
+      eri_version = Constants.ERIVersions[-1]
+      epw_path = args[:weather_station_epw_filepath]
+      if not File.exist? epw_path
+        epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
+      end
+      weather, epw_file = Location.apply_weather_file(model, runner, epw_path, '')
+      HPXMLDefaults.apply(hpxml, eri_version, weather, epw_file: epw_file)
+
+      output_dir = File.expand_path('..')
+      hpxml_defaults_path = File.join(output_dir, 'in.xml')
+      XMLHelper.write_file(hpxml.to_oga, hpxml_defaults_path)
+    end
 
     return hpxml_doc
   end

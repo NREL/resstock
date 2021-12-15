@@ -1716,7 +1716,7 @@ class Waterheater
 
     value = nil
     lookup_year = 0
-    CSV.foreach(File.join(File.dirname(__FILE__), 'lu_water_heater_efficiency.csv'), headers: true) do |row|
+    CSV.foreach(File.join(File.dirname(__FILE__), 'data', 'water_heater_efficiency.csv'), headers: true) do |row|
       next unless row['fuel_primary_id'] == fuel_primary_id
 
       row_year = Integer(row['year'])

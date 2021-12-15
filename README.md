@@ -5,7 +5,7 @@
 [![Documentation Status](https://readthedocs.org/projects/openstudio-hpxml/badge/?version=latest)](https://openstudio-hpxml.readthedocs.io/en/latest/?badge=latest)
 
 OpenStudio-HPXML allows running residential EnergyPlus simulations using an [HPXML file](https://hpxml.nrel.gov/) for the building description.
-A Schematron document (`HPXMLtoOpenStudio/resources/EPvalidator.xml`) for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
+A Schematron document (`HPXMLtoOpenStudio/resources/hpxml_schematron/EPvalidator.xml`) for the EnergyPlus use case is used to validate that the appropriate HPXML inputs are provided to run EnergyPlus.
 
 OpenStudio-HPXML can accommodate a wide range of different building technologies and geometries.
 End-to-end simulations typically run in 3-10 seconds, depending on complexity, computer platform and speed, etc.
@@ -33,7 +33,7 @@ This repository contains several OpenStudio measures:
 The OpenStudio-HPXML workflow is used by a number of other residential projects, including:
 - [Energy Rating Index (ERI) and ENERGY STAR](https://github.com/NREL/OpenStudio-ERI)
 - [Home Energy Score](https://betterbuildingssolutioncenter.energy.gov/home-energy-score)
-- [UrbanOpt](https://www.nrel.gov/buildings/urbanopt.html)
+- [URBANopt](https://www.nrel.gov/buildings/urbanopt.html)
 - [ResStock](https://resstock.nrel.gov/) (pending)
 - [BEopt](https://beopt.nrel.gov) (pending)
 - [Weatherization Assistant](https://weatherization.ornl.gov/obtain) (pending)

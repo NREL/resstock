@@ -6,6 +6,7 @@
 require 'openstudio'
 require 'pathname'
 require 'oga'
+require_relative 'resources/constants'
 require_relative 'resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/geometry'
