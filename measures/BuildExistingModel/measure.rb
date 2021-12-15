@@ -13,6 +13,7 @@ elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXML
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 end
 require File.join(resources_path, 'meta_measure')
+require File.join(resources_path, 'weather')
 
 # in addition to the above requires, this measure is expected to run in an
 # environment with resstock/resources/buildstock.rb loaded
@@ -112,6 +113,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('build_hpxml_only', false)
     arg.setDisplayName('Build only the HPXML file')
     arg.setDescription('If true, measure stops after running BuildResidentialHPXML')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('write_default_hpxml', false)
+    arg.setDisplayName('Write default hpxml')
+    arg.setDescription('Sets default values to the hpxml object and writes to in.xml')
+    arg.setDefaultValue(false)
     args << arg
 
     return args
@@ -262,6 +269,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
 
+    measures['BuildResidentialHPXML'][0]['write_default_hpxml'] = args['write_default_hpxml'].get if args['write_default_hpxml'].is_initialized
+
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
@@ -271,11 +280,10 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
 
-
-    # FIXME - see if # of measures can be limited
+    # Specify measures to run
     build_hpxml_only = args['build_hpxml_only'].get if args['build_hpxml_only'].is_initialized
     if build_hpxml_only
-      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
     else
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
     end

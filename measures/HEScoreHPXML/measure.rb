@@ -37,11 +37,11 @@ class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
   # define what happens when the measure is run
   def run(model, runner, user_arguments)
     super(model, runner, user_arguments)
-  
+
     hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
     outfile = File.expand_path('../hes.json')
 
-    runner.registerWarning("Translating xml to HES json")
+    runner.registerWarning('Translating xml to HES json')
     command = "hpxml2hescore #{hpxml_path} -o #{outfile} --resstock"
     system(command)
     runner.registerWarning("Translated xml to HES json, output #{outfile}")
@@ -49,7 +49,6 @@ class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
     return true
   end
 end
-
 
 # register the measure to be used by the application
 HEScoreHPXML.new.registerWithApplication
