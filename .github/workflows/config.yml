@@ -40,13 +40,23 @@ jobs:
             project_national/national_upgrades
           name: projects
 
+      - name: Run tests
+        run: |
+          ruby test/test_bsb_analysis.rb
+
       - name: Process results
         run: |
-          gunzip -v project_national/national_baseline/results_csvs/*.csv.gz          
+          gunzip -v project_national/national_baseline/results_csvs/*.csv.gz
           gunzip -v project_testing/testing_baseline/results_csvs/*.csv.gz
           
           gunzip -v project_national/national_upgrades/results_csvs/*.csv.gz
           gunzip -v project_testing/testing_upgrades/results_csvs/*.csv.gz
+          
+          tar -xvf project_national/national_baseline/simulation_output/*.tar.gz -C project_national/national_baseline/simulation_output
+          tar -xvf project_testing/testing_baseline/simulation_output/*.tar.gz -C project_testing/testing_baseline/simulation_output
+          
+          tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output
+          tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output
           
           pip install pandas
           python test/util.py
@@ -94,16 +104,6 @@ jobs:
         run: |
           rake workflow:analysis_tests
 
-      - name: Download project folders
-        uses: actions/download-artifact@v2
-        with:
-          path: projects
-          name: projects
-
-      - name: Run bsb tests
-        run: |
-          ruby test/test_bsb_analysis.rb
-
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
         with:
@@ -127,9 +127,7 @@ jobs:
       - name: Upload base samples and results
         uses: actions/upload-artifact@v2
         with:
-          path: |
-            test/test_samples_osw/baseline
-            test/test_samples_osw/upgrades
+          path: test/base_results
           name: base
 
       - uses: actions/checkout@v2
@@ -161,32 +159,50 @@ jobs:
           pip install plotly
           pip install kaleido
           
-          mkdir test/test_samples_osw/comparisons
-          mkdir test/test_samples_osw/comparisons/baseline
-          mkdir test/test_samples_osw/comparisons/upgrades
+          mkdir test/base_results/comparisons
           
-          python test/compare.py -a samples -b base/baseline -f samples -e test/test_samples_osw/comparisons/baseline
+          mkdir test/base_results/comparisons/baseline
           
-          python test/compare.py -m feature -b base/baseline -f results/baseline
+          mkdir test/base_results/comparisons/baseline/annual
           
-          python test/compare.py -a results -b base/baseline/map -f results/baseline/map -e test/test_samples_osw/comparisons/baseline
-          python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline/map -f results/baseline/map -e test/test_samples_osw/comparisons/baseline
+          python test/compare.py -a samples -b base/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual
           
-          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html -b base/baseline/map -f results/baseline/map -e test/test_samples_osw/comparisons/baseline
-          python test/compare.py -a visualize -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html -b base/baseline/map -f results/baseline/map -e test/test_samples_osw/comparisons/baseline
-          python test/compare.py -a visualize -dc build_existing_model.census_region -x results_output_cr.html -b base/baseline/map -f results/baseline/map -e test/test_samples_osw/comparisons/baseline
-          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.census_region -af sum -x results_output_cr_sum.html -b base/baseline/map -f results/baseline/map -e test/test_samples_osw/comparisons/baseline
+          python test/compare.py -m feature -b base/baseline/annual -f results/baseline/annual
           
-          python test/compare.py -m feature -b base/upgrades -f results/upgrades
+          python test/compare.py -a results -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
           
-          python test/compare.py -a results -b base/upgrades/map -f results/upgrades/map -e test/test_samples_osw/comparisons/upgrades
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.census_region -x results_output_cr.html -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.census_region -af sum -x results_output_cr_sum.html -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
           
-          python test/compare.py -a visualize -x results_output.html -b base/upgrades/map -f results/upgrades/map -e test/test_samples_osw/comparisons/upgrades
+          mkdir test/base_results/comparisons/baseline/timeseries
+          
+          python test/compare.py -m feature -b base/baseline/timeseries -f results/baseline/timeseries
+          
+          python test/compare.py -a timeseries -b base/baseline/timeseries/map -f results/baseline/timeseries/map -e test/base_results/comparisons/baseline/timeseries
+          
+          mkdir test/base_results/comparisons/upgrades
+          
+          mkdir test/base_results/comparisons/upgrades/annual
+          
+          python test/compare.py -m feature -b base/upgrades/annual -f results/upgrades/annual
+          
+          python test/compare.py -a results -b base/upgrades/annual/map -f results/upgrades/annual/map -e test/base_results/comparisons/upgrades/annual
+          
+          python test/compare.py -a visualize -x results_output.html -b base/upgrades/annual/map -f results/upgrades/annual/map -e test/base_results/comparisons/upgrades/annual
+          
+          mkdir test/base_results/comparisons/upgrades/timeseries
+          
+          python test/compare.py -m feature -b base/upgrades/timeseries -f results/upgrades/timeseries
+          
+          python test/compare.py -a timeseries -b base/upgrades/timeseries/map -f results/upgrades/timeseries/map -e test/base_results/comparisons/upgrades/timeseries
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
         with:
-          path: test/test_samples_osw/comparisons
+          path: test/base_results/comparisons
           name: comparisons
 
   update-results:
@@ -214,11 +230,12 @@ jobs:
         run: |
           branch_name="${{ github.head_ref }}"
           git pull origin $branch_name
-          cp -r samples/buildstock*.csv test/test_samples_osw/baseline
-          cp -r results/baseline/results*.csv test/test_samples_osw/baseline
-          cp -r results/upgrades/results*.csv test/test_samples_osw/upgrades
-          git add test/test_samples_osw/baseline
-          git add test/test_samples_osw/upgrades
+          cp -r samples/buildstock*.csv test/base_results/baseline/annual
+          cp -r results/baseline/annual/results*.csv test/base_results/baseline/annual
+          cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
+          cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
+          cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
+          git add test/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"

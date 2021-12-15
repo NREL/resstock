@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from functools import reduce
 
 col_exclusions = ['applicable',
                   'include_timeseries_',
@@ -9,9 +10,8 @@ col_exclusions = ['applicable',
 
 # BASELINE
 
-outdir = 'baseline'
-if not os.path.exists(outdir):
-  os.makedirs(outdir)
+if not os.path.exists('baseline'):
+  os.makedirs('baseline')
 
 df_national = pd.read_csv('project_national/national_baseline/results_csvs/results_up00.csv')
 df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}.osw'.format('%04d' % x))
@@ -44,11 +44,17 @@ for col in df.columns.values:
   elif col.startswith('qoi_report'):
     qoi_reports.append(col)
 
+# Annual
+
+outdir = 'baseline/annual'
+if not os.path.exists(outdir):
+  os.makedirs(outdir)
+
 # results_characteristics.csv
 results_characteristics = df[['OSW'] + build_existing_models]
 
 results_characteristics = results_characteristics.set_index('OSW')
-results_characteristics = results_characteristics.reindex(sorted(results_characteristics), axis=1)
+results_characteristics = results_characteristics.sort_index()
 results_characteristics.to_csv(os.path.join(outdir, 'results_characteristics.csv'))
 
 # results_output.csv
@@ -56,28 +62,110 @@ results_output = df[['OSW'] + report_simulation_outputs + upgrade_costs + qoi_re
 results_output = results_output.dropna(how='all', axis=1)
 
 results_output = results_output.set_index('OSW')
-results_output = results_output.reindex(sorted(results_output), axis=1)
+results_output = results_output.sort_index()
+results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
+
+# Timeseries
+
+def rename_ts_col(col):
+  col = col.lower()
+  col = col.replace(': ', '_')
+  col = col.replace(' ', '_')
+  col = col.replace('/', '_')
+  col = 'report_simulation_output.{}'.format(col)
+  return col
+
+def convert_units(df):
+  for col in df.columns:
+    units = col.split('_')[-1]
+    if units == 'kwh':
+      df[col] *= 3412.14/1000000  # to mbtu
+    elif units == 'kbtu':
+      df[col] /= 1000  # to mbtu
+    df = df.rename(columns={col: col.replace(units, 'm_btu')})
+  return df
+
+outdir = 'baseline/timeseries'
+if not os.path.exists(outdir):
+  os.makedirs(outdir)
+
+df_nationals = []
+df_testings = []
+index_col = ['Time']
+drops = []
+
+dps = sorted(os.listdir('project_national/national_baseline/simulation_output/up00'))
+for dp in dps:
+  df_national = pd.read_csv('project_national/national_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
+
+  for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
+    new_col = rename_ts_col('{}_{}'.format(col, units))
+    df_national = df_national.rename(columns={col: new_col})
+
+  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
+  df_national = df_national.drop(drops, axis=1)
+
+  df_nationals.append(df_national)
+
+dps = sorted(os.listdir('project_testing/testing_baseline/simulation_output/up00'))
+for dp in dps:
+  df_testing = pd.read_csv('project_testing/testing_baseline/simulation_output/up00/{}/run/results_timeseries.csv'.format(dp), index_col=index_col)
+
+  for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
+    new_col = rename_ts_col('{}_{}'.format(col, units))
+    df_testing = df_testing.rename(columns={col: new_col})
+
+  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
+  df_testing = df_testing.drop(drops, axis=1)
+
+  df_testings.append(df_testing)
+
+# results_output.csv
+
+df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals)
+df_national['PROJECT'] = 'project_national'
+
+df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
+df_testing['PROJECT'] = 'project_testing'
+
+results_output = pd.concat([df_national, df_testing]).fillna(0).round(2)
+results_output = results_output.set_index('PROJECT')
+results_output = convert_units(results_output)
+results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
 # UPGRADES
 
-outdir = 'upgrades'
+if not os.path.exists('upgrades'):
+  os.makedirs('upgrades')
+
+# Annual
+
+outdir = 'upgrades/annual'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
 frames = []
+upgrades = {}
 
-num_scenarios = sum([len(files) for r, d, files in os.walk('project_testing/testing_upgrades/results_csvs')])
-for i in range(1, num_scenarios):
+national_num_scenarios = sum([len(files) for r, d, files in os.walk('project_national/national_upgrades/results_csvs')])
+testing_num_scenarios = sum([len(files) for r, d, files in os.walk('project_testing/testing_upgrades/results_csvs')])
+assert national_num_scenarios == testing_num_scenarios
+
+for i in range(1, national_num_scenarios):
 
   df_national = pd.read_csv('project_national/national_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
-  df_national['building_id'] = df_national['apply_upgrade.upgrade_name'].apply(lambda x: 'project_national-{}.osw'.format(x))
+  df_testing = pd.read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
+
+  assert df_national['apply_upgrade.upgrade_name'][0] == df_testing['apply_upgrade.upgrade_name'][0]
+  upgrades[i] = df_national['apply_upgrade.upgrade_name'][0]
+
+  df_national['building_id'] = 'project_national-{}.osw'.format(upgrades[i])
   df_national.insert(1, 'color_index', 1)
 
   frames.append(df_national)
-
-  df_testing = pd.read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
-  df_testing['building_id'] = df_testing['apply_upgrade.upgrade_name'].apply(lambda x: 'project_testing-{}.osw'.format(x))
+  
+  df_testing['building_id'] = 'project_testing-{}.osw'.format(upgrades[i])
   df_testing.insert(1, 'color_index', 0)
 
   frames.append(df_testing)
@@ -109,5 +197,51 @@ results_output = df[['OSW'] + report_simulation_outputs + upgrade_costs + qoi_re
 results_output = results_output.dropna(how='all', axis=1)
 
 results_output = results_output.set_index('OSW')
-results_output = results_output.reindex(sorted(results_output), axis=1)
+results_output = results_output.sort_index()
+results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
+
+# Timeseries
+
+outdir = 'upgrades/timeseries'
+if not os.path.exists(outdir):
+  os.makedirs(outdir)
+
+df_nationals = []
+df_testings = []
+
+for i in range(1, national_num_scenarios):
+  df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/results_timeseries.csv'.format('%02d' % i), index_col=index_col)
+
+  for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
+    new_col = rename_ts_col('{}_{}'.format(col, units))
+    df_national = df_national.rename(columns={col: new_col})
+
+  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
+  df_national = df_national.drop(drops, axis=1)
+
+  df_nationals.append(df_national)
+
+  df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/results_timeseries.csv'.format('%02d' % i), index_col=index_col)
+
+  for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
+    new_col = rename_ts_col('{}_{}'.format(col, units))
+    df_testing = df_testing.rename(columns={col: new_col})
+
+  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
+  df_testing = df_testing.drop(drops, axis=1)
+
+  df_testings.append(df_testing)
+
+# results_output.csv
+
+df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals)
+df_national['PROJECT'] = 'project_national'
+
+df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
+df_testing['PROJECT'] = 'project_testing'
+
+results_output = pd.concat([df_national, df_testing]).fillna(0).round(2)
+results_output = results_output.set_index('PROJECT')
+results_output = convert_units(results_output)
+results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
