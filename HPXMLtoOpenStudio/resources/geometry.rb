@@ -528,7 +528,7 @@ class Geometry
     # Create schedule
     people_sch = nil
     if not schedules_file.nil?
-      people_sch = schedules_file.create_schedule_file(col_name: ScheduleColumns.Occupants)
+      people_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnOccupants)
     end
     if people_sch.nil?
       weekday_sch = hpxml.building_occupancy.weekday_fractions.split(',').map(&:to_f)
@@ -539,9 +539,9 @@ class Geometry
       people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
       people_sch = people_sch.schedule
     else
-      runner.registerWarning("Both '#{ScheduleColumns.Occupants}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekday_fractions.nil?
-      runner.registerWarning("Both '#{ScheduleColumns.Occupants}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekend_fractions.nil?
-      runner.registerWarning("Both '#{ScheduleColumns.Occupants}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml.building_occupancy.monthly_multipliers.nil?
+      runner.registerWarning("Both '#{SchedulesFile::ColumnOccupants}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekday_fractions.nil?
+      runner.registerWarning("Both '#{SchedulesFile::ColumnOccupants}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekend_fractions.nil?
+      runner.registerWarning("Both '#{SchedulesFile::ColumnOccupants}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml.building_occupancy.monthly_multipliers.nil?
     end
 
     # Create schedule

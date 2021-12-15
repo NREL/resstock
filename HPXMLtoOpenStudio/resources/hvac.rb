@@ -761,8 +761,8 @@ class HVAC
     ceiling_fan_sch = nil
     if not schedules_file.nil?
       annual_kwh *= Schedule.CeilingFanMonthlyMultipliers(weather: weather).split(',').map(&:to_f).sum(0.0) / 12.0
-      ceiling_fan_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: ScheduleColumns.CeilingFan, annual_kwh: annual_kwh)
-      ceiling_fan_sch = schedules_file.create_schedule_file(col_name: ScheduleColumns.CeilingFan)
+      ceiling_fan_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: SchedulesFile::ColumnCeilingFan, annual_kwh: annual_kwh)
+      ceiling_fan_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnCeilingFan)
     end
     if ceiling_fan_sch.nil?
       annual_kwh *= ceiling_fan.monthly_multipliers.split(',').map(&:to_f).sum(0.0) / 12.0
@@ -773,9 +773,9 @@ class HVAC
       ceiling_fan_design_level = ceiling_fan_sch_obj.calcDesignLevelFromDailykWh(annual_kwh / 365.0)
       ceiling_fan_sch = ceiling_fan_sch_obj.schedule
     else
-      runner.registerWarning("Both '#{ScheduleColumns.CeilingFan}' schedule file and weekday fractions provided; the latter will be ignored.") if !ceiling_fan.weekday_fractions.nil?
-      runner.registerWarning("Both '#{ScheduleColumns.CeilingFan}' schedule file and weekend fractions provided; the latter will be ignored.") if !ceiling_fan.weekend_fractions.nil?
-      runner.registerWarning("Both '#{ScheduleColumns.CeilingFan}' schedule file and monthly multipliers provided; the latter will be ignored.") if !ceiling_fan.monthly_multipliers.nil?
+      runner.registerWarning("Both '#{SchedulesFile::ColumnCeilingFan}' schedule file and weekday fractions provided; the latter will be ignored.") if !ceiling_fan.weekday_fractions.nil?
+      runner.registerWarning("Both '#{SchedulesFile::ColumnCeilingFan}' schedule file and weekend fractions provided; the latter will be ignored.") if !ceiling_fan.weekend_fractions.nil?
+      runner.registerWarning("Both '#{SchedulesFile::ColumnCeilingFan}' schedule file and monthly multipliers provided; the latter will be ignored.") if !ceiling_fan.monthly_multipliers.nil?
     end
 
     equip_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)

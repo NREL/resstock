@@ -1256,7 +1256,7 @@ class Airflow
       # Create schedule
       obj_sch = nil
       if not schedules_file.nil?
-        obj_sch_name = ScheduleColumns.ClothesDryer
+        obj_sch_name = SchedulesFile::ColumnClothesDryer
         obj_sch = schedules_file.create_schedule_file(col_name: obj_sch_name)
         full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: obj_sch_name)
       end

@@ -44,8 +44,8 @@ class ScheduleGenerator
   def initialize_schedules
     @schedules = {}
 
-    ScheduleColumns.ColNames.keys.each do |col_name|
-      next if col_name == ScheduleColumns.Vacancy
+    SchedulesFile.ColumnNames.keys.each do |col_name|
+      next if col_name == SchedulesFile::ColumnVacancy
 
       @schedules[col_name] = Array.new(@total_days_in_year * @steps_in_day, 0.0)
     end
@@ -103,106 +103,106 @@ class ScheduleGenerator
   end
 
   def create_average_occupants
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.Occupants, weekday_sch: Schedule.OccupantsWeekdayFractions, weekend_sch: Schedule.OccupantsWeekendFractions, monthly_sch: Schedule.OccupantsMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnOccupants, weekday_sch: Schedule.OccupantsWeekdayFractions, weekend_sch: Schedule.OccupantsWeekendFractions, monthly_sch: Schedule.OccupantsMonthlyMultipliers)
   end
 
   def create_average_lighting_interior
     lighting_sch = Lighting.get_schedule(@epw_file)
-    create_timeseries_from_months(sch_name: ScheduleColumns.LightingInterior, month_schs: lighting_sch)
+    create_timeseries_from_months(sch_name: SchedulesFile::ColumnLightingInterior, month_schs: lighting_sch)
   end
 
   def create_average_lighting_exterior
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.LightingExterior, weekday_sch: Schedule.LightingExteriorWeekdayFractions, weekend_sch: Schedule.LightingExteriorWeekendFractions, monthly_sch: Schedule.LightingExteriorMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnLightingExterior, weekday_sch: Schedule.LightingExteriorWeekdayFractions, weekend_sch: Schedule.LightingExteriorWeekendFractions, monthly_sch: Schedule.LightingExteriorMonthlyMultipliers)
   end
 
   def create_average_lighting_garage
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.LightingGarage, weekday_sch: Schedule.LightingExteriorWeekdayFractions, weekend_sch: Schedule.LightingExteriorWeekendFractions, monthly_sch: Schedule.LightingExteriorMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnLightingGarage, weekday_sch: Schedule.LightingExteriorWeekdayFractions, weekend_sch: Schedule.LightingExteriorWeekendFractions, monthly_sch: Schedule.LightingExteriorMonthlyMultipliers)
   end
 
   def create_average_lighting_exterior_holiday
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.LightingExteriorHoliday, weekday_sch: Schedule.LightingExteriorHolidayWeekdayFractions, weekend_sch: Schedule.LightingExteriorHolidayWeekendFractions, monthly_sch: Schedule.LightingExteriorHolidayMonthlyMultipliers, begin_month: 11, begin_day: 24, end_month: 1, end_day: 6)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnLightingExteriorHoliday, weekday_sch: Schedule.LightingExteriorHolidayWeekdayFractions, weekend_sch: Schedule.LightingExteriorHolidayWeekendFractions, monthly_sch: Schedule.LightingExteriorHolidayMonthlyMultipliers, begin_month: 11, begin_day: 24, end_month: 1, end_day: 6)
   end
 
   def create_average_cooking_range
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.CookingRange, weekday_sch: Schedule.CookingRangeWeekdayFractions, weekend_sch: Schedule.CookingRangeWeekendFractions, monthly_sch: Schedule.CookingRangeMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnCookingRange, weekday_sch: Schedule.CookingRangeWeekdayFractions, weekend_sch: Schedule.CookingRangeWeekendFractions, monthly_sch: Schedule.CookingRangeMonthlyMultipliers)
   end
 
   def create_average_refrigerator
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.Refrigerator, weekday_sch: Schedule.RefrigeratorWeekdayFractions, weekend_sch: Schedule.RefrigeratorWeekendFractions, monthly_sch: Schedule.RefrigeratorMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnRefrigerator, weekday_sch: Schedule.RefrigeratorWeekdayFractions, weekend_sch: Schedule.RefrigeratorWeekendFractions, monthly_sch: Schedule.RefrigeratorMonthlyMultipliers)
   end
 
   def create_average_extra_refrigerator
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.ExtraRefrigerator, weekday_sch: Schedule.ExtraRefrigeratorWeekdayFractions, weekend_sch: Schedule.ExtraRefrigeratorWeekendFractions, monthly_sch: Schedule.ExtraRefrigeratorMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnExtraRefrigerator, weekday_sch: Schedule.ExtraRefrigeratorWeekdayFractions, weekend_sch: Schedule.ExtraRefrigeratorWeekendFractions, monthly_sch: Schedule.ExtraRefrigeratorMonthlyMultipliers)
   end
 
   def create_average_freezer
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.Freezer, weekday_sch: Schedule.FreezerWeekdayFractions, weekend_sch: Schedule.FreezerWeekendFractions, monthly_sch: Schedule.FreezerMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnFreezer, weekday_sch: Schedule.FreezerWeekdayFractions, weekend_sch: Schedule.FreezerWeekendFractions, monthly_sch: Schedule.FreezerMonthlyMultipliers)
   end
 
   def create_average_dishwasher
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.HotWaterDishwasher, weekday_sch: Schedule.DishwasherWeekdayFractions, weekend_sch: Schedule.DishwasherWeekendFractions, monthly_sch: Schedule.DishwasherMonthlyMultipliers)
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.Dishwasher, weekday_sch: Schedule.DishwasherWeekdayFractions, weekend_sch: Schedule.DishwasherWeekendFractions, monthly_sch: Schedule.DishwasherMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHotWaterDishwasher, weekday_sch: Schedule.DishwasherWeekdayFractions, weekend_sch: Schedule.DishwasherWeekendFractions, monthly_sch: Schedule.DishwasherMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnDishwasher, weekday_sch: Schedule.DishwasherWeekdayFractions, weekend_sch: Schedule.DishwasherWeekendFractions, monthly_sch: Schedule.DishwasherMonthlyMultipliers)
   end
 
   def create_average_clothes_washer
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.HotWaterClothesWasher, weekday_sch: Schedule.ClothesWasherWeekdayFractions, weekend_sch: Schedule.ClothesWasherWeekendFractions, monthly_sch: Schedule.ClothesWasherMonthlyMultipliers)
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.ClothesWasher, weekday_sch: Schedule.ClothesWasherWeekdayFractions, weekend_sch: Schedule.ClothesWasherWeekendFractions, monthly_sch: Schedule.ClothesWasherMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHotWaterClothesWasher, weekday_sch: Schedule.ClothesWasherWeekdayFractions, weekend_sch: Schedule.ClothesWasherWeekendFractions, monthly_sch: Schedule.ClothesWasherMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnClothesWasher, weekday_sch: Schedule.ClothesWasherWeekdayFractions, weekend_sch: Schedule.ClothesWasherWeekendFractions, monthly_sch: Schedule.ClothesWasherMonthlyMultipliers)
   end
 
   def create_average_clothes_dryer
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.ClothesDryer, weekday_sch: Schedule.ClothesDryerWeekdayFractions, weekend_sch: Schedule.ClothesDryerWeekendFractions, monthly_sch: Schedule.ClothesDryerMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnClothesDryer, weekday_sch: Schedule.ClothesDryerWeekdayFractions, weekend_sch: Schedule.ClothesDryerWeekendFractions, monthly_sch: Schedule.ClothesDryerMonthlyMultipliers)
   end
 
   def create_average_fixtures
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.HotWaterFixtures, weekday_sch: Schedule.FixturesWeekdayFractions, weekend_sch: Schedule.FixturesWeekendFractions, monthly_sch: Schedule.FixturesMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHotWaterFixtures, weekday_sch: Schedule.FixturesWeekdayFractions, weekend_sch: Schedule.FixturesWeekendFractions, monthly_sch: Schedule.FixturesMonthlyMultipliers)
   end
 
   def create_average_ceiling_fan
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.CeilingFan, weekday_sch: Schedule.CeilingFanWeekdayFractions, weekend_sch: Schedule.CeilingFanWeekendFractions, monthly_sch: '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0')
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnCeilingFan, weekday_sch: Schedule.CeilingFanWeekdayFractions, weekend_sch: Schedule.CeilingFanWeekendFractions, monthly_sch: '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0')
   end
 
   def create_average_plug_loads_other
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.PlugLoadsOther, weekday_sch: Schedule.PlugLoadsOtherWeekdayFractions, weekend_sch: Schedule.PlugLoadsOtherWeekendFractions, monthly_sch: Schedule.PlugLoadsOtherMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnPlugLoadsOther, weekday_sch: Schedule.PlugLoadsOtherWeekdayFractions, weekend_sch: Schedule.PlugLoadsOtherWeekendFractions, monthly_sch: Schedule.PlugLoadsOtherMonthlyMultipliers)
   end
 
   def create_average_plug_loads_tv
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.PlugLoadsTV, weekday_sch: Schedule.PlugLoadsTVWeekdayFractions, weekend_sch: Schedule.PlugLoadsTVWeekendFractions, monthly_sch: Schedule.PlugLoadsTVMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnPlugLoadsTV, weekday_sch: Schedule.PlugLoadsTVWeekdayFractions, weekend_sch: Schedule.PlugLoadsTVWeekendFractions, monthly_sch: Schedule.PlugLoadsTVMonthlyMultipliers)
   end
 
   def create_average_plug_loads_vehicle
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.PlugLoadsVehicle, weekday_sch: Schedule.PlugLoadsVehicleWeekdayFractions, weekend_sch: Schedule.PlugLoadsVehicleWeekendFractions, monthly_sch: Schedule.PlugLoadsVehicleMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnPlugLoadsVehicle, weekday_sch: Schedule.PlugLoadsVehicleWeekdayFractions, weekend_sch: Schedule.PlugLoadsVehicleWeekendFractions, monthly_sch: Schedule.PlugLoadsVehicleMonthlyMultipliers)
   end
 
   def create_average_plug_loads_well_pump
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.PlugLoadsWellPump, weekday_sch: Schedule.PlugLoadsWellPumpWeekdayFractions, weekend_sch: Schedule.PlugLoadsWellPumpWeekendFractions, monthly_sch: Schedule.PlugLoadsWellPumpMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnPlugLoadsWellPump, weekday_sch: Schedule.PlugLoadsWellPumpWeekdayFractions, weekend_sch: Schedule.PlugLoadsWellPumpWeekendFractions, monthly_sch: Schedule.PlugLoadsWellPumpMonthlyMultipliers)
   end
 
   def create_average_fuel_loads_grill
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.FuelLoadsGrill, weekday_sch: Schedule.FuelLoadsGrillWeekdayFractions, weekend_sch: Schedule.FuelLoadsGrillWeekendFractions, monthly_sch: Schedule.FuelLoadsGrillMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnFuelLoadsGrill, weekday_sch: Schedule.FuelLoadsGrillWeekdayFractions, weekend_sch: Schedule.FuelLoadsGrillWeekendFractions, monthly_sch: Schedule.FuelLoadsGrillMonthlyMultipliers)
   end
 
   def create_average_fuel_loads_lighting
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.FuelLoadsLighting, weekday_sch: Schedule.FuelLoadsLightingWeekdayFractions, weekend_sch: Schedule.FuelLoadsLightingWeekendFractions, monthly_sch: Schedule.FuelLoadsLightingMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnFuelLoadsLighting, weekday_sch: Schedule.FuelLoadsLightingWeekdayFractions, weekend_sch: Schedule.FuelLoadsLightingWeekendFractions, monthly_sch: Schedule.FuelLoadsLightingMonthlyMultipliers)
   end
 
   def create_average_fuel_loads_fireplace
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.FuelLoadsFireplace, weekday_sch: Schedule.FuelLoadsFireplaceWeekdayFractions, weekend_sch: Schedule.FuelLoadsFireplaceWeekendFractions, monthly_sch: Schedule.FuelLoadsFireplaceMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnFuelLoadsFireplace, weekday_sch: Schedule.FuelLoadsFireplaceWeekdayFractions, weekend_sch: Schedule.FuelLoadsFireplaceWeekendFractions, monthly_sch: Schedule.FuelLoadsFireplaceMonthlyMultipliers)
   end
 
   def create_average_pool_pump
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.PoolPump, weekday_sch: Schedule.PoolPumpWeekdayFractions, weekend_sch: Schedule.PoolPumpWeekendFractions, monthly_sch: Schedule.PoolPumpMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnPoolPump, weekday_sch: Schedule.PoolPumpWeekdayFractions, weekend_sch: Schedule.PoolPumpWeekendFractions, monthly_sch: Schedule.PoolPumpMonthlyMultipliers)
   end
 
   def create_average_pool_heater
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.PoolHeater, weekday_sch: Schedule.PoolPumpWeekdayFractions, weekend_sch: Schedule.PoolPumpWeekendFractions, monthly_sch: Schedule.PoolHeaterMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnPoolHeater, weekday_sch: Schedule.PoolPumpWeekdayFractions, weekend_sch: Schedule.PoolPumpWeekendFractions, monthly_sch: Schedule.PoolHeaterMonthlyMultipliers)
   end
 
   def create_average_hot_tub_pump
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.HotTubPump, weekday_sch: Schedule.HotTubPumpWeekdayFractions, weekend_sch: Schedule.HotTubPumpWeekendFractions, monthly_sch: Schedule.HotTubPumpMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHotTubPump, weekday_sch: Schedule.HotTubPumpWeekdayFractions, weekend_sch: Schedule.HotTubPumpWeekendFractions, monthly_sch: Schedule.HotTubPumpMonthlyMultipliers)
   end
 
   def create_average_hot_tub_heater
-    create_timeseries_from_weekday_weekend_monthly(sch_name: ScheduleColumns.HotTubHeater, weekday_sch: Schedule.HotTubHeaterWeekdayFractions, weekend_sch: Schedule.HotTubHeaterWeekendFractions, monthly_sch: Schedule.HotTubHeaterMonthlyMultipliers)
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHotTubHeater, weekday_sch: Schedule.HotTubHeaterWeekdayFractions, weekend_sch: Schedule.HotTubHeaterWeekendFractions, monthly_sch: Schedule.HotTubHeaterMonthlyMultipliers)
   end
 
   def create_timeseries_from_weekday_weekend_monthly(sch_name:,
@@ -377,20 +377,20 @@ class ScheduleGenerator
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / args[:geometry_num_occupants]
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / args[:geometry_num_occupants]
         active_occupancy_percentage = 1 - (away_schedule[-1] + sleep)
-        @schedules[ScheduleColumns.PlugLoadsOther][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
-        @schedules[ScheduleColumns.LightingInterior][day * @steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
-        @schedules[ScheduleColumns.LightingExterior][day * @steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
-        @schedules[ScheduleColumns.LightingGarage][day * @steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
-        @schedules[ScheduleColumns.LightingExteriorHoliday][day * @steps_in_day + step] = scale_lighting_by_occupancy(holiday_lighting_schedule, minute, 1)
-        @schedules[ScheduleColumns.CeilingFan][day * @steps_in_day + step] = get_value_from_daily_sch(ceiling_fan_sch, month, is_weekday, minute, active_occupancy_percentage)
+        @schedules[SchedulesFile::ColumnPlugLoadsOther][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
+        @schedules[SchedulesFile::ColumnLightingInterior][day * @steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
+        @schedules[SchedulesFile::ColumnLightingExterior][day * @steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
+        @schedules[SchedulesFile::ColumnLightingGarage][day * @steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
+        @schedules[SchedulesFile::ColumnLightingExteriorHoliday][day * @steps_in_day + step] = scale_lighting_by_occupancy(holiday_lighting_schedule, minute, 1)
+        @schedules[SchedulesFile::ColumnCeilingFan][day * @steps_in_day + step] = get_value_from_daily_sch(ceiling_fan_sch, month, is_weekday, minute, active_occupancy_percentage)
       end
     end
-    @schedules[ScheduleColumns.PlugLoadsOther] = normalize(@schedules[ScheduleColumns.PlugLoadsOther])
-    @schedules[ScheduleColumns.LightingInterior] = normalize(@schedules[ScheduleColumns.LightingInterior])
-    @schedules[ScheduleColumns.LightingExterior] = normalize(@schedules[ScheduleColumns.LightingExterior])
-    @schedules[ScheduleColumns.LightingGarage] = normalize(@schedules[ScheduleColumns.LightingGarage])
-    @schedules[ScheduleColumns.LightingExteriorHoliday] = normalize(@schedules[ScheduleColumns.LightingExteriorHoliday])
-    @schedules[ScheduleColumns.CeilingFan] = normalize(@schedules[ScheduleColumns.CeilingFan])
+    @schedules[SchedulesFile::ColumnPlugLoadsOther] = normalize(@schedules[SchedulesFile::ColumnPlugLoadsOther])
+    @schedules[SchedulesFile::ColumnLightingInterior] = normalize(@schedules[SchedulesFile::ColumnLightingInterior])
+    @schedules[SchedulesFile::ColumnLightingExterior] = normalize(@schedules[SchedulesFile::ColumnLightingExterior])
+    @schedules[SchedulesFile::ColumnLightingGarage] = normalize(@schedules[SchedulesFile::ColumnLightingGarage])
+    @schedules[SchedulesFile::ColumnLightingExteriorHoliday] = normalize(@schedules[SchedulesFile::ColumnLightingExteriorHoliday])
+    @schedules[SchedulesFile::ColumnCeilingFan] = normalize(@schedules[SchedulesFile::ColumnCeilingFan])
 
     # Generate the Sink Schedule
     # 1. Find indexes (minutes) when at least one occupant can have sink event (they aren't sleeping or absent)
@@ -736,48 +736,48 @@ class ScheduleGenerator
     dw_activity_sch = apply_monthly_offsets(array: dw_activity_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     dw_activity_sch = aggregate_array(dw_activity_sch, @minutes_per_step)
     dw_peak_flow = dw_activity_sch.max
-    @schedules[ScheduleColumns.HotWaterDishwasher] = dw_activity_sch.map { |flow| flow / dw_peak_flow }
+    @schedules[SchedulesFile::ColumnHotWaterDishwasher] = dw_activity_sch.map { |flow| flow / dw_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_activity_sch = cw_activity_sch.rotate(random_offset)
     cw_activity_sch = apply_monthly_offsets(array: cw_activity_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     cw_activity_sch = aggregate_array(cw_activity_sch, @minutes_per_step)
     cw_peak_flow = cw_activity_sch.max
-    @schedules[ScheduleColumns.HotWaterClothesWasher] = cw_activity_sch.map { |flow| flow / cw_peak_flow }
+    @schedules[SchedulesFile::ColumnHotWaterClothesWasher] = cw_activity_sch.map { |flow| flow / cw_peak_flow }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cooking_power_sch = cooking_power_sch.rotate(random_offset)
     cooking_power_sch = apply_monthly_offsets(array: cooking_power_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     cooking_power_sch = aggregate_array(cooking_power_sch, @minutes_per_step)
     cooking_peak_power = cooking_power_sch.max
-    @schedules[ScheduleColumns.CookingRange] = cooking_power_sch.map { |power| power / cooking_peak_power }
+    @schedules[SchedulesFile::ColumnCookingRange] = cooking_power_sch.map { |power| power / cooking_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_power_sch = cw_power_sch.rotate(random_offset)
     cw_power_sch = apply_monthly_offsets(array: cw_power_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     cw_power_sch = aggregate_array(cw_power_sch, @minutes_per_step)
     cw_peak_power = cw_power_sch.max
-    @schedules[ScheduleColumns.ClothesWasher] = cw_power_sch.map { |power| power / cw_peak_power }
+    @schedules[SchedulesFile::ColumnClothesWasher] = cw_power_sch.map { |power| power / cw_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cd_power_sch = cd_power_sch.rotate(random_offset)
     cd_power_sch = apply_monthly_offsets(array: cd_power_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     cd_power_sch = aggregate_array(cd_power_sch, @minutes_per_step)
     cd_peak_power = cd_power_sch.max
-    @schedules[ScheduleColumns.ClothesDryer] = cd_power_sch.map { |power| power / cd_peak_power }
+    @schedules[SchedulesFile::ColumnClothesDryer] = cd_power_sch.map { |power| power / cd_peak_power }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_power_sch = dw_power_sch.rotate(random_offset)
     dw_power_sch = apply_monthly_offsets(array: dw_power_sch, weekday_monthly_shift_dict: weekday_monthly_shift_dict, weekend_monthly_shift_dict: weekend_monthly_shift_dict)
     dw_power_sch = aggregate_array(dw_power_sch, @minutes_per_step)
     dw_peak_power = dw_power_sch.max
-    @schedules[ScheduleColumns.Dishwasher] = dw_power_sch.map { |power| power / dw_peak_power }
+    @schedules[SchedulesFile::ColumnDishwasher] = dw_power_sch.map { |power| power / dw_peak_power }
 
-    @schedules[ScheduleColumns.Occupants] = away_schedule.map { |i| 1.0 - i }
+    @schedules[SchedulesFile::ColumnOccupants] = away_schedule.map { |i| 1.0 - i }
 
-    @schedules[ScheduleColumns.HotWaterFixtures] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
-    fixtures_peak_flow = @schedules[ScheduleColumns.HotWaterFixtures].max
-    @schedules[ScheduleColumns.HotWaterFixtures] = @schedules[ScheduleColumns.HotWaterFixtures].map { |flow| flow / fixtures_peak_flow }
+    @schedules[SchedulesFile::ColumnHotWaterFixtures] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
+    fixtures_peak_flow = @schedules[SchedulesFile::ColumnHotWaterFixtures].max
+    @schedules[SchedulesFile::ColumnHotWaterFixtures] = @schedules[SchedulesFile::ColumnHotWaterFixtures].map { |flow| flow / fixtures_peak_flow }
 
     return true
   end
@@ -787,14 +787,14 @@ class ScheduleGenerator
       start_day_num = Schedule.get_day_num_from_month_day(@sim_year, args[:schedules_vacancy_begin_month], args[:schedules_vacancy_begin_day])
       end_day_num = Schedule.get_day_num_from_month_day(@sim_year, args[:schedules_vacancy_end_month], args[:schedules_vacancy_end_day])
 
-      vacancy = Array.new(@schedules[ScheduleColumns.Occupants].length, 0)
+      vacancy = Array.new(@schedules[SchedulesFile::ColumnOccupants].length, 0)
       if end_day_num >= start_day_num
         vacancy.fill(1.0, (start_day_num - 1) * args[:steps_in_day], (end_day_num - start_day_num + 1) * args[:steps_in_day]) # Fill between start/end days
       else # Wrap around year
         vacancy.fill(1.0, (start_day_num - 1) * args[:steps_in_day]) # Fill between start day and end of year
         vacancy.fill(1.0, 0, end_day_num * args[:steps_in_day]) # Fill between start of year and end day
       end
-      @schedules[ScheduleColumns.Vacancy] = vacancy
+      @schedules[SchedulesFile::ColumnVacancy] = vacancy
     end
     return true
   end

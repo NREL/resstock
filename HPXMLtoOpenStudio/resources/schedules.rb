@@ -1106,6 +1106,36 @@ class Schedule
 end
 
 class SchedulesFile
+  # Constants
+  ColumnOccupants = 'occupants'
+  ColumnLightingInterior = 'lighting_interior'
+  ColumnLightingExterior = 'lighting_exterior'
+  ColumnLightingGarage = 'lighting_garage'
+  ColumnLightingExteriorHoliday = 'lighting_exterior_holiday'
+  ColumnCookingRange = 'cooking_range'
+  ColumnRefrigerator = 'refrigerator'
+  ColumnExtraRefrigerator = 'extra_refrigerator'
+  ColumnFreezer = 'freezer'
+  ColumnDishwasher = 'dishwasher'
+  ColumnClothesWasher = 'clothes_washer'
+  ColumnClothesDryer = 'clothes_dryer'
+  ColumnCeilingFan = 'ceiling_fan'
+  ColumnPlugLoadsOther = 'plug_loads_other'
+  ColumnPlugLoadsTV = 'plug_loads_tv'
+  ColumnPlugLoadsVehicle = 'plug_loads_vehicle'
+  ColumnPlugLoadsWellPump = 'plug_loads_well_pump'
+  ColumnFuelLoadsGrill = 'fuel_loads_grill'
+  ColumnFuelLoadsLighting = 'fuel_loads_lighting'
+  ColumnFuelLoadsFireplace = 'fuel_loads_fireplace'
+  ColumnPoolPump = 'pool_pump'
+  ColumnPoolHeater = 'pool_heater'
+  ColumnHotTubPump = 'hot_tub_pump'
+  ColumnHotTubHeater = 'hot_tub_heater'
+  ColumnHotWaterDishwasher = 'hot_water_dishwasher'
+  ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
+  ColumnHotWaterFixtures = 'hot_water_fixtures'
+  ColumnVacancy = 'vacancy'
+
   def initialize(runner: nil,
                  model: nil,
                  schedules_path:)
@@ -1114,7 +1144,7 @@ class SchedulesFile
     @model = model
     @schedules_path = schedules_path
 
-    import(col_names: ScheduleColumns.ColNames.keys)
+    import(col_names: SchedulesFile.ColumnNames.keys)
 
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy
@@ -1306,7 +1336,7 @@ class SchedulesFile
     return unless @tmp_schedules.keys.include? 'vacancy'
     return if @tmp_schedules['vacancy'].all? { |i| i == 0 }
 
-    col_names = ScheduleColumns.ColNames
+    col_names = SchedulesFile.ColumnNames
 
     @tmp_schedules[col_names.keys[0]].each_with_index do |ts, i|
       col_names.keys.each do |col_name|
@@ -1316,5 +1346,39 @@ class SchedulesFile
         @tmp_schedules[col_name][i] *= (1.0 - @tmp_schedules['vacancy'][i])
       end
     end
+  end
+
+  def self.ColumnNames
+    # col_name => affected_by_vacancy
+    return {
+      ColumnOccupants => true,
+      ColumnLightingInterior => true,
+      ColumnLightingExterior => true,
+      ColumnLightingGarage => true,
+      ColumnLightingExteriorHoliday => true,
+      ColumnCookingRange => true,
+      ColumnRefrigerator => false,
+      ColumnExtraRefrigerator => false,
+      ColumnFreezer => false,
+      ColumnDishwasher => true,
+      ColumnClothesWasher => true,
+      ColumnClothesDryer => true,
+      ColumnCeilingFan => true,
+      ColumnPlugLoadsOther => true,
+      ColumnPlugLoadsTV => true,
+      ColumnPlugLoadsVehicle => true,
+      ColumnPlugLoadsWellPump => true,
+      ColumnFuelLoadsGrill => true,
+      ColumnFuelLoadsLighting => true,
+      ColumnFuelLoadsFireplace => true,
+      ColumnPoolPump => false,
+      ColumnPoolHeater => false,
+      ColumnHotTubPump => false,
+      ColumnHotTubHeater => false,
+      ColumnHotWaterDishwasher => true,
+      ColumnHotWaterClothesWasher => true,
+      ColumnHotWaterFixtures => true,
+      ColumnVacancy => nil,
+    }
   end
 end
