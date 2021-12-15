@@ -1,27 +1,41 @@
-schema_version: 0.2
-stock_type: residential
+schema_version: '0.3'
 buildstock_directory: ./ # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /lustre/eaglefs/projects/scout/test_1.8k_a
+output_directory: /lustre/eaglefs/projects/scout/geb-potential/test_1.8k_1
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 1800 #10,000 per city
+
 baseline:
-  sampling_algorithm: quota
-  n_datapoints: 1800 #10,000 per city   
   n_buildings_represented: 81221016 
-  # buildstock_csv: './buildstock_error.csv' #~925k that didnt run initially
 
-residential_simulation_controls:
-  timesteps_per_hr: 6
-  begin_month: 1
-  begin_day_of_month: 1
-  end_month: 12
-  end_day_of_month: 31
-  calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
+workflow_generator:
+  type: residential_default
+  args:
+    residential_simulation_controls:
+      timesteps_per_hr: 6
+      begin_month: 1
+      begin_day_of_month: 1
+      end_month: 12
+      end_day_of_month: 31
+      calendar_year: 2006 #2006 starts on Sunday, 2007 starts on Monday
 
-timeseries_csv_export:
-  reporting_frequency: Hourly
-  include_enduse_subcategories: true
+    simulation_output:
+      include_enduse_subcategories: true
+
+    timeseries_csv_export:
+      reporting_frequency: Hourly
+      include_enduse_subcategories: true
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: true
+      retain_schedules_csv: false
   
 eagle:
   account: scout
@@ -166,7 +180,7 @@ upgrades:
         apply_logic: Insulation Wall|Wood Stud, R-19
       - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
         apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
-      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+      - option: Insulation Wall|CMU, R-20 XPS Upgrade
         apply_logic:
           or:
             - Insulation Wall|CMU, 6-in Hollow, R-7
@@ -174,23 +188,23 @@ upgrades:
             - Insulation Wall|CMU, 6-in Hollow, R-15
             - Insulation Wall|CMU, 6-in Hollow, R-19
       # Best roofs
-      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Ceiling|R-60
         apply_logic: 
           or:
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-            - Insulation Unfinished Attic|Ceiling R-49, Vented
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
       #Best air sealing
       - option: Infiltration|1 ACH50
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      - option: Mechanical Ventilation|Exhaust
         apply_logic: 
             - Mechanical Ventilation|None
         costs: 
@@ -231,12 +245,12 @@ upgrades:
             - Location City|Tampa
 
       #Best foundation:
-      - option: Insulation Crawlspace|Ceiling R-30, Vented #AIA1 & AIA12
+      - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Vented
-            - Insulation Crawlspace|Ceiling R-13, Vented
-            - Insulation Crawlspace|Ceiling R-19, Vented
+            - Insulation Floor|Uninsulated
+            - Insulation Floor|Ceiling R-13
+            - Insulation Floor|Ceiling R-19
         - or:
             - Location City|Denver
             - Location City|Great Falls
@@ -249,49 +263,13 @@ upgrades:
             - Location City|Rochester_1
             - Location City|New York_1
             - Location City|New York_2
-      - option: Insulation Crawlspace|Wall R-13, Unvented #AIA1 & AIA12
+      - option: Insulation Foundation Wall|Wall R-15, Exterior #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Unvented
-            - Insulation Crawlspace|Wall R-5, Unvented
-            - Insulation Crawlspace|Wall R-10, Unvented
+            - Insulation Foundation Wall|Uninsulated
+            - Insulation Foundation Wall|Wall R-5, Exterior
+            - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1
-            - Location City|New York_1
-            - Location City|New York_2
-      - option: Insulation Unfinished Basement|Ceiling R-19 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Unfinished Basement|Uninsulated
-            - Insulation Unfinished Basement|Ceiling R-13
-        - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1     
-            - Location City|New York_1
-            - Location City|New York_2 
-      - option: Insulation Finished Basement|Wall R-15 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Finished Basement|Uninsulated
-            - Insulation Finished Basement|Wall R-5
-            - Insulation Finished Basement|Wall R-10
-            - Insulation Finished Basement|Wall R-15
-        - or:
             - Location City|Denver
             - Location City|Great Falls
             - Location City|International Falls
@@ -312,27 +290,34 @@ upgrades:
         apply_logic:
           or:
             - Lighting|100% Incandescent
-            - Lighting|60% CFL Hardwired, 34% CFL Plugin
             - Lighting|60% CFL
             - Lighting|100% CFL
             - Lighting|20% LED
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
       # Best Refrigerator
-      - option: Refrigerator|EF 21.9
+      - option: Refrigerator|EF 21.9, 95% Usage
         apply_logic: 
           or:
-            - Refrigerator|EF 17.6
-            - Refrigerator|EF 15.9
-            - Refrigerator|EF 10.5
-            - Refrigerator|EF 10.2
-            - Refrigerator|EF 6.7
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 17.4
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9, 95% Usage
+            - Refrigerator|EF 10.5, 95% Usage
+            - Refrigerator|EF 10.2, 95% Usage
+            - Refrigerator|EF 6.7, 95% Usage
+      - option: Refrigerator|EF 21.9, 100% Usage
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6, 100% Usage
+            - Refrigerator|EF 15.9, 100% Usage
+            - Refrigerator|EF 10.5, 100% Usage
+            - Refrigerator|EF 10.2, 100% Usage
+            - Refrigerator|EF 6.7, 100% Usage
+      - option: Refrigerator|EF 21.9, 105% Usage
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 15.9, 105% Usage
+            - Refrigerator|EF 10.5, 105% Usage
+            - Refrigerator|EF 10.2, 105% Usage
+            - Refrigerator|EF 6.7, 105% Usage
       # Best HPWH
       - option: Water Heater Efficiency|Electric Heat Pump, 80 gal
         apply_logic: 
@@ -388,7 +373,6 @@ upgrades:
         apply_logic:
           or:
             - Clothes Dryer|Electric, 100% Usage
-            - Clothes Dryer|Electric, Premium
         costs:
           - value: 0
             multiplier: Fixed (1)
@@ -533,7 +517,7 @@ upgrades:
         apply_logic: Insulation Wall|Wood Stud, R-19
       - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
         apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
-      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+      - option: Insulation Wall|CMU, R-20 XPS Upgrade
         apply_logic:
           or:
             - Insulation Wall|CMU, 6-in Hollow, R-7
@@ -541,23 +525,23 @@ upgrades:
             - Insulation Wall|CMU, 6-in Hollow, R-15
             - Insulation Wall|CMU, 6-in Hollow, R-19
       # Best roofs
-      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Ceiling|R-60
         apply_logic: 
           or:
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-            - Insulation Unfinished Attic|Ceiling R-49, Vented
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
       # Best air sealing
       - option: Infiltration|1 ACH50
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      - option: Mechanical Ventilation|Exhaust
         apply_logic: 
             - Mechanical Ventilation|None
         costs: 
@@ -596,12 +580,12 @@ upgrades:
             - Location City|Midland
             - Location City|Tampa
       #Best foundation:
-      - option: Insulation Crawlspace|Ceiling R-30, Vented #AIA1 & AIA12
+      - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Vented
-            - Insulation Crawlspace|Ceiling R-13, Vented
-            - Insulation Crawlspace|Ceiling R-19, Vented
+            - Insulation Floor|Uninsulated
+            - Insulation Floor|Ceiling R-13
+            - Insulation Floor|Ceiling R-19
         - or:
             - Location City|Denver
             - Location City|Great Falls
@@ -614,12 +598,12 @@ upgrades:
             - Location City|Rochester_1
             - Location City|New York_1
             - Location City|New York_2
-      - option: Insulation Crawlspace|Wall R-13, Unvented #AIA1 & AIA12
+      - option: Insulation Foundation Wall|Wall R-15, Exterior #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Unvented
-            - Insulation Crawlspace|Wall R-5, Unvented
-            - Insulation Crawlspace|Wall R-10, Unvented
+            - Insulation Foundation Wall|Uninsulated
+            - Insulation Foundation Wall|Wall R-5, Exterior
+            - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
             - Location City|Denver
             - Location City|Great Falls
@@ -632,43 +616,7 @@ upgrades:
             - Location City|Rochester_1
             - Location City|New York_1
             - Location City|New York_2
-      - option: Insulation Unfinished Basement|Ceiling R-19 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Unfinished Basement|Uninsulated
-            - Insulation Unfinished Basement|Ceiling R-13
-        - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1   
-            - Location City|New York_1
-            - Location City|New York_2   
-      - option: Insulation Finished Basement|Wall R-15 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Finished Basement|Uninsulated
-            - Insulation Finished Basement|Wall R-5
-            - Insulation Finished Basement|Wall R-10
-            - Insulation Finished Basement|Wall R-15
-        - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1
-            - Location City|New York_1
-            - Location City|New York_2
-  
+
   ##up7 - package 1g - Best ASHP, smart thermostat (*only for homes with ASHP upgrade), and envelope (1st)
   - upgrade_name: Package 1g EE ASHP with smart thermostat and best envelope
     package_apply_logic: #same as 1b
@@ -762,7 +710,7 @@ upgrades:
         apply_logic: Insulation Wall|Wood Stud, R-19
       - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
         apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
-      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+      - option: Insulation Wall|CMU, R-20 XPS Upgrade
         apply_logic:
           or:
             - Insulation Wall|CMU, 6-in Hollow, R-7
@@ -770,23 +718,23 @@ upgrades:
             - Insulation Wall|CMU, 6-in Hollow, R-15
             - Insulation Wall|CMU, 6-in Hollow, R-19
       # Best roofs
-      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Ceiling|R-60
         apply_logic: 
           or:
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-            - Insulation Unfinished Attic|Ceiling R-49, Vented
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
       # Best air sealing
       - option: Infiltration|1 ACH50
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      - option: Mechanical Ventilation|Exhaust
         apply_logic: 
             - Mechanical Ventilation|None
         costs: 
@@ -826,12 +774,12 @@ upgrades:
             - Location City|Tampa
 
       #Best foundation:
-      - option: Insulation Crawlspace|Ceiling R-30, Vented #AIA1 & AIA12
+      - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Vented
-            - Insulation Crawlspace|Ceiling R-13, Vented
-            - Insulation Crawlspace|Ceiling R-19, Vented
+            - Insulation Floor|Uninsulated
+            - Insulation Floor|Ceiling R-13
+            - Insulation Floor|Ceiling R-19
         - or:
             - Location City|Denver
             - Location City|Great Falls
@@ -844,49 +792,13 @@ upgrades:
             - Location City|Rochester_1
             - Location City|New York_1
             - Location City|New York_2
-      - option: Insulation Crawlspace|Wall R-13, Unvented #AIA1 & AIA12
+      - option: Insulation Foundation Wall|Wall R-15, Exterior #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Unvented
-            - Insulation Crawlspace|Wall R-5, Unvented
-            - Insulation Crawlspace|Wall R-10, Unvented
+            - Insulation Foundation Wall|Uninsulated
+            - Insulation Foundation Wall|Wall R-5, Exterior
+            - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1
-            - Location City|New York_1
-            - Location City|New York_2
-      - option: Insulation Unfinished Basement|Ceiling R-19 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Unfinished Basement|Uninsulated
-            - Insulation Unfinished Basement|Ceiling R-13
-        - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1   
-            - Location City|New York_1
-            - Location City|New York_2   
-      - option: Insulation Finished Basement|Wall R-15 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Finished Basement|Uninsulated
-            - Insulation Finished Basement|Wall R-5
-            - Insulation Finished Basement|Wall R-10
-            - Insulation Finished Basement|Wall R-15
-        - or:
             - Location City|Denver
             - Location City|Great Falls
             - Location City|International Falls
@@ -992,7 +904,7 @@ upgrades:
         apply_logic: Insulation Wall|Wood Stud, R-19
       - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
         apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
-      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+      - option: Insulation Wall|CMU, R-20 XPS Upgrade
         apply_logic:
           or:
             - Insulation Wall|CMU, 6-in Hollow, R-7
@@ -1000,23 +912,23 @@ upgrades:
             - Insulation Wall|CMU, 6-in Hollow, R-15
             - Insulation Wall|CMU, 6-in Hollow, R-19
       # Best roofs
-      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Ceiling|R-60
         apply_logic: 
           or:
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-            - Insulation Unfinished Attic|Ceiling R-49, Vented
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
       # Best air sealing
       - option: Infiltration|1 ACH50
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      - option: Mechanical Ventilation|Exhaust
         apply_logic: 
             - Mechanical Ventilation|None
         costs: 
@@ -1056,12 +968,12 @@ upgrades:
             - Location City|Tampa
 
       #Best foundation:
-      - option: Insulation Crawlspace|Ceiling R-30, Vented #AIA1 & AIA12
+      - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Vented
-            - Insulation Crawlspace|Ceiling R-13, Vented
-            - Insulation Crawlspace|Ceiling R-19, Vented
+            - Insulation Floor|Uninsulated
+            - Insulation Floor|Ceiling R-13
+            - Insulation Floor|Ceiling R-19
         - or:
             - Location City|Denver
             - Location City|Great Falls
@@ -1074,49 +986,13 @@ upgrades:
             - Location City|Rochester_1
             - Location City|New York_1
             - Location City|New York_2
-      - option: Insulation Crawlspace|Wall R-13, Unvented #AIA1 & AIA12
+      - option: Insulation Foundation Wall|Wall R-15, Exterior #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Unvented
-            - Insulation Crawlspace|Wall R-5, Unvented
-            - Insulation Crawlspace|Wall R-10, Unvented
+            - Insulation Foundation Wall|Uninsulated
+            - Insulation Foundation Wall|Wall R-5, Exterior
+            - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1
-            - Location City|New York_1
-            - Location City|New York_2
-      - option: Insulation Unfinished Basement|Ceiling R-19 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Unfinished Basement|Uninsulated
-            - Insulation Unfinished Basement|Ceiling R-13
-        - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1 
-            - Location City|New York_1
-            - Location City|New York_2     
-      - option: Insulation Finished Basement|Wall R-15 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Finished Basement|Uninsulated
-            - Insulation Finished Basement|Wall R-5
-            - Insulation Finished Basement|Wall R-10
-            - Insulation Finished Basement|Wall R-15
-        - or:
             - Location City|Denver
             - Location City|Great Falls
             - Location City|International Falls
@@ -1145,7 +1021,7 @@ upgrades:
         apply_logic: Insulation Wall|Wood Stud, R-19
       - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
         apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
-      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+      - option: Insulation Wall|CMU, R-20 XPS Upgrade
         apply_logic:
           or:
             - Insulation Wall|CMU, 6-in Hollow, R-7
@@ -1153,23 +1029,23 @@ upgrades:
             - Insulation Wall|CMU, 6-in Hollow, R-15
             - Insulation Wall|CMU, 6-in Hollow, R-19
       # Best roofs
-      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Ceiling|R-60
         apply_logic: 
           or:
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-            - Insulation Unfinished Attic|Ceiling R-49, Vented
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
       #Best foundation:
-      - option: Insulation Crawlspace|Ceiling R-30, Vented #AIA1 & AIA12
+      - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Vented
-            - Insulation Crawlspace|Ceiling R-13, Vented
-            - Insulation Crawlspace|Ceiling R-19, Vented
+            - Insulation Floor|Uninsulated
+            - Insulation Floor|Ceiling R-13
+            - Insulation Floor|Ceiling R-19
         - or:
             - Location City|Denver
             - Location City|Great Falls
@@ -1182,49 +1058,13 @@ upgrades:
             - Location City|Rochester_1
             - Location City|New York_1
             - Location City|New York_2
-      - option: Insulation Crawlspace|Wall R-13, Unvented #AIA1 & AIA12
+      - option: Insulation Foundation Wall|Wall R-15, Exterior #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Unvented
-            - Insulation Crawlspace|Wall R-5, Unvented
-            - Insulation Crawlspace|Wall R-10, Unvented
+            - Insulation Foundation Wall|Uninsulated
+            - Insulation Foundation Wall|Wall R-5, Exterior
+            - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1
-            - Location City|New York_1
-            - Location City|New York_2
-      - option: Insulation Unfinished Basement|Ceiling R-19 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Unfinished Basement|Uninsulated
-            - Insulation Unfinished Basement|Ceiling R-13
-        - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1     
-            - Location City|New York_1
-            - Location City|New York_2 
-      - option: Insulation Finished Basement|Wall R-15 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Finished Basement|Uninsulated
-            - Insulation Finished Basement|Wall R-5
-            - Insulation Finished Basement|Wall R-10
-            - Insulation Finished Basement|Wall R-15
-        - or:
             - Location City|Denver
             - Location City|Great Falls
             - Location City|International Falls
@@ -1246,7 +1086,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      - option: Mechanical Ventilation|Exhaust
         apply_logic: 
             - Mechanical Ventilation|None
         costs: 
@@ -1423,7 +1263,7 @@ upgrades:
         apply_logic: Insulation Wall|Wood Stud, R-19
       - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
         apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
-      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+      - option: Insulation Wall|CMU, R-20 XPS Upgrade
         apply_logic:
           or:
             - Insulation Wall|CMU, 6-in Hollow, R-7
@@ -1431,23 +1271,23 @@ upgrades:
             - Insulation Wall|CMU, 6-in Hollow, R-15
             - Insulation Wall|CMU, 6-in Hollow, R-19
       # Best roofs
-      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Ceiling|R-60
         apply_logic: 
           or:
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-            - Insulation Unfinished Attic|Ceiling R-49, Vented
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
       #Best air sealing
       - option: Infiltration|1 ACH50
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      - option: Mechanical Ventilation|Exhaust
         apply_logic: 
             - Mechanical Ventilation|None
         costs: 
@@ -1487,12 +1327,12 @@ upgrades:
             - Location City|Tampa
 
       #Best foundation:
-      - option: Insulation Crawlspace|Ceiling R-30, Vented #AIA1 & AIA12
+      - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Vented
-            - Insulation Crawlspace|Ceiling R-13, Vented
-            - Insulation Crawlspace|Ceiling R-19, Vented
+            - Insulation Floor|Uninsulated
+            - Insulation Floor|Ceiling R-13
+            - Insulation Floor|Ceiling R-19
         - or:
             - Location City|Denver
             - Location City|Great Falls
@@ -1505,49 +1345,13 @@ upgrades:
             - Location City|Rochester_1
             - Location City|New York_1
             - Location City|New York_2
-      - option: Insulation Crawlspace|Wall R-13, Unvented #AIA1 & AIA12
+      - option: Insulation Foundation Wall|Wall R-15, Exterior #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Unvented
-            - Insulation Crawlspace|Wall R-5, Unvented
-            - Insulation Crawlspace|Wall R-10, Unvented
+            - Insulation Foundation Wall|Uninsulated
+            - Insulation Foundation Wall|Wall R-5, Exterior
+            - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1
-            - Location City|New York_1
-            - Location City|New York_2
-      - option: Insulation Unfinished Basement|Ceiling R-19 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Unfinished Basement|Uninsulated
-            - Insulation Unfinished Basement|Ceiling R-13
-        - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1      
-            - Location City|New York_1
-            - Location City|New York_2
-      - option: Insulation Finished Basement|Wall R-15 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Finished Basement|Uninsulated
-            - Insulation Finished Basement|Wall R-5
-            - Insulation Finished Basement|Wall R-10
-            - Insulation Finished Basement|Wall R-15
-        - or:
             - Location City|Denver
             - Location City|Great Falls
             - Location City|International Falls
@@ -1630,7 +1434,7 @@ upgrades:
         apply_logic: Insulation Wall|Wood Stud, R-19
       - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
         apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
-      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+      - option: Insulation Wall|CMU, R-20 XPS Upgrade
         apply_logic:
           or:
             - Insulation Wall|CMU, 6-in Hollow, R-7
@@ -1638,23 +1442,23 @@ upgrades:
             - Insulation Wall|CMU, 6-in Hollow, R-15
             - Insulation Wall|CMU, 6-in Hollow, R-19
       # Best roofs
-      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Ceiling|R-60
         apply_logic: 
           or:
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-            - Insulation Unfinished Attic|Ceiling R-49, Vented
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
       #Best air sealing
       - option: Infiltration|1 ACH50
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      - option: Mechanical Ventilation|Exhaust
         apply_logic: 
             - Mechanical Ventilation|None
         costs: 
@@ -1694,12 +1498,12 @@ upgrades:
             - Location City|Tampa
 
       #Best foundation:
-      - option: Insulation Crawlspace|Ceiling R-30, Vented #AIA1 & AIA12
+      - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Vented
-            - Insulation Crawlspace|Ceiling R-13, Vented
-            - Insulation Crawlspace|Ceiling R-19, Vented
+            - Insulation Floor|Uninsulated
+            - Insulation Floor|Ceiling R-13
+            - Insulation Floor|Ceiling R-19
         - or:
             - Location City|Denver
             - Location City|Great Falls
@@ -1712,49 +1516,13 @@ upgrades:
             - Location City|Rochester_1
             - Location City|New York_1
             - Location City|New York_2
-      - option: Insulation Crawlspace|Wall R-13, Unvented #AIA1 & AIA12
+      - option: Insulation Foundation Wall|Wall R-15, Exterior #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Unvented
-            - Insulation Crawlspace|Wall R-5, Unvented
-            - Insulation Crawlspace|Wall R-10, Unvented
+            - Insulation Foundation Wall|Uninsulated
+            - Insulation Foundation Wall|Wall R-5, Exterior
+            - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1
-            - Location City|New York_1
-            - Location City|New York_2
-      - option: Insulation Unfinished Basement|Ceiling R-19 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Unfinished Basement|Uninsulated
-            - Insulation Unfinished Basement|Ceiling R-13
-        - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1      
-            - Location City|New York_1
-            - Location City|New York_2
-      - option: Insulation Finished Basement|Wall R-15 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Finished Basement|Uninsulated
-            - Insulation Finished Basement|Wall R-5
-            - Insulation Finished Basement|Wall R-10
-            - Insulation Finished Basement|Wall R-15
-        - or:
             - Location City|Denver
             - Location City|Great Falls
             - Location City|International Falls
@@ -1836,7 +1604,7 @@ upgrades:
         apply_logic: Insulation Wall|Wood Stud, R-19
       - option: Insulation Wall|CMU, 6-in Hollow, R-5.5, R-20 XPS
         apply_logic: Insulation Wall|CMU, 6-in Hollow, Uninsulated
-      - option: Insulation Wall Upgrade|CMU, R-20 XPS Upgrade
+      - option: Insulation Wall|CMU, R-20 XPS Upgrade
         apply_logic:
           or:
             - Insulation Wall|CMU, 6-in Hollow, R-7
@@ -1844,23 +1612,23 @@ upgrades:
             - Insulation Wall|CMU, 6-in Hollow, R-15
             - Insulation Wall|CMU, 6-in Hollow, R-19
       # Best roofs
-      - option: Insulation Unfinished Attic|Ceiling R-60, Vented
+      - option: Insulation Ceiling|R-60
         apply_logic: 
           or:
-            - Insulation Unfinished Attic|Uninsulated, Vented
-            - Insulation Unfinished Attic|Ceiling R-7, Vented
-            - Insulation Unfinished Attic|Ceiling R-13, Vented
-            - Insulation Unfinished Attic|Ceiling R-19, Vented
-            - Insulation Unfinished Attic|Ceiling R-30, Vented
-            - Insulation Unfinished Attic|Ceiling R-38, Vented
-            - Insulation Unfinished Attic|Ceiling R-49, Vented
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
       ## Best air sealing
       - option: Infiltration|1 ACH50
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 999
-      - option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2
+      - option: Mechanical Ventilation|Exhaust
         apply_logic: 
             - Mechanical Ventilation|None
         costs: 
@@ -1900,12 +1668,12 @@ upgrades:
             - Location City|Tampa
 
       #Best foundation:
-      - option: Insulation Crawlspace|Ceiling R-30, Vented #AIA1 & AIA12
+      - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Vented
-            - Insulation Crawlspace|Ceiling R-13, Vented
-            - Insulation Crawlspace|Ceiling R-19, Vented
+            - Insulation Floor|Uninsulated
+            - Insulation Floor|Ceiling R-13
+            - Insulation Floor|Ceiling R-19
         - or:
             - Location City|Denver
             - Location City|Great Falls
@@ -1918,47 +1686,13 @@ upgrades:
             - Location City|Rochester_1
             - Location City|New York_1
             - Location City|New York_2
-      - option: Insulation Crawlspace|Wall R-13, Unvented #AIA1 & AIA12
+      - option: Insulation Foundation Wall|Wall R-15, Exterior #AIA1 & AIA12
         apply_logic:
         - or:
-            - Insulation Crawlspace|Uninsulated, Unvented
-            - Insulation Crawlspace|Wall R-5, Unvented
-            - Insulation Crawlspace|Wall R-10, Unvented
+            - Insulation Foundation Wall|Uninsulated
+            - Insulation Foundation Wall|Wall R-5, Exterior
+            - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1
-      - option: Insulation Unfinished Basement|Ceiling R-19 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Unfinished Basement|Uninsulated
-            - Insulation Unfinished Basement|Ceiling R-13
-        - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
-            - Location City|Port Angeles
-            - Location City|Buffalo_1
-            - Location City|Buffalo_2
-            - Location City|Rochester_1
-            - Location City|Rochester_1    
-            - Location City|New York_1
-            - Location City|New York_2  
-      - option: Insulation Finished Basement|Wall R-15 #AIA1 & AIA12
-        apply_logic:
-        - or:
-            - Insulation Finished Basement|Uninsulated
-            - Insulation Finished Basement|Wall R-5
-            - Insulation Finished Basement|Wall R-10
-            - Insulation Finished Basement|Wall R-15
-        - or:
             - Location City|Denver
             - Location City|Great Falls
             - Location City|International Falls
@@ -1979,27 +1713,34 @@ upgrades:
         apply_logic:
           or:
             - Lighting|100% Incandescent
-            - Lighting|60% CFL Hardwired, 34% CFL Plugin
             - Lighting|60% CFL
             - Lighting|100% CFL
             - Lighting|20% LED
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 999
       # Best Refrigerator
-      - option: Refrigerator|EF 21.9
+      - option: Refrigerator|EF 21.9, 95% Usage
         apply_logic: 
           or:
-            - Refrigerator|EF 17.6
-            - Refrigerator|EF 15.9
-            - Refrigerator|EF 10.5
-            - Refrigerator|EF 10.2
-            - Refrigerator|EF 6.7
-        costs:
-          - value: 0
-            multiplier: Fixed (1)
-        lifetime: 17.4
+            - Refrigerator|EF 17.6, 95% Usage
+            - Refrigerator|EF 15.9, 95% Usage
+            - Refrigerator|EF 10.5, 95% Usage
+            - Refrigerator|EF 10.2, 95% Usage
+            - Refrigerator|EF 6.7, 95% Usage
+      - option: Refrigerator|EF 21.9, 100% Usage
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6, 100% Usage
+            - Refrigerator|EF 15.9, 100% Usage
+            - Refrigerator|EF 10.5, 100% Usage
+            - Refrigerator|EF 10.2, 100% Usage
+            - Refrigerator|EF 6.7, 100% Usage
+      - option: Refrigerator|EF 21.9, 105% Usage
+        apply_logic: 
+          or:
+            - Refrigerator|EF 17.6, 105% Usage
+            - Refrigerator|EF 15.9, 105% Usage
+            - Refrigerator|EF 10.5, 105% Usage
+            - Refrigerator|EF 10.2, 105% Usage
+            - Refrigerator|EF 6.7, 105% Usage
       # Best HPWH
       - option: Water Heater Efficiency|Electric Heat Pump, 80 gal
         apply_logic: 
@@ -2055,7 +1796,6 @@ upgrades:
         apply_logic:
           or:
             - Clothes Dryer|Electric, 100% Usage
-            - Clothes Dryer|Electric, Premium
         costs:
           - value: 0
             multiplier: Fixed (1)
