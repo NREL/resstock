@@ -2876,9 +2876,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(1.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('write_default_hpxml', false)
-    arg.setDisplayName('Write default hpxml')
-    arg.setDescription('Sets default values to the hpxml object and writes to in.xml')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_defaults', false)
+    arg.setDisplayName('Apply default values')
+    arg.setDescription('Sets default values to the HPXML object')
     arg.setDefaultValue(false)
     args << arg
 
@@ -3255,9 +3255,13 @@ class HPXMLFile
       end
     end
 
-    hpxml_doc = hpxml.to_oga()
+    if args[:apply_defaults].is_initialized
+      apply_defaults = args[:apply_defaults].get
+    else
+      apply_defaults = false
+    end
 
-    if write_default_hpxml
+    if apply_defaults
       eri_version = Constants.ERIVersions[-1]
       epw_path = args[:weather_station_epw_filepath]
       if not File.exist? epw_path
@@ -3265,11 +3269,9 @@ class HPXMLFile
       end
       weather, epw_file = Location.apply_weather_file(model, runner, epw_path, '')
       HPXMLDefaults.apply(hpxml, eri_version, weather, epw_file: epw_file)
-
-      output_dir = File.expand_path('..')
-      hpxml_defaults_path = File.join(output_dir, 'in.xml')
-      XMLHelper.write_file(hpxml.to_oga, hpxml_defaults_path)
     end
+
+    hpxml_doc = hpxml.to_oga()
 
     return hpxml_doc
   end

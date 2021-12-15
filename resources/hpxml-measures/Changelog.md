@@ -2,7 +2,7 @@
 __New Features__
 - Allows optional `AirInfiltrationMeasurement/InfiltrationHeight` input.
 - Allows user-specified annual/timeseries output file names in the ReportSimulationOutput reporting measure.
-- Allows the HPXML file with defaults applied (`in.xml`) to be written from the BuildResidentialHPXML measure using the optional arguement `write_default_hpxml`.
+- Allows the HPXML file to be written with defaults applied in the BuildResidentialHPXML measure using the optional arguement `apply_defaults`.
 
 __Bugfixes__
 - Fixes possible HVAC sizing error if design temperature difference (TD) is negative.
