@@ -253,9 +253,9 @@ class MoreCompare(BaseCompare):
 
 if __name__ == '__main__':
 
-  default_base_folder = 'test/test_samples_osw/baseline'
-  default_feature_folder = 'test/test_samples_osw/results'
-  default_export_folder = 'test/test_samples_osw/comparisons'
+  default_base_folder = 'test/base_results/baseline'
+  default_feature_folder = 'test/base_results/results'
+  default_export_folder = 'test/base_results/comparisons'
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]
   actions += ['timeseries']
   aggregate_columns = ['build_existing_model.geometry_building_type_recs',

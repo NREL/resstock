@@ -72,7 +72,7 @@ def rename_ts_col(col):
   col = col.replace(': ', '_')
   col = col.replace(' ', '_')
   col = col.replace('/', '_')
-  col = 'simulation_output_report.{}'.format(col)
+  col = 'report_simulation_output.{}'.format(col)
   return col
 
 outdir = 'baseline/timeseries'
@@ -91,8 +91,8 @@ for dp in dps:
   for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
     new_col = rename_ts_col('{}_{}'.format(col, units))
     df_national = df_national.rename(columns={col: new_col})
-  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
 
+  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
   df_national = df_national.drop(drops, axis=1)
 
   df_nationals.append(df_national)
@@ -104,8 +104,8 @@ for dp in dps:
   for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
     new_col = rename_ts_col('{}_{}'.format(col, units))
     df_testing = df_testing.rename(columns={col: new_col})
-  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
 
+  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testings.append(df_testing)
@@ -204,8 +204,8 @@ for i in range(1, national_num_scenarios):
   for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
     new_col = rename_ts_col('{}_{}'.format(col, units))
     df_national = df_national.rename(columns={col: new_col})
-  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
 
+  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
   df_national = df_national.drop(drops, axis=1)
 
   df_nationals.append(df_national)
@@ -215,8 +215,8 @@ for i in range(1, national_num_scenarios):
   for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
     new_col = rename_ts_col('{}_{}'.format(col, units))
     df_testing = df_testing.rename(columns={col: new_col})
-  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
 
+  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testings.append(df_testing)
