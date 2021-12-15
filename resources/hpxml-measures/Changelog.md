@@ -1,3 +1,11 @@
+## OpenStudio-HPXML v1.4.0
+__New Features__
+- ...
+
+__Bugfixes__
+- Fixes possible HVAC sizing error if design temperature difference (TD) is negative.
+- Fixes an error if there is a pool or hot tub, but the pump `Type` is set to "none".
+
 ## OpenStudio-HPXML v1.3.0
 
 __New Features__
