@@ -202,7 +202,7 @@ class Material
 
   def self.ExtFinishStuccoLight
     sAbs = self.solar_abs_map['Light']
-    return new(name = 'Stucco, Light', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.45, sAbs = sAbs, vAbs = sAbs)
+    return new(name = 'Stucco, Light', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishBrickLight
