@@ -301,7 +301,7 @@ class Material
   end
 
   def self.RoofingAsphaltShinglesLight
-    return self.RoofMaterial('Asphalt Shingles, Light', 0.91, 075)
+    return self.RoofMaterial('Asphalt Shingles, Light', 0.91, 0.75)
   end
 
   def self.RoofingAsphaltShinglesWhiteCool
