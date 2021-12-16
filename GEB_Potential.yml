@@ -114,10 +114,10 @@ upgrades:
     #Best Smart Thermostat
     options:
       ## Only apply offset if there is not an existing offset
-      - option: Cooling Setpoint Apply Offset|TRUE
+      - option: Cooling Setpoint Apply Offset|Yes
         apply_logic:
           - Cooling Setpoint Has Offset|No
-      - option: Heating Setpoint Apply Offset|TRUE
+      - option: Heating Setpoint Apply Offset|Yes
         apply_logic:
           - Heating Setpoint Has Offset|No
                  
@@ -447,16 +447,16 @@ upgrades:
         lifetime: 16
         
       ## Best smart thermostat (UPGRADE 3)
-      - option: Cooling Setpoint Apply Offset|TRUE
+      - option: Cooling Setpoint Apply Offset|Yes
         apply_logic:
           - Cooling Setpoint Has Offset|No
-      - option: Heating Setpoint Apply Offset|TRUE
+      - option: Heating Setpoint Apply Offset|Yes
         apply_logic:
           - Heating Setpoint Has Offset|No
-      # - option: Cooling Setpoint Apply Offset|FALSE
+      # - option: Cooling Setpoint Apply Offset|No
       #   apply_logic:
       #     - Cooling Setpoint Has Offset|Yes
-      # - option: Heating Setpoint Apply Offset|FALSE
+      # - option: Heating Setpoint Apply Offset|No
       #   apply_logic:
       #     - Heating Setpoint Has Offset|Yes
       
@@ -641,16 +641,16 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
       ## Best Smart Thermostat
-      - option: Cooling Setpoint Apply Offset|TRUE
+      - option: Cooling Setpoint Apply Offset|Yes
         apply_logic:
           - Cooling Setpoint Has Offset|No
-      - option: Heating Setpoint Apply Offset|TRUE
+      - option: Heating Setpoint Apply Offset|Yes
         apply_logic:
           - Heating Setpoint Has Offset|No
-      # - option: Cooling Setpoint Apply Offset|FALSE
+      # - option: Cooling Setpoint Apply Offset|No
       #   apply_logic:
       #     - Cooling Setpoint Has Offset|Yes
-      # - option: Heating Setpoint Apply Offset|FALSE
+      # - option: Heating Setpoint Apply Offset|No
       #   apply_logic:
       #     - Heating Setpoint Has Offset|Yes            
             
@@ -835,16 +835,16 @@ upgrades:
             - HVAC Heating Efficiency|Electric Furnace, 100% AFUE      
     options: 
       #Best smart thermostat
-      - option: Cooling Setpoint Apply Offset|TRUE
+      - option: Cooling Setpoint Apply Offset|Yes
         apply_logic:
           - Cooling Setpoint Has Offset|No
-      - option: Heating Setpoint Apply Offset|TRUE
+      - option: Heating Setpoint Apply Offset|Yes
         apply_logic:
           - Heating Setpoint Has Offset|No
-      # - option: Cooling Setpoint Apply Offset|FALSE
+      # - option: Cooling Setpoint Apply Offset|No
       #   apply_logic:
       #     - Cooling Setpoint Has Offset|Yes
-      # - option: Heating Setpoint Apply Offset|FALSE
+      # - option: Heating Setpoint Apply Offset|No
       #   apply_logic:
       #     - Heating Setpoint Has Offset|Yes
           
@@ -1134,26 +1134,26 @@ upgrades:
   - upgrade_name: package 2 DR only
     options: 
       # Appliance DR
-      - option: Appliance DR Apply|TRUE
+      - option: Appliance DR Apply|Yes
 
       # Water heater DR
-      - option: Water Heater DR Apply|TRUE - Tank
+      - option: Water Heater DR Apply|Yes - Tank
         apply_logic:
           - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR Apply|TRUE - HP
+      - option: Water Heater DR Apply|Yes - HP
         apply_logic:
           - Water Heater Type|Heat Pump
           - Water Heater Fuel Type|Electric
           
-    # Thermostat DR (-3..+3)
-      - option: Cooling Setpoint Apply Offset|TRUE
+      # Thermostat DR (-3..+3)
+      - option: Cooling Setpoint Apply Offset|Yes
         apply_logic:
           - not: Cooling Setpoint|60F
           - not: Cooling Setpoint|62F
           - not: Cooling Setpoint|78F
           - not: Cooling Setpoint|80F      
-      - option: Heating Setpoint Apply Offset|TRUE
+      - option: Heating Setpoint Apply Offset|Yes
         apply_logic:
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
@@ -1218,21 +1218,21 @@ upgrades:
             multiplier: Size, Cooling System (kBtu/h)
         lifetime: 16
       #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy + no setback; DR+Full if not weekday occupancy + no setback; DR Only if has setback; schedules are specific to city in sampling
-      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
+      - option: Cooling Setpoint Apply Offset|Yes #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
         apply_logic:
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
           - not: Cooling Setpoint|62F
           - not: Cooling Setpoint|60F
           - Cooling Setpoint Has Offset|No
-      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+3) Cooling - [DR setback only]
+      - option: Cooling Setpoint Apply Offset|Yes #(-3..+3) Cooling - [DR setback only]
         apply_logic:
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
           - not: Cooling Setpoint|62F
           - not: Cooling Setpoint|60F
           - Cooling Setpoint Has Offset|Yes
-      - option: Heating Setpoint Apply Offset|TRUE #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
+      - option: Heating Setpoint Apply Offset|Yes #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
         apply_logic:
           - not: Heating Setpoint|80F
           - not: Heating Setpoint|78F
@@ -1241,7 +1241,7 @@ upgrades:
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|60F      
           - Heating Setpoint Has Offset|No
-      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR setback only]
+      - option: Heating Setpoint Apply Offset|Yes #(-3..+3) Heating - [DR setback only]
         apply_logic:
           - not: Heating Setpoint|80F
           - not: Heating Setpoint|78F
@@ -1389,21 +1389,21 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy + no setback; DR+Full if not weekday occupancy + no setback; DR Only if has setback; schedules are specific to city in sampling
-      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
+      - option: Cooling Setpoint Apply Offset|Yes #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
         apply_logic:
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
           - not: Cooling Setpoint|62F
           - not: Cooling Setpoint|60F
           - Cooling Setpoint Has Offset|No
-      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+3) Cooling - [DR setback only]
+      - option: Cooling Setpoint Apply Offset|Yes #(-3..+3) Cooling - [DR setback only]
         apply_logic:
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
           - not: Cooling Setpoint|62F
           - not: Cooling Setpoint|60F
           - Cooling Setpoint Has Offset|Yes
-      - option: Heating Setpoint Apply Offset|TRUE #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
+      - option: Heating Setpoint Apply Offset|Yes #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
         apply_logic:
           - not: Heating Setpoint|80F
           - not: Heating Setpoint|78F
@@ -1412,7 +1412,7 @@ upgrades:
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|60F      
           - Heating Setpoint Has Offset|No
-      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR setback only]
+      - option: Heating Setpoint Apply Offset|Yes #(-3..+3) Heating - [DR setback only]
         apply_logic:
           - not: Heating Setpoint|80F
           - not: Heating Setpoint|78F
@@ -1559,21 +1559,21 @@ upgrades:
             - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
     options:      
       #smart thermostat (default setbacks from sampling: apply offset=FALSE; DR+Night if weekday occupancy + no setback; DR+Full if not weekday occupancy + no setback; DR Only if has setback; schedules are specific to city in sampling
-      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
+      - option: Cooling Setpoint Apply Offset|Yes #(-3..+4) Cooling - [DR+Night setback] & [DR+Full setback] (ignore daytime/unoccupied setback comfort)
         apply_logic:
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
           - not: Cooling Setpoint|62F
           - not: Cooling Setpoint|60F
           - Cooling Setpoint Has Offset|No
-      - option: Cooling Setpoint Apply Offset|TRUE #(-3..+3) Cooling - [DR setback only]
+      - option: Cooling Setpoint Apply Offset|Yes #(-3..+3) Cooling - [DR setback only]
         apply_logic:
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
           - not: Cooling Setpoint|62F
           - not: Cooling Setpoint|60F
           - Cooling Setpoint Has Offset|Yes
-      - option: Heating Setpoint Apply Offset|TRUE #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
+      - option: Heating Setpoint Apply Offset|Yes #(-8..+3) Heating - [DR+Night setback] & [DR+Full setback]
         apply_logic:
           - not: Heating Setpoint|80F
           - not: Heating Setpoint|78F
@@ -1582,7 +1582,7 @@ upgrades:
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|60F      
           - Heating Setpoint Has Offset|No
-      - option: Heating Setpoint Apply Offset|TRUE #(-3..+3) Heating - [DR setback only]
+      - option: Heating Setpoint Apply Offset|Yes #(-3..+3) Heating - [DR setback only]
         apply_logic:
           - not: Heating Setpoint|80F
           - not: Heating Setpoint|78F
@@ -1850,13 +1850,13 @@ upgrades:
       - option: Plug Load Shed|25%
 
       # Appliance DR measures
-      - option: Appliance DR Apply|TRUE
+      - option: Appliance DR Apply|Yes
       # Water heater DR
-      - option: Water Heater DR Apply|TRUE - Tank
+      - option: Water Heater DR Apply|Yes - Tank
         apply_logic:
           - Water Heater Type|Tank
           - Water Heater Fuel Type|Electric
-      - option: Water Heater DR Apply|TRUE - HP
+      - option: Water Heater DR Apply|Yes - HP
         apply_logic:
           - Water Heater Type|Heat Pump
           - Water Heater Fuel Type|Electric
