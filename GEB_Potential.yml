@@ -124,13 +124,13 @@ upgrades:
       ## Night setback, cooling
       - option: Setback|Night - Cooling #+4
         apply_logic:
-          - Somebody at home in weekday|Yes
+          - Weekday Occupancy|Yes
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F     
       ## Full setback, cooling
       - option: Setback|Full - Cooling #+4 (daytime/unoccupied setback not considered)
         apply_logic:
-          - Somebody at home in weekday|No
+          - Weekday Occupancy|No
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
       ## No setback, cooling
@@ -142,7 +142,7 @@ upgrades:
       ## Night setback, heating
       - option: Setback|Night - Heating #-8
         apply_logic:
-          - Somebody at home in weekday|Yes
+          - Weekday Occupancy|Yes
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -150,7 +150,7 @@ upgrades:
       ## Full setback, heating
       - option: Setback|Full - Heating #-8
         apply_logic:
-          - Somebody at home in weekday|No
+          - Weekday Occupancy|No
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -463,13 +463,13 @@ upgrades:
       ## Night setback, cooling
       - option: Setback|Night - Cooling #+4
         apply_logic:
-          - Somebody at home in weekday|Yes
+          - Weekday Occupancy|Yes
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F     
       ## Full setback, cooling
       - option: Setback|Full - Cooling #+4 (daytime/unoccupied setback not considered)
         apply_logic:
-          - Somebody at home in weekday|No
+          - Weekday Occupancy|No
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
       ## No setback, cooling
@@ -481,7 +481,7 @@ upgrades:
       ## Night setback, heating
       - option: Setback|Night - Heating #-8
         apply_logic:
-          - Somebody at home in weekday|Yes
+          - Weekday Occupancy|Yes
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -489,7 +489,7 @@ upgrades:
       ## Full setback, heating
       - option: Setback|Full - Heating #-8
         apply_logic:
-          - Somebody at home in weekday|No
+          - Weekday Occupancy|No
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -657,13 +657,13 @@ upgrades:
       ## Night setback, cooling
       - option: Setback|Night - Cooling #+4
         apply_logic:
-          - Somebody at home in weekday|Yes
+          - Weekday Occupancy|Yes
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F     
       ## Full setback, cooling
       - option: Setback|Full - Cooling #+4 (daytime/unoccupied setback not considered)
         apply_logic:
-          - Somebody at home in weekday|No
+          - Weekday Occupancy|No
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
       ## No setback, cooling
@@ -675,7 +675,7 @@ upgrades:
       ## Night setback, heating
       - option: Setback|Night - Heating #-8
         apply_logic:
-          - Somebody at home in weekday|Yes
+          - Weekday Occupancy|Yes
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -683,7 +683,7 @@ upgrades:
       ## Full setback, heating
       - option: Setback|Full - Heating #-8
         apply_logic:
-          - Somebody at home in weekday|No
+          - Weekday Occupancy|No
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -851,13 +851,13 @@ upgrades:
       ## Night setback, cooling
       - option: Setback|Night - Cooling #+4
         apply_logic:
-          - Somebody at home in weekday|Yes
+          - Weekday Occupancy|Yes
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F     
       ## Full setback, cooling
       - option: Setback|Full - Cooling #+4 (daytime/unoccupied setback not considered)
         apply_logic:
-          - Somebody at home in weekday|No
+          - Weekday Occupancy|No
           - not: Cooling Setpoint|80F
           - not: Cooling Setpoint|78F
       ## No setback, cooling
@@ -869,7 +869,7 @@ upgrades:
       ## Night setback, heating
       - option: Setback|Night - Heating #-8
         apply_logic:
-          - Somebody at home in weekday|Yes
+          - Weekday Occupancy|Yes
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -877,7 +877,7 @@ upgrades:
       ## Full setback, heating
       - option: Setback|Full - Heating #-8
         apply_logic:
-          - Somebody at home in weekday|No
+          - Weekday Occupancy|No
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -1128,7 +1128,6 @@ upgrades:
             - Location City|Atlanta_2
             - Location City|Midland
             - Location City|Tampa
-
    
   ##up12 - package 2 - DR (wh, thermostat, appliance)
   - upgrade_name: package 2 DR only
@@ -1140,11 +1139,11 @@ upgrades:
       - option: Water Heater DR Apply|Yes - Tank
         apply_logic:
           - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
+          - Water Heater Fuel|Electricity
       - option: Water Heater DR Apply|Yes - HP
         apply_logic:
           - Water Heater Type|Heat Pump
-          - Water Heater Fuel Type|Electric
+          - Water Heater Fuel|Electricity
           
       # Thermostat DR (-3..+3)
       - option: Cooling Setpoint Apply Offset|Yes
@@ -1855,8 +1854,8 @@ upgrades:
       - option: Water Heater DR Apply|Yes - Tank
         apply_logic:
           - Water Heater Type|Tank
-          - Water Heater Fuel Type|Electric
+          - Water Heater Fuel|Electricity
       - option: Water Heater DR Apply|Yes - HP
         apply_logic:
           - Water Heater Type|Heat Pump
-          - Water Heater Fuel Type|Electric
+          - Water Heater Fuel|Electricity
