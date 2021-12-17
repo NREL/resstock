@@ -405,6 +405,31 @@ class ReportSimulationOutputTest < MiniTest::Test
     _check_for_nonzero_timeseries_value(timeseries_csv, ['Fuel Use: Electricity: Total'])
   end
 
+  def test_timeseries_hourly_fuels_pv
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-pv.xml',
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_fuel_consumptions' => true,
+                  'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_hot_water_uses' => false,
+                  'include_timeseries_total_loads' => false,
+                  'include_timeseries_component_loads' => false,
+                  'include_timeseries_zone_temperatures' => false,
+                  'include_timeseries_airflows' => false,
+                  'include_timeseries_weather' => false }
+    annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsFuels + ['Fuel Use: Electricity: Net']
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    _check_for_constant_timeseries_step(timeseries_cols[0])
+    _check_for_nonzero_timeseries_value(timeseries_csv, ['Fuel Use: Electricity: Total',
+                                                         'Fuel Use: Electricity: Net'])
+  end
+
   def test_timeseries_hourly_enduses
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
                   'timeseries_frequency' => 'hourly',
@@ -1004,7 +1029,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     date, time = ts.split(' ')
     year, month, day = date.split('/')
     hour, minute, second = time.split(':')
-    return Time.new(year, month, day, hour, minute)
+    return Time.utc(year, month, day, hour, minute)
   end
 
   def _check_for_constant_timeseries_step(time_col)

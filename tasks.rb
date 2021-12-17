@@ -439,7 +439,7 @@ def create_hpxmls
       hpxml_docs[File.basename(hpxml_file)] = deep_copy_object(hpxml_doc)
 
       # Validate file against HPXML schema
-      schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio/resources'))
+      schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio/resources/hpxml_schema'))
       errors = XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), nil)
       if errors.size > 0
         fail "ERRORS: #{errors}"
@@ -2548,6 +2548,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
   elsif ['base-atticroof-conditioned.xml'].include? hpxml_file
     hpxml.building_construction.conditioned_building_volume = 23850
     hpxml.air_infiltration_measurements[0].infiltration_volume = hpxml.building_construction.conditioned_building_volume
+    hpxml.air_infiltration_measurements[0].infiltration_height = 15.0
   elsif ['base-enclosure-split-level.xml'].include? hpxml_file
     hpxml.building_construction.number_of_conditioned_floors = 1.5
     hpxml.building_construction.number_of_conditioned_floors_above_grade = 1.5
@@ -4559,11 +4560,11 @@ def create_schematron_hpxml_validator(hpxml_docs)
   puts 'Generating HPXMLvalidator.xml...'
   elements_in_sample_files = get_elements_from_sample_files(hpxml_docs)
 
-  base_elements_xsd = File.read(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'BaseElements.xsd'))
+  base_elements_xsd = File.read(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'BaseElements.xsd'))
   base_elements_xsd_doc = Oga.parse_xml(base_elements_xsd)
 
   # construct dictionary for enumerations and min/max values of HPXML data types
-  hpxml_data_types_xsd = File.read(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'HPXMLDataTypes.xsd'))
+  hpxml_data_types_xsd = File.read(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schema', 'HPXMLDataTypes.xsd'))
   hpxml_data_types_xsd_doc = Oga.parse_xml(hpxml_data_types_xsd)
   hpxml_data_types_dict = {}
   hpxml_data_types_xsd_doc.xpath('//xs:simpleType | //xs:complexType').each do |simple_type_element|
@@ -4765,7 +4766,7 @@ def create_schematron_hpxml_validator(hpxml_docs)
     end
   end
 
-  XMLHelper.write_file(hpxml_validator, File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'HPXMLvalidator.xml'))
+  XMLHelper.write_file(hpxml_validator, File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio', 'resources', 'hpxml_schematron', 'HPXMLvalidator.xml'))
 end
 
 def get_element_full_xpaths(element_xpaths, complex_type_or_group_dict, element_xpath, element_type)

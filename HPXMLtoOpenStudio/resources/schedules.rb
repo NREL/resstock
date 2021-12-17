@@ -1093,21 +1093,58 @@ class Schedule
 
     return begin_month, begin_day, end_month, end_day
   end
+
+  def self.schedules_file_includes_col_name(schedules_file, col_name)
+    schedules_file_includes_col_name = false
+    if not schedules_file.nil?
+      if schedules_file.schedules.keys.include?(col_name)
+        schedules_file_includes_col_name = true
+      end
+    end
+    return schedules_file_includes_col_name
+  end
 end
 
 class SchedulesFile
+  # Constants
+  ColumnOccupants = 'occupants'
+  ColumnLightingInterior = 'lighting_interior'
+  ColumnLightingExterior = 'lighting_exterior'
+  ColumnLightingGarage = 'lighting_garage'
+  ColumnLightingExteriorHoliday = 'lighting_exterior_holiday'
+  ColumnCookingRange = 'cooking_range'
+  ColumnRefrigerator = 'refrigerator'
+  ColumnExtraRefrigerator = 'extra_refrigerator'
+  ColumnFreezer = 'freezer'
+  ColumnDishwasher = 'dishwasher'
+  ColumnClothesWasher = 'clothes_washer'
+  ColumnClothesDryer = 'clothes_dryer'
+  ColumnCeilingFan = 'ceiling_fan'
+  ColumnPlugLoadsOther = 'plug_loads_other'
+  ColumnPlugLoadsTV = 'plug_loads_tv'
+  ColumnPlugLoadsVehicle = 'plug_loads_vehicle'
+  ColumnPlugLoadsWellPump = 'plug_loads_well_pump'
+  ColumnFuelLoadsGrill = 'fuel_loads_grill'
+  ColumnFuelLoadsLighting = 'fuel_loads_lighting'
+  ColumnFuelLoadsFireplace = 'fuel_loads_fireplace'
+  ColumnPoolPump = 'pool_pump'
+  ColumnPoolHeater = 'pool_heater'
+  ColumnHotTubPump = 'hot_tub_pump'
+  ColumnHotTubHeater = 'hot_tub_heater'
+  ColumnHotWaterDishwasher = 'hot_water_dishwasher'
+  ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
+  ColumnHotWaterFixtures = 'hot_water_fixtures'
+  ColumnVacancy = 'vacancy'
+
   def initialize(runner: nil,
                  model: nil,
-                 year: nil,
-                 schedules_path:,
-                 **remainder)
+                 schedules_path:)
 
     @runner = runner
     @model = model
-    @year = year
     @schedules_path = schedules_path
 
-    import(col_names: Constants.ScheduleColNames.keys)
+    import(col_names: SchedulesFile.ColumnNames.keys)
 
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy
@@ -1123,43 +1160,48 @@ class SchedulesFile
     @schedules = {}
     columns = CSV.read(@schedules_path).transpose
     columns.each do |col|
-      unless col_names.include? col[0]
-        fail "Schedule column name '#{col[0]}' is invalid. [context: #{@schedules_path}]"
+      col_name = col[0]
+      unless col_names.include? col_name
+        fail "Schedule column name '#{col_name}' is invalid. [context: #{@schedules_path}]"
       end
 
       values = col[1..-1].reject { |v| v.nil? }
-      values = validate_schedule(col_name: col[0], values: values)
-      @schedules[col[0]] = values
+
+      begin
+        values = values.map { |v| Float(v) }
+      rescue ArgumentError
+        fail "Schedule value must be numeric for column '#{col_name}'. [context: #{@schedules_path}]"
+      end
+
+      @schedules[col_name] = values
     end
   end
 
-  def validate_schedule(col_name:,
-                        values:)
-
+  def validate_schedules(year:)
+    @year = year
     num_hrs_in_year = Constants.NumHoursInYear(@year)
-    schedule_length = values.length
 
-    begin
+    columns = CSV.read(@schedules_path).transpose
+    columns.each do |col|
+      col_name = col[0]
+      values = col[1..-1].reject { |v| v.nil? }
       values = values.map { |v| Float(v) }
-    rescue ArgumentError
-      fail "Schedule value must be numeric for column '#{col_name}'. [context: #{@schedules_path}]"
-    end
+      schedule_length = values.length
 
-    if (1.0 - values.max).abs > 0.01
-      fail "Schedule max value for column '#{col_name}' must be 1. [context: #{@schedules_path}]"
-    end
+      if (1.0 - values.max).abs > 0.01
+        fail "Schedule max value for column '#{col_name}' must be 1. [context: #{@schedules_path}]"
+      end
 
-    if values.min < 0
-      fail "Schedule min value for column '#{col_name}' must be non-negative. [context: #{@schedules_path}]"
-    end
+      if values.min < 0
+        fail "Schedule min value for column '#{col_name}' must be non-negative. [context: #{@schedules_path}]"
+      end
 
-    valid_minutes_per_item = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
-    valid_num_rows = valid_minutes_per_item.map { |min_per_item| (60.0 * num_hrs_in_year / min_per_item).to_i }
-    unless valid_num_rows.include? schedule_length
-      fail "Schedule has invalid number of rows (#{schedule_length}) for column '#{col_name}'. Must be one of: #{valid_num_rows.reverse.join(', ')}. [context: #{@schedules_path}]"
+      valid_minutes_per_item = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
+      valid_num_rows = valid_minutes_per_item.map { |min_per_item| (60.0 * num_hrs_in_year / min_per_item).to_i }
+      unless valid_num_rows.include? schedule_length
+        fail "Schedule has invalid number of rows (#{schedule_length}) for column '#{col_name}'. Must be one of: #{valid_num_rows.reverse.join(', ')}. [context: #{@schedules_path}]"
+      end
     end
-
-    return values
   end
 
   def export
@@ -1203,8 +1245,7 @@ class SchedulesFile
     end
 
     if @schedules[col_name].nil?
-      @runner.registerError("Could not find the '#{col_name}' schedule.")
-      return false
+      return
     end
 
     col_index = get_col_index(col_name: col_name)
@@ -1295,7 +1336,7 @@ class SchedulesFile
     return unless @tmp_schedules.keys.include? 'vacancy'
     return if @tmp_schedules['vacancy'].all? { |i| i == 0 }
 
-    col_names = Constants.ScheduleColNames
+    col_names = SchedulesFile.ColumnNames
 
     @tmp_schedules[col_names.keys[0]].each_with_index do |ts, i|
       col_names.keys.each do |col_name|
@@ -1305,5 +1346,39 @@ class SchedulesFile
         @tmp_schedules[col_name][i] *= (1.0 - @tmp_schedules['vacancy'][i])
       end
     end
+  end
+
+  def self.ColumnNames
+    # col_name => affected_by_vacancy
+    return {
+      ColumnOccupants => true,
+      ColumnLightingInterior => true,
+      ColumnLightingExterior => true,
+      ColumnLightingGarage => true,
+      ColumnLightingExteriorHoliday => true,
+      ColumnCookingRange => true,
+      ColumnRefrigerator => false,
+      ColumnExtraRefrigerator => false,
+      ColumnFreezer => false,
+      ColumnDishwasher => true,
+      ColumnClothesWasher => true,
+      ColumnClothesDryer => true,
+      ColumnCeilingFan => true,
+      ColumnPlugLoadsOther => true,
+      ColumnPlugLoadsTV => true,
+      ColumnPlugLoadsVehicle => true,
+      ColumnPlugLoadsWellPump => true,
+      ColumnFuelLoadsGrill => true,
+      ColumnFuelLoadsLighting => true,
+      ColumnFuelLoadsFireplace => true,
+      ColumnPoolPump => false,
+      ColumnPoolHeater => false,
+      ColumnHotTubPump => false,
+      ColumnHotTubHeater => false,
+      ColumnHotWaterDishwasher => true,
+      ColumnHotWaterClothesWasher => true,
+      ColumnHotWaterFixtures => true,
+      ColumnVacancy => nil,
+    }
   end
 end
