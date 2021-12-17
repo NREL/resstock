@@ -133,8 +133,8 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       if skip_validation
         stron_paths = []
       else
-        stron_paths = [File.join(File.dirname(__FILE__), 'resources', 'HPXMLvalidator.xml'),
-                       File.join(File.dirname(__FILE__), 'resources', 'EPvalidator.xml')]
+        stron_paths = [File.join(File.dirname(__FILE__), 'resources', 'hpxml_schematron', 'HPXMLvalidator.xml'),
+                       File.join(File.dirname(__FILE__), 'resources', 'hpxml_schematron', 'EPvalidator.xml')]
       end
       hpxml = HPXML.new(hpxml_path: hpxml_path, schematron_validators: stron_paths, building_id: building_id)
       hpxml.errors.each do |error|
@@ -216,16 +216,19 @@ class OSModel
 
     # Init
 
-    weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
-    set_defaults_and_globals(runner, output_dir, epw_file, weather)
-    Location.apply(model, runner, weather, epw_file, @hpxml)
-    add_simulation_params(model)
-
     @schedules_file = nil
-    unless @hpxml.header.schedules_filepath.nil?
-      @schedules_file = SchedulesFile.new(runner: runner, model: model, year: hpxml.header.sim_calendar_year,
+    if not @hpxml.header.schedules_filepath.nil?
+      @schedules_file = SchedulesFile.new(runner: runner, model: model,
                                           schedules_path: @hpxml.header.schedules_filepath)
     end
+
+    weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
+    set_defaults_and_globals(runner, output_dir, epw_file, weather, @schedules_file)
+    if not @schedules_file.nil?
+      @schedules_file.validate_schedules(year: @hpxml.header.sim_calendar_year)
+    end
+    Location.apply(model, runner, weather, epw_file, @hpxml)
+    add_simulation_params(model)
 
     # Conditioned space/zone
 
@@ -299,7 +302,7 @@ class OSModel
 
   private
 
-  def self.set_defaults_and_globals(runner, output_dir, epw_file, weather)
+  def self.set_defaults_and_globals(runner, output_dir, epw_file, weather, schedules_file)
     # Initialize
     @remaining_heat_load_frac = 1.0
     @remaining_cool_load_frac = 1.0
@@ -315,7 +318,7 @@ class OSModel
     @default_azimuths = HPXMLDefaults.get_default_azimuths(@hpxml)
 
     # Apply defaults to HPXML object
-    HPXMLDefaults.apply(@hpxml, @eri_version, weather, epw_file: epw_file)
+    HPXMLDefaults.apply(@hpxml, @eri_version, weather, epw_file: epw_file, schedules_file: schedules_file)
 
     @frac_windows_operable = @hpxml.fraction_of_windows_operable()
 
@@ -545,7 +548,7 @@ class OSModel
     num_occ = @hpxml.building_occupancy.number_of_residents
     return if num_occ <= 0
 
-    Geometry.apply_occupants(model, @hpxml, num_occ, @cfa, spaces[HPXML::LocationLivingSpace], @schedules_file)
+    Geometry.apply_occupants(model, runner, @hpxml, num_occ, @cfa, spaces[HPXML::LocationLivingSpace], @schedules_file)
   end
 
   def self.create_or_get_space(model, spaces, location)
@@ -1868,7 +1871,7 @@ class OSModel
         next
       end
 
-      MiscLoads.apply_plug(model, plug_load, obj_name, spaces[HPXML::LocationLivingSpace], @apply_ashrae140_assumptions, @schedules_file)
+      MiscLoads.apply_plug(model, runner, plug_load, obj_name, spaces[HPXML::LocationLivingSpace], @apply_ashrae140_assumptions, @schedules_file)
     end
   end
 
@@ -1887,7 +1890,7 @@ class OSModel
         next
       end
 
-      MiscLoads.apply_fuel(model, fuel_load, obj_name, spaces[HPXML::LocationLivingSpace], @schedules_file)
+      MiscLoads.apply_fuel(model, runner, fuel_load, obj_name, spaces[HPXML::LocationLivingSpace], @schedules_file)
     end
   end
 

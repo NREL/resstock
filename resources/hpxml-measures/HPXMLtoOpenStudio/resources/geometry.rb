@@ -514,7 +514,7 @@ class Geometry
     end
   end
 
-  def self.apply_occupants(model, hpxml, num_occ, cfa, space, schedules_file)
+  def self.apply_occupants(model, runner, hpxml, num_occ, cfa, space, schedules_file)
     occ_gain, hrs_per_day, sens_frac, lat_frac = Geometry.get_occupancy_default_values()
     activity_per_person = UnitConversions.convert(occ_gain, 'Btu/hr', 'W')
 
@@ -526,9 +526,11 @@ class Geometry
     occ_lost = 1 - occ_lat - occ_conv - occ_rad
 
     # Create schedule
+    people_sch = nil
     if not schedules_file.nil?
-      people_sch = schedules_file.create_schedule_file(col_name: 'occupants')
-    else
+      people_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnOccupants)
+    end
+    if people_sch.nil?
       weekday_sch = hpxml.building_occupancy.weekday_fractions.split(',').map(&:to_f)
       weekday_sch = weekday_sch.map { |v| v / weekday_sch.max }.join(',')
       weekend_sch = hpxml.building_occupancy.weekend_fractions.split(',').map(&:to_f)
@@ -536,6 +538,10 @@ class Geometry
       monthly_sch = hpxml.building_occupancy.monthly_multipliers
       people_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameOccupants + ' schedule', weekday_sch, weekend_sch, monthly_sch, Constants.ScheduleTypeLimitsFraction)
       people_sch = people_sch.schedule
+    else
+      runner.registerWarning("Both '#{SchedulesFile::ColumnOccupants}' schedule file and weekday fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekday_fractions.nil?
+      runner.registerWarning("Both '#{SchedulesFile::ColumnOccupants}' schedule file and weekend fractions provided; the latter will be ignored.") if !hpxml.building_occupancy.weekend_fractions.nil?
+      runner.registerWarning("Both '#{SchedulesFile::ColumnOccupants}' schedule file and monthly multipliers provided; the latter will be ignored.") if !hpxml.building_occupancy.monthly_multipliers.nil?
     end
 
     # Create schedule

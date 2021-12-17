@@ -1,6 +1,9 @@
 ## OpenStudio-HPXML v1.4.0
 __New Features__
-- ...
+- Allows optional `AirInfiltrationMeasurement/InfiltrationHeight` input.
+- Adds a "Fuel Use: Electricity: Net" timeseries output column for homes with electricity generation.
+- BuildResidentialHPXML measure: Adds an optional argument to allow the HPXML file to be written with default values applied.
+- ReportSimulationOutput measure: Allows user-specified annual/timeseries output file names.
 
 __Bugfixes__
 - Fixes possible HVAC sizing error if design temperature difference (TD) is negative.

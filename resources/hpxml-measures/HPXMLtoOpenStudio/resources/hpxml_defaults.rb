@@ -6,7 +6,7 @@ class HPXMLDefaults
   # being written to the HPXML file. This is useful to associate additional values
   # with the HPXML objects that will ultimately get passed around.
 
-  def self.apply(hpxml, eri_version, weather, epw_file: nil, convert_shared_systems: true)
+  def self.apply(hpxml, eri_version, weather, epw_file: nil, schedules_file: nil, convert_shared_systems: true)
     cfa = hpxml.building_construction.conditioned_floor_area
     nbeds = hpxml.building_construction.number_of_bedrooms
     ncfl = hpxml.building_construction.number_of_conditioned_floors
@@ -14,6 +14,7 @@ class HPXMLDefaults
     has_uncond_bsmnt = hpxml.has_location(HPXML::LocationBasementUnconditioned)
 
     infil_volume = nil
+    infil_height = nil
     infil_measurements = []
     hpxml.air_infiltration_measurements.each do |measurement|
       is_ach = ((measurement.unit_of_measure == HPXML::UnitsACH) && !measurement.house_pressure.nil?)
@@ -22,17 +23,20 @@ class HPXMLDefaults
       next unless (is_ach || is_cfm || is_nach)
 
       infil_measurements << measurement
-      next if measurement.infiltration_volume.nil?
-
-      infil_volume = measurement.infiltration_volume
+      if not measurement.infiltration_volume.nil?
+        infil_volume = measurement.infiltration_volume
+      end
+      if not measurement.infiltration_height.nil?
+        infil_height = measurement.infiltration_height
+      end
     end
 
     apply_header(hpxml, epw_file)
     apply_site(hpxml)
     apply_neighbor_buildings(hpxml)
-    apply_building_occupancy(hpxml, nbeds)
+    apply_building_occupancy(hpxml, nbeds, schedules_file)
     apply_building_construction(hpxml, cfa, nbeds, infil_volume)
-    apply_infiltration(hpxml, infil_volume, infil_measurements)
+    apply_infiltration(hpxml, infil_volume, infil_height, infil_measurements)
     apply_attics(hpxml)
     apply_foundations(hpxml)
     apply_roofs(hpxml)
@@ -52,14 +56,14 @@ class HPXMLDefaults
     apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds)
     apply_water_heaters(hpxml, nbeds, eri_version)
     apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
-    apply_water_fixtures(hpxml)
+    apply_water_fixtures(hpxml, schedules_file)
     apply_solar_thermal_systems(hpxml)
-    apply_appliances(hpxml, nbeds, eri_version)
-    apply_lighting(hpxml)
-    apply_ceiling_fans(hpxml, nbeds, weather)
-    apply_pools_and_hot_tubs(hpxml, cfa, nbeds)
-    apply_plug_loads(hpxml, cfa, nbeds)
-    apply_fuel_loads(hpxml, cfa, nbeds)
+    apply_appliances(hpxml, nbeds, eri_version, schedules_file)
+    apply_lighting(hpxml, schedules_file)
+    apply_ceiling_fans(hpxml, nbeds, weather, schedules_file)
+    apply_pools_and_hot_tubs(hpxml, cfa, nbeds, schedules_file)
+    apply_plug_loads(hpxml, cfa, nbeds, schedules_file)
+    apply_fuel_loads(hpxml, cfa, nbeds, schedules_file)
     apply_pv_systems(hpxml)
     apply_generators(hpxml)
     apply_batteries(hpxml)
@@ -211,20 +215,21 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_building_occupancy(hpxml, nbeds)
+  def self.apply_building_occupancy(hpxml, nbeds, schedules_file)
     if hpxml.building_occupancy.number_of_residents.nil?
       hpxml.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(nbeds)
       hpxml.building_occupancy.number_of_residents_isdefaulted = true
     end
-    if hpxml.building_occupancy.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+    schedules_file_includes_occupants = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnOccupants)
+    if hpxml.building_occupancy.weekday_fractions.nil? && !schedules_file_includes_occupants
       hpxml.building_occupancy.weekday_fractions = Schedule.OccupantsWeekdayFractions
       hpxml.building_occupancy.weekday_fractions_isdefaulted = true
     end
-    if hpxml.building_occupancy.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+    if hpxml.building_occupancy.weekend_fractions.nil? && !schedules_file_includes_occupants
       hpxml.building_occupancy.weekend_fractions = Schedule.OccupantsWeekendFractions
       hpxml.building_occupancy.weekend_fractions_isdefaulted = true
     end
-    if hpxml.building_occupancy.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+    if hpxml.building_occupancy.monthly_multipliers.nil? && !schedules_file_includes_occupants
       hpxml.building_occupancy.monthly_multipliers = Schedule.OccupantsMonthlyMultipliers
       hpxml.building_occupancy.monthly_multipliers_isdefaulted = true
     end
@@ -284,12 +289,19 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_infiltration(hpxml, infil_volume, infil_measurements)
+  def self.apply_infiltration(hpxml, infil_volume, infil_height, infil_measurements)
     if infil_volume.nil?
       infil_volume = hpxml.building_construction.conditioned_building_volume
       infil_measurements.each do |measurement|
         measurement.infiltration_volume = infil_volume
         measurement.infiltration_volume_isdefaulted = true
+      end
+    end
+    if infil_height.nil?
+      infil_height = hpxml.inferred_infiltration_height(infil_volume)
+      infil_measurements.each do |measurement|
+        measurement.infiltration_height = infil_height
+        measurement.infiltration_height_isdefaulted = true
       end
     end
   end
@@ -1470,22 +1482,23 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_water_fixtures(hpxml)
+  def self.apply_water_fixtures(hpxml, schedules_file)
     return if hpxml.hot_water_distributions.size == 0
 
     if hpxml.water_heating.water_fixtures_usage_multiplier.nil?
       hpxml.water_heating.water_fixtures_usage_multiplier = 1.0
       hpxml.water_heating.water_fixtures_usage_multiplier_isdefaulted = true
     end
-    if hpxml.water_heating.water_fixtures_weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+    schedules_file_includes_fixtures = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnHotWaterFixtures)
+    if hpxml.water_heating.water_fixtures_weekday_fractions.nil? && !schedules_file_includes_fixtures
       hpxml.water_heating.water_fixtures_weekday_fractions = Schedule.FixturesWeekdayFractions
       hpxml.water_heating.water_fixtures_weekday_fractions_isdefaulted = true
     end
-    if hpxml.water_heating.water_fixtures_weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+    if hpxml.water_heating.water_fixtures_weekend_fractions.nil? && !schedules_file_includes_fixtures
       hpxml.water_heating.water_fixtures_weekend_fractions = Schedule.FixturesWeekendFractions
       hpxml.water_heating.water_fixtures_weekend_fractions_isdefaulted = true
     end
-    if hpxml.water_heating.water_fixtures_monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+    if hpxml.water_heating.water_fixtures_monthly_multipliers.nil? && !schedules_file_includes_fixtures
       hpxml.water_heating.water_fixtures_monthly_multipliers = Schedule.FixturesMonthlyMultipliers
       hpxml.water_heating.water_fixtures_monthly_multipliers_isdefaulted = true
     end
@@ -1588,7 +1601,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_appliances(hpxml, nbeds, eri_version)
+  def self.apply_appliances(hpxml, nbeds, eri_version, schedules_file)
     # Default clothes washer
     if hpxml.clothes_washers.size > 0
       clothes_washer = hpxml.clothes_washers[0]
@@ -1621,15 +1634,16 @@ class HPXMLDefaults
         clothes_washer.usage_multiplier = 1.0
         clothes_washer.usage_multiplier_isdefaulted = true
       end
-      if clothes_washer.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      schedules_file_includes_cw = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnClothesWasher)
+      if clothes_washer.weekday_fractions.nil? && !schedules_file_includes_cw
         clothes_washer.weekday_fractions = Schedule.ClothesWasherWeekdayFractions
         clothes_washer.weekday_fractions_isdefaulted = true
       end
-      if clothes_washer.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      if clothes_washer.weekend_fractions.nil? && !schedules_file_includes_cw
         clothes_washer.weekend_fractions = Schedule.ClothesWasherWeekendFractions
         clothes_washer.weekend_fractions_isdefaulted = true
       end
-      if clothes_washer.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+      if clothes_washer.monthly_multipliers.nil? && !schedules_file_includes_cw
         clothes_washer.monthly_multipliers = Schedule.ClothesWasherMonthlyMultipliers
         clothes_washer.monthly_multipliers_isdefaulted = true
       end
@@ -1668,15 +1682,16 @@ class HPXMLDefaults
         clothes_dryer.vented_flow_rate = 100.0
         clothes_dryer.vented_flow_rate_isdefaulted = true
       end
-      if clothes_dryer.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      schedules_file_includes_cd = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnClothesDryer)
+      if clothes_dryer.weekday_fractions.nil? && !schedules_file_includes_cd
         clothes_dryer.weekday_fractions = Schedule.ClothesDryerWeekdayFractions
         clothes_dryer.weekday_fractions_isdefaulted = true
       end
-      if clothes_dryer.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      if clothes_dryer.weekend_fractions.nil? && !schedules_file_includes_cd
         clothes_dryer.weekend_fractions = Schedule.ClothesDryerWeekendFractions
         clothes_dryer.weekend_fractions_isdefaulted = true
       end
-      if clothes_dryer.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+      if clothes_dryer.monthly_multipliers.nil? && !schedules_file_includes_cd
         clothes_dryer.monthly_multipliers = Schedule.ClothesDryerMonthlyMultipliers
         clothes_dryer.monthly_multipliers_isdefaulted = true
       end
@@ -1712,15 +1727,16 @@ class HPXMLDefaults
         dishwasher.usage_multiplier = 1.0
         dishwasher.usage_multiplier_isdefaulted = true
       end
-      if dishwasher.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      schedules_file_includes_dw = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnDishwasher)
+      if dishwasher.weekday_fractions.nil? && !schedules_file_includes_dw
         dishwasher.weekday_fractions = Schedule.DishwasherWeekdayFractions
         dishwasher.weekday_fractions_isdefaulted = true
       end
-      if dishwasher.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      if dishwasher.weekend_fractions.nil? && !schedules_file_includes_dw
         dishwasher.weekend_fractions = Schedule.DishwasherWeekendFractions
         dishwasher.weekend_fractions_isdefaulted = true
       end
-      if dishwasher.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+      if dishwasher.monthly_multipliers.nil? && !schedules_file_includes_dw
         dishwasher.monthly_multipliers = Schedule.DishwasherMonthlyMultipliers
         dishwasher.monthly_multipliers_isdefaulted = true
       end
@@ -1742,15 +1758,16 @@ class HPXMLDefaults
           refrigerator.rated_annual_kwh = default_values[:rated_annual_kwh]
           refrigerator.rated_annual_kwh_isdefaulted = true
         end
-        if refrigerator.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_extrafridge = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnExtraRefrigerator)
+        if refrigerator.weekday_fractions.nil? && !schedules_file_includes_extrafridge
           refrigerator.weekday_fractions = Schedule.ExtraRefrigeratorWeekdayFractions
           refrigerator.weekday_fractions_isdefaulted = true
         end
-        if refrigerator.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if refrigerator.weekend_fractions.nil? && !schedules_file_includes_extrafridge
           refrigerator.weekend_fractions = Schedule.ExtraRefrigeratorWeekendFractions
           refrigerator.weekend_fractions_isdefaulted = true
         end
-        if refrigerator.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if refrigerator.monthly_multipliers.nil? && !schedules_file_includes_extrafridge
           refrigerator.monthly_multipliers = Schedule.ExtraRefrigeratorMonthlyMultipliers
           refrigerator.monthly_multipliers_isdefaulted = true
         end
@@ -1764,15 +1781,16 @@ class HPXMLDefaults
           refrigerator.rated_annual_kwh = default_values[:rated_annual_kwh]
           refrigerator.rated_annual_kwh_isdefaulted = true
         end
-        if refrigerator.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_fridge = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnRefrigerator)
+        if refrigerator.weekday_fractions.nil? && !schedules_file_includes_fridge
           refrigerator.weekday_fractions = Schedule.RefrigeratorWeekdayFractions
           refrigerator.weekday_fractions_isdefaulted = true
         end
-        if refrigerator.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if refrigerator.weekend_fractions.nil? && !schedules_file_includes_fridge
           refrigerator.weekend_fractions = Schedule.RefrigeratorWeekendFractions
           refrigerator.weekend_fractions_isdefaulted = true
         end
-        if refrigerator.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if refrigerator.monthly_multipliers.nil? && !schedules_file_includes_fridge
           refrigerator.monthly_multipliers = Schedule.RefrigeratorMonthlyMultipliers
           refrigerator.monthly_multipliers_isdefaulted = true
         end
@@ -1798,15 +1816,16 @@ class HPXMLDefaults
         freezer.usage_multiplier = 1.0
         freezer.usage_multiplier_isdefaulted = true
       end
-      if freezer.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      schedules_file_includes_freezer = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnFreezer)
+      if freezer.weekday_fractions.nil? && !schedules_file_includes_freezer
         freezer.weekday_fractions = Schedule.FreezerWeekdayFractions
         freezer.weekday_fractions_isdefaulted = true
       end
-      if freezer.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      if freezer.weekend_fractions.nil? && !schedules_file_includes_freezer
         freezer.weekend_fractions = Schedule.FreezerWeekendFractions
         freezer.weekend_fractions_isdefaulted = true
       end
-      if freezer.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+      if freezer.monthly_multipliers.nil? && !schedules_file_includes_freezer
         freezer.monthly_multipliers = Schedule.FreezerMonthlyMultipliers
         freezer.monthly_multipliers_isdefaulted = true
       end
@@ -1828,15 +1847,16 @@ class HPXMLDefaults
         cooking_range.usage_multiplier = 1.0
         cooking_range.usage_multiplier_isdefaulted = true
       end
-      if cooking_range.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      schedules_file_includes_range = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnCookingRange)
+      if cooking_range.weekday_fractions.nil? && !schedules_file_includes_range
         cooking_range.weekday_fractions = Schedule.CookingRangeWeekdayFractions
         cooking_range.weekday_fractions_isdefaulted = true
       end
-      if cooking_range.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      if cooking_range.weekend_fractions.nil? && !schedules_file_includes_range
         cooking_range.weekend_fractions = Schedule.CookingRangeWeekendFractions
         cooking_range.weekend_fractions_isdefaulted = true
       end
-      if cooking_range.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+      if cooking_range.monthly_multipliers.nil? && !schedules_file_includes_range
         cooking_range.monthly_multipliers = Schedule.CookingRangeMonthlyMultipliers
         cooking_range.monthly_multipliers_isdefaulted = true
       end
@@ -1853,7 +1873,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_lighting(hpxml)
+  def self.apply_lighting(hpxml, schedules_file)
     return if hpxml.lighting_groups.empty?
 
     if hpxml.lighting.interior_usage_multiplier.nil?
@@ -1873,28 +1893,30 @@ class HPXMLDefaults
     default_exterior_lighting_weekend_fractions = Schedule.LightingExteriorWeekendFractions
     default_exterior_lighting_monthly_multipliers = Schedule.LightingExteriorMonthlyMultipliers
     if hpxml.has_location(HPXML::LocationGarage)
-      if hpxml.lighting.garage_weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      schedules_file_includes_lighting_garage = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnLightingGarage)
+      if hpxml.lighting.garage_weekday_fractions.nil? && !schedules_file_includes_lighting_garage
         hpxml.lighting.garage_weekday_fractions = default_exterior_lighting_weekday_fractions
         hpxml.lighting.garage_weekday_fractions_isdefaulted = true
       end
-      if hpxml.lighting.garage_weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      if hpxml.lighting.garage_weekend_fractions.nil? && !schedules_file_includes_lighting_garage
         hpxml.lighting.garage_weekend_fractions = default_exterior_lighting_weekend_fractions
         hpxml.lighting.garage_weekend_fractions_isdefaulted = true
       end
-      if hpxml.lighting.garage_monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+      if hpxml.lighting.garage_monthly_multipliers.nil? && !schedules_file_includes_lighting_garage
         hpxml.lighting.garage_monthly_multipliers = default_exterior_lighting_monthly_multipliers
         hpxml.lighting.garage_monthly_multipliers_isdefaulted = true
       end
     end
-    if hpxml.lighting.exterior_weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+    schedules_file_includes_lighting_exterior = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnLightingExterior)
+    if hpxml.lighting.exterior_weekday_fractions.nil? && !schedules_file_includes_lighting_exterior
       hpxml.lighting.exterior_weekday_fractions = default_exterior_lighting_weekday_fractions
       hpxml.lighting.exterior_weekday_fractions_isdefaulted = true
     end
-    if hpxml.lighting.exterior_weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+    if hpxml.lighting.exterior_weekend_fractions.nil? && !schedules_file_includes_lighting_exterior
       hpxml.lighting.exterior_weekend_fractions = default_exterior_lighting_weekend_fractions
       hpxml.lighting.exterior_weekend_fractions_isdefaulted = true
     end
-    if hpxml.lighting.exterior_monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+    if hpxml.lighting.exterior_monthly_multipliers.nil? && !schedules_file_includes_lighting_exterior
       hpxml.lighting.exterior_monthly_multipliers = default_exterior_lighting_monthly_multipliers
       hpxml.lighting.exterior_monthly_multipliers_isdefaulted = true
     end
@@ -1920,18 +1942,19 @@ class HPXMLDefaults
         hpxml.lighting.holiday_period_end_day = 6
         hpxml.lighting.holiday_period_end_day_isdefaulted = true
       end
-      if hpxml.lighting.holiday_weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      schedules_file_includes_lighting_holiday_exterior = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnLightingExteriorHoliday)
+      if hpxml.lighting.holiday_weekday_fractions.nil? && !schedules_file_includes_lighting_holiday_exterior
         hpxml.lighting.holiday_weekday_fractions = Schedule.LightingExteriorHolidayWeekdayFractions
         hpxml.lighting.holiday_weekday_fractions_isdefaulted = true
       end
-      if hpxml.lighting.holiday_weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      if hpxml.lighting.holiday_weekend_fractions.nil? && !schedules_file_includes_lighting_holiday_exterior
         hpxml.lighting.holiday_weekend_fractions = Schedule.LightingExteriorHolidayWeekendFractions
         hpxml.lighting.holiday_weekend_fractions_isdefaulted = true
       end
     end
   end
 
-  def self.apply_ceiling_fans(hpxml, nbeds, weather)
+  def self.apply_ceiling_fans(hpxml, nbeds, weather, schedules_file)
     return if hpxml.ceiling_fans.size == 0
 
     ceiling_fan = hpxml.ceiling_fans[0]
@@ -1944,21 +1967,22 @@ class HPXMLDefaults
       ceiling_fan.quantity = HVAC.get_default_ceiling_fan_quantity(nbeds)
       ceiling_fan.quantity_isdefaulted = true
     end
-    if ceiling_fan.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+    schedules_file_includes_ceiling_fan = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnCeilingFan)
+    if ceiling_fan.weekday_fractions.nil? && !schedules_file_includes_ceiling_fan
       ceiling_fan.weekday_fractions = Schedule.CeilingFanWeekdayFractions
       ceiling_fan.weekday_fractions_isdefaulted = true
     end
-    if ceiling_fan.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+    if ceiling_fan.weekend_fractions.nil? && !schedules_file_includes_ceiling_fan
       ceiling_fan.weekend_fractions = Schedule.CeilingFanWeekendFractions
       ceiling_fan.weekend_fractions_isdefaulted = true
     end
-    if ceiling_fan.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+    if ceiling_fan.monthly_multipliers.nil? && !schedules_file_includes_ceiling_fan
       ceiling_fan.monthly_multipliers = Schedule.CeilingFanMonthlyMultipliers(weather: weather)
       ceiling_fan.monthly_multipliers_isdefaulted = true
     end
   end
 
-  def self.apply_pools_and_hot_tubs(hpxml, cfa, nbeds)
+  def self.apply_pools_and_hot_tubs(hpxml, cfa, nbeds, schedules_file)
     hpxml.pools.each do |pool|
       next if pool.type == HPXML::TypeNone
 
@@ -1972,15 +1996,16 @@ class HPXMLDefaults
           pool.pump_usage_multiplier = 1.0
           pool.pump_usage_multiplier_isdefaulted = true
         end
-        if pool.pump_weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_pool_pump = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnPoolPump)
+        if pool.pump_weekday_fractions.nil? && !schedules_file_includes_pool_pump
           pool.pump_weekday_fractions = Schedule.PoolPumpWeekdayFractions
           pool.pump_weekday_fractions_isdefaulted = true
         end
-        if pool.pump_weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if pool.pump_weekend_fractions.nil? && !schedules_file_includes_pool_pump
           pool.pump_weekend_fractions = Schedule.PoolPumpWeekendFractions
           pool.pump_weekend_fractions_isdefaulted = true
         end
-        if pool.pump_monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if pool.pump_monthly_multipliers.nil? && !schedules_file_includes_pool_pump
           pool.pump_monthly_multipliers = Schedule.PoolPumpMonthlyMultipliers
           pool.pump_monthly_multipliers_isdefaulted = true
         end
@@ -1999,15 +2024,16 @@ class HPXMLDefaults
         pool.heater_usage_multiplier = 1.0
         pool.heater_usage_multiplier_isdefaulted = true
       end
-      if pool.heater_weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      schedules_file_includes_pool_heater = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnPoolHeater)
+      if pool.heater_weekday_fractions.nil? && !schedules_file_includes_pool_heater
         pool.heater_weekday_fractions = Schedule.PoolHeaterWeekdayFractions
         pool.heater_weekday_fractions_isdefaulted = true
       end
-      if pool.heater_weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      if pool.heater_weekend_fractions.nil? && !schedules_file_includes_pool_heater
         pool.heater_weekend_fractions = Schedule.PoolHeaterWeekendFractions
         pool.heater_weekend_fractions_isdefaulted = true
       end
-      if pool.heater_monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+      if pool.heater_monthly_multipliers.nil? && !schedules_file_includes_pool_heater
         pool.heater_monthly_multipliers = Schedule.PoolHeaterMonthlyMultipliers
         pool.heater_monthly_multipliers_isdefaulted = true
       end
@@ -2026,15 +2052,16 @@ class HPXMLDefaults
           hot_tub.pump_usage_multiplier = 1.0
           hot_tub.pump_usage_multiplier_isdefaulted = true
         end
-        if hot_tub.pump_weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_hot_tub_pump = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnHotTubPump)
+        if hot_tub.pump_weekday_fractions.nil? && !schedules_file_includes_hot_tub_pump
           hot_tub.pump_weekday_fractions = Schedule.HotTubPumpWeekdayFractions
           hot_tub.pump_weekday_fractions_isdefaulted = true
         end
-        if hot_tub.pump_weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if hot_tub.pump_weekend_fractions.nil? && !schedules_file_includes_hot_tub_pump
           hot_tub.pump_weekend_fractions = Schedule.HotTubPumpWeekendFractions
           hot_tub.pump_weekend_fractions_isdefaulted = true
         end
-        if hot_tub.pump_monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if hot_tub.pump_monthly_multipliers.nil? && !schedules_file_includes_hot_tub_pump
           hot_tub.pump_monthly_multipliers = Schedule.HotTubPumpMonthlyMultipliers
           hot_tub.pump_monthly_multipliers_isdefaulted = true
         end
@@ -2053,22 +2080,23 @@ class HPXMLDefaults
         hot_tub.heater_usage_multiplier = 1.0
         hot_tub.heater_usage_multiplier_isdefaulted = true
       end
-      if hot_tub.heater_weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      schedules_file_includes_hot_tub_heater = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnHotTubHeater)
+      if hot_tub.heater_weekday_fractions.nil? && !schedules_file_includes_hot_tub_heater
         hot_tub.heater_weekday_fractions = Schedule.HotTubHeaterWeekdayFractions
         hot_tub.heater_weekday_fractions_isdefaulted = true
       end
-      if hot_tub.heater_weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+      if hot_tub.heater_weekend_fractions.nil? && !schedules_file_includes_hot_tub_heater
         hot_tub.heater_weekend_fractions = Schedule.HotTubHeaterWeekendFractions
         hot_tub.heater_weekend_fractions_isdefaulted = true
       end
-      if hot_tub.heater_monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+      if hot_tub.heater_monthly_multipliers.nil? && !schedules_file_includes_hot_tub_heater
         hot_tub.heater_monthly_multipliers = Schedule.HotTubHeaterMonthlyMultipliers
         hot_tub.heater_monthly_multipliers_isdefaulted = true
       end
     end
   end
 
-  def self.apply_plug_loads(hpxml, cfa, nbeds)
+  def self.apply_plug_loads(hpxml, cfa, nbeds, schedules_file)
     hpxml.plug_loads.each do |plug_load|
       if plug_load.plug_load_type == HPXML::PlugLoadTypeOther
         default_annual_kwh, default_sens_frac, default_lat_frac = MiscLoads.get_residual_mels_default_values(cfa)
@@ -2084,15 +2112,16 @@ class HPXMLDefaults
           plug_load.frac_latent = default_lat_frac
           plug_load.frac_latent_isdefaulted = true
         end
-        if plug_load.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_plug_loads_other = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnPlugLoadsOther)
+        if plug_load.weekday_fractions.nil? && !schedules_file_includes_plug_loads_other
           plug_load.weekday_fractions = Schedule.PlugLoadsOtherWeekdayFractions
           plug_load.weekday_fractions_isdefaulted = true
         end
-        if plug_load.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if plug_load.weekend_fractions.nil? && !schedules_file_includes_plug_loads_other
           plug_load.weekend_fractions = Schedule.PlugLoadsOtherWeekendFractions
           plug_load.weekend_fractions_isdefaulted = true
         end
-        if plug_load.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if plug_load.monthly_multipliers.nil? && !schedules_file_includes_plug_loads_other
           plug_load.monthly_multipliers = Schedule.PlugLoadsOtherMonthlyMultipliers
           plug_load.monthly_multipliers_isdefaulted = true
         end
@@ -2110,15 +2139,16 @@ class HPXMLDefaults
           plug_load.frac_latent = default_lat_frac
           plug_load.frac_latent_isdefaulted = true
         end
-        if plug_load.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_plug_loads_tv = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnPlugLoadsTV)
+        if plug_load.weekday_fractions.nil? && !schedules_file_includes_plug_loads_tv
           plug_load.weekday_fractions = Schedule.PlugLoadsTVWeekdayFractions
           plug_load.weekday_fractions_isdefaulted = true
         end
-        if plug_load.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if plug_load.weekend_fractions.nil? && !schedules_file_includes_plug_loads_tv
           plug_load.weekend_fractions = Schedule.PlugLoadsTVWeekendFractions
           plug_load.weekend_fractions_isdefaulted = true
         end
-        if plug_load.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if plug_load.monthly_multipliers.nil? && !schedules_file_includes_plug_loads_tv
           plug_load.monthly_multipliers = Schedule.PlugLoadsTVMonthlyMultipliers
           plug_load.monthly_multipliers_isdefaulted = true
         end
@@ -2136,15 +2166,16 @@ class HPXMLDefaults
           plug_load.frac_latent = 0.0
           plug_load.frac_latent_isdefaulted = true
         end
-        if plug_load.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_plug_loads_vehicle = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnPlugLoadsVehicle)
+        if plug_load.weekday_fractions.nil? && !schedules_file_includes_plug_loads_vehicle
           plug_load.weekday_fractions = Schedule.PlugLoadsVehicleWeekdayFractions
           plug_load.weekday_fractions_isdefaulted = true
         end
-        if plug_load.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if plug_load.weekend_fractions.nil? && !schedules_file_includes_plug_loads_vehicle
           plug_load.weekend_fractions = Schedule.PlugLoadsVehicleWeekendFractions
           plug_load.weekend_fractions_isdefaulted = true
         end
-        if plug_load.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if plug_load.monthly_multipliers.nil? && !schedules_file_includes_plug_loads_vehicle
           plug_load.monthly_multipliers = Schedule.PlugLoadsVehicleMonthlyMultipliers
           plug_load.monthly_multipliers_isdefaulted = true
         end
@@ -2162,15 +2193,16 @@ class HPXMLDefaults
           plug_load.frac_latent = 0.0
           plug_load.frac_latent_isdefaulted = true
         end
-        if plug_load.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_plug_loads_well_pump = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnPlugLoadsWellPump)
+        if plug_load.weekday_fractions.nil? && !schedules_file_includes_plug_loads_well_pump
           plug_load.weekday_fractions = Schedule.PlugLoadsWellPumpWeekdayFractions
           plug_load.weekday_fractions_isdefaulted = true
         end
-        if plug_load.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if plug_load.weekend_fractions.nil? && !schedules_file_includes_plug_loads_well_pump
           plug_load.weekend_fractions = Schedule.PlugLoadsWellPumpWeekendFractions
           plug_load.weekend_fractions_isdefaulted = true
         end
-        if plug_load.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if plug_load.monthly_multipliers.nil? && !schedules_file_includes_plug_loads_well_pump
           plug_load.monthly_multipliers = Schedule.PlugLoadsWellPumpMonthlyMultipliers
           plug_load.monthly_multipliers_isdefaulted = true
         end
@@ -2182,7 +2214,7 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_fuel_loads(hpxml, cfa, nbeds)
+  def self.apply_fuel_loads(hpxml, cfa, nbeds, schedules_file)
     hpxml.fuel_loads.each do |fuel_load|
       if fuel_load.fuel_load_type == HPXML::FuelLoadTypeGrill
         if fuel_load.therm_per_year.nil?
@@ -2197,15 +2229,16 @@ class HPXMLDefaults
           fuel_load.frac_latent = 0.0
           fuel_load.frac_latent_isdefaulted = true
         end
-        if fuel_load.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_fuel_loads_grill = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnFuelLoadsGrill)
+        if fuel_load.weekday_fractions.nil? && !schedules_file_includes_fuel_loads_grill
           fuel_load.weekday_fractions = Schedule.FuelLoadsGrillWeekdayFractions
           fuel_load.weekday_fractions_isdefaulted = true
         end
-        if fuel_load.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if fuel_load.weekend_fractions.nil? && !schedules_file_includes_fuel_loads_grill
           fuel_load.weekend_fractions = Schedule.FuelLoadsGrillWeekendFractions
           fuel_load.weekend_fractions_isdefaulted = true
         end
-        if fuel_load.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if fuel_load.monthly_multipliers.nil? && !schedules_file_includes_fuel_loads_grill
           fuel_load.monthly_multipliers = Schedule.FuelLoadsGrillMonthlyMultipliers
           fuel_load.monthly_multipliers_isdefaulted = true
         end
@@ -2222,15 +2255,16 @@ class HPXMLDefaults
           fuel_load.frac_latent = 0.0
           fuel_load.frac_latent_isdefaulted = true
         end
-        if fuel_load.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_fuel_loads_lighting = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnFuelLoadsLighting)
+        if fuel_load.weekday_fractions.nil? && !schedules_file_includes_fuel_loads_lighting
           fuel_load.weekday_fractions = Schedule.FuelLoadsLightingWeekdayFractions
           fuel_load.weekday_fractions_isdefaulted = true
         end
-        if fuel_load.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if fuel_load.weekend_fractions.nil? && !schedules_file_includes_fuel_loads_lighting
           fuel_load.weekend_fractions = Schedule.FuelLoadsLightingWeekendFractions
           fuel_load.weekend_fractions_isdefaulted = true
         end
-        if fuel_load.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if fuel_load.monthly_multipliers.nil? && !schedules_file_includes_fuel_loads_lighting
           fuel_load.monthly_multipliers = Schedule.FuelLoadsLightingMonthlyMultipliers
           fuel_load.monthly_multipliers_isdefaulted = true
         end
@@ -2247,15 +2281,16 @@ class HPXMLDefaults
           fuel_load.frac_latent = 0.1
           fuel_load.frac_latent_isdefaulted = true
         end
-        if fuel_load.weekday_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        schedules_file_includes_fuel_loads_fireplace = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnFuelLoadsFireplace)
+        if fuel_load.weekday_fractions.nil? && !schedules_file_includes_fuel_loads_fireplace
           fuel_load.weekday_fractions = Schedule.FuelLoadsFireplaceWeekdayFractions
           fuel_load.weekday_fractions_isdefaulted = true
         end
-        if fuel_load.weekend_fractions.nil? && hpxml.header.schedules_filepath.nil?
+        if fuel_load.weekend_fractions.nil? && !schedules_file_includes_fuel_loads_fireplace
           fuel_load.weekend_fractions = Schedule.FuelLoadsFireplaceWeekendFractions
           fuel_load.weekend_fractions_isdefaulted = true
         end
-        if fuel_load.monthly_multipliers.nil? && hpxml.header.schedules_filepath.nil?
+        if fuel_load.monthly_multipliers.nil? && !schedules_file_includes_fuel_loads_fireplace
           fuel_load.monthly_multipliers = Schedule.FuelLoadsFireplaceMonthlyMultipliers
           fuel_load.monthly_multipliers_isdefaulted = true
         end

@@ -99,6 +99,16 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('annual_output_file_name', false)
+    arg.setDisplayName('Annual Output File Name')
+    arg.setDescription("If not provided, defaults to 'results_annual.csv' (or 'results_annual.json').")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('timeseries_output_file_name', false)
+    arg.setDisplayName('Timeseries Output File Name')
+    arg.setDescription("If not provided, defaults to 'results_timeseries.csv' (or 'results_timeseries.json').")
+    args << arg
+
     return args
   end
 
@@ -176,6 +186,16 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       include_timeseries_weather = runner.getBoolArgumentValue('include_timeseries_weather', user_arguments)
     end
 
+    has_electricity_production = false
+    if @end_uses.select { |key, end_use| end_use.is_negative && end_use.variables.size > 0 }.size > 0
+      has_electricity_production = true
+    end
+
+    if include_timeseries_fuel_consumptions
+      # If fuel uses are selected, we also need to select end uses because fuels may be adjusted by DSE.
+      include_timeseries_end_use_consumptions = true
+    end
+
     # Fuel outputs
     @fuels.each do |fuel_type, fuel|
       fuel.meters.each do |meter|
@@ -185,8 +205,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         end
       end
     end
-    if @end_uses.select { |key, end_use| end_use.is_negative && end_use.variables.size > 0 }.size > 0
+    if has_electricity_production
       result << OpenStudio::IdfObject.load('Output:Meter,ElectricityProduced:Facility,runperiod;').get # Used for error checking
+      if include_timeseries_fuel_consumptions
+        result << OpenStudio::IdfObject.load("Output:Meter,ElectricityProduced:Facility,#{timeseries_frequency};").get
+      end
     end
     if include_timeseries_fuel_consumptions
       # If fuel uses are selected, we also need to select end uses because fuels may be adjusted by DSE.
@@ -325,6 +348,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       include_timeseries_airflows = runner.getBoolArgumentValue('include_timeseries_airflows', user_arguments)
       include_timeseries_weather = runner.getBoolArgumentValue('include_timeseries_weather', user_arguments)
     end
+    annual_output_file_name = runner.getOptionalStringArgumentValue('annual_output_file_name', user_arguments)
+    timeseries_output_file_name = runner.getOptionalStringArgumentValue('timeseries_output_file_name', user_arguments)
 
     sqlFile = runner.lastEnergyPlusSqlFile
     if sqlFile.empty?
@@ -352,13 +377,21 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       output_dir = File.dirname(hpxml_path)
       hpxml_name = File.basename(hpxml_path).gsub('.xml', '')
       annual_output_path = File.join(output_dir, "#{hpxml_name}.#{output_format}")
-      eri_output_path = File.join(output_dir, "#{hpxml_name}_ERI.csv")
       timeseries_output_path = File.join(output_dir, "#{hpxml_name}_#{timeseries_frequency.capitalize}.#{output_format}")
+      eri_output_path = File.join(output_dir, "#{hpxml_name}_ERI.csv")
     else
       output_dir = File.dirname(@sqlFile.path.to_s)
-      annual_output_path = File.join(output_dir, "results_annual.#{output_format}")
+      if annual_output_file_name.is_initialized
+        annual_output_path = File.join(output_dir, annual_output_file_name.get)
+      else
+        annual_output_path = File.join(output_dir, "results_annual.#{output_format}")
+      end
+      if timeseries_output_file_name.is_initialized
+        timeseries_output_path = File.join(output_dir, timeseries_output_file_name.get)
+      else
+        timeseries_output_path = File.join(output_dir, "results_timeseries.#{output_format}")
+      end
       eri_output_path = nil
-      timeseries_output_path = File.join(output_dir, "results_timeseries.#{output_format}")
     end
 
     @timestamps = get_timestamps(timeseries_frequency)
@@ -383,7 +416,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     write_annual_output_results(runner, outputs, output_format, annual_output_path)
     report_sim_outputs(runner)
     write_eri_output_results(outputs, eri_output_path)
-    write_timeseries_output_results(runner, output_format,
+    write_timeseries_output_results(runner, outputs, output_format,
                                     timeseries_output_path,
                                     timeseries_frequency,
                                     include_timeseries_fuel_consumptions,
@@ -458,8 +491,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    # Electricity Produced (used for error checking)
+    # Electricity Produced
     outputs[:total_elec_produced] = get_report_meter_data_annual(['ElectricityProduced:Facility'])
+    outputs[:total_elec_produced_timeseries] = get_report_meter_data_timeseries(['ElectricityProduced:Facility'], UnitConversions.convert(1.0, 'J', get_timeseries_units_from_fuel_type(FT::Elec)), 0, timeseries_frequency)
+    outputs[:total_elec_net_timeseries] = @fuels[FT::Elec].timeseries_output.zip(outputs[:total_elec_produced_timeseries]).map { |x, y| x - y }
 
     # Peak Electricity Consumption
     @peak_fuels.each do |key, peak_fuel|
@@ -1079,7 +1114,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     CSV.open(csv_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
   end
 
-  def write_timeseries_output_results(runner, output_format,
+  def write_timeseries_output_results(runner, outputs, output_format,
                                       timeseries_output_path,
                                       timeseries_frequency,
                                       include_timeseries_fuel_consumptions,
@@ -1104,6 +1139,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     if include_timeseries_fuel_consumptions
       fuel_data = @fuels.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      if outputs[:total_elec_produced_timeseries].sum(0.0) != 0
+        fuel_data.insert(1, ['Fuel Use: Electricity: Net', get_timeseries_units_from_fuel_type(FT::Elec)] + outputs[:total_elec_net_timeseries].map { |v| v.round(2) })
+      end
     else
       fuel_data = []
     end

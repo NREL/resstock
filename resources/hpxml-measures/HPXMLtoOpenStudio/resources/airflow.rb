@@ -11,7 +11,7 @@ class Airflow
     @spaces = spaces
     @year = hpxml.header.sim_calendar_year
     @infil_volume = hpxml.air_infiltration_measurements.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
-    @infil_height = hpxml.inferred_infiltration_height(@infil_volume)
+    @infil_height = hpxml.air_infiltration_measurements.select { |i| !i.infiltration_height.nil? }[0].infiltration_height
     @living_space = spaces[HPXML::LocationLivingSpace]
     @living_zone = @living_space.thermalZone.get
     @nbeds = nbeds
@@ -105,7 +105,7 @@ class Airflow
     end
 
     apply_natural_ventilation_and_whole_house_fan(model, weather, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor)
-    apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+    apply_infiltration_and_ventilation_fans(model, @runner, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
                                             vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
   end
@@ -151,7 +151,7 @@ class Airflow
   def self.get_default_mech_vent_flow_rate(hpxml, vent_fan, infil_measurements, weather, infil_a_ext, cfa, nbeds)
     # Calculates Qfan cfm requirement per ASHRAE 62.2-2019
     infil_volume = infil_measurements[0].infiltration_volume
-    infil_height = hpxml.inferred_infiltration_height(infil_volume)
+    infil_height = infil_measurements[0].infiltration_height
 
     infil_a_ext = 1.0
     if [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include? hpxml.building_construction.residential_facility_type
@@ -1247,17 +1247,20 @@ class Airflow
     return obj_sch_sensors
   end
 
-  def self.apply_dryer_exhaust(model, vented_dryers, schedules_file)
+  def self.apply_dryer_exhaust(model, runner, vented_dryers, schedules_file)
     obj_sch_sensors = {}
     obj_type_name = Constants.ObjectNameClothesDryerExhaust
     vented_dryers.each_with_index do |vented_dryer, index|
       obj_name = "#{obj_type_name} #{index}"
 
+      # Create schedule
+      obj_sch = nil
       if not schedules_file.nil?
-        obj_sch = schedules_file.create_schedule_file(col_name: 'clothes_dryer')
-        obj_sch_name = 'clothes_dryer'
-        full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: 'clothes_dryer')
-      else
+        obj_sch_name = SchedulesFile::ColumnClothesDryer
+        obj_sch = schedules_file.create_schedule_file(col_name: obj_sch_name)
+        full_load_hrs = schedules_file.annual_equivalent_full_load_hrs(col_name: obj_sch_name)
+      end
+      if obj_sch.nil?
         cd_weekday_sch = vented_dryer.weekday_fractions
         cd_weekend_sch = vented_dryer.weekend_fractions
         cd_monthly_sch = vented_dryer.monthly_multipliers
@@ -1709,7 +1712,7 @@ class Airflow
     program_calling_manager.addProgram(infil_program)
   end
 
-  def self.apply_infiltration_and_ventilation_fans(model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+  def self.apply_infiltration_and_ventilation_fans(model, runner, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                    has_flue_chimney, air_infils, vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
     # Get living space infiltration
     living_ach50 = nil
@@ -1744,7 +1747,7 @@ class Airflow
     bath_sch_sensors_map = apply_local_ventilation(model, vent_fans_bath, Constants.ObjectNameMechanicalVentilationBathFan)
 
     # Clothes dryer exhaust
-    dryer_exhaust_sch_sensors_map = apply_dryer_exhaust(model, vented_dryers, schedules_file)
+    dryer_exhaust_sch_sensors_map = apply_dryer_exhaust(model, runner, vented_dryers, schedules_file)
 
     # Get mechanical ventilation
     apply_infiltration_and_mechanical_ventilation(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,

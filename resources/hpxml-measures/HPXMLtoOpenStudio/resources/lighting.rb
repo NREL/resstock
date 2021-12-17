@@ -25,37 +25,33 @@ class Lighting
                                             lighting.garage_usage_multiplier,
                                             lighting.exterior_usage_multiplier)
 
-    # Create schedule
-    if schedules_file.nil?
-      if not lighting.interior_weekday_fractions.nil?
-        interior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameInteriorLighting + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
-      else
-        lighting_sch = get_schedule(epw_file)
-        # Create schedule
-        interior_sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction)
-      end
-      exterior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameExteriorLighting + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
-      if gfa > 0
-        garage_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameGarageLighting + ' schedule', lighting.garage_weekday_fractions, lighting.garage_weekend_fractions, lighting.garage_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
-      end
-      if not lighting.holiday_kwh_per_day.nil?
-        exterior_holiday_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameLightingExteriorHoliday + ' schedule', lighting.holiday_weekday_fractions, lighting.holiday_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, true, lighting.holiday_period_begin_month, lighting.holiday_period_begin_day, lighting.holiday_period_end_month, lighting.holiday_period_end_day)
-      end
-    end
-
     # Add lighting to each conditioned space
     if int_kwh > 0
 
+      # Create schedule
+      interior_sch = nil
       if not schedules_file.nil?
-        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'lighting_interior', annual_kwh: int_kwh)
-        interior_sch = schedules_file.create_schedule_file(col_name: 'lighting_interior')
-      else
+        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: SchedulesFile::ColumnLightingInterior, annual_kwh: int_kwh)
+        interior_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnLightingInterior)
+      end
+      if interior_sch.nil?
+        if not lighting.interior_weekday_fractions.nil?
+          interior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameInteriorLighting + ' schedule', lighting.interior_weekday_fractions, lighting.interior_weekend_fractions, lighting.interior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
+        else
+          lighting_sch = get_schedule(epw_file)
+          interior_sch = HourlyByMonthSchedule.new(model, 'lighting schedule', lighting_sch, lighting_sch, Constants.ScheduleTypeLimitsFraction)
+        end
+
         if lighting.interior_weekday_fractions.nil?
           design_level = interior_sch.calcDesignLevel(interior_sch.maxval * int_kwh)
         else
           design_level = interior_sch.calcDesignLevelFromDailykWh(int_kwh / 365.0)
         end
         interior_sch = interior_sch.schedule
+      else
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingInterior}' schedule file and weekday fractions provided; the latter will be ignored.") if !lighting.interior_weekday_fractions.nil?
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingInterior}' schedule file and weekend fractions provided; the latter will be ignored.") if !lighting.interior_weekend_fractions.nil?
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingInterior}' schedule file and monthly multipliers provided; the latter will be ignored.") if !lighting.interior_monthly_multipliers.nil?
       end
 
       # Add lighting
@@ -75,12 +71,20 @@ class Lighting
     # Add lighting to each garage space
     if grg_kwh > 0
 
+      # Create schedule
+      garage_sch = nil
       if not schedules_file.nil?
-        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'lighting_garage', annual_kwh: grg_kwh)
-        garage_sch = schedules_file.create_schedule_file(col_name: 'lighting_garage')
-      else
+        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: SchedulesFile::ColumnLightingGarage, annual_kwh: grg_kwh)
+        garage_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnLightingGarage)
+      end
+      if garage_sch.nil?
+        garage_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameGarageLighting + ' schedule', lighting.garage_weekday_fractions, lighting.garage_weekend_fractions, lighting.garage_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
         design_level = garage_sch.calcDesignLevelFromDailykWh(grg_kwh / 365.0)
         garage_sch = garage_sch.schedule
+      else
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingGarage}' schedule file and weekday fractions provided; the latter will be ignored.") if !lighting.garage_weekday_fractions.nil?
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingGarage}' schedule file and weekend fractions provided; the latter will be ignored.") if !lighting.garage_weekend_fractions.nil?
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingGarage}' schedule file and monthly multipliers provided; the latter will be ignored.") if !lighting.garage_monthly_multipliers.nil?
       end
 
       # Add lighting
@@ -99,12 +103,20 @@ class Lighting
 
     if ext_kwh > 0
 
+      # Create schedule
+      exterior_sch = nil
       if not schedules_file.nil?
-        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: 'lighting_exterior', annual_kwh: ext_kwh)
-        exterior_sch = schedules_file.create_schedule_file(col_name: 'lighting_exterior')
-      else
+        design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: SchedulesFile::ColumnLightingExterior, annual_kwh: ext_kwh)
+        exterior_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnLightingExterior)
+      end
+      if exterior_sch.nil?
+        exterior_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameExteriorLighting + ' schedule', lighting.exterior_weekday_fractions, lighting.exterior_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction)
         design_level = exterior_sch.calcDesignLevelFromDailykWh(ext_kwh / 365.0)
         exterior_sch = exterior_sch.schedule
+      else
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingExterior}' schedule file and weekday fractions provided; the latter will be ignored.") if !lighting.exterior_weekday_fractions.nil?
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingExterior}' schedule file and weekend fractions provided; the latter will be ignored.") if !lighting.exterior_weekend_fractions.nil?
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingExterior}' schedule file and monthly multipliers provided; the latter will be ignored.") if !lighting.exterior_monthly_multipliers.nil?
       end
 
       # Add exterior lighting
@@ -119,12 +131,20 @@ class Lighting
 
     if not lighting.holiday_kwh_per_day.nil?
 
+      # Create schedule
+      exterior_holiday_sch = nil
       if not schedules_file.nil?
-        design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: 'lighting_exterior_holiday', daily_kwh: lighting.holiday_kwh_per_day)
-        exterior_holiday_sch = schedules_file.create_schedule_file(col_name: 'lighting_exterior_holiday')
-      else
+        design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: SchedulesFile::ColumnLightingExteriorHoliday, daily_kwh: lighting.holiday_kwh_per_day)
+        exterior_holiday_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnLightingExteriorHoliday)
+      end
+      if exterior_holiday_sch.nil?
+        exterior_holiday_sch = MonthWeekdayWeekendSchedule.new(model, Constants.ObjectNameLightingExteriorHoliday + ' schedule', lighting.holiday_weekday_fractions, lighting.holiday_weekend_fractions, lighting.exterior_monthly_multipliers, Constants.ScheduleTypeLimitsFraction, true, lighting.holiday_period_begin_month, lighting.holiday_period_begin_day, lighting.holiday_period_end_month, lighting.holiday_period_end_day)
         design_level = exterior_holiday_sch.calcDesignLevelFromDailykWh(lighting.holiday_kwh_per_day)
         exterior_holiday_sch = exterior_holiday_sch.schedule
+      else
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingExteriorHoliday}' schedule file and weekday fractions provided; the latter will be ignored.") if !lighting.holiday_weekday_fractions.nil?
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingExteriorHoliday}' schedule file and weekend fractions provided; the latter will be ignored.") if !lighting.holiday_weekend_fractions.nil?
+        runner.registerWarning("Both '#{SchedulesFile::ColumnLightingExteriorHoliday}' schedule file and monthly multipliers provided; the latter will be ignored.") if !lighting.exterior_monthly_multipliers.nil?
       end
 
       # Add exterior holiday lighting
@@ -158,7 +178,7 @@ class Lighting
                        f_int_led, f_ext_led, f_grg_led,
                        interior_usage_multiplier = 1.0, garage_usage_multiplier = 1.0, exterior_usage_multiplier = 1.0)
 
-    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014ADEG')
+    if Constants.ERIVersions.index(eri_version) >= Constants.ERIVersions.index('2014AEG')
       # Calculate fluorescent (CFL + LFL) fractions
       f_int_fl = f_int_cfl + f_int_lfl
       f_ext_fl = f_ext_cfl + f_ext_lfl
