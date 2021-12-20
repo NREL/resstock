@@ -105,8 +105,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
-    arg.setDisplayName('Add annual component loads output')
+    arg.setDisplayName('Annual Component Loads?')
     arg.setDescription('If true, output the annual component loads.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('co2_emissions', false)
+    arg.setDisplayName('CO2 Emissions Calculations?')
+    arg.setDescription('If true, does CO2 emissions calculations.')
     args << arg
 
     return args
@@ -256,6 +261,16 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
     end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
+
+    # CO2 Emissions
+    if args['co2_emissions'].is_initialized
+      cambium_gea = 'NWPPc' # FIXME: look this up based on xxx?
+      filename = "StdScen21_MidCase_hourly_#{cambium_gea}_2022.csv"
+      electricity_co2_emissions_filepaths = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/data/cambium/#{filename}"))
+
+      measures['BuildResidentialHPXML'][0]['electricity_co2_emissions_filepaths'] = electricity_co2_emissions_filepaths
+      measures['BuildResidentialHPXML'][0]['electricity_co2_emissions_units'] = HPXML::CO2EmissionsScenario::UnitsKgPerMWh
+    end
 
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
