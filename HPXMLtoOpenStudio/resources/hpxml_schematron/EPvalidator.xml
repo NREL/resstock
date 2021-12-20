@@ -10,6 +10,7 @@
       <sch:assert role='ERROR' test='count(h:SoftwareInfo/h:extension/h:SimulationControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SoftwareInfo/extension/SimulationControl</sch:assert> <!-- See [SimulationControl] -->
       <sch:assert role='ERROR' test='count(h:SoftwareInfo/h:extension/h:HVACSizingControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SoftwareInfo/extension/HVACSizingControl</sch:assert> <!-- See [HVACSizingControl] -->
       <sch:assert role='ERROR' test='count(h:SoftwareInfo/h:extension/h:SchedulesFilePath) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SoftwareInfo/extension/SchedulesFilePath</sch:assert>
+      <sch:assert role='ERROR' test='count(h:SoftwareInfo/h:extension/h:CO2EmissionsScenarios/h:CO2EmissionsScenario) &gt;= 0'>Expected 0 or more element(s) for xpath: SoftwareInfo/extension/CO2EmissionsScenarios/CO2EmissionsScenario</sch:assert> <!-- See [CO2EmissionsScenario] -->
       <sch:assert role='ERROR' test='count(h:Building) &gt;= 1'>Expected 1 or more element(s) for xpath: Building</sch:assert> <!-- See [Building] -->
     </sch:rule>
   </sch:pattern>
@@ -46,6 +47,14 @@
   </sch:pattern>
 
   <sch:pattern>
+    <sch:title>[DaylightSaving]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:SimulationControl/h:DaylightSaving'>
+      <sch:assert role='ERROR' test='count(h:Enabled) = 1'>Expected 1 element(s) for xpath: Enabled</sch:assert>
+      <sch:assert role='ERROR' test='count(h:BeginMonth) + count(h:BeginDayOfMonth) + count(h:EndMonth) + count(h:EndDayOfMonth) = 0 or count(h:BeginMonth) + count(h:BeginDayOfMonth) + count(h:EndMonth) + count(h:EndDayOfMonth) = 4'>Expected 0 or 4 element(s) for xpath: BeginMonth | BeginDayOfMonth | EndMonth | EndDayOfMonth</sch:assert> <!-- integer -->
+    </sch:rule>
+  </sch:pattern>
+  
+  <sch:pattern>
     <sch:title>[HVACSizingControl]</sch:title>
     <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:HVACSizingControl'>
       <sch:assert role='ERROR' test='count(h:AllowIncreasedFixedCapacities) &lt;= 1'>Expected 0 or 1 element(s) for xpath: AllowIncreasedFixedCapacities</sch:assert> <!-- boolean -->
@@ -54,13 +63,33 @@
   </sch:pattern>
 
   <sch:pattern>
-    <sch:title>[DaylightSaving]</sch:title>
-    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:SimulationControl/h:DaylightSaving'>
-      <sch:assert role='ERROR' test='count(h:Enabled) = 1'>Expected 1 element(s) for xpath: Enabled</sch:assert>
-      <sch:assert role='ERROR' test='count(h:BeginMonth) + count(h:BeginDayOfMonth) + count(h:EndMonth) + count(h:EndDayOfMonth) = 0 or count(h:BeginMonth) + count(h:BeginDayOfMonth) + count(h:EndMonth) + count(h:EndDayOfMonth) = 4'>Expected 0 or 4 element(s) for xpath: BeginMonth | BeginDayOfMonth | EndMonth | EndDayOfMonth</sch:assert> <!-- integer -->
+    <sch:title>[CO2EmissionsScenario]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:CO2EmissionsScenarios/h:CO2EmissionsScenario'>
+      <sch:assert role='ERROR' test='count(h:Name) = 1'>Expected 1 element(s) for xpath: Name</sch:assert>
+      <sch:assert role='ERROR' test='count(h:CO2EmissionsFactor[h:FuelType="electricity"]) = 1'>Expected 1 element(s) for xpath: CO2EmissionsFactor[FuelType="electricity"]</sch:assert> <!-- See [CO2EmissionsFactor=Electricity] -->
+      <sch:assert role='ERROR' test='count(h:CO2EmissionsFactor[h:FuelType="natural gas"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CO2EmissionsFactor[FuelType="natural gas"]</sch:assert> <!-- See [CO2EmissionsFactor=FossilFuel] -->
+      <sch:assert role='ERROR' test='count(h:CO2EmissionsFactor[h:FuelType="propane"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CO2EmissionsFactor[FuelType="propane"]</sch:assert> <!-- See [CO2EmissionsFactor=FossilFuel] -->
+      <sch:assert role='ERROR' test='count(h:CO2EmissionsFactor[h:FuelType="fuel oil"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CO2EmissionsFactor[FuelType="fuel oil"]</sch:assert> <!-- See [CO2EmissionsFactor=FossilFuel] -->
+      <sch:assert role='ERROR' test='count(h:CO2EmissionsFactor[h:FuelType="coal"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CO2EmissionsFactor[FuelType="coal"]</sch:assert> <!-- See [CO2EmissionsFactor=FossilFuel] -->
     </sch:rule>
   </sch:pattern>
-  
+
+  <sch:pattern>
+    <sch:title>[CO2EmissionsFactor=Electricity]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:CO2EmissionsScenarios/h:CO2EmissionsScenario/h:CO2EmissionsFactor[h:FuelType="electricity"]'>
+      <sch:assert role='ERROR' test='count(h:Units[text()="lb/MWh" or text()="kg/MWh"]) = 1'>Expected 1 element(s) for xpath: Units[text()="lb/MWh" or text()="kg/MWh"]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:ScheduleFilePath) = 1'>Expected 1 element(s) for xpath: ScheduleFilePath</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[CO2EmissionsFactor=FossilFuel]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:CO2EmissionsScenarios/h:CO2EmissionsScenario/h:CO2EmissionsFactor[h:FuelType!="electricity"]'>
+      <sch:assert role='ERROR' test='count(h:Units[text()="lb/MBtu" or text()="kg/MBtu"]) = 1'>Expected 1 element(s) for xpath: Units[text()="lb/MBtu" or text()="kg/MBtu"]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Value) = 1'>Expected 1 element(s) for xpath: Value</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
   <sch:pattern>
     <sch:title>[BuildingDetails]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails'>

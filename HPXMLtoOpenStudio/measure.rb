@@ -214,6 +214,16 @@ class OSModel
     @apply_ashrae140_assumptions = @hpxml.header.apply_ashrae140_assumptions # Hidden feature
     @apply_ashrae140_assumptions = false if @apply_ashrae140_assumptions.nil?
 
+    # Check paths
+    @hpxml.header.schedules_filepath = FilePath.check_path(@hpxml.header.schedules_filepath,
+                                                           File.dirname(hpxml_path),
+                                                           'Schedules')
+    @hpxml.header.co2_emissions_scenarios.each do |co2_emissions_scenario|
+      FilePath.check_path(co2_emissions_scenario.elec_schedule_filepath,
+                          File.dirname(hpxml_path),
+                          'CO2 Emissions Schedule')
+    end
+
     # Init
 
     @schedules_file = nil
@@ -2065,6 +2075,8 @@ class OSModel
     additionalProperties.setFeature('hpxml_path', hpxml_path)
     additionalProperties.setFeature('hpxml_defaults_path', @hpxml_defaults_path)
     additionalProperties.setFeature('building_id', building_id.to_s)
+    co2_emissions_scenario_names = @hpxml.header.co2_emissions_scenarios.map { |s| s.name }.to_s
+    additionalProperties.setFeature('co2_emissions_scenario_names', co2_emissions_scenario_names)
   end
 
   def self.map_to_string(map)
