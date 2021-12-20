@@ -1044,28 +1044,20 @@ class Waterheater
     end
   end
 
-  def self.get_location_hierarchy(ba_cz_name)
-    if [Constants.BAZoneHotDry, Constants.BAZoneHotHumid].include? ba_cz_name
-      return [Constants.SpaceTypeGarage,
-              Constants.SpaceTypeLiving,
-              Constants.SpaceTypeFinishedBasement,
-              Constants.SpaceTypeLaundryRoom,
-              Constants.SpaceTypeCrawl,
-              Constants.SpaceTypeUnfinishedAttic]
-
-    elsif [Constants.BAZoneMarine, Constants.BAZoneMixedHumid, Constants.BAZoneMixedDry, Constants.BAZoneCold, Constants.BAZoneVeryCold, Constants.BAZoneSubarctic].include? ba_cz_name
-      return [Constants.SpaceTypeFinishedBasement,
-              Constants.SpaceTypeUnfinishedBasement,
-              Constants.SpaceTypeLiving,
-              Constants.SpaceTypeLaundryRoom,
-              Constants.SpaceTypeCrawl,
-              Constants.SpaceTypeUnfinishedAttic]
-    elsif ba_cz_name.nil?
-      return [Constants.SpaceTypeFinishedBasement,
-              Constants.SpaceTypeUnfinishedBasement,
-              Constants.SpaceTypeGarage,
-              Constants.SpaceTypeLiving]
+  def self.get_location_hierarchy(iecc_zone)
+    if ['1A', '1B', '1C', '2A', '2B', '2C', '3B', '3C'].include? iecc_zone
+      location_hierarchy = [Constants.SpaceTypeGarage,
+                            Constants.SpaceTypeLiving]
+    elsif ['3A', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].include? iecc_zone
+      location_hierarchy = [Constants.SpaceTypeFinishedBasement,
+                            Constants.SpaceTypeUnfinishedBasement,
+                            Constants.SpaceTypeLiving]
+    elsif iecc_zone.nil?
+      location_hierarchy = [Constants.SpaceTypeFinishedBasement,
+                            Constants.SpaceTypeUnfinishedBasement,
+                            Constants.SpaceTypeLiving]
     end
+    return location_hierarchy
   end
 
   def self.calc_capacity(cap, fuel, num_beds, num_baths)

@@ -196,15 +196,15 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Get Building America climate zone
-    ba_cz_name = nil
+    # Get IECC climate zone
+    iecc_cz_name = nil
     model.getClimateZones.climateZones.each do |climateZone|
-      next if climateZone.institution != Constants.BuildingAmericaClimateZone
+      next if climateZone.institution != Constants.IECCClimateZone
 
-      ba_cz_name = climateZone.value.to_s
+      iecc_cz_name = climateZone.value.to_s
     end
 
-    location_hierarchy = Waterheater.get_location_hierarchy(ba_cz_name)
+    location_hierarchy = Waterheater.get_location_hierarchy(iecc_cz_name)
 
     if setpoint_type == Constants.WaterHeaterSetpointTypeScheduled
       unless (Pathname.new schedule_directory).absolute?

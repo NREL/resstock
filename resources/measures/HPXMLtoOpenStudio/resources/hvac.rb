@@ -2639,7 +2639,7 @@ class HVAC
     removed_ashp = remove_ashp(model, runner, thermal_zone)
     removed_mshp = remove_mshp(model, runner, thermal_zone, unit)
     removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
-    removed_central_fan_coil = remove_central_system_fan_coil_heating(model, runner, thermal_zone)
+    removed_central_fan_coil = remove_central_system_fan_coil_heating(model, runner, thermal_zone, unit)
     removed_central_ptac = remove_central_system_ptac(model, runner, thermal_zone)
   end
 
@@ -2652,7 +2652,7 @@ class HVAC
       removed_elec_baseboard = remove_electric_baseboard(model, runner, thermal_zone)
     end
     removed_gshp = remove_gshp(model, runner, thermal_zone, unit)
-    removed_central_fan_coil = remove_central_system_fan_coil(model, runner, thermal_zone)
+    removed_central_fan_coil = remove_central_system_fan_coil(model, runner, thermal_zone, unit)
     removed_central_ptac = remove_central_system_ptac(model, runner, thermal_zone)
   end
 
@@ -4740,7 +4740,7 @@ class HVAC
     end
   end
 
-  def self.remove_central_system_fan_coil_heating(model, runner, thermal_zone)
+  def self.remove_central_system_fan_coil_heating(model, runner, thermal_zone, unit)
     # Returns true if the object was removed
     return false if not has_central_fan_coil(model, runner, thermal_zone)
 
@@ -4753,11 +4753,11 @@ class HVAC
     end
 
     if fan_coil_heating
-      remove_central_system_fan_coil(model, runner, thermal_zone)
+      remove_central_system_fan_coil(model, runner, thermal_zone, unit)
     end
   end
 
-  def self.remove_central_system_fan_coil(model, runner, thermal_zone)
+  def self.remove_central_system_fan_coil(model, runner, thermal_zone, unit)
     # Returns true if the object was removed
     return false if not has_central_fan_coil(model, runner, thermal_zone)
 
@@ -4789,6 +4789,27 @@ class HVAC
 
         program_calling_manager.remove
       end
+    end
+    obj_name = Constants.ObjectNameCentralSystemFanCoil(unit.name.to_s)
+    model.getEnergyManagementSystemSensors.each do |sensor|
+      next if (sensor.name.to_s != "#{obj_name} fan s".gsub(' ', '_').gsub('|', '_'))
+
+      sensor.remove
+    end
+    model.getEnergyManagementSystemOutputVariables.each do |output_var|
+      next if (output_var.name.to_s != "#{obj_name} htg fan:Fans:Electricity") && (output_var.name.to_s != "#{obj_name} clg fan:Fans:Electricity")
+
+      output_var.remove
+    end
+    model.getEnergyManagementSystemPrograms.each do |program|
+      next unless program.name.to_s == "#{obj_name} fans program".gsub(' ', '_')
+
+      program.remove
+    end
+    model.getEnergyManagementSystemProgramCallingManagers.each do |program_calling_manager|
+      next unless program_calling_manager.name.to_s == "#{obj_name} fan program calling manager"
+
+      program_calling_manager.remove
     end
   end
 

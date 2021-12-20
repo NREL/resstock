@@ -43,16 +43,25 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('USA_CO_Denver.Intl.AP.725650_TMY3.epw')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('dst_start_date', true)
-    arg.setDisplayName('Daylight Saving Start Date')
-    arg.setDescription("Set to 'NA' if no daylight saving.")
-    arg.setDefaultValue('March 12')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('daylight_saving_enabled', false)
+    arg.setDisplayName('Daylight Saving Enabled')
+    arg.setDescription('Whether to use daylight saving.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('dst_end_date', true)
-    arg.setDisplayName('Daylight Saving End Date')
-    arg.setDescription("Set to 'NA' if no daylight saving.")
-    arg.setDefaultValue('November 5')
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('daylight_saving_period', false)
+    arg.setDisplayName('Daylight Saving Period')
+    arg.setDescription('Enter a date like "Mar 15 - Dec 15".')
+    args << arg
+
+    iecc_zone_choices = OpenStudio::StringVector.new
+    ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C',
+     '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].each do |iz|
+      iecc_zone_choices << iz
+    end
+
+    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('iecc_zone', iecc_zone_choices, false)
+    arg.setDisplayName('IECC Zone')
+    arg.setDescription('IECC zone of the home address. If not provided, uses the IECC zone corresponding to the EPW weather file.')
     args << arg
 
     return args
@@ -70,15 +79,16 @@ class SetResidentialEPWFile < OpenStudio::Measure::ModelMeasure
     # grab the initial weather file
     weather_directory = runner.getStringArgumentValue('weather_directory', user_arguments)
     weather_file_name = runner.getStringArgumentValue('weather_file_name', user_arguments)
-    dst_start_date = runner.getStringArgumentValue('dst_start_date', user_arguments)
-    dst_end_date = runner.getStringArgumentValue('dst_end_date', user_arguments)
+    daylight_saving_enabled = runner.getOptionalBoolArgumentValue('daylight_saving_enabled', user_arguments)
+    daylight_saving_period = runner.getOptionalStringArgumentValue('daylight_saving_period', user_arguments)
+    iecc_zone = runner.getOptionalStringArgumentValue('iecc_zone', user_arguments)
 
     unless (Pathname.new weather_directory).absolute?
       weather_directory = File.expand_path(File.join(File.dirname(__FILE__), weather_directory))
     end
     weather_file_path = File.join(weather_directory, weather_file_name)
 
-    success, weather = Location.apply(model, runner, weather_file_path, dst_start_date, dst_end_date)
+    success, weather = Location.apply(model, runner, weather_file_path, daylight_saving_enabled, daylight_saving_period, iecc_zone)
     return false if not success
 
     # report final condition

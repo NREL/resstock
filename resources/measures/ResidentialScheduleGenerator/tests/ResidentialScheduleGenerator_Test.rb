@@ -139,7 +139,7 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     result = _test_error_or_NA('Denver.osm', args_hash)
     assert(result.errors.size == 1)
     assert_equal('Fail', result.value.valueName)
-    assert_includes(result.errors.map { |x| x.logMessage }, 'Invalid vacancy date(s) specified.')
+    assert_includes(result.errors.map { |x| x.logMessage }, "Invalid date format specified for 'April 31 - NA'.")
   end
 
   def test_NA_vacancy
@@ -162,8 +162,8 @@ class ResidentialScheduleGeneratorTest < MiniTest::Test
     model = _test_measure('Denver.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 2, 1)
     args_hash = {}
     args_hash['state'] = 'CO'
-    args_hash['vacancy_start_date'] = 'April 8'
-    args_hash['vacancy_end_date'] = 'October 27'
+    args_hash['vacancy_start_date'] = 'Apr 8'
+    args_hash['vacancy_end_date'] = 'Oct 27'
     expected_num_del_objects = {}
     expected_num_new_objects = {}
     expected_values = {}
