@@ -2882,6 +2882,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('electricity_co2_emissions_filepaths', false)
+    arg.setDisplayName('Electricity CO2 Emissions: CSV Paths')
+    arg.setDescription('Absolute (or relative) path of the csv file containing user-specified occupancy schedules.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('electricity_co2_emissions_units', false)
+    arg.setDisplayName('Electricity CO2 Emissions: CSV Paths')
+    arg.setDescription('Absolute (or relative) path of the csv file containing user-specified occupancy schedules.')
+    args << arg
+
     return args
   end
 
@@ -3370,6 +3380,16 @@ class HPXMLFile
     end
     hpxml.header.state_code = args[:site_state_code]
     hpxml.header.event_type = 'proposed workscope'
+
+    if args[:electricity_co2_emissions_filepaths].is_initialized
+      args[:electricity_co2_emissions_filepaths].get.split(',').each do |electricity_co2_emissions_filepath|
+        hpxml.header.co2_emissions_scenarios.add(name: File.basename(electricity_co2_emissions_filepath),
+                                                 elec_units: args[:electricity_co2_emissions_units].get,
+                                                 elec_schedule_filepath: electricity_co2_emissions_filepath,
+                                                 natural_gas_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
+                                                 natural_gas_value: 52.91)
+      end
+    end
   end
 
   def self.set_site(hpxml, runner, args)
