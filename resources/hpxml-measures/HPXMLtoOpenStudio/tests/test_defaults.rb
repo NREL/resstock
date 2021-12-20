@@ -87,6 +87,43 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, true, false)
   end
 
+  def test_co2_emissions_factors
+    # Test inputs not overridden by defaults
+    hpxml = _create_hpxml('base-misc-co2-emissions.xml')
+    hpxml.header.co2_emissions_scenarios[0].natural_gas_units = HPXML::CO2EmissionsScenario::UnitsLbPerMBtu
+    hpxml.header.co2_emissions_scenarios[0].natural_gas_value = 123.0
+    hpxml.header.co2_emissions_scenarios[0].propane_units = HPXML::CO2EmissionsScenario::UnitsLbPerMBtu
+    hpxml.header.co2_emissions_scenarios[0].propane_value = 234.0
+    hpxml.header.co2_emissions_scenarios[0].fuel_oil_units = HPXML::CO2EmissionsScenario::UnitsKgPerMBtu
+    hpxml.header.co2_emissions_scenarios[0].fuel_oil_value = 345.0
+    hpxml.header.co2_emissions_scenarios[0].coal_units = HPXML::CO2EmissionsScenario::UnitsKgPerMBtu
+    hpxml.header.co2_emissions_scenarios[0].coal_value = 456.0
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_co2_emissions_values(hpxml_default.header.co2_emissions_scenarios[0],
+                                       HPXML::CO2EmissionsScenario::UnitsLbPerMBtu, 123.0,
+                                       HPXML::CO2EmissionsScenario::UnitsLbPerMBtu, 234.0,
+                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 345.0,
+                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 456.0)
+
+    # Test defaults
+    hpxml.header.co2_emissions_scenarios[0].natural_gas_units = nil
+    hpxml.header.co2_emissions_scenarios[0].natural_gas_value = nil
+    hpxml.header.co2_emissions_scenarios[0].propane_units = nil
+    hpxml.header.co2_emissions_scenarios[0].propane_value = nil
+    hpxml.header.co2_emissions_scenarios[0].fuel_oil_units = nil
+    hpxml.header.co2_emissions_scenarios[0].fuel_oil_value = nil
+    hpxml.header.co2_emissions_scenarios[0].coal_units = nil
+    hpxml.header.co2_emissions_scenarios[0].coal_value = nil
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_co2_emissions_values(hpxml_default.header.co2_emissions_scenarios[0],
+                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 52.91,
+                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 62.88,
+                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 74.14,
+                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 95.74)
+  end
+
   def test_site
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
@@ -2788,6 +2825,19 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(dst_end_day, hpxml.header.dst_end_day)
     assert_equal(use_max_load_for_heat_pumps, hpxml.header.use_max_load_for_heat_pumps)
     assert_equal(allow_increased_fixed_capacities, hpxml.header.allow_increased_fixed_capacities)
+  end
+
+  def _test_default_co2_emissions_values(co2_emissions_scenario, natural_gas_units, natural_gas_value,
+                                         propane_units, propane_value, fuel_oil_units, fuel_oil_value,
+                                         coal_units, coal_value)
+    assert_equal(natural_gas_units, co2_emissions_scenario.natural_gas_units)
+    assert_equal(natural_gas_value, co2_emissions_scenario.natural_gas_value)
+    assert_equal(propane_units, co2_emissions_scenario.propane_units)
+    assert_equal(propane_value, co2_emissions_scenario.propane_value)
+    assert_equal(fuel_oil_units, co2_emissions_scenario.fuel_oil_units)
+    assert_equal(fuel_oil_value, co2_emissions_scenario.fuel_oil_value)
+    assert_equal(coal_units, co2_emissions_scenario.coal_units)
+    assert_equal(coal_value, co2_emissions_scenario.coal_value)
   end
 
   def _test_default_site_values(hpxml, site_type, shielding_of_home)

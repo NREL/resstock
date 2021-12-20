@@ -32,6 +32,7 @@ class HPXMLDefaults
     end
 
     apply_header(hpxml, epw_file)
+    apply_co2_emissions_scenarios(hpxml)
     apply_site(hpxml)
     apply_neighbor_buildings(hpxml)
     apply_building_occupancy(hpxml, nbeds, schedules_file)
@@ -186,6 +187,36 @@ class HPXMLDefaults
     if hpxml.header.use_max_load_for_heat_pumps.nil?
       hpxml.header.use_max_load_for_heat_pumps = true
       hpxml.header.use_max_load_for_heat_pumps_isdefaulted = true
+    end
+  end
+
+  def self.apply_co2_emissions_scenarios(hpxml)
+    hpxml.header.co2_emissions_scenarios.each do |scenario|
+      # Values from https://www.eia.gov/environment/emissions/co2_vol_mass.php
+      if scenario.natural_gas_units.nil? || scenario.natural_gas_value.nil?
+        scenario.natural_gas_units = HPXML::CO2EmissionsScenario::UnitsKgPerMBtu
+        scenario.natural_gas_units_isdefaulted = true
+        scenario.natural_gas_value = 52.91
+        scenario.natural_gas_value_isdefaulted = true
+      end
+      if scenario.propane_units.nil? || scenario.propane_value.nil?
+        scenario.propane_units = HPXML::CO2EmissionsScenario::UnitsKgPerMBtu
+        scenario.propane_units_isdefaulted = true
+        scenario.propane_value = 62.88
+        scenario.propane_value_isdefaulted = true
+      end
+      if scenario.fuel_oil_units.nil? || scenario.fuel_oil_value.nil?
+        scenario.fuel_oil_units = HPXML::CO2EmissionsScenario::UnitsKgPerMBtu
+        scenario.fuel_oil_units_isdefaulted = true
+        scenario.fuel_oil_value = 74.14
+        scenario.fuel_oil_value_isdefaulted = true
+      end
+      next unless scenario.coal_units.nil? || scenario.coal_value.nil?
+
+      scenario.coal_units = HPXML::CO2EmissionsScenario::UnitsKgPerMBtu
+      scenario.coal_units_isdefaulted = true
+      scenario.coal_value = 95.74
+      scenario.coal_value_isdefaulted = true
     end
   end
 
