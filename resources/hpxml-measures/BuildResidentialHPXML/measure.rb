@@ -2882,14 +2882,21 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(false)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('electricity_co2_emissions_filepaths', false)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('electricity_co_2_emissions_filepaths', false)
     arg.setDisplayName('Electricity CO2 Emissions: CSV Paths')
     arg.setDescription('Absolute (or relative) path of the csv file containing user-specified occupancy schedules.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('electricity_co2_emissions_units', false)
+    electricity_co2_emissions_units_choices = OpenStudio::StringVector.new
+    electricity_co2_emissions_units_choices << HPXML::CO2EmissionsScenario::UnitsKgPerMWh
+    electricity_co2_emissions_units_choices << HPXML::CO2EmissionsScenario::UnitsKgPerMBtu
+    electricity_co2_emissions_units_choices << HPXML::CO2EmissionsScenario::UnitsLbPerMWh
+    electricity_co2_emissions_units_choices << HPXML::CO2EmissionsScenario::UnitsLbPerMBtu
+
+    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('electricity_co_2_emissions_units', electricity_co2_emissions_units_choices, false)
     arg.setDisplayName('Electricity CO2 Emissions: CSV Paths')
     arg.setDescription('Absolute (or relative) path of the csv file containing user-specified occupancy schedules.')
+    arg.setDefaultValue(HPXML::CO2EmissionsScenario::UnitsKgPerMWh)
     args << arg
 
     return args
@@ -3381,13 +3388,20 @@ class HPXMLFile
     hpxml.header.state_code = args[:site_state_code]
     hpxml.header.event_type = 'proposed workscope'
 
-    if args[:electricity_co2_emissions_filepaths].is_initialized
-      args[:electricity_co2_emissions_filepaths].get.split(',').each do |electricity_co2_emissions_filepath|
-        hpxml.header.co2_emissions_scenarios.add(name: File.basename(electricity_co2_emissions_filepath),
-                                                 elec_units: args[:electricity_co2_emissions_units].get,
-                                                 elec_schedule_filepath: electricity_co2_emissions_filepath,
+    # FIXME: remove fuel arguments once bug in ReportSimulationOutput is fixed
+    if args[:electricity_co_2_emissions_filepaths].is_initialized
+      args[:electricity_co_2_emissions_filepaths].get.split(',').each do |electricity_co_2_emissions_filepath|
+        hpxml.header.co2_emissions_scenarios.add(name: File.basename(electricity_co_2_emissions_filepath),
+                                                 elec_units: args[:electricity_co_2_emissions_units].get,
+                                                 elec_schedule_filepath: electricity_co_2_emissions_filepath,
                                                  natural_gas_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
-                                                 natural_gas_value: 52.91)
+                                                 natural_gas_value: 52.91,
+                                                 propane_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
+                                                 propane_value: 62.88,
+                                                 fuel_oil_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
+                                                 fuel_oil_value: 74.14,
+                                                 coal_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
+                                                 coal_value: 95.74)
       end
     end
   end
