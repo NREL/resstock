@@ -880,17 +880,6 @@ class Schedule
     return '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
   end
 
-  def self.get_day_num_from_month_day(year, month, day)
-    # Returns a value between 1 and 365 (or 366 for a leap year)
-    # Returns e.g. 32 for month=2 and day=1 (Feb 1)
-    month_num_days = Constants.NumDaysInMonths(Date.leap?(year))
-    day_num = day
-    for m in 0..month - 2
-      day_num += month_num_days[m]
-    end
-    return day_num
-  end
-
   def self.parse_date_range(runner, date_range)
     begin_end_dates = date_range.split('-').map { |v| v.strip }
     if begin_end_dates.size != 2
@@ -1602,24 +1591,23 @@ class ScheduleGenerator
 
   def set_vacancy
     if not ((@vacancy_start_date.downcase == 'na') && (@vacancy_end_date.downcase == 'na'))
-      if not Schedule.parse_date_range(@runner, "#{@vacancy_start_date} - #{@vacancy_end_date}")
-        return false
+      begin
+        vacancy_start_date = Time.new(@sim_year, OpenStudio::monthOfYear(@vacancy_start_date.split[0]).value, @vacancy_start_date.split[1].to_i)
+        vacancy_end_date = Time.new(@sim_year, OpenStudio::monthOfYear(@vacancy_end_date.split[0]).value, @vacancy_end_date.split[1].to_i, 24)
+
+        sec_per_step = @minutes_per_step * 60.0
+        ts = Time.new(@sim_year, 'Jan', 1)
+        @schedules['vacancy'].each_with_index do |step, i|
+          if vacancy_start_date <= ts && ts <= vacancy_end_date # in the vacancy period
+            @schedules['vacancy'][i] = 1.0
+          end
+          ts += sec_per_step
+        end
+
+        @runner.registerInfo("Set vacancy period from #{@vacancy_start_date} tp #{@vacancy_end_date}.")
+      rescue
+        @runner.registerError('Invalid vacancy date(s) specified.')
       end
-
-      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(@runner, "#{@vacancy_start_date} - #{@vacancy_end_date}")
-      start_day_num = Schedule.get_day_num_from_month_day(@sim_year, begin_month, begin_day)
-      end_day_num = Schedule.get_day_num_from_month_day(@sim_year, end_month, end_day)
-
-      vacancy = Array.new(@schedules['occupants'].length, 0)
-      if end_day_num >= start_day_num
-        vacancy.fill(1.0, (start_day_num - 1) * @steps_in_day, (end_day_num - start_day_num + 1) * @steps_in_day) # Fill between start/end days
-      else # Wrap around year
-        vacancy.fill(1.0, (start_day_num - 1) * @steps_in_day) # Fill between start day and end of year
-        vacancy.fill(1.0, 0, end_day_num * @steps_in_day) # Fill between start of year and end day
-      end
-      @schedules['vacancy'] = vacancy
-
-      @runner.registerInfo("Set vacancy period from #{@vacancy_start_date} to #{@vacancy_end_date}.")
     else
       @runner.registerInfo('No vacancy period set.')
     end
