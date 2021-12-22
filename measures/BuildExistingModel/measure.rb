@@ -264,13 +264,17 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # CO2 Emissions
     if args['co2_emissions'].is_initialized
-      cambium_gea = 'NWPPc' # FIXME: look this up based on xxx?
-      filename = "StdScen21_MidCase_hourly_#{cambium_gea}_2022.csv"
-      electricity_co_2_emissions_filepaths = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/data/cambium/#{filename}"))
-      electricity_co_2_emissions_units = HPXML::CO2EmissionsScenario::UnitsKgPerMWh
+      if args['co2_emissions'].get
+        cambium_gea = 'NWPPc' # FIXME: look this up based on xxx?
+        filename = "StdScen21_MidCase_hourly_#{cambium_gea}_2022.csv"
+        electricity_co_2_emissions_filepaths = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/data/cambium/#{filename}"))
+        electricity_co_2_emissions_units = HPXML::CO2EmissionsScenario::UnitsKgPerMWh
 
-      measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_filepaths'] = electricity_co_2_emissions_filepaths
-      measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_units'] = electricity_co_2_emissions_units
+        measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_filepaths'] = electricity_co_2_emissions_filepaths
+        measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_units'] = electricity_co_2_emissions_units
+        register_value(runner, 'electricity_co_2_emissions_filepaths', electricity_co_2_emissions_filepaths)
+        register_value(runner, 'electricity_co_2_emissions_units', electricity_co_2_emissions_units)
+      end
     end
 
     # Get registered values and pass them to BuildResidentialScheduleFile

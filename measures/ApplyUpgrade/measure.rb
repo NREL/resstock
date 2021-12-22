@@ -382,6 +382,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
 
+    # CO2 Emissions
+    if !values['electricity_co_2_emissions_filepaths'].nil? && !values['electricity_co_2_emissions_units'].nil?
+      measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_filepaths'] = values['electricity_co_2_emissions_filepaths']
+      measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_units'] = values['electricity_co_2_emissions_units']
+    end
+
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
