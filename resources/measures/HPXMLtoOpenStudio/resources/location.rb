@@ -133,6 +133,7 @@ class Location
       if not Schedule.parse_date_range(runner, daylight_saving_period.get)
         return false
       end
+
       begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(runner, daylight_saving_period.get)
       dst_begin_month = begin_month
       dst_begin_day = begin_day
