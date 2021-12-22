@@ -537,8 +537,8 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
         thermostat_setpoint = thermostat_setpoint.get
         thermostat_setpoint.resetHeatingSetpointTemperatureSchedule()
         thermostat_setpoint.resetCoolingSetpointTemperatureSchedule()
-        rule_sched_h = Schedule.ruleset_from_fixedinterval(model, htg_hrly, Constants.ObjectNameHeatingSetpoint, winter_design_day_sch, summer_design_day_sch)
-        rule_sched_c = Schedule.ruleset_from_fixedinterval(model, clg_hrly, Constants.ObjectNameCoolingSetpoint, winter_design_day_sch, summer_design_day_sch)
+        rule_sched_h = Schedule.fixedinterval_to_ruleset(model, htg_hrly, Constants.ObjectNameHeatingSetpoint, winter_design_day_sch, summer_design_day_sch)
+        rule_sched_c = Schedule.fixedinterval_to_ruleset(model, clg_hrly, Constants.ObjectNameCoolingSetpoint, winter_design_day_sch, summer_design_day_sch)
         htg_hrly.remove
         clg_hrly.remove
         break
@@ -661,9 +661,17 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
           existing_schedule = ee.schedule.get
           new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
           new_schedule.setName('DR_' + existing_schedule.name.get)
+          filename = existing_schedule.to_ScheduleFile.get.externalFile.filePath.to_s
 
-          if not existing_schedule.to_ScheduleRuleset.empty?
-            ruleset = existing_schedule.to_ScheduleRuleset.get
+          # Convert schedule file to fixed interval
+          fixed_interval = Schedule.schedulefile_to_fixedinterval(model, existing_schedule, sch_name="plug load fixed interval")
+
+          # Convert fixed interval to ruleset
+          ruleset = Schedule.fixedinterval_to_ruleset(model, fixed_interval, "plug load - No DR ruleset")
+          fixed_interval.remove
+  
+          if ruleset.to_ScheduleRuleset.is_initialized
+            ruleset = ruleset.to_ScheduleRuleset.get
             rules = ruleset.scheduleRules()
             rules.each_with_index do |rule, index|
               day_sch = rule.daySchedule
@@ -676,6 +684,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
                   if ee.name.to_s.start_with?('res misc plug loads')
                     remaining_peak_fraction = 1 - (electronics_turn_off_fraction + electronics_shift_fraction)
                     fractions = [remaining_peak_fraction, electronics_shift_fraction]
+                    fractions = [0, 1]
                     take_hour = []
                   else
                     fractions = [0, 1]
