@@ -8,62 +8,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  bsb:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Show environment
-        run: |
-          ruby -v
-          python -v
-
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.head_ref }}
-
-      - name: Run buildstockbatch
-        run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@develop
-          
-          buildstock_docker project_national/national_baseline.yml
-          buildstock_docker project_testing/testing_baseline.yml
-          
-          buildstock_docker project_national/national_upgrades.yml
-          buildstock_docker project_testing/testing_upgrades.yml
-
-      - name: Run tests
-        run: |
-          ruby test/test_bsb_analysis.rb
-
-      - name: Process results
-        run: |
-          gunzip -v project_national/national_baseline/results_csvs/*.csv.gz
-          gunzip -v project_testing/testing_baseline/results_csvs/*.csv.gz
-          
-          gunzip -v project_national/national_upgrades/results_csvs/*.csv.gz
-          gunzip -v project_testing/testing_upgrades/results_csvs/*.csv.gz
-          
-          tar -xvf project_national/national_baseline/simulation_output/*.tar.gz -C project_national/national_baseline/simulation_output
-          tar -xvf project_testing/testing_baseline/simulation_output/*.tar.gz -C project_testing/testing_baseline/simulation_output
-          
-          tar -xvf project_national/national_upgrades/simulation_output/*.tar.gz -C project_national/national_upgrades/simulation_output
-          tar -xvf project_testing/testing_upgrades/simulation_output/*.tar.gz -C project_testing/testing_upgrades/simulation_output
-          
-          pip install pandas
-          python test/util.py
-
-      - name: Upload integration results
-        uses: actions/upload-artifact@v2
-        with:
-          path: |
-            baseline
-            upgrades
-          name: results
-
   build:
     runs-on: ubuntu-latest
-    needs: bsb
     container:
-      image: docker://nrel/openstudio:3.3.0
+      image: docker://nrel/openstudio:3.2.1
     steps:
       - name: Show environment
         run: |
@@ -80,7 +28,7 @@ jobs:
 
       - name: Update all measures
         run: |
-          ruby tasks.rb update_measures
+          rake update_measures
 
       - name: Regenerate test osms
         run: |
@@ -94,15 +42,21 @@ jobs:
         run: |
           rake test:project_tests
 
-      - name: Run local analysis tests
+      - name: Run all integration tests
         run: |
-          rake test:analysis_tests
+          rake test:integration_tests
 
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
         with:
           path: resources/buildstock.csv
           name: samples
+
+      - name: Upload integration results
+        uses: actions/upload-artifact@v2
+        with:
+          path: test/test_samples_osw/results
+          name: results
 
       - name: Upload schedules
         uses: actions/upload-artifact@v2
@@ -127,7 +81,7 @@ jobs:
       - name: Upload base samples and results
         uses: actions/upload-artifact@v2
         with:
-          path: test/base_results
+          path: test/test_samples_osw/base
           name: base
 
       - uses: actions/checkout@v2
@@ -137,64 +91,49 @@ jobs:
       - name: Download base samples and results
         uses: actions/download-artifact@v2
         with:
-          path: base
+          path: |
+            base
           name: base
 
       - name: Download feature samples
         uses: actions/download-artifact@v2
         with:
-          path: samples
+          path: |
+            samples
           name: samples
 
       - name: Download feature results
         uses: actions/download-artifact@v2
         with:
-          path: results
+          path: |
+            results
           name: results
 
       - name: Compare samples and results
         run: |
+          cp -r base/*.csv test/test_samples_osw/base
+          mkdir test/test_samples_osw/results
+          cp -r samples/buildstock*.csv test/test_samples_osw/results
+          cp -r results/results* test/test_samples_osw/results
+          
           pip install numpy
           pip install pandas
           pip install plotly
           pip install kaleido
           
-          mkdir test/base_results/comparisons
+          python test/compare.py -a samples
           
-          mkdir test/base_results/comparisons/baseline
+          python test/compare.py -a results
+          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv
           
-          mkdir test/base_results/comparisons/baseline/annual
-          
-          python test/compare.py -a samples -b base/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual
-          
-          python test/compare.py -a results -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          
-          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc census_region -x results_output_cr.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc geometry_building_type_recs -ac census_region -af sum -x results_output_cr_sum.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          
-          mkdir test/base_results/comparisons/baseline/timeseries
-          
-          python test/compare.py -a timeseries -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
-          
-          mkdir test/base_results/comparisons/upgrades
-          
-          mkdir test/base_results/comparisons/upgrades/annual
-          
-          python test/compare.py -a results -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
-          
-          python test/compare.py -a visualize -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
-          
-          mkdir test/base_results/comparisons/upgrades/timeseries
-          
-          python test/compare.py -a timeseries -b base/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
+          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html
+          python test/compare.py -a visualize -dc county -x results_output_county.html
+          python test/compare.py -a visualize -dc geometry_building_type_recs -ac county -af sum -x results_output_county_sum.html
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
         with:
-          path: test/base_results/comparisons
+          path: test/test_samples_osw/comparisons
           name: comparisons
 
   update-results:
@@ -208,13 +147,15 @@ jobs:
       - name: Download feature samples
         uses: actions/download-artifact@v2
         with:
-          path: samples
+          path: |
+            samples
           name: samples
 
       - name: Download feature results
         uses: actions/download-artifact@v2
         with:
-          path: results
+          path: |
+            results
           name: results
 
       - name: Commit latest results
@@ -222,12 +163,9 @@ jobs:
         run: |
           branch_name="${{ github.head_ref }}"
           git pull origin $branch_name
-          cp -r samples/buildstock*.csv test/base_results/baseline/annual
-          cp -r results/baseline/annual/results*.csv test/base_results/baseline/annual
-          cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
-          cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
-          cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
-          git add test/base_results
+          cp -r samples/buildstock*.csv test/test_samples_osw/base
+          cp -r results/results*.csv test/test_samples_osw/base
+          git add test/test_samples_osw/base
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
             git config --global user.email "github-action@users.noreply.github.com"
@@ -236,3 +174,29 @@ jobs:
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
+
+  docs:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        python-version: [3.8.4]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Build documentation
+        run: |
+          cd docs/read_the_docs
+          pip install -r requirements.txt
+          make html
+
+      - name: Upload docs
+        uses: actions/upload-artifact@v2
+        with:
+          path: docs/read_the_docs/build
+          name: readthedocs

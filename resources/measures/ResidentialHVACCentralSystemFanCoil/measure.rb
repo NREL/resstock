@@ -88,7 +88,6 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
 
     hot_water_loop = nil
     chilled_water_loop = nil
-    fan = nil
     units.each do |unit|
       thermal_zones = Geometry.get_thermal_zones_from_spaces(unit.spaces)
       HVAC.get_control_and_slave_zones(thermal_zones).each do |control_zone, slave_zones|
@@ -114,17 +113,9 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
 
       success = HVAC.apply_central_system_fan_coil(model, unit, runner, std, fan_coil_heating, hot_water_loop, chilled_water_loop)
 
-      thermal_zones.each do |thermal_zone|
-        fcus = HVAC.get_central_fan_coils(model, runner, thermal_zone)
-        fcus.each do |fcu|
-          fan = fcu.supplyAirFan
-        end
-      end
-
       return false if not success
     end # unit
 
-    htg_pump_sensor = nil
     unless hot_water_loop.nil?
       pump_htg_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
       pump_htg_program.setName('Central pumps htg program')
@@ -158,7 +149,6 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     pump_clg_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     pump_clg_program.setName('Central pumps clg program')
 
-    clg_pump_sensor = nil
     chilled_water_loop.supplyComponents.each do |supply_component|
       next unless supply_component.to_PumpVariableSpeed.is_initialized
 
@@ -183,50 +173,6 @@ class ProcessCentralSystemFanCoil < OpenStudio::Measure::ModelMeasure
     pump_clg_pcm.setName('Central pump clg program calling manager')
     pump_clg_pcm.setCallingPoint('EndOfSystemTimestepBeforeHVACReporting')
     pump_clg_pcm.addProgram(pump_clg_program)
-
-    # Disaggregate electric fan energy
-    units.each do |unit|
-      obj_name = Constants.ObjectNameCentralSystemFanCoil(unit.name.to_s)
-
-      fan.setName(obj_name + ' fan')
-      fan_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Fan Electricity Energy')
-      fan_sensor.setName("#{fan.name.to_s.gsub('|', '_')} s")
-      fan_sensor.setKeyName(fan.name.to_s)
-
-      fan_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-      fan_program.setName("#{obj_name} fans program")
-      unless htg_pump_sensor.nil?
-        fan_program.addLine("Set #{unit.name.to_s.gsub(' ', '_')}_fans_h = 0")
-        fan_program.addLine("If #{htg_pump_sensor.name} > 0")
-        fan_program.addLine("  Set #{unit.name.to_s.gsub(' ', '_')}_fans_h = #{fan_sensor.name}")
-        fan_program.addLine('EndIf')
-
-        fan_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(' ', '_')}_fans_h")
-        fan_output_var.setName("#{obj_name} htg fan:Fans:Electricity")
-        fan_output_var.setTypeOfDataInVariable('Summed')
-        fan_output_var.setUpdateFrequency('SystemTimestep')
-        fan_output_var.setEMSProgramOrSubroutineName(fan_program)
-        fan_output_var.setUnits('J')
-      end
-      unless clg_pump_sensor.nil?
-        fan_program.addLine("Set #{unit.name.to_s.gsub(' ', '_')}_fans_c = 0")
-        fan_program.addLine("If #{clg_pump_sensor.name} > 0")
-        fan_program.addLine("  Set #{unit.name.to_s.gsub(' ', '_')}_fans_c = #{fan_sensor.name}")
-        fan_program.addLine('EndIf')
-
-        fan_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, "#{unit.name.to_s.gsub(' ', '_')}_fans_c")
-        fan_output_var.setName("#{obj_name} clg fan:Fans:Electricity")
-        fan_output_var.setTypeOfDataInVariable('Summed')
-        fan_output_var.setUpdateFrequency('SystemTimestep')
-        fan_output_var.setEMSProgramOrSubroutineName(fan_program)
-        fan_output_var.setUnits('J')
-      end
-
-      fan_program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
-      fan_program_calling_manager.setName("#{obj_name} fan program calling manager")
-      fan_program_calling_manager.setCallingPoint('EndOfSystemTimestepBeforeHVACReporting')
-      fan_program_calling_manager.addProgram(fan_program)
-    end
 
     simulation_control = model.getSimulationControl
     simulation_control.setRunSimulationforSizingPeriods(true) # indicate e+ autosizing

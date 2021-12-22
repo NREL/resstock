@@ -60,20 +60,20 @@ Option <#> Cost <#> Multiplier
 
 The cost above is multiplied by this value, which is a function of the building. Since there can be multiple costs (currently 2), this permits both fixed and variable costs for upgrades that depend on the properties of the baseline house.
 
-   - Fixed (1)
-   - Above-Grade Conditioned Wall Area (ft^2)
-   - Above-Grade Exterior Wall Area (ft^2)
-   - Below-Grade Wall Area (ft^2)
-   - Conditioned Floor Area (ft^2)
-   - Attic Floor Area (ft^2)
-   - Lighting Floor Area (ft^2)
-   - Roof Area (ft^2)
-   - Window Area (ft^2)
-   - Door Area (ft^2)
-   - Duct Unconditioned Surface Area (ft^2)
-   - HVAC Heating Capacity (kBtuh)
-   - HVAC Cooling Capacity (kBtuh)
-   - Water Heater Tank Size (gal)
+   - Fixed (1) 
+   - Conditioned Floor Area (ft^2) 
+   - Conditioned Foundation Slab Area (ft^2) 
+   - Lighting Floor Area (ft^2) 
+   - Above-Grade Conditioned Wall Area (ft^2) 
+   - Above-Grade Total Wall Area (ft^2) 
+   - Below-Grade Conditioned Wall Area (ft^2) 
+   - Below-Grade Total Wall Area (ft^2) 
+   - Window Area (ft^2) 
+   - Roof Area (ft^2) 
+   - Door Area (ft^2) 
+   - Water Heater Tank Size (gal) 
+   - HVAC Cooling Capacity (kBtuh) 
+   - HVAC Heating Capacity (kBtuh) 
 
 Package Apply Logic
 ===================

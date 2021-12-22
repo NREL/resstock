@@ -402,16 +402,14 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   return result
 end
 
-def get_data_for_sample(buildstock_csv_path, building_id, runner)
-  buildstock_csv = CSV.open(buildstock_csv_path, headers: true)
+def get_data_for_sample(buildstock_csv_data, building_id, runner)
+  buildstock_csv_data.each do |sample|
+    next if sample['Building'].to_i != building_id
 
-  buildstock_csv.each do |row|
-    next if row['Building'].to_i != building_id.to_i
-
-    return row.to_hash
+    return sample
   end
   # If we got this far, couldn't find the sample #
-  msg = "Could not find row for #{building_id} in #{buildstock_csv_path}."
+  msg = "Could not find row for #{building_id} in #{File.basename(buildstock_csv)}."
   runner.registerError(msg)
   fail msg
 end
@@ -437,32 +435,20 @@ class RunOSWs
     end
   end
 
-  def self.run_and_check(in_osw, parent_dir, measures_only = false)
+  def self.run_and_check(in_osw, parent_dir)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
-    command = "\"#{cli_path}\" run"
-    command += ' -m' if measures_only
-    command += " -w #{in_osw}"
+    command = "\"#{cli_path}\" run -w #{in_osw}"
 
     system(command)
-
-    result_characteristics = {}
-    result_output = {}
-
-    out = File.join(parent_dir, 'out.osw')
-    out = JSON.parse(File.read(File.expand_path(out)))
-    completed_status = out['completed_status']
+    out_osw = File.join(parent_dir, 'out.osw')
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
-
-    return completed_status, result_characteristics, result_output if measures_only || !File.exist?(data_point_out)
-
+    result_characteristics = {}
+    result_output = {}
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     if rows.keys.include? 'BuildExistingModel'
       result_characteristics = get_build_existing_model(result_characteristics, rows)
-    end
-    if rows.keys.include? 'ApplyUpgrade'
-      result_output = get_apply_upgrade(result_output, rows)
     end
     if rows.keys.include? 'SimulationOutputReport'
       result_output = get_simulation_output_report(result_output, rows)
@@ -474,20 +460,12 @@ class RunOSWs
       result_output = get_qoi_report(result_output, rows)
     end
 
-    return completed_status, result_characteristics, result_output
+    return out_osw, result_characteristics, result_output
   end
 
   def self.get_build_existing_model(result, rows)
     result = result.merge(rows['BuildExistingModel'])
     result.delete('applicable')
-    return result
-  end
-
-  def self.get_apply_upgrade(result, rows)
-    if rows.keys.include?('ApplyUpgrade')
-      result = result.merge(rows['ApplyUpgrade'])
-      result.delete('applicable')
-    end
     return result
   end
 
@@ -556,9 +534,6 @@ class RunOSWs
         csv << csv_row
       end
     end
-
-    puts "\nWrote: #{csv_out}\n"
-    return csv_out
   end
 
   def self._rm_path(path)

@@ -3,10 +3,9 @@
 require_relative 'weather'
 require_relative 'constants'
 require_relative 'unit_conversions'
-require_relative 'schedules'
 
 class Location
-  def self.apply(model, runner, weather_file_path, daylight_saving_enabled, daylight_saving_period, iecc_zone)
+  def self.apply(model, runner, weather_file_path, dst_start_date, dst_end_date)
     success, weather, epw_file = apply_weather_file(model, runner, weather_file_path)
     return false if not success
 
@@ -16,13 +15,13 @@ class Location
     success = apply_site(model, runner, epw_file)
     return false if not success
 
-    success = apply_climate_zones(model, runner, epw_file, iecc_zone)
+    success = apply_climate_zones(model, runner, epw_file)
     return false if not success
 
     success = apply_mains_temp(model, runner, weather)
     return false if not success
 
-    success = apply_dst(model, runner, epw_file, daylight_saving_enabled, daylight_saving_period)
+    success = apply_dst(model, runner, dst_start_date, dst_end_date)
     return false if not success
 
     success = apply_ground_temp(model, runner, weather)
@@ -82,17 +81,13 @@ class Location
     return true
   end
 
-  def self.apply_climate_zones(model, runner, epw_file, iecc_zone)
-    if iecc_zone.is_initialized
-      iecc_zone = iecc_zone.get
-    else
-      iecc_zone = get_climate_zone_iecc(epw_file.wmoNumber)
-    end
-    return true if iecc_zone.nil?
+  def self.apply_climate_zones(model, runner, epw_file)
+    ba_zone = get_climate_zone_ba(epw_file.wmoNumber)
+    return true if ba_zone.nil?
 
     climateZones = model.getClimateZones
-    climateZones.setClimateZone(Constants.IECCClimateZone, iecc_zone)
-    runner.registerInfo("Setting #{Constants.IECCClimateZone} climate zone to #{iecc_zone}.")
+    climateZones.setClimateZone(Constants.BuildingAmericaClimateZone, ba_zone)
+    runner.registerInfo("Setting #{Constants.BuildingAmericaClimateZone} climate zone to #{ba_zone}.")
 
     return true
   end
@@ -117,55 +112,26 @@ class Location
     return true
   end
 
-  def self.apply_dst(model, runner, epw_file, daylight_saving_enabled, daylight_saving_period)
-    if not daylight_saving_enabled.is_initialized
-      daylight_saving_enabled = true
-    else
-      daylight_saving_enabled = daylight_saving_enabled.get
-    end
+  def self.apply_dst(model, runner, dst_start_date, dst_end_date)
+    if not ((dst_start_date.downcase == 'na') && (dst_end_date.downcase == 'na'))
+      begin
+        dst_start_date_month = OpenStudio::monthOfYear(dst_start_date.split[0])
+        dst_start_date_day = dst_start_date.split[1].to_i
+        dst_end_date_month = OpenStudio::monthOfYear(dst_end_date.split[0])
+        dst_end_date_day = dst_end_date.split[1].to_i
 
-    if not daylight_saving_enabled
-      runner.registerInfo('No daylight saving time set.')
-      return true
-    end
+        dst = model.getRunPeriodControlDaylightSavingTime
+        dst.setStartDate(dst_start_date_month, dst_start_date_day)
+        dst.setEndDate(dst_end_date_month, dst_end_date_day)
 
-    if daylight_saving_period.is_initialized
-      if not Schedule.parse_date_range(runner, daylight_saving_period.get)
+        runner.registerInfo("Set daylight saving time from #{dst.startDate} to #{dst.endDate}.")
+      rescue
+        runner.registerError('Invalid daylight saving date(s) specified.')
         return false
       end
-
-      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(runner, daylight_saving_period.get)
-      dst_begin_month = begin_month
-      dst_begin_day = begin_day
-      dst_end_month = end_month
-      dst_end_day = end_day
     else
-      if epw_file.daylightSavingStartDate.is_initialized && epw_file.daylightSavingEndDate.is_initialized
-        # Use weather file DST dates if available
-        dst_start_date = epw_file.daylightSavingStartDate.get
-        dst_end_date = epw_file.daylightSavingEndDate.get
-        dst_begin_month = dst_start_date.monthOfYear.value
-        dst_begin_day = dst_start_date.dayOfMonth
-        dst_end_month = dst_end_date.monthOfYear.value
-        dst_end_day = dst_end_date.dayOfMonth
-      else
-        # Roughly average US dates according to https://en.wikipedia.org/wiki/Daylight_saving_time_in_the_United_States
-        dst_begin_month = 3
-        dst_begin_day = 12
-        dst_end_month = 11
-        dst_end_day = 5
-      end
+      runner.registerInfo('No daylight saving time set.')
     end
-
-    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    dst_start_date = "#{month_names[dst_begin_month - 1]} #{dst_begin_day}"
-    dst_end_date = "#{month_names[dst_end_month - 1]} #{dst_end_day}"
-
-    dst = model.getRunPeriodControlDaylightSavingTime
-    dst.setStartDate(dst_start_date)
-    dst.setEndDate(dst_end_date)
-
-    runner.registerInfo("Set daylight saving time from #{dst.startDate} to #{dst.endDate}.")
 
     return true
   end
@@ -189,13 +155,13 @@ class Location
     return zones_csv
   end
 
-  def self.get_climate_zone_iecc(wmo)
+  def self.get_climate_zone_ba(wmo)
     zones_csv = get_climate_zones
     return if zones_csv.nil?
 
     require 'csv'
     CSV.foreach(zones_csv) do |row|
-      return row[6].to_s if row[0].to_s == wmo.to_s
+      return row[5].to_s if row[0].to_s == wmo.to_s
     end
 
     return
