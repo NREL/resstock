@@ -922,7 +922,7 @@ class Schedule
     return annual_flh
   end
 
-  def self.ruleset_from_fixedinterval(model, hrly_sched, sch_name, winter_design_day_sch, summer_design_day_sch)
+  def self.fixedinterval_to_ruleset(model, hrly_sched, sch_name, winter_design_day_sch=nil, summer_design_day_sch=nil)
     # Returns schedule rules from a fixed interval object (60 min interval only)
     year_description = model.getYearDescription
     assumed_year = year_description.assumedYear
@@ -931,13 +931,19 @@ class Schedule
     start_day = run_period_start.yday
 
     hrly_sched = hrly_sched.timeSeries.values
-    hrs = hrly_sched.length
+    timesteps = hrly_sched.length
+    ts_per_hr = model.getTimestep.numberOfTimestepsPerHour
+    hrs = timesteps / ts_per_hr
     days = hrs / 24
     time = []
-    for h in 1..24
-      time[h] = OpenStudio::Time.new(0, h, 0, 0)
-    end
 
+    ts_per_day = 24 * ts_per_hr
+    for ts in 1..(ts_per_day+1)
+      mins = ((ts-1) % ts_per_hr)*(60 / ts_per_hr)
+      h = ((ts-1)/ts_per_hr).to_i
+      time[ts] = OpenStudio::Time.new(0, h, mins, 0)
+    end
+  
     schedule = OpenStudio::Model::ScheduleRuleset.new(model)
     schedule.setName(sch_name + ' ruleset')
     previous_value = hrly_sched[0]
@@ -952,15 +958,15 @@ class Schedule
       day_sched = day_rule.daySchedule
       day_sched.setName("#{sch_name} day schedule")
       day_ct = day - start_day + 1
-      previous_value = hrly_sched[(day_ct - 1) * 24]
+      previous_value = hrly_sched[(day_ct - 1) * ts_per_day]
 
-      for h in 1..24
-        hr = (day_ct - 1) * 24 + h - 1
-        next if (h != 24) && (hrly_sched[hr + 1] == previous_value)
+      for ts in 1..ts_per_day
+        ts_yr = (day_ct - 1) * ts_per_day + ts - 1  # ts of year
+        next if (ts != ts_per_day) && (hrly_sched[ts_yr + 1] == previous_value)
 
-        day_sched.addValue(time[h], previous_value)
-        if hr != hrs - 1
-          previous_value = hrly_sched[hr + 1]
+        day_sched.addValue(time[ts+1], previous_value)
+        if ts_yr != hrs - 1
+          previous_value = hrly_sched[ts_yr + 1]
         end
       end
 
@@ -1006,6 +1012,33 @@ class Schedule
 
     return schedule
   end
+
+  def self.schedulefile_to_fixedinterval(model, schedule_file, sch_name=nil)
+    # Get schedule timeseries data     
+    col_data = []
+    filename = schedule_file.to_ScheduleFile.get.externalFile.filePath.to_s
+    col_idx = schedule_file.to_ScheduleFile.get.columnNumber
+
+    CSV.foreach(filename) {|row| col_data << row[col_idx-1].to_f}
+    col_data = col_data[1..]
+
+    # Write timeseries data to fixed interval schedule
+    year_description = model.getYearDescription
+    assumed_year = year_description.assumedYear
+    timestep_minutes = (60.0 / model.getTimestep.numberOfTimestepsPerHour).to_i
+    start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, assumed_year)
+    timestep_interval = OpenStudio::Time.new(0, 0, timestep_minutes)
+
+    timeseries = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(col_data), '')
+    fixed_interval = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(timeseries, model).get
+
+    if not sch_name.nil?
+      fixed_interval.setName(sch_name)
+    end
+
+    return(fixed_interval)
+  end
+
 
   def self.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
     return if schedule_type_limits_name.nil?
