@@ -77,12 +77,19 @@ def rename_ts_col(col):
 
 def convert_units(df):
   for col in df.columns:
-    units = col.split('_')[-1]
-    if units == 'kwh':
+    old_units = col.split('_')[-1]
+    if old_units == 'kwh':
       df[col] *= 3412.14/1000000  # to mbtu
-    elif units == 'kbtu':
+      new_units = 'm_btu'
+    elif old_units == 'kbtu':
       df[col] /= 1000  # to mbtu
-    df = df.rename(columns={col: col.replace(units, 'm_btu')})
+      new_units = 'm_btu'
+    elif old_units == 'lb':
+      # no op
+      new_units = 'lb'
+    else:
+      sys.exit("Units '{}' not recognized.".format(old_units))
+    df = df.rename(columns={col: col.replace(old_units, new_units)})
   return df
 
 outdir = 'baseline/timeseries'
