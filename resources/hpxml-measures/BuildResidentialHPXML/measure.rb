@@ -3391,7 +3391,8 @@ class HPXMLFile
     # FIXME: remove fuel arguments once bug in ReportSimulationOutput is fixed
     if args[:electricity_co_2_emissions_filepaths].is_initialized
       args[:electricity_co_2_emissions_filepaths].get.split(',').each do |electricity_co_2_emissions_filepath|
-        hpxml.header.co2_emissions_scenarios.add(name: File.basename(electricity_co_2_emissions_filepath),
+        name, ext = File.basename(electricity_co_2_emissions_filepath).split('.')
+        hpxml.header.co2_emissions_scenarios.add(name: name,
                                                  elec_units: args[:electricity_co_2_emissions_units].get,
                                                  elec_schedule_filepath: electricity_co_2_emissions_filepath,
                                                  natural_gas_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
