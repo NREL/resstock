@@ -175,8 +175,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     # get the outage period
     months = { 'January' => 1, 'February' => 2, 'March' => 3, 'April' => 4, 'May' => 5, 'June' => 6, 'July' => 7, 'August' => 8, 'September' => 9, 'October' => 10, 'November' => 11, 'December' => 12 }
     otg_start_date_month = months[otg_date.split[0]]
-    otg_start_date_day = otg_date.split[1].to_i
-    
+    if otg_type == "Partial"
+      otg_start_date_day = otg_date.split[1].to_i + 1
+    else
+      otg_start_date_day = otg_date.split[1].to_i
+    end
     begin
       otg_period_start = Time.new(assumed_year, otg_start_date_month, otg_start_date_day, otg_hr)
     rescue
