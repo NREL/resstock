@@ -661,14 +661,20 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
           existing_schedule = ee.schedule.get
           new_schedule = OpenStudio::Model::ScheduleRuleset.new(model)
           new_schedule.setName('DR_' + existing_schedule.name.get)
-          filename = existing_schedule.to_ScheduleFile.get.externalFile.filePath.to_s
 
-          # Convert schedule file to fixed interval
-          fixed_interval = Schedule.schedulefile_to_fixedinterval(model, existing_schedule, sch_name="plug load fixed interval")
+          if existing_schedule.to_ScheduleFile.is_initialized
+            filename = existing_schedule.to_ScheduleFile.get.externalFile.filePath.to_s
 
-          # Convert fixed interval to ruleset
-          ruleset = Schedule.fixedinterval_to_ruleset(model, fixed_interval, "plug load - No DR ruleset")
-          fixed_interval.remove
+            # Convert schedule file to fixed interval
+            fixed_interval = Schedule.schedulefile_to_fixedinterval(model, existing_schedule, sch_name="plug load fixed interval")
+            
+            # Convert fixed interval to ruleset
+            ruleset = Schedule.fixedinterval_to_ruleset(model, fixed_interval, "plug load - No DR ruleset")
+            fixed_interval.remove
+
+          elsif existing_schedule.to_ScheduleRuleset.is_initialized
+            ruleset = existing_schedule.to_ScheduleRuleset.get
+          end
   
           if ruleset.to_ScheduleRuleset.is_initialized
             ruleset = ruleset.to_ScheduleRuleset.get
