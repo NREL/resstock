@@ -147,6 +147,8 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     comfort_model_4 = runner.getOptionalStringArgumentValue("comfort_model_4", user_arguments)
     comfort_model_5 = runner.getOptionalStringArgumentValue("comfort_model_5", user_arguments)
 
+    #puts "otg_date = #{otg_date}"
+
     # check for valid inputs
     if (otg_hr < 0) || (otg_hr > 23)
       runner.registerError('Start hour must be between 0 and 23.')
@@ -173,7 +175,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     # get the outage period
     months = { 'January' => 1, 'February' => 2, 'March' => 3, 'April' => 4, 'May' => 5, 'June' => 6, 'July' => 7, 'August' => 8, 'September' => 9, 'October' => 10, 'November' => 11, 'December' => 12 }
     otg_start_date_month = months[otg_date.split[0]]
-    otg_start_date_day = otg_date.split[1].to_i + 1
+    otg_start_date_day = otg_date.split[1].to_i
     
     begin
       otg_period_start = Time.new(assumed_year, otg_start_date_month, otg_start_date_day, otg_hr)
@@ -294,7 +296,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
             end
             set_rule_days_and_dates(otg_rule, day_date, day_date)
           elsif day == otg_end_date_day # last day of the outage
-            #puts "day = #{day}"
+            #puts "end day day = #{day}"
             if (day >= dst_start_day) && (day <= dst_end_day)
               for hour in 0..23
                 time = OpenStudio::Time.new(0, hour + 1, 0, 0)
