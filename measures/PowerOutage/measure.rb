@@ -171,7 +171,6 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     run_period = model.getRunPeriod
     run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
     run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
-    #puts "assumed year = #{assumed_year}"
     # get the outage period
     months = { 'January' => 1, 'February' => 2, 'March' => 3, 'April' => 4, 'May' => 5, 'June' => 6, 'July' => 7, 'August' => 8, 'September' => 9, 'October' => 10, 'November' => 11, 'December' => 12 }
     otg_start_date_month = months[otg_date.split[0]]
@@ -196,16 +195,32 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # get outage start and end days of the year
+    #puts "Time.new(assumed_year) = #{Time.new(assumed_year)}"
+    #puts "otg_period_start = #{otg_period_start}"
     otg_start_date_day = ((otg_period_start - Time.new(assumed_year)) / 3600.0 / 24.0 + 1).floor
     otg_end_date_day = ((otg_period_end - Time.new(assumed_year)) / 3600.0 / 24.0 + 1).floor
 
+    if assumed_year % 4 != 0 and otg_start_date_day > 59 #correct for some weird leap year effects shifting the outage by a day
+      otg_start_date_day += 1
+      otg_end_date_day += 1
+    end
+
+
+    #puts "otg_start_date_day = #{otg_start_date_day}"
     # get outage period duration days
     otg_period_num_days = (otg_period_end.to_date - otg_period_start.to_date).to_i + 1
 
     # make openstudio dates for outage period
     otg_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_start.month), otg_period_start.day, otg_period_start.year)
     otg_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_end.month), otg_period_end.day, otg_period_end.year)
+    
+    #puts "otg_period_start.year = #{otg_period_start.year}"
+    #puts "otg_start_date = #{otg_start_date}"
+    #puts "otg_end_date = #{otg_end_date}"
 
+    #puts "otg_start_date_day = #{otg_start_date_day}"
+    #puts "otg_end_date_day = #{otg_end_date_day}"
+    
     #convert outage offset from F to C
     otg_offset *= (5.0/9.0)
     model.getScheduleRulesets.each do |schedule_ruleset|
@@ -226,7 +241,6 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       else
         otg_val = 0
       end
-      #puts "Schedule name = #{schedule_ruleset.name.to_s}"
       if otg_period_num_days <= 1 # occurs within one calendar day
         otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
         otg_rule.setName("#{schedule_ruleset.name} Outage Day #{otg_start_date_day}")
@@ -247,8 +261,6 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
         end
         set_rule_days_and_dates(otg_rule, otg_start_date, otg_start_date)
       else # does not occur within one calendar day
-        #puts "otg_start_date_day = #{otg_start_date_day}"
-        #puts "otg_end_date_day = #{otg_end_date_day}"
         (otg_start_date_day..otg_end_date_day).each do |day|
           day_date = OpenStudio::Date::fromDayOfYear(day, assumed_year)
           otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
