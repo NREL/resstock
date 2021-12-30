@@ -200,7 +200,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_start_date_day = ((otg_period_start - Time.new(assumed_year)) / 3600.0 / 24.0 + 1).floor
     otg_end_date_day = ((otg_period_end - Time.new(assumed_year)) / 3600.0 / 24.0 + 1).floor
 
-    if assumed_year % 4 != 0 and otg_start_date_day > 59 #correct for some weird leap year effects shifting the outage by a day
+    if otg_start_date_day > 59 && otg_start_date_day < 305 #correct for some weird issues shifting the outage by a day, need to discuss proper fix with Joe R
       otg_start_date_day += 1
       otg_end_date_day += 1
     end
