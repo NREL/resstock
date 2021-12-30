@@ -1044,20 +1044,28 @@ class Waterheater
     end
   end
 
-  def self.get_location_hierarchy(iecc_zone)
-    if ['1A', '1B', '1C', '2A', '2B', '2C', '3B', '3C'].include? iecc_zone
-      location_hierarchy = [Constants.SpaceTypeGarage,
-                            Constants.SpaceTypeLiving]
-    elsif ['3A', '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].include? iecc_zone
-      location_hierarchy = [Constants.SpaceTypeFinishedBasement,
-                            Constants.SpaceTypeUnfinishedBasement,
-                            Constants.SpaceTypeLiving]
-    elsif iecc_zone.nil?
-      location_hierarchy = [Constants.SpaceTypeFinishedBasement,
-                            Constants.SpaceTypeUnfinishedBasement,
-                            Constants.SpaceTypeLiving]
+  def self.get_location_hierarchy(ba_cz_name)
+    if [Constants.BAZoneHotDry, Constants.BAZoneHotHumid].include? ba_cz_name
+      return [Constants.SpaceTypeGarage,
+              Constants.SpaceTypeLiving,
+              Constants.SpaceTypeFinishedBasement,
+              Constants.SpaceTypeLaundryRoom,
+              Constants.SpaceTypeCrawl,
+              Constants.SpaceTypeUnfinishedAttic]
+
+    elsif [Constants.BAZoneMarine, Constants.BAZoneMixedHumid, Constants.BAZoneMixedDry, Constants.BAZoneCold, Constants.BAZoneVeryCold, Constants.BAZoneSubarctic].include? ba_cz_name
+      return [Constants.SpaceTypeFinishedBasement,
+              Constants.SpaceTypeUnfinishedBasement,
+              Constants.SpaceTypeLiving,
+              Constants.SpaceTypeLaundryRoom,
+              Constants.SpaceTypeCrawl,
+              Constants.SpaceTypeUnfinishedAttic]
+    elsif ba_cz_name.nil?
+      return [Constants.SpaceTypeFinishedBasement,
+              Constants.SpaceTypeUnfinishedBasement,
+              Constants.SpaceTypeGarage,
+              Constants.SpaceTypeLiving]
     end
-    return location_hierarchy
   end
 
   def self.calc_capacity(cap, fuel, num_beds, num_baths)
@@ -1482,9 +1490,8 @@ class Waterheater
   def self.configure_setpoint_schedule(new_heater, set_type, t_set, sch_file, wh_type, model, runner)
     if set_type == Constants.WaterHeaterSetpointTypeConstant
       set_temp_c = UnitConversions.convert(t_set, 'F', 'C')
-      new_schedule = OpenStudio::Model::ScheduleConstant.new(model)
-      new_schedule.setName('WH Setpoint Temp')
-      new_schedule.setValue(set_temp_c)
+      new_schedule = MonthWeekdayWeekendSchedule.new(model, runner, 'WH Setpoint Temp', Array.new(24, 1), Array.new(24, 1), Array.new(12,set_temp_c), 1.0, 1.0, false)
+      new_schedule = new_schedule.schedule
     elsif set_type == Constants.WaterHeaterSetpointTypeScheduled
       new_schedule = HourlySchedule.new(model, runner, 'WH Setpoint Temp', sch_file, 0, true, [], fill_value = 125)
       if not new_schedule.validated?
@@ -1499,7 +1506,6 @@ class Waterheater
     if new_heater.setpointTemperatureSchedule.is_initialized
       new_heater.setpointTemperatureSchedule.get.remove
     end
-
     new_heater.setSetpointTemperatureSchedule(new_schedule)
   end
 

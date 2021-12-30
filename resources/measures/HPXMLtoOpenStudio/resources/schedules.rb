@@ -879,45 +879,6 @@ class Schedule
   def self.FuelLoadsFireplaceMonthlyMultipliers
     return '1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154'
   end
-
-  def self.get_day_num_from_month_day(year, month, day)
-    # Returns a value between 1 and 365 (or 366 for a leap year)
-    # Returns e.g. 32 for month=2 and day=1 (Feb 1)
-    month_num_days = Constants.NumDaysInMonths(Date.leap?(year))
-    day_num = day
-    for m in 0..month - 2
-      day_num += month_num_days[m]
-    end
-    return day_num
-  end
-
-  def self.parse_date_range(runner, date_range)
-    begin_end_dates = date_range.split('-').map { |v| v.strip }
-    if begin_end_dates.size != 2
-      runner.registerError("Invalid date format specified for '#{date_range}'.")
-      return false
-    end
-
-    begin_values = begin_end_dates[0].split(' ').map { |v| v.strip }
-    end_values = begin_end_dates[1].split(' ').map { |v| v.strip }
-
-    if (begin_values.size != 2) || (end_values.size != 2)
-      runner.registerError("Invalid date format specified for '#{date_range}'.")
-      return false
-    end
-
-    require 'date'
-    begin_month = Date::ABBR_MONTHNAMES.index(begin_values[0].capitalize)
-    end_month = Date::ABBR_MONTHNAMES.index(end_values[0].capitalize)
-    begin_day = begin_values[1].to_i
-    end_day = end_values[1].to_i
-    if begin_month.nil? || end_month.nil? || begin_day == 0 || end_day == 0
-      runner.registerError("Invalid date format specified for '#{date_range}'.")
-      return false
-    end
-
-    return begin_month, begin_day, end_month, end_day
-  end
 end
 
 class ScheduleGenerator
@@ -1544,65 +1505,56 @@ class ScheduleGenerator
     sink_activity_sch = sink_activity_sch.rotate(-4 * 60 + random_offset) # 4 am shifting
     sink_activity_sch = apply_monthly_offsets(sink_activity_sch)
     sink_activity_sch = aggregate_array(sink_activity_sch, @minutes_per_step)
-    sink_peak_flow = sink_activity_sch.max
-    @schedules['sinks'] = sink_activity_sch.map { |flow| flow / sink_peak_flow }
+    @schedules['sinks'] = sink_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_activity_sch = dw_activity_sch.rotate(random_offset)
     dw_activity_sch = apply_monthly_offsets(dw_activity_sch)
     dw_activity_sch = aggregate_array(dw_activity_sch, @minutes_per_step)
-    dw_peak_flow = dw_activity_sch.max
-    @schedules['dishwasher'] = dw_activity_sch.map { |flow| flow / dw_peak_flow }
+    @schedules['dishwasher'] = dw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_activity_sch = cw_activity_sch.rotate(random_offset)
     cw_activity_sch = apply_monthly_offsets(cw_activity_sch)
     cw_activity_sch = aggregate_array(cw_activity_sch, @minutes_per_step)
-    cw_peak_flow = cw_activity_sch.max
-    @schedules['clothes_washer'] = cw_activity_sch.map { |flow| flow / cw_peak_flow }
+    @schedules['clothes_washer'] = cw_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     shower_activity_sch = shower_activity_sch.rotate(random_offset)
     shower_activity_sch = apply_monthly_offsets(shower_activity_sch)
     shower_activity_sch = aggregate_array(shower_activity_sch, @minutes_per_step)
-    shower_peak_flow = shower_activity_sch.max
-    @schedules['showers'] = shower_activity_sch.map { |flow| flow / shower_peak_flow }
+    @schedules['showers'] = shower_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     bath_activity_sch = bath_activity_sch.rotate(random_offset)
     bath_activity_sch = apply_monthly_offsets(bath_activity_sch)
     bath_activity_sch = aggregate_array(bath_activity_sch, @minutes_per_step)
-    bath_peak_flow = bath_activity_sch.max
-    @schedules['baths'] = bath_activity_sch.map { |flow| flow / bath_peak_flow }
+    @schedules['baths'] = bath_activity_sch.map { |flow| flow / Constants.PeakFlowRate }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cooking_power_sch = cooking_power_sch.rotate(random_offset)
     cooking_power_sch = apply_monthly_offsets(cooking_power_sch)
     cooking_power_sch = aggregate_array(cooking_power_sch, @minutes_per_step)
-    cooking_peak_power = cooking_power_sch.max
-    @schedules['cooking_range'] = cooking_power_sch.map { |power| power / cooking_peak_power }
+    @schedules['cooking_range'] = cooking_power_sch.map { |power| power / Constants.PeakPower }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cw_power_sch = cw_power_sch.rotate(random_offset)
     cw_power_sch = apply_monthly_offsets(cw_power_sch)
     cw_power_sch = aggregate_array(cw_power_sch, @minutes_per_step)
-    cw_peak_power = cw_power_sch.max
-    @schedules['clothes_washer_power'] = cw_power_sch.map { |power| power / cw_peak_power }
+    @schedules['clothes_washer_power'] = cw_power_sch.map { |power| power / Constants.PeakPower }
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     cd_power_sch = cd_power_sch.rotate(random_offset)
     cd_power_sch = apply_monthly_offsets(cd_power_sch)
     cd_power_sch = aggregate_array(cd_power_sch, @minutes_per_step)
-    cd_peak_power = cd_power_sch.max
-    @schedules['clothes_dryer'] = cd_power_sch.map { |power| power / cd_peak_power }
+    @schedules['clothes_dryer'] = cd_power_sch.map { |power| power / Constants.PeakPower }
     @schedules['clothes_dryer_exhaust'] = @schedules['clothes_dryer']
 
     random_offset = (prng.rand * 2 * offset_range).to_i - offset_range
     dw_power_sch = dw_power_sch.rotate(random_offset)
     dw_power_sch = apply_monthly_offsets(dw_power_sch)
     dw_power_sch = aggregate_array(dw_power_sch, @minutes_per_step)
-    dw_peak_power = dw_power_sch.max
-    @schedules['dishwasher_power'] = dw_power_sch.map { |power| power / dw_peak_power }
+    @schedules['dishwasher_power'] = dw_power_sch.map { |power| power / Constants.PeakPower }
 
     @schedules['occupants'] = away_schedule.map { |i| 1.0 - i }
 
@@ -1611,24 +1563,23 @@ class ScheduleGenerator
 
   def set_vacancy
     if not ((@vacancy_start_date.downcase == 'na') && (@vacancy_end_date.downcase == 'na'))
-      if not Schedule.parse_date_range(@runner, "#{@vacancy_start_date} - #{@vacancy_end_date}")
-        return false
+      begin
+        vacancy_start_date = Time.new(@sim_year, OpenStudio::monthOfYear(@vacancy_start_date.split[0]).value, @vacancy_start_date.split[1].to_i)
+        vacancy_end_date = Time.new(@sim_year, OpenStudio::monthOfYear(@vacancy_end_date.split[0]).value, @vacancy_end_date.split[1].to_i, 24)
+
+        sec_per_step = @minutes_per_step * 60.0
+        ts = Time.new(@sim_year, 'Jan', 1)
+        @schedules['vacancy'].each_with_index do |step, i|
+          if vacancy_start_date <= ts && ts <= vacancy_end_date # in the vacancy period
+            @schedules['vacancy'][i] = 1.0
+          end
+          ts += sec_per_step
+        end
+
+        @runner.registerInfo("Set vacancy period from #{@vacancy_start_date} tp #{@vacancy_end_date}.")
+      rescue
+        @runner.registerError('Invalid vacancy date(s) specified.')
       end
-
-      begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(@runner, "#{@vacancy_start_date} - #{@vacancy_end_date}")
-      start_day_num = Schedule.get_day_num_from_month_day(@sim_year, begin_month, begin_day)
-      end_day_num = Schedule.get_day_num_from_month_day(@sim_year, end_month, end_day)
-
-      vacancy = Array.new(@schedules['occupants'].length, 0)
-      if end_day_num >= start_day_num
-        vacancy.fill(1.0, (start_day_num - 1) * @steps_in_day, (end_day_num - start_day_num + 1) * @steps_in_day) # Fill between start/end days
-      else # Wrap around year
-        vacancy.fill(1.0, (start_day_num - 1) * @steps_in_day) # Fill between start day and end of year
-        vacancy.fill(1.0, 0, end_day_num * @steps_in_day) # Fill between start of year and end day
-      end
-      @schedules['vacancy'] = vacancy
-
-      @runner.registerInfo("Set vacancy period from #{@vacancy_start_date} to #{@vacancy_end_date}.")
     else
       @runner.registerInfo('No vacancy period set.')
     end

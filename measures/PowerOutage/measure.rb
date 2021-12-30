@@ -43,11 +43,21 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    # make a string argument for outage type (partial or full)
+    otg_type = OpenStudio::StringVector.new
+    otg_type << 'Partial'
+    otg_type << 'Total'
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('otg_type', otg_type, true)
+    arg.setDisplayName("Outage Type")
+    arg.setDescription("Outage Type. Full outage means there is zero power available, while a partial outage still assumes some power is available but homeowners are trying to reduce their power consumption while maintaining a safe indoor temperature. Partial outages disable all electric equipment except for refrigerators (not including any extra refrigerator/freezer) and HVAC.")
+    arg.setDefaultValue('Total')
+    args << arg
+
     # make a string argument for for the start date of the outage
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('otg_date', true)
     arg.setDisplayName('Outage Start Date')
     arg.setDescription('Date of the start of the outage.')
-    arg.setDefaultValue('Jan 1')
+    arg.setDefaultValue('January 1')
     args << arg
 
     # make a double argument for hour of outage start
@@ -66,6 +76,53 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(24)
     args << arg
 
+    # make a double argument for setpoint change during a partial outage
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('otg_offset', true)
+    arg.setDisplayName('Partial outage setpoint offset')
+    arg.setUnits('degrees F')
+    arg.setDescription('During partial outages, heating and cooling setpoints are shifted by this much to represent occupants trying to minimize power consumption while still maintaining some degree of comfort.')
+    arg.setDefaultValue(5)
+    args << arg
+
+    # Specify a Thermal Comfort Model type
+    # While none are required, up to 5 models may be specified at a time
+    # These get added to the People object in the idf
+    # If a comfort model is specified, additional schedules are required and get automatically generated below
+    chs = OpenStudio::StringVector.new
+    chs << "Pierce"
+    chs << "Fanger"
+    chs << "KSU"
+    chs << "AdaptiveASH55"
+    chs << "AdaptiveCEN15251"
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_1', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 1")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_2', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 2")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_3', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 3")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_4', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 4")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
+    # Specify another Thermal Comfort Model type
+    arg = OpenStudio::Ruleset::OSArgument::makeChoiceArgument('comfort_model_5', chs, false)
+    arg.setDisplayName("Thermal Comfort Model type 5")
+    arg.setDescription("Thermal Comfort Model type")
+    args << arg
+
     return args
   end # end the arguments method
 
@@ -79,9 +136,18 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # assign the user inputs to variables
-    otg_date = runner.getStringArgumentValue('otg_date', user_arguments)
-    otg_hr = runner.getIntegerArgumentValue('otg_hr', user_arguments)
-    otg_len = runner.getIntegerArgumentValue('otg_len', user_arguments)
+    otg_type = runner.getStringArgumentValue("otg_type", user_arguments)
+    otg_date = runner.getStringArgumentValue("otg_date", user_arguments)
+    otg_hr = runner.getIntegerArgumentValue("otg_hr", user_arguments)
+    otg_len = runner.getIntegerArgumentValue("otg_len", user_arguments)
+    otg_offset = runner.getIntegerArgumentValue("otg_offset", user_arguments)
+    comfort_model_1 = runner.getOptionalStringArgumentValue("comfort_model_1", user_arguments)
+    comfort_model_2 = runner.getOptionalStringArgumentValue("comfort_model_2", user_arguments)
+    comfort_model_3 = runner.getOptionalStringArgumentValue("comfort_model_3", user_arguments)
+    comfort_model_4 = runner.getOptionalStringArgumentValue("comfort_model_4", user_arguments)
+    comfort_model_5 = runner.getOptionalStringArgumentValue("comfort_model_5", user_arguments)
+
+    #puts "otg_date = #{otg_date}"
 
     # check for valid inputs
     if (otg_hr < 0) || (otg_hr > 23)
@@ -105,10 +171,9 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     run_period = model.getRunPeriod
     run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
     run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
-
     # get the outage period
-    require 'date'
-    otg_start_date_month = Date::ABBR_MONTHNAMES.index(otg_date.split[0].capitalize)
+    months = { 'January' => 1, 'February' => 2, 'March' => 3, 'April' => 4, 'May' => 5, 'June' => 6, 'July' => 7, 'August' => 8, 'September' => 9, 'October' => 10, 'November' => 11, 'December' => 12 }
+    otg_start_date_month = months[otg_date.split[0]]
     otg_start_date_day = otg_date.split[1].to_i
     begin
       otg_period_start = Time.new(assumed_year, otg_start_date_month, otg_start_date_day, otg_hr)
@@ -117,6 +182,8 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
       return false
     end
     otg_period_end = otg_period_start + otg_len * 3600.0
+    #puts "otg_start_date_month = #{otg_start_date_month}, otg_start_date_day = #{otg_start_date_day}"
+    #puts "otg_period_start = #{otg_period_start}"
 
     # check that inputs make sense
     if otg_period_start < run_period_start
@@ -128,20 +195,52 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # get outage start and end days of the year
+    #puts "Time.new(assumed_year) = #{Time.new(assumed_year)}"
+    #puts "otg_period_start = #{otg_period_start}"
     otg_start_date_day = ((otg_period_start - Time.new(assumed_year)) / 3600.0 / 24.0 + 1).floor
     otg_end_date_day = ((otg_period_end - Time.new(assumed_year)) / 3600.0 / 24.0 + 1).floor
 
+    if otg_start_date_day > 59 && otg_start_date_day < 305 #correct for some weird issues shifting the outage by a day, need to discuss proper fix with Joe R
+      otg_start_date_day += 1
+      otg_end_date_day += 1
+    end
+
+
+    #puts "otg_start_date_day = #{otg_start_date_day}"
     # get outage period duration days
     otg_period_num_days = (otg_period_end.to_date - otg_period_start.to_date).to_i + 1
 
     # make openstudio dates for outage period
     otg_start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_start.month), otg_period_start.day, otg_period_start.year)
     otg_end_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(otg_period_end.month), otg_period_end.day, otg_period_end.year)
+    
+    #puts "otg_period_start.year = #{otg_period_start.year}"
+    #puts "otg_start_date = #{otg_start_date}"
+    #puts "otg_end_date = #{otg_end_date}"
 
+    #puts "otg_start_date_day = #{otg_start_date_day}"
+    #puts "otg_end_date_day = #{otg_end_date_day}"
+    
+    #convert outage offset from F to C
+    otg_offset *= (5.0/9.0)
     model.getScheduleRulesets.each do |schedule_ruleset|
-      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?('Schedule Ruleset') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) || schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
-
-      otg_val = 0
+      #next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial' && !(schedule_ruleset.name.to_s.include?("extra")))
+      next if schedule_ruleset.name.to_s.include?('shading') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameOccupants) || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) && otg_type == 'Full') || (schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) && otg_type == 'Full') || schedule_ruleset.name.to_s.include?(Constants.ObjectNameNaturalVentilation) || schedule_ruleset.name.to_s.include?(Constants.SeasonCooling) || (schedule_ruleset.name.to_s.include?("refrig") && otg_type == 'Partial')
+      if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint)
+        if otg_type == "Partial"
+          otg_val = -otg_offset
+        else
+          otg_val = -100.0 #Large value to adjust setpoint by enough that HVAC should never trigger
+        end
+      elsif schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint) 
+        if otg_type == "Partial"
+          otg_val = otg_offset
+        else
+          otg_val = 100.0
+        end
+      else
+        otg_val = 0
+      end
       if otg_period_num_days <= 1 # occurs within one calendar day
         otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
         otg_rule.setName("#{schedule_ruleset.name} Outage Day #{otg_start_date_day}")
@@ -153,28 +252,43 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
           if (hour < otg_hr) || (hour > ((otg_hr + otg_len) - 1))
             otg_day.addValue(time, unmod_sched.getValue(time))
           else
-            otg_day.addValue(time, otg_val)
+            if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+              otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+            else
+              otg_day.addValue(time, otg_val)
+            end
           end
         end
         set_rule_days_and_dates(otg_rule, otg_start_date, otg_start_date)
-      else # does not occur within on calendar day
+      else # does not occur within one calendar day
         (otg_start_date_day..otg_end_date_day).each do |day|
           day_date = OpenStudio::Date::fromDayOfYear(day, assumed_year)
           otg_rule = OpenStudio::Model::ScheduleRule.new(schedule_ruleset)
           otg_rule.setName("#{schedule_ruleset.name} Outage Day #{day}")
           otg_day = otg_rule.daySchedule
+          #puts "day = #{day}"
           unmod_sched = schedule_ruleset.getDaySchedules(day_date, day_date)
           unmod_sched = unmod_sched[0]
           if day == otg_start_date_day # first day of the outage
             if (day >= dst_start_day) && (day <= dst_end_day)
               for hour in 0..23
                 time = OpenStudio::Time.new(0, hour + 1, 0, 0)
+                #puts "time = #{time}"
                 if hour == 0
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
                 elsif (hour < otg_hr) || (hour > ((otg_hr + otg_len) - 1))
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 else
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
+                  
                 end
               end
             else
@@ -183,19 +297,28 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
                 if (hour < otg_hr) || (hour > ((otg_hr + otg_len) - 1))
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 else
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
                 end
               end
             end
             set_rule_days_and_dates(otg_rule, day_date, day_date)
           elsif day == otg_end_date_day # last day of the outage
+            #puts "end day day = #{day}"
             if (day >= dst_start_day) && (day <= dst_end_day)
               for hour in 0..23
                 time = OpenStudio::Time.new(0, hour + 1, 0, 0)
                 if hour == 0
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 elsif hour < otg_period_end.hour
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
                 else
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 end
@@ -204,7 +327,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
               for hour in 0..23
                 time = OpenStudio::Time.new(0, hour + 1, 0, 0)
                 if hour < otg_period_end.hour
-                  otg_day.addValue(time, otg_val)
+                  if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                    otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+                  else
+                    otg_day.addValue(time, otg_val)
+                  end
                 else
                   otg_day.addValue(time, unmod_sched.getValue(time))
                 end
@@ -214,7 +341,11 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
           else # any middle days of the outage
             for hour in 0..23
               time = OpenStudio::Time.new(0, hour + 1, 0, 0)
-              otg_day.addValue(time, otg_val)
+              if schedule_ruleset.name.to_s.include?(Constants.ObjectNameHeatingSetpoint) or schedule_ruleset.name.to_s.include?(Constants.ObjectNameCoolingSetpoint)
+                otg_day.addValue(time, unmod_sched.getValue(time) + otg_val)
+              else
+                otg_day.addValue(time, otg_val)
+              end
             end
             set_rule_days_and_dates(otg_rule, day_date, day_date)
           end
@@ -238,11 +369,13 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     otg_availability_schedule.setName('Outage Availability Schedule')
 
     # set outage availability schedule on all hvac objects
-    model.getThermalZones.each do |thermal_zone|
-      equipments = HVAC.existing_heating_equipment(model, runner, thermal_zone) + HVAC.existing_cooling_equipment(model, runner, thermal_zone)
-      equipments.each do |equipment|
-        equipment.setAvailabilitySchedule(otg_availability_schedule)
-        runner.registerInfo("Modified the availability schedule for '#{equipment.name}'.")
+    if otg_type == 'Total'
+      model.getThermalZones.each do |thermal_zone|
+        equipments = HVAC.existing_heating_equipment(model, runner, thermal_zone) + HVAC.existing_cooling_equipment(model, runner, thermal_zone)
+        equipments.each do |equipment|
+          equipment.setAvailabilitySchedule(otg_availability_schedule)
+          runner.registerInfo("Modified the availability schedule for '#{equipment.name}'.")
+        end
       end
     end
 
@@ -255,6 +388,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # set the outage on schedules that are generated
+    schedules_file = SchedulesFile.new(runner: runner, model: model)
     schedules = []
     ScheduleGenerator.col_names.each do |col_name, val|
       next if col_name == 'occupants'
@@ -263,17 +397,12 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     schedules_path = model.getBuilding.additionalProperties.getFeatureAsString('Schedules Path')
-    if schedules_path.is_initialized # this is not a test
-      schedules_path = File.expand_path(File.join(File.dirname(schedules_path.get), '../generated_files', File.basename(schedules_path.get)))
-
-      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedules_path)
-    end
-
     schedules.each do |col_name|
       if schedules_path.is_initialized # this is not a test
         schedules_file.import(col_name: col_name)
         schedules_file.set_outage(col_name: col_name, outage_start_date: otg_date, outage_start_hour: otg_hr, outage_length: otg_len)
       end
+      #puts "Hit the schedule adjustment!"
       runner.registerInfo("Modified the schedule '#{col_name}'.")
     end
 
@@ -284,6 +413,56 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     additional_properties.setFeature('PowerOutageDuration', otg_len)
 
     runner.registerFinalCondition("A power outage has been added, starting on #{otg_date} at hour #{otg_hr.to_i} and lasting for #{otg_len.to_i} hours.")
+
+    if comfort_model_1.is_initialized
+
+      # Create schedules
+
+      # Work
+      work_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      work_schedule.setValue(0)
+      work_schedule.setName("Work Efficiency Schedule")
+
+      # Activity
+      activity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      activity_schedule.setValue(100)
+      activity_schedule.setName("Activity Level Schedule")
+
+      # Air Velocity
+      air_velocity_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      air_velocity_schedule.setValue(0.1)
+      air_velocity_schedule.setName("Air Velocity Schedule")
+
+      # Clothing Insulation
+      clothing_insulation_schedule = OpenStudio::Model::ScheduleConstant.new(model)
+      clothing_insulation_schedule.setValue(0.6)
+      clothing_insulation_schedule.setName("Clothing Schedule")
+
+      model.getPeoples.each do |people|
+        # Set schedules
+        people.setWorkEfficiencySchedule(work_schedule)
+        people.setActivityLevelSchedule(activity_schedule)
+        people.setAirVelocitySchedule(air_velocity_schedule)
+        people.setClothingInsulationSchedule(clothing_insulation_schedule)
+
+        people_definition = people.peopleDefinition
+
+        # Add thermal model types
+        people_definition.pushThermalComfortModelType(comfort_model_1.get)
+        if comfort_model_2.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_2.get)
+        end
+        if comfort_model_3.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_3.get)
+        end
+        if comfort_model_4.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_4.get)
+        end
+        if comfort_model_5.is_initialized
+          people_definition.pushThermalComfortModelType(comfort_model_5.get)
+        end
+      end
+    end
 
     return true
   end # end the run method
@@ -301,5 +480,5 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
   end
 end # end the measure
 
-# this allows the measure to be use by the application
+# this allows the measure to be used by the application
 ProcessPowerOutage.new.registerWithApplication
