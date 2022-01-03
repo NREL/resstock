@@ -214,14 +214,14 @@ class OSModel
     @apply_ashrae140_assumptions = @hpxml.header.apply_ashrae140_assumptions # Hidden feature
     @apply_ashrae140_assumptions = false if @apply_ashrae140_assumptions.nil?
 
-    # Check paths
+    # Check/update paths
     @hpxml.header.schedules_filepath = FilePath.check_path(@hpxml.header.schedules_filepath,
                                                            File.dirname(hpxml_path),
                                                            'Schedules')
     @hpxml.header.co2_emissions_scenarios.each do |co2_emissions_scenario|
-      FilePath.check_path(co2_emissions_scenario.elec_schedule_filepath,
-                          File.dirname(hpxml_path),
-                          'CO2 Emissions Schedule')
+      co2_emissions_scenario.elec_schedule_filepath = FilePath.check_path(co2_emissions_scenario.elec_schedule_filepath,
+                                                                          File.dirname(hpxml_path),
+                                                                          'CO2 Emissions Schedule')
     end
 
     # Init
