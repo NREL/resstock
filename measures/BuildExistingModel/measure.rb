@@ -265,8 +265,22 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # CO2 Emissions
     if args['co2_emissions'].is_initialized
       if args['co2_emissions'].get
-        cambium_gea = 'NWPPc' # FIXME: look this up based on xxx?
-        filename = "StdScen21_MidCase_hourly_#{cambium_gea}_2022.csv"
+        ba_to_gea_csv_path = File.join(resources_dir, 'ba_to_gea.csv')
+        ba_to_gea_csv = CSV.open(ba_to_gea_csv_path, headers: true)
+
+        gea = nil
+        CSV.foreach(ba_to_gea_csv_path, headers: true) do |row|
+          next if row[0] != "p#{bldg_data['REEDS Balancing Area']}"
+
+          gea = row[1]
+        end
+
+        if gea.nil?
+          runner.registerError("Could not find balancing area 'p#{bldg_data['REEDS Balancing Area']}' in #{ba_to_gea_csv_path}.")
+          return false
+        end
+
+        filename = "StdScen21_MidCase_hourly_#{gea}_2022.csv"
         electricity_co_2_emissions_filepaths = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/data/cambium/#{filename}"))
         electricity_co_2_emissions_units = HPXML::CO2EmissionsScenario::UnitsKgPerMWh
 
