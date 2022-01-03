@@ -72,8 +72,18 @@ def rename_ts_col(col):
   col = col.replace(': ', '_')
   col = col.replace(' ', '_')
   col = col.replace('/', '_')
-  col = 'simulation_output_report.{}'.format(col)
+  col = 'report_simulation_output.{}'.format(col)
   return col
+
+def convert_units(df):
+  for col in df.columns:
+    units = col.split('_')[-1]
+    if units == 'kwh':
+      df[col] *= 3412.14/1000000  # to mbtu
+    elif units == 'kbtu':
+      df[col] /= 1000  # to mbtu
+    df = df.rename(columns={col: col.replace(units, 'm_btu')})
+  return df
 
 outdir = 'baseline/timeseries'
 if not os.path.exists(outdir):
@@ -91,8 +101,8 @@ for dp in dps:
   for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
     new_col = rename_ts_col('{}_{}'.format(col, units))
     df_national = df_national.rename(columns={col: new_col})
-  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
 
+  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
   df_national = df_national.drop(drops, axis=1)
 
   df_nationals.append(df_national)
@@ -104,8 +114,8 @@ for dp in dps:
   for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
     new_col = rename_ts_col('{}_{}'.format(col, units))
     df_testing = df_testing.rename(columns={col: new_col})
-  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
 
+  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testings.append(df_testing)
@@ -120,6 +130,7 @@ df_testing['PROJECT'] = 'project_testing'
 
 results_output = pd.concat([df_national, df_testing]).fillna(0).round(2)
 results_output = results_output.set_index('PROJECT')
+results_output = convert_units(results_output)
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
@@ -204,8 +215,8 @@ for i in range(1, national_num_scenarios):
   for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
     new_col = rename_ts_col('{}_{}'.format(col, units))
     df_national = df_national.rename(columns={col: new_col})
-  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
 
+  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
   df_national = df_national.drop(drops, axis=1)
 
   df_nationals.append(df_national)
@@ -215,8 +226,8 @@ for i in range(1, national_num_scenarios):
   for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
     new_col = rename_ts_col('{}_{}'.format(col, units))
     df_testing = df_testing.rename(columns={col: new_col})
-  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
 
+  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
   df_testing = df_testing.drop(drops, axis=1)
 
   df_testings.append(df_testing)
@@ -231,5 +242,6 @@ df_testing['PROJECT'] = 'project_testing'
 
 results_output = pd.concat([df_national, df_testing]).fillna(0).round(2)
 results_output = results_output.set_index('PROJECT')
+results_output = convert_units(results_output)
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))

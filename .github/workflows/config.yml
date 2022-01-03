@@ -30,16 +30,6 @@ jobs:
           buildstock_docker project_national/national_upgrades.yml
           buildstock_docker project_testing/testing_upgrades.yml
 
-      - name: Upload project folders
-        uses: actions/upload-artifact@v2
-        with:
-          path: |
-            project_testing/testing_baseline
-            project_national/national_baseline
-            project_testing/testing_upgrades
-            project_national/national_upgrades
-          name: projects
-
       - name: Run tests
         run: |
           ruby test/test_bsb_analysis.rb
@@ -127,9 +117,7 @@ jobs:
       - name: Upload base samples and results
         uses: actions/upload-artifact@v2
         with:
-          path: |
-            test/test_samples_osw/baseline
-            test/test_samples_osw/upgrades
+          path: test/base_results
           name: base
 
       - uses: actions/checkout@v2
@@ -183,7 +171,7 @@ jobs:
           
           python test/compare.py -m feature -b base/baseline/timeseries -f results/baseline/timeseries
           
-          python test/compare.py -a timeseries -b base/baseline/timeseries/map -f results/baseline/timeseries/map -e test/base_results/comparisons/baseline/timeseries/map
+          python test/compare.py -a timeseries -b base/baseline/timeseries/map -f results/baseline/timeseries/map -e test/base_results/comparisons/baseline/timeseries
           
           mkdir test/base_results/comparisons/upgrades
           
@@ -199,7 +187,7 @@ jobs:
           
           python test/compare.py -m feature -b base/upgrades/timeseries -f results/upgrades/timeseries
           
-          python test/compare.py -a timeseries -b base/upgrades/timeseries/map -f results/upgrades/timeseries/map -e test/base_results/comparisons/upgrades/timeseries/map
+          python test/compare.py -a timeseries -b base/upgrades/timeseries/map -f results/upgrades/timeseries/map -e test/base_results/comparisons/upgrades/timeseries
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
@@ -234,7 +222,7 @@ jobs:
           git pull origin $branch_name
           cp -r samples/buildstock*.csv test/base_results/baseline/annual
           cp -r results/baseline/annual/results*.csv test/base_results/baseline/annual
-          cp -r results/baseline/timeseries/results*.csv test/base_results/timeseries/annual
+          cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
           cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
           cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
           git add test/base_results
