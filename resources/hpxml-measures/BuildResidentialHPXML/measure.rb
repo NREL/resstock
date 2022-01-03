@@ -3388,21 +3388,12 @@ class HPXMLFile
     hpxml.header.state_code = args[:site_state_code]
     hpxml.header.event_type = 'proposed workscope'
 
-    # FIXME: remove fuel arguments once bug in ReportSimulationOutput is fixed
     if args[:electricity_co_2_emissions_filepaths].is_initialized
       args[:electricity_co_2_emissions_filepaths].get.split(',').each do |electricity_co_2_emissions_filepath|
         name, ext = File.basename(electricity_co_2_emissions_filepath).split('.')
         hpxml.header.co2_emissions_scenarios.add(name: name,
                                                  elec_units: args[:electricity_co_2_emissions_units].get,
-                                                 elec_schedule_filepath: electricity_co_2_emissions_filepath,
-                                                 natural_gas_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
-                                                 natural_gas_value: 52.91,
-                                                 propane_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
-                                                 propane_value: 62.88,
-                                                 fuel_oil_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
-                                                 fuel_oil_value: 74.14,
-                                                 coal_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu,
-                                                 coal_value: 95.74)
+                                                 elec_schedule_filepath: electricity_co_2_emissions_filepath)
       end
     end
   end
