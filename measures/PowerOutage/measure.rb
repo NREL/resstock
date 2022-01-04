@@ -255,26 +255,23 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # set the outage on schedules that are generated
-    schedules = []
-    ScheduleGenerator.col_names.each do |col_name, val|
-      next if col_name == 'occupants'
-
-      schedules << col_name unless val.nil?
-    end
-
     schedules_path = model.getBuilding.additionalProperties.getFeatureAsString('Schedules Path')
-    if schedules_path.is_initialized # this is not a test
+    if schedules_path.is_initialized # this is not a test; ResidentialScheduleGenerator was run
       schedules_path = File.expand_path(File.join(File.dirname(schedules_path.get), '../generated_files', File.basename(schedules_path.get)))
-
       schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedules_path)
-    end
 
-    schedules.each do |col_name|
-      if schedules_path.is_initialized # this is not a test
+      schedules = []
+      ScheduleGenerator.col_names.each do |col_name, val|
+        next if col_name == 'occupants'
+
+        schedules << col_name unless val.nil?
+      end
+
+      schedules.each do |col_name|
         schedules_file.import(col_name: col_name)
         schedules_file.set_outage(col_name: col_name, outage_start_date: otg_date, outage_start_hour: otg_hr, outage_length: otg_len)
+        runner.registerInfo("Modified the schedule '#{col_name}'.")
       end
-      runner.registerInfo("Modified the schedule '#{col_name}'.")
     end
 
     # add additional properties object with the date of the outage for use by reporting measures
