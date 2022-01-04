@@ -115,9 +115,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('If true, measure stops after running BuildResidentialHPXML')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('write_default_hpxml', false)
-    arg.setDisplayName('Write default hpxml')
-    arg.setDescription('Sets default values to the hpxml object and writes to in.xml')
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_defaults', false)
+    arg.setDisplayName('Write default values to hpxml')
+    arg.setDescription('Sets default values to the hpxml object')
     arg.setDefaultValue(false)
     args << arg
 
@@ -268,8 +268,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
     end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
-
-    measures['BuildResidentialHPXML'][0]['write_default_hpxml'] = args['write_default_hpxml'].get if args['write_default_hpxml'].is_initialized
+    measures['BuildResidentialHPXML'][0]['apply_defaults'] = args['apply_defaults'].get if args['apply_defaults'].is_initialized
 
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
