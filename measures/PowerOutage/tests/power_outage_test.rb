@@ -138,7 +138,7 @@ class OutageTest < MiniTest::Test
     expected_num_new_objects = { 'ScheduleRule' => 12, 'ScheduleDay' => 12, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
     _test_measure('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 11)
-  end 
+  end
 
   private
 
