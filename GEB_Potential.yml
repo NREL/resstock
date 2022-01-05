@@ -9,6 +9,14 @@ sampler:
   args:
     n_datapoints: 1800 #10,000 per city
 
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 1800
+    logic:
+      - Geometry Building Type RECS|Single-Family Detached
+    resample: true
+
 baseline:
   n_buildings_represented: 81221016 
 
@@ -143,6 +151,7 @@ upgrades:
       - option: Setback|Night - Heating #-8
         apply_logic:
           - Weekday Occupancy|Yes
+          - not: Heating Setpoint|55F
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -151,6 +160,7 @@ upgrades:
       - option: Setback|Full - Heating #-8
         apply_logic:
           - Weekday Occupancy|No
+          - not: Heating Setpoint|55F
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -159,6 +169,7 @@ upgrades:
       - option: Setback|None - Heating #Overwrite default if tsp below threshold
         apply_logic:
           - or:
+            - Heating Setpoint|55F
             - Heating Setpoint|60F
             - Heating Setpoint|62F
             - Heating Setpoint|65F
@@ -482,6 +493,7 @@ upgrades:
       - option: Setback|Night - Heating #-8
         apply_logic:
           - Weekday Occupancy|Yes
+          - not: Heating Setpoint|55F
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -490,6 +502,7 @@ upgrades:
       - option: Setback|Full - Heating #-8
         apply_logic:
           - Weekday Occupancy|No
+          - not: Heating Setpoint|55F
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -498,7 +511,8 @@ upgrades:
       - option: Setback|None - Heating #Overwrite default if tsp below threshold
         apply_logic:
           - or:
-            - Heating Setpoint|60F
+            - Heating Setpoint|55F
+            - Heating Setpoint|60F  
             - Heating Setpoint|62F
             - Heating Setpoint|65F
             - Heating Setpoint|67F
@@ -676,6 +690,7 @@ upgrades:
       - option: Setback|Night - Heating #-8
         apply_logic:
           - Weekday Occupancy|Yes
+          - not: Heating Setpoint|55F
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -684,6 +699,7 @@ upgrades:
       - option: Setback|Full - Heating #-8
         apply_logic:
           - Weekday Occupancy|No
+          - not: Heating Setpoint|55F
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -692,6 +708,7 @@ upgrades:
       - option: Setback|None - Heating #Overwrite default if tsp below threshold
         apply_logic:
           - or:
+            - Heating Setpoint|55F
             - Heating Setpoint|60F
             - Heating Setpoint|62F
             - Heating Setpoint|65F
@@ -870,6 +887,7 @@ upgrades:
       - option: Setback|Night - Heating #-8
         apply_logic:
           - Weekday Occupancy|Yes
+          - not: Heating Setpoint|55F
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -878,6 +896,7 @@ upgrades:
       - option: Setback|Full - Heating #-8
         apply_logic:
           - Weekday Occupancy|No
+          - not: Heating Setpoint|55F
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|65F
@@ -886,6 +905,7 @@ upgrades:
       - option: Setback|None - Heating #Overwrite default if tsp below threshold
         apply_logic:
           - or:
+            - Heating Setpoint|55F
             - Heating Setpoint|60F
             - Heating Setpoint|62F
             - Heating Setpoint|65F
@@ -1154,6 +1174,7 @@ upgrades:
           - not: Cooling Setpoint|80F      
       - option: Heating Setpoint Apply Offset|Yes
         apply_logic:
+          - not: Heating Setpoint|55F
           - not: Heating Setpoint|60F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|78F
@@ -1239,6 +1260,7 @@ upgrades:
           - not: Heating Setpoint|65F 
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|60F      
+          - not: Heating Setpoint|55F      
           - Heating Setpoint Has Offset|No
       - option: Heating Setpoint Apply Offset|Yes #(-3..+3) Heating - [DR setback only]
         apply_logic:
@@ -1246,6 +1268,7 @@ upgrades:
           - not: Heating Setpoint|78F
           - not: Heating Setpoint|62F
           - not: Heating Setpoint|60F   
+          - not: Heating Setpoint|55F
           - Heating Setpoint Has Offset|Yes
       
       ##envelope
@@ -1409,14 +1432,16 @@ upgrades:
           - not: Heating Setpoint|67F
           - not: Heating Setpoint|65F 
           - not: Heating Setpoint|62F
-          - not: Heating Setpoint|60F      
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|55F      
           - Heating Setpoint Has Offset|No
       - option: Heating Setpoint Apply Offset|Yes #(-3..+3) Heating - [DR setback only]
         apply_logic:
           - not: Heating Setpoint|80F
           - not: Heating Setpoint|78F
           - not: Heating Setpoint|62F
-          - not: Heating Setpoint|60F   
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|55F   
           - Heating Setpoint Has Offset|Yes 
           
       #envelope
@@ -1579,14 +1604,16 @@ upgrades:
           - not: Heating Setpoint|67F
           - not: Heating Setpoint|65F 
           - not: Heating Setpoint|62F
-          - not: Heating Setpoint|60F      
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|55F      
           - Heating Setpoint Has Offset|No
       - option: Heating Setpoint Apply Offset|Yes #(-3..+3) Heating - [DR setback only]
         apply_logic:
           - not: Heating Setpoint|80F
           - not: Heating Setpoint|78F
           - not: Heating Setpoint|62F
-          - not: Heating Setpoint|60F   
+          - not: Heating Setpoint|60F
+          - not: Heating Setpoint|55F
           - Heating Setpoint Has Offset|Yes    
           
       #envelope
