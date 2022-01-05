@@ -28,4 +28,4 @@ For example:
 Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arguments.
 
 .. note::
-  At this time the ``residential_quota_downselect`` sampler is not supported.
+  At this time the ``residential_quota_downselect`` sampler with ``resample`` is not supported.

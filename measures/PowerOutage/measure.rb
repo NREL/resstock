@@ -47,7 +47,7 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('otg_date', true)
     arg.setDisplayName('Outage Start Date')
     arg.setDescription('Date of the start of the outage.')
-    arg.setDefaultValue('January 1')
+    arg.setDefaultValue('Jan 1')
     args << arg
 
     # make a double argument for hour of outage start
@@ -107,8 +107,8 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
 
     # get the outage period
-    months = { 'January' => 1, 'February' => 2, 'March' => 3, 'April' => 4, 'May' => 5, 'June' => 6, 'July' => 7, 'August' => 8, 'September' => 9, 'October' => 10, 'November' => 11, 'December' => 12 }
-    otg_start_date_month = months[otg_date.split[0]]
+    require 'date'
+    otg_start_date_month = Date::ABBR_MONTHNAMES.index(otg_date.split[0].capitalize)
     otg_start_date_day = otg_date.split[1].to_i
     begin
       otg_period_start = Time.new(assumed_year, otg_start_date_month, otg_start_date_day, otg_hr)
@@ -255,21 +255,23 @@ class ProcessPowerOutage < OpenStudio::Measure::ModelMeasure
     end
 
     # set the outage on schedules that are generated
-    schedules_file = SchedulesFile.new(runner: runner, model: model)
-    schedules = []
-    ScheduleGenerator.col_names.each do |col_name, val|
-      next if col_name == 'occupants'
-
-      schedules << col_name unless val.nil?
-    end
-
     schedules_path = model.getBuilding.additionalProperties.getFeatureAsString('Schedules Path')
-    schedules.each do |col_name|
-      if schedules_path.is_initialized # this is not a test
+    if schedules_path.is_initialized # this is not a test; ResidentialScheduleGenerator was run
+      schedules_path = File.expand_path(File.join(File.dirname(schedules_path.get), '../generated_files', File.basename(schedules_path.get)))
+      schedules_file = SchedulesFile.new(runner: runner, model: model, schedules_path: schedules_path)
+
+      schedules = []
+      ScheduleGenerator.col_names.each do |col_name, val|
+        next if col_name == 'occupants'
+
+        schedules << col_name unless val.nil?
+      end
+
+      schedules.each do |col_name|
         schedules_file.import(col_name: col_name)
         schedules_file.set_outage(col_name: col_name, outage_start_date: otg_date, outage_start_hour: otg_hr, outage_length: otg_len)
+        runner.registerInfo("Modified the schedule '#{col_name}'.")
       end
-      runner.registerInfo("Modified the schedule '#{col_name}'.")
     end
 
     # add additional properties object with the date of the outage for use by reporting measures
