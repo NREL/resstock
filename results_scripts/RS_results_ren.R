@@ -4,49 +4,77 @@ rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
 library(dplyr)
 library(reshape2)
-setwd("~/Yale Courses/Research/Final Paper/resstock_projections/results_scripts")
+setwd("~/Yale Courses/Research/Final Paper/resstock_projections/")
 # import ResStock results csvs
 # 2020 base stock
-rs2020<-read.csv("../Eagle_outputs/res_2020_complete.csv")
+load("Eagle_outputs/Complete_results/res_2020_final.RData")
+rs2020<-rsn; rm(rsn)
 # Regular Renovated (RR) 2020 stock in each sim year
-rs25RR<-read.csv("../Eagle_outputs/res_RR_2025.csv")
-rs30RR<-read.csv("../Eagle_outputs/res_RR_2030_complete.csv")
-rs35RR<-read.csv("../Eagle_outputs/res_RR_2035.csv")
-rs40RR<-read.csv("../Eagle_outputs/res_RR_2040.csv")
-rs45RR<-read.csv("../Eagle_outputs/res_RR_2045.csv")
-rs50RR<-read.csv("../Eagle_outputs/res_RR_2050.csv")
-rs55RR<-read.csv("../Eagle_outputs/res_RR_2055.csv")
-rs60RR<-read.csv("../Eagle_outputs/res_RR_2060_complete.csv")
+load("Eagle_outputs/Complete_results/res_RR_2025_final.RData")
+rs25RR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_RR_2030_final.RData")
+rs30RR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_RR_2035_final.RData")
+rs35RR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_RR_2040_final.RData")
+rs40RR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_RR_2045_final.RData")
+rs45RR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_RR_2050_final.RData")
+rs50RR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_RR_2055_final.RData")
+rs55RR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_RR_2060_final.RData")
+rs60RR<-rsn; rm(rsn)
 
-rs25AR<-read.csv("../Eagle_outputs/res_AR_2025.csv")
-rs30AR<-read.csv("../Eagle_outputs/res_AR_2030.csv")
-rs35AR<-read.csv("../Eagle_outputs/res_AR_2035.csv")
-rs40AR<-read.csv("../Eagle_outputs/res_AR_2040.csv")
-rs45AR<-read.csv("../Eagle_outputs/res_AR_2045.csv")
-rs50AR<-read.csv("../Eagle_outputs/res_AR_2050.csv")
-rs55AR<-read.csv("../Eagle_outputs/res_AR_2055.csv")
-rs60AR<-read.csv("../Eagle_outputs/res_AR_2060.csv")
+# Advanced Renovated (AR) 2020 stock in each sim year
+load("Eagle_outputs/Complete_results/res_AR_2025_final.RData")
+rs25AR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_AR_2030_final.RData")
+rs30AR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_AR_2035_final.RData")
+rs35AR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_AR_2040_final.RData")
+rs40AR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_AR_2045_final.RData")
+rs45AR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_AR_2050_final.RData")
+rs50AR<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_AR_2055_final.RData")
+rs55AR<-AR55; rm(AR55)
+load("Eagle_outputs/Complete_results/res_AR_2060_final.RData")
+rs60AR<-rsn; rm(rsn)
 
-rs25ER<-read.csv("../Eagle_outputs/res_ER_2025.csv")
-rs30ER<-read.csv("../Eagle_outputs/res_ER_2030.csv")
-rs35ER<-read.csv("../Eagle_outputs/res_ER_2035.csv")
-rs40ER<-read.csv("../Eagle_outputs/res_ER_2040.csv")
-rs45ER<-read.csv("../Eagle_outputs/res_ER_2045.csv")
-rs50ER<-read.csv("../Eagle_outputs/res_ER_2050.csv")
-rs55ER<-read.csv("../Eagle_outputs/res_ER_2055.csv")
-rs60ER<-read.csv("../Eagle_outputs/res_ER_2060.csv")
+# Extensive Renovated (ER) 2020 stock in each sim year
+load("Eagle_outputs/Complete_results/res_ER_2025_final.RData")
+rs25ER<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_ER_2030_final.RData")
+rs30ER<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_ER_2035_final.RData")
+rs35ER<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_ER_2040_final.RData")
+rs40ER<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_ER_2045_final.RData")
+rs45ER<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_ER_2050_final.RData")
+rs50ER<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_ER_2055_final.RData")
+rs55ER<-rsn; rm(rsn)
+load("Eagle_outputs/Complete_results/res_ER_2060_final.RData")
+rs60ER<-rsn; rm(rsn)
+
 
 # import R modified bcsv files, these describe the characteristics of future cohorts in three stock scenarios (base, hiDR, hiMF) and 4 characteristics scenarios 'scen' (base, DE, RFA, DERFA)
-load("../Intermediate_results/agg_bscsv.RData")
+load("Intermediate_results/agg_bscsv.RData")
 
-# import renovation metadata
-# load("../Intermediate_results/RenAdvanced.RData")
-# rs_2020_60_AR<-rs_2020_2060
-# rm(rs_2020_2060)
-# load("../Intermediate_results/RenStandard.RData")
-# rs_2020_60_RR<-rs_2020_2060
-# rm(rs_2020_2060)
-load("../Intermediate_results/RenExtElec.RData")
+# import renovation metadata, these are produced by the resScenarios scripts
+load("Intermediate_results/RenAdvanced.RData")
+rs_2020_60_AR<-rs_2020_2060
+rm(rs_2020_2060)
+load("Intermediate_results/RenStandard.RData")
+rs_2020_60_RR<-rs_2020_2060
+rm(rs_2020_2060)
+load("Intermediate_results/RenExtElec.RData")
 rs_2020_60_ER<-rs_2020_2060
 rm(rs_2020_2060)
 
@@ -128,6 +156,7 @@ rs50ER_sum<-result_sum(rs50ER,2050)
 rs55ER_sum<-result_sum(rs55ER,2055)
 rs60ER_sum<-result_sum(rs60ER,2060)
 
+# the rs_all_** results are already created and saved, and don't contain energy results, so they can just be loaded in
 # rs_all_RR<-rs_2020_60_RR
 # rs_all_RR$Year_Building<-paste(rs_all_RR$Year,rs_all_RR$Building,sep="_")
 # 
@@ -136,10 +165,10 @@ rs60ER_sum<-result_sum(rs60ER,2060)
 #                         "HVAC.Heating.Type.And.Fuel","HVAC.Heating.Efficiency","HVAC.Cooling.Type","HVAC.Cooling.Efficiency","Water.Heater.Fuel","Water.Heater.Efficiency",
 #                         "Clothes.Dryer","Infiltration", "change_cren","change_iren","change_wren","change_hren","base_weight")] # currently comes to 34 columns
 # # numbered columns are base weight, energy by type, change in renovated systems
-# 
+
 # rs_all_RR<-rs_all_RR[order(rs_all_RR$Building),]
 
-load("../Intermediate_results/decayFactorsProj.RData")
+load("Intermediate_results/decayFactorsProj.RData")
 
 # rs_all_RR$TC<-"MF"
 # rs_all_RR[rs_all_RR$Geometry.Building.Type.RECS=="Single-Family Attached" | rs_all_RR$Geometry.Building.Type.RECS=="Single-Family Detached",]$TC<-"SF"
@@ -148,16 +177,12 @@ load("../Intermediate_results/decayFactorsProj.RData")
 # rs_all_RR$ctyTC<-paste(rs_all_RR$County,rs_all_RR$TC,sep = "")
 # rs_all_RR$ctyTC<-gsub("2010s","2010-19",rs_all_RR$ctyTC)
 # 
-# # at this stage we are at 36 columns
-# # now add 9 columns for each stock scenario to bring us to 63
+# # # at this stage we are at 36 columns
+# # # now add 9 columns for each stock scenario to bring us to 63
 # rs_all_RR<-left_join(rs_all_RR,sbm,by="ctyTC")
 # rs_all_RR<-left_join(rs_all_RR,shdrm,by="ctyTC")
 # rs_all_RR<-left_join(rs_all_RR,shmfm,by="ctyTC")
-
-
-# replace the failed simulations in some TX counties, actually do this later, after adding the energy consumption data
-load("../Intermediate_results/FailReplace.RData")
-
+# 
 # rs_all_RR$sim.range<-"Undefined"
 # for (b in 1:180000) { # this takes a while, about 3.5 hours
 #   # for (b in c(1:15,9900,9934)) {
@@ -182,8 +207,9 @@ load("../Intermediate_results/FailReplace.RData")
 #   rs_all_RR[w,55:63]<-rs_all_RR[w,55:63]*conc
 # 
 # }
-# save(rs_all_RR,file="../Intermediate_results/RenStandard_full.Rdata")
-load("../Intermediate_results/RenStandard_full.Rdata") # script to produce this file is commented out, I now load it in instead
+# save(rs_all_RR,file="Intermediate_results/RenStandard_full.Rdata")
+# script to produce this file is commented out, I now load it in instead
+load("Intermediate_results/RenStandard_full.Rdata") 
 
 
 # merge with the energy results
@@ -192,46 +218,13 @@ rs_all_RR_res<-rbind(rs2020_sum,rs25RR_sum,rs30RR_sum,rs35RR_sum,rs40RR_sum,rs45
 rs_all_RR_res<-rs_all_RR_res[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,124:129,131,133,135:141,148:200)] # bigger version
 
 rs_RR<-merge(rs_all_RR,rs_all_RR_res)
-rs_RR<-rs_RR[order(rs_RR$Building),]
+rs_RRn<-rs_RR[order(rs_RR$Building),]
 
-# modify the failed TX simulations
+# no longer need to modify the failed TX simulations
 
-rsRRf<-rs_RR[which(rs_RR$Building %in% failrep$fail),] # fail
-rsRRr<-rs_RR[which(rs_RR$Building %in% failrep$replace),] # replace
-
-rsRRfr<-rsRRr # fail replace
-
-for (k in 1:nrow(failrep)) {
-  f<-failrep$fail[k]
-  r<-failrep$replace[k]
-  
-  rsRRfr[rsRRfr$Building==r,c("Building","building_id", "County","base_weight","ctyTC")]<-
-    rsRRf[which(rsRRf$Building==f)[1],c("Building","building_id", "County","base_weight","ctyTC")]
-  
-  wb<-colSums(rsRRf[rsRRf$Building==f,37:45]) # base weights
-  nr<-nrow(rsRRfr[rsRRfr$Building==f,37:45])
-  co<-matrix(as.numeric(rsRRfr[rsRRfr$Building==f,37:45]>0),nr,9)
-  wbn<-co*matrix(rep(wb,each=nr),nr,9) # new base weights
-  
-  whd<-colSums(rsRRf[rsRRf$Building==f,46:54]) # hi dr weights 
-  whdn<-co*matrix(rep(whd,each=nr),nr,9) # new hi dr weights
-  whm<-colSums(rsRRf[rsRRf$Building==f,55:63]) # hi mf weights
-  whmn<-co*matrix(rep(whm,each=nr),nr,9) # new hi mf weigts
-  
-  rsRRfr[rsRRfr$Building==f,37:63]<-cbind(wbn,whdn,whmn)
-}
-
-rsRRfr$Year_Building<-paste(rsRRfr$Year,rsRRfr$Building,sep = "_")
-# replace the failed with succesful simulations
-rs_RRn<-rs_RR[-c(which(rs_RR$Building %in% failrep$fail)),] 
-rs_RRn<-rbind(rs_RRn,rsRRfr)
-# re-order by building
-rs_RRn<-rs_RRn[order(rs_RRn$Building),]
-
-
-load("../ExtData/ctycode.RData") # from the HSM repo
-load("../ExtData/GHGI_MidCase.RData") # Elec GHG int data in Mid-Case scenario
-load("../ExtData/GHGI_LowRECost.RData") # Elec GHG int data in Low RE Cost Scenario
+load("ExtData/ctycode.RData") # from the HSM repo
+load("ExtData/GHGI_MidCase.RData") # Elec GHG int data in Mid-Case scenario
+load("ExtData/GHGI_LowRECost.RData") # Elec GHG int data in Low RE Cost Scenario
 ctycode_num<-ctycode
 ctycode_num$GeoID<-as.numeric(ctycode_num$GeoID)
 
@@ -347,10 +340,10 @@ for (k in 1:180000) { print(k) # this will probably take a while, about 3hs. Hav
   }
 }
 
-tapply(rs_RRn$redn_cren,rs_RRn$change_cren_only,mean) # 1.5%
+tapply(rs_RRn$redn_cren,rs_RRn$change_cren_only,mean) # 1.4%
 tapply(rs_RRn$redn_iren,rs_RRn$change_iren_only,mean) # 13.9%
 tapply(rs_RRn$redn_wren,rs_RRn$change_wren_only,mean) # 3.25#
-tapply(rs_RRn$redn_hren,rs_RRn$change_hren_only,mean) # 6.9%
+tapply(rs_RRn$redn_hren,rs_RRn$change_hren_only,mean) # 6.5%
 
 tapply(rs_RRn$redn_cren,list(rs_RRn$change_cren_only,rs_RRn$Geometry.Building.Type.RECS), mean) # highest in SFD and MH, negative in MF
 tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Geometry.Building.Type.RECS), mean) # highest in MF2-4 & SFD (both 15%)
@@ -383,9 +376,9 @@ dhw_typ_age_rr<-tapply(rs_RRn$redn_wren,list(rs_RRn$change_wren_only,rs_RRn$Geom
 ins_typ_age_rr<-tapply(rs_RRn$redn_iren,list(rs_RRn$change_iren_only,rs_RRn$Geometry.Building.Type.RECS,rs_RRn$Vintage.ACS), mean)[2,,] 
 
 # save this modified dataframe
-save(rs_RRn,file = "../Intermediate_results/RenStandard_EG.RData")
+save(rs_RRn,file = "Intermediate_results/RenStandard_EG.RData")
 save(heat_typ_reg_rr,heat_age_reg_rr,heat_typ_age_rr, cool_typ_reg_rr,cool_age_reg_rr,cool_typ_age_rr, dhw_typ_reg_rr,dhw_age_reg_rr,dhw_typ_age_rr,
-     ins_typ_reg_rr,ins_age_reg_rr,ins_typ_age_rr,file = "../Intermediate_results/RR_redn.RData")
+     ins_typ_reg_rr,ins_age_reg_rr,ins_typ_age_rr,file = "Intermediate_results/RR_redn.RData")
 
 # repeat the long function of adding decay factors with the AR files ########
 # rs_all_AR<-rs_2020_60_AR
@@ -437,79 +430,44 @@ save(heat_typ_reg_rr,heat_age_reg_rr,heat_typ_age_rr, cool_typ_reg_rr,cool_age_r
 #   
 # }
 # save(rs_all_AR,file="../Intermediate_results/RenAdvanced_full.Rdata")
-load("../Intermediate_results/RenAdvanced_full.Rdata")
+load("Intermediate_results/RenAdvanced_full.Rdata")
 
 # merge with the energy results
 rs_all_AR_res<-rbind(rs2020_sum,rs25AR_sum,rs30AR_sum,rs35AR_sum,rs40AR_sum,rs45AR_sum,rs50AR_sum,rs55AR_sum,rs60AR_sum)
 rs_all_AR_res<-rs_all_AR_res[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,124:129,131,133,135:141,148:200)] # bigger reduced version
 
 rs_AR<-merge(rs_all_AR,rs_all_AR_res)
-rs_AR<-rs_AR[order(rs_AR$Building),]
+rs_ARn<-rs_AR[order(rs_AR$Building),]
 
-# modify the failed TX simulations
+load("ExtData/ctycode.RData") # from the HSM repo
+load("ExtData/GHGI_MidCase.RData") # Elec GHG int data in Mid-Case scenario
+load("ExtData/GHGI_LowRECost.RData") # Elec GHG int data in Low RE Cost Scenario
+ctycode_num<-ctycode
+ctycode_num$GeoID<-as.numeric(ctycode_num$GeoID)
 
-rsARf<-rs_AR[which(rs_AR$Building %in% failrep$fail),] # fail
-rsARr<-rs_AR[which(rs_AR$Building %in% failrep$replace),] # replace
+gicty_rto[gicty_rto$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
+gicty_rto[gicty_rto$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
+gicty_rto<-merge(gicty_rto,ctycode_num,by.x="geoid10",by.y="GeoID") #
 
-rsARfr<-rsARr # fail replace
+gicty_rto_yr<-gicty_rto[gicty_rto$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
+gic<-dcast(gicty_rto_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
+names(gic)[2:8]<-paste("GHG_int",names(gic)[2:8],sep="_")
+gic$GHG_int_2055<-0.95* gic$GHG_int_2050
+gic$GHG_int_2060<-0.95* gic$GHG_int_2055
+gic[,2:10]<-gic[,2:10]/3600 # convert from kg/MWh to kg/MJ
 
-for (k in 1:nrow(failrep)) {
-  f<-failrep$fail[k]
-  r<-failrep$replace[k]
-  
-  rsARfr[rsARfr$Building==r,c("Building","building_id", "County","base_weight","ctyTC")]<-
-    rsARf[which(rsARf$Building==f)[1],c("Building","building_id", "County","base_weight","ctyTC")]
-  
-  wb<-colSums(rsARf[rsARf$Building==f,37:45]) # base weights
-  nr<-nrow(rsARfr[rsARfr$Building==f,37:45])
-  co<-matrix(as.numeric(rsARfr[rsARfr$Building==f,37:45]>0),nr,9)
-  wbn<-co*matrix(rep(wb,each=nr),nr,9) # new base weights
-  
-  whd<-colSums(rsARf[rsARf$Building==f,46:54]) # hi dr weights 
-  whdn<-co*matrix(rep(whd,each=nr),nr,9) # new hi dr weights
-  whm<-colSums(rsARf[rsARf$Building==f,55:63]) # hi mf weights
-  whmn<-co*matrix(rep(whm,each=nr),nr,9) # new hi mf weigts
-  
-  rsARfr[rsARfr$Building==f,37:63]<-cbind(wbn,whdn,whmn)
-}
+# do the same process for the Low RE Cost electricity data
+gicty_rto_LREC[gicty_rto_LREC$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
+gicty_rto_LREC[gicty_rto_LREC$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
+gicty_rto_LREC<-merge(gicty_rto_LREC,ctycode_num,by.x="geoid10",by.y="GeoID") #
 
-rsARfr$Year_Building<-paste(rsARfr$Year,rsARfr$Building,sep = "_")
-# replace the failed with succesful simulations
-rs_ARn<-rs_AR[-c(which(rs_AR$Building %in% failrep$fail)),] 
-rs_ARn<-rbind(rs_ARn,rsARfr)
-# re-order by building
-rs_ARn<-rs_ARn[order(rs_ARn$Building),]
-
-
-# load("../ExtData/ctycode.RData") # from the HSM repo
-# load("../ExtData/GHGI_MidCase.RData") # Elec GHG int data in Mid-Case scenario
-# load("../ExtData/GHGI_LowRECost.RData") # Elec GHG int data in Low RE Cost Scenario
-# ctycode_num<-ctycode
-# ctycode_num$GeoID<-as.numeric(ctycode_num$GeoID)
-# 
-# gicty_rto[gicty_rto$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
-# gicty_rto[gicty_rto$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
-# gicty_rto<-merge(gicty_rto,ctycode_num,by.x="geoid10",by.y="GeoID") #
-# 
-# gicty_rto_yr<-gicty_rto[gicty_rto$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
-# gic<-dcast(gicty_rto_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
-# names(gic)[2:8]<-paste("GHG_int",names(gic)[2:8],sep="_")
-# gic$GHG_int_2055<-0.95* gic$GHG_int_2050
-# gic$GHG_int_2060<-0.95* gic$GHG_int_2055
-# gic[,2:10]<-gic[,2:10]/3600 # convert from kg/MWh to kg/MJ
-# 
-# # do the same process for the Low RE Cost electricity data
-# gicty_rto_LREC[gicty_rto_LREC$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
-# gicty_rto_LREC[gicty_rto_LREC$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
-# gicty_rto_LREC<-merge(gicty_rto_LREC,ctycode_num,by.x="geoid10",by.y="GeoID") #
-# 
-# gicty_rto_LREC_yr<-gicty_rto_LREC[gicty_rto_LREC$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
-# gic_LRE<-dcast(gicty_rto_LREC_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
-# names(gic_LRE)[2:8]<-paste("GHG_int",names(gic_LRE)[2:8],sep="_")
-# gic_LRE$GHG_int_2055<-0.93* gic_LRE$GHG_int_2050 # assume greater decreases in GHGI post-2050 in LREC
-# gic_LRE$GHG_int_2060<-0.9* gic_LRE$GHG_int_2055 # assume greater decreases in GHGI post-2050 in LREC
-# gic_LRE[,2:10]<-gic_LRE[,2:10]/3600 # convert from kg/MWh to kg/MJ
-# names(gic_LRE)[2:10]<-paste(names(gic_LRE)[2:10],"LRE",sep = "_")
+gicty_rto_LREC_yr<-gicty_rto_LREC[gicty_rto_LREC$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
+gic_LRE<-dcast(gicty_rto_LREC_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
+names(gic_LRE)[2:8]<-paste("GHG_int",names(gic_LRE)[2:8],sep="_")
+gic_LRE$GHG_int_2055<-0.93* gic_LRE$GHG_int_2050 # assume greater decreases in GHGI post-2050 in LREC
+gic_LRE$GHG_int_2060<-0.9* gic_LRE$GHG_int_2055 # assume greater decreases in GHGI post-2050 in LREC
+gic_LRE[,2:10]<-gic_LRE[,2:10]/3600 # convert from kg/MWh to kg/MJ
+names(gic_LRE)[2:10]<-paste(names(gic_LRE)[2:10],"LRE",sep = "_")
 
 # add GHG intensities, Mid-Case
 rs_ARn<-left_join(rs_ARn,gic,by = c("County" = "RS_ID"))
@@ -517,9 +475,9 @@ rs_ARn<-left_join(rs_ARn,gic,by = c("County" = "RS_ID"))
 rs_ARn<-left_join(rs_ARn,gic_LRE,by = c("County" = "RS_ID"))
 
 # calculation total energy and GHG
-# GHGI_FO<-((.07396)+(25*3e-6)+(298*6e-7))/1.055  # intensity for heating oil (DFO #2) in kgCO2eq / MJ
-# GHGI_NG<-((0.05302)+(25*10e-6) + (298*1e-7))/1.055  # intensity for natural gas in kgCO2eq / MJ
-# GHGI_LP<-((.06298)+(25*3e-6)+(298*6e-7))/1.055   # intensity for LPG in kgCO2eq / MJ
+GHGI_FO<-((.07396)+(25*3e-6)+(298*6e-7))/1.055  # intensity for heating oil (DFO #2) in kgCO2eq / MJ
+GHGI_NG<-((0.05302)+(25*10e-6) + (298*1e-7))/1.055  # intensity for natural gas in kgCO2eq / MJ
+GHGI_LP<-((.06298)+(25*3e-6)+(298*6e-7))/1.055   # intensity for LPG in kgCO2eq / MJ
 
 # total energy in GJ
 rs_ARn[,c("Tot_GJ_base_2020",  "Tot_GJ_base_2025","Tot_GJ_base_2030","Tot_GJ_base_2035","Tot_GJ_base_2040","Tot_GJ_base_2045","Tot_GJ_base_2050","Tot_GJ_base_2055","Tot_GJ_base_2060")]<-
@@ -596,10 +554,10 @@ for (k in 1:180000) { print(k) # this will probably take a while, about 3hs
   }
 }
 
-tapply(rs_ARn$redn_cren,rs_ARn$change_cren_only,mean) # 0.3%
-tapply(rs_ARn$redn_iren,rs_ARn$change_iren_only,mean) # 11.5%
-tapply(rs_ARn$redn_wren,rs_ARn$change_wren_only,mean) # 5.1%
-tapply(rs_ARn$redn_hren,rs_ARn$change_hren_only,mean) # 12.6#
+tapply(rs_ARn$redn_cren,rs_ARn$change_cren_only,mean) # 0.2%
+tapply(rs_ARn$redn_iren,rs_ARn$change_iren_only,mean) # 12.0%
+tapply(rs_ARn$redn_wren,rs_ARn$change_wren_only,mean) # 5.0%
+tapply(rs_ARn$redn_hren,rs_ARn$change_hren_only,mean) # 10.2#
 
 tapply(rs_ARn$redn_cren,list(rs_ARn$change_cren_only,rs_ARn$Geometry.Building.Type.RECS), mean) # highest in MH. Negative in MF, 
 tapply(rs_ARn$redn_iren,list(rs_ARn$change_iren_only,rs_ARn$Geometry.Building.Type.RECS), mean) # highest in MF 2-4, followed by SFD
@@ -632,10 +590,10 @@ dhw_typ_age_ar<-tapply(rs_ARn$redn_wren,list(rs_ARn$change_wren_only,rs_ARn$Geom
 ins_typ_age_ar<-tapply(rs_ARn$redn_iren,list(rs_ARn$change_iren_only,rs_ARn$Geometry.Building.Type.RECS,rs_ARn$Vintage.ACS), mean)[2,,] 
 
 save(heat_typ_reg_ar,heat_age_reg_ar,heat_typ_age_ar, cool_typ_reg_ar,cool_age_reg_ar,cool_typ_age_ar,dhw_typ_reg_ar,dhw_age_reg_ar,dhw_typ_age_ar,ins_typ_reg_ar,ins_age_reg_ar,ins_typ_age_ar,
-     file = "../Intermediate_results/AR_redn.RData")
+     file = "Intermediate_results/AR_redn.RData")
 
 # save this modified dataframe
-save(rs_ARn,file = "../Intermediate_results/RenAdvanced_EG.RData")
+save(rs_ARn,file = "Intermediate_results/RenAdvanced_EG.RData")
 
 # compare the emissions trajectories with mid-case and LRE GHG intensity, base stock scenario, need to redo the column selections
 # # mid-case elec
@@ -699,46 +657,46 @@ for (b in 1:180000) { # this takes a while, up to 4 hours, it's done once and ca
 
 }
 save(rs_all_ER,file="../Intermediate_results/RenExtElec_full.Rdata")
-# load("../Intermediate_results/RenAdvanced_full.Rdata")
+load("Intermediate_results/RenExtElec_full.Rdata")
 
 # merge with the energy results
 rs_all_ER_res<-rbind(rs2020_sum,rs25ER_sum,rs30ER_sum,rs35ER_sum,rs40ER_sum,rs45ER_sum,rs50ER_sum,rs55ER_sum,rs60ER_sum)
 rs_all_ER_res<-rs_all_ER_res[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,124:129,131,133,135:141,148:200)] # bigger reduced version
 
 rs_ER<-merge(rs_all_ER,rs_all_ER_res)
-rs_ER<-rs_ER[order(rs_ER$Building),]
+rs_ERn<-rs_ER[order(rs_ER$Building),]
 
 # continue from here
 
-# load("../ExtData/ctycode.RData") # from the HSM repo
-# load("../ExtData/GHGI_MidCase.RData") # Elec GHG int data in Mid-Case scenario
-# load("../ExtData/GHGI_LowRECost.RData") # Elec GHG int data in Low RE Cost Scenario
-# ctycode_num<-ctycode
-# ctycode_num$GeoID<-as.numeric(ctycode_num$GeoID)
-# 
-# gicty_rto[gicty_rto$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
-# gicty_rto[gicty_rto$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
-# gicty_rto<-merge(gicty_rto,ctycode_num,by.x="geoid10",by.y="GeoID") #
-# 
-# gicty_rto_yr<-gicty_rto[gicty_rto$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
-# gic<-dcast(gicty_rto_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
-# names(gic)[2:8]<-paste("GHG_int",names(gic)[2:8],sep="_")
-# gic$GHG_int_2055<-0.95* gic$GHG_int_2050
-# gic$GHG_int_2060<-0.95* gic$GHG_int_2055
-# gic[,2:10]<-gic[,2:10]/3600 # convert from kg/MWh to kg/MJ
-# 
-# # do the same process for the Low RE Cost electricity data
-# gicty_rto_LREC[gicty_rto_LREC$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
-# gicty_rto_LREC[gicty_rto_LREC$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
-# gicty_rto_LREC<-merge(gicty_rto_LREC,ctycode_num,by.x="geoid10",by.y="GeoID") #
-# 
-# gicty_rto_LREC_yr<-gicty_rto_LREC[gicty_rto_LREC$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
-# gic_LRE<-dcast(gicty_rto_LREC_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
-# names(gic_LRE)[2:8]<-paste("GHG_int",names(gic_LRE)[2:8],sep="_")
-# gic_LRE$GHG_int_2055<-0.93* gic_LRE$GHG_int_2050 # assume greater decreases in GHGI post-2050 in LREC
-# gic_LRE$GHG_int_2060<-0.9* gic_LRE$GHG_int_2055 # assume greater decreases in GHGI post-2050 in LREC
-# gic_LRE[,2:10]<-gic_LRE[,2:10]/3600 # convert from kg/MWh to kg/MJ
-# names(gic_LRE)[2:10]<-paste(names(gic_LRE)[2:10],"LRE",sep = "_")
+load("ExtData/ctycode.RData") # from the HSM repo
+load("ExtData/GHGI_MidCase.RData") # Elec GHG int data in Mid-Case scenario
+load("ExtData/GHGI_LowRECost.RData") # Elec GHG int data in Low RE Cost Scenario
+ctycode_num<-ctycode
+ctycode_num$GeoID<-as.numeric(ctycode_num$GeoID)
+
+gicty_rto[gicty_rto$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
+gicty_rto[gicty_rto$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
+gicty_rto<-merge(gicty_rto,ctycode_num,by.x="geoid10",by.y="GeoID") #
+
+gicty_rto_yr<-gicty_rto[gicty_rto$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
+gic<-dcast(gicty_rto_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
+names(gic)[2:8]<-paste("GHG_int",names(gic)[2:8],sep="_")
+gic$GHG_int_2055<-0.95* gic$GHG_int_2050
+gic$GHG_int_2060<-0.95* gic$GHG_int_2055
+gic[,2:10]<-gic[,2:10]/3600 # convert from kg/MWh to kg/MJ
+
+# do the same process for the Low RE Cost electricity data
+gicty_rto_LREC[gicty_rto_LREC$geoid10==46113,]$geoid10<-46102 # replace Shannon County SD with Oglala Lakota Cty
+gicty_rto_LREC[gicty_rto_LREC$geoid10==2270,]$geoid10<-2158 # replace Wade Hampton AK with Kusilvak AK
+gicty_rto_LREC<-merge(gicty_rto_LREC,ctycode_num,by.x="geoid10",by.y="GeoID") #
+
+gicty_rto_LREC_yr<-gicty_rto_LREC[gicty_rto_LREC$Year %in% c(2020,2025,2030,2035,2040,2045,2050,2055,2060),] # get only the RS simulation years
+gic_LRE<-dcast(gicty_rto_LREC_yr[,2:4],RS_ID ~ Year,value.var = "GHG_int")
+names(gic_LRE)[2:8]<-paste("GHG_int",names(gic_LRE)[2:8],sep="_")
+gic_LRE$GHG_int_2055<-0.93* gic_LRE$GHG_int_2050 # assume greater decreases in GHGI post-2050 in LREC
+gic_LRE$GHG_int_2060<-0.9* gic_LRE$GHG_int_2055 # assume greater decreases in GHGI post-2050 in LREC
+gic_LRE[,2:10]<-gic_LRE[,2:10]/3600 # convert from kg/MWh to kg/MJ
+names(gic_LRE)[2:10]<-paste(names(gic_LRE)[2:10],"LRE",sep = "_")
 
 # add GHG intensities, Mid-Case
 rs_ERn<-left_join(rs_ERn,gic,by = c("County" = "RS_ID"))
@@ -746,9 +704,9 @@ rs_ERn<-left_join(rs_ERn,gic,by = c("County" = "RS_ID"))
 rs_ERn<-left_join(rs_ERn,gic_LRE,by = c("County" = "RS_ID"))
 
 # calculation total energy and GHG
-# GHGI_FO<-((.07396)+(25*3e-6)+(298*6e-7))/1.055  # intensity for heating oil (DFO #2) in kgCO2eq / MJ
-# GHGI_NG<-((0.05302)+(25*10e-6) + (298*1e-7))/1.055  # intensity for natural gas in kgCO2eq / MJ
-# GHGI_LP<-((.06298)+(25*3e-6)+(298*6e-7))/1.055   # intensity for LPG in kgCO2eq / MJ
+GHGI_FO<-((.07396)+(25*3e-6)+(298*6e-7))/1.055  # intensity for heating oil (DFO #2) in kgCO2eq / MJ
+GHGI_NG<-((0.05302)+(25*10e-6) + (298*1e-7))/1.055  # intensity for natural gas in kgCO2eq / MJ
+GHGI_LP<-((.06298)+(25*3e-6)+(298*6e-7))/1.055   # intensity for LPG in kgCO2eq / MJ
 
 # total energy in GJ
 rs_ERn[,c("Tot_GJ_base_2020",  "Tot_GJ_base_2025","Tot_GJ_base_2030","Tot_GJ_base_2035","Tot_GJ_base_2040","Tot_GJ_base_2045","Tot_GJ_base_2050","Tot_GJ_base_2055","Tot_GJ_base_2060")]<-
@@ -825,10 +783,10 @@ for (k in 1:180000) { print(k) # this will probably take a while, about 3hs
   }
 }
 
-tapply(rs_ERn$redn_cren,rs_ERn$change_cren_only,mean) # 0.3%
-tapply(rs_ERn$redn_iren,rs_ERn$change_iren_only,mean) # 11.5%
-tapply(rs_ERn$redn_wren,rs_ERn$change_wren_only,mean) # 5.1%
-tapply(rs_ERn$redn_hren,rs_ERn$change_hren_only,mean) # 12.6#
+tapply(rs_ERn$redn_cren,rs_ERn$change_cren_only,mean) # 0.2%
+tapply(rs_ERn$redn_iren,rs_ERn$change_iren_only,mean) # 9.8%
+tapply(rs_ERn$redn_wren,rs_ERn$change_wren_only,mean) # 7.2%
+tapply(rs_ERn$redn_hren,rs_ERn$change_hren_only,mean) # 15.1%
 
 tapply(rs_ERn$redn_cren,list(rs_ERn$change_cren_only,rs_ERn$Geometry.Building.Type.RECS), mean) # highest in MH. Negative in MF, 
 tapply(rs_ERn$redn_iren,list(rs_ERn$change_iren_only,rs_ERn$Geometry.Building.Type.RECS), mean) # highest in MF 2-4, followed by SFD
@@ -845,32 +803,35 @@ tapply(rs_ERn$redn_iren,list(rs_ERn$change_iren_only,rs_ERn$Census.Region), mean
 tapply(rs_ERn$redn_wren,list(rs_ERn$change_wren_only,rs_ERn$Census.Region), mean) # highest in the West
 tapply(rs_ERn$redn_hren,list(rs_ERn$change_hren_only,rs_ERn$Census.Region), mean) # highest (15-16%) in MW and NE
 
-heat_typ_reg_ar<-tapply(rs_ERn$redn_hren,list(rs_ERn$change_hren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Census.Region), mean)[2,,] 
-cool_typ_reg_ar<-tapply(rs_ERn$redn_cren,list(rs_ERn$change_cren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Census.Region), mean)[2,,] 
-dhw_typ_reg_ar<-tapply(rs_ERn$redn_wren,list(rs_ERn$change_wren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Census.Region), mean)[2,,] 
-ins_typ_reg_ar<-tapply(rs_ERn$redn_iren,list(rs_ERn$change_iren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Census.Region), mean)[2,,] 
+heat_typ_reg_er<-tapply(rs_ERn$redn_hren,list(rs_ERn$change_hren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Census.Region), mean)[2,,] 
+cool_typ_reg_er<-tapply(rs_ERn$redn_cren,list(rs_ERn$change_cren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Census.Region), mean)[2,,] 
+dhw_typ_reg_er<-tapply(rs_ERn$redn_wren,list(rs_ERn$change_wren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Census.Region), mean)[2,,] 
+ins_typ_reg_er<-tapply(rs_ERn$redn_iren,list(rs_ERn$change_iren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Census.Region), mean)[2,,] 
 
-heat_age_reg_ar<-tapply(rs_ERn$redn_hren,list(rs_ERn$change_hren_only,rs_ERn$Vintage.ACS,rs_ERn$Census.Region), mean)[2,,] 
-cool_age_reg_ar<-tapply(rs_ERn$redn_cren,list(rs_ERn$change_cren_only,rs_ERn$Vintage.ACS,rs_ERn$Census.Region), mean)[2,,] 
-dhw_age_reg_ar<-tapply(rs_ERn$redn_wren,list(rs_ERn$change_wren_only,rs_ERn$Vintage.ACS,rs_ERn$Census.Region), mean)[2,,] 
-ins_age_reg_ar<-tapply(rs_ERn$redn_iren,list(rs_ERn$change_iren_only,rs_ERn$Vintage.ACS,rs_ERn$Census.Region), mean)[2,,] 
+heat_age_reg_er<-tapply(rs_ERn$redn_hren,list(rs_ERn$change_hren_only,rs_ERn$Vintage.ACS,rs_ERn$Census.Region), mean)[2,,] 
+cool_age_reg_er<-tapply(rs_ERn$redn_cren,list(rs_ERn$change_cren_only,rs_ERn$Vintage.ACS,rs_ERn$Census.Region), mean)[2,,] 
+dhw_age_reg_er<-tapply(rs_ERn$redn_wren,list(rs_ERn$change_wren_only,rs_ERn$Vintage.ACS,rs_ERn$Census.Region), mean)[2,,] 
+ins_age_reg_er<-tapply(rs_ERn$redn_iren,list(rs_ERn$change_iren_only,rs_ERn$Vintage.ACS,rs_ERn$Census.Region), mean)[2,,] 
 
-heat_typ_age_ar<-tapply(rs_ERn$redn_hren,list(rs_ERn$change_hren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Vintage.ACS), mean)[2,,] 
-cool_typ_age_ar<-tapply(rs_ERn$redn_cren,list(rs_ERn$change_cren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Vintage.ACS), mean)[2,,] 
-dhw_typ_age_ar<-tapply(rs_ERn$redn_wren,list(rs_ERn$change_wren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Vintage.ACS), mean)[2,,] 
-ins_typ_age_ar<-tapply(rs_ERn$redn_iren,list(rs_ERn$change_iren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Vintage.ACS), mean)[2,,] 
+heat_typ_age_er<-tapply(rs_ERn$redn_hren,list(rs_ERn$change_hren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Vintage.ACS), mean)[2,,] 
+cool_typ_age_er<-tapply(rs_ERn$redn_cren,list(rs_ERn$change_cren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Vintage.ACS), mean)[2,,] 
+dhw_typ_age_er<-tapply(rs_ERn$redn_wren,list(rs_ERn$change_wren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Vintage.ACS), mean)[2,,] 
+ins_typ_age_er<-tapply(rs_ERn$redn_iren,list(rs_ERn$change_iren_only,rs_ERn$Geometry.Building.Type.RECS,rs_ERn$Vintage.ACS), mean)[2,,] 
 
-save(heat_typ_reg_ar,heat_age_reg_ar,heat_typ_age_ar, cool_typ_reg_ar,cool_age_reg_ar,cool_typ_age_ar,dhw_typ_reg_ar,dhw_age_reg_ar,dhw_typ_age_ar,ins_typ_reg_ar,ins_age_reg_ar,ins_typ_age_ar,
-     file = "../Intermediate_results/ER_redn.RData")
+save(heat_typ_reg_er,heat_age_reg_er,heat_typ_age_er, cool_typ_reg_er,cool_age_reg_er,cool_typ_age_er,dhw_typ_reg_er,dhw_age_reg_er,dhw_typ_age_er,ins_typ_reg_er,ins_age_reg_er,ins_typ_age_er,
+     file = "Intermediate_results/ER_redn.RData")
 
 # save this modified dataframe
-save(rs_ERn,file = "../Intermediate_results/RenAdvanced_EG.RData")
+save(rs_ERn,file = "Intermediate_results/RenExtElec_EG.RData")
 
+# this needs redone with all EG files, using the new R final projections
 # Now all Renovation data are calculated, load in projection results ######
-rsbase_base<-read.csv("../Eagle_outputs/res_proj_base.csv")
+# rsbase_base<-read.csv("Eagle_outputs/res_proj_base.csv")
+load("Eagle_outputs/Complete_results/res_base_final.RData")
+rsbase_base<-rsn
 
 # load("../Intermediate_results/agg_bscsv.RData") # should be already loaded if run from beginning
-nce<-read.csv("../../HSM_github/HSM_results/NewConEstimates.csv")
+nce<-read.csv("../HSM_github/HSM_results/NewConEstimates.csv")
 nce<-nce[2:9,]
 names(nce)<-c("Year","base","hiDR","hiMF","hiDRMF")
 nce$Year<-seq(2025,2060,5)
@@ -912,30 +873,12 @@ bs_base_base<-left_join(bs_base_base,sbm,by="ctyTC")
 rsbb_sum<-result_sum(rsbase_base,0)
 rsbb_sum<-rsbb_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,124:129,131,133,135:141,148:200)] # bigger version
 
-# # rs_base<-merge(bs_base_base,rsbase_base) # too big to merge, use cbind.
-# all.equal(rsbb_sum$building_id,bs_base_base$Building) # check if its true
+all.equal(rsbb_sum$building_id,bs_base_base$Building) # check if its true
 rs_base<-merge(bs_base_base,rsbb_sum,by.x = "Building",by.y = "building_id")
 rs_base<-rs_base[,-c(which(names(rs_base) %in% c("Year.y", "Year_Building.y")))]
 names(rs_base)[2:3]<-c("Year_Building","Year")
 
-# modify the failed TX simulations
-
-rs_basef<-rs_base[rs_base$completed_status=="Fail",] # fail
-rs_baser0<-rs_base[rs_base$PUMA=="TX, 02600" & rs_base$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_base$completed_status=="Success",]
-rs_rep<-rs_basef[1,]
-for (rn in 1:nrow(rs_basef)) {
-rs_rep[rn,]<-rs_baser0[rs_baser0$Geometry.Building.Type.RECS==rs_basef$Geometry.Building.Type.RECS[rn] & rs_baser0$Year==rs_basef$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_baser0[rs_baser0$Geometry.Building.Type.RECS==rs_basef$Geometry.Building.Type.RECS[rn] & rs_baser0$Vintage==rs_basef$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_basef[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_base[rs_base$completed_status=="Fail",]<-rs_rep
+# modify the failed TX simulations no longer neccessar
 
 # add GHG intensities, Mid-Case
 rs_base<-left_join(rs_base,gic,by = c("County" = "RS_ID"))
@@ -984,11 +927,11 @@ colSums((rs_base[,185:193]))*1e-9
 mean(rs_base$GHG_int_2040_LRE)
 mean(rs_base$GHG_int_2045_LRE)
 
-save(rs_base,file="../Intermediate_results/rs_base_EG.RData")
+save(rs_base,file="Intermediate_results/rs_base_EG.RData")
 # load("../Intermediate_results/rs_base_EG.RData")
 # now try to merge with the AR/RR files
 
-load("../Intermediate_results/RenStandard_EG.RData")
+load("Intermediate_results/RenStandard_EG.RData")
 
 n1<-names(rs_RRn) # <2020 stock, Reg Ren
 n2<-names(rs_base) # new construction
@@ -1017,7 +960,7 @@ tapply(rs_base_all_RR$EnGHGkg_base_2060,rs_base_all_RR$State,sum)*1e-9
 # biggest reductions in AL, OK, WV, SC, much of this likely populations related
 tapply(rs_base_all_RR$EnGHGkg_base_2060,rs_base_all_RR$State,sum)/tapply(rs_base_all_RR$EnGHGkg_base_2020,rs_base_all_RR$State,sum)
 
-save(rs_base_all_RR,file="../Final_results/res_base_RR.RData")
+save(rs_base_all_RR,file="Final_results/res_base_RR.RData")
 
 load("../Intermediate_results/RenAdvanced_EG.RData")
 

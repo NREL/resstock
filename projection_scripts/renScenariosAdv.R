@@ -77,6 +77,8 @@ pwfuel_all[,"Gas","W"]<-c(0.2,0.8,0,0,0) #   more gas switches to elec
 pwfuel_all[,"Oil","W"]<-c(0.65,0.35,0,0,0) # 
 pwfuel_all[,"Propane","W"]<-c(0.25,0.25,0,0,0.5) # Much more propane becomes electric
 
+write.csv(pfuel_all,"../SI_Tables/pfuel_AR.csv")
+
 # load in heating type and fuel combinations
 # htf<-read_tsv('../resstock/project_national/housing_characteristics/HVAC Heating Type and Fuel.tsv',col_names = TRUE)
 # htf<-htf[1:132,]

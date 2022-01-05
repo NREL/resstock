@@ -33,7 +33,7 @@ htf<-as.data.frame(read_tsv('../project_national_2025_base/housing_characteristi
 htft<-t(htf)
 # adjust the fuel switching probability matrix pfuel_all to slightly reduce chance of switching elec-> oil in NE
 pfuel_all[,"Electricity","NE"]<-c(0.67,0.01,0.24,0.045,0,0.035)
-
+write.csv(pfuel_all,"../SI_Tables/pfuel_RR.csv")
 # define the matrix for wall insulation switching. 
 #wins_types pre-loaded in rencombs
 pwins<-matrix(0,length(wins_types),length(wins_types))
@@ -1366,3 +1366,53 @@ ggplot(cte,aes(x=Year,y=1e-6*Count,fill=AC.Type))+geom_bar(position="stack", sta
   labs(title = "Pre-2020 housing units by AC Type, 2020-2060", y = "Million Housing Units",subtitle = paste(scenario_names[sts], ", Regular Renovation",sep=""))
 
 save(df_base,df_hiDR,hfe_base,hfe_hiDR,ins_base,ins_hiDR,cte_base,cte_hiDR,wfe_base,wfe_hiDR,file="../Intermediate_results/RegRenSummary.RData")
+# new section to estimate m2 of envelope renovations #########
+rm(rs_new)
+l<-ls(pattern = "rs_")
+rs_all<-rs_2020[,-c(115:126)]
+for (a in 2:length(l)) {
+  x<-get(l[a])
+  x<-x[,-c(115:126)]
+  rs_all<-rbind(rs_all,x)
+  rs_all<-distinct(rs_all)}
+rs_env<-rs_all[rs_all$change_iren>0,]
+
+
+# add floor area per each observation in m2
+rs_all$Floor.Area.m2<-0
+rs_all[rs_all$Geometry.Floor.Area=="0-499"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(328/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="0-499"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(317/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="0-499"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(333/10.765,1)
+
+rs_all[rs_all$Geometry.Floor.Area=="500-749"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(633/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="500-749"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(617/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="500-749"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(617/10.765,1)
+
+rs_all[rs_all$Geometry.Floor.Area=="750-999"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(885/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="750-999"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(866/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="750-999"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(853/10.765,1)
+
+rs_all[rs_all$Geometry.Floor.Area=="1000-1499"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1220/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="1000-1499"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1202/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="1000-1499"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(1138/10.765,1)
+
+rs_all[rs_all$Geometry.Floor.Area=="1500-1999"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1690/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="1500-1999"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1675/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="1500-1999"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(1623/10.765,1)
+
+rs_all[rs_all$Geometry.Floor.Area=="2000-2499"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2176/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="2000-2499"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2152/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="2000-2499"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(2115/10.765,1)
+
+rs_all[rs_all$Geometry.Floor.Area=="2500-2999"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2663/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="2500-2999"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2631/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="2500-2999"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(2590/10.765,1)
+
+rs_all[rs_all$Geometry.Floor.Area=="3000-3999"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(3301/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="3000-3999"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(3241/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="3000-3999"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(3138/10.765,1)
+# 4000+. Using my own estimates here, consistent with my changes to options_lookup, but creating different value for MH
+rs_all[rs_all$Geometry.Floor.Area=="4000+"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached"),]$Floor.Area.m2<-round(7500/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="4000+"&rs_all$Geometry.Building.Type.RECS %in% c("Mobile Home"),]$Floor.Area.m2<-round(4200/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="4000+"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(7000/10.765,1)
+rs_all[rs_all$Geometry.Floor.Area=="4000+"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(7000/10.765,1)

@@ -98,7 +98,10 @@ result_sum<-function(rs,yr) {
 }
 
 # load in projection results, base ######
-rsbase_base<-read.csv("../Eagle_outputs/res_proj_base.csv")
+# rsbase_base<-read.csv("../Eagle_outputs/res_proj_base.csv")
+load("../Eagle_outputs/Complete_results/res_base_final.RData")
+rsbase_base<-rsn
+rm(rsn)
 
 # load("../Intermediate_results/agg_bscsv.RData") # should be already loaded if run from beginning
 nce<-read.csv("../../HSM_github/HSM_results/NewConEstimates.csv")
@@ -143,30 +146,12 @@ bs_base_base<-left_join(bs_base_base,sbm,by="ctyTC")
 rsbb_sum<-result_sum(rsbase_base,0)
 rsbb_sum<-rsbb_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,124:129,131,133,135:141,148:200)] # bigger version
 
-# # rs_base<-merge(bs_base_base,rsbase_base) # too big to merge, use cbind.
-# all.equal(rsbb_sum$building_id,bs_base_base$Building) # check if its true
+all.equal(rsbb_sum$building_id,bs_base_base$Building) # check if its true
 rs_base<-merge(bs_base_base,rsbb_sum,by.x = "Building",by.y = "building_id")
 rs_base<-rs_base[,-c(which(names(rs_base) %in% c("Year.y", "Year_Building.y")))]
 names(rs_base)[2:3]<-c("Year_Building","Year")
 
-# modify the failed TX simulations
-
-rs_f<-rs_base[rs_base$completed_status=="Fail",] # fail
-rs_r0<-rs_base[rs_base$PUMA=="TX, 02600" & rs_base$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_base$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_base[rs_base$completed_status=="Fail",]<-rs_rep
+# no need to modify the failed TX simulations
 
 # add GHG intensities, Mid-Case
 rs_base<-left_join(rs_base,gic,by = c("County" = "RS_ID"))
@@ -248,10 +233,10 @@ tapply(rs_base_all_RR$EnGHGkg_base_2060,rs_base_all_RR$State,sum)*1e-9
 tapply(rs_base_all_RR$EnGHGkg_base_2060,rs_base_all_RR$State,sum)/tapply(rs_base_all_RR$EnGHGkg_base_2020,rs_base_all_RR$State,sum)
 
 save(rs_base_all_RR,file="../Final_results/res_base_RR.RData")
-
+# now Advanced Renovation
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
-n1<-names(rs_ARn) # <2020 stock, Reg Ren
+n1<-names(rs_ARn) # <2020 stock, Adv Ren
 n2<-names(rs_base) # new construction
 bdiff<-rs_ARn[,!n1 %in% n2]
 
@@ -265,9 +250,9 @@ tapply(rs_base_all_AR$Tot_MJ_m2,rs_base_all_AR$Vintage,mean)/3.6
 tapply(rs_base_all_AR$Tot_MJ_m2,list(rs_base_all_AR$Vintage,rs_base_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_base_all_AR[,176:184])*1e-9 # 421 in 2050
+colSums(rs_base_all_AR[,176:184])*1e-9 # 429 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_base_all_AR[,185:193])*1e-9 # 296 in 2050
+colSums(rs_base_all_AR[,185:193])*1e-9 # 299 in 2050
 
 # example of calculation state level emissions in one year
 tapply(rs_base_all_AR$EnGHGkg_base_2020,rs_base_all_AR$State,sum)*1e-9
@@ -277,8 +262,34 @@ tapply(rs_base_all_AR$EnGHGkg_base_2060,rs_base_all_AR$State,sum)/tapply(rs_base
 
 save(rs_base_all_AR,file="../Final_results/res_base_AR.RData")
 
+# now Extensive Renovation
+load("../Intermediate_results/RenExtElec_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, Ext Ren
+n2<-names(rs_base) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_base_all_ER<-bind_rows(rs_ERn,rs_base)
+
+rs_base_all_ER<-rs_base_all_ER[,names(rs_base_all_ER) %in% names(rs_base)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_base_all_ER$Tot_MJ_m2,rs_base_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_base_all_ER$Tot_MJ_m2,list(rs_base_all_ER$Vintage,rs_base_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_base_all_ER[,176:184])*1e-9 # 356 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_base_all_ER[,185:193])*1e-9 # 206 in 2050
+
+save(rs_base_all_ER,file="../Final_results/res_base_ER.RData")
+
 # load in projection results, base DE ######
-rsbase_DE<-read.csv("../Eagle_outputs/res_proj_baseDE.csv")
+# rsbase_DE<-read.csv("../Eagle_outputs/res_proj_baseDE.csv")
+load("../Eagle_outputs/Complete_results/res_baseDE_final.RData")
+rsbase_DE<-rsn
+rm(rsn)
 
 # load("../Intermediate_results/agg_bscsv.RData") # should be already loaded if run from beginning
 nce<-read.csv("../../HSM_github/HSM_results/NewConEstimates.csv")
@@ -323,30 +334,10 @@ bs_base_DE<-left_join(bs_base_DE,sbm,by="ctyTC")
 rsbDE_sum<-result_sum(rsbase_DE,0)
 rsbDE_sum<-rsbDE_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,124:129,131,133,135:141,148:200)] # bigger version
 
-# # rs_base<-merge(bs_base_DE,rsbase_DE) # too big to merge, use cbind.
-# all.equal(rsbDE_sum$building_id,bs_base_DE$Building) # check if its true
+all.equal(rsbDE_sum$building_id,bs_base_DE$Building) # check if its true
 rs_baseDE<-merge(bs_base_DE,rsbDE_sum,by.x = "Building",by.y = "building_id")
 rs_baseDE<-rs_baseDE[,-c(which(names(rs_baseDE) %in% c("Year.y", "Year_Building.y")))]
 names(rs_baseDE)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_baseDE[rs_baseDE$completed_status=="Fail",] # fail
-rs_r0<-rs_baseDE[rs_baseDE$PUMA=="TX, 02600" & rs_baseDE$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_baseDE$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_baseDE[rs_baseDE$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_baseDE<-left_join(rs_baseDE,gic,by = c("County" = "RS_ID"))
@@ -386,7 +377,7 @@ tapply(rs_baseDE$Tot_MJ_m2,rs_baseDE$Year,mean)
 tapply(rs_baseDE$Tot_MJ_m2,rs_baseDE$Year,mean)/3.6
 
 # total GHG emissions from NC 2025-2060 in Mid-Case
-colSums((rs_baseDE[,176:184]))*1e-9
+colSums((rs_baseDE[,176:184]))*1e-9 # 107 in 2050
 
 # total GHG emissions from NC 2025-2060 in LRE scenario. I was a bit confused about this, but I think the reduction between 2040-2045 is from reductions in GHGI of elec, which outweigh the stock growth
 colSums((rs_baseDE[,185:193]))*1e-9
@@ -417,21 +408,15 @@ tapply(rs_baseDE_all_RR$Tot_MJ_m2,rs_baseDE_all_RR$Vintage,mean)/3.6
 tapply(rs_baseDE_all_RR$Tot_MJ_m2,list(rs_baseDE_all_RR$Vintage,rs_baseDE_all_RR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_baseDE_all_RR[,176:184])*1e-9 # # 461 in 2050
+colSums(rs_baseDE_all_RR[,176:184])*1e-9 # # 462 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LRE elec
-colSums(rs_baseDE_all_RR[,185:193])*1e-9 # # 329 in 2050
-
-# example of calculation state level emissions in one year
-tapply(rs_baseDE_all_RR$EnGHGkg_base_2020,rs_baseDE_all_RR$State,sum)*1e-9 
-tapply(rs_baseDE_all_RR$EnGHGkg_base_2060,rs_baseDE_all_RR$State,sum)*1e-9 
-# biggest reductions in AL, OK, WV, SC, much of this likely populations related
-tapply(rs_baseDE_all_RR$EnGHGkg_base_2060,rs_baseDE_all_RR$State,sum)/tapply(rs_baseDE_all_RR$EnGHGkg_base_2020,rs_baseDE_all_RR$State,sum)
+colSums(rs_baseDE_all_RR[,185:193])*1e-9 # # 330 in 2050
 
 save(rs_baseDE_all_RR,file="../Final_results/res_baseDE_RR.RData")
-
+# now advanced renovation
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
-n1<-names(rs_ARn) # <2020 stock, Reg Ren
+n1<-names(rs_ARn) # <2020 stock, Adv Ren
 n2<-names(rs_baseDE) # new construction
 bdiff<-rs_ARn[,!n1 %in% n2]
 
@@ -445,21 +430,40 @@ tapply(rs_baseDE_all_AR$Tot_MJ_m2,rs_baseDE_all_AR$Vintage,mean)/3.6
 tapply(rs_baseDE_all_AR$Tot_MJ_m2,list(rs_baseDE_all_AR$Vintage,rs_baseDE_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_baseDE_all_AR[,176:184])*1e-9 # 402 in 2050
+colSums(rs_baseDE_all_AR[,176:184])*1e-9 # 410 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_baseDE_all_AR[,185:193])*1e-9 # 270 IN 2050
-
-# example of calculation state level emissions in one year
-tapply(rs_baseDE_all_AR$EnGHGkg_base_2020,rs_baseDE_all_AR$State,sum)*1e-9
-tapply(rs_baseDE_all_AR$EnGHGkg_base_2060,rs_baseDE_all_AR$State,sum)*1e-9
-# biggest reductions in AL, OK, WV, SC, much of this likely populations related
-tapply(rs_baseDE_all_AR$EnGHGkg_base_2060,rs_baseDE_all_AR$State,sum)/tapply(rs_baseDE_all_AR$EnGHGkg_base_2020,rs_baseDE_all_AR$State,sum)
+colSums(rs_baseDE_all_AR[,185:193])*1e-9 # 274 IN 2050
 
 save(rs_baseDE_all_AR,file="../Final_results/res_baseDE_AR.RData")
+# now ext renovation
+load("../Intermediate_results/RenExtElec_EG.RData")
 
+n1<-names(rs_ERn) # <2020 stock, Adv Ren
+n2<-names(rs_baseDE) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_baseDE_all_ER<-bind_rows(rs_ERn,rs_baseDE)
+
+rs_baseDE_all_ER<-rs_baseDE_all_ER[,names(rs_baseDE_all_ER) %in% names(rs_baseDE)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_baseDE_all_ER$Tot_MJ_m2,rs_baseDE_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_baseDE_all_ER$Tot_MJ_m2,list(rs_baseDE_all_ER$Vintage,rs_baseDE_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_baseDE_all_ER[,176:184])*1e-9 # 338 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_baseDE_all_ER[,185:193])*1e-9 # 181 IN 2050
+
+save(rs_baseDE_all_ER,file="../Final_results/res_baseDE_ER.RData")
 
 # load in projection results, base RFA ######
-rsbase_RFA<-read.csv("../Eagle_outputs/res_proj_baseRFA.csv")
+# rsbase_RFA<-read.csv("../Eagle_outputs/res_proj_baseRFA.csv")
+load("../Eagle_outputs/Complete_results/res_baseRFA_final.RData")
+rsbase_RFA<-rsn
+rm(rsn)
+
 
 # load("../Intermediate_results/agg_bscsv.RData") # should be already loaded if run from beginning
 nce<-read.csv("../../HSM_github/HSM_results/NewConEstimates.csv")
@@ -504,30 +508,10 @@ bs_base_RFA<-left_join(bs_base_RFA,sbm,by="ctyTC")
 rsbRFA_sum<-result_sum(rsbase_RFA,0)
 rsbRFA_sum<-rsbRFA_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,124:129,131,133,135:141,148:200)] # bigger version
 
-# # rs_base<-merge(bs_base_RFA,rsbase_RFA) # too big to merge, use cbind.
-# all.equal(rsbRFA_sum$building_id,bs_base_RFA$Building) # check if its true
+all.equal(rsbRFA_sum$building_id,bs_base_RFA$Building) # check if its true
 rs_baseRFA<-merge(bs_base_RFA,rsbRFA_sum,by.x = "Building",by.y = "building_id")
 rs_baseRFA<-rs_baseRFA[,-c(which(names(rs_baseRFA) %in% c("Year.y", "Year_Building.y")))]
 names(rs_baseRFA)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_baseRFA[rs_baseRFA$completed_status=="Fail",] # fail
-rs_r0<-rs_baseRFA[rs_baseRFA$PUMA=="TX, 02600" & rs_baseRFA$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_baseRFA$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_baseRFA[rs_baseRFA$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_baseRFA<-left_join(rs_baseRFA,gic,by = c("County" = "RS_ID"))
@@ -598,21 +582,15 @@ tapply(rs_baseRFA_all_RR$Tot_MJ_m2,rs_baseRFA_all_RR$Vintage,mean)/3.6
 tapply(rs_baseRFA_all_RR$Tot_MJ_m2,list(rs_baseRFA_all_RR$Vintage,rs_baseRFA_all_RR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_baseRFA_all_RR[,176:184])*1e-9 # 467 in 2050
+colSums(rs_baseRFA_all_RR[,176:184])*1e-9 # 468 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LRE elec
-colSums(rs_baseRFA_all_RR[,185:193])*1e-9 # 346 in 2050
-
-# example of calculation state level emissions in one year
-# tapply(rs_baseRFA_all_RR$EnGHGkg_base_2020,rs_baseRFA_all_RR$State,sum)*1e-9 # 
-# tapply(rs_baseRFA_all_RR$EnGHGkg_base_2060,rs_baseRFA_all_RR$State,sum)*1e-9 # 
-# # biggest reductions in AL, OK, WV, SC, much of this likely populations related
-# tapply(rs_baseRFA_all_RR$EnGHGkg_base_2060,rs_baseRFA_all_RR$State,sum)/tapply(rs_baseRFA_all_RR$EnGHGkg_base_2020,rs_baseRFA_all_RR$State,sum)
+colSums(rs_baseRFA_all_RR[,185:193])*1e-9 # 347 in 2050
 
 save(rs_baseRFA_all_RR,file="../Final_results/res_baseRFA_RR.RData")
-
+# now advanced renovation
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
-n1<-names(rs_ARn) # <2020 stock, Reg Ren
+n1<-names(rs_ARn) # <2020 stock, Adv Ren
 n2<-names(rs_baseRFA) # new construction
 bdiff<-rs_ARn[,!n1 %in% n2]
 
@@ -626,21 +604,40 @@ tapply(rs_baseRFA_all_AR$Tot_MJ_m2,rs_baseRFA_all_AR$Vintage,mean)/3.6
 tapply(rs_baseRFA_all_AR$Tot_MJ_m2,list(rs_baseRFA_all_AR$Vintage,rs_baseRFA_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_baseRFA_all_AR[,176:184])*1e-9 # 408 in 2050
+colSums(rs_baseRFA_all_AR[,176:184])*1e-9 # 417 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_baseRFA_all_AR[,185:193])*1e-9 # 287 in 2050
-
-# # example of calculation state level emissions in one year
-# tapply(rs_baseRFA_all_AR$EnGHGkg_base_2020,rs_baseRFA_all_AR$State,sum)*1e-9
-# tapply(rs_baseRFA_all_AR$EnGHGkg_base_2060,rs_baseRFA_all_AR$State,sum)*1e-9
-# # biggest reductions in AL, OK, WV, SC, much of this likely populations related
-# tapply(rs_baseRFA_all_AR$EnGHGkg_base_2060,rs_baseRFA_all_AR$State,sum)/tapply(rs_baseRFA_all_AR$EnGHGkg_base_2020,rs_baseRFA_all_AR$State,sum)
+colSums(rs_baseRFA_all_AR[,185:193])*1e-9 # 290 in 2050
 
 save(rs_baseRFA_all_AR,file="../Final_results/res_baseRFA_AR.RData")
 
+# now extensive renovation
+load("../Intermediate_results/RenExtElec_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, Adv Ren
+n2<-names(rs_baseRFA) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_baseRFA_all_ER<-bind_rows(rs_ERn,rs_baseRFA)
+
+rs_baseRFA_all_ER<-rs_baseRFA_all_ER[,names(rs_baseRFA_all_ER) %in% names(rs_baseRFA)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_baseRFA_all_ER$Tot_MJ_m2,rs_baseRFA_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_baseRFA_all_ER$Tot_MJ_m2,list(rs_baseRFA_all_ER$Vintage,rs_baseRFA_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_baseRFA_all_ER[,176:184])*1e-9 # 344 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_baseRFA_all_ER[,185:193])*1e-9 # 197 in 2050
+
+save(rs_baseRFA_all_ER,file="../Final_results/res_baseRFA_ER.RData")
 
 # load in projection results, base DERFA ######
-rsbase_DERFA<-read.csv("../Eagle_outputs/res_proj_baseDERFA.csv")
+# rsbase_DERFA<-read.csv("../Eagle_outputs/res_proj_baseDERFA.csv")
+load("../Eagle_outputs/Complete_results/res_baseDERFA_final.RData")
+rsbase_DERFA<-rsn
+rm(rsn)
 
 # load("../Intermediate_results/agg_bscsv.RData") # should be already loaded if run from beginning
 nce<-read.csv("../../HSM_github/HSM_results/NewConEstimates.csv")
@@ -687,25 +684,6 @@ rsbDERFA_sum<-rsbDERFA_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:
 rs_baseDERFA<-merge(bs_base_DERFA,rsbDERFA_sum,by.x = "Building",by.y = "building_id")
 rs_baseDERFA<-rs_baseDERFA[,-c(which(names(rs_baseDERFA) %in% c("Year.y", "Year_Building.y")))]
 names(rs_baseDERFA)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_baseDERFA[rs_baseDERFA$completed_status=="Fail",] # fail
-rs_r0<-rs_baseDERFA[rs_baseDERFA$PUMA=="TX, 02600" & rs_baseDERFA$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_baseDERFA$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_baseDERFA[rs_baseDERFA$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_baseDERFA<-left_join(rs_baseDERFA,gic,by = c("County" = "RS_ID"))
@@ -776,15 +754,15 @@ tapply(rs_baseDERFA_all_RR$Tot_MJ_m2,rs_baseDERFA_all_RR$Vintage,mean)/3.6
 tapply(rs_baseDERFA_all_RR$Tot_MJ_m2,list(rs_baseDERFA_all_RR$Vintage,rs_baseDERFA_all_RR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_baseDERFA_all_RR[,176:184])*1e-9 # 450 in 2050
+colSums(rs_baseDERFA_all_RR[,176:184])*1e-9 # 451 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LRE elec
 colSums(rs_baseDERFA_all_RR[,185:193])*1e-9 # 324 in 2050
 
 save(rs_baseDERFA_all_RR,file="../Final_results/res_baseDERFA_RR.RData")
-
+# now advanced renovation
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
-n1<-names(rs_ARn) # <2020 stock, Reg Ren
+n1<-names(rs_ARn) # <2020 stock, Adv Ren
 n2<-names(rs_baseDERFA) # new construction
 bdiff<-rs_ARn[,!n1 %in% n2]
 
@@ -798,17 +776,41 @@ tapply(rs_baseDERFA_all_AR$Tot_MJ_m2,rs_baseDERFA_all_AR$Vintage,mean)/3.6
 tapply(rs_baseDERFA_all_AR$Tot_MJ_m2,list(rs_baseDERFA_all_AR$Vintage,rs_baseDERFA_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_baseDERFA_all_AR[,176:184])*1e-9 # 392 in 2050
+colSums(rs_baseDERFA_all_AR[,176:184])*1e-9 # 400 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_baseDERFA_all_AR[,185:193])*1e-9 # 264 in 2050
+colSums(rs_baseDERFA_all_AR[,185:193])*1e-9 # 268 in 2050
 
 save(rs_baseDERFA_all_AR,file="../Final_results/res_baseDERFA_AR.RData")
+# now extended renovation
+load("../Intermediate_results/RenExtElec_EG.RData")
 
+n1<-names(rs_ERn) # <2020 stock, Adv Ren
+n2<-names(rs_baseDERFA) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_baseDERFA_all_ER<-bind_rows(rs_ERn,rs_baseDERFA)
+
+rs_baseDERFA_all_ER<-rs_baseDERFA_all_ER[,names(rs_baseDERFA_all_ER) %in% names(rs_baseDERFA)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_baseDERFA_all_ER$Tot_MJ_m2,rs_baseDERFA_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_baseDERFA_all_ER$Tot_MJ_m2,list(rs_baseDERFA_all_ER$Vintage,rs_baseDERFA_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_baseDERFA_all_ER[,176:184])*1e-9 # 327 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_baseDERFA_all_ER[,185:193])*1e-9 # 175 in 2050
+
+save(rs_baseDERFA_all_ER,file="../Final_results/res_baseDERFA_ER.RData")
 
 # replicate all of base with the hiDR scenarios
 
 # load in projection results, hiDR ######
-rshiDR_base<-read.csv("../Eagle_outputs/res_proj_hiDR.csv")
+# rshiDR_base<-read.csv("../Eagle_outputs/res_proj_hiDR.csv")
+load("../Eagle_outputs/Complete_results/res_hiDR_final.RData")
+rshiDR_base<-rsn
+rm(rsn)
 
 bs_hiDR_base<-bs_hiDR_all[bs_hiDR_all$scen=="hiDR",]
 bs_hiDR_base$Year<-bs_hiDR_base$sim_year
@@ -850,25 +852,6 @@ rshdrb_sum<-rshdrb_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,
 rs_hiDR<-merge(bs_hiDR_base,rshdrb_sum,by.x = "Building",by.y = "building_id")
 rs_hiDR<-rs_hiDR[,-c(which(names(rs_hiDR) %in% c("Year.y", "Year_Building.y")))]
 names(rs_hiDR)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_hiDR[rs_hiDR$completed_status=="Fail",] # fail
-rs_r0<-rs_hiDR[rs_hiDR$PUMA=="TX, 02600" & rs_hiDR$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_hiDR$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_hiDR[rs_hiDR$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_hiDR<-left_join(rs_hiDR,gic,by = c("County" = "RS_ID"))
@@ -939,12 +922,12 @@ tapply(rs_hiDR_all_RR$Tot_MJ_m2,rs_hiDR_all_RR$Vintage,mean)/3.6
 tapply(rs_hiDR_all_RR$Tot_MJ_m2,list(rs_hiDR_all_RR$Vintage,rs_hiDR_all_RR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiDR_all_RR[,176:184])*1e-9 # 469 in 2050
+colSums(rs_hiDR_all_RR[,176:184])*1e-9 # 470 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LRE elec
-colSums(rs_hiDR_all_RR[,185:193])*1e-9 # 345 in 2050
+colSums(rs_hiDR_all_RR[,185:193])*1e-9 # 346 in 2050
 
 save(rs_hiDR_all_RR,file="../Final_results/res_hiDR_RR.RData")
-
+# now advanced renovation
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
 n1<-names(rs_ARn) # <2020 stock, Reg Ren
@@ -961,14 +944,40 @@ tapply(rs_hiDR_all_AR$Tot_MJ_m2,rs_hiDR_all_AR$Vintage,mean)/3.6
 tapply(rs_hiDR_all_AR$Tot_MJ_m2,list(rs_hiDR_all_AR$Vintage,rs_hiDR_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiDR_all_AR[,176:184])*1e-9 # 416 in 2050
+colSums(rs_hiDR_all_AR[,176:184])*1e-9 # 424 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_hiDR_all_AR[,185:193])*1e-9 # 291 in 2050
+colSums(rs_hiDR_all_AR[,185:193])*1e-9 # 295 in 2050
 
 save(rs_hiDR_all_AR,file="../Final_results/res_hiDR_AR.RData")
 
+# now extensive renovation
+load("../Intermediate_results/RenExtElec_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, Reg Ren
+n2<-names(rs_hiDR) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_hiDR_all_ER<-bind_rows(rs_ERn,rs_hiDR)
+
+rs_hiDR_all_ER<-rs_hiDR_all_ER[,names(rs_hiDR_all_ER) %in% names(rs_hiDR)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_hiDR_all_ER$Tot_MJ_m2,rs_hiDR_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_hiDR_all_ER$Tot_MJ_m2,list(rs_hiDR_all_ER$Vintage,rs_hiDR_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_hiDR_all_ER[,176:184])*1e-9 # 358 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_hiDR_all_ER[,185:193])*1e-9 # 210 in 2050
+
+save(rs_hiDR_all_ER,file="../Final_results/res_hiDR_ER.RData")
+
 # load in projection results, hiDRRFA ######
-rshiDR_RFA<-read.csv("../Eagle_outputs/res_proj_hiDRRFA.csv")
+# rshiDR_RFA<-read.csv("../Eagle_outputs/res_proj_hiDRRFA.csv")
+load("../Eagle_outputs/Complete_results/res_hiDRRFA_final.RData")
+rshiDR_RFA<-rsn
+rm(rsn)
 
 bs_hiDR_RFA<-bs_hiDR_all[bs_hiDR_all$scen=="hiDRRFA",]
 bs_hiDR_RFA$Year<-bs_hiDR_RFA$sim_year
@@ -1010,25 +1019,6 @@ rshdrRFA_sum<-rshdrRFA_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:
 rs_hiDRRFA<-merge(bs_hiDR_RFA,rshdrRFA_sum,by.x = "Building",by.y = "building_id")
 rs_hiDRRFA<-rs_hiDRRFA[,-c(which(names(rs_hiDRRFA) %in% c("Year.y", "Year_Building.y")))]
 names(rs_hiDRRFA)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_hiDRRFA[rs_hiDRRFA$completed_status=="Fail",] # fail
-rs_r0<-rs_hiDRRFA[rs_hiDRRFA$PUMA=="TX, 02600" & rs_hiDRRFA$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_hiDRRFA$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_hiDRRFA[rs_hiDRRFA$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_hiDRRFA<-left_join(rs_hiDRRFA,gic,by = c("County" = "RS_ID"))
@@ -1098,10 +1088,10 @@ tapply(rs_hiDRRFA_all_RR$Tot_MJ_m2,list(rs_hiDRRFA_all_RR$Vintage,rs_hiDRRFA_all
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
 colSums(rs_hiDRRFA_all_RR[,176:184])*1e-9 # 454 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LRE elec
-colSums(rs_hiDRRFA_all_RR[,185:193])*1e-9 # 334 in 2050
+colSums(rs_hiDRRFA_all_RR[,185:193])*1e-9 # 335 in 2050
 
 save(rs_hiDRRFA_all_RR,file="../Final_results/res_hiDRRFA_RR.RData")
-
+# now advanced renovation
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
 n1<-names(rs_ARn) # <2020 stock, Reg Ren
@@ -1118,14 +1108,39 @@ tapply(rs_hiDRRFA_all_AR$Tot_MJ_m2,rs_hiDRRFA_all_AR$Vintage,mean)/3.6
 tapply(rs_hiDRRFA_all_AR$Tot_MJ_m2,list(rs_hiDRRFA_all_AR$Vintage,rs_hiDRRFA_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiDRRFA_all_AR[,176:184])*1e-9 # 401 in 2050
+colSums(rs_hiDRRFA_all_AR[,176:184])*1e-9 # 408 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_hiDRRFA_all_AR[,185:193])*1e-9 # 281 in 2050
+colSums(rs_hiDRRFA_all_AR[,185:193])*1e-9 # 284 in 2050
 
 save(rs_hiDRRFA_all_AR,file="../Final_results/res_hiDRRFA_AR.RData")
+# now extensive renovation
+load("../Intermediate_results/RenExtElec_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, EE Ren
+n2<-names(rs_hiDRRFA) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_hiDRRFA_all_ER<-bind_rows(rs_ERn,rs_hiDRRFA)
+
+rs_hiDRRFA_all_ER<-rs_hiDRRFA_all_ER[,names(rs_hiDRRFA_all_ER) %in% names(rs_hiDRRFA)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_hiDRRFA_all_ER$Tot_MJ_m2,rs_hiDRRFA_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_hiDRRFA_all_ER$Tot_MJ_m2,list(rs_hiDRRFA_all_ER$Vintage,rs_hiDRRFA_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_hiDRRFA_all_ER[,176:184])*1e-9 # 342 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_hiDRRFA_all_ER[,185:193])*1e-9 # 199 in 2050
+
+save(rs_hiDRRFA_all_ER,file="../Final_results/res_hiDRRFA_ER.RData")
 
 # load in projection results, hiDRDE ######
-rshiDR_DE<-read.csv("../Eagle_outputs/res_proj_hiDRDE.csv")
+# rshiDR_DE<-read.csv("../Eagle_outputs/res_proj_hiDRDE.csv")
+load("../Eagle_outputs/Complete_results/res_hiDRDE_final.RData")
+rshiDR_DE<-rsn
+rm(rsn)
 
 bs_hiDR_DE<-bs_hiDR_all[bs_hiDR_all$scen=="hiDRDE",]
 bs_hiDR_DE$Year<-bs_hiDR_DE$sim_year
@@ -1167,25 +1182,6 @@ rshdrDE_sum<-rshdrDE_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:12
 rs_hiDRDE<-merge(bs_hiDR_DE,rshdrDE_sum,by.x = "Building",by.y = "building_id")
 rs_hiDRDE<-rs_hiDRDE[,-c(which(names(rs_hiDRDE) %in% c("Year.y", "Year_Building.y")))]
 names(rs_hiDRDE)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_hiDRDE[rs_hiDRDE$completed_status=="Fail",] # fail
-rs_r0<-rs_hiDRDE[rs_hiDRDE$PUMA=="TX, 02600" & rs_hiDRDE$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_hiDRDE$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_hiDRDE[rs_hiDRDE$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_hiDRDE<-left_join(rs_hiDRDE,gic,by = c("County" = "RS_ID"))
@@ -1258,10 +1254,10 @@ colSums(rs_hiDRDE_all_RR[,176:184])*1e-9 # 447 in 2050
 colSums(rs_hiDRDE_all_RR[,185:193])*1e-9 # 315 in 2050
 
 save(rs_hiDRDE_all_RR,file="../Final_results/res_hiDRDE_RR.RData")
-
+# now advanced ren
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
-n1<-names(rs_ARn) # <2020 stock, Reg Ren
+n1<-names(rs_ARn) # <2020 stock, Adv Ren
 n2<-names(rs_hiDRDE) # new construction
 bdiff<-rs_ARn[,!n1 %in% n2]
 
@@ -1275,14 +1271,40 @@ tapply(rs_hiDRDE_all_AR$Tot_MJ_m2,rs_hiDRDE_all_AR$Vintage,mean)/3.6
 tapply(rs_hiDRDE_all_AR$Tot_MJ_m2,list(rs_hiDRDE_all_AR$Vintage,rs_hiDRDE_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiDRDE_all_AR[,176:184])*1e-9 # 394 in 2050
+colSums(rs_hiDRDE_all_AR[,176:184])*1e-9 # 401 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_hiDRDE_all_AR[,185:193])*1e-9 # 261 in 2050
+colSums(rs_hiDRDE_all_AR[,185:193])*1e-9 # 264 in 2050
 
 save(rs_hiDRDE_all_AR,file="../Final_results/res_hiDRDE_AR.RData")
 
+# now extensive ren
+load("../Intermediate_results/RenAdvanced_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, Ext Ren
+n2<-names(rs_hiDRDE) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_hiDRDE_all_ER<-bind_rows(rs_ERn,rs_hiDRDE)
+
+rs_hiDRDE_all_ER<-rs_hiDRDE_all_ER[,names(rs_hiDRDE_all_ER) %in% names(rs_hiDRDE)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_hiDRDE_all_ER$Tot_MJ_m2,rs_hiDRDE_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_hiDRDE_all_ER$Tot_MJ_m2,list(rs_hiDRDE_all_ER$Vintage,rs_hiDRDE_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_hiDRDE_all_ER[,176:184])*1e-9 # 335 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_hiDRDE_all_ER[,185:193])*1e-9 # 179 in 2050
+
+save(rs_hiDRDE_all_ER,file="../Final_results/res_hiDRDE_ER.RData")
+
 # load in projection results, hiDRDERFA ######
-rshiDR_DERFA<-read.csv("../Eagle_outputs/res_proj_hiDRDERFA.csv")
+# rshiDR_DERFA<-read.csv("../Eagle_outputs/res_proj_hiDRDERFA.csv")
+load("../Eagle_outputs/Complete_results/res_hiDRDERFA_final.RData")
+rshiDR_DERFA<-rsn
+rm(rsn)
 
 bs_hiDR_DERFA<-bs_hiDR_all[bs_hiDR_all$scen=="hiDRDERFA",]
 bs_hiDR_DERFA$Year<-bs_hiDR_DERFA$sim_year
@@ -1324,25 +1346,6 @@ rshdrDERFA_sum<-rshdrDERFA_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,
 rs_hiDRDERFA<-merge(bs_hiDR_DERFA,rshdrDERFA_sum,by.x = "Building",by.y = "building_id")
 rs_hiDRDERFA<-rs_hiDRDERFA[,-c(which(names(rs_hiDRDERFA) %in% c("Year.y", "Year_Building.y")))]
 names(rs_hiDRDERFA)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_hiDRDERFA[rs_hiDRDERFA$completed_status=="Fail",] # fail
-rs_r0<-rs_hiDRDERFA[rs_hiDRDERFA$PUMA=="TX, 02600" & rs_hiDRDERFA$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_hiDRDERFA$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_hiDRDERFA[rs_hiDRDERFA$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_hiDRDERFA<-left_join(rs_hiDRDERFA,gic,by = c("County" = "RS_ID"))
@@ -1412,10 +1415,10 @@ tapply(rs_hiDRDERFA_all_RR$Tot_MJ_m2,list(rs_hiDRDERFA_all_RR$Vintage,rs_hiDRDER
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
 colSums(rs_hiDRDERFA_all_RR[,176:184])*1e-9 # 434 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LRE elec
-colSums(rs_hiDRDERFA_all_RR[,185:193])*1e-9 # 307 in 2050
+colSums(rs_hiDRDERFA_all_RR[,185:193])*1e-9 # 308 in 2050
 
 save(rs_hiDRDERFA_all_RR,file="../Final_results/res_hiDRDERFA_RR.RData")
-
+# now advanced ren
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
 n1<-names(rs_ARn) # <2020 stock, Reg Ren
@@ -1432,15 +1435,41 @@ tapply(rs_hiDRDERFA_all_AR$Tot_MJ_m2,rs_hiDRDERFA_all_AR$Vintage,mean)/3.6
 tapply(rs_hiDRDERFA_all_AR$Tot_MJ_m2,list(rs_hiDRDERFA_all_AR$Vintage,rs_hiDRDERFA_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiDRDERFA_all_AR[,176:184])*1e-9 # 381 in 2050
+colSums(rs_hiDRDERFA_all_AR[,176:184])*1e-9 # 388 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_hiDRDERFA_all_AR[,185:193])*1e-9 # 254 in 2050
+colSums(rs_hiDRDERFA_all_AR[,185:193])*1e-9 # 257 in 2050
 
 save(rs_hiDRDERFA_all_AR,file="../Final_results/res_hiDRDERFA_AR.RData")
 
+# now extensive ren
+load("../Intermediate_results/RenExtElec_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, Reg Ren
+n2<-names(rs_hiDRDERFA) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_hiDRDERFA_all_ER<-bind_rows(rs_ERn,rs_hiDRDERFA)
+
+rs_hiDRDERFA_all_ER<-rs_hiDRDERFA_all_ER[,names(rs_hiDRDERFA_all_ER) %in% names(rs_hiDRDERFA)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_hiDRDERFA_all_ER$Tot_MJ_m2,rs_hiDRDERFA_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_hiDRDERFA_all_ER$Tot_MJ_m2,list(rs_hiDRDERFA_all_ER$Vintage,rs_hiDRDERFA_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_hiDRDERFA_all_ER[,176:184])*1e-9 # 322 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_hiDRDERFA_all_ER[,185:193])*1e-9 # 172 in 2050
+
+save(rs_hiDRDERFA_all_ER,file="../Final_results/res_hiDRDERFA_ER.RData")
+
 # finally the hi MF scenarios #############
 # load in projection results, hiDR ######
-rshiMF_base<-read.csv("../Eagle_outputs/res_proj_hiMF.csv")
+# rshiMF_base<-read.csv("../Eagle_outputs/res_proj_hiMF.csv")
+load("../Eagle_outputs/Complete_results/res_hiMF_final.RData")
+rshiMF_base<-rsn
+rm(rsn)
 
 bs_hiMF_base<-bs_hiMF_all[bs_hiMF_all$scen=="hiMF",]
 bs_hiMF_base$Year<-bs_hiMF_base$sim_year
@@ -1482,30 +1511,6 @@ rshmfb_sum<-rshmfb_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:122,
 rs_hiMF<-merge(bs_hiMF_base,rshmfb_sum,by.x = "Building",by.y = "building_id")
 rs_hiMF<-rs_hiMF[,-c(which(names(rs_hiMF) %in% c("Year.y", "Year_Building.y")))]
 names(rs_hiMF)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_hiMF[rs_hiMF$completed_status=="Fail",] # fail
-rs_r0<-rs_hiMF[rs_hiMF$PUMA=="TX, 02600" & rs_hiMF$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_hiMF$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# if any of these still fail to find a match, try to match on type alone
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] ,][1,]
-}
-
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_hiMF[rs_hiMF$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_hiMF<-left_join(rs_hiMF,gic,by = c("County" = "RS_ID"))
@@ -1581,10 +1586,10 @@ colSums(rs_hiMF_all_RR[,176:184])*1e-9 # 465 in 2050
 colSums(rs_hiMF_all_RR[,185:193])*1e-9 # 344 in 2050
 
 save(rs_hiMF_all_RR,file="../Final_results/res_hiMF_RR.RData")
-
+# now advanced ren
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
-n1<-names(rs_ARn) # <2020 stock, Reg Ren
+n1<-names(rs_ARn) # <2020 stock, Adv Ren
 n2<-names(rs_hiMF) # new construction
 bdiff<-rs_ARn[,!n1 %in% n2]
 
@@ -1598,14 +1603,40 @@ tapply(rs_hiMF_all_AR$Tot_MJ_m2,rs_hiMF_all_AR$Vintage,mean)/3.6
 tapply(rs_hiMF_all_AR$Tot_MJ_m2,list(rs_hiMF_all_AR$Vintage,rs_hiMF_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiMF_all_AR[,176:184])*1e-9 # 406 in 2050
+colSums(rs_hiMF_all_AR[,176:184])*1e-9 # 414 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_hiMF_all_AR[,185:193])*1e-9 # 284 in 2050
+colSums(rs_hiMF_all_AR[,185:193])*1e-9 # 288 in 2050
 
 save(rs_hiMF_all_AR,file="../Final_results/res_hiMF_AR.RData")
+# now extensive ren
+load("../Intermediate_results/RenExtElec_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, Ext Ren
+n2<-names(rs_hiMF) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_hiMF_all_ER<-bind_rows(rs_ERn,rs_hiMF)
+
+rs_hiMF_all_ER<-rs_hiMF_all_ER[,names(rs_hiMF_all_ER) %in% names(rs_hiMF)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_hiMF_all_ER$Tot_MJ_m2,rs_hiMF_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_hiMF_all_ER$Tot_MJ_m2,list(rs_hiMF_all_ER$Vintage,rs_hiMF_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_hiMF_all_ER[,176:184])*1e-9 # 341 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_hiMF_all_ER[,185:193])*1e-9 # 195 in 2050
+
+save(rs_hiMF_all_ER,file="../Final_results/res_hiMF_ER.RData")
 
 # load in projection results, hiMFRFA ######
-rshiMF_RFA<-read.csv("../Eagle_outputs/res_proj_hiMFRFA.csv")
+# rshiMF_RFA<-read.csv("../Eagle_outputs/res_proj_hiMFRFA.csv")
+load("../Eagle_outputs/Complete_results/res_hiMFRFA_final.RData")
+rshiMF_RFA<-rsn
+rm(rsn)
+
 
 bs_hiMF_RFA<-bs_hiMF_all[bs_hiMF_all$scen=="hiMFRFA",]
 bs_hiMF_RFA$Year<-bs_hiMF_RFA$sim_year
@@ -1647,29 +1678,6 @@ rshmfRFA_sum<-rshmfRFA_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:
 rs_hiMFRFA<-merge(bs_hiMF_RFA,rshmfRFA_sum,by.x = "Building",by.y = "building_id")
 rs_hiMFRFA<-rs_hiMFRFA[,-c(which(names(rs_hiMFRFA) %in% c("Year.y", "Year_Building.y")))]
 names(rs_hiMFRFA)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_hiMFRFA[rs_hiMFRFA$completed_status=="Fail",] # fail
-rs_r0<-rs_hiMFRFA[rs_hiMFRFA$PUMA=="TX, 02600" & rs_hiMFRFA$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_hiMFRFA$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# if any of these still fail to find a match, try to match on type alone
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] ,][1,]
-}
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_hiMFRFA[rs_hiMFRFA$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_hiMFRFA<-left_join(rs_hiMFRFA,gic,by = c("County" = "RS_ID"))
@@ -1742,7 +1750,7 @@ colSums(rs_hiMFRFA_all_RR[,176:184])*1e-9 # 455 in 2050
 colSums(rs_hiMFRFA_all_RR[,185:193])*1e-9 # 337 in 2050
 
 save(rs_hiMFRFA_all_RR,file="../Final_results/res_hiMFRFA_RR.RData")
-
+# now advanced ren
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
 n1<-names(rs_ARn) # <2020 stock, Reg Ren
@@ -1759,14 +1767,40 @@ tapply(rs_hiMFRFA_all_AR$Tot_MJ_m2,rs_hiMFRFA_all_AR$Vintage,mean)/3.6
 tapply(rs_hiMFRFA_all_AR$Tot_MJ_m2,list(rs_hiMFRFA_all_AR$Vintage,rs_hiMFRFA_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiMFRFA_all_AR[,176:184])*1e-9 # 396 in 2050
+colSums(rs_hiMFRFA_all_AR[,176:184])*1e-9 # 404 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_hiMFRFA_all_AR[,185:193])*1e-9 # 278 in 2050
+colSums(rs_hiMFRFA_all_AR[,185:193])*1e-9 # 281 in 2050
 
 save(rs_hiMFRFA_all_AR,file="../Final_results/res_hiMFRFA_AR.RData")
 
+# now extensive ren
+load("../Intermediate_results/RenExtElec_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, Reg Ren
+n2<-names(rs_hiMFRFA) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_hiMFRFA_all_ER<-bind_rows(rs_ERn,rs_hiMFRFA)
+
+rs_hiMFRFA_all_ER<-rs_hiMFRFA_all_ER[,names(rs_hiMFRFA_all_ER) %in% names(rs_hiMFRFA)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_hiMFRFA_all_ER$Tot_MJ_m2,rs_hiMFRFA_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_hiMFRFA_all_ER$Tot_MJ_m2,list(rs_hiMFRFA_all_ER$Vintage,rs_hiMFRFA_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_hiMFRFA_all_ER[,176:184])*1e-9 # 331 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_hiMFRFA_all_ER[,185:193])*1e-9 # 188 in 2050
+
+save(rs_hiMFRFA_all_ER,file="../Final_results/res_hiMFRFA_ER.RData")
+
 # load in projection results, hiMFDE ######
-rshiMF_DE<-read.csv("../Eagle_outputs/res_proj_hiMFDE.csv")
+# rshiMF_DE<-read.csv("../Eagle_outputs/res_proj_hiMFDE.csv")
+load("../Eagle_outputs/Complete_results/res_hiMFDE_final.RData")
+rshiMF_DE<-rsn
+rm(rsn)
 
 bs_hiMF_DE<-bs_hiMF_all[bs_hiMF_all$scen=="hiMFDE",]
 bs_hiMF_DE$Year<-bs_hiMF_DE$sim_year
@@ -1808,29 +1842,6 @@ rshmfDE_sum<-rshmfDE_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,113:12
 rs_hiMFDE<-merge(bs_hiMF_DE,rshmfDE_sum,by.x = "Building",by.y = "building_id")
 rs_hiMFDE<-rs_hiMFDE[,-c(which(names(rs_hiMFDE) %in% c("Year.y", "Year_Building.y")))]
 names(rs_hiMFDE)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_hiMFDE[rs_hiMFDE$completed_status=="Fail",] # fail
-rs_r0<-rs_hiMFDE[rs_hiMFDE$PUMA=="TX, 02600" & rs_hiMFDE$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_hiMFDE$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# if any of these still fail to find a match, try to match on type alone
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] ,][1,]
-}
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_hiMFDE[rs_hiMFDE$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_hiMFDE<-left_join(rs_hiMFDE,gic,by = c("County" = "RS_ID"))
@@ -1898,12 +1909,12 @@ tapply(rs_hiMFDE_all_RR$Tot_MJ_m2,rs_hiMFDE_all_RR$Vintage,mean)/3.6
 tapply(rs_hiMFDE_all_RR$Tot_MJ_m2,list(rs_hiMFDE_all_RR$Vintage,rs_hiMFDE_all_RR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiMFDE_all_RR[,176:184])*1e-9 # 448 in 2050
+colSums(rs_hiMFDE_all_RR[,176:184])*1e-9 # 449 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LRE elec
 colSums(rs_hiMFDE_all_RR[,185:193])*1e-9 # 322 in 2050
 
 save(rs_hiMFDE_all_RR,file="../Final_results/res_hiMFDE_RR.RData")
-
+# now advanced ren
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
 n1<-names(rs_ARn) # <2020 stock, Reg Ren
@@ -1920,14 +1931,40 @@ tapply(rs_hiMFDE_all_AR$Tot_MJ_m2,rs_hiMFDE_all_AR$Vintage,mean)/3.6
 tapply(rs_hiMFDE_all_AR$Tot_MJ_m2,list(rs_hiMFDE_all_AR$Vintage,rs_hiMFDE_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiMFDE_all_AR[,176:184])*1e-9 # 390 in 2050
+colSums(rs_hiMFDE_all_AR[,176:184])*1e-9 # 398 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_hiMFDE_all_AR[,185:193])*1e-9 # 263 in 2050
+colSums(rs_hiMFDE_all_AR[,185:193])*1e-9 # 266 in 2050
 
 save(rs_hiMFDE_all_AR,file="../Final_results/res_hiMFDE_AR.RData")
 
+# now extensive ren
+load("../Intermediate_results/RenExtElec_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, Reg Ren
+n2<-names(rs_hiMFDE) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_hiMFDE_all_ER<-bind_rows(rs_ERn,rs_hiMFDE)
+
+rs_hiMFDE_all_ER<-rs_hiMFDE_all_ER[,names(rs_hiMFDE_all_ER) %in% names(rs_hiMFDE)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_hiMFDE_all_ER$Tot_MJ_m2,rs_hiMFDE_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_hiMFDE_all_ER$Tot_MJ_m2,list(rs_hiMFDE_all_ER$Vintage,rs_hiMFDE_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_hiMFDE_all_ER[,176:184])*1e-9 # 325 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_hiMFDE_all_ER[,185:193])*1e-9 # 173 in 2050
+
+save(rs_hiMFDE_all_ER,file="../Final_results/res_hiMFDE_ER.RData")
+
 # load in projection results, hiMFDERFA ######
-rshiMF_DERFA<-read.csv("../Eagle_outputs/res_proj_hiMFDERFA.csv")
+# rshiMF_DERFA<-read.csv("../Eagle_outputs/res_proj_hiMFDERFA.csv")
+load("../Eagle_outputs/Complete_results/res_hiMFDERFA_final.RData")
+rshiMF_DERFA<-rsn
+rm(rsn)
 
 bs_hiMF_DERFA<-bs_hiMF_all[bs_hiMF_all$scen=="hiMFDERFA",]
 bs_hiMF_DERFA$Year<-bs_hiMF_DERFA$sim_year
@@ -1969,29 +2006,6 @@ rshmfDERFA_sum<-rshmfDERFA_sum[,c(1:3,23,43,44,55:63,66,81,82,88,95,103,105:111,
 rs_hiMFDERFA<-merge(bs_hiMF_DERFA,rshmfDERFA_sum,by.x = "Building",by.y = "building_id")
 rs_hiMFDERFA<-rs_hiMFDERFA[,-c(which(names(rs_hiMFDERFA) %in% c("Year.y", "Year_Building.y")))]
 names(rs_hiMFDERFA)[2:3]<-c("Year_Building","Year")
-
-# modify the failed TX simulations
-
-rs_f<-rs_hiMFDERFA[rs_hiMFDERFA$completed_status=="Fail",] # fail
-rs_r0<-rs_hiMFDERFA[rs_hiMFDERFA$PUMA=="TX, 02600" & rs_hiMFDERFA$ASHRAE.IECC.Climate.Zone.2004=="3B" & rs_hiMFDERFA$completed_status=="Success",]
-rs_rep<-rs_f[1,]
-for (rn in 1:nrow(rs_f)) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Year==rs_f$Year[rn] ,][1,]
-}
-
-# if any of these fail to find a match, try to match on vintage rather than year
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] & rs_r0$Vintage==rs_f$Vintage[rn] ,][1,]
-}
-any(is.na(rs_rep$Building)) # check that there are no remaining NA, should be FALSE
-# if any of these still fail to find a match, try to match on type alone
-for (rn in which(is.na(rs_rep$Building))) {
-  rs_rep[rn,]<-rs_r0[rs_r0$Geometry.Building.Type.RECS==rs_f$Geometry.Building.Type.RECS[rn] ,][1,]
-}
-# overwrite the temporal and geo fields of the replacement df
-rs_rep[,c(1:4,34:45)]<-rs_f[,c(1:4,34:45)] # 
-# sub in the replacement rows in the main df
-rs_hiMFDERFA[rs_hiMFDERFA$completed_status=="Fail",]<-rs_rep
 
 # add GHG intensities, Mid-Case
 rs_hiMFDERFA<-left_join(rs_hiMFDERFA,gic,by = c("County" = "RS_ID"))
@@ -2059,12 +2073,12 @@ tapply(rs_hiMFDERFA_all_RR$Tot_MJ_m2,rs_hiMFDERFA_all_RR$Vintage,mean)/3.6
 tapply(rs_hiMFDERFA_all_RR$Tot_MJ_m2,list(rs_hiMFDERFA_all_RR$Vintage,rs_hiMFDERFA_all_RR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiMFDERFA_all_RR[,176:184])*1e-9 # 440 in 2050
+colSums(rs_hiMFDERFA_all_RR[,176:184])*1e-9 # 441 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LRE elec
-colSums(rs_hiMFDERFA_all_RR[,185:193])*1e-9 # 317 in 2050
+colSums(rs_hiMFDERFA_all_RR[,185:193])*1e-9 # 318 in 2050
 
 save(rs_hiMFDERFA_all_RR,file="../Final_results/res_hiMFDERFA_RR.RData")
-
+# now advanced ren
 load("../Intermediate_results/RenAdvanced_EG.RData")
 
 n1<-names(rs_ARn) # <2020 stock, Reg Ren
@@ -2081,8 +2095,31 @@ tapply(rs_hiMFDERFA_all_AR$Tot_MJ_m2,rs_hiMFDERFA_all_AR$Vintage,mean)/3.6
 tapply(rs_hiMFDERFA_all_AR$Tot_MJ_m2,list(rs_hiMFDERFA_all_AR$Vintage,rs_hiMFDERFA_all_AR$Year),mean)/3.6
 
 # example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
-colSums(rs_hiMFDERFA_all_AR[,176:184])*1e-9 # 382 in 2050
+colSums(rs_hiMFDERFA_all_AR[,176:184])*1e-9 # 390 in 2050
 # example of calculating national level emissions in each year a la  Fig 2, LREC
-colSums(rs_hiMFDERFA_all_AR[,185:193])*1e-9 # 258 in 2050
+colSums(rs_hiMFDERFA_all_AR[,185:193])*1e-9 # 262 in 2050
 
 save(rs_hiMFDERFA_all_AR,file="../Final_results/res_hiMFDERFA_AR.RData")
+
+# now extensive ren
+load("../Intermediate_results/RenExtElec_EG.RData")
+
+n1<-names(rs_ERn) # <2020 stock, Reg Ren
+n2<-names(rs_hiMFDERFA) # new construction
+bdiff<-rs_ERn[,!n1 %in% n2]
+
+rs_hiMFDERFA_all_ER<-bind_rows(rs_ERn,rs_hiMFDERFA)
+
+rs_hiMFDERFA_all_ER<-rs_hiMFDERFA_all_ER[,names(rs_hiMFDERFA_all_ER) %in% names(rs_hiMFDERFA)]
+
+# evolution of efficiency over cohorts, in kWh/m2
+tapply(rs_hiMFDERFA_all_ER$Tot_MJ_m2,rs_hiMFDERFA_all_ER$Vintage,mean)/3.6
+# evolution of efficiency over cohorts and time, in kWh/m2
+tapply(rs_hiMFDERFA_all_ER$Tot_MJ_m2,list(rs_hiMFDERFA_all_ER$Vintage,rs_hiMFDERFA_all_ER$Year),mean)/3.6
+
+# example of calculating national level emissions in each year a la  Fig 2, except without construction related emissions
+colSums(rs_hiMFDERFA_all_ER[,176:184])*1e-9 # 318 in 2050
+# example of calculating national level emissions in each year a la  Fig 2, LREC
+colSums(rs_hiMFDERFA_all_ER[,185:193])*1e-9 # 168 in 2050
+
+save(rs_hiMFDERFA_all_ER,file="../Final_results/res_hiMFDERFA_ER.RData")

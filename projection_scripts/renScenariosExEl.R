@@ -68,7 +68,8 @@ pfuel_2025[,"Gas",]<-matrix(rep(c(0,1,0,0,0,0),4),6,4) # 100% of gas renovations
 pfuel_2025[,"Oil",]<-matrix(rep(c(0,1,0,0,0,0),4),6,4) # 100% of oil renovations are to HP
 pfuel_2025[,"Propane",]<-matrix(rep(c(0,1,0,0,0,0),4),6,4) # 100% of lpg renovations are to HP
 
-
+write.csv(pfuel_2020,"../SI_Tables/pfuel_ER20.csv")
+write.csv(pfuel_2025,"../SI_Tables/pfuel_ER25.csv")
 # adjust water heat fuel switches to reflect higher electrification, lower oil, and  lower gas
 # Northeast, in the Northeast, the move away from gas is the slowest, due to higher priced electricity
 pwfuel_2020<-pwfuel_all
@@ -213,7 +214,7 @@ for (yr in 2021:2060) {
   print(yr)
   # define here whether the ~optimistic 2020-2024 renovation, or very optimistic 2025+ renovation applies
   if(yr>2024) {pfuel_all<-pfuel_2025; pwfuel_all<-pwfuel_2025}
-  if(yr<2025) {pfuel_all<-pfuel_2020;pwfuel_all<-pwfuel_2025}
+  if(yr<2025) {pfuel_all<-pfuel_2020;pwfuel_all<-pwfuel_2020} # changed pwfuel from erroneous 2025 to correct 2020 version
   # yr<-2021
   for (r in 1:4) {# four regions 
     print(RGs[r])
