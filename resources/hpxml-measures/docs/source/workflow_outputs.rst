@@ -201,6 +201,21 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Coal: Fireplace (MBtu)
    ===================================================================  ====================================================
 
+Annual Energy Consumption By CO2 Emissions Scenario
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Results for each CO2 emissions scenario defined in the HPXML file is listed as shown below.
+
+   =====================================  ==================================================================
+   Type                                   Notes
+   =====================================  ==================================================================
+   CO2 Emissions: <Scenario Name 1> (lb)  CO2 emissions for scenario 1
+   CO2 Emissions: <Scenario Name 2> (lb)  CO2 emissions for scenario 2
+   ...
+   =====================================  ==================================================================
+
+CO2 emissions for each scenario combines the emissions associated with electricity consumption plus the emissions associated with any fossil fuel consumption.
+
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -321,6 +336,7 @@ Depending on the outputs requested, the file may include:
    ===================================  ==================================================================================================================================
    Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
+   CO2 Emissions                        CO2 emissions for each scenario defined in the HPXML file.
    Hot Water Uses                       Water use for each end use type (in gallons).
    Total Loads                          Heating, cooling, and hot water loads (in kBtu) for the building.
    Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).

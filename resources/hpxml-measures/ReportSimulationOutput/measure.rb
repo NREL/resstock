@@ -209,6 +209,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     if include_timeseries_fuel_consumptions
       # If fuel uses are selected, we also need to select end uses because fuels may be adjusted by DSE.
+      # TODO: This could be removed if we could account for DSE in E+ or used EMS.
       include_timeseries_end_use_consumptions = true
     end
 
@@ -751,7 +752,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       @hpxml.header.co2_emissions_scenarios.each do |scenario|
         # Obtain Cambium hourly factors for the simulation run period
         name = scenario.name
-        hourly_elec_factors = File.readlines(scenario.elec_schedule_filepath).map(&:to_f)
+        hourly_elec_factors = File.readlines(scenario.elec_schedule_filepath).map(&:strip).map { |x| Float(x) }
         if hourly_elec_consumed.size == 8784
           year = 2000 # Use leap year for calculations
 

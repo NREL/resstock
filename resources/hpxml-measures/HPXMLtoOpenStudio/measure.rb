@@ -214,14 +214,24 @@ class OSModel
     @apply_ashrae140_assumptions = @hpxml.header.apply_ashrae140_assumptions # Hidden feature
     @apply_ashrae140_assumptions = false if @apply_ashrae140_assumptions.nil?
 
-    # Check/update paths
+    # Check/update file references
     @hpxml.header.schedules_filepath = FilePath.check_path(@hpxml.header.schedules_filepath,
                                                            File.dirname(hpxml_path),
                                                            'Schedules')
-    @hpxml.header.co2_emissions_scenarios.each do |co2_emissions_scenario|
-      co2_emissions_scenario.elec_schedule_filepath = FilePath.check_path(co2_emissions_scenario.elec_schedule_filepath,
-                                                                          File.dirname(hpxml_path),
-                                                                          'CO2 Emissions Schedule')
+    @hpxml.header.co2_emissions_scenarios.each do |scenario|
+      scenario.elec_schedule_filepath = FilePath.check_path(scenario.elec_schedule_filepath,
+                                                            File.dirname(hpxml_path),
+                                                            'CO2 Emissions File')
+      data = File.readlines(scenario.elec_schedule_filepath)
+      if data.size != 8760
+        fail "CO2 Emissions File has invalid number of rows (#{data.size}). Must be 8760."
+      end
+      if data.select { |x| x.include? ',' }.size > 0
+        fail 'CO2 Emissions File has multiple columns. Must be a single column of data.'
+      end
+      if data.map(&:strip).map { |x| Float(x) rescue nil }.any? nil
+        fail 'CO2 Emissions File has non-numeric values.'
+      end
     end
 
     # Init
@@ -2046,6 +2056,11 @@ class OSModel
   end
 
   def self.add_photovoltaics(runner, model)
+    @hpxml.pv_systems.each do |pv_system|
+      next if pv_system.inverter_efficiency == @hpxml.pv_systems[0].inverter_efficiency
+
+      fail 'Expected all InverterEfficiency values to be equal.'
+    end
     @hpxml.pv_systems.each do |pv_system|
       PV.apply(model, @nbeds, pv_system)
     end

@@ -59,7 +59,7 @@ class HPXML < Object
                  :clothes_washers, :clothes_dryers, :dishwashers, :refrigerators,
                  :freezers, :dehumidifiers, :cooking_ranges, :ovens, :lighting_groups, :lighting,
                  :ceiling_fans, :pools, :hot_tubs, :plug_loads, :fuel_loads]
-  attr_reader(*HPXML_ATTRS, :doc, :errors, :warnings)
+  attr_reader(*HPXML_ATTRS, :doc, :errors, :warnings, :hpxml_path)
 
   # Constants
   # FUTURE: Move some of these to within child classes (e.g., HPXML::Attic class)

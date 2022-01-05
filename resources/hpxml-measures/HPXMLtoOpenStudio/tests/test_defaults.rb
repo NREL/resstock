@@ -118,10 +118,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_co2_emissions_values(hpxml_default.header.co2_emissions_scenarios[0],
-                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 52.91,
-                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 62.88,
-                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 74.14,
-                                       HPXML::CO2EmissionsScenario::UnitsKgPerMBtu, 95.74)
+                                       HPXML::CO2EmissionsScenario::UnitsLbPerMBtu, 116.65,
+                                       HPXML::CO2EmissionsScenario::UnitsLbPerMBtu, 138.63,
+                                       HPXML::CO2EmissionsScenario::UnitsLbPerMBtu, 163.45,
+                                       HPXML::CO2EmissionsScenario::UnitsLbPerMBtu, 211.06)
   end
 
   def test_site

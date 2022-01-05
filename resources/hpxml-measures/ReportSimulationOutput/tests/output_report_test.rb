@@ -342,8 +342,8 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def co2_timeseries_cols
-    return ['CO2 Emissions: MidCase 2022 AER using National',
-            'CO2 Emissions: MidCase 2022 AER using RMPA region']
+    return ['CO2 Emissions: Cambium 2022 MidCase AER using National',
+            'CO2 Emissions: Cambium 2022 MidCase AER using RMPA region']
   end
 
   def test_annual_only
