@@ -193,6 +193,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     if include_timeseries_fuel_consumptions
       # If fuel uses are selected, we also need to select end uses because fuels may be adjusted by DSE.
+      # TODO: This could be removed if we could account for DSE in E+ or used EMS.
       include_timeseries_end_use_consumptions = true
     end
 
@@ -210,11 +211,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       if include_timeseries_fuel_consumptions
         result << OpenStudio::IdfObject.load("Output:Meter,ElectricityProduced:Facility,#{timeseries_frequency};").get
       end
-    end
-    if include_timeseries_fuel_consumptions
-      # If fuel uses are selected, we also need to select end uses because fuels may be adjusted by DSE.
-      # TODO: This could be removed if we could account for DSE in E+ or used EMS.
-      include_timeseries_end_use_consumptions = true
     end
 
     # End Use/Hot Water Use/Ideal Load outputs

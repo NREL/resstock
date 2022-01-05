@@ -17,9 +17,24 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Install gems
+      - name: Install software
         run: |
           rm -f Gemfile.lock && bundle install
+          sudo apt update
+          sudo apt-get install -y wget unzip libxml2-utils python3-lxml
+
+      - name: XSD validation
+        shell: bash
+        run: |
+          export XSDPATH=HPXMLtoOpenStudio/resources/hpxml_schema/HPXML.xsd
+          for xmlfile in workflow/sample_files/*.xml; do xmllint --schema $XSDPATH $xmlfile --noout; done
+
+      - name: Schematron validation
+        shell: bash
+        run: |
+          export PYTHONIOENCODING=utf8
+          export SCTPATH=HPXMLtoOpenStudio/resources/hpxml_schematron/EPvalidator.xml
+          for xmlfile in workflow/sample_files/*.xml; do XMLPATH=$xmlfile python3 -c "import os; import sys; from lxml import isoschematron, etree; from pathlib import Path; sct = Path(os.environ.get('SCTPATH')).read_text(); sct_doc = etree.fromstring(bytes(sct, encoding='utf-8')); schematron = isoschematron.Schematron(sct_doc, store_report = True); xml_path = os.environ.get('XMLPATH'); xml = Path(xml_path).read_text(); xml_doc = etree.fromstring(bytes(xml, encoding='utf-8')); valid = schematron.validate(xml_doc); (not valid) and print(schematron.validation_report); (not valid) and print(f'{xml_path} fails to validate'); valid and print(f'{xml_path} validates'); (not valid) and sys.exit(1)"; done
 
       - name: Run tests
         run: |
