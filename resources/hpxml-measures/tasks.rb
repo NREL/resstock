@@ -2505,11 +2505,11 @@ def apply_hpxml_modification(hpxml_file, hpxml)
   if ['base-hvac-undersized-allow-increased-fixed-capacities.xml'].include? hpxml_file
     hpxml.header.allow_increased_fixed_capacities = true
   elsif ['base-schedules-detailed-stochastic.xml'].include? hpxml_file
-    hpxml.header.schedules_filepath = 'HPXMLtoOpenStudio/resources/schedule_files/stochastic.csv'
+    hpxml.header.schedules_filepath = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic.csv'
   elsif ['base-schedules-detailed-stochastic-vacancy.xml'].include? hpxml_file
-    hpxml.header.schedules_filepath = 'HPXMLtoOpenStudio/resources/schedule_files/stochastic-vacancy.csv'
+    hpxml.header.schedules_filepath = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic-vacancy.csv'
   elsif ['base-schedules-detailed-smooth.xml'].include? hpxml_file
-    hpxml.header.schedules_filepath = 'HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
+    hpxml.header.schedules_filepath = '../../HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
   elsif ['base-location-capetown-zaf.xml'].include? hpxml_file
     hpxml.header.state_code = nil
   end
