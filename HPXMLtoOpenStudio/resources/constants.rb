@@ -21,14 +21,14 @@ class Constants
     return num_days_in_months
   end
 
-  def self.NumDaysInYear(is_leap_year)
-    num_days_in_months = NumDaysInMonths(is_leap_year)
+  def self.NumDaysInYear(year)
+    num_days_in_months = NumDaysInMonths(year)
     num_days_in_year = num_days_in_months.sum
     return num_days_in_year
   end
 
-  def self.NumHoursInYear(is_leap_year)
-    num_days_in_year = NumDaysInYear(is_leap_year)
+  def self.NumHoursInYear(year)
+    num_days_in_year = NumDaysInYear(year)
     num_hours_in_year = num_days_in_year * 24
     return num_hours_in_year
   end

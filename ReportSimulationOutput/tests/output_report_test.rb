@@ -331,7 +331,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     'hpxml_residential_facility_type',
   ]
 
-  def all_timeseries_cols
+  def all_base_hpxml_timeseries_cols
     return (BaseHPXMLTimeseriesColsFuels +
             BaseHPXMLTimeseriesColsEndUses +
             BaseHPXMLTimeseriesColsWaterUses +
@@ -341,12 +341,18 @@ class ReportSimulationOutputTest < MiniTest::Test
             BaseHPXMLTimeseriesColsWeather)
   end
 
+  def co2_timeseries_cols
+    return ['CO2 Emissions: Cambium 2022 MidCase AER using National',
+            'CO2 Emissions: Cambium 2022 MidCase AER using RMPA region']
+  end
+
   def test_annual_only
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
                   'add_component_loads' => true,
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -367,6 +373,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'none',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_co2_emissions' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_component_loads' => true,
@@ -386,6 +393,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -410,6 +418,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -430,11 +439,37 @@ class ReportSimulationOutputTest < MiniTest::Test
                                                          'Fuel Use: Electricity: Net'])
   end
 
+  def test_timeseries_hourly_co2
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-co2-emissions.xml',
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_fuel_consumptions' => false,
+                  'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => true,
+                  'include_timeseries_hot_water_uses' => false,
+                  'include_timeseries_total_loads' => false,
+                  'include_timeseries_component_loads' => false,
+                  'include_timeseries_zone_temperatures' => false,
+                  'include_timeseries_airflows' => false,
+                  'include_timeseries_weather' => false }
+    annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + co2_timeseries_cols
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    _check_for_constant_timeseries_step(timeseries_cols[0])
+    _check_for_nonzero_timeseries_value(timeseries_csv, co2_timeseries_cols)
+  end
+
   def test_timeseries_hourly_enduses
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -459,6 +494,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -483,6 +519,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_component_loads' => false,
@@ -508,6 +545,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => true,
@@ -532,6 +570,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -556,6 +595,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -587,6 +627,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -611,6 +652,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -637,6 +679,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -661,6 +704,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -685,6 +729,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -709,6 +754,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => false,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -729,10 +775,11 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def test_timeseries_hourly_ALL
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-co2-emissions.xml',
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_co2_emissions' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_component_loads' => true,
@@ -742,7 +789,8 @@ class ReportSimulationOutputTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + all_timeseries_cols
+    expected_timeseries_cols = ['Time'] + all_base_hpxml_timeseries_cols + co2_timeseries_cols +
+                               ['End Use: Electricity: PV', 'Fuel Use: Electricity: Net']
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -753,10 +801,11 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def test_timeseries_daily_ALL
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-co2-emissions.xml',
                   'timeseries_frequency' => 'daily',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_co2_emissions' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_component_loads' => true,
@@ -766,7 +815,8 @@ class ReportSimulationOutputTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + all_timeseries_cols
+    expected_timeseries_cols = ['Time'] + all_base_hpxml_timeseries_cols + co2_timeseries_cols +
+                               ['End Use: Electricity: PV', 'Fuel Use: Electricity: Net']
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -777,10 +827,11 @@ class ReportSimulationOutputTest < MiniTest::Test
   end
 
   def test_timeseries_monthly_ALL
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-co2-emissions.xml',
                   'timeseries_frequency' => 'monthly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => true,
+                  'include_timeseries_co2_emissions' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
                   'include_timeseries_component_loads' => true,
@@ -790,7 +841,8 @@ class ReportSimulationOutputTest < MiniTest::Test
     annual_csv, timeseries_csv, eri_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    expected_timeseries_cols = ['Time'] + all_timeseries_cols
+    expected_timeseries_cols = ['Time'] + all_base_hpxml_timeseries_cols + co2_timeseries_cols +
+                               ['End Use: Electricity: PV', 'Fuel Use: Electricity: Net']
     actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
     assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
     timeseries_rows = CSV.read(timeseries_csv)
@@ -803,6 +855,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -823,6 +876,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -843,6 +897,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -863,6 +918,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'daily',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -883,6 +939,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'monthly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -901,6 +958,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,
@@ -921,6 +979,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'timeseries_frequency' => 'hourly',
                   'include_timeseries_fuel_consumptions' => true,
                   'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_co2_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
                   'include_timeseries_component_loads' => false,

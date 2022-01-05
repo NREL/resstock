@@ -1,5 +1,6 @@
 ## OpenStudio-HPXML v1.4.0
 __New Features__
+- Allows calculating one or more CO2 emissions scenarios (via, e.g., Cambium hourly electricity factors and annual fossil fuel factors).
 - Allows optional `AirInfiltrationMeasurement/InfiltrationHeight` input.
 - Adds a "Fuel Use: Electricity: Net" timeseries output column for homes with electricity generation.
 - BuildResidentialHPXML measure: Adds an optional argument to allow the HPXML file to be written with default values applied.

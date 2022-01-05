@@ -199,6 +199,60 @@ If neither simple nor detailed inputs are provided, then schedules are defaulted
 Default schedules are typically smooth, averaged schedules.
 These default schedules are described elsewhere in the documentation (e.g., see :ref:`buildingoccupancy` for the default occupant heat gain schedule).
 
+HPXML CO2 Emissions Scenarios
+*****************************
+
+One or more CO2 emissions scenarios can be entered as an ``/HPXML/SoftwareInfo/extension/CO2EmissionsScenarios/CO2EmissionsScenario``.
+
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+  Element                           Type      Units  Constraints  Required  Default   Notes
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ``Name``                          string                        Yes                 Name of the scenario (which shows up in the output file)
+  ``CO2EmissionsFactor``            element          >= 1         See [#]_            CO2 emissions factor(s) for a given fuel type
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+
+  .. [#] CO2EmissionsFactor is required for electricity and optional (i.e., can defaulted) for all fossil fuel types.
+
+For each scenario, **electricity** information must be entered as an ``/HPXML/SoftwareInfo/extension/CO2EmissionsScenarios/CO2EmissionsScenario/CO2EmissionsFactor``.
+
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+  Element                           Type      Units  Constraints  Required  Default   Notes
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ``FuelType``                      string           electricity  Yes                 CO2 emissions factor fuel type
+  ``Units``                         string           See [#]_     Yes                 CO2 emissions factor units
+  ``ScheduleFilePath``              string           See [#]_     Yes                 CO2 emissions factor schedule file with hourly values
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+
+  .. [#] Units choices are "lb/MWh" and "kg/MWh".
+  .. [#] ScheduleFilePath must point to a file with a single column of 8760 numeric hourly values.
+         NREL's `Cambium data sets <https://www.nrel.gov/analysis/cambium.html>`_ are typically used, but OpenStudio-HPXML can accommodate alternative data sets as well.
+
+For each scenario, **fossil fuel** information can be optionally entered as an ``/HPXML/SoftwareInfo/extension/CO2EmissionsScenarios/CO2EmissionsScenario/CO2EmissionsFactor``.
+
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+  Element                           Type      Units  Constraints  Required  Default   Notes
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ``FuelType``                      string           See [#]_     Yes                 CO2 emissions factor fuel type
+  ``Units``                         string           See [#]_     Yes                 CO2 emissions factor units
+  ``Value``                         double                        Yes                 CO2 emissions factor annual value
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+
+  .. [#] FuelType choices are "natural gas", "propane", "fuel oil", and "coal".
+  .. [#] Units choices are "lb/MBtu" and "kg/MBtu".
+
+If fossil fuel information is not entered, CO2 emissions factors are defaulted for these fuels based on `EIA data <https://www.eia.gov/environment/emissions/co2_vol_mass.php>`_ as follows:
+
+  ============  ========
+  Fuel Type     lb/MBtu
+  ============  ========
+  natural gas   116.65
+  propane       138.63
+  fuel oil      163.45
+  coal          211.06
+  ============  ========
+
+See :ref:`annual_outputs` and :ref:`timeseries_outputs` for descriptions of how the calculated CO2 emissions appear in the output files.
+
 HPXML Building Summary
 ----------------------
 
