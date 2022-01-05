@@ -32,6 +32,7 @@ Features
 - Add PV ownership and PV system size distributions using 2019 Tracking the Sun and GTM report on solar installation. ([#673](https://github.com/NREL/resstock/pull/673))
 - Add optional argument to ResidentialLocation measure for setting the IECC climate zone ([#755](https://github.com/NREL/resstock/pull/764))
 - Add Geometry Story Bin tsv and Geometry Story Bin dep to Geometry Wall Type. ([#759](https://github.com/NREL/resstock/pull/759))
+- New measure to translate a ResStock-generated xml file to a Home Energy Score json input file ([#782](https://github.com/NREL/resstock/pull/782))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
