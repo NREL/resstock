@@ -31,6 +31,7 @@ require_relative '../HPXMLtoOpenStudio/resources/util'
 require_relative '../HPXMLtoOpenStudio/resources/validator'
 require_relative '../HPXMLtoOpenStudio/resources/version'
 require_relative '../HPXMLtoOpenStudio/resources/waterheater'
+require_relative '../HPXMLtoOpenStudio/resources/weather'
 require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
 
 # start the measure
@@ -2980,169 +2981,113 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     # TODO: Remove items below that duplicate checks downstream.
     # TODO: Add warnings/errors downstream if there are additional checks here.
 
-    # heat pump water heater with natural gas fuel type
     warning = ([HPXML::WaterHeaterTypeHeatPump].include?(args[:water_heater_type]) && (args[:water_heater_fuel_type] != HPXML::FuelTypeElectricity))
-    warnings << "water_heater_type=#{args[:water_heater_type]} and water_heater_fuel_type=#{args[:water_heater_fuel_type]}" if warning
+    warnings << 'Cannot model a heat pump water heater with non-electric fuel type.' if warning
 
-    # heating system and heat pump
     error = (args[:heating_system_type] != 'none') && (args[:heat_pump_type] != 'none') && (args[:heating_system_fraction_heat_load_served] > 0) && (args[:heat_pump_fraction_heat_load_served] > 0)
-    errors << "heating_system_type=#{args[:heating_system_type]} and heat_pump_type=#{args[:heat_pump_type]}" if error
+    errors << 'Multiple central heating systems are not currently supported.' if error
 
-    # cooling system and heat pump
     error = (args[:cooling_system_type] != 'none') && (args[:heat_pump_type] != 'none') && (args[:cooling_system_fraction_cool_load_served] > 0) && (args[:heat_pump_fraction_cool_load_served] > 0)
-    errors << "cooling_system_type=#{args[:cooling_system_type]} and heat_pump_type=#{args[:heat_pump_type]}" if error
+    errors << 'Multiple central cooling systems are not currently supported.' if error
 
-    # non integer number of bathrooms
     if args[:geometry_unit_num_bathrooms] != Constants.Auto
       error = (Float(args[:geometry_unit_num_bathrooms]) % 1 != 0)
-      errors << "geometry_unit_num_bathrooms=#{args[:geometry_unit_num_bathrooms]}" if error
+      errors << 'Number of bathrooms must be an integer.' if error
     end
 
-    # non integer ceiling fan quantity
     if args[:ceiling_fan_quantity] != Constants.Auto
       error = (Float(args[:ceiling_fan_quantity]) % 1 != 0)
-      errors << "ceiling_fan_quantity=#{args[:ceiling_fan_quantity]}" if error
+      errors << 'Quantity of ceiling fans must be an integer.' if error
     end
 
-    # single-family, slab, foundation height > 0
-    warning = [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type]) && (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] > 0)
-    warnings << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if warning
+    warning = [HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include?(args[:geometry_foundation_type]) && (args[:geometry_foundation_height] > 0)
+    warnings << "Foundation type of '#{args[:geometry_foundation_type]}' cannot have a non-zero height. Assuming height is zero." if warning
 
-    # single-family, non slab, foundation height = 0
-    error = [HPXML::ResidentialTypeSFD, HPXML::ResidentialTypeSFA].include?(args[:geometry_unit_type]) && (args[:geometry_foundation_type] != HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height] == 0)
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
+    error = ![HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include?(args[:geometry_foundation_type]) && (args[:geometry_foundation_height] == 0)
+    errors << "Foundation type of '#{args[:geometry_foundation_type]}' cannot have a height of zero." if error
 
-    # single-family attached, multifamily and ambient foundation
     error = [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type]) && (args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient)
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]}" if error
+    errors << 'Ambient foundation type for single-family attached or apartment units is not currently supported.' if error
 
-    # multifamily, slab, foundation height > 0
-    warning = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) &&
-              ([HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include? args[:geometry_foundation_type]) &&
-              (args[:geometry_foundation_height] > 0)
-    warnings << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if warning
-
-    # multifamily, non slab, foundation height = 0
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) &&
-            (![HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include? args[:geometry_foundation_type]) &&
-            (args[:geometry_foundation_height] == 0)
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height=#{args[:geometry_foundation_height]}" if error
-
-    # multifamily and conditioned basement/crawlspace
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && ([HPXML::FoundationTypeBasementConditioned, HPXML::FoundationTypeCrawlspaceConditioned].include? args[:geometry_foundation_type])
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_foundation_type=#{args[:geometry_foundation_type]}" if error
+    errors << 'Conditioned basement/crawlspace foundation type for apartment units is not currently supported.' if error
 
-    # slab and foundation height above grade > 0
     warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height_above_grade] > 0)
-    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and geometry_foundation_height_above_grade=#{args[:geometry_foundation_height_above_grade]}" if warning
+    warnings << 'Specified a slab foundation type with a non-zero height above grade.' if warning
 
-    # duct location and surface area not both auto or not both specified
     error = ((args[:ducts_supply_location] == Constants.Auto) && (args[:ducts_supply_surface_area] != Constants.Auto)) || ((args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area] == Constants.Auto)) || ((args[:ducts_return_location] == Constants.Auto) && (args[:ducts_return_surface_area] != Constants.Auto)) || ((args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto))
-    errors << "ducts_supply_location=#{args[:ducts_supply_location]} and ducts_supply_surface_area=#{args[:ducts_supply_surface_area]} and ducts_return_location=#{args[:ducts_return_location]} and ducts_return_surface_area=#{args[:ducts_return_surface_area]}" if error
+    errors << 'Duct location and surface area not both auto or not both specified.' if error
 
-    # second heating system fraction heat load served not less than 50%
     warning = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] >= 0.5) && (args[:heating_system_2_fraction_heat_load_served] < 1.0)
-    warnings << "heating_system_2_type=#{args[:heating_system_2_type]} and heating_system_2_fraction_heat_load_served=#{args[:heating_system_2_fraction_heat_load_served]}" if warning
+    warnings << 'The fraction of heat load served by the second heating system is greater than or equal to 50%.' if warning
 
-    # second heating system fraction heat load served is 100%
     error = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] == 1.0)
-    errors << "heating_system_2_type=#{args[:heating_system_2_type]} and heating_system_2_fraction_heat_load_served=#{args[:heating_system_2_fraction_heat_load_served]}" if error
+    errors << 'The fraction of heat load served by the second heating system is 100%.' if error
 
-    # second heating system but no primary heating system
     error = (args[:heating_system_type] == 'none') && (args[:heat_pump_type] == 'none') && (args[:heating_system_2_type] != 'none')
-    errors << "heating_system_type=#{args[:heating_system_type]} and heat_pump_type=#{args[:heat_pump_type]} and heating_system_2_type=#{args[:heating_system_2_type]}" if error
+    errors << 'A second heating system was specified without a primary heating system.' if error
 
-    # apartment/sfa unit with no geometry_building_num_units
     error = ((args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) || (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA)) && !args[:geometry_building_num_units].is_initialized
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and geometry_building_num_units=not provided" if error
+    errors << 'Did not specify the number of units in the building for single-family attached or apartment units.' if error
 
-    # apartment with more than 1 above grade floor
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_unit_num_floors_above_grade] > 1)
-    errors << 'Apartment units can only have one above grade floor' if error
+    errors << 'Apartment units can only have one above-grade floor.' if error
 
-    # detached with adiabatic wall(s)
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFD) && (args[:geometry_unit_left_wall_is_adiabatic] || args[:geometry_unit_right_wall_is_adiabatic] || args[:geometry_unit_front_wall_is_adiabatic] || args[:geometry_unit_back_wall_is_adiabatic] || (args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment) || (args[:geometry_foundation_type] == HPXML::FoundationTypeAboveApartment))
-    errors << 'No adiabatic surfaces can be applied to single-family detached homes' if error
+    errors << 'No adiabatic surfaces can be applied to single-family detached homes.' if error
 
-    # crawlspace or unconditioned basement with foundation wall and ceiling insulation
     warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > 2.1)
-    if warning
-      warning = "geometry_foundation_type=#{args[:geometry_foundation_type]}"
-      if args[:foundation_wall_insulation_r] > 0
-        warning += " and foundation_wall_insulation_r=#{args[:foundation_wall_insulation_r]}"
-      end
-      if args[:foundation_wall_assembly_r].is_initialized
-        warning += " and foundation_wall_assembly_r=#{args[:foundation_wall_assembly_r].get}"
-      end
-      if args[:floor_over_foundation_assembly_r] > 2.1
-        warning += " and floor_over_foundation_assembly_r=#{args[:floor_over_foundation_assembly_r]}"
-      end
-      warnings << warning
-    end
+    warnings << 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.' if warning
 
-    # vented/unvented attic with floor and roof insulation
     warning = [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented].include?(args[:geometry_attic_type]) && (args[:ceiling_assembly_r] > 2.1) && (args[:roof_assembly_r] > 2.3)
-    warnings << "geometry_attic_type=#{args[:geometry_attic_type]} and ceiling_assembly_r=#{args[:ceiling_assembly_r]} and roof_assembly_r=#{args[:roof_assembly_r]}" if warning
+    warnings << 'Home with unconditioned attic type has both ceiling insulation and roof insulation.' if warning
 
-    # conditioned basement with ceiling insulation
     warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeBasementConditioned) && (args[:floor_over_foundation_assembly_r] > 2.1)
-    warnings << "geometry_foundation_type=#{args[:geometry_foundation_type]} and floor_over_foundation_assembly_r=#{args[:floor_over_foundation_assembly_r]}" if warning
+    warnings << 'Home with conditioned basement has floor insulation.' if warning
 
-    # conditioned attic with floor insulation
     warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:ceiling_assembly_r] > 2.1)
-    warnings << "geometry_attic_type=#{args[:geometry_attic_type]} and ceiling_assembly_r=#{args[:ceiling_assembly_r]}" if warning
+    warnings << 'Home with conditioned attic has ceiling insulation.' if warning
 
-    # conditioned attic but only one above-grade floor
     error = (args[:geometry_unit_num_floors_above_grade] == 1 && args[:geometry_attic_type] == HPXML::AtticTypeConditioned)
-    errors << "geometry_unit_num_floors_above_grade=#{args[:geometry_unit_num_floors_above_grade]} and geometry_attic_type=#{args[:geometry_attic_type]}" if error
+    errors << 'Units with a conditioned attic must have at least two above-grade floors.' if error
 
-    # dhw indirect but no boiler
     error = ((args[:water_heater_type] == HPXML::WaterHeaterTypeCombiStorage) || (args[:water_heater_type] == HPXML::WaterHeaterTypeCombiTankless)) && (args[:heating_system_type] != HPXML::HVACTypeBoiler)
-    errors << "water_heater_type=#{args[:water_heater_type]} and heating_system_type=#{args[:heating_system_type]}" if error
+    errors << 'Must specify a boiler when modeling an indirect water heater type.' if error
 
-    # no tv plug loads but specifying usage multipliers
     if args[:misc_plug_loads_television_annual_kwh] != Constants.Auto
       warning = (args[:misc_plug_loads_television_annual_kwh].to_f == 0.0 && args[:misc_plug_loads_television_usage_multiplier] != 0.0)
-      warnings << "misc_plug_loads_television_annual_kwh=#{args[:misc_plug_loads_television_annual_kwh]} and misc_plug_loads_television_usage_multiplier=#{args[:misc_plug_loads_television_usage_multiplier]}" if warning
+      warnings << 'Specified a non-zero usage multiplier for zero television plug loads.' if warning
     end
 
-    # no other plug loads but specifying usage multipliers
     if args[:misc_plug_loads_other_annual_kwh] != Constants.Auto
       warning = (args[:misc_plug_loads_other_annual_kwh].to_f == 0.0 && args[:misc_plug_loads_other_usage_multiplier] != 0.0)
-      warnings << "misc_plug_loads_other_annual_kwh=#{args[:misc_plug_loads_other_annual_kwh]} and misc_plug_loads_other_usage_multiplier=#{args[:misc_plug_loads_other_usage_multiplier]}" if warning
+      warnings << 'Specified a non-zero usage multiplier for zero other plug loads.' if warning
     end
 
-    # no well pump plug loads but specifying usage multipliers
     if args[:misc_plug_loads_well_pump_annual_kwh] != Constants.Auto
       warning = (args[:misc_plug_loads_well_pump_annual_kwh].to_f == 0.0 && args[:misc_plug_loads_well_pump_usage_multiplier] != 0.0)
-      warnings << "misc_plug_loads_well_pump_annual_kwh=#{args[:misc_plug_loads_well_pump_annual_kwh]} and misc_plug_loads_well_pump_usage_multiplier=#{args[:misc_plug_loads_well_pump_usage_multiplier]}" if warning
+      warnings << 'Specified a non-zero usage multiplier for zero well pump plug loads.' if warning
     end
 
-    # no vehicle plug loads but specifying usage multipliers
     if args[:misc_plug_loads_vehicle_annual_kwh] != Constants.Auto
       warning = (args[:misc_plug_loads_vehicle_annual_kwh].to_f && args[:misc_plug_loads_vehicle_usage_multiplier] != 0.0)
-      warnings << "misc_plug_loads_vehicle_annual_kwh=#{args[:misc_plug_loads_vehicle_annual_kwh]} and misc_plug_loads_vehicle_usage_multiplier=#{args[:misc_plug_loads_vehicle_usage_multiplier]}" if warning
+      warnings << 'Specified a non-zero usage multiplier for zero vehicle plug loads.' if warning
     end
 
-    # no fuel loads but specifying usage multipliers
     warning = (!args[:misc_fuel_loads_grill_present] && args[:misc_fuel_loads_grill_usage_multiplier] != 0.0) || (!args[:misc_fuel_loads_lighting_present] && args[:misc_fuel_loads_lighting_usage_multiplier] != 0.0) || (!args[:misc_fuel_loads_fireplace_present] && args[:misc_fuel_loads_fireplace_usage_multiplier] != 0.0)
-    warnings << "misc_fuel_loads_grill_present=#{args[:misc_fuel_loads_grill_present]} and misc_fuel_loads_grill_usage_multiplier=#{args[:misc_fuel_loads_grill_usage_multiplier]} and misc_fuel_loads_lighting_present=#{args[:misc_fuel_loads_lighting_present]} and misc_fuel_loads_lighting_usage_multiplier=#{args[:misc_fuel_loads_lighting_usage_multiplier]} and misc_fuel_loads_fireplace_present=#{args[:misc_fuel_loads_fireplace_present]} and misc_fuel_loads_fireplace_usage_multiplier=#{args[:misc_fuel_loads_fireplace_usage_multiplier]}" if warning
+    warnings << 'Specified a non-zero usage multiplier for a fuel load that is zero.' if warning
 
-    # number of bedrooms not greater than zero
     error = (args[:geometry_unit_num_bedrooms] <= 0)
-    errors << "geometry_unit_num_bedrooms=#{args[:geometry_unit_num_bedrooms]}" if error
+    errors << 'Number of bedrooms must be greater than zero.' if error
 
-    # single-family detached with shared system
     error = [HPXML::ResidentialTypeSFD].include?(args[:geometry_unit_type]) && args[:heating_system_type].include?('Shared')
-    errors << "geometry_unit_type=#{args[:geometry_unit_type]} and heating_system_type=#{args[:heating_system_type]}" if error
+    errors << 'Specified a shared system for a single-family detached unit.' if error
 
-    # rim joist height but no rim joist assembly r
     error = args[:geometry_rim_joist_height].is_initialized && !args[:rim_joist_assembly_r].is_initialized
-    errors << "geometry_rim_joist_height=#{args[:geometry_rim_joist_height].get} and rim_joist_assembly_r=not provided" if error
+    errors << 'Specified a rim joist height but no rim joist assembly R-value.' if error
 
-    # rim joist assembly r but no rim joist height
     error = args[:rim_joist_assembly_r].is_initialized && !args[:geometry_rim_joist_height].is_initialized
-    errors << "rim_joist_assembly_r=#{args[:rim_joist_assembly_r].get} and geometry_rim_joist_height=not provided" if error
+    errors << 'Specified a rim joist assembly R-value but no rim joist height.' if error
 
     return warnings, errors
   end
@@ -3280,6 +3225,7 @@ class HPXMLFile
 
     if apply_defaults
       eri_version = Constants.ERIVersions[-1]
+      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
       weather = WeatherProcess.new(model, runner)
       HPXMLDefaults.apply(hpxml, eri_version, weather, epw_file: epw_file)
     end
@@ -3755,7 +3701,7 @@ class HPXMLFile
       end
 
       if args[:foundation_wall_assembly_r].is_initialized && (args[:foundation_wall_assembly_r].get > 0)
-        insulation_assembly_r_value = args[:foundation_wall_assembly_r]
+        insulation_assembly_r_value = args[:foundation_wall_assembly_r].get
       else
         insulation_interior_r_value = 0
         insulation_exterior_r_value = 0
