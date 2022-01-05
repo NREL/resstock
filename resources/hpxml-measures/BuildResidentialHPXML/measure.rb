@@ -3263,7 +3263,6 @@ class HPXMLFile
 
     if apply_defaults
       eri_version = Constants.ERIVersions[-1]
-      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
       weather = WeatherProcess.new(model, runner)
       HPXMLDefaults.apply(hpxml, eri_version, weather, epw_file: epw_file)
     end
