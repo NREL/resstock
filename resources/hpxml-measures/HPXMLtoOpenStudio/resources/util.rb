@@ -321,3 +321,17 @@ class UrlResolver
     raise 'Too many http redirects' if attempts == max_attempts
   end
 end
+
+class FilePath
+  def self.check_path(path, relative_dir, name)
+    return if path.nil?
+    return path if File.exist? path
+
+    filepath = File.expand_path(File.join(relative_dir, path))
+    if not File.exist? filepath
+      fail "#{name} file path '#{path}' does not exist."
+    end
+
+    return filepath
+  end
+end

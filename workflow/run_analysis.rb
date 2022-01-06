@@ -33,12 +33,10 @@ def run_workflow(yml, measures_only, debug)
                           'server_directory_cleanup' => 'ServerDirectoryCleanup' }
 
     steps = []
-    workflow_args.each do |measure_dir_name, arguments|
-      if measure_dir_name == 'reporting_measures'
-        workflow_args[measure_dir_name].each do |k|
-          steps << { 'measure_dir_name' => k['measure_dir_name'] }
-        end
-      else
+    measure_dir_names.each do |k, v|
+      workflow_args.each do |measure_dir_name, arguments|
+        next if k != measure_dir_name
+
         arguments['building_id'] = 1 if measure_dir_name == 'build_existing_model'
         steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
                    'arguments' => arguments }
@@ -84,7 +82,19 @@ def run_workflow(yml, measures_only, debug)
         apply_upgrade_measure['arguments']['package_apply_logic'] = make_apply_logic_arg(measure_d['package_apply_logic'])
       end
 
-      steps.insert(1, apply_upgrade_measure)
+      steps.insert(-3, apply_upgrade_measure)
+    end
+
+    workflow_args.each do |measure_dir_name, arguments|
+      next unless ['measures'].include?(measure_dir_name)
+
+      workflow_args[measure_dir_name].each do |k|
+        step = { 'measure_dir_name' => k['measure_dir_name'] }
+        if k.keys.include?('arguments')
+          step['arguments'] = k['arguments']
+        end
+        steps.insert(-3, step)
+      end
     end
 
     steps.insert(-2, { 'measure_dir_name' => 'ReportHPXMLOutput',
@@ -93,6 +103,18 @@ def run_workflow(yml, measures_only, debug)
                        } })
 
     steps.insert(-2, { 'measure_dir_name' => 'UpgradeCosts' })
+
+    workflow_args.each do |measure_dir_name, arguments|
+      next unless ['reporting_measures'].include?(measure_dir_name)
+
+      workflow_args[measure_dir_name].each do |k|
+        step = { 'measure_dir_name' => k['measure_dir_name'] }
+        if k.keys.include?('arguments')
+          step['arguments'] = k['arguments']
+        end
+        steps.insert(-2, step)
+      end
+    end
 
     osw = {
       'measure_paths': ['../../../measures', '../../../resources/hpxml-measures'],

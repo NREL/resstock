@@ -889,12 +889,6 @@ class HPXML < Object
 
       errors += HPXML::check_dates('Daylight Saving', @dst_begin_month, @dst_begin_day, @dst_end_month, @dst_end_day)
 
-      if not @schedules_filepath.nil?
-        unless File.exist? @schedules_filepath
-          errors << "Schedules file path '#{@schedules_filepath}' does not exist."
-        end
-      end
-
       return errors
     end
 

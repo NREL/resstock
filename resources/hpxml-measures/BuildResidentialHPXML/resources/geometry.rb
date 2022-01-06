@@ -1674,15 +1674,15 @@ class Geometry
       return false
     end
     if adiabatic_left_wall && adiabatic_right_wall && adiabatic_front_wall && adiabatic_back_wall
-      runner.registerError('At least one wall must be set to non-adiabatic')
+      runner.registerError('At least one wall must be set to non-adiabatic.')
       return false
     end
     if foundation_type == HPXML::FoundationTypeAboveApartment
-      runner.registerError('Single-family attached buildings cannot be above another unit')
+      runner.registerError('Single-family attached buildings cannot be above another unit.')
       return false
     end
     if attic_type == HPXML::AtticTypeBelowApartment
-      runner.registerError('Single-family attached buildings cannot be below another unit')
+      runner.registerError('Single-family attached buildings cannot be below another unit.')
       return false
     end
 
@@ -2104,7 +2104,7 @@ class Geometry
       balcony_depth = 0
     end
     if adiabatic_left_wall && adiabatic_right_wall && adiabatic_front_wall && adiabatic_back_wall
-      runner.registerError('At least one wall must be set to non-adiabatic')
+      runner.registerError('At least one wall must be set to non-adiabatic.')
       return false
     end
 
