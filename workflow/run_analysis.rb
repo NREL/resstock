@@ -40,11 +40,14 @@ def run_workflow(yml, measures_only)
 
     steps = []
     workflow_args.each do |measure_dir_name, arguments|
-      if measure_dir_name == 'reporting_measures'
+      if ['reporting_measures'].include?(measure_dir_name)
         workflow_args[measure_dir_name].each do |k|
           steps << { 'measure_dir_name' => k['measure_dir_name'] }
+          if k.keys.include?('arguments')
+            steps[-1]['arguments'] = k['arguments']
+          end
         end
-      else
+      elsif !['measures'].include?(measure_dir_name)
         steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
                    'arguments' => arguments }
       end
@@ -55,6 +58,20 @@ def run_workflow(yml, measures_only)
                         'building_id' => 1,
                         'workflow_json' => 'measure-info.json'
                       } })
+
+    if workflow_args.keys.include?('measures')
+      workflow_args.each do |measure_dir_name, arguments|
+        next unless ['measures'].include?(measure_dir_name)
+
+        workflow_args[measure_dir_name].each_with_index do |k, i|
+          step = { 'measure_dir_name' => k['measure_dir_name'] }
+          if k.keys.include?('arguments')
+            step['arguments'] = k['arguments']
+          end
+          steps.insert(2 + i, step)
+        end
+      end
+    end
 
     if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
       if cfg['sampler']['args']['resample']
