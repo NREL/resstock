@@ -282,7 +282,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       electricity_co_2_emissions_filepaths = []
       scenarios = args['co2_emissions'].get.split(',')
       scenarios.each do |scenario|
-        if !File.exist?(scenario)
+        scenario = File.join(resources_dir, scenario)
+        if not File.exist? scenario
           runner.registerError("CO2 emissions scenario folder '#{scenario}' does not exist.")
           return false
         end
