@@ -109,9 +109,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('If true, output the annual component loads.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('co2_emissions', false)
-    arg.setDisplayName('CO2 Emissions Calculations?')
-    arg.setDescription('If true, does CO2 emissions calculations.')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('co2_emissions', false)
+    arg.setDisplayName('CO2 Emissions: Scenarios')
+    arg.setDescription('Absolute/relative paths (comma-separated) of scenario folders of electricity CO2 emissions factor schedule files.')
     args << arg
 
     return args
@@ -264,31 +264,41 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # CO2 Emissions
     if args['co2_emissions'].is_initialized
-      if args['co2_emissions'].get
-        ba_to_gea_csv_path = File.join(resources_dir, 'ba_to_gea.csv')
-        ba_to_gea_csv = CSV.open(ba_to_gea_csv_path, headers: true)
+      ba_to_gea_csv_path = File.join(resources_dir, 'ba_to_gea.csv')
+      ba_to_gea_csv = CSV.open(ba_to_gea_csv_path, headers: true)
 
-        gea = nil
-        CSV.foreach(ba_to_gea_csv_path, headers: true) do |row|
-          next if row[0] != "p#{bldg_data['REEDS Balancing Area']}"
+      gea = nil
+      CSV.foreach(ba_to_gea_csv_path, headers: true) do |row|
+        next if row[0] != "p#{bldg_data['REEDS Balancing Area']}"
 
-          gea = row[1]
-        end
+        gea = row[1]
+      end
 
-        if gea.nil?
-          runner.registerError("Could not find balancing area 'p#{bldg_data['REEDS Balancing Area']}' in #{ba_to_gea_csv_path}.")
+      if gea.nil?
+        runner.registerError("Could not find balancing area 'p#{bldg_data['REEDS Balancing Area']}' in #{ba_to_gea_csv_path}.")
+        return false
+      end
+
+      electricity_co_2_emissions_filepaths = []
+      scenarios = args['co2_emissions'].get.split(',')
+      scenarios.each do |scenario|
+        if !File.exist?(scenario)
+          runner.registerError("CO2 emissions scenario folder '#{scenario}' does not exist.")
           return false
         end
 
-        filename = "StdScen21_MidCase_hourly_#{gea}_2022.csv"
-        electricity_co_2_emissions_filepaths = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/data/cambium/#{filename}"))
-        electricity_co_2_emissions_units = HPXML::CO2EmissionsScenario::UnitsKgPerMWh
-
-        measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_filepaths'] = electricity_co_2_emissions_filepaths
-        measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_units'] = electricity_co_2_emissions_units
-        register_value(runner, 'electricity_co_2_emissions_filepaths', electricity_co_2_emissions_filepaths)
-        register_value(runner, 'electricity_co_2_emissions_units', electricity_co_2_emissions_units)
+        Dir["#{scenario}/*.csv"].each do |filepath|
+          electricity_co_2_emissions_filepaths << filepath if filepath.include?(gea)
+        end
       end
+
+      electricity_co_2_emissions_filepaths = electricity_co_2_emissions_filepaths.join(',')
+      electricity_co_2_emissions_units = HPXML::CO2EmissionsScenario::UnitsKgPerMWh
+
+      measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_filepaths'] = electricity_co_2_emissions_filepaths
+      measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_units'] = electricity_co_2_emissions_units
+      register_value(runner, 'electricity_co_2_emissions_filepaths', electricity_co_2_emissions_filepaths)
+      register_value(runner, 'electricity_co_2_emissions_units', electricity_co_2_emissions_units)
     end
 
     # Get registered values and pass them to BuildResidentialScheduleFile

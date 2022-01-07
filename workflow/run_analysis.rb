@@ -37,7 +37,12 @@ def run_workflow(yml, measures_only, debug)
       workflow_args.each do |measure_dir_name, arguments|
         next if k != measure_dir_name
 
-        arguments['building_id'] = 1 if measure_dir_name == 'build_existing_model'
+        if measure_dir_name == 'build_existing_model'
+          arguments['building_id'] = 1
+          if arguments.keys.include?('co2_emissions')
+            arguments['co2_emissions'] = arguments['co2_emissions'].collect { |s| s['scenario'] }.join(',')
+          end
+        end
         steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
                    'arguments' => arguments }
       end

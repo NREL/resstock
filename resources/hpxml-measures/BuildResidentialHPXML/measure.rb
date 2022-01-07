@@ -2885,7 +2885,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('electricity_co_2_emissions_filepaths', false)
     arg.setDisplayName('Electricity CO2 Emissions: CSV Paths')
-    arg.setDescription('Absolute (or relative) path of the csv file containing user-specified occupancy schedules.')
+    arg.setDescription('Absolute/relative paths (comma-separated) of electricity CO2 emissions factor schedule file with hourly values.')
     args << arg
 
     electricity_co2_emissions_units_choices = OpenStudio::StringVector.new
@@ -2896,7 +2896,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('electricity_co_2_emissions_units', electricity_co2_emissions_units_choices, false)
     arg.setDisplayName('Electricity CO2 Emissions: CSV Paths')
-    arg.setDescription('Absolute (or relative) path of the csv file containing user-specified occupancy schedules.')
+    arg.setDescription('Electricity CO2 emissions factor units.')
     arg.setDefaultValue(HPXML::CO2EmissionsScenario::UnitsKgPerMWh)
     args << arg
 
@@ -3336,8 +3336,7 @@ class HPXMLFile
 
     if args[:electricity_co_2_emissions_filepaths].is_initialized
       args[:electricity_co_2_emissions_filepaths].get.split(',').each do |electricity_co_2_emissions_filepath|
-        name, ext = File.basename(electricity_co_2_emissions_filepath).split('.')
-        hpxml.header.co2_emissions_scenarios.add(name: name,
+        hpxml.header.co2_emissions_scenarios.add(name: File.basename(File.dirname(electricity_co_2_emissions_filepath)),
                                                  elec_units: args[:electricity_co_2_emissions_units].get,
                                                  elec_schedule_filepath: electricity_co_2_emissions_filepath)
       end
