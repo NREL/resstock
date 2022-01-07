@@ -669,7 +669,7 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
             fixed_interval = Schedule.schedulefile_to_fixedinterval(model, existing_schedule, sch_name="plug load fixed interval")
             
             # Convert fixed interval to ruleset
-            ruleset = Schedule.fixedinterval_to_ruleset(model, fixed_interval)
+            ruleset = Schedule.fixedinterval_to_ruleset(model, fixed_interval, existing_schedule.name.get + ' ruleset')
             fixed_interval.remove
 
           elsif existing_schedule.to_ScheduleRuleset.is_initialized
