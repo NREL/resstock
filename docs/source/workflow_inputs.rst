@@ -199,59 +199,65 @@ If neither simple nor detailed inputs are provided, then schedules are defaulted
 Default schedules are typically smooth, averaged schedules.
 These default schedules are described elsewhere in the documentation (e.g., see :ref:`buildingoccupancy` for the default occupant heat gain schedule).
 
-HPXML CO2 Emissions Scenarios
-*****************************
+HPXML Emissions Scenarios
+*************************
 
-One or more CO2 emissions scenarios can be entered as an ``/HPXML/SoftwareInfo/extension/CO2EmissionsScenarios/CO2EmissionsScenario``.
+One or more emissions scenarios can be entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario``.
 
   ================================  ========  =====  ===========  ========  ========  ============================================================
   Element                           Type      Units  Constraints  Required  Default   Notes
   ================================  ========  =====  ===========  ========  ========  ============================================================
   ``Name``                          string                        Yes                 Name of the scenario (which shows up in the output file)
-  ``CO2EmissionsFactor``            element          >= 1         See [#]_            CO2 emissions factor(s) for a given fuel type
+  ``EmissionsType``                 string           See [#]_     Yes                 Type of emissions (e.g., CO2)
+  ``EmissionsFactor``               element          >= 1         See [#]_            Emissions factor(s) for a given fuel type
   ================================  ========  =====  ===========  ========  ========  ============================================================
 
-  .. [#] CO2EmissionsFactor is required for electricity and optional (i.e., can defaulted) for all fossil fuel types.
+  .. [#] EmissionsType can be anything. But if certain values are provided (e.g., "CO2"), then some emissions factors can be defaulted as described further below.
+  .. [#] EmissionsFactor is required for electricity and optional for all non-electric fuel types.
 
-For each scenario, **electricity** information must be entered as an ``/HPXML/SoftwareInfo/extension/CO2EmissionsScenarios/CO2EmissionsScenario/CO2EmissionsFactor``.
+For each scenario, **electricity** emissions factors must be entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
 
-  ================================  ========  =====  ===========  ========  ========  ============================================================
-  Element                           Type      Units  Constraints  Required  Default   Notes
-  ================================  ========  =====  ===========  ========  ========  ============================================================
-  ``FuelType``                      string           electricity  Yes                 CO2 emissions factor fuel type
-  ``Units``                         string           See [#]_     Yes                 CO2 emissions factor units
-  ``ScheduleFilePath``              string           See [#]_     Yes                 CO2 emissions factor schedule file with hourly values
-  ================================  ========  =====  ===========  ========  ========  ============================================================
+  =================================  ================  =====  ===========  ========  ========  ============================================================
+  Element                            Type              Units  Constraints  Required  Default   Notes
+  =================================  ================  =====  ===========  ========  ========  ============================================================
+  ``FuelType``                       string                   electricity  Yes                 Emissions factor fuel type
+  ``Units``                          string                   See [#]_     Yes                 Emissions factor units
+  ``Value`` or ``ScheduleFilePath``  double or string         See [#]_     Yes                 Emissions factor annual value or schedule file with hourly values
+  =================================  ================  =====  ===========  ========  ========  ============================================================
 
   .. [#] Units choices are "lb/MWh" and "kg/MWh".
   .. [#] ScheduleFilePath must point to a file with a single column of 8760 numeric hourly values.
          NREL's `Cambium data sets <https://www.nrel.gov/analysis/cambium.html>`_ are typically used, but OpenStudio-HPXML can accommodate alternative data sets as well.
 
-For each scenario, **fossil fuel** information can be optionally entered as an ``/HPXML/SoftwareInfo/extension/CO2EmissionsScenarios/CO2EmissionsScenario/CO2EmissionsFactor``.
+For each scenario, **fuel** emissions factors can be optionally entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
 
   ================================  ========  =====  ===========  ========  ========  ============================================================
   Element                           Type      Units  Constraints  Required  Default   Notes
   ================================  ========  =====  ===========  ========  ========  ============================================================
-  ``FuelType``                      string           See [#]_     Yes                 CO2 emissions factor fuel type
-  ``Units``                         string           See [#]_     Yes                 CO2 emissions factor units
-  ``Value``                         double                        Yes                 CO2 emissions factor annual value
+  ``FuelType``                      string           See [#]_     Yes                 Emissions factor fuel type
+  ``Units``                         string           See [#]_     Yes                 Emissions factor units
+  ``Value``                         double                        Yes                 Emissions factor annual value
   ================================  ========  =====  ===========  ========  ========  ============================================================
 
-  .. [#] FuelType choices are "natural gas", "propane", "fuel oil", and "coal".
+  .. [#] FuelType choices are "natural gas", "propane", "fuel oil", "coal", "wood", and "wood pellets".
   .. [#] Units choices are "lb/MBtu" and "kg/MBtu".
 
-If fossil fuel information is not entered, CO2 emissions factors are defaulted for these fuels based on `EIA data <https://www.eia.gov/environment/emissions/co2_vol_mass.php>`_ as follows:
+If EmissionsType is "CO2", "NOx" or "SO2" and a given fuel's emissions factor is not entered, they will be defaulted as follows.
+Values are based on `EPA data <https://www.epa.gov/air-emissions-factors-and-quantification/ap-42-fifth-edition-volume-i-chapter-1-external-0>`_ and `EIA data <https://www.eia.gov/environment/emissions/co2_vol_mass.php>`_.
+If no default value is available, a warning will be issued.
 
-  ============  ========
-  Fuel Type     lb/MBtu
-  ============  ========
-  natural gas   116.65
-  propane       138.63
-  fuel oil      163.45
-  coal          211.06
-  ============  ========
+  ============  =============  =============  =============
+  Fuel Type     CO2 [lb/MBtu]  NOx [lb/MBtu]  SO2 [lb/MBtu]
+  ============  =============  =============  =============
+  natural gas   117.6          0.0922         0.0006
+  propane       136.6          0.1421         0.0002
+  fuel oil      161.0          0.1300         0.0015
+  coal          211.1          --             --
+  wood          --             --             --
+  wood pellets  --             --             --
+  ============  =============  =============  =============
 
-See :ref:`annual_outputs` and :ref:`timeseries_outputs` for descriptions of how the calculated CO2 emissions appear in the output files.
+See :ref:`annual_outputs` and :ref:`timeseries_outputs` for descriptions of how the calculated emissions appear in the output files.
 
 HPXML Building Summary
 ----------------------

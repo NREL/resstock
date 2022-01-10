@@ -336,8 +336,8 @@ def create_hpxmls
     'base-mechvent-multiple.xml' => 'base-mechvent-bath-kitchen-fans.xml',
     'base-mechvent-supply.xml' => 'base.xml',
     'base-mechvent-whole-house-fan.xml' => 'base.xml',
-    'base-misc-co2-emissions.xml' => 'base-pv-battery-outside.xml',
     'base-misc-defaults.xml' => 'base.xml',
+    'base-misc-emissions.xml' => 'base-pv-battery-outside.xml',
     'base-misc-generators.xml' => 'base.xml',
     'base-misc-loads-large-uncommon.xml' => 'base-schedules-simple.xml',
     'base-misc-loads-large-uncommon2.xml' => 'base-misc-loads-large-uncommon.xml',
@@ -2513,15 +2513,19 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.header.schedules_filepath = '../../HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
   elsif ['base-location-capetown-zaf.xml'].include? hpxml_file
     hpxml.header.state_code = nil
-  elsif ['base-misc-co2-emissions.xml'].include? hpxml_file
-    hpxml.header.co2_emissions_scenarios.add(name: 'Cambium 2022 MidCase AER using RMPA region',
-                                             elec_units: HPXML::CO2EmissionsScenario::UnitsKgPerMWh,
-                                             elec_schedule_filepath: '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_RMPAc_2022.csv',
-                                             natural_gas_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu)
-    hpxml.header.co2_emissions_scenarios.add(name: 'Cambium 2022 MidCase AER using National',
-                                             elec_units: HPXML::CO2EmissionsScenario::UnitsKgPerMWh,
-                                             elec_schedule_filepath: '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_usa_2022.csv',
-                                             natural_gas_units: HPXML::CO2EmissionsScenario::UnitsKgPerMBtu)
+  elsif ['base-misc-emissions.xml'].include? hpxml_file
+    hpxml.header.emissions_scenarios.add(name: 'Cambium 2022 Hourly MidCase AER using RMPA region',
+                                         emissions_type: 'CO2',
+                                         elec_units: HPXML::EmissionsScenario::UnitsKgPerMWh,
+                                         elec_schedule_filepath: '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_RMPAc_2022.csv')
+    hpxml.header.emissions_scenarios.add(name: 'Cambium 2022 Hourly MidCase AER using National',
+                                         emissions_type: 'CO2',
+                                         elec_units: HPXML::EmissionsScenario::UnitsKgPerMWh,
+                                         elec_schedule_filepath: '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_usa_2022.csv')
+    hpxml.header.emissions_scenarios.add(name: 'Cambium 2022 Annual MidCase AER using National',
+                                         emissions_type: 'CO2',
+                                         elec_units: HPXML::EmissionsScenario::UnitsKgPerMWh,
+                                         elec_value: 392.6)
   end
 
   # ------------------------- #

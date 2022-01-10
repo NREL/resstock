@@ -614,12 +614,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
   def test_measure_error_messages
     # Test case => Error message
     all_expected_errors = { 'cfis-with-hydronic-distribution' => ["Attached HVAC distribution system 'HVACDistribution1' cannot be hydronic for ventilation fan 'VentilationFan1'."],
-                            'co2-emissions-non-numeric' => ['CO2 Emissions File has non-numeric values.'],
-                            'co2-emissions-wrong-columns' => ['CO2 Emissions File has multiple columns. Must be a single column of data.'],
-                            'co2-emissions-wrong-filename' => ["CO2 Emissions File file path 'invalid-wrong-filename.csv' does not exist."],
-                            'co2-emissions-wrong-rows' => ['CO2 Emissions File has invalid number of rows (8759). Must be 8760.'],
                             'dehumidifier-setpoints' => ['All dehumidifiers must have the same setpoint but multiple setpoints were specified.'],
                             'duplicate-id' => ["Duplicate SystemIdentifier IDs detected for 'Window1'."],
+                            'emissions-non-numeric' => ['Emissions File has non-numeric values.'],
+                            'emissions-wrong-columns' => ['Emissions File has multiple columns. Must be a single column of data.'],
+                            'emissions-wrong-filename' => ["Emissions File file path 'invalid-wrong-filename.csv' does not exist."],
+                            'emissions-wrong-rows' => ['Emissions File has invalid number of rows (8759). Must be 8760.'],
                             'heat-pump-backup-system-furnace' => ["Heat pump backup system cannot be of type 'Furnace'."],
                             'heat-pump-backup-system-load-fraction' => ['Heat pump backup system cannot have a fraction heat load served specified.'],
                             'hvac-distribution-multiple-attached-cooling' => ["Multiple cooling systems found attached to distribution system 'HVACDistribution2'."],
@@ -683,32 +683,32 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                    fan_type: HPXML::MechVentTypeCFIS,
                                    used_for_whole_building_ventilation: true,
                                    distribution_system_idref: hpxml.hvac_distributions[0].id)
-      elsif ['co2-emissions-non-numeric'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-co2-emissions.xml'))
-        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.co2_emissions_scenarios[-1].elec_schedule_filepath))
-        csv_data[1][0] = 'NA'
-        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
-        hpxml.header.co2_emissions_scenarios[-1].elec_schedule_filepath = @tmp_csv_path
-      elsif ['co2-emissions-wrong-columns'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-co2-emissions.xml'))
-        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.co2_emissions_scenarios[-1].elec_schedule_filepath))
-        csv_data[1][1] = '431'
-        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
-        hpxml.header.co2_emissions_scenarios[-1].elec_schedule_filepath = @tmp_csv_path
-      elsif ['co2-emissions-wrong-filename'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-co2-emissions.xml'))
-        hpxml.header.co2_emissions_scenarios[-1].elec_schedule_filepath = 'invalid-wrong-filename.csv'
-      elsif ['co2-emissions-wrong-rows'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-co2-emissions.xml'))
-        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.co2_emissions_scenarios[-1].elec_schedule_filepath))
-        File.write(@tmp_csv_path, csv_data[0..-2].map(&:to_csv).join)
-        hpxml.header.co2_emissions_scenarios[-1].elec_schedule_filepath = @tmp_csv_path
       elsif ['dehumidifier-setpoints'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-appliances-dehumidifier-multiple.xml'))
         hpxml.dehumidifiers[-1].rh_setpoint = 0.55
       elsif ['duplicate-id'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.windows[-1].id = hpxml.windows[0].id
+      elsif ['emissions-non-numeric'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-emissions.xml'))
+        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.emissions_scenarios[1].elec_schedule_filepath))
+        csv_data[1][0] = 'NA'
+        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
+        hpxml.header.emissions_scenarios[1].elec_schedule_filepath = @tmp_csv_path
+      elsif ['emissions-wrong-columns'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-emissions.xml'))
+        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.emissions_scenarios[1].elec_schedule_filepath))
+        csv_data[1][1] = '431'
+        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
+        hpxml.header.emissions_scenarios[1].elec_schedule_filepath = @tmp_csv_path
+      elsif ['emissions-wrong-filename'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-emissions.xml'))
+        hpxml.header.emissions_scenarios[1].elec_schedule_filepath = 'invalid-wrong-filename.csv'
+      elsif ['emissions-wrong-rows'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-emissions.xml'))
+        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.emissions_scenarios[1].elec_schedule_filepath))
+        File.write(@tmp_csv_path, csv_data[0..-2].map(&:to_csv).join)
+        hpxml.header.emissions_scenarios[1].elec_schedule_filepath = @tmp_csv_path
       elsif ['heat-pump-backup-system-furnace'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml'))
         hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeFurnace

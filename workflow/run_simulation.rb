@@ -45,7 +45,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['timeseries_frequency'] = timeseries_output_freq
   args['include_timeseries_fuel_consumptions'] = timeseries_outputs.include? 'fuels'
   args['include_timeseries_end_use_consumptions'] = timeseries_outputs.include? 'enduses'
-  args['include_timeseries_co2_emissions'] = timeseries_outputs.include? 'co2'
+  args['include_timeseries_emissions'] = timeseries_outputs.include? 'emissions'
   args['include_timeseries_hot_water_uses'] = timeseries_outputs.include? 'hotwater'
   args['include_timeseries_total_loads'] = timeseries_outputs.include? 'loads'
   args['include_timeseries_component_loads'] = timeseries_outputs.include? 'componentloads'
@@ -65,7 +65,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   return results[:success]
 end
 
-timeseries_types = ['ALL', 'fuels', 'co2', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
+timeseries_types = ['ALL', 'fuels', 'emissions', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
 
 options = {}
 OptionParser.new do |opts|
