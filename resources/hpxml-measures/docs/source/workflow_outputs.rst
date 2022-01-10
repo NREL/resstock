@@ -201,20 +201,22 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Coal: Fireplace (MBtu)
    ===================================================================  ====================================================
 
-Annual Energy Consumption By CO2 Emissions Scenario
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Annual Emissions
+~~~~~~~~~~~~~~~~
 
-Results for each CO2 emissions scenario defined in the HPXML file is listed as shown below.
+Results for each emissions scenario defined in the HPXML file is listed as shown below.
 
-   =====================================  ==================================================================
-   Type                                   Notes
-   =====================================  ==================================================================
-   CO2 Emissions: <Scenario Name 1> (lb)  CO2 emissions for scenario 1
-   CO2 Emissions: <Scenario Name 2> (lb)  CO2 emissions for scenario 2
+   =========================================================  ==================================================================
+   Type                                                       Notes
+   =========================================================  ==================================================================
+   Emissions: <EmissionsType>: <ScenarioName1>: Total (lb)    Scenario 1 total emissions
+   Emissions: <EmissionsType>: <ScenarioName1>: <Fuel1> (lb)  Scenario 1 emissions for <Fuel1> only
+   Emissions: <EmissionsType>: <ScenarioName1>: <Fuel2> (lb)  Scenario 1 emissions for <Fuel2> only
+   Emissions: <EmissionsType>: <ScenarioName2>: Total (lb)    Scenario 2 total emissions
+   Emissions: <EmissionsType>: <ScenarioName2>: <Fuel1> (lb)  Scenario 2 emissions for <Fuel1> only
+   Emissions: <EmissionsType>: <ScenarioName2>: <Fuel2> (lb)  Scenario 2 emissions for <Fuel2> only
    ...
-   =====================================  ==================================================================
-
-CO2 emissions for each scenario combines the emissions associated with electricity consumption plus the emissions associated with any fossil fuel consumption.
+   =========================================================  ==================================================================
 
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
@@ -336,7 +338,7 @@ Depending on the outputs requested, the file may include:
    ===================================  ==================================================================================================================================
    Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
-   CO2 Emissions                        CO2 emissions for each scenario defined in the HPXML file.
+   Emissions                            Emissions (e.g., CO2) for each scenario defined in the HPXML file.
    Hot Water Uses                       Water use for each end use type (in gallons).
    Total Loads                          Heating, cooling, and hot water loads (in kBtu) for the building.
    Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).

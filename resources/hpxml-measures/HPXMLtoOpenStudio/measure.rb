@@ -218,19 +218,21 @@ class OSModel
     @hpxml.header.schedules_filepath = FilePath.check_path(@hpxml.header.schedules_filepath,
                                                            File.dirname(hpxml_path),
                                                            'Schedules')
-    @hpxml.header.co2_emissions_scenarios.each do |scenario|
+    @hpxml.header.emissions_scenarios.each do |scenario|
+      next if scenario.elec_schedule_filepath.nil?
+
       scenario.elec_schedule_filepath = FilePath.check_path(scenario.elec_schedule_filepath,
                                                             File.dirname(hpxml_path),
-                                                            'CO2 Emissions File')
+                                                            'Emissions File')
       data = File.readlines(scenario.elec_schedule_filepath)
       if data.size != 8760
-        fail "CO2 Emissions File has invalid number of rows (#{data.size}). Must be 8760."
+        fail "Emissions File has invalid number of rows (#{data.size}). Must be 8760."
       end
       if data.select { |x| x.include? ',' }.size > 0
-        fail 'CO2 Emissions File has multiple columns. Must be a single column of data.'
+        fail 'Emissions File has multiple columns. Must be a single column of data.'
       end
       if data.map(&:strip).map { |x| Float(x) rescue nil }.any? nil
-        fail 'CO2 Emissions File has non-numeric values.'
+        fail 'Emissions File has non-numeric values.'
       end
     end
 
@@ -2090,8 +2092,10 @@ class OSModel
     additionalProperties.setFeature('hpxml_path', hpxml_path)
     additionalProperties.setFeature('hpxml_defaults_path', @hpxml_defaults_path)
     additionalProperties.setFeature('building_id', building_id.to_s)
-    co2_emissions_scenario_names = @hpxml.header.co2_emissions_scenarios.map { |s| s.name }.to_s
-    additionalProperties.setFeature('co2_emissions_scenario_names', co2_emissions_scenario_names)
+    emissions_scenario_names = @hpxml.header.emissions_scenarios.map { |s| s.name }.to_s
+    additionalProperties.setFeature('emissions_scenario_names', emissions_scenario_names)
+    emissions_scenario_types = @hpxml.header.emissions_scenarios.map { |s| s.emissions_type }.to_s
+    additionalProperties.setFeature('emissions_scenario_types', emissions_scenario_types)
   end
 
   def self.map_to_string(map)
