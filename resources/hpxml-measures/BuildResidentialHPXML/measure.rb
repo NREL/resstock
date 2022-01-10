@@ -2889,15 +2889,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     electricity_co2_emissions_units_choices = OpenStudio::StringVector.new
-    electricity_co2_emissions_units_choices << HPXML::CO2EmissionsScenario::UnitsKgPerMWh
-    electricity_co2_emissions_units_choices << HPXML::CO2EmissionsScenario::UnitsKgPerMBtu
-    electricity_co2_emissions_units_choices << HPXML::CO2EmissionsScenario::UnitsLbPerMWh
-    electricity_co2_emissions_units_choices << HPXML::CO2EmissionsScenario::UnitsLbPerMBtu
+    electricity_co2_emissions_units_choices << HPXML::EmissionsScenario::UnitsKgPerMWh
+    electricity_co2_emissions_units_choices << HPXML::EmissionsScenario::UnitsKgPerMBtu
+    electricity_co2_emissions_units_choices << HPXML::EmissionsScenario::UnitsLbPerMWh
+    electricity_co2_emissions_units_choices << HPXML::EmissionsScenario::UnitsLbPerMBtu
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('electricity_co_2_emissions_units', electricity_co2_emissions_units_choices, false)
     arg.setDisplayName('Electricity CO2 Emissions: CSV Paths')
     arg.setDescription('Electricity CO2 emissions factor units.')
-    arg.setDefaultValue(HPXML::CO2EmissionsScenario::UnitsKgPerMWh)
+    arg.setDefaultValue(HPXML::EmissionsScenario::UnitsKgPerMWh)
     args << arg
 
     return args
@@ -3336,9 +3336,10 @@ class HPXMLFile
 
     if args[:electricity_co_2_emissions_filepaths].is_initialized
       args[:electricity_co_2_emissions_filepaths].get.split(',').each do |electricity_co_2_emissions_filepath|
-        hpxml.header.co2_emissions_scenarios.add(name: File.basename(File.dirname(electricity_co_2_emissions_filepath)),
-                                                 elec_units: args[:electricity_co_2_emissions_units].get,
-                                                 elec_schedule_filepath: electricity_co_2_emissions_filepath)
+        hpxml.header.emissions_scenarios.add(name: File.basename(File.dirname(electricity_co_2_emissions_filepath)),
+                                             emissions_type: 'CO2',
+                                             elec_units: args[:electricity_co_2_emissions_units].get,
+                                             elec_schedule_filepath: electricity_co_2_emissions_filepath)
       end
     end
   end

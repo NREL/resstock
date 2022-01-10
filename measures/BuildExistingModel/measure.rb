@@ -294,7 +294,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       electricity_co_2_emissions_filepaths = electricity_co_2_emissions_filepaths.join(',')
-      electricity_co_2_emissions_units = HPXML::CO2EmissionsScenario::UnitsKgPerMWh
+      electricity_co_2_emissions_units = HPXML::EmissionsScenario::UnitsKgPerMWh
 
       measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_filepaths'] = electricity_co_2_emissions_filepaths
       measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_units'] = electricity_co_2_emissions_units
