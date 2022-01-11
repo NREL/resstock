@@ -24,14 +24,42 @@ class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
     return ''
   end
 
+  # define the arguments that the user will input
+  def arguments(model)
+    args = OpenStudio::Measure::OSArgumentVector.new
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('hpxml_path', true)
+    arg.setDisplayName('HPXML Filepath')
+    arg.setDescription('Path of HPXML file to be translated')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_path', true)
+    arg.setDisplayName('HEScore JSON Output Filepath')
+    arg.setDescription('Path of HEScore JSON file that is output by the translator')
+    arg.setDefaultValue(false)
+    args << arg
+
+    return args
+  end
+
   # define what happens when the measure is run
   def run(model, runner, user_arguments)
     super(model, runner, user_arguments)
 
-    hpxml_path = File.expand_path('../existing.xml')
-    outfile = File.expand_path('../hes.json')
+    # use the built-in error checking
+    if !runner.validateUserArguments(arguments(model), user_arguments)
+      return false
+    end
 
-    runner.registerInfo('Translating xml to HES json')
+    # get arguments
+    hpxml_path = runner.getStringArgumentValue('hpxml_path', user_arguments)
+    outfile = runner.getStringArgumentValue('output_path', user_arguments)
+
+    hpxml_path = File.expand_path(hpxml_path)
+    outfile = File.expand_path(outfile)
+
+    runner.registerInfo('Translating HPXML to HEScore JSON')
     command = "hpxml2hescore #{hpxml_path} -o #{outfile} --resstock"
     stdout, stderr, status = Open3.capture3(command)
 
@@ -40,7 +68,7 @@ class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    runner.registerInfo("Translated xml to HES json, output #{outfile}")
+    runner.registerInfo("Translated HPXML to HEScore JSON, output #{outfile}")
 
     return true
   end
