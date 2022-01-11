@@ -206,17 +206,27 @@ Annual Emissions
 
 Results for each emissions scenario defined in the HPXML file is listed as shown below.
 
-   =========================================================  ==================================================================
-   Type                                                       Notes
-   =========================================================  ==================================================================
-   Emissions: <EmissionsType>: <ScenarioName1>: Total (lb)    Scenario 1 total emissions
-   Emissions: <EmissionsType>: <ScenarioName1>: <Fuel1> (lb)  Scenario 1 emissions for <Fuel1> only
-   Emissions: <EmissionsType>: <ScenarioName1>: <Fuel2> (lb)  Scenario 1 emissions for <Fuel2> only
-   Emissions: <EmissionsType>: <ScenarioName2>: Total (lb)    Scenario 2 total emissions
-   Emissions: <EmissionsType>: <ScenarioName2>: <Fuel1> (lb)  Scenario 2 emissions for <Fuel1> only
-   Emissions: <EmissionsType>: <ScenarioName2>: <Fuel2> (lb)  Scenario 2 emissions for <Fuel2> only
+   ==============================================================  ==================================================================
+   Type                                                            Notes
+   ==============================================================  ==================================================================
+   Emissions: <EmissionsType>: <Scenario1Name>: Total (lb)         Scenario 1 total emissions
+   Emissions: <EmissionsType>: <Scenario1Name>: Electricity (lb)   Scenario 1 emissions for Electricity only
+   Emissions: <EmissionsType>: <Scenario1Name>: Natural Gas (lb)   Scenario 1 emissions for Natural Gas only
+   Emissions: <EmissionsType>: <Scenario1Name>: Fuel Oil (lb)      Scenario 1 emissions for Fuel Oil only
+   Emissions: <EmissionsType>: <Scenario1Name>: Propane (lb)       Scenario 1 emissions for Propane only
+   Emissions: <EmissionsType>: <Scenario1Name>: Wood Cord (lb)     Scenario 1 emissions for Wood Cord only
+   Emissions: <EmissionsType>: <Scenario1Name>: Wood Pellets (lb)  Scenario 1 emissions for Wood Pellets only
+   Emissions: <EmissionsType>: <Scenario1Name>: Coal (lb)          Scenario 1 emissions for Coal only
+   Emissions: <EmissionsType>: <Scenario2Name>: Total (lb)         Scenario 2 total emissions
+   Emissions: <EmissionsType>: <Scenario2Name>: Electricity (lb)   Scenario 2 emissions for Electricity only
+   Emissions: <EmissionsType>: <Scenario2Name>: Natural Gas (lb)   Scenario 2 emissions for Natural Gas only
+   Emissions: <EmissionsType>: <Scenario2Name>: Fuel Oil (lb)      Scenario 2 emissions for Fuel Oil only
+   Emissions: <EmissionsType>: <Scenario2Name>: Propane (lb)       Scenario 2 emissions for Propane only
+   Emissions: <EmissionsType>: <Scenario2Name>: Wood Cord (lb)     Scenario 2 emissions for Wood Cord only
+   Emissions: <EmissionsType>: <Scenario2Name>: Wood Pellets (lb)  Scenario 2 emissions for Wood Pellets only
+   Emissions: <EmissionsType>: <Scenario2Name>: Coal (lb)          Scenario 2 emissions for Coal only
    ...
-   =========================================================  ==================================================================
+   ==============================================================  ==================================================================
 
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
