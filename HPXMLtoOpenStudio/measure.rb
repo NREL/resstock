@@ -214,30 +214,9 @@ class OSModel
     @apply_ashrae140_assumptions = @hpxml.header.apply_ashrae140_assumptions # Hidden feature
     @apply_ashrae140_assumptions = false if @apply_ashrae140_assumptions.nil?
 
-    # Check/update file references
-    @hpxml.header.schedules_filepath = FilePath.check_path(@hpxml.header.schedules_filepath,
-                                                           File.dirname(hpxml_path),
-                                                           'Schedules')
-    @hpxml.header.emissions_scenarios.each do |scenario|
-      next if scenario.elec_schedule_filepath.nil?
-
-      scenario.elec_schedule_filepath = FilePath.check_path(scenario.elec_schedule_filepath,
-                                                            File.dirname(hpxml_path),
-                                                            'Emissions File')
-      data = File.readlines(scenario.elec_schedule_filepath)
-      if data.size != 8760
-        fail "Emissions File has invalid number of rows (#{data.size}). Must be 8760."
-      end
-      if data.select { |x| x.include? ',' }.size > 0
-        fail 'Emissions File has multiple columns. Must be a single column of data.'
-      end
-      if data.map(&:strip).map { |x| Float(x) rescue nil }.any? nil
-        fail 'Emissions File has non-numeric values.'
-      end
-    end
-
     # Init
 
+    check_file_references(hpxml_path)
     @schedules_file = nil
     if not @hpxml.header.schedules_filepath.nil?
       @schedules_file = SchedulesFile.new(runner: runner, model: model,
@@ -323,6 +302,33 @@ class OSModel
   end
 
   private
+
+  def self.check_file_references(hpxml_path)
+    # Check/update file references
+    @hpxml.header.schedules_filepath = FilePath.check_path(@hpxml.header.schedules_filepath,
+                                                           File.dirname(hpxml_path),
+                                                           'Schedules')
+    @hpxml.header.emissions_scenarios.each do |scenario|
+      if @hpxml.header.emissions_scenarios.select { |s| s.emissions_type == scenario.emissions_type && s.name == scenario.name }.size > 1
+        fail "Found multiple Emissions Scenarios with the Scenario Name=#{scenario.name} and Emissions Type=#{scenario.emissions_type}."
+      end
+      next if scenario.elec_schedule_filepath.nil?
+
+      scenario.elec_schedule_filepath = FilePath.check_path(scenario.elec_schedule_filepath,
+                                                            File.dirname(hpxml_path),
+                                                            'Emissions File')
+      data = File.readlines(scenario.elec_schedule_filepath)
+      if data.size != 8760
+        fail "Emissions File has invalid number of rows (#{data.size}). Must be 8760."
+      end
+      if data.select { |x| x.include? ',' }.size > 0
+        fail 'Emissions File has multiple columns. Must be a single column of data.'
+      end
+      if data.map(&:strip).map { |x| Float(x) rescue nil }.any? nil
+        fail 'Emissions File has non-numeric values.'
+      end
+    end
+  end
 
   def self.set_defaults_and_globals(runner, output_dir, epw_file, weather, schedules_file)
     # Initialize

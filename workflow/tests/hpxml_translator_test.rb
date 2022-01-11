@@ -1246,7 +1246,6 @@ class HPXMLTest < MiniTest::Test
 
         output_keys << key
       end
-      break
     end
 
     column_headers = ['HPXML']
