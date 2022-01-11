@@ -31,13 +31,11 @@ class HEScoreHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hpxml_path', true)
     arg.setDisplayName('HPXML Filepath')
     arg.setDescription('Path of HPXML file to be translated')
-    arg.setDefaultValue(false)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_path', true)
     arg.setDisplayName('HEScore JSON Output Filepath')
     arg.setDescription('Path of HEScore JSON file that is output by the translator')
-    arg.setDefaultValue(false)
     args << arg
 
     return args
