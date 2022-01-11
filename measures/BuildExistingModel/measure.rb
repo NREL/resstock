@@ -109,9 +109,19 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('If true, output the annual component loads.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('co2_emissions', false)
-    arg.setDisplayName('CO2 Emissions: Scenarios')
-    arg.setDescription('Absolute/relative paths (comma-separated) of scenario folders of electricity CO2 emissions factor schedule files.')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_scenario_names', false)
+    arg.setDisplayName('Emissions: Scenario Names')
+    arg.setDescription('Names (comma-separated) of emissions scenarios.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_types', false)
+    arg.setDisplayName('Emissions: Types')
+    arg.setDescription('Types (comma-separated) of emissions types. This list corresponds to scenario names.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_folders', false)
+    arg.setDisplayName('Emissions: Electricity CSV Paths')
+    arg.setDescription('Absolute/relative paths (comma-separated) of electricity emissions factor schedule files with hourly values. This list corresponds to scenario names.')
     args << arg
 
     return args
@@ -263,7 +273,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
 
     # CO2 Emissions
-    if args['co2_emissions'].is_initialized
+    if args['emissions_scenario_names'].is_initialized
       ba_to_gea_csv_path = File.join(resources_dir, 'ba_to_gea.csv')
       ba_to_gea_csv = CSV.open(ba_to_gea_csv_path, headers: true)
 
@@ -279,8 +289,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      electricity_co_2_emissions_filepaths = []
-      scenarios = args['co2_emissions'].get.split(',')
+      emissions_electricity_filepaths = []
+      scenarios = args['emissions_folders'].get.split(',')
       scenarios.each do |scenario|
         scenario = File.join(resources_dir, scenario)
         if not File.exist? scenario
@@ -289,17 +299,21 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         end
 
         Dir["#{scenario}/*.csv"].each do |filepath|
-          electricity_co_2_emissions_filepaths << filepath if filepath.include?(gea)
+          emissions_electricity_filepaths << filepath if filepath.include?(gea)
         end
       end
 
-      electricity_co_2_emissions_filepaths = electricity_co_2_emissions_filepaths.join(',')
-      electricity_co_2_emissions_units = HPXML::EmissionsScenario::UnitsKgPerMWh
+      emissions_scenario_names = args['emissions_scenario_names'].get
+      emissions_types = args['emissions_types'].get
+      emissions_electricity_filepaths = emissions_electricity_filepaths.join(',')
+      emissions_electricity_units = ([HPXML::EmissionsScenario::UnitsLbPerMWh] * scenarios.size).join(',')
 
-      measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_filepaths'] = electricity_co_2_emissions_filepaths
-      measures['BuildResidentialHPXML'][0]['electricity_co_2_emissions_units'] = electricity_co_2_emissions_units
-      register_value(runner, 'electricity_co_2_emissions_filepaths', electricity_co_2_emissions_filepaths)
-      register_value(runner, 'electricity_co_2_emissions_units', electricity_co_2_emissions_units)
+      measures['BuildResidentialHPXML'][0]['emissions_scenario_names'] = emissions_scenario_names
+      measures['BuildResidentialHPXML'][0]['emissions_types'] = emissions_types
+      measures['BuildResidentialHPXML'][0]['emissions_electricity_filepaths'] = emissions_electricity_filepaths
+      measures['BuildResidentialHPXML'][0]['emissions_electricity_units'] = emissions_electricity_units
+      register_value(runner, 'emissions_electricity_filepaths', emissions_electricity_filepaths)
+      register_value(runner, 'emissions_electricity_units', emissions_electricity_units)
     end
 
     # Get registered values and pass them to BuildResidentialScheduleFile
