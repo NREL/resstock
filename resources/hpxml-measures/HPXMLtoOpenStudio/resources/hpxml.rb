@@ -856,7 +856,7 @@ class HPXML < Object
   class Header < BaseElement
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction,
              :software_program_used, :software_program_version, :eri_calculation_version,
-             :eri_design, :timestep, :building_id, :event_type, :state_code, :zip_code,
+             :eri_design, :timestep, :building_id, :event_type, :state_code, :zip_code, :time_zone,
              :sim_begin_month, :sim_begin_day, :sim_end_month, :sim_end_day, :sim_calendar_year,
              :dst_enabled, :dst_begin_month, :dst_begin_day, :dst_end_month, :dst_end_day,
              :use_max_load_for_heat_pumps, :allow_increased_fixed_capacities,
@@ -956,13 +956,17 @@ class HPXML < Object
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
       XMLHelper.add_attribute(building_building_id, 'id', @building_id)
-      if not @state_code.nil?
+      if (not @state_code.nil?) || (not @zip_code.nil?) || (not @time_zone.nil)
         site = XMLHelper.add_element(building, 'Site')
         site_id = XMLHelper.add_element(site, 'SiteID')
         XMLHelper.add_attribute(site_id, 'id', 'SiteID')
         address = XMLHelper.add_element(site, 'Address')
-        XMLHelper.add_element(address, 'StateCode', @state_code, :string)
+        XMLHelper.add_element(address, 'StateCode', @state_code, :string) unless @state_code.nil?
         XMLHelper.add_element(address, 'ZipCode', @zip_code, :string) unless @zip_code.nil?
+        if not @time_zone.nil?
+          extension = XMLHelper.add_element(address, 'extension')
+          XMLHelper.add_element(extension, 'TimeZone', @time_zone, :integer)
+        end
       end
       project_status = XMLHelper.add_element(building, 'ProjectStatus')
       XMLHelper.add_element(project_status, 'EventType', @event_type, :string)
@@ -999,6 +1003,7 @@ class HPXML < Object
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType', :string)
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode', :string)
       @zip_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/ZipCode', :string)
+      @time_zone = XMLHelper.get_value(hpxml, 'Building/Site/Address/extension/TimeZone', :integer)
     end
   end
 

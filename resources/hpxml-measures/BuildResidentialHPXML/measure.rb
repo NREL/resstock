@@ -119,9 +119,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('zip_code', false)
-    arg.setDisplayName('Zip Code')
-    arg.setDescription('Zip code - used for informational purposes only')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_zip_code', false)
+    arg.setDisplayName('Site: Zip Code')
+    arg.setDescription('Zip code of the home address.')
     args << arg
 
     site_iecc_zone_choices = OpenStudio::StringVector.new
@@ -147,6 +147,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('site_state_code', site_state_code_choices, false)
     arg.setDisplayName('Site: State Code')
     arg.setDescription('State code of the home address. If not provided, uses the EPW weather file state code.')
+    args << arg
+
+    site_time_zone_choices = OpenStudio::StringVector.new
+    (-12..14).to_a.each do |tz|
+      site_time_zone_choices << "#{tz}"
+    end
+
+    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('site_time_zone', site_time_zone_choices, false)
+    arg.setDisplayName('Site: Time Zone')
+    arg.setDescription('Time zone of the home address. If not provided, uses the EPW weather file time zone.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
@@ -3114,6 +3124,12 @@ class HPXMLFile
       args[:site_state_code] = epw_file.stateProvinceRegion
     end
 
+    if args[:site_time_zone].is_initialized
+      args[:site_time_zone] = args[:site_time_zone].get
+    else
+      args[:site_time_zone] = epw_file.timeZone
+    end
+
     @surface_ids = {}
 
     # Sorting of objects to make the measure deterministic
@@ -3311,10 +3327,11 @@ class HPXMLFile
     end
 
     hpxml.header.building_id = 'MyBuilding'
-    if args[:zip_code].is_initialized
-      hpxml.header.zip_code = args[:zip_code]
+    if args[:site_zip_code].is_initialized
+      hpxml.header.zip_code = args[:site_zip_code]
     end
     hpxml.header.state_code = args[:site_state_code]
+    hpxml.header.time_zone = args[:site_time_zone]
     hpxml.header.event_type = 'proposed workscope'
   end
 
