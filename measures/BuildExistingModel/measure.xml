@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_existing_model</name>
   <uid>dedf59bb-3b88-4f16-8755-2c1ff5519cbf</uid>
-  <version_id>07a2e296-5765-478b-8b4d-e170c94ba097</version_id>
-  <version_modified>20220110T163336Z</version_modified>
+  <version_id>d6cf2c06-c664-438d-81f4-538bf9619e0c</version_id>
+  <version_modified>20220112T201119Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildExistingModel</class_name>
   <display_name>Build Existing Model</display_name>
@@ -142,9 +142,25 @@
       </choices>
     </argument>
     <argument>
-      <name>co2_emissions</name>
-      <display_name>CO2 Emissions: Scenarios</display_name>
-      <description>Absolute/relative paths (comma-separated) of scenario folders of electricity CO2 emissions factor schedule files.</description>
+      <name>emissions_scenario_names</name>
+      <display_name>Emissions: Scenario Names</display_name>
+      <description>Names (comma-separated) of emissions scenarios.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_types</name>
+      <display_name>Emissions: Types</display_name>
+      <description>Types (comma-separated) of emissions types. This list corresponds to scenario names.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_folders</name>
+      <display_name>Emissions: Electricity CSV Paths</display_name>
+      <description>Absolute/relative paths (comma-separated) of electricity emissions factor schedule files with hourly values. This list corresponds to scenario names.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -172,7 +188,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>11642D54</checksum>
+      <checksum>7E654B1B</checksum>
     </file>
   </files>
 </measure>

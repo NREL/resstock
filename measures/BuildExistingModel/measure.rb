@@ -272,7 +272,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = args['simulation_control_run_period_calendar_year'].get if args['simulation_control_run_period_calendar_year'].is_initialized
 
-    # CO2 Emissions
+    # Emissions
     if args['emissions_scenario_names'].is_initialized
       ba_to_gea_csv_path = File.join(resources_dir, 'ba_to_gea.csv')
       ba_to_gea_csv = CSV.open(ba_to_gea_csv_path, headers: true)
@@ -312,6 +312,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['emissions_types'] = emissions_types
       measures['BuildResidentialHPXML'][0]['emissions_electricity_filepaths'] = emissions_electricity_filepaths
       measures['BuildResidentialHPXML'][0]['emissions_electricity_units'] = emissions_electricity_units
+      register_value(runner, 'emissions_scenario_names', emissions_scenario_names)
+      register_value(runner, 'emissions_types', emissions_types)
       register_value(runner, 'emissions_electricity_filepaths', emissions_electricity_filepaths)
       register_value(runner, 'emissions_electricity_units', emissions_electricity_units)
     end
