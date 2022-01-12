@@ -952,8 +952,8 @@ class HPXMLtoOpenStudioHotWaterApplianceTest < MiniTest::Test
     assert_in_epsilon(cook_lat_frac, get_ee_fractions(model, Constants.ObjectNameCookingRange)[1], 0.001)
 
     # other equipment
-    water_sens = -262.507
-    water_lat = 266.358
+    water_sens = -262.507 * 0.9
+    water_lat = 266.358 * 0.9
     assert_in_epsilon(water_sens, get_oe_kwh(model, Constants.ObjectNameWaterSensible), 0.001)
     assert_in_epsilon(1.0, get_oe_fractions(model, Constants.ObjectNameWaterSensible)[0], 0.001)
     assert_in_epsilon(0.0, get_oe_fractions(model, Constants.ObjectNameWaterSensible)[1], 0.001)

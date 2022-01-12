@@ -45,6 +45,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-no-rim-joists.xml' => 'base-sfd.xml',
       'extra-iecc-zone-different-than-epw.xml' => 'base-sfd.xml',
       'extra-state-code-different-than-epw.xml' => 'base-sfd.xml',
+      'extra-time-zone-different-than-epw.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
       'extra-sfa-atticroof-conditioned-eaves-hip.xml' => 'extra-sfa-atticroof-conditioned-eaves-gable.xml',
@@ -820,6 +821,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['site_iecc_zone'] = '6B'
     elsif ['extra-state-code-different-than-epw.xml'].include? hpxml_file
       args['site_state_code'] = 'WY'
+    elsif ['extra-time-zone-different-than-epw.xml'].include? hpxml_file
+      args['site_time_zone'] = '-6'
     elsif ['extra-sfa-atticroof-conditioned-eaves-gable.xml'].include? hpxml_file
       args['geometry_unit_num_floors_above_grade'] = 2
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned
