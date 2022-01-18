@@ -196,62 +196,62 @@ class Material
   end
 
   def self.ExtFinishStuccoMedDark
-    sAbs = self.solar_abs_map['MediumDark']
+    sAbs = solar_abs_map['MediumDark']
     return new(name = 'Stucco, Medium/Dark', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishStuccoLight
-    sAbs = self.solar_abs_map['Light']
+    sAbs = solar_abs_map['Light']
     return new(name = 'Stucco, Light', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishBrickLight
-    sAbs = self.solar_abs_map['Light']
+    sAbs = solar_abs_map['Light']
     return new(name = 'Brick, Light', thick_in = 4.0, mat_base = BaseMaterial.Brick, k_in = nil, rho = nil, cp = nil, tAbs = 0.93, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishBrickMedDark
-    sAbs = self.solar_abs_map['MediumDark']
+    sAbs = solar_abs_map['MediumDark']
     return new(name = 'Brick, Medium/Dark', thick_in = 4.0, mat_base = BaseMaterial.Brick, k_in = nil, rho = nil, cp = nil, tAbs = 0.96, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishWoodLight
-    sAbs = self.solar_abs_map['Light']
+    sAbs = solar_abs_map['Light']
     return new(name = 'Wood, Light', thick_in = 1.0, mat_base = nil, k_in = 0.71, rho = 34.0, cp = 0.28, tAbs = 0.82, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishWoodMedDark
-    sAbs = self.solar_abs_map['MediumDark']
+    sAbs = solar_abs_map['MediumDark']
     return new(name = 'Wood, Medium/Dark', thick_in = 1.0, mat_base = nil, k_in = 0.71, rho = 34.0, cp = 0.28, tAbs = 0.92, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishAluminumLight
-    sAbs = self.solar_abs_map['Light']
+    sAbs = solar_abs_map['Light']
     return new(name = 'Aluminum, Light', thick_in = 0.375, mat_base = BaseMaterial.Aluminum, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishAluminumMedDark
-    sAbs = self.solar_abs_map['MediumDark']
+    sAbs = solar_abs_map['MediumDark']
     return new(name = 'Aluminum, Medium/Dark', thick_in = 0.375, mat_base = BaseMaterial.Aluminum, k_in = nil, rho = nil, cp = nil, tAbs = 0.94, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishVinylLight
-    sAbs = self.solar_abs_map['Light']
+    sAbs = solar_abs_map['Light']
     return new(name = 'Vinyl, Light', thick_in = 0.375, mat_base = BaseMaterial.Vinyl, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishVinylMedDark
-    sAbs = self.solar_abs_map['MediumDark']
+    sAbs = solar_abs_map['MediumDark']
     return new(name = 'Vinyl, Medium/Dark', thick_in = 0.375, mat_base = BaseMaterial.Vinyl, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishFiberCementLight
-    sAbs = self.solar_abs_map['Light']
+    sAbs = solar_abs_map['Light']
     return new(name = 'Fiber-Cement, Light', thick_in = 0.375, mat_base = nil, k_in = 1.79, rho = 21.7, cp = 0.24, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishFiberCementMedDark
-    sAbs = self.solar_abs_map['MediumDark']
+    sAbs = solar_abs_map['MediumDark']
     return new(name = 'Fiber-Cement, Medium/Dark', thick_in = 0.375, mat_base = nil, k_in = 1.79, rho = 21.7, cp = 0.24, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
