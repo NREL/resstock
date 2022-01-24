@@ -287,7 +287,7 @@ class HotWaterAndAppliances
         add_water_use_equipment(model, Constants.ObjectNameDistributionWaste, dist_water_peak_flow * gpd_frac * non_solar_fraction, fixtures_schedule, water_use_connections[water_heating_system.id], mw_temp_schedule)
 
         # Recirculation pump
-        dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(hot_water_distribution)
+        dist_pump_annual_kwh = get_hwdist_recirc_pump_energy(hot_water_distribution, fixtures_usage_multiplier)
         if dist_pump_annual_kwh > 0
           if not schedules_file.nil?
             dist_pump_design_level = schedules_file.calc_design_level_from_daily_kwh(col_name: SchedulesFile::ColumnHotWaterFixtures, daily_kwh: dist_pump_annual_kwh / 365.0)
@@ -351,7 +351,7 @@ class HotWaterAndAppliances
     if not hot_water_distribution.nil?
       # General water use internal gains
       # Floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.
-      water_sens_btu, water_lat_btu = get_water_gains_sens_lat(nbeds)
+      water_sens_btu, water_lat_btu = get_water_gains_sens_lat(nbeds, fixtures_usage_multiplier)
       if not schedules_file.nil?
         water_design_level_sens = schedules_file.calc_design_level_from_daily_kwh(col_name: SchedulesFile::ColumnHotWaterFixtures, daily_kwh: UnitConversions.convert(water_sens_btu, 'Btu', 'kWh') / 365.0)
         water_design_level_lat = schedules_file.calc_design_level_from_daily_kwh(col_name: SchedulesFile::ColumnHotWaterFixtures, daily_kwh: UnitConversions.convert(water_lat_btu, 'Btu', 'kWh') / 365.0)
@@ -860,10 +860,11 @@ class HotWaterAndAppliances
     return adjFmix
   end
 
-  def self.get_hwdist_recirc_pump_energy(hot_water_distribution)
+  def self.get_hwdist_recirc_pump_energy(hot_water_distribution, fixtures_usage_multiplier)
     dist_pump_annual_kwh = 0.0
 
     # Annual electricity consumption factor for hot water recirculation system pumps
+    # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
       if (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeNone) ||
          (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTimer)
@@ -871,9 +872,9 @@ class HotWaterAndAppliances
       elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTemperature
         dist_pump_annual_kwh += (1.46 * hot_water_distribution.recirculation_pump_power)
       elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeSensor
-        dist_pump_annual_kwh += (0.15 * hot_water_distribution.recirculation_pump_power)
+        dist_pump_annual_kwh += (0.15 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
       elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeManual
-        dist_pump_annual_kwh += (0.10 * hot_water_distribution.recirculation_pump_power)
+        dist_pump_annual_kwh += (0.10 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
       else
         fail "Unexpected hot water distribution system recirculation type: '#{hot_water_distribution.recirculation_control_type}'."
       end
@@ -884,6 +885,7 @@ class HotWaterAndAppliances
     end
 
     # Shared recirculation system pump energy
+    # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.has_shared_recirculation
       n_dweq = hot_water_distribution.shared_recirculation_number_of_units_served
       if (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeNone) ||
@@ -891,7 +893,7 @@ class HotWaterAndAppliances
         op_hrs = 8760.0
       elsif (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeSensor) ||
             (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeManual)
-        op_hrs = 730.0
+        op_hrs = 730.0 * fixtures_usage_multiplier
       else
         fail "Unexpected hot water distribution system shared recirculation type: '#{hot_water_distribution.shared_recirculation_control_type}'."
       end
@@ -922,10 +924,10 @@ class HotWaterAndAppliances
     return f_eff * ref_f_gpd * fixtures_usage_multiplier
   end
 
-  def self.get_water_gains_sens_lat(nbeds)
+  def self.get_water_gains_sens_lat(nbeds, fixtures_usage_multiplier = 1.0)
     # Table 4.2.2(3). Internal Gains for Reference Homes
-    sens_gains = -1227.0 - 409.0 * nbeds # Btu/day
-    lat_gains = 1245.0 + 415.0 * nbeds # Btu/day
+    sens_gains = (-1227.0 - 409.0 * nbeds) * fixtures_usage_multiplier # Btu/day
+    lat_gains = (1245.0 + 415.0 * nbeds) * fixtures_usage_multiplier # Btu/day
     return sens_gains * 365.0, lat_gains * 365.0
   end
 

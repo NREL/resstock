@@ -1314,6 +1314,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def test_hvac_distribution
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
+    hpxml.hvac_distributions[0].conditioned_floor_area_served = 2700.0
+    hpxml.hvac_distributions[0].number_of_return_registers = 2
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     expected_supply_locations = ['attic - unvented']
@@ -1328,11 +1330,9 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     # Test defaults w/ conditioned basement
     hpxml.hvac_distributions[0].number_of_return_registers = nil
-    hpxml.hvac_distributions.each do |hvac_distribution|
-      hvac_distribution.ducts.each do |duct|
-        duct.duct_location = nil
-        duct.duct_surface_area = nil
-      end
+    hpxml.hvac_distributions[0].ducts.each do |duct|
+      duct.duct_location = nil
+      duct.duct_surface_area = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
@@ -1348,11 +1348,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     # Test defaults w/ multiple foundations
     hpxml = _create_hpxml('base-foundation-multiple.xml')
-    hpxml.hvac_distributions.each do |hvac_distribution|
-      hvac_distribution.ducts.each do |duct|
-        duct.duct_location = nil
-        duct.duct_surface_area = nil
-      end
+    hpxml.hvac_distributions[0].conditioned_floor_area_served = 1350.0
+    hpxml.hvac_distributions[0].number_of_return_registers = 1
+    hpxml.hvac_distributions[0].ducts.each do |duct|
+      duct.duct_location = nil
+      duct.duct_surface_area = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
@@ -1368,11 +1368,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     # Test defaults w/ foundation exposed to ambient
     hpxml = _create_hpxml('base-foundation-ambient.xml')
-    hpxml.hvac_distributions.each do |hvac_distribution|
-      hvac_distribution.ducts.each do |duct|
-        duct.duct_location = nil
-        duct.duct_surface_area = nil
-      end
+    hpxml.hvac_distributions[0].conditioned_floor_area_served = 1350.0
+    hpxml.hvac_distributions[0].number_of_return_registers = 1
+    hpxml.hvac_distributions[0].ducts.each do |duct|
+      duct.duct_location = nil
+      duct.duct_surface_area = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
@@ -1388,11 +1388,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     # Test defaults w/ building/unit adjacent to other housing unit
     hpxml = _create_hpxml('base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml')
-    hpxml.hvac_distributions.each do |hvac_distribution|
-      hvac_distribution.ducts.each do |duct|
-        duct.duct_location = nil
-        duct.duct_surface_area = nil
-      end
+    hpxml.hvac_distributions[0].conditioned_floor_area_served = 900.0
+    hpxml.hvac_distributions[0].number_of_return_registers = 1
+    hpxml.hvac_distributions[0].ducts.each do |duct|
+      duct.duct_location = nil
+      duct.duct_surface_area = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
@@ -1408,11 +1408,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     # Test defaults w/ 2-story building
     hpxml = _create_hpxml('base-enclosure-2stories.xml')
-    hpxml.hvac_distributions.each do |hvac_distribution|
-      hvac_distribution.ducts.each do |duct|
-        duct.duct_location = nil
-        duct.duct_surface_area = nil
-      end
+    hpxml.hvac_distributions[0].conditioned_floor_area_served = 4050.0
+    hpxml.hvac_distributions[0].number_of_return_registers = 3
+    hpxml.hvac_distributions[0].ducts.each do |duct|
+      duct.duct_location = nil
+      duct.duct_surface_area = nil
     end
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
@@ -1429,6 +1429,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     # Test defaults w/ 1-story building & multiple HVAC systems
     hpxml = _create_hpxml('base-hvac-multiple.xml')
     hpxml.hvac_distributions.each do |hvac_distribution|
+      next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
+
+      hvac_distribution.conditioned_floor_area_served = 270.0
+      hvac_distribution.number_of_return_registers = 2
       hvac_distribution.ducts.each do |duct|
         duct.duct_location = nil
         duct.duct_surface_area = nil
@@ -1450,6 +1454,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml = _create_hpxml('base-hvac-multiple.xml')
     hpxml.building_construction.number_of_conditioned_floors_above_grade = 2
     hpxml.hvac_distributions.each do |hvac_distribution|
+      next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
+
+      hvac_distribution.conditioned_floor_area_served = 270.0
+      hvac_distribution.number_of_return_registers = 2
       hvac_distribution.ducts.each do |duct|
         duct.duct_location = nil
         duct.duct_surface_area = nil
@@ -1473,6 +1481,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.hvac_distributions.each do |hvac_distribution|
       next unless hvac_distribution.distribution_system_type == HPXML::HVACDistributionTypeAir
 
+      hvac_distribution.conditioned_floor_area_served = 270.0
+      hvac_distribution.number_of_return_registers = 2
       hvac_distribution.ducts[0].duct_fraction_area = 0.75
       hvac_distribution.ducts[1].duct_fraction_area = 0.25
       hvac_distribution.ducts[2].duct_fraction_area = 0.5

@@ -44,9 +44,7 @@ class ScheduleGenerator
   def initialize_schedules
     @schedules = {}
 
-    SchedulesFile.ColumnNames.keys.each do |col_name|
-      next if col_name == SchedulesFile::ColumnVacancy
-
+    SchedulesFile.OccupancyColumnNames.each do |col_name|
       @schedules[col_name] = Array.new(@total_days_in_year * @steps_in_day, 0.0)
     end
 

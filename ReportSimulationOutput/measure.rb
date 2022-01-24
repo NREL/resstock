@@ -386,7 +386,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
     HVAC.apply_shared_systems(@hpxml) # Needed for ERI shared HVAC systems
     @eri_design = @hpxml.header.eri_design
-    @timestamps = get_timestamps()
 
     setup_outputs()
 
@@ -412,6 +411,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
       eri_output_path = nil
     end
+
+    @timestamps = get_timestamps(timeseries_frequency)
 
     # Retrieve outputs
     outputs = get_outputs(runner, timeseries_frequency,
@@ -459,25 +460,26 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     GC.start()
   end
 
-  def get_timestamps()
-    timestamps = {}
-    timestamps['none'] = []
+  def get_timestamps(timeseries_frequency)
+    if timeseries_frequency == 'hourly'
+      interval_type = 1
+    elsif timeseries_frequency == 'daily'
+      interval_type = 2
+    elsif timeseries_frequency == 'monthly'
+      interval_type = 3
+    elsif timeseries_frequency == 'timestep'
+      interval_type = -1
+    end
 
-    map = { 'hourly' => 1,
-            'daily' => 2,
-            'monthly' => 3,
-            'timestep' => -1 }
-    map.each do |timeseries_freq, interval_type|
-      query = "SELECT Year || ' ' || Month || ' ' || Day || ' ' || Hour || ' ' || Minute As Timestamp FROM Time WHERE IntervalType='#{interval_type}'"
-      values = @sqlFile.execAndReturnVectorOfString(query)
-      fail "Query error: #{query}" unless values.is_initialized
+    query = "SELECT Year || ' ' || Month || ' ' || Day || ' ' || Hour || ' ' || Minute As Timestamp FROM Time WHERE IntervalType='#{interval_type}'"
+    values = @sqlFile.execAndReturnVectorOfString(query)
+    fail "Query error: #{query}" unless values.is_initialized
 
-      timestamps[timeseries_freq] = []
-      values.get.each do |value|
-        year, month, day, hour, minute = value.split(' ')
-        ts = Time.utc(year, month, day, hour, minute)
-        timestamps[timeseries_freq] << ts.strftime('%Y/%m/%d %H:%M:00')
-      end
+    timestamps = []
+    values.get.each do |value|
+      year, month, day, hour, minute = value.split(' ')
+      ts = Time.utc(year, month, day, hour, minute)
+      timestamps << ts.strftime('%Y/%m/%d %H:%M:00')
     end
 
     return timestamps
@@ -652,7 +654,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       next if solar_system.solar_fraction.nil?
 
       @loads[LT::HotWaterSolarThermal].annual_output = 0.0 if @loads[LT::HotWaterSolarThermal].annual_output.nil?
-      @loads[LT::HotWaterSolarThermal].timeseries_output = [0.0] * @timestamps[timeseries_frequency].size if @loads[LT::HotWaterSolarThermal].timeseries_output.nil?
+      @loads[LT::HotWaterSolarThermal].timeseries_output = [0.0] * @timestamps.size if @loads[LT::HotWaterSolarThermal].timeseries_output.nil?
 
       if not solar_system.water_heating_system.nil?
         dhw_ids = [solar_system.water_heating_system.id]
@@ -939,19 +941,31 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   end
 
   def write_annual_output_results(runner, outputs, output_format, annual_output_path)
+    # Set rounding precision.
+    # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 day instead of a full year.
+    dig = 2 # Default for annual (or near-annual) data
+    year = 2000 # Not important
+    sim_n_days = (Schedule.get_day_num_from_month_day(year, @hpxml.header.sim_end_month, @hpxml.header.sim_end_day) -
+                  Schedule.get_day_num_from_month_day(year, @hpxml.header.sim_begin_month, @hpxml.header.sim_begin_day))
+    if sim_n_days <= 10 # 10 days or less; add two decimal places
+      dig += 2
+    elsif sim_n_days <= 100 # 100 days or less; add one decimal place
+      dig += 1
+    end
+
     line_break = nil
     elec_produced = @end_uses.select { |k, eu| eu.is_negative }.map { |k, eu| eu.annual_output.to_f }.sum(0.0)
 
     results_out = []
     @fuels.each do |fuel_type, fuel|
-      results_out << ["#{fuel.name} (#{fuel.annual_units})", fuel.annual_output.to_f.round(2)]
+      results_out << ["#{fuel.name} (#{fuel.annual_units})", fuel.annual_output.to_f.round(dig)]
       if fuel_type == FT::Elec
-        results_out << ['Fuel Use: Electricity: Net (MBtu)', (fuel.annual_output.to_f + elec_produced).round(2)]
+        results_out << ['Fuel Use: Electricity: Net (MBtu)', (fuel.annual_output.to_f + elec_produced).round(dig)]
       end
     end
     results_out << [line_break]
     @end_uses.each do |key, end_use|
-      results_out << ["#{end_use.name} (#{end_use.annual_units})", end_use.annual_output.to_f.round(2)]
+      results_out << ["#{end_use.name} (#{end_use.annual_units})", end_use.annual_output.to_f.round(dig)]
     end
     if not @emissions.empty?
       results_out << [line_break]
@@ -965,29 +979,29 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
     results_out << [line_break]
     @loads.each do |load_type, load|
-      results_out << ["#{load.name} (#{load.annual_units})", load.annual_output.to_f.round(2)]
+      results_out << ["#{load.name} (#{load.annual_units})", load.annual_output.to_f.round(dig)]
     end
     results_out << [line_break]
     @unmet_hours.each do |load_type, unmet_hour|
-      results_out << ["#{unmet_hour.name} (#{unmet_hour.annual_units})", unmet_hour.annual_output.to_f.round(2)]
+      results_out << ["#{unmet_hour.name} (#{unmet_hour.annual_units})", unmet_hour.annual_output.to_f.round(dig)]
     end
     results_out << [line_break]
     @peak_fuels.each do |key, peak_fuel|
-      results_out << ["#{peak_fuel.name} (#{peak_fuel.annual_units})", peak_fuel.annual_output.to_f.round(0)]
+      results_out << ["#{peak_fuel.name} (#{peak_fuel.annual_units})", peak_fuel.annual_output.to_f.round(dig - 2)]
     end
     results_out << [line_break]
     @peak_loads.each do |load_type, peak_load|
-      results_out << ["#{peak_load.name} (#{peak_load.annual_units})", peak_load.annual_output.to_f.round(2)]
+      results_out << ["#{peak_load.name} (#{peak_load.annual_units})", peak_load.annual_output.to_f.round(dig)]
     end
     if @component_loads.values.map { |load| load.annual_output.to_f }.sum != 0 # Skip if component loads not calculated
       results_out << [line_break]
       @component_loads.each do |load_type, load|
-        results_out << ["#{load.name} (#{load.annual_units})", load.annual_output.to_f.round(2)]
+        results_out << ["#{load.name} (#{load.annual_units})", load.annual_output.to_f.round(dig)]
       end
     end
     results_out << [line_break]
     @hot_water_uses.each do |hot_water_type, hot_water|
-      results_out << ["#{hot_water.name} (#{hot_water.annual_units})", hot_water.annual_output.to_f.round(0)]
+      results_out << ["#{hot_water.name} (#{hot_water.annual_units})", hot_water.annual_output.to_f.round(dig - 2)]
     end
 
     if output_format == 'csv'
@@ -1344,26 +1358,37 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                                       include_timeseries_weather)
     return if timeseries_frequency == 'none'
 
+    # Set rounding precision.
+    # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 minute date instead of hourly data.
+    dig = 2 # Default for hourly (or longer) data
+    if timeseries_frequency == 'timestep'
+      if @hpxml.header.timestep <= 2 # 2-minute timesteps or shorter; add two decimal places
+        dig += 2
+      elsif @hpxml.header.timestep <= 15 # 15-minute timesteps or shorter; add one decimal place
+        dig += 1
+      end
+    end
+
     # Time column
     if ['timestep', 'hourly', 'daily', 'monthly'].include? timeseries_frequency
       data = ['Time', nil]
     else
       fail "Unexpected timeseries_frequency: #{timeseries_frequency}."
     end
-    @timestamps[timeseries_frequency].each do |timestamp|
+    @timestamps.each do |timestamp|
       data << timestamp
     end
 
     if include_timeseries_fuel_consumptions
-      fuel_data = @fuels.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      fuel_data = @fuels.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(dig) } }
       if outputs[:total_elec_produced_timeseries].sum(0.0) != 0
-        fuel_data.insert(1, ['Fuel Use: Electricity: Net', get_timeseries_units_from_fuel_type(FT::Elec)] + outputs[:total_elec_net_timeseries].map { |v| v.round(2) })
+        fuel_data.insert(1, ['Fuel Use: Electricity: Net', get_timeseries_units_from_fuel_type(FT::Elec)] + outputs[:total_elec_net_timeseries].map { |v| v.round(dig) })
       end
     else
       fuel_data = []
     end
     if include_timeseries_end_use_consumptions
-      end_use_data = @end_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      end_use_data = @end_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(dig) } }
     else
       end_use_data = []
     end
@@ -1373,6 +1398,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       @emissions.values.each do |emission|
         emissions_data << [emission.name, emission.timeseries_units] + emission.timeseries_output.map { |v| v.round(5) }
         emission.timeseries_output_by_fuel.each do |fuel, timeseries_output|
+          next if timeseries_output.sum(0.0) == 0
+
           emissions_data << [emission.name.gsub(': Total', ': ' + fuel), emission.timeseries_units] + timeseries_output.map { |v| v.round(5) }
         end
       end
@@ -1380,39 +1407,39 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       emissions_data = []
     end
     if include_timeseries_hot_water_uses
-      hot_water_use_data = @hot_water_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      hot_water_use_data = @hot_water_uses.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(dig) } }
     else
       hot_water_use_data = []
     end
     if include_timeseries_total_loads
-      total_loads_data = @loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      total_loads_data = @loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(dig) } }
     else
       total_loads_data = {}
     end
     if include_timeseries_component_loads
-      comp_loads_data = @component_loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      comp_loads_data = @component_loads.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(dig) } }
     else
       comp_loads_data = []
     end
     if include_timeseries_zone_temperatures
-      zone_temps_data = @zone_temps.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      zone_temps_data = @zone_temps.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(dig) } }
     else
       zone_temps_data = []
     end
     if include_timeseries_airflows
-      airflows_data = @airflows.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      airflows_data = @airflows.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(dig) } }
     else
       airflows_data = []
     end
     if include_timeseries_weather
-      weather_data = @weather.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(2) } }
+      weather_data = @weather.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output.map { |v| v.round(dig) } }
     else
       weather_data = []
     end
 
     return if fuel_data.size + end_use_data.size + emissions_data.size + hot_water_use_data.size + total_loads_data.size + comp_loads_data.size + zone_temps_data.size + airflows_data.size + weather_data.size == 0
 
-    fail 'Unable to obtain timestamps.' if @timestamps[timeseries_frequency].empty?
+    fail 'Unable to obtain timestamps.' if @timestamps.empty?
 
     if output_format == 'csv'
       # Assemble data
@@ -1473,7 +1500,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_report_meter_data_timeseries(meter_names, unit_conv, unit_adder, timeseries_frequency)
-    return [0.0] * @timestamps[timeseries_frequency].size if meter_names.empty?
+    return [0.0] * @timestamps.size if meter_names.empty?
 
     vars = "'" + meter_names.uniq.join("','") + "'"
     query = "SELECT SUM(VariableValue*#{unit_conv}+#{unit_adder}) FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableName IN (#{vars}) AND ReportingFrequency='#{reporting_frequency_map[timeseries_frequency]}' AND VariableUnits='J') GROUP BY TimeIndex ORDER BY TimeIndex"
@@ -1481,12 +1508,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     fail "Query error: #{query}" unless values.is_initialized
 
     values = values.get
-    values += [0.0] * @timestamps[timeseries_frequency].size if values.size == 0
+    values += [0.0] * @timestamps.size if values.size == 0
     return values
   end
 
   def get_report_variable_data_timeseries(key_values, variables, unit_conv, unit_adder, timeseries_frequency, disable_ems_shift = false, is_negative: false)
-    return [0.0] * @timestamps[timeseries_frequency].size if variables.empty?
+    return [0.0] * @timestamps.size if variables.empty?
 
     if key_values.uniq.size > 1 && key_values.include?('EMS') && !disable_ems_shift
       # Split into EMS and non-EMS queries so that the EMS values shift occurs for just the EMS query
@@ -1504,12 +1531,12 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     fail "Query error: #{query}" unless values.is_initialized
 
     values = values.get
-    values += [0.0] * @timestamps[timeseries_frequency].size if values.size == 0
+    values += [0.0] * @timestamps.size if values.size == 0
 
     return values if disable_ems_shift
 
     # Remove this code if we ever figure out a better way to handle when EMS output should shift
-    if (key_values.size == 1) && (key_values[0] == 'EMS') && (@timestamps[timeseries_frequency].size > 0)
+    if (key_values.size == 1) && (key_values[0] == 'EMS') && (@timestamps.size > 0)
       if (timeseries_frequency.downcase == 'timestep' || (timeseries_frequency.downcase == 'hourly' && @model.getTimestep.numberOfTimestepsPerHour == 1))
         # Shift all values by 1 timestep due to EMS reporting lag
         return values[1..-1] + [values[0]]
