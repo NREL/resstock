@@ -21,14 +21,14 @@ class Constants
     return num_days_in_months
   end
 
-  def self.NumDaysInYear(is_leap_year)
-    num_days_in_months = NumDaysInMonths(is_leap_year)
+  def self.NumDaysInYear(year)
+    num_days_in_months = NumDaysInMonths(year)
     num_days_in_year = num_days_in_months.sum
     return num_days_in_year
   end
 
-  def self.NumHoursInYear(is_leap_year)
-    num_days_in_year = NumDaysInYear(is_leap_year)
+  def self.NumHoursInYear(year)
+    num_days_in_year = NumDaysInYear(year)
     num_hours_in_year = num_days_in_year * 24
     return num_hours_in_year
   end
@@ -45,6 +45,14 @@ class Constants
 
   def self.AutoMaxLoad
     return 'auto using max load'
+  end
+
+  def self.CalcTypeCO2RatedHome
+    return 'CO2 Rated Home'
+  end
+
+  def self.CalcTypeCO2ReferenceHome
+    return 'CO2 Reference Home'
   end
 
   def self.CalcTypeERIRatedHome
@@ -68,7 +76,8 @@ class Constants
   end
 
   def self.ERIVersions
-    return ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A', '2019AB']
+    return ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
+            '2019AB', '2019ABC', '2019ABCD', '2019ABCDE']
   end
 
   def self.FacadeFront

@@ -2,13 +2,53 @@ name: ci
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ main, develop ]
   pull_request:
     types: [ synchronize, opened ]
   workflow_dispatch:
 
 jobs:
-  bsb:
+  unit-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://nrel/openstudio:3.3.0
+    steps:
+      - name: Show environment
+        run: |
+          bundle -v
+          ruby -v
+
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install gems
+        run: |
+          rm -f Gemfile.lock && bundle install
+
+      - name: Run integrity checks for all projects
+        run: |
+          rake unit_tests:project_integrity_checks
+
+      - name: Run all integrity check unit tests
+        run: |
+          rake unit_tests:integrity_check_tests
+
+      - name: Run all measure tests
+        run: |
+          rake unit_tests:measure_tests
+
+      - name: Run all analysis tests
+        run: |
+          rake workflow:analysis_tests
+
+      - name: Upload feature samples
+        uses: actions/upload-artifact@v2
+        with:
+          path: resources/buildstock.csv
+          name: samples
+
+  integration-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Show environment
@@ -59,51 +99,10 @@ jobs:
             upgrades
           name: results
 
-  build:
-    runs-on: ubuntu-latest
-    needs: bsb
-    container:
-      image: docker://nrel/openstudio:3.3.0
-    steps:
-      - name: Show environment
-        run: |
-          bundle -v
-          ruby -v
-
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.head_ref }}
-
-      - name: Install gems
-        run: |
-          rm -f Gemfile.lock && bundle install
-
-      - name: Run integrity checks for all projects
-        run: |
-          rake unit_tests:project_integrity_checks
-
-      - name: Run all integrity check unit tests
-        run: |
-          rake unit_tests:integrity_check_tests
-
-      - name: Run all measure tests
-        run: |
-          rake unit_tests:measure_tests
-
-      - name: Run all analysis tests
-        run: |
-          rake workflow:analysis_tests
-
-      - name: Upload feature samples
-        uses: actions/upload-artifact@v2
-        with:
-          path: resources/buildstock.csv
-          name: samples
-
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: build
+    needs: [unit-tests, integration-tests]
     steps:
       - name: Show environment
         run: |
@@ -197,7 +196,7 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [unit-tests, integration-tests]
     steps:
       - uses: actions/checkout@v2
         with:
