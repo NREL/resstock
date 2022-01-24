@@ -111,12 +111,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_scenario_names', false)
     arg.setDisplayName('Emissions: Scenario Names')
-    arg.setDescription('Names (comma-separated) of emissions scenarios.')
+    arg.setDescription('Names of emissions scenarios. If multiple scenarios, use a comma-separated list.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_types', false)
     arg.setDisplayName('Emissions: Types')
-    arg.setDescription('Types (comma-separated) of emissions types. This list corresponds to scenario names.')
+    arg.setDescription('Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_folders', false)
@@ -310,12 +310,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
       measures['BuildResidentialHPXML'][0]['emissions_scenario_names'] = emissions_scenario_names
       measures['BuildResidentialHPXML'][0]['emissions_types'] = emissions_types
-      measures['BuildResidentialHPXML'][0]['emissions_electricity_filepaths'] = emissions_electricity_filepaths
       measures['BuildResidentialHPXML'][0]['emissions_electricity_units'] = emissions_electricity_units
+      measures['BuildResidentialHPXML'][0]['emissions_electricity_values_or_filepaths'] = emissions_electricity_filepaths
       register_value(runner, 'emissions_scenario_names', emissions_scenario_names)
       register_value(runner, 'emissions_types', emissions_types)
-      register_value(runner, 'emissions_electricity_filepaths', emissions_electricity_filepaths)
       register_value(runner, 'emissions_electricity_units', emissions_electricity_units)
+      register_value(runner, 'emissions_electricity_values_or_filepaths', emissions_electricity_filepaths)
     end
 
     # Get registered values and pass them to BuildResidentialScheduleFile
