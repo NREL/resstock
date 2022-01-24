@@ -1241,8 +1241,11 @@ class HPXMLTest < MiniTest::Test
 
     output_keys = []
     results.each do |xml, xml_results|
-      output_keys = xml_results.keys
-      break
+      xml_results.keys.each do |key|
+        next if output_keys.include? key
+
+        output_keys << key
+      end
     end
 
     column_headers = ['HPXML']

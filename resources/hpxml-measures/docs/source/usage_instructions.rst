@@ -25,21 +25,20 @@ The OpenStudio measures can also be run from user interfaces (e.g., the OpenStud
 Basic Run
 ~~~~~~~~~
 
-The simplest and fastest method is to call the OpenStudio CLI with the provided ``workflow/run_simulation.rb`` script. 
-For example:
-``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml``
-This will create a "run" directory with all input/output files.
-By default it will be found at the same location as the input HPXML file.
+| The simplest and fastest method is to call the OpenStudio CLI with the provided ``workflow/run_simulation.rb`` script. For example:
+| ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml``
+| This will create a "run" directory with all input/output files. By default it will be found at the same location as the input HPXML file.
 
 You can also request generation of timeseries output CSV/JSON files as part of the calculation by providing one or more timeseries flags (``--hourly``, ``--daily``, ``--monthly``, or ``--timestep``).
-For example, to request all possible hourly outputs in CSV format:
-``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --hourly ALL``
-Or to request one or more specific monthly output types in JSON format:
-``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --monthly fuels --monthly temperatures --output-format json``
 
-You can also add a detailed schedule as part of the simulation by using:
-``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --add-detailed-schedule stochastic``
-This run includes the automatic generation of a CSV file with stochastic occupancy schedules that are used in the EnergyPlus simulation.
+| For example, to request all possible hourly outputs in CSV format:
+| ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --hourly ALL``
+| Or to request one or more specific monthly output types in JSON format:
+| ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --monthly fuels --monthly temperatures --output-format json``
+
+| You can also add a detailed schedule as part of the simulation by using:
+| ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --add-detailed-schedule stochastic``
+| This run includes the automatic generation of a CSV file with stochastic occupancy schedules that are used in the EnergyPlus simulation.
 
 Run ``openstudio workflow/run_simulation.rb -h`` to see all available commands/arguments.
 
@@ -50,18 +49,17 @@ If additional flexibility is desired (e.g., specifying individual measure argume
 The OSW is a JSON file that will specify all the OpenStudio measures (and their arguments) to be run sequentially.
 A template OSW that simply runs the HPXMLtoOpenStudio, ReportSimulationOutput, and ReportHPXMLOutput measures on the ``workflow/sample_files/base.xml`` file can be found at ``workflow/template.osw``.
 
-For example:
-``openstudio run -w workflow/template.osw``
-This will create a "run" directory with all input/output files.
-By default it will be found at the same location as the OSW file.
+| For example:
+| ``openstudio run -w workflow/template.osw``
+| This will create a "run" directory with all input/output files. By default it will be found at the same location as the OSW file.
 
-Another example:
-``openstudio run -w workflow/template-stochastic-schedules.osw``
-This workflow automatically generates a CSV file with stochastic occupancy schedules before running the EnergyPlus simulation.
+| Another example:
+| ``openstudio run -w workflow/template-stochastic-schedules.osw``
+| This workflow automatically generates a CSV file with stochastic occupancy schedules before running the EnergyPlus simulation.
 
-And another example:
-``openstudio run -w workflow/template-build-hpxml-and-stocastic-schedules.osw``
-This workflow builds an HPXML file on the fly from building description inputs in the OSW, then automatically generates a CSV file with stochastic occupancy schedules, and finally runs the EnergyPlus simulation.
+| And another example:
+| ``openstudio run -w workflow/template-build-hpxml-and-stocastic-schedules.osw``
+| This workflow builds an HPXML file on the fly from building description inputs in the OSW, then automatically generates a CSV file with stochastic occupancy schedules, and finally runs the EnergyPlus simulation.
 
 Outputs
 ~~~~~~~
