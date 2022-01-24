@@ -40,11 +40,10 @@ def run_workflow(yml, measures_only, debug)
         arguments = args.clone
         if measure_dir_name == 'build_existing_model'
           arguments['building_id'] = 1
-          if arguments.keys.include?('emissions')
-            arguments['emissions_scenario_names'] = arguments['emissions'].collect { |s| s['scenario_name'] }.join(',')
-            arguments['emissions_folders'] = arguments['emissions'].collect { |s| s['folder'] }.join(',')
-            arguments['emissions_types'] = arguments['emissions'].collect { |s| s['type'] }.join(',')
-            arguments.delete('emissions')
+          if workflow_args.keys.include?('emissions')
+            arguments['emissions_scenario_names'] = workflow_args['emissions'].collect { |s| s['scenario_name'] }.join(',')
+            arguments['emissions_folders'] = workflow_args['emissions'].collect { |s| s['folder'] }.join(',')
+            arguments['emissions_types'] = workflow_args['emissions'].collect { |s| s['type'] }.join(',')
           end
         end
         steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
