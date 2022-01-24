@@ -1410,9 +1410,9 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('ducts_number_of_return_registers', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('ducts_number_of_return_registers', false)
     arg.setDisplayName('Ducts: Number of Return Registers')
-    arg.setDescription("The number of return registers of the ducts. Ignored for ducted #{HPXML::HVACTypeEvaporativeCooler}.")
+    arg.setDescription("The number of return registers of the ducts. Only used if duct surface areas are set to #{Constants.Auto}.")
     arg.setUnits('#')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -2885,31 +2885,22 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_scenario_names', false)
     arg.setDisplayName('Emissions: Scenario Names')
-    arg.setDescription('Names (comma-separated) of emissions scenarios.')
+    arg.setDescription('Names of emissions scenarios. If multiple scenarios, use a comma-separated list.')
     args << arg
-
-    # emissions_types_choices = OpenStudio::StringVector.new
-    # emissions_types_choices << 'CO2'
-    # emissions_types_choices << 'SO2'
-    # emissions_types_choices << 'NOx'
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_types', false)
     arg.setDisplayName('Emissions: Types')
-    arg.setDescription('Types (comma-separated) of emissions types. This list corresponds to scenario names.')
+    arg.setDescription('Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.')
     args << arg
-
-    # emissions_electricity_units_choices = OpenStudio::StringVector.new
-    # emissions_electricity_units_choices << HPXML::EmissionsScenario::UnitsKgPerMWh
-    # emissions_electricity_units_choices << HPXML::EmissionsScenario::UnitsLbPerMWh
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_units', false)
     arg.setDisplayName('Emissions: Electricity Units')
-    arg.setDescription('Units (comma-separated) of electricity emissions factor units.')
+    arg.setDescription('Electricity emissions factors units. If multiple scenarios, use a comma-separated list.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_filepaths', false)
-    arg.setDisplayName('Emissions: Electricity CSV Paths')
-    arg.setDescription('Absolute/relative paths (comma-separated) of electricity emissions factor schedule files with hourly values. This list corresponds to scenario names.')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_values_or_filepaths', false)
+    arg.setDisplayName('Emissions: Electricity Values or File Paths')
+    arg.setDescription('Electricity emissions factors values, specified as either an annual factor or an absolute/relative path to a file with hourly factors. If multiple scenarios, use a comma-separated list.')
     args << arg
 
     return args
@@ -3104,7 +3095,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     emissions_args_initialized = [args[:emissions_scenario_names].is_initialized,
                                   args[:emissions_types].is_initialized,
                                   args[:emissions_electricity_units].is_initialized,
-                                  args[:emissions_electricity_filepaths].is_initialized]
+                                  args[:emissions_electricity_values_or_filepaths].is_initialized]
     error = (emissions_args_initialized.uniq.size != 1)
     errors << 'Did not specify either no emissions arguments or all emissions arguments.' if error
 
@@ -3112,7 +3103,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       emissions_scenario_lengths = [args[:emissions_scenario_names].get.split(',').length,
                                     args[:emissions_types].get.split(',').length,
                                     args[:emissions_electricity_units].get.split(',').length,
-                                    args[:emissions_electricity_filepaths].get.split(',').length]
+                                    args[:emissions_electricity_values_or_filepaths].get.split(',').length]
       error = (emissions_scenario_lengths.uniq.size != 1)
       errors << 'One or more emissions arguments does not have enough comma-separated elements specified.' if error
     end
@@ -3363,17 +3354,20 @@ class HPXMLFile
     hpxml.header.event_type = 'proposed workscope'
 
     if args[:emissions_scenario_names].is_initialized
-      emissions_scenario_names = args[:emissions_scenario_names].get.split(',')
-      emissions_types = args[:emissions_types].get.split(',')
-      emissions_electricity_units = args[:emissions_electricity_units].get.split(',')
-      emissions_electricity_filepaths = args[:emissions_electricity_filepaths].get.split(',')
+      emissions_scenario_names = args[:emissions_scenario_names].get.split(',').map(&:strip)
+      emissions_types = args[:emissions_types].get.split(',').map(&:strip)
+      emissions_electricity_units = args[:emissions_electricity_units].get.split(',').map(&:strip)
+      emissions_electricity_values_or_filepaths = args[:emissions_electricity_values_or_filepaths].get.split(',').map(&:strip)
 
-      emissions_scenarios = emissions_scenario_names.zip(emissions_types, emissions_electricity_units, emissions_electricity_filepaths)
+      emissions_scenarios = emissions_scenario_names.zip(emissions_types, emissions_electricity_units, emissions_electricity_values_or_filepaths)
       emissions_scenarios.each do |emissions_scenario|
-        name, emissions_type, elec_units, elec_schedule_filepath = emissions_scenario
+        name, emissions_type, elec_units, elec_value_or_schedule_filepath = emissions_scenario
+        elec_value = Float(elec_value_or_schedule_filepath) rescue nil
+        elec_schedule_filepath = elec_value_or_schedule_filepath if elec_value.nil?
         hpxml.header.emissions_scenarios.add(name: name,
                                              emissions_type: emissions_type,
                                              elec_units: elec_units,
+                                             elec_value: elec_value,
                                              elec_schedule_filepath: elec_schedule_filepath)
       end
     end
@@ -4437,8 +4431,10 @@ class HPXMLFile
 
     return if air_distribution_systems.size == 0 && fan_coil_distribution_systems.size == 0
 
-    if args[:ducts_number_of_return_registers] != Constants.Auto
-      number_of_return_registers = Integer(args[:ducts_number_of_return_registers])
+    if args[:ducts_number_of_return_registers].is_initialized
+      if args[:ducts_number_of_return_registers].get != Constants.Auto
+        number_of_return_registers = Integer(args[:ducts_number_of_return_registers].get)
+      end
     end
 
     if [HPXML::HVACTypeEvaporativeCooler].include?(args[:cooling_system_type]) && hpxml.heating_systems.size == 0 && hpxml.heat_pumps.size == 0
@@ -4451,7 +4447,6 @@ class HPXMLFile
     if air_distribution_systems.size > 0
       hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
                                    distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                   conditioned_floor_area_served: args[:geometry_unit_cfa],
                                    air_type: HPXML::AirTypeRegularVelocity,
                                    number_of_return_registers: number_of_return_registers)
       air_distribution_systems.each do |hvac_system|
@@ -4510,6 +4505,11 @@ class HPXMLFile
                                   duct_insulation_r_value: args[:ducts_return_insulation_r],
                                   duct_location: ducts_return_location,
                                   duct_surface_area: ducts_return_surface_area)
+    end
+
+    # If duct surface areas are defaulted, set CFA served
+    if hvac_distribution.ducts.select { |d| d.duct_surface_area.nil? }.size > 0
+      hvac_distribution.conditioned_floor_area_served = args[:geometry_unit_cfa]
     end
   end
 

@@ -1056,7 +1056,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['emissions_scenario_names'] = 'Scenario1'
       args['emissions_types'] = 'CO2,CO2'
       args['emissions_electricity_units'] = HPXML::EmissionsScenario::UnitsLbPerMWh
-      args['emissions_electricity_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_RMPAc_2022.csv'
+      args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_RMPAc_2022.csv'
     end
 
     # Warning

@@ -217,17 +217,13 @@ class OSModel
     # Init
 
     check_file_references(hpxml_path)
-    @schedules_file = nil
-    if not @hpxml.header.schedules_filepath.nil?
-      @schedules_file = SchedulesFile.new(runner: runner, model: model,
-                                          schedules_path: @hpxml.header.schedules_filepath)
-    end
+    @schedules_file = SchedulesFile.new(runner: runner, model: model,
+                                        schedules_paths: @hpxml.header.schedules_filepaths,
+                                        col_names: SchedulesFile.ColumnNames)
 
     weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
     set_defaults_and_globals(runner, output_dir, epw_file, weather, @schedules_file)
-    if not @schedules_file.nil?
-      @schedules_file.validate_schedules(year: @hpxml.header.sim_calendar_year)
-    end
+    @schedules_file.validate_schedules(year: @hpxml.header.sim_calendar_year) if not @schedules_file.nil?
     Location.apply(model, runner, weather, epw_file, @hpxml)
     add_simulation_params(model)
 
@@ -305,9 +301,12 @@ class OSModel
 
   def self.check_file_references(hpxml_path)
     # Check/update file references
-    @hpxml.header.schedules_filepath = FilePath.check_path(@hpxml.header.schedules_filepath,
-                                                           File.dirname(hpxml_path),
-                                                           'Schedules')
+    @hpxml.header.schedules_filepaths = @hpxml.header.schedules_filepaths.collect { |sfp|
+      FilePath.check_path(sfp,
+                          File.dirname(hpxml_path),
+                          'Schedules')
+    }
+
     @hpxml.header.emissions_scenarios.each do |scenario|
       if @hpxml.header.emissions_scenarios.select { |s| s.emissions_type == scenario.emissions_type && s.name == scenario.name }.size > 1
         fail "Found multiple Emissions Scenarios with the Scenario Name=#{scenario.name} and Emissions Type=#{scenario.emissions_type}."

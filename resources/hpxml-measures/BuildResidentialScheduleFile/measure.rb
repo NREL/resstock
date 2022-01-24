@@ -64,7 +64,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_csv_path', true)
     arg.setDisplayName('Schedules: Output CSV Path')
-    arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules.')
+    arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_output_path', true)
@@ -96,6 +96,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       fail "'#{hpxml_path}' does not exist or is not an .xml file."
     end
 
+    hpxml_output_path = args[:hpxml_output_path]
+    unless (Pathname.new hpxml_output_path).absolute?
+      hpxml_output_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_output_path))
+    end
+    args[:hpxml_output_path] = hpxml_output_path
+
     hpxml = HPXML.new(hpxml_path: hpxml_path)
 
     # create EpwFile object
@@ -116,20 +122,13 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     # modify the hpxml with the schedules path
     doc = XMLHelper.parse_file(hpxml_path)
     extension = XMLHelper.create_elements_as_needed(XMLHelper.get_element(doc, '/HPXML'), ['SoftwareInfo', 'extension'])
-    schedules_filepath = XMLHelper.get_value(extension, 'SchedulesFilePath', :string)
-    if !schedules_filepath.nil?
-      runner.registerWarning("Overwriting existing SchedulesFilePath element: #{schedules_filepath}")
-      XMLHelper.delete_element(extension, 'SchedulesFilePath')
+    schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
+    if !schedules_filepaths.include?(args[:output_csv_path])
+      XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
     end
-    XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
 
     # write out the modified hpxml
-    hpxml_output_path = args[:hpxml_output_path]
-    unless (Pathname.new hpxml_output_path).absolute?
-      hpxml_output_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_output_path))
-    end
-
-    if (hpxml_path != hpxml_output_path) || (schedules_filepath != args[:output_csv_path])
+    if (hpxml_path != hpxml_output_path) || !schedules_filepaths.include?(args[:output_csv_path])
       XMLHelper.write_file(doc, hpxml_output_path)
       runner.registerInfo("Wrote file: #{hpxml_output_path}")
     end
@@ -149,7 +148,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     success = schedule_generator.create(args: args)
     return false if not success
 
-    success = schedule_generator.export(schedules_path: File.expand_path(args[:output_csv_path]))
+    output_csv_path = args[:output_csv_path]
+    unless (Pathname.new output_csv_path).absolute?
+      output_csv_path = File.expand_path(File.join(File.dirname(args[:hpxml_output_path]), output_csv_path))
+    end
+
+    success = schedule_generator.export(schedules_path: output_csv_path)
     return false if not success
 
     info_msgs << "SimYear=#{args[:sim_year]}"

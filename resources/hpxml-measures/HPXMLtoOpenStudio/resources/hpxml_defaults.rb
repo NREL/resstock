@@ -1271,21 +1271,21 @@ class HPXMLDefaults
   def self.apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     hpxml.hvac_distributions.each do |hvac_distribution|
       next unless [HPXML::HVACDistributionTypeAir].include? hvac_distribution.distribution_system_type
-
-      # Default return registers
-      if hvac_distribution.number_of_return_registers.nil?
-        hvac_distribution.number_of_return_registers = ncfl.ceil # Add 1 return register per conditioned floor if not provided
-        hvac_distribution.number_of_return_registers_isdefaulted = true
-      end
-
       next if hvac_distribution.ducts.empty?
 
       # Default ducts
 
-      cfa_served = hvac_distribution.conditioned_floor_area_served
-      n_returns = hvac_distribution.number_of_return_registers
       supply_ducts = hvac_distribution.ducts.select { |duct| duct.duct_type == HPXML::DuctTypeSupply }
       return_ducts = hvac_distribution.ducts.select { |duct| duct.duct_type == HPXML::DuctTypeReturn }
+
+      # Default return registers
+      if hvac_distribution.number_of_return_registers.nil? && (return_ducts.size > 0)
+        hvac_distribution.number_of_return_registers = ncfl.ceil # Add 1 return register per conditioned floor if not provided
+        hvac_distribution.number_of_return_registers_isdefaulted = true
+      end
+
+      cfa_served = hvac_distribution.conditioned_floor_area_served
+      n_returns = hvac_distribution.number_of_return_registers
 
       if hvac_distribution.ducts[0].duct_location.nil?
         # Default both duct location(s) and duct surface area(s)
