@@ -251,7 +251,7 @@ class HPXMLTest < MiniTest::Test
     # Check that simulation works using template2.osw
     require 'json'
 
-    osw_path = File.join(File.dirname(__FILE__), '..', 'template-build-hpxml-and-stocastic-schedules.osw')
+    osw_path = File.join(File.dirname(__FILE__), '..', 'template-build-hpxml-and-stochastic-schedules.osw')
 
     # Create derivative OSW for testing
     osw_path_test = osw_path.gsub('.osw', '_test.osw')
@@ -1241,8 +1241,11 @@ class HPXMLTest < MiniTest::Test
 
     output_keys = []
     results.each do |xml, xml_results|
-      output_keys = xml_results.keys
-      break
+      xml_results.keys.each do |key|
+        next if output_keys.include? key
+
+        output_keys << key
+      end
     end
 
     column_headers = ['HPXML']

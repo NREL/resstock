@@ -45,6 +45,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['timeseries_frequency'] = timeseries_output_freq
   args['include_timeseries_fuel_consumptions'] = timeseries_outputs.include? 'fuels'
   args['include_timeseries_end_use_consumptions'] = timeseries_outputs.include? 'enduses'
+  args['include_timeseries_emissions'] = timeseries_outputs.include? 'emissions'
   args['include_timeseries_hot_water_uses'] = timeseries_outputs.include? 'hotwater'
   args['include_timeseries_total_loads'] = timeseries_outputs.include? 'loads'
   args['include_timeseries_component_loads'] = timeseries_outputs.include? 'componentloads'
@@ -64,7 +65,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   return results[:success]
 end
 
-timeseries_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
+timeseries_types = ['ALL', 'fuels', 'enduses', 'emissions', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
 
 options = {}
 OptionParser.new do |opts|
@@ -83,22 +84,22 @@ OptionParser.new do |opts|
   end
 
   options[:hourly_outputs] = []
-  opts.on('--hourly TYPE', timeseries_types, "Request hourly output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--hourly TYPE', timeseries_types, "Request hourly output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
     options[:hourly_outputs] << t
   end
 
   options[:daily_outputs] = []
-  opts.on('--daily TYPE', timeseries_types, "Request daily output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--daily TYPE', timeseries_types, "Request daily output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
     options[:daily_outputs] << t
   end
 
   options[:monthly_outputs] = []
-  opts.on('--monthly TYPE', timeseries_types, "Request monthly output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--monthly TYPE', timeseries_types, "Request monthly output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
     options[:monthly_outputs] << t
   end
 
   options[:timestep_outputs] = []
-  opts.on('--timestep TYPE', timeseries_types, "Request timestep output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--timestep TYPE', timeseries_types, "Request timestep output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
     options[:timestep_outputs] << t
   end
 

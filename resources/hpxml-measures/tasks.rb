@@ -337,6 +337,7 @@ def create_hpxmls
     'base-mechvent-supply.xml' => 'base.xml',
     'base-mechvent-whole-house-fan.xml' => 'base.xml',
     'base-misc-defaults.xml' => 'base.xml',
+    'base-misc-emissions.xml' => 'base-pv-battery-outside.xml',
     'base-misc-generators.xml' => 'base.xml',
     'base-misc-loads-large-uncommon.xml' => 'base-schedules-simple.xml',
     'base-misc-loads-large-uncommon2.xml' => 'base-misc-loads-large-uncommon.xml',
@@ -382,12 +383,16 @@ def create_hpxmls
       end
 
       args = {}
+      sch_args = {}
       all_hpxml_files.each do |f|
-        set_measure_argument_values(f, args)
+        set_measure_argument_values(f, args, sch_args)
       end
 
+      measures = {}
+      measures['BuildResidentialHPXML'] = [args] if !args.empty?
+      measures['BuildResidentialScheduleFile'] = [sch_args] if !sch_args.empty?
+
       measures_dir = File.dirname(__FILE__)
-      measures = { 'BuildResidentialHPXML' => [args] }
       model = OpenStudio::Model::Model.new
       runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
 
@@ -483,7 +488,7 @@ def create_hpxmls
   return hpxml_docs
 end
 
-def set_measure_argument_values(hpxml_file, args)
+def set_measure_argument_values(hpxml_file, args, sch_args)
   if hpxml_file.include? 'ASHRAE_Standard_140'
     args['hpxml_path'] = "../workflow/tests/#{hpxml_file}"
   else
@@ -492,6 +497,8 @@ def set_measure_argument_values(hpxml_file, args)
 
   if ['base.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 60
+    args['site_iecc_zone'] = '5B'
+    args['site_state_code'] = 'CO'
     args['weather_station_epw_filepath'] = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
     args['site_type'] = HPXML::SiteTypeSuburban
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFD
@@ -633,7 +640,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['ducts_return_location'] = HPXML::LocationAtticUnvented
     args['ducts_supply_surface_area'] = 150.0
     args['ducts_return_surface_area'] = 50.0
-    args['ducts_number_of_return_registers'] = 2
     args['heating_system_2_type'] = 'none'
     args['heating_system_2_fuel'] = HPXML::FuelTypeElectricity
     args['heating_system_2_heating_efficiency'] = 1.0
@@ -957,7 +963,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['ducts_return_location'] = HPXML::LocationLivingSpace
     args['ducts_supply_surface_area'] = 0
     args['ducts_return_surface_area'] = 0
-    args['ducts_number_of_return_registers'] = 0
     args['heating_system_2_type'] = 'none'
     args['heating_system_2_fuel'] = HPXML::FuelTypeElectricity
     args['heating_system_2_heating_efficiency'] = 0
@@ -1291,7 +1296,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['ducts_return_location'] = HPXML::LocationLivingSpace
     args['ducts_supply_leakage_to_outside_value'] = 50
     args['ducts_return_leakage_to_outside_value'] = 100
-    args['ducts_number_of_return_registers'] = 3
     args['water_heater_location'] = HPXML::LocationBasementConditioned
     args['clothes_washer_location'] = HPXML::LocationBasementConditioned
     args['clothes_dryer_location'] = HPXML::LocationBasementConditioned
@@ -1338,7 +1342,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['cooling_system_cooling_capacity'] = 36000.0
     args['ducts_supply_surface_area'] = 112.5
     args['ducts_return_surface_area'] = 37.5
-    args['ducts_number_of_return_registers'] = 3
     args['misc_plug_loads_other_annual_kwh'] = 2457.0
   end
 
@@ -1365,7 +1368,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['ducts_supply_location'] = HPXML::LocationLivingSpace
     args['ducts_return_location'] = HPXML::LocationLivingSpace
     args['ducts_supply_insulation_r'] = 0.0
-    args['ducts_number_of_return_registers'] = 1
     args['door_area'] = 20.0
     args['misc_plug_loads_other_annual_kwh'] = 819.0
   elsif ['base-bldgtype-multifamily-shared-boiler-only-baseboard.xml',
@@ -1563,7 +1565,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['cooling_system_cooling_capacity'] = 36000.0
     args['ducts_supply_surface_area'] = 112.5
     args['ducts_return_surface_area'] = 37.5
-    args['ducts_number_of_return_registers'] = 3
     args['misc_plug_loads_other_annual_kwh'] = 3685.5
   elsif ['base-enclosure-2stories-garage.xml'].include? hpxml_file
     args['geometry_unit_cfa'] = 3250.0
@@ -1631,8 +1632,6 @@ def set_measure_argument_values(hpxml_file, args)
   elsif ['base-enclosure-skylights.xml'].include? hpxml_file
     args['skylight_area_front'] = 15
     args['skylight_area_back'] = 15
-  elsif ['base-enclosure-split-level.xml'].include? hpxml_file
-    args['ducts_number_of_return_registers'] = 2
   end
 
   # Foundation
@@ -1642,7 +1641,6 @@ def set_measure_argument_values(hpxml_file, args)
     args.delete('geometry_rim_joist_height')
     args['floor_over_foundation_assembly_r'] = 18.7
     args.delete('rim_joist_assembly_r')
-    args['ducts_number_of_return_registers'] = 1
     args['misc_plug_loads_other_annual_kwh'] = 1228.5
   elsif ['base-foundation-conditioned-basement-slab-insulation.xml'].include? hpxml_file
     args['slab_under_insulation_r'] = 10
@@ -1663,7 +1661,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['slab_carpet_r'] = 2.5
     args['ducts_supply_location'] = HPXML::LocationUnderSlab
     args['ducts_return_location'] = HPXML::LocationUnderSlab
-    args['ducts_number_of_return_registers'] = 1
     args['misc_plug_loads_other_annual_kwh'] = 1228.5
   elsif ['base-foundation-unconditioned-basement.xml'].include? hpxml_file
     args['geometry_unit_cfa'] = 1350.0
@@ -1674,7 +1671,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['rim_joist_assembly_r'] = 4.0
     args['ducts_supply_location'] = HPXML::LocationBasementUnconditioned
     args['ducts_return_location'] = HPXML::LocationBasementUnconditioned
-    args['ducts_number_of_return_registers'] = 1
     args['water_heater_location'] = HPXML::LocationBasementUnconditioned
     args['clothes_washer_location'] = HPXML::LocationBasementUnconditioned
     args['clothes_dryer_location'] = HPXML::LocationBasementUnconditioned
@@ -1702,7 +1698,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['foundation_wall_insulation_distance_to_bottom'] = 4.0
     args['ducts_supply_location'] = HPXML::LocationCrawlspaceUnvented
     args['ducts_return_location'] = HPXML::LocationCrawlspaceUnvented
-    args['ducts_number_of_return_registers'] = 1
     args['water_heater_location'] = HPXML::LocationCrawlspaceUnvented
     args['misc_plug_loads_other_annual_kwh'] = 1228.5
   elsif ['base-foundation-vented-crawlspace.xml'].include? hpxml_file
@@ -1714,7 +1709,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['foundation_wall_insulation_distance_to_bottom'] = 4.0
     args['ducts_supply_location'] = HPXML::LocationCrawlspaceVented
     args['ducts_return_location'] = HPXML::LocationCrawlspaceVented
-    args['ducts_number_of_return_registers'] = 1
     args['water_heater_location'] = HPXML::LocationCrawlspaceVented
     args['misc_plug_loads_other_annual_kwh'] = 1228.5
   elsif ['base-foundation-conditioned-crawlspace.xml'].include? hpxml_file
@@ -1727,7 +1721,6 @@ def set_measure_argument_values(hpxml_file, args)
     args['ducts_return_location'] = HPXML::LocationCrawlspaceConditioned
     args['ducts_supply_leakage_to_outside_value'] = 0.0
     args['ducts_return_leakage_to_outside_value'] = 0.0
-    args['ducts_number_of_return_registers'] = 1
     args['water_heater_location'] = HPXML::LocationCrawlspaceConditioned
     args['misc_plug_loads_other_annual_kwh'] = 1228.5
   elsif ['base-foundation-walkout-basement.xml'].include? hpxml_file
@@ -2078,31 +2071,52 @@ def set_measure_argument_values(hpxml_file, args)
   if ['base-location-AMY-2012.xml'].include? hpxml_file
     args['weather_station_epw_filepath'] = 'US_CO_Boulder_AMY_2012.epw'
   elsif ['base-location-baltimore-md.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '4A'
+    args['site_state_code'] = 'MD'
     args['weather_station_epw_filepath'] = 'USA_MD_Baltimore-Washington.Intl.AP.724060_TMY3.epw'
     args['heating_system_heating_capacity'] = 24000.0
   elsif ['base-location-dallas-tx.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '3A'
+    args['site_state_code'] = 'TX'
     args['weather_station_epw_filepath'] = 'USA_TX_Dallas-Fort.Worth.Intl.AP.722590_TMY3.epw'
     args['heating_system_heating_capacity'] = 24000.0
   elsif ['base-location-duluth-mn.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '7'
+    args['site_state_code'] = 'MN'
     args['weather_station_epw_filepath'] = 'USA_MN_Duluth.Intl.AP.727450_TMY3.epw'
   elsif ['base-location-helena-mt.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '6B'
+    args['site_state_code'] = 'MT'
     args['weather_station_epw_filepath'] = 'USA_MT_Helena.Rgnl.AP.727720_TMY3.epw'
     args['heating_system_heating_capacity'] = 48000.0
   elsif ['base-location-honolulu-hi.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '1A'
+    args['site_state_code'] = 'HI'
     args['weather_station_epw_filepath'] = 'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw'
     args['heating_system_heating_capacity'] = 12000.0
   elsif ['base-location-miami-fl.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '1A'
+    args['site_state_code'] = 'FL'
     args['weather_station_epw_filepath'] = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
     args['heating_system_heating_capacity'] = 12000.0
   elsif ['base-location-phoenix-az.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '2B'
+    args['site_state_code'] = 'AZ'
     args['weather_station_epw_filepath'] = 'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'
     args['heating_system_heating_capacity'] = 24000.0
   elsif ['base-location-portland-or.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '4C'
+    args['site_state_code'] = 'OR'
     args['weather_station_epw_filepath'] = 'USA_OR_Portland.Intl.AP.726980_TMY3.epw'
     args['heating_system_heating_capacity'] = 24000.0
   elsif ['base-location-capetown-zaf.xml'].include? hpxml_file
+    args.delete('site_iecc_zone')
+    args.delete('site_state_code')
     args['weather_station_epw_filepath'] = 'ZAF_Cape.Town.688160_IWEC.epw'
     args['heating_system_heating_capacity'] = 24000.0
+  elsif ['base-misc-defaults.xml'].include? hpxml_file
+    args.delete('site_iecc_zone')
+    args.delete('site_state_code')
   end
 
   # Mechanical Ventilation
@@ -2185,6 +2199,7 @@ def set_measure_argument_values(hpxml_file, args)
     args['ducts_return_location'] = Constants.Auto
     args['ducts_supply_surface_area'] = Constants.Auto
     args['ducts_return_surface_area'] = Constants.Auto
+    args['ducts_number_of_return_registers'] = 2
     args['kitchen_fans_quantity'] = Constants.Auto
     args['bathroom_fans_quantity'] = Constants.Auto
     args['water_heater_location'] = Constants.Auto
@@ -2234,6 +2249,11 @@ def set_measure_argument_values(hpxml_file, args)
     args['whole_house_fan_present'] = true
     args['whole_house_fan_flow_rate'] = Constants.Auto
     args['whole_house_fan_power'] = Constants.Auto
+  elsif ['base-misc-emissions.xml'].include? hpxml_file
+    args['emissions_scenario_names'] = 'Cambium 2022 Hourly MidCase AER Using RMPA Region, Cambium 2022 Hourly MidCase AER Using National, Cambium 2022 Annual MidCase AER Using National, eGRID 2019 Total Emissions Rate Using RMPA Region, eGRID 2019 Total Emissions Rate Using RMPA Region'
+    args['emissions_types'] = 'CO2, CO2, CO2, SO2, NOx'
+    args['emissions_electricity_units'] = 'kg/MWh, kg/MWh, kg/MWh, lb/MWh, lb/MWh'
+    args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_RMPAc_2022.csv, ../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_usa_2022.csv, 392.6, 0.384, 0.67'
   elsif ['base-misc-loads-large-uncommon.xml'].include? hpxml_file
     args['extra_refrigerator_location'] = Constants.Auto
     args['extra_refrigerator_rated_annual_kwh'] = 700.0
@@ -2376,6 +2396,25 @@ def set_measure_argument_values(hpxml_file, args)
   elsif ['base-simcontrol-timestep-10-mins.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 10
   end
+
+  # Schedules
+  if ['base-schedules-detailed-stochastic.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'stochastic'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-stochastic-vacancy.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'stochastic'
+    sch_args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic-vacancy.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-smooth.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'smooth'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  end
 end
 
 def apply_hpxml_modification_ashrae_140(hpxml_file, hpxml)
@@ -2390,7 +2429,6 @@ def apply_hpxml_modification_ashrae_140(hpxml_file, hpxml)
   hpxml.header.xml_generated_by = 'tasks.rb'
   hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
   hpxml.header.apply_ashrae140_assumptions = true
-  hpxml.header.state_code = nil
 
   # --------------------- #
   # HPXML BuildingSummary #
@@ -2398,7 +2436,6 @@ def apply_hpxml_modification_ashrae_140(hpxml_file, hpxml)
 
   hpxml.site.azimuth_of_front_of_home = nil
   hpxml.building_construction.average_ceiling_height = nil
-  hpxml.climate_and_risk_zones.iecc_zone = nil
 
   # --------------- #
   # HPXML Enclosure #
@@ -2504,23 +2541,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
   # Logic that can only be applied based on the file name
   if ['base-hvac-undersized-allow-increased-fixed-capacities.xml'].include? hpxml_file
     hpxml.header.allow_increased_fixed_capacities = true
-  elsif ['base-schedules-detailed-stochastic.xml'].include? hpxml_file
-    hpxml.header.schedules_filepath = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic.csv'
-  elsif ['base-schedules-detailed-stochastic-vacancy.xml'].include? hpxml_file
-    hpxml.header.schedules_filepath = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic-vacancy.csv'
-  elsif ['base-schedules-detailed-smooth.xml'].include? hpxml_file
-    hpxml.header.schedules_filepath = '../../HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
-  elsif ['base-location-capetown-zaf.xml'].include? hpxml_file
-    hpxml.header.state_code = nil
-  end
-
-  # ------------------------- #
-  # HPXML ClimateandRiskZones #
-  # ------------------------- #
-
-  if ['base-location-capetown-zaf.xml'].include? hpxml_file
-    hpxml.climate_and_risk_zones.iecc_zone = '3A'
-    hpxml.climate_and_risk_zones.iecc_year = 2006
   end
 
   # --------------------- #
@@ -2558,7 +2578,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.building_construction.conditioned_floor_area -= 400 * 2
     hpxml.building_construction.conditioned_building_volume -= 400 * 2 * 8
     hpxml.air_infiltration_measurements[0].infiltration_volume = hpxml.building_construction.conditioned_building_volume
-    hpxml.hvac_distributions[0].conditioned_floor_area_served = hpxml.building_construction.conditioned_floor_area
   end
 
   # --------------- #
@@ -3661,8 +3680,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                              duct_insulation_r_value: 0,
                                              duct_location: HPXML::LocationOtherMultifamilyBufferSpace,
                                              duct_surface_area: 20)
-      hpxml.hvac_distributions[-1].number_of_return_registers = 1
-      hpxml.hvac_distributions[-1].conditioned_floor_area_served = 900
     end
   end
   if hpxml_file.include? 'shared-ground-loop'
@@ -3726,8 +3743,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.hvac_controls[0].cooling_setup_temp = 80
     hpxml.hvac_controls[0].cooling_setup_hours_per_week = 6 * 7
     hpxml.hvac_controls[0].cooling_setup_start_hour = 9 # 9am
-  elsif ['base-atticroof-cathedral.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served = 2700
   elsif ['base-hvac-dse.xml',
          'base-dhw-indirect-dse.xml',
          'base-mechvent-cfis-dse.xml'].include? hpxml_file
@@ -3787,6 +3802,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
       hpxml.hvac_distributions[0].ducts[1].duct_fraction_area = 0.75
       hpxml.hvac_distributions[0].ducts[2].duct_fraction_area = 0.25
       hpxml.hvac_distributions[0].ducts[3].duct_fraction_area = 0.25
+      hpxml.hvac_distributions[0].conditioned_floor_area_served = 4050.0
+      hpxml.hvac_distributions[0].number_of_return_registers = 3
     end
   elsif ['base-hvac-multiple.xml'].include? hpxml_file
     hpxml.hvac_distributions.reverse_each do |hvac_distribution|
@@ -3794,9 +3811,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     end
     hpxml.hvac_distributions.add(id: "HVACDistribution#{hpxml.hvac_distributions.size + 1}",
                                  distribution_system_type: HPXML::HVACDistributionTypeAir,
-                                 air_type: HPXML::AirTypeRegularVelocity,
-                                 number_of_return_registers: 2,
-                                 conditioned_floor_area_served: 270)
+                                 air_type: HPXML::AirTypeRegularVelocity)
     hpxml.hvac_distributions[-1].duct_leakage_measurements.add(duct_type: HPXML::DuctTypeSupply,
                                                                duct_leakage_units: HPXML::UnitsCFM25,
                                                                duct_leakage_value: 75,
@@ -3955,7 +3970,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                          primary_heating_system: true)
   elsif ['base-mechvent-multiple.xml',
          'base-bldgtype-multifamily-shared-mechvent-multiple.xml'].include? hpxml_file
-    hpxml.hvac_distributions[0].conditioned_floor_area_served /= 2.0
     hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
     hpxml.hvac_distributions[1].id = "HVACDistribution#{hpxml.hvac_distributions.size}"
     hpxml.heating_systems[0].heating_capacity /= 2.0
