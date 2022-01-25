@@ -1,5 +1,6 @@
 ## OpenStudio-HPXML v1.4.0
 __New Features__
+- **Breaking change**: Changes the BuildResidentialHPXML measure's zip code argument name to `site_zip_code`.
 - Allows calculating one or more emissions scenarios (e.g., high renewable penetration vs business as usual) for different emissions types (e.g., CO2).
 - Allows optional `AirInfiltrationMeasurement/InfiltrationHeight` input.
 - Adds a "Fuel Use: Electricity: Net" timeseries output column for homes with electricity generation.
