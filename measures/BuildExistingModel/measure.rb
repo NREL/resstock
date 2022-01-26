@@ -110,15 +110,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('If true, output the annual component loads.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('run_hescore_workflow', false)
-    arg.setDisplayName('Run Home Energy Score workflow')
-    arg.setDescription('If true, applies the HEScoreHPXML measure, as well as the HEScoreRuleset and HPXMLtoOpenstudio measures located in the os_hescore_directory path')
-    arg.setDefaultValue(false)
-    args << arg
-
     arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('os_hescore_directory', false)
-    arg.setDisplayName('Path to the OpenStudio-HEScore directory')
-    arg.setDescription('Path to the OpenStudio-HEScore directory for running the HEScore workflow, required if run_hescore_workflow is true')
+    arg.setDisplayName('HEScore Workflow: OpenStudio-HEScore directory path')
+    arg.setDescription('Path to the OpenStudio-HEScore directory. If specified, the HEScore workflow will run')
     args << arg
 
     return args
@@ -149,12 +143,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       os_hescore_directory = args['os_hescore_directory'].get
       hes_hpxml_measures_dir = File.join(os_hescore_directory, 'hpxml-measures')
       hes_ruleset_measures_dir = File.join(os_hescore_directory, 'rulesets')
-    end
-
-    run_hescore_workflow = args['run_hescore_workflow'].get if args['run_hescore_workflow'].is_initialized
-    if run_hescore_workflow && (not os_hescore_directory)
-      runner.registerError('os_hescore_directory must be specified if running the HEScore workflow')
-      return false
+      run_hescore_workflow = true
     end
 
     # Load buildstock_file
@@ -310,12 +299,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Run HEScore Measures
     if run_hescore_workflow
-      measures['HEScoreHPXML'] = [{}]
-      measures['HEScoreHPXML'][0]['hpxml_path'] = hpxml_path
-      measures['HEScoreHPXML'][0]['output_path'] = File.expand_path('../hes.json')
-      measures['HEScoreRuleset'] = [{}]
-      measures['HEScoreRuleset'][0]['json_path'] = '/var/simdata/openstudio/run/hes.json'
-      measures['HEScoreRuleset'][0]['hpxml_output_path'] = '/var/simdata/openstudio/run/hes.xml'
+      measures['HEScoreHPXML'] = [{ 'hpxml_path' => hpxml_path,  'output_path' => File.expand_path('../hes.json')}]
+      measures['HEScoreRuleset'] = [{ 'json_path' => File.expand_path('../hes.json'),  'hpxml_output_path' => File.expand_path('../hes.xml')}]
       measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = measures['HEScoreRuleset'][0]['hpxml_output_path']
 
       # HEScoreHPXML
