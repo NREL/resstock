@@ -13,7 +13,6 @@ elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXML
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 end
 require File.join(resources_path, 'meta_measure')
-require File.join(resources_path, 'weather')
 
 # in addition to the above requires, this measure is expected to run in an
 # environment with resstock/resources/buildstock.rb loaded
@@ -223,19 +222,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    def register_logs(runner, new_runner)
-      new_runner.result.warnings.each do |warning|
-        runner.registerWarning(warning.logMessage)
-      end
-      new_runner.result.info.each do |info|
-        runner.registerInfo(info.logMessage)
-      end
-      new_runner.result.errors.each do |error|
-        runner.registerError(error.logMessage)
-      end
-      return
-    end
-
     # Get the absolute paths relative to this meta measure in the run directory
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
     if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
@@ -356,6 +342,19 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     return true
+  end
+
+  def register_logs(runner, new_runner)
+    new_runner.result.warnings.each do |warning|
+      runner.registerWarning(warning.logMessage)
+    end
+    new_runner.result.info.each do |info|
+      runner.registerInfo(info.logMessage)
+    end
+    new_runner.result.errors.each do |error|
+      runner.registerError(error.logMessage)
+    end
+    return
   end
 end
 
