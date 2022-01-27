@@ -105,6 +105,18 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(false)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('add_timeseries_dst_column', false)
+    arg.setDisplayName('Generate Timeseries Output: Add TimeDST Column')
+    arg.setDescription('Optionally add, in addition to the default local standard Time column, a local clock TimeDST column. Requires that daylight saving time is enabled.')
+    arg.setDefaultValue(false)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('add_timeseries_utc_column', false)
+    arg.setDisplayName('Generate Timeseries Output: Add TimeUTC Column')
+    arg.setDescription('Optionally add, in addition to the default local standard Time column, a local clock TimeUTC column. If the time zone UTC offset is not provided in the HPXML file, the time zone in the EPW header will be used.')
+    arg.setDefaultValue(false)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('annual_output_file_name', false)
     arg.setDisplayName('Annual Output File Name')
     arg.setDescription("If not provided, defaults to 'results_annual.csv' (or 'results_annual.json').")
@@ -364,6 +376,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       include_timeseries_zone_temperatures = runner.getBoolArgumentValue('include_timeseries_zone_temperatures', user_arguments)
       include_timeseries_airflows = runner.getBoolArgumentValue('include_timeseries_airflows', user_arguments)
       include_timeseries_weather = runner.getBoolArgumentValue('include_timeseries_weather', user_arguments)
+      add_timeseries_dst_column = runner.getOptionalBoolArgumentValue('add_timeseries_dst_column', user_arguments)
+      add_timeseries_utc_column = runner.getOptionalBoolArgumentValue('add_timeseries_utc_column', user_arguments)
     end
     annual_output_file_name = runner.getOptionalStringArgumentValue('annual_output_file_name', user_arguments)
     timeseries_output_file_name = runner.getOptionalStringArgumentValue('timeseries_output_file_name', user_arguments)
@@ -413,6 +427,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     @timestamps = get_timestamps(timeseries_frequency)
+    if timeseries_frequency != 'none'
+      if add_timeseries_dst_column.is_initialized
+        timestamps_dst = get_timestamps(timeseries_frequency, 'DST') if add_timeseries_dst_column.get
+      end
+      if add_timeseries_utc_column.is_initialized
+        timestamps_utc = get_timestamps(timeseries_frequency, 'UTC') if add_timeseries_utc_column.get
+      end
+    end
 
     # Retrieve outputs
     outputs = get_outputs(runner, timeseries_frequency,
@@ -446,7 +468,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                                     include_timeseries_component_loads,
                                     include_timeseries_zone_temperatures,
                                     include_timeseries_airflows,
-                                    include_timeseries_weather)
+                                    include_timeseries_weather,
+                                    timestamps_dst,
+                                    timestamps_utc)
 
     teardown()
     return true
@@ -460,7 +484,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     GC.start()
   end
 
-  def get_timestamps(timeseries_frequency)
+  def get_timestamps(timeseries_frequency, timestamps_local_time = nil)
     if timeseries_frequency == 'hourly'
       interval_type = 1
     elsif timeseries_frequency == 'daily'
@@ -475,11 +499,30 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     values = @sqlFile.execAndReturnVectorOfString(query)
     fail "Query error: #{query}" unless values.is_initialized
 
+    if timestamps_local_time == 'DST'
+      dst_start_ts = Time.utc(@hpxml.header.sim_calendar_year, @hpxml.header.dst_begin_month, @hpxml.header.dst_begin_day, 2)
+      dst_end_ts = Time.utc(@hpxml.header.sim_calendar_year, @hpxml.header.dst_end_month, @hpxml.header.dst_end_day, 1)
+    elsif timestamps_local_time == 'UTC'
+      utc_offset = @hpxml.header.time_zone_utc_offset
+      utc_offset *= 3600 # seconds
+    end
+
     timestamps = []
     values.get.each do |value|
       year, month, day, hour, minute = value.split(' ')
       ts = Time.utc(year, month, day, hour, minute)
-      timestamps << ts.strftime('%Y/%m/%d %H:%M:00')
+
+      if timestamps_local_time == 'DST'
+        if (ts >= dst_start_ts) && (ts < dst_end_ts)
+          ts += 3600 # 1 hr shift forward
+        end
+      elsif timestamps_local_time == 'UTC'
+        ts -= utc_offset
+      end
+
+      ts_iso8601 = ts.iso8601
+      ts_iso8601 = ts_iso8601.delete('Z') if timestamps_local_time != 'UTC'
+      timestamps << ts_iso8601
     end
 
     return timestamps
@@ -1355,7 +1398,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                                       include_timeseries_component_loads,
                                       include_timeseries_zone_temperatures,
                                       include_timeseries_airflows,
-                                      include_timeseries_weather)
+                                      include_timeseries_weather,
+                                      timestamps_dst,
+                                      timestamps_utc)
     return if timeseries_frequency == 'none'
 
     # Set rounding precision.
@@ -1369,7 +1414,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    # Time column
+    # Time column(s)
     if ['timestep', 'hourly', 'daily', 'monthly'].include? timeseries_frequency
       data = ['Time', nil]
     else
@@ -1377,6 +1422,24 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
     @timestamps.each do |timestamp|
       data << timestamp
+    end
+
+    if timestamps_dst
+      timestamps2 = [['TimeDST', nil]]
+      timestamps_dst.each do |timestamp|
+        timestamps2[0] << timestamp
+      end
+    else
+      timestamps2 = []
+    end
+
+    if timestamps_utc
+      timestamps3 = [['TimeUTC', nil]]
+      timestamps_utc.each do |timestamp|
+        timestamps3[0] << timestamp
+      end
+    else
+      timestamps3 = []
     end
 
     if include_timeseries_fuel_consumptions
@@ -1443,7 +1506,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     if output_format == 'csv'
       # Assemble data
-      data = data.zip(*fuel_data, *end_use_data, *emissions_data, *hot_water_use_data, *total_loads_data, *comp_loads_data, *zone_temps_data, *airflows_data, *weather_data)
+      data = data.zip(*timestamps2, *timestamps3, *fuel_data, *end_use_data, *emissions_data, *hot_water_use_data, *total_loads_data, *comp_loads_data, *zone_temps_data, *airflows_data, *weather_data)
 
       # Error-check
       n_elements = []
@@ -1460,6 +1523,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       # Assemble data
       h = {}
       h['Time'] = data[2..-1]
+      h['TimeDST'] = timestamps2[2..-1] if timestamps_dst
+      h['TimeUTC'] = timestamps3[2..-1] if timestamps_utc
+
       [fuel_data, end_use_data, emissions_data, hot_water_use_data, total_loads_data, comp_loads_data, zone_temps_data, airflows_data, weather_data].each do |d|
         d.each do |o|
           grp, name = o[0].split(':', 2)

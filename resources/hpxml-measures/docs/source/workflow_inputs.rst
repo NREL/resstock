@@ -192,6 +192,8 @@ The schedule columns in the schedule CSV are:
 Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
 
 A detailed stochastic or smooth schedule CSV file can also be automatically generated for you; see the :ref:`usage_instructions` for the commands.
+Generator inputs are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
+See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
 
 Default Schedules
 ~~~~~~~~~~~~~~~~~
@@ -260,6 +262,28 @@ If no default value is available, a warning will be issued.
 
 See :ref:`annual_outputs` and :ref:`timeseries_outputs` for descriptions of how the calculated emissions appear in the output files.
 
+.. _buildingsite:
+
+HPXML Building Site
+-------------------
+
+Building site information can be entered in ``/HPXML/Building/Site``.
+
+
+  =======================================  ========  =====  ===========  ========  ========  ===============
+  Element                                  Type      Units  Constraints  Required  Default   Description
+  =======================================  ========  =====  ===========  ========  ========  ===============
+  ``SiteID``                               id                            Yes                 Unique identifier
+  ``Address/StateCode``                    string                        No        See [#]_  State/territory where the home is located
+  ``Address/ZipCode``                      string           See [#]_     No                  ZIP Code where the home is located
+  ``TimeZone/UTCOffset``                   double           See [#]_     No        See [#]_  Difference in decimal hours between the home's time zone and UTC
+  =======================================  ========  =====  ===========  ========  ========  ===============
+
+  .. [#] If StateCode not provided, defaults according to the EPW weather file header.
+  .. [#] ZipCode can be defined as the standard 5 number postal code, or it can have the additional 4 number code separated by a hyphen.
+  .. [#] UTCOffset ranges from -12 to 14.
+  .. [#] If UTCOffset not provided, defaults according to the EPW weather file header.
+
 HPXML Building Summary
 ----------------------
 
@@ -268,7 +292,7 @@ High-level building summary information is entered in ``/HPXML/Building/Building
 HPXML Site
 **********
 
-Building site information is entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/Site``.
+Site information is entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/Site``.
 
   ================================  ========  =====  ===========  ========  ========  ============================================================
   Element                           Type      Units  Constraints  Required  Default   Notes
@@ -346,8 +370,25 @@ Building construction is entered in ``/HPXML/Building/BuildingDetails/BuildingSu
          - heating system is non-electric Fireplace, or
          - water heater is non-electric with energy factor (or equivalent calculated from uniform energy factor) less than 0.63.
 
-HPXML Weather Station
----------------------
+HPXML Climate Zones
+-------------------
+
+HPXML Climate Zone IECC
+***********************
+
+Climate zone information can be entered as an ``/HPXML/Building/BuildingDetails/ClimateandRiskZones/ClimateZoneIECC``.
+
+  =================================  ========  =====  ===========  ========  ========  ===============
+  Element                            Type      Units  Constraints  Required  Default   Description
+  =================================  ========  =====  ===========  ========  ========  ===============
+  ``Year``                           integer          See [#]_     No        2006      IECC year
+  ``ClimateZone``                    string           See [#]_     No        See [#]_  IECC zone
+  =================================  ========  =====  ===========  ========  ========  ===============
+
+  .. [#] Year choices are 2003, 2006, 2009, or 2012.
+  .. [#] ClimateZone choices are "1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "5A", "5B", "5C", "6A", "6B", "6C", "7", or "8".
+  .. [#] If ClimateZone not provided, defaults according to the EPW weather file header.
+
 
 Weather information is entered in ``/HPXML/Building/BuildingDetails/ClimateandRiskZones/WeatherStation``.
 

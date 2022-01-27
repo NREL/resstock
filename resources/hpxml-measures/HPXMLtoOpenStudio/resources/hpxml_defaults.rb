@@ -37,6 +37,7 @@ class HPXMLDefaults
     apply_neighbor_buildings(hpxml)
     apply_building_occupancy(hpxml, nbeds, schedules_file)
     apply_building_construction(hpxml, cfa, nbeds, infil_volume)
+    apply_climate_and_risk_zones(hpxml, epw_file)
     apply_infiltration(hpxml, infil_volume, infil_height, infil_measurements)
     apply_attics(hpxml)
     apply_foundations(hpxml)
@@ -188,6 +189,19 @@ class HPXMLDefaults
       hpxml.header.use_max_load_for_heat_pumps = true
       hpxml.header.use_max_load_for_heat_pumps_isdefaulted = true
     end
+
+    if (not epw_file.nil?) && hpxml.header.state_code.nil?
+      state_province_region = epw_file.stateProvinceRegion.upcase
+      if /^[A-Z]{2}$/.match(state_province_region)
+        hpxml.header.state_code = state_province_region
+        hpxml.header.state_code_isdefaulted = true
+      end
+    end
+
+    if (not epw_file.nil?) && hpxml.header.time_zone_utc_offset.nil?
+      hpxml.header.time_zone_utc_offset = epw_file.timeZone
+      hpxml.header.time_zone_utc_offset_isdefaulted = true
+    end
   end
 
   def self.apply_emissions_scenarios(hpxml)
@@ -337,6 +351,23 @@ class HPXMLDefaults
         end
 
         hpxml.building_construction.has_flue_or_chimney = true
+      end
+    end
+  end
+
+  def self.apply_climate_and_risk_zones(hpxml, epw_file)
+    if (not epw_file.nil?) && (hpxml.climate_and_risk_zones.iecc_zone.nil? || hpxml.climate_and_risk_zones.iecc_year.nil?)
+      if hpxml.climate_and_risk_zones.iecc_zone.nil?
+        climate_zone_iecc = Location.get_climate_zone_iecc(epw_file.wmoNumber)
+        if Constants.IECCZones.include? climate_zone_iecc
+          hpxml.climate_and_risk_zones.iecc_zone = climate_zone_iecc
+          hpxml.climate_and_risk_zones.iecc_zone_isdefaulted = true
+        end
+      end
+
+      if (not hpxml.climate_and_risk_zones.iecc_zone.nil?) && hpxml.climate_and_risk_zones.iecc_year.nil?
+        hpxml.climate_and_risk_zones.iecc_year = 2006
+        hpxml.climate_and_risk_zones.iecc_year_isdefaulted = true
       end
     end
   end

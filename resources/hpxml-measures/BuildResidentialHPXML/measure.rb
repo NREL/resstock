@@ -119,34 +119,35 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('zip_code', false)
-    arg.setDisplayName('Zip Code')
-    arg.setDescription('Zip code - used for informational purposes only')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('site_zip_code', false)
+    arg.setDisplayName('Site: Zip Code')
+    arg.setDescription('Zip code of the home address.')
     args << arg
 
     site_iecc_zone_choices = OpenStudio::StringVector.new
-    ['1A', '1B', '1C', '2A', '2B', '2C', '3A', '3B', '3C',
-     '4A', '4B', '4C', '5A', '5B', '5C', '6A', '6B', '6C', '7', '8'].each do |iz|
+    Constants.IECCZones.each do |iz|
       site_iecc_zone_choices << iz
     end
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('site_iecc_zone', site_iecc_zone_choices, false)
     arg.setDisplayName('Site: IECC Zone')
-    arg.setDescription('IECC zone of the home address. If not provided, uses the IECC zone corresponding to the EPW weather file.')
+    arg.setDescription('IECC zone of the home address.')
     args << arg
 
     site_state_code_choices = OpenStudio::StringVector.new
-    ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
-     'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
-     'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
-     'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX',
-     'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY'].each do |sc|
+    Constants.StateCodes.each do |sc|
       site_state_code_choices << sc
     end
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('site_state_code', site_state_code_choices, false)
     arg.setDisplayName('Site: State Code')
-    arg.setDescription('State code of the home address. If not provided, uses the EPW weather file state code.')
+    arg.setDescription('State code of the home address.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_time_zone_utc_offset', false)
+    arg.setDisplayName('Site: Time Zone UTC Offset')
+    arg.setDescription('Time zone UTC offset of the home address. Must be between -12 and 14.')
+    arg.setUnits('hr')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
@@ -2895,13 +2896,29 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_units', false)
     arg.setDisplayName('Emissions: Electricity Units')
-    arg.setDescription('Electricity emissions factors units. If multiple scenarios, use a comma-separated list.')
+    arg.setDescription('Electricity emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MWh and kg/MWh are allowed.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_values_or_filepaths', false)
     arg.setDisplayName('Emissions: Electricity Values or File Paths')
     arg.setDescription('Electricity emissions factors values, specified as either an annual factor or an absolute/relative path to a file with hourly factors. If multiple scenarios, use a comma-separated list.')
     args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_fossil_fuel_units', false)
+    arg.setDisplayName('Emissions: Fossil Fuel Units')
+    arg.setDescription('Fossil fuel emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MBtu and kg/MBtu are allowed.')
+    args << arg
+
+    Constants.FossilFuels.each do |fossil_fuel|
+      underscore_case = OpenStudio::toUnderscoreCase(fossil_fuel)
+      all_caps_case = fossil_fuel.split(' ').map(&:capitalize).join(' ')
+      cap_case = fossil_fuel.capitalize
+
+      arg = OpenStudio::Measure::OSArgument.makeStringArgument("emissions_#{underscore_case}_values", false)
+      arg.setDisplayName("Emissions: #{all_caps_case} Values")
+      arg.setDescription("#{cap_case} emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.")
+      args << arg
+    end
 
     return args
   end
@@ -2978,66 +2995,26 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   def validate_arguments(args)
-    warnings = []
-    errors = []
+    warnings = argument_warnings(args)
+    errors = argument_errors(args)
 
-    # TODO: Remove items below that duplicate checks downstream.
-    # TODO: Add warnings/errors downstream if there are additional checks here.
+    return warnings, errors
+  end
+
+  def argument_warnings(args)
+    warnings = []
 
     warning = ([HPXML::WaterHeaterTypeHeatPump].include?(args[:water_heater_type]) && (args[:water_heater_fuel_type] != HPXML::FuelTypeElectricity))
     warnings << 'Cannot model a heat pump water heater with non-electric fuel type.' if warning
 
-    error = (args[:heating_system_type] != 'none') && (args[:heat_pump_type] != 'none') && (args[:heating_system_fraction_heat_load_served] > 0) && (args[:heat_pump_fraction_heat_load_served] > 0)
-    errors << 'Multiple central heating systems are not currently supported.' if error
-
-    error = (args[:cooling_system_type] != 'none') && (args[:heat_pump_type] != 'none') && (args[:cooling_system_fraction_cool_load_served] > 0) && (args[:heat_pump_fraction_cool_load_served] > 0)
-    errors << 'Multiple central cooling systems are not currently supported.' if error
-
-    if args[:geometry_unit_num_bathrooms] != Constants.Auto
-      error = (Float(args[:geometry_unit_num_bathrooms]) % 1 != 0)
-      errors << 'Number of bathrooms must be an integer.' if error
-    end
-
-    if args[:ceiling_fan_quantity] != Constants.Auto
-      error = (Float(args[:ceiling_fan_quantity]) % 1 != 0)
-      errors << 'Quantity of ceiling fans must be an integer.' if error
-    end
-
     warning = [HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include?(args[:geometry_foundation_type]) && (args[:geometry_foundation_height] > 0)
     warnings << "Foundation type of '#{args[:geometry_foundation_type]}' cannot have a non-zero height. Assuming height is zero." if warning
-
-    error = ![HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include?(args[:geometry_foundation_type]) && (args[:geometry_foundation_height] == 0)
-    errors << "Foundation type of '#{args[:geometry_foundation_type]}' cannot have a height of zero." if error
-
-    error = [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type]) && (args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient)
-    errors << 'Ambient foundation type for single-family attached or apartment units is not currently supported.' if error
-
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && ([HPXML::FoundationTypeBasementConditioned, HPXML::FoundationTypeCrawlspaceConditioned].include? args[:geometry_foundation_type])
-    errors << 'Conditioned basement/crawlspace foundation type for apartment units is not currently supported.' if error
 
     warning = (args[:geometry_foundation_type] == HPXML::FoundationTypeSlab) && (args[:geometry_foundation_height_above_grade] > 0)
     warnings << 'Specified a slab foundation type with a non-zero height above grade.' if warning
 
-    error = ((args[:ducts_supply_location] == Constants.Auto) && (args[:ducts_supply_surface_area] != Constants.Auto)) || ((args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area] == Constants.Auto)) || ((args[:ducts_return_location] == Constants.Auto) && (args[:ducts_return_surface_area] != Constants.Auto)) || ((args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto))
-    errors << 'Duct location and surface area not both auto or not both specified.' if error
-
     warning = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] >= 0.5) && (args[:heating_system_2_fraction_heat_load_served] < 1.0)
     warnings << 'The fraction of heat load served by the second heating system is greater than or equal to 50%.' if warning
-
-    error = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] == 1.0)
-    errors << 'The fraction of heat load served by the second heating system is 100%.' if error
-
-    error = (args[:heating_system_type] == 'none') && (args[:heat_pump_type] == 'none') && (args[:heating_system_2_type] != 'none')
-    errors << 'A second heating system was specified without a primary heating system.' if error
-
-    error = ((args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) || (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA)) && !args[:geometry_building_num_units].is_initialized
-    errors << 'Did not specify the number of units in the building for single-family attached or apartment units.' if error
-
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_unit_num_floors_above_grade] > 1)
-    errors << 'Apartment units can only have one above-grade floor.' if error
-
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFD) && (args[:geometry_unit_left_wall_is_adiabatic] || args[:geometry_unit_right_wall_is_adiabatic] || args[:geometry_unit_front_wall_is_adiabatic] || args[:geometry_unit_back_wall_is_adiabatic] || (args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment) || (args[:geometry_foundation_type] == HPXML::FoundationTypeAboveApartment))
-    errors << 'No adiabatic surfaces can be applied to single-family detached homes.' if error
 
     warning = [HPXML::FoundationTypeCrawlspaceVented, HPXML::FoundationTypeCrawlspaceUnvented, HPXML::FoundationTypeBasementUnconditioned].include?(args[:geometry_foundation_type]) && ((args[:foundation_wall_insulation_r] > 0) || args[:foundation_wall_assembly_r].is_initialized) && (args[:floor_over_foundation_assembly_r] > 2.1)
     warnings << 'Home with unconditioned basement/crawlspace foundation type has both foundation wall insulation and floor insulation.' if warning
@@ -3050,12 +3027,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     warning = (args[:geometry_attic_type] == HPXML::AtticTypeConditioned) && (args[:ceiling_assembly_r] > 2.1)
     warnings << 'Home with conditioned attic has ceiling insulation.' if warning
-
-    error = (args[:geometry_unit_num_floors_above_grade] == 1 && args[:geometry_attic_type] == HPXML::AtticTypeConditioned)
-    errors << 'Units with a conditioned attic must have at least two above-grade floors.' if error
-
-    error = ((args[:water_heater_type] == HPXML::WaterHeaterTypeCombiStorage) || (args[:water_heater_type] == HPXML::WaterHeaterTypeCombiTankless)) && (args[:heating_system_type] != HPXML::HVACTypeBoiler)
-    errors << 'Must specify a boiler when modeling an indirect water heater type.' if error
 
     if args[:misc_plug_loads_television_annual_kwh] != Constants.Auto
       warning = (args[:misc_plug_loads_television_annual_kwh].to_f == 0.0 && args[:misc_plug_loads_television_usage_multiplier] != 0.0)
@@ -3080,6 +3051,61 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     warning = (!args[:misc_fuel_loads_grill_present] && args[:misc_fuel_loads_grill_usage_multiplier] != 0.0) || (!args[:misc_fuel_loads_lighting_present] && args[:misc_fuel_loads_lighting_usage_multiplier] != 0.0) || (!args[:misc_fuel_loads_fireplace_present] && args[:misc_fuel_loads_fireplace_usage_multiplier] != 0.0)
     warnings << 'Specified a non-zero usage multiplier for a fuel load that is zero.' if warning
 
+    return warnings
+  end
+
+  def argument_errors(args)
+    errors = []
+
+    error = (args[:heating_system_type] != 'none') && (args[:heat_pump_type] != 'none') && (args[:heating_system_fraction_heat_load_served] > 0) && (args[:heat_pump_fraction_heat_load_served] > 0)
+    errors << 'Multiple central heating systems are not currently supported.' if error
+
+    error = (args[:cooling_system_type] != 'none') && (args[:heat_pump_type] != 'none') && (args[:cooling_system_fraction_cool_load_served] > 0) && (args[:heat_pump_fraction_cool_load_served] > 0)
+    errors << 'Multiple central cooling systems are not currently supported.' if error
+
+    if args[:geometry_unit_num_bathrooms] != Constants.Auto
+      error = (Float(args[:geometry_unit_num_bathrooms]) % 1 != 0)
+      errors << 'Number of bathrooms must be an integer.' if error
+    end
+
+    if args[:ceiling_fan_quantity] != Constants.Auto
+      error = (Float(args[:ceiling_fan_quantity]) % 1 != 0)
+      errors << 'Quantity of ceiling fans must be an integer.' if error
+    end
+
+    error = ![HPXML::FoundationTypeSlab, HPXML::FoundationTypeAboveApartment].include?(args[:geometry_foundation_type]) && (args[:geometry_foundation_height] == 0)
+    errors << "Foundation type of '#{args[:geometry_foundation_type]}' cannot have a height of zero." if error
+
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && ([HPXML::FoundationTypeBasementConditioned, HPXML::FoundationTypeCrawlspaceConditioned].include? args[:geometry_foundation_type])
+    errors << 'Conditioned basement/crawlspace foundation type for apartment units is not currently supported.' if error
+
+    error = ((args[:ducts_supply_location] == Constants.Auto) && (args[:ducts_supply_surface_area] != Constants.Auto)) || ((args[:ducts_supply_location] != Constants.Auto) && (args[:ducts_supply_surface_area] == Constants.Auto)) || ((args[:ducts_return_location] == Constants.Auto) && (args[:ducts_return_surface_area] != Constants.Auto)) || ((args[:ducts_return_location] != Constants.Auto) && (args[:ducts_return_surface_area] == Constants.Auto))
+    errors << 'Duct location and surface area not both auto or not both specified.' if error
+
+    error = (args[:heating_system_2_type] != 'none') && (args[:heating_system_2_fraction_heat_load_served] == 1.0)
+    errors << 'The fraction of heat load served by the second heating system is 100%.' if error
+
+    error = (args[:heating_system_type] == 'none') && (args[:heat_pump_type] == 'none') && (args[:heating_system_2_type] != 'none')
+    errors << 'A second heating system was specified without a primary heating system.' if error
+
+    error = [HPXML::ResidentialTypeSFA, HPXML::ResidentialTypeApartment].include?(args[:geometry_unit_type]) && !args[:geometry_building_num_units].is_initialized
+    errors << 'Did not specify the number of units in the building for single-family attached or apartment units.' if error
+
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_unit_num_floors_above_grade] > 1)
+    errors << 'Apartment units can only have one above-grade floor.' if error
+
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFD) && (args[:geometry_unit_left_wall_is_adiabatic] || args[:geometry_unit_right_wall_is_adiabatic] || args[:geometry_unit_front_wall_is_adiabatic] || args[:geometry_unit_back_wall_is_adiabatic] || (args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment) || (args[:geometry_foundation_type] == HPXML::FoundationTypeAboveApartment))
+    errors << 'No adiabatic surfaces can be applied to single-family detached homes.' if error
+
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented, HPXML::AtticTypeConditioned].include?(args[:geometry_attic_type])
+    errors << 'Apartment units can only have a flat roof or be below another apartment unit.' if error
+
+    error = (args[:geometry_unit_num_floors_above_grade] == 1 && args[:geometry_attic_type] == HPXML::AtticTypeConditioned)
+    errors << 'Units with a conditioned attic must have at least two above-grade floors.' if error
+
+    error = ((args[:water_heater_type] == HPXML::WaterHeaterTypeCombiStorage) || (args[:water_heater_type] == HPXML::WaterHeaterTypeCombiTankless)) && (args[:heating_system_type] != HPXML::HVACTypeBoiler)
+    errors << 'Must specify a boiler when modeling an indirect water heater type.' if error
+
     error = (args[:geometry_unit_num_bedrooms] <= 0)
     errors << 'Number of bedrooms must be greater than zero.' if error
 
@@ -3097,18 +3123,76 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
                                   args[:emissions_electricity_units].is_initialized,
                                   args[:emissions_electricity_values_or_filepaths].is_initialized]
     error = (emissions_args_initialized.uniq.size != 1)
-    errors << 'Did not specify either no emissions arguments or all emissions arguments.' if error
+    errors << 'Did not specify all required emissions arguments.' if error
+
+    Constants.FossilFuels.each do |fossil_fuel|
+      underscore_case = OpenStudio::toUnderscoreCase(fossil_fuel)
+
+      if args["emissions_#{underscore_case}_values".to_sym].is_initialized
+        error = !args[:emissions_fossil_fuel_units].is_initialized
+        errors << "Did not specify fossil fuel emissions units for #{fossil_fuel} emissions values." if error
+      end
+    end
 
     if emissions_args_initialized.uniq.size == 1 && emissions_args_initialized.uniq[0]
       emissions_scenario_lengths = [args[:emissions_scenario_names].get.split(',').length,
                                     args[:emissions_types].get.split(',').length,
                                     args[:emissions_electricity_units].get.split(',').length,
                                     args[:emissions_electricity_values_or_filepaths].get.split(',').length]
+
+      emissions_scenario_lengths += [args[:emissions_fossil_fuel_units].get.split(',').length] if args[:emissions_fossil_fuel_units].is_initialized
+
+      Constants.FossilFuels.each do |fossil_fuel|
+        underscore_case = OpenStudio::toUnderscoreCase(fossil_fuel)
+
+        emissions_scenario_lengths += [args["emissions_#{underscore_case}_values".to_sym].get.split(',').length] if args["emissions_#{underscore_case}_values".to_sym].is_initialized
+      end
+
       error = (emissions_scenario_lengths.uniq.size != 1)
       errors << 'One or more emissions arguments does not have enough comma-separated elements specified.' if error
     end
 
-    return warnings, errors
+    error = (args[:geometry_unit_aspect_ratio] <= 0)
+    errors << 'Aspect ratio must be greater than zero.' if error
+
+    error = (args[:geometry_foundation_height] < 0)
+    errors << 'Foundation height cannot be negative.' if error
+
+    error = (args[:geometry_unit_num_floors_above_grade] > 6)
+    errors << 'Number of above-grade floors must be six or less.' if error
+
+    error = (args[:geometry_garage_protrusion] < 0) || (args[:geometry_garage_protrusion] > 1)
+    errors << 'Garage protrusion fraction must be between zero and one.' if error
+
+    error = (args[:geometry_unit_left_wall_is_adiabatic] && args[:geometry_unit_right_wall_is_adiabatic] && args[:geometry_unit_front_wall_is_adiabatic] && args[:geometry_unit_back_wall_is_adiabatic])
+    errors << 'At least one wall must be set to non-adiabatic.' if error
+
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (args[:geometry_foundation_type] == HPXML::FoundationTypeAboveApartment)
+    errors << 'Single-family attached units cannot be above another unit.' if error
+
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment)
+    errors << 'Single-family attached units cannot be below another unit.' if error
+
+    # These detailed geometry inputs are not currently exposed
+    # error = (args[:geometry_balcony_depth] > 0) && (args[:geometry_inset_width] * args[:geometry_inset_depth] == 0)
+    # errors << 'Specified a balcony, but there is not inset.' if error
+
+    error = (args[:geometry_garage_protrusion] > 0) && (args[:geometry_roof_type] == 'hip') && (args[:geometry_garage_width] * args[:geometry_garage_depth] > 0)
+    errors << 'Cannot handle protruding garage and hip roof.' if error
+
+    error = (args[:geometry_garage_protrusion] > 0) && (args[:geometry_unit_aspect_ratio] < 1) && (args[:geometry_garage_width] * args[:geometry_garage_depth] > 0) && (args[:geometry_roof_type] == 'gable')
+    errors << 'Cannot handle protruding garage and attic ridge running from front to back.' if error
+
+    error = (args[:geometry_foundation_type] == HPXML::FoundationTypeAmbient) && (args[:geometry_garage_width] * args[:geometry_garage_depth] > 0)
+    errors << 'Cannot handle garages with an ambient foundation type.' if error
+
+    error = (args[:door_area] < 0)
+    errors << 'Door area cannot be negative.' if error
+
+    error = (args[:window_aspect_ratio] <= 0)
+    errors << 'Window aspect ratio must be greater than zero.' if error
+
+    return errors
   end
 
   def validate_hpxml(runner, hpxml_path, hpxml_doc)
@@ -3143,12 +3227,6 @@ class HPXMLFile
   def self.create(runner, model, args, epw_file, skip_error_checking)
     success = create_geometry_envelope(runner, model, args)
     return false if not success
-
-    if args[:site_state_code].is_initialized
-      args[:site_state_code] = args[:site_state_code].get
-    else
-      args[:site_state_code] = epw_file.stateProvinceRegion
-    end
 
     @surface_ids = {}
 
@@ -3288,6 +3366,11 @@ class HPXMLFile
     args[:geometry_inset_position] = 'Right'
     args[:geometry_balcony_depth] = 0.0
 
+    if model.getSpaces.size > 0
+      runner.registerError('Starting model is not empty.')
+      return false
+    end
+
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
       success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
@@ -3347,11 +3430,19 @@ class HPXMLFile
     end
 
     hpxml.header.building_id = 'MyBuilding'
-    if args[:zip_code].is_initialized
-      hpxml.header.zip_code = args[:zip_code]
-    end
-    hpxml.header.state_code = args[:site_state_code]
     hpxml.header.event_type = 'proposed workscope'
+
+    if args[:site_zip_code].is_initialized
+      hpxml.header.zip_code = args[:site_zip_code].get
+    end
+
+    if args[:site_state_code].is_initialized
+      hpxml.header.state_code = args[:site_state_code].get
+    end
+
+    if args[:site_time_zone_utc_offset].is_initialized
+      hpxml.header.time_zone_utc_offset = args[:site_time_zone_utc_offset].get
+    end
 
     if args[:emissions_scenario_names].is_initialized
       emissions_scenario_names = args[:emissions_scenario_names].get.split(',').map(&:strip)
@@ -3359,16 +3450,52 @@ class HPXMLFile
       emissions_electricity_units = args[:emissions_electricity_units].get.split(',').map(&:strip)
       emissions_electricity_values_or_filepaths = args[:emissions_electricity_values_or_filepaths].get.split(',').map(&:strip)
 
-      emissions_scenarios = emissions_scenario_names.zip(emissions_types, emissions_electricity_units, emissions_electricity_values_or_filepaths)
+      if args[:emissions_fossil_fuel_units].is_initialized
+        fuel_units = args[:emissions_fossil_fuel_units].get.split(',').map(&:strip)
+      else
+        fuel_units = [nil] * emissions_scenario_names.size
+      end
+
+      fuel_values = {}
+      Constants.FossilFuels.each do |fossil_fuel|
+        underscore_case = OpenStudio::toUnderscoreCase(fossil_fuel)
+
+        if args["emissions_#{underscore_case}_values".to_sym].is_initialized
+          fuel_values[fossil_fuel] = args["emissions_#{underscore_case}_values".to_sym].get.split(',').map(&:strip)
+        else
+          fuel_values[fossil_fuel] = [nil] * emissions_scenario_names.size
+        end
+      end
+
+      emissions_scenarios = emissions_scenario_names.zip(emissions_types, emissions_electricity_units, emissions_electricity_values_or_filepaths, fuel_units, fuel_values[HPXML::FuelTypeNaturalGas], fuel_values[HPXML::FuelTypePropane], fuel_values[HPXML::FuelTypeOil], fuel_values[HPXML::FuelTypeCoal], fuel_values[HPXML::FuelTypeWoodCord], fuel_values[HPXML::FuelTypeWoodPellets])
       emissions_scenarios.each do |emissions_scenario|
-        name, emissions_type, elec_units, elec_value_or_schedule_filepath = emissions_scenario
+        name, emissions_type, elec_units, elec_value_or_schedule_filepath, fuel_units, natural_gas_value, propane_value, fuel_oil_value, coal_value, wood_value, wood_pellets_value = emissions_scenario
         elec_value = Float(elec_value_or_schedule_filepath) rescue nil
         elec_schedule_filepath = elec_value_or_schedule_filepath if elec_value.nil?
+        natural_gas_value = Float(natural_gas_value) rescue nil
+        propane_value = Float(propane_value) rescue nil
+        fuel_oil_value = Float(fuel_oil_value) rescue nil
+        coal_value = Float(coal_value) rescue nil
+        wood_value = Float(wood_value) rescue nil
+        wood_pellets_value = Float(wood_pellets_value) rescue nil
+
         hpxml.header.emissions_scenarios.add(name: name,
                                              emissions_type: emissions_type,
                                              elec_units: elec_units,
                                              elec_value: elec_value,
-                                             elec_schedule_filepath: elec_schedule_filepath)
+                                             elec_schedule_filepath: elec_schedule_filepath,
+                                             natural_gas_units: fuel_units,
+                                             natural_gas_value: natural_gas_value,
+                                             propane_units: fuel_units,
+                                             propane_value: propane_value,
+                                             fuel_oil_units: fuel_units,
+                                             fuel_oil_value: fuel_oil_value,
+                                             coal_units: fuel_units,
+                                             coal_value: coal_value,
+                                             wood_units: fuel_units,
+                                             wood_value: wood_value,
+                                             wood_pellets_units: fuel_units,
+                                             wood_pellets_value: wood_pellets_value)
       end
     end
   end
@@ -3482,15 +3609,10 @@ class HPXMLFile
     hpxml.climate_and_risk_zones.weather_station_id = 'WeatherStation'
 
     if args[:site_iecc_zone].is_initialized
-      iecc_zone = args[:site_iecc_zone].get
-    else
-      iecc_zone = Location.get_climate_zone_iecc(epw_file.wmoNumber)
+      hpxml.climate_and_risk_zones.iecc_zone = args[:site_iecc_zone].get
+      hpxml.climate_and_risk_zones.iecc_year = 2006
     end
 
-    unless iecc_zone.nil?
-      hpxml.climate_and_risk_zones.iecc_year = 2006
-      hpxml.climate_and_risk_zones.iecc_zone = iecc_zone
-    end
     weather_station_name = File.basename(args[:weather_station_epw_filepath]).gsub('.epw', '')
     hpxml.climate_and_risk_zones.weather_station_name = weather_station_name
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = args[:weather_station_epw_filepath]
