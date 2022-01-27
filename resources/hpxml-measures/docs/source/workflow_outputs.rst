@@ -360,6 +360,7 @@ Depending on the outputs requested, the file may include:
 Timeseries outputs can be one of the following frequencies: hourly, daily, monthly, or timestep (i.e., equal to the simulation timestep, which defaults to an hour but can be sub-hourly).
 
 Timestamps in the output use the end-of-hour (or end-of-day for daily frequency, etc.) convention.
+Additional timestamp columns can be optionally requested that reflect daylight saving time (DST) and/or coordinated universal time (UTC).
 Most outputs will be summed over the hour (e.g., energy) but some will be averaged over the hour (e.g., temperatures, airflows).
 
 .. _hpxml_outputs:

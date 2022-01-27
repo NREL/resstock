@@ -53,6 +53,7 @@ Fixes
 - Fixes hours setpoint not met output to exclude A) no heating and/or cooling equipment and B) finished basements ([#700](https://github.com/NREL/resstock/pull/700))
 - Revert fix to make all Brick >1960 to Wood Frame + Brick facade ([#759](https://github.com/NREL/resstock/pull/759))
 - Fixes for wall constructions - remove sheathing on CMU and brick walls, better data for exterior finish absorptances and wall densities ([#789](https://github.com/NREL/resstock/pull/789))
+- Fixes unit conversion bugs in solar hot water model  ([#809](https://github.com/NREL/resstock/pull/809))
 
 ## ResStock v2.4.0
 

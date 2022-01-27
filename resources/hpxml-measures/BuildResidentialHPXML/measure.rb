@@ -144,6 +144,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('State code of the home address.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('site_time_zone_utc_offset', false)
+    arg.setDisplayName('Site: Time Zone UTC Offset')
+    arg.setDescription('Time zone UTC offset of the home address. Must be between -12 and 14.')
+    arg.setUnits('hr')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('weather_station_epw_filepath', true)
     arg.setDisplayName('Weather Station: EnergyPlus Weather (EPW) Filepath')
     arg.setDescription('Path of the EPW file.')
@@ -3398,6 +3404,10 @@ class HPXMLFile
 
     if args[:site_state_code].is_initialized
       hpxml.header.state_code = args[:site_state_code].get
+    end
+
+    if args[:site_time_zone_utc_offset].is_initialized
+      hpxml.header.time_zone_utc_offset = args[:site_time_zone_utc_offset].get
     end
 
     if args[:emissions_scenario_names].is_initialized

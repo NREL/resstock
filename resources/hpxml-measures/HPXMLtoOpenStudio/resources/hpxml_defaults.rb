@@ -197,6 +197,11 @@ class HPXMLDefaults
         hpxml.header.state_code_isdefaulted = true
       end
     end
+
+    if (not epw_file.nil?) && hpxml.header.time_zone_utc_offset.nil?
+      hpxml.header.time_zone_utc_offset = epw_file.timeZone
+      hpxml.header.time_zone_utc_offset_isdefaulted = true
+    end
   end
 
   def self.apply_emissions_scenarios(hpxml)
