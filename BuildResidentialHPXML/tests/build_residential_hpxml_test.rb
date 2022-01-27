@@ -45,6 +45,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-no-rim-joists.xml' => 'base-sfd.xml',
       'extra-iecc-zone-different-than-epw.xml' => 'base-sfd.xml',
       'extra-state-code-different-than-epw.xml' => 'base-sfd.xml',
+      'extra-emissions-fossil-fuel-factors.xml' => 'base-sfd.xml',
       'extra-time-zone-different-than-epw.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
@@ -163,6 +164,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-rim-joist-assembly-r-but-no-height.xml' => 'base-sfd.xml',
       'error-emissions-args-not-all-specified.xml' => 'base-sfd.xml',
       'error-emissions-args-not-all-same-size.xml' => 'base-sfd.xml',
+      'error-emissions-natural-gas-args-not-all-specified.xml' => 'base-sfd.xml',
       'error-invalid-aspect-ratio.xml' => 'base-sfd.xml',
       'error-negative-foundation-height.xml' => 'base-sfd.xml',
       'error-too-many-floors.xml' => 'base-sfd.xml',
@@ -222,8 +224,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-sfd-with-shared-system.xml' => 'Specified a shared system for a single-family detached unit.',
       'error-rim-joist-height-but-no-assembly-r.xml' => 'Specified a rim joist height but no rim joist assembly R-value.',
       'error-rim-joist-assembly-r-but-no-height.xml' => 'Specified a rim joist assembly R-value but no rim joist height.',
-      'error-emissions-args-not-all-specified.xml' => 'Did not specify either no emissions arguments or all emissions arguments.',
+      'error-emissions-args-not-all-specified.xml' => 'Did not specify all required emissions arguments.',
       'error-emissions-args-not-all-same-size.xml' => 'One or more emissions arguments does not have enough comma-separated elements specified.',
+      'error-emissions-natural-gas-args-not-all-specified.xml' => 'Did not specify fossil fuel emissions units for natural gas emissions values.',
       'error-invalid-aspect-ratio.xml' => 'Aspect ratio must be greater than zero.',
       'error-negative-foundation-height.xml' => 'Foundation height cannot be negative.',
       'error-too-many-floors.xml' => 'Number of above-grade floors must be six or less.',
@@ -851,6 +854,17 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['site_iecc_zone'] = '6B'
     elsif ['extra-state-code-different-than-epw.xml'].include? hpxml_file
       args['site_state_code'] = 'WY'
+    elsif ['extra-emissions-fossil-fuel-factors.xml'].include? hpxml_file
+      args['emissions_scenario_names'] = 'Scenario1, Scenario2'
+      args['emissions_types'] = 'CO2, SO2'
+      args['emissions_electricity_units'] = "#{HPXML::EmissionsScenario::UnitsKgPerMWh}, #{HPXML::EmissionsScenario::UnitsLbPerMWh}"
+      args['emissions_electricity_values_or_filepaths'] = '392.6, 0.384'
+      args['emissions_fossil_fuel_units'] = "#{HPXML::EmissionsScenario::UnitsLbPerMBtu}, #{HPXML::EmissionsScenario::UnitsLbPerMBtu}"
+      args['emissions_natural_gas_values'] = '117.6, 0.0006'
+      args['emissions_propane_values'] = '136.6, 0.0002'
+      args['emissions_fuel_oil_values'] = '161.0, 0.0015'
+      args['emissions_coal_values'] = '211.1, 0.0020'
+      args['emissions_wood_values'] = '200.0, 0.0025'
     elsif ['extra-time-zone-different-than-epw.xml'].include? hpxml_file
       args['site_time_zone_utc_offset'] = '-6'
     elsif ['extra-sfa-atticroof-conditioned-eaves-gable.xml'].include? hpxml_file
@@ -1098,6 +1112,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['emissions_types'] = 'CO2,CO2'
       args['emissions_electricity_units'] = HPXML::EmissionsScenario::UnitsLbPerMWh
       args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_RMPAc_2022.csv'
+    elsif ['error-emissions-natural-gas-args-not-all-specified.xml'].include? hpxml_file
+      args['emissions_natural_gas_values'] = '117.6'
     elsif ['error-invalid-aspect-ratio.xml'].include? hpxml_file
       args['geometry_unit_aspect_ratio'] = -1
     elsif ['error-negative-foundation-height.xml'].include? hpxml_file
