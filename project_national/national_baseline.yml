@@ -2,13 +2,13 @@ schema_version: '0.3'
 buildstock_directory: ../../resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 output_directory: national_baseline
-weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 250
+    n_datapoints: 1
 
 workflow_generator:
   type: residential_hpxml
@@ -23,8 +23,12 @@ workflow_generator:
 
     emissions:
       - scenario_name: Scenario1
-        folder: hpxml-measures/HPXMLtoOpenStudio/resources/data/cambium # Relative to buildstock_directory's resources folder
         type: CO2
+        elec_folder: hpxml-measures/HPXMLtoOpenStudio/resources/data/cambium # lb/MWh, relative to buildstock_directory's resources folder
+        gas_value: 117.6 # lb/MBtu
+        propane_value: 136.6 # lb/MBtu
+        oil_value: 161.0 # lb/MBtu
+        wood_value: 200.0 # lb/MBtu
 
     simulation_output_report:
       timeseries_frequency: hourly

@@ -119,9 +119,29 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_folders', false)
-    arg.setDisplayName('Emissions: Electricity CSV Paths')
-    arg.setDescription('Absolute/relative paths (comma-separated) of electricity emissions factor schedule files with hourly values. This list corresponds to scenario names.')
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_folders', false)
+    arg.setDisplayName('Emissions: Electricity Folders')
+    arg.setDescription('Absolute/relative paths of electricity emissions factor schedule files with hourly values. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_natural_gas_values', false)
+    arg.setDisplayName('Emissions: Natural Gas Values')
+    arg.setDescription('Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_propane_values', false)
+    arg.setDisplayName('Emissions: Propane Values')
+    arg.setDescription('Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_fuel_oil_values', false)
+    arg.setDisplayName('Emissions: Fuel Oil Values')
+    arg.setDescription('Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_wood_values', false)
+    arg.setDisplayName('Emissions: Wood Values')
+    arg.setDescription('Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
     args << arg
 
     return args
@@ -290,7 +310,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       emissions_electricity_filepaths = []
-      scenarios = args['emissions_folders'].get.split(',')
+      scenarios = args['emissions_electricity_folders'].get.split(',')
       scenarios.each do |scenario|
         scenario = File.join(resources_dir, scenario)
         if not File.exist? scenario
@@ -316,6 +336,36 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       register_value(runner, 'emissions_types', emissions_types)
       register_value(runner, 'emissions_electricity_units', emissions_electricity_units)
       register_value(runner, 'emissions_electricity_values_or_filepaths', emissions_electricity_filepaths)
+
+      if args['emissions_natural_gas_values'].is_initialized || args['emissions_propane_values'].is_initialized || args['emissions_fuel_oil_values'].is_initialized || args['emissions_wood_values'].is_initialized
+        emissions_fossil_fuel_units = ([HPXML::EmissionsScenario::UnitsLbPerMBtu] * scenarios.size).join(',')
+        measures['BuildResidentialHPXML'][0]['emissions_fossil_fuel_units'] = emissions_fossil_fuel_units
+        register_value(runner, 'emissions_fossil_fuel_units', emissions_fossil_fuel_units)
+
+        if args['emissions_natural_gas_values'].is_initialized
+          emissions_natural_gas_values = args['emissions_natural_gas_values'].get
+          measures['BuildResidentialHPXML'][0]['emissions_natural_gas_values'] = emissions_natural_gas_values
+          register_value(runner, 'emissions_natural_gas_values', emissions_natural_gas_values)
+        end
+
+        if args['emissions_propane_values'].is_initialized
+          emissions_propane_values = args['emissions_propane_values'].get
+          measures['BuildResidentialHPXML'][0]['emissions_propane_values'] = emissions_propane_values
+          register_value(runner, 'emissions_propane_values', emissions_propane_values)
+        end
+
+        if args['emissions_fuel_oil_values'].is_initialized
+          emissions_fuel_oil_values = args['emissions_fuel_oil_values'].get
+          measures['BuildResidentialHPXML'][0]['emissions_fuel_oil_values'] = emissions_fuel_oil_values
+          register_value(runner, 'emissions_fuel_oil_values', emissions_fuel_oil_values)
+        end
+
+        if args['emissions_wood_values'].is_initialized
+          emissions_wood_values = args['emissions_wood_values'].get
+          measures['BuildResidentialHPXML'][0]['emissions_wood_values'] = emissions_wood_values
+          register_value(runner, 'emissions_wood_values', emissions_wood_values)
+        end
+      end
     end
 
     # Get registered values and pass them to BuildResidentialScheduleFile
