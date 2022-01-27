@@ -1,18 +1,17 @@
 schema_version: '0.3'
-buildstock_directory: ../resstock  # Relative to this file or absolute
+buildstock_directory: /projects/abctypol/repos/resstock  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: ./abc_typology_test
+output_directory: /projects/abctypol/resstock_runs/abc_typology_550k_v1
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
-# weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 # weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
-weather_files_path: ./BuildStock_TMY3_FIPS.zip
 baseline:
   n_buildings_represented: 133172057
 
 sampler: 
   type: residential_quota
   args: 
-    n_datapoints: 10
+    n_datapoints: 550000
 
 workflow_generator: 
   type: residential_default
@@ -29,13 +28,15 @@ workflow_generator:
     #   calendar_year: 2007
 
 eagle:
-  account: abctypol
-  n_jobs: 500
-  minutes_per_sim: 5
+  account: resilience
+  n_jobs: 1000
+  minutes_per_sim: 20
   sampling:
     time: 20
   postprocessing:
-    time: 60
+    time: 1200
+    n_workers: 32
+    node_memory_mb: 180224
 
 upgrades:
   - upgrade_name: Package 1
@@ -4748,7 +4749,7 @@ upgrades:
 
       # Ducts:- None, No ducts losess in crawlspace or attic
       - option: Ducts|None
-      
+
       # Phius windows
       - option: Windows|Phius Window, Zone 1A, U-0.50, SHGC-0.25
         apply_logic: ASHRAE IECC Climate Zone 2004|1A
@@ -4781,7 +4782,7 @@ upgrades:
       - option: Windows|Phius Window, Zone 7B, U-0.12, SHGC-0.40
         apply_logic: ASHRAE IECC Climate Zone 2004|7B
 
-      # # Roof Insulation
+      # Roof Insulation
       # - option: Insulation Roof|Phius Roof, Zone 1A, R-51
       #   apply_logic: ASHRAE IECC Climate Zone 2004|1A
       # - option: Insulation Roof|Phius Roof, Zone 2A, R-56
@@ -5254,6 +5255,7 @@ upgrades:
               - Insulation Wall|Wood Stud, R-11
               - Insulation Wall|Wood Stud, R-15
               - Insulation Wall|Wood Stud, R-19
+      
       # Envelope Air leakage reduction
       - option: Infiltration|3 ACH50
         apply_logic: 
@@ -5261,7 +5263,6 @@ upgrades:
             - Infiltration|1 ACH50
             - Infiltration|2 ACH50
             - Infiltration|3 ACH50
-
       
       # Window upgrade (IECC windows)
       - option: Windows|IECC 2021 Window, Zone 1, U-0.40, SHGC-0.25
@@ -5298,3 +5299,4 @@ upgrades:
           - or:
             - ASHRAE IECC Climate Zone 2004|7A
             - ASHRAE IECC Climate Zone 2004|7B
+

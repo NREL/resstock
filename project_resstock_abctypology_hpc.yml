@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /projects/abctypol/repos/resstock  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/abctypol/resstock_runs/abc_typology_test10000
+output_directory: /projects/abctypol/resstock_runs/abc_typology_test10000_v4
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 # weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
@@ -28,9 +28,9 @@ workflow_generator:
     #   calendar_year: 2007
 
 eagle:
-  account: abctypol
+  account: resilience
   n_jobs: 500
-  minutes_per_sim: 80
+  minutes_per_sim: 10
   sampling:
     time: 20
   postprocessing:
@@ -825,9 +825,8 @@ upgrades:
         lifetime: 30
 
       # Attic Air Insulation Upgrade
-      # Applying attic insulation derate https://www.greenbuildingadvisor.com/question/effects-of-tapering-insulation-at-eaves
-      - &R-29_attic
-        option: Insulation Ceiling|R-29
+      - &R-30_attic
+        option: Insulation Ceiling|R-30
         apply_logic: &attic_insulation_1
           - and:
             - or: 
@@ -842,8 +841,8 @@ upgrades:
           - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-      - &R-44_attic
-        option: Insulation Ceiling|R-44
+      - &R-49_attic
+        option: Insulation Ceiling|R-49
         apply_logic: &attic_insulation_2
           - and: 
             - or: 
@@ -864,8 +863,8 @@ upgrades:
           - value: 0.5 # Need to update according to detailed tendril calculation if cost needed in future
             multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
-      - &R-51_attic
-        option: Insulation Ceiling|R-51
+      - &R-60_attic
+        option: Insulation Ceiling|R-60
         apply_logic: &attic_insulation_3
           - or: 
             - ASHRAE IECC Climate Zone 2004|4A
@@ -5066,8 +5065,7 @@ upgrades:
 
       ## Insulation upgrade
       # Ceiling Insulation upgrade
-      # Applying attic insulation derate https://www.greenbuildingadvisor.com/question/effects-of-tapering-insulation-at-eaves
-      - option: Insulation Ceiling|R-29
+      - option: Insulation Ceiling|R-30
         apply_logic: 
           - or: 
             - ASHRAE IECC Climate Zone 2004|1A
@@ -5076,7 +5074,7 @@ upgrades:
             - Insulation Ceiling|R-38
             - Insulation Ceiling|R-49
             - Insulation Ceiling|R-60
-      - option: Insulation Ceiling|R-44
+      - option: Insulation Ceiling|R-49
         apply_logic: 
           - or: 
             - ASHRAE IECC Climate Zone 2004|2A
@@ -5087,7 +5085,7 @@ upgrades:
           - not: 
             - Insulation Ceiling|R-49
             - Insulation Ceiling|R-60
-      - option: Insulation Ceiling|R-51
+      - option: Insulation Ceiling|R-60
         apply_logic: 
           - or: 
             - ASHRAE IECC Climate Zone 2004|4A
