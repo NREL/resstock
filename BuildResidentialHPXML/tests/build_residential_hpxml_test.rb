@@ -45,6 +45,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-no-rim-joists.xml' => 'base-sfd.xml',
       'extra-iecc-zone-different-than-epw.xml' => 'base-sfd.xml',
       'extra-state-code-different-than-epw.xml' => 'base-sfd.xml',
+      'extra-time-zone-different-than-epw.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
       'extra-sfa-atticroof-conditioned-eaves-hip.xml' => 'extra-sfa-atticroof-conditioned-eaves-gable.xml',
@@ -234,7 +235,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-invalid-door-area.xml' => 'Door area cannot be negative.',
       'error-invalid-window-aspect-ratio.xml' => 'Window aspect ratio must be greater than zero.',
       'error-garage-too-wide.xml' => 'Garage is as wide as the single-family detached unit.',
-      'error-garage-too-deep.xml' => 'Garage is as deep as the single-family detached unit.',
+      'error-garage-too-deep.xml' => 'Garage is as deep as the single-family detached unit.'
     }
 
     expected_warnings = {
@@ -850,6 +851,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['site_iecc_zone'] = '6B'
     elsif ['extra-state-code-different-than-epw.xml'].include? hpxml_file
       args['site_state_code'] = 'WY'
+    elsif ['extra-time-zone-different-than-epw.xml'].include? hpxml_file
+      args['site_time_zone_utc_offset'] = '-6'
     elsif ['extra-sfa-atticroof-conditioned-eaves-gable.xml'].include? hpxml_file
       args['geometry_unit_num_floors_above_grade'] = 2
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned

@@ -45,10 +45,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.dst_end_day = 10
     hpxml.header.use_max_load_for_heat_pumps = false
     hpxml.header.allow_increased_fixed_capacities = true
-    hpxml.header.state_code = 'AZ'
+    hpxml.header.state_code = 'CA'
+    hpxml.header.time_zone_utc_offset = -8
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2008, false, 3, 3, 10, 10, false, true, 'AZ')
+    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2008, false, 3, 3, 10, 10, false, true, 'CA', -8)
 
     # Test defaults - DST not in weather file
     hpxml.header.timestep = nil
@@ -65,9 +66,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.use_max_load_for_heat_pumps = nil
     hpxml.header.allow_increased_fixed_capacities = nil
     hpxml.header.state_code = nil
+    hpxml.header.time_zone_utc_offset = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, true, false, 'CO')
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, true, false, 'CO', -7)
 
     # Test defaults - DST in weather file
     hpxml = _create_hpxml('base-location-AMY-2012.xml')
@@ -85,9 +87,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.use_max_load_for_heat_pumps = nil
     hpxml.header.allow_increased_fixed_capacities = nil
     hpxml.header.state_code = nil
+    hpxml.header.time_zone_utc_offset = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, true, false, 'CO')
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, true, false, 'CO', -7)
 
     # Test defaults - invalid state code
     hpxml = _create_hpxml('base-location-capetown-zaf.xml')
@@ -105,9 +108,10 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.use_max_load_for_heat_pumps = nil
     hpxml.header.allow_increased_fixed_capacities = nil
     hpxml.header.state_code = nil
+    hpxml.header.time_zone_utc_offset = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, true, false, nil)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, true, false, nil, 2)
   end
 
   def test_emissions_factors
@@ -2902,7 +2906,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def _test_default_header_values(hpxml, tstep, sim_begin_month, sim_begin_day, sim_end_month, sim_end_day, sim_calendar_year,
                                   dst_enabled, dst_begin_month, dst_begin_day, dst_end_month, dst_end_day,
-                                  use_max_load_for_heat_pumps, allow_increased_fixed_capacities, state_code)
+                                  use_max_load_for_heat_pumps, allow_increased_fixed_capacities, state_code, time_zone_utc_offset)
     assert_equal(tstep, hpxml.header.timestep)
     assert_equal(sim_begin_month, hpxml.header.sim_begin_month)
     assert_equal(sim_begin_day, hpxml.header.sim_begin_day)
@@ -2921,6 +2925,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     else
       assert_equal(state_code, hpxml.header.state_code)
     end
+    assert_equal(time_zone_utc_offset, hpxml.header.time_zone_utc_offset)
   end
 
   def _test_default_emissions_values(scenario, natural_gas_units, natural_gas_value, propane_units, propane_value,
