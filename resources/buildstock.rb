@@ -442,7 +442,7 @@ class RunOSWs
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
     command += ' -m' if measures_only
-    command += " -w #{in_osw}"
+    command += " -w \"#{in_osw}\""
 
     system(command)
 
