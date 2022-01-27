@@ -970,12 +970,12 @@ class HPXML < Object
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
       XMLHelper.add_attribute(building_building_id, 'id', @building_id)
-      if not @state_code.nil?
+      if (not @state_code.nil?) || (not @zip_code.nil?)
         site = XMLHelper.add_element(building, 'Site')
         site_id = XMLHelper.add_element(site, 'SiteID')
         XMLHelper.add_attribute(site_id, 'id', 'SiteID')
         address = XMLHelper.add_element(site, 'Address')
-        XMLHelper.add_element(address, 'StateCode', @state_code, :string)
+        XMLHelper.add_element(address, 'StateCode', @state_code, :string, @state_code_isdefaulted) unless @state_code.nil?
         XMLHelper.add_element(address, 'ZipCode', @zip_code, :string) unless @zip_code.nil?
       end
       project_status = XMLHelper.add_element(building, 'ProjectStatus')
@@ -1298,8 +1298,8 @@ class HPXML < Object
 
       if (not @iecc_year.nil?) && (not @iecc_zone.nil?)
         climate_zone_iecc = XMLHelper.add_element(climate_and_risk_zones, 'ClimateZoneIECC')
-        XMLHelper.add_element(climate_zone_iecc, 'Year', @iecc_year, :integer) unless @iecc_year.nil?
-        XMLHelper.add_element(climate_zone_iecc, 'ClimateZone', @iecc_zone, :string) unless @iecc_zone.nil?
+        XMLHelper.add_element(climate_zone_iecc, 'Year', @iecc_year, :integer, @iecc_year_isdefaulted) unless @iecc_year.nil?
+        XMLHelper.add_element(climate_zone_iecc, 'ClimateZone', @iecc_zone, :string, @iecc_zone_isdefaulted) unless @iecc_zone.nil?
       end
 
       if not @weather_station_id.nil?
