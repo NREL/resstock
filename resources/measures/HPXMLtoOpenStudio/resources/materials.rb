@@ -185,52 +185,74 @@ class Material
     return new(name = "Concrete #{thick_in} in.", thick_in = thick_in, mat_base = BaseMaterial.Concrete, k_in = nil, rho = nil, cp = nil, tAbs = 0.9)
   end
 
+  def self.solar_abs_map
+    return {
+      'Dark' => 0.95,
+      'MediumDark' => 0.85,
+      'Medium' => 0.70,
+      'Light' => 0.50,
+      'Reflective' => 0.30
+    }
+  end
+
   def self.ExtFinishStuccoMedDark
-    return new(name = 'Stucco, Medium/Dark', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.75, vAbs = 0.75)
+    sAbs = solar_abs_map['MediumDark']
+    return new(name = 'Stucco, Medium/Dark', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishStuccoLight
-    return new(name = 'Stucco, Light', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.45, sAbs = 0.75, vAbs = 0.75)
+    sAbs = solar_abs_map['Light']
+    return new(name = 'Stucco, Light', thick_in = 1.0, mat_base = BaseMaterial.Stucco, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishBrickLight
-    return new(name = 'Brick, Light', thick_in = 4.0, mat_base = BaseMaterial.Brick, k_in = nil, rho = nil, cp = nil, tAbs = 0.93, sAbs = 0.55, vAbs = 0.55)
+    sAbs = solar_abs_map['Light']
+    return new(name = 'Brick, Light', thick_in = 4.0, mat_base = BaseMaterial.Brick, k_in = nil, rho = nil, cp = nil, tAbs = 0.93, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishBrickMedDark
-    return new(name = 'Brick, Medium/Dark', thick_in = 4.0, mat_base = BaseMaterial.Brick, k_in = nil, rho = nil, cp = nil, tAbs = 0.96, sAbs = 0.88, vAbs = 0.88)
+    sAbs = solar_abs_map['MediumDark']
+    return new(name = 'Brick, Medium/Dark', thick_in = 4.0, mat_base = BaseMaterial.Brick, k_in = nil, rho = nil, cp = nil, tAbs = 0.96, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishWoodLight
-    return new(name = 'Wood, Light', thick_in = 1.0, mat_base = nil, k_in = 0.71, rho = 34.0, cp = 0.28, tAbs = 0.82, sAbs = 0.3, vAbs = 0.3)
+    sAbs = solar_abs_map['Light']
+    return new(name = 'Wood, Light', thick_in = 1.0, mat_base = nil, k_in = 0.71, rho = 34.0, cp = 0.28, tAbs = 0.82, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishWoodMedDark
-    return new(name = 'Wood, Medium/Dark', thick_in = 1.0, mat_base = nil, k_in = 0.71, rho = 34.0, cp = 0.28, tAbs = 0.92, sAbs = 0.75, vAbs = 0.75)
+    sAbs = solar_abs_map['MediumDark']
+    return new(name = 'Wood, Medium/Dark', thick_in = 1.0, mat_base = nil, k_in = 0.71, rho = 34.0, cp = 0.28, tAbs = 0.92, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishAluminumLight
-    return new(name = 'Aluminum, Light', thick_in = 0.375, mat_base = BaseMaterial.Aluminum, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.3, vAbs = 0.3)
+    sAbs = solar_abs_map['Light']
+    return new(name = 'Aluminum, Light', thick_in = 0.375, mat_base = BaseMaterial.Aluminum, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishAluminumMedDark
-    return new(name = 'Aluminum, Medium/Dark', thick_in = 0.375, mat_base = BaseMaterial.Aluminum, k_in = nil, rho = nil, cp = nil, tAbs = 0.94, sAbs = 0.75, vAbs = 0.75)
+    sAbs = solar_abs_map['MediumDark']
+    return new(name = 'Aluminum, Medium/Dark', thick_in = 0.375, mat_base = BaseMaterial.Aluminum, k_in = nil, rho = nil, cp = nil, tAbs = 0.94, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishVinylLight
-    return new(name = 'Vinyl, Light', thick_in = 0.375, mat_base = BaseMaterial.Vinyl, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.3, vAbs = 0.3)
+    sAbs = solar_abs_map['Light']
+    return new(name = 'Vinyl, Light', thick_in = 0.375, mat_base = BaseMaterial.Vinyl, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishVinylMedDark
-    return new(name = 'Vinyl, Medium/Dark', thick_in = 0.375, mat_base = BaseMaterial.Vinyl, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = 0.75, vAbs = 0.75)
+    sAbs = solar_abs_map['MediumDark']
+    return new(name = 'Vinyl, Medium/Dark', thick_in = 0.375, mat_base = BaseMaterial.Vinyl, k_in = nil, rho = nil, cp = nil, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishFiberCementLight
-    return new(name = 'Fiber-Cement, Light', thick_in = 0.375, mat_base = nil, k_in = 1.79, rho = 21.7, cp = 0.24, tAbs = 0.9, sAbs = 0.3, vAbs = 0.3)
+    sAbs = solar_abs_map['Light']
+    return new(name = 'Fiber-Cement, Light', thick_in = 0.375, mat_base = nil, k_in = 1.79, rho = 21.7, cp = 0.24, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishFiberCementMedDark
-    return new(name = 'Fiber-Cement, Medium/Dark', thick_in = 0.375, mat_base = nil, k_in = 1.79, rho = 21.7, cp = 0.24, tAbs = 0.9, sAbs = 0.75, vAbs = 0.75)
+    sAbs = solar_abs_map['MediumDark']
+    return new(name = 'Fiber-Cement, Medium/Dark', thick_in = 0.375, mat_base = nil, k_in = 1.79, rho = 21.7, cp = 0.24, tAbs = 0.9, sAbs = sAbs, vAbs = sAbs)
   end
 
   def self.ExtFinishConcrete
@@ -279,11 +301,11 @@ class Material
   end
 
   def self.RoofingAsphaltShinglesLight
-    return self.RoofMaterial('Asphalt Shingles, Light', 0.91, 0.8)
+    return self.RoofMaterial('Asphalt Shingles, Light', 0.91, 0.75)
   end
 
   def self.RoofingAsphaltShinglesWhiteCool
-    return self.RoofMaterial('Asphalt Shingles, White or Cool Colors', 0.91, 0.75)
+    return self.RoofMaterial('Asphalt Shingles, White or Cool Colors', 0.91, 0.5)
   end
 
   def self.RoofingTileDark
@@ -307,7 +329,7 @@ class Material
   end
 
   def self.RoofingMetalCool
-    return self.RoofMaterial('Metal, Cool Colors', 0.85, 0.35)
+    return self.RoofMaterial('Metal, Cool Colors', 0.85, 0.30)
   end
 
   def self.RoofingMetalMed
@@ -327,7 +349,7 @@ class Material
   end
 
   def self.RoofingTileClayorCeramic
-    return self.RoofMaterial('Tile, Clay or Ceramic', 0.88, 0.8)
+    return self.RoofMaterial('Tile, Clay or Ceramic', 0.88, 0.75) # slate or tile, medium color
   end
 
   def self.RoofingTileClayorCeramicWhiteCool
@@ -335,7 +357,7 @@ class Material
   end
 
   def self.RoofingWoodShingles
-    return self.RoofMaterial('Wood Shingles', 0.9, 0.78)
+    return self.RoofMaterial('Wood Shingles', 0.9, 0.85) # wood shingle, medium color
   end
 
   def self.RoofingCompositionShingles
@@ -347,7 +369,7 @@ class Material
   end
 
   def self.RoofingTileConcrete
-    return self.RoofMaterial('Tile, Concrete', 0.88, 0.89)
+    return self.RoofMaterial('Tile, Concrete', 0.88, 0.75) # slate or tile, medium color
   end
 
   def self.RoofingTileConcreteWhiteCool
@@ -355,7 +377,7 @@ class Material
   end
 
   def self.RoofingSlate
-    return self.RoofMaterial('Slate', 0.75, 0.87)
+    return self.RoofMaterial('Slate', 0.75, 0.75) # slate or tile, medium color
   end
 
   def self.Soil(thick_in)
