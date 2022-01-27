@@ -17,14 +17,14 @@ class OutageTest < MiniTest::Test
 
   def test_outage_starts_before_run_period
     args_hash = {}
-    args_hash['otg_date'] = 'January 22'
+    args_hash['otg_date'] = 'Jan 22'
     result = _test_error('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], 'Outage period starts before the run period starts.')
   end
 
   def test_outage_ends_after_run_period
     args_hash = {}
-    args_hash['otg_date'] = 'December 22'
+    args_hash['otg_date'] = 'Dec 22'
     args_hash['otg_len'] = 24 * 4
     result = _test_error('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash)
     assert_equal(result.errors.map { |x| x.logMessage }[0], 'Outage period ends after the run period ends.')
@@ -53,91 +53,91 @@ class OutageTest < MiniTest::Test
 
   def test_outage_less_than_one_day_dst
     args_hash = {}
-    args_hash['otg_date'] = 'June 2'
+    args_hash['otg_date'] = 'Jun 2'
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 8
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleRule' => 7, 'ScheduleDay' => 7, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 12)
   end
 
   def test_outage_one_day_dst
     args_hash = {}
-    args_hash['otg_date'] = 'June 2'
+    args_hash['otg_date'] = 'Jun 2'
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 24
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleRule' => 14, 'ScheduleDay' => 14, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 12)
   end
 
   def test_outage_more_than_one_day_dst
     args_hash = {}
-    args_hash['otg_date'] = 'June 2'
+    args_hash['otg_date'] = 'Jun 2'
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 48
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleRule' => 21, 'ScheduleDay' => 21, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 12)
   end
 
   def test_outage_less_than_one_day
     args_hash = {}
-    args_hash['otg_date'] = 'January 2'
+    args_hash['otg_date'] = 'Jan 2'
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 8
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleRule' => 7, 'ScheduleDay' => 7, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 12)
   end
 
   def test_outage_one_day
     args_hash = {}
-    args_hash['otg_date'] = 'January 2'
+    args_hash['otg_date'] = 'Jan 2'
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 24
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleRule' => 14, 'ScheduleDay' => 14, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 12)
   end
 
   def test_outage_more_than_one_day
     args_hash = {}
-    args_hash['otg_date'] = 'January 2'
+    args_hash['otg_date'] = 'Jan 2'
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 48
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleRule' => 21, 'ScheduleDay' => 21, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 33)
+    _test_measure('SFD_Successful_EnergyPlus_Run_TMY.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 12)
   end
 
   def test_outage_less_than_one_day_dst_mf
     num_units = 1
     args_hash = {}
-    args_hash['otg_date'] = 'June 2'
+    args_hash['otg_date'] = 'Jun 2'
     args_hash['otg_hr'] = 8
     args_hash['otg_len'] = 8
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleRule' => 6, 'ScheduleDay' => 6, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure('MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 28)
+    _test_measure('MF_Successful_EnergyPlus_Run_TMY_Appl_PV.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 7)
   end
 
   def test_outage_short_run_period
     args_hash = {}
-    args_hash['otg_date'] = 'January 23'
+    args_hash['otg_date'] = 'Jan 23'
     args_hash['otg_hr'] = 20
     args_hash['otg_len'] = 8
     expected_num_del_objects = {}
     expected_num_new_objects = { 'ScheduleRule' => 12, 'ScheduleDay' => 12, 'ScheduleFixedInterval' => 1 }
     expected_values = {}
-    _test_measure('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 32)
+    _test_measure('SFD_Successful_EnergyPlus_Run_AMY_PV_TwoDays.osm', args_hash, expected_num_del_objects, expected_num_new_objects, expected_values, 11)
   end
 
   private
