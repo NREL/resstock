@@ -117,6 +117,7 @@ def run_workflow(yml, measures_only)
 
     osw = {
       'measure_paths': ['../../../measures'],
+      'run_options': { 'skip_zip_results': true },
       'steps': steps
     }
 
