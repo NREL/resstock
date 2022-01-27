@@ -2952,20 +2952,6 @@
 					<xs:attribute name="dataSource" type="DataSource"/>
 				</xs:complexType>
 			</xs:element>
-			<xs:element maxOccurs="unbounded" minOccurs="0" name="FuelLoadControl">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:group ref="SystemInfo"/>
-						<xs:element minOccurs="0" ref="ConnectedDevice"/>
-						<xs:element minOccurs="0" name="ControlsFuelLoad" type="LocalReference"/>
-						<xs:element minOccurs="0" ref="AttachedToSpace"/>
-						<xs:element name="Count" type="IntegerGreaterThanOrEqualToZero" minOccurs="0"/>
-						<xs:element name="FuelLoadControlType" minOccurs="0" type="FuelLoadControlType"/>
-						<xs:element ref="extension" minOccurs="0"/>
-					</xs:sequence>
-					<xs:attribute name="dataSource" type="DataSource"/>
-				</xs:complexType>
-			</xs:element>
 			<xs:element ref="extension" minOccurs="0"/>
 		</xs:sequence>
 		<xs:attribute name="dataSource" type="DataSource"/>
@@ -5724,9 +5710,47 @@
 					<xs:sequence>
 						<xs:element name="SiteID" type="SystemIdentifiersInfoType"/>
 						<xs:element maxOccurs="unbounded" minOccurs="0" ref="ExternalResource"/>
-						<xs:element name="Address" type="AddressInformation"/>
+						<xs:element name="Address" type="AddressInformation" minOccurs="0"/>
 						<xs:element minOccurs="0" name="SchoolDistrict" type="HPXMLString"/>
-						<xs:element minOccurs="0" name="eGridRegion" type="eGridRegions"/>
+						<xs:element minOccurs="0" name="eGridRegion" type="eGridRegions">
+							<xs:annotation>
+								<xs:documentation>Emissions and Generation Resource Integrated Database (eGRID) region.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="eGridSubregion" type="eGridSubregions">
+							<xs:annotation>
+								<xs:documentation>Emissions and Generation Resource Integrated Database (eGRID) subregion.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="CambiumRegionGEA" type="CambiumRegionGEAs">
+							<xs:annotation>
+								<xs:documentation>Cambium Generation and Emission Assessment (GEA) region.</xs:documentation>
+							</xs:annotation>
+						</xs:element>
+						<xs:element minOccurs="0" name="TimeZone">
+							<xs:annotation>
+								<xs:documentation>For locations that observe Daylight Savings, use Standard time.</xs:documentation>
+							</xs:annotation>
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element minOccurs="0" name="Name" type="HPXMLString">
+										<xs:annotation>
+											<xs:documentation>For example, Eastern Time.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="Abbreviation" type="HPXMLString">
+										<xs:annotation>
+											<xs:documentation>For example, ET for Eastern Time.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+									<xs:element minOccurs="0" name="UTCOffset" type="HPXMLDouble">
+										<xs:annotation>
+											<xs:documentation>Positive or negative offset from Coordinated Universal Time (UTC). For example, -5 for Eastern Time.</xs:documentation>
+										</xs:annotation>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
 						<xs:element minOccurs="0" ref="extension"/>
 					</xs:sequence>
 					<xs:attribute name="dataSource" type="DataSource"/>
