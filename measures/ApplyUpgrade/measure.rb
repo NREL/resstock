@@ -387,6 +387,11 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['emissions_types'] = values['emissions_types']
     measures['BuildResidentialHPXML'][0]['emissions_electricity_units'] = values['emissions_electricity_units']
     measures['BuildResidentialHPXML'][0]['emissions_electricity_values_or_filepaths'] = values['emissions_electricity_values_or_filepaths']
+    measures['BuildResidentialHPXML'][0]['emissions_fossil_fuel_units'] = values['emissions_fossil_fuel_units']
+    measures['BuildResidentialHPXML'][0]['emissions_natural_gas_values'] = values['emissions_natural_gas_values']
+    measures['BuildResidentialHPXML'][0]['emissions_propane_values'] = values['emissions_propane_values']
+    measures['BuildResidentialHPXML'][0]['emissions_fuel_oil_values'] = values['emissions_fuel_oil_values']
+    measures['BuildResidentialHPXML'][0]['emissions_wood_values'] = values['emissions_wood_values']
 
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']

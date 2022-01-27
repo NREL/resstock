@@ -326,7 +326,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       emissions_scenario_names = args['emissions_scenario_names'].get
       emissions_types = args['emissions_types'].get
       emissions_electricity_filepaths = emissions_electricity_filepaths.join(',')
-      emissions_electricity_units = ([HPXML::EmissionsScenario::UnitsLbPerMWh] * scenarios.size).join(',')
+      emissions_electricity_units = ([HPXML::EmissionsScenario::UnitsKgPerMWh] * scenarios.size).join(',')
 
       measures['BuildResidentialHPXML'][0]['emissions_scenario_names'] = emissions_scenario_names
       measures['BuildResidentialHPXML'][0]['emissions_types'] = emissions_types
