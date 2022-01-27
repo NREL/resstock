@@ -117,7 +117,6 @@ def run_workflow(yml, measures_only, debug)
     end
 
     osw = {
-<<<<<<< HEAD
       'measure_paths': ['../../../measures', '../../../resources/hpxml-measures'],
       'run_options': { 'skip_zip_results': true },
       'steps': steps
