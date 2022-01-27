@@ -548,6 +548,236 @@ class HourlySchedule
   end
 end
 
+class HotWaterSchedule
+  def initialize(model, runner, sch_name, temperature_sch_name, num_bedrooms, days_shift,
+                 file_prefix, target_water_temperature, prof_type, create_sch_object = true,
+                 schedule_type_limits_name = nil)
+    @validated = true
+    @model = model
+    @runner = runner
+    @sch_name = sch_name
+    @schedule = nil
+    @temperature_sch_name = temperature_sch_name
+    @nbeds = [num_bedrooms, 5].min.to_i
+    @target_water_temperature = UnitConversions.convert(target_water_temperature, 'F', 'C')
+    @schedule_type_limits_name = schedule_type_limits_name
+    if file_prefix == 'ClothesDryer'
+      @file_prefix = 'ClothesWasher'
+    else
+      @file_prefix = file_prefix
+    end
+
+    timestep_minutes = (60 / @model.getTimestep.numberOfTimestepsPerHour).to_i
+    weeks = 1 # use a single week that repeats
+
+    if prof_type == Constants.WaterHeaterDrawProfileTypeRealistic
+      data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
+      @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
+    elsif prof_type == Constants.WaterHeaterDrawProfileTypeSmooth
+      # TODO: new methods for smooth draw profiles below
+      data = loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
+      @totflow, @maxflow, @ontime = loadDrawProfileStatsFromFile()
+    end
+
+    if data.nil? || @totflow.nil? || @maxflow.nil? || @ontime.nil?
+      @validated = false
+      return
+    end
+    if create_sch_object
+      @schedule = createSchedule(data, timestep_minutes, weeks)
+    end
+  end
+
+  def validated?
+    return @validated
+  end
+
+  def calcDesignLevelFromDailykWh(daily_kWh)
+    return UnitConversions.convert(daily_kWh * Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * 60 / (Constants.NumDaysInYear(@model.getYearDescription.isLeapYear) * @totflow / @maxflow), 'kW', 'W')
+  end
+
+  def calcPeakFlowFromDailygpm(daily_water)
+    return UnitConversions.convert(@maxflow * daily_water / @totflow, 'gal/min', 'm^3/s')
+  end
+
+  def calcDailyGpmFromPeakFlow(peak_flow)
+    return UnitConversions.convert(@totflow * peak_flow / @maxflow, 'm^3/s', 'gal/min')
+  end
+
+  def calcDesignLevelFromDailyTherm(daily_therm)
+    return calcDesignLevelFromDailykWh(UnitConversions.convert(daily_therm, 'therm', 'kWh'))
+  end
+
+  def schedule
+    return @schedule
+  end
+
+  def temperatureSchedule
+    temperature_sch = OpenStudio::Model::ScheduleConstant.new(@model)
+    temperature_sch.setValue(@target_water_temperature)
+    temperature_sch.setName(@temperature_sch_name)
+    Schedule.set_schedule_type_limits(@model, temperature_sch, Constants.ScheduleTypeLimitsTemperature)
+    return temperature_sch
+  end
+
+  def getOntimeFraction
+    return @ontime
+  end
+
+  private
+
+  def loadMinuteDrawProfileFromFile(timestep_minutes, days_shift, weeks)
+    data = []
+    if @file_prefix.nil?
+      return data
+    end
+
+    # Get appropriate file
+    minute_draw_profile = File.join(File.dirname(__FILE__), "HotWater#{@file_prefix}Schedule_#{@nbeds}bed.csv")
+    if not File.file?(minute_draw_profile)
+      @runner.registerError("Unable to find file: #{minute_draw_profile}")
+      return
+    end
+
+    minutes_in_year = 8760 * 60
+    weeks_in_minutes = weeks * 7 * 24 * 60
+
+    # Read data into minute array
+    skippedheader = false
+    min_shift = 24 * 60 * (days_shift % 365) # For MF homes, shift each unit by an additional week
+    items = [0] * minutes_in_year
+    File.open(minute_draw_profile).each do |line|
+      linedata = line.strip.split(',')
+      if not skippedheader
+        skippedheader = true
+        next
+      end
+      shifted_minute = linedata[0].to_i - min_shift
+      if shifted_minute < 0
+        stored_minute = shifted_minute + minutes_in_year
+      else
+        stored_minute = shifted_minute
+      end
+      value = linedata[1].to_f
+      items[stored_minute.to_i] = value
+      if shifted_minute >= weeks_in_minutes
+        break # no need to process more data
+      end
+    end
+
+    # Aggregate minute schedule up to the timestep level to reduce the size
+    # and speed of processing.
+    for tstep in 0..(minutes_in_year / timestep_minutes).to_i - 1
+      timestep_items = items[tstep * timestep_minutes, timestep_minutes]
+      avgitem = timestep_items.reduce(:+).to_f / timestep_items.size
+      data.push(avgitem)
+      if (tstep + 1) * timestep_minutes > weeks_in_minutes
+        break # no need to process more data
+      end
+    end
+
+    return data
+  end
+
+  def loadDrawProfileStatsFromFile()
+    totflow = 0 # daily gal/day
+    maxflow = 0
+    ontime = 0
+
+    column_header = @file_prefix
+
+    totflow_column_header = "#{column_header} Sum"
+    maxflow_column_header = "#{column_header} Max"
+    ontime_column_header = 'On-time Fraction'
+
+    draw_file = File.join(File.dirname(__FILE__), 'HotWaterMinuteDrawProfilesMaxFlows.csv')
+
+    datafound = false
+    skippedheader = false
+    totflow_col_num = nil
+    maxflow_col_num = nil
+    ontime_col_num = nil
+    File.open(draw_file).each do |line|
+      linedata = line.strip.split(',')
+      if not skippedheader
+        skippedheader = true
+        # Which columns to read?
+        totflow_col_num = linedata.index(totflow_column_header)
+        maxflow_col_num = linedata.index(maxflow_column_header)
+        ontime_col_num = linedata.index(ontime_column_header)
+        next
+      end
+      next unless linedata[0].to_i == @nbeds
+
+      datafound = true
+      if not totflow_col_num.nil?
+        totflow = linedata[totflow_col_num].to_f
+      end
+      if not maxflow_col_num.nil?
+        maxflow = linedata[maxflow_col_num].to_f
+      end
+      if not ontime_col_num.nil?
+        ontime = linedata[ontime_col_num].to_f
+      end
+      break
+    end
+
+    if not datafound
+      @runner.registerError("Unable to find data for bedrooms = #{@nbeds}.")
+      return nil, nil, nil
+    end
+    return totflow, maxflow, ontime
+  end
+
+  def createSchedule(data, timestep_minutes, weeks)
+    if data.size == 0
+      return
+    end
+
+    year_description = @model.getYearDescription
+    assumed_year = year_description.assumedYear
+    num_days_in_year = Constants.NumDaysInYear(year_description.isLeapYear)
+
+    time = []
+    (timestep_minutes..24 * 60).step(timestep_minutes).to_a.each_with_index do |m, i|
+      time[i] = OpenStudio::Time.new(0, 0, m, 0)
+    end
+
+    schedule = OpenStudio::Model::ScheduleRuleset.new(@model)
+    schedule.setName(@sch_name)
+
+    schedule_rules = []
+    for d in 1..7 * weeks # how many unique day schedules
+      next if d > num_days_in_year
+
+      rule = OpenStudio::Model::ScheduleRule.new(schedule)
+      rule.setName(@sch_name + " #{Schedule.allday_name} ruleset#{d}")
+      day_schedule = rule.daySchedule
+      day_schedule.setName(@sch_name + " #{Schedule.allday_name}#{d}")
+      previous_value = data[(d - 1) * 24 * 60 / timestep_minutes]
+      time.each_with_index do |m, i|
+        if i != time.length - 1
+          next if data[i + 1 + (d - 1) * 24 * 60 / timestep_minutes] == previous_value
+        end
+        day_schedule.addValue(m, previous_value)
+        previous_value = data[i + 1 + (d - 1) * 24 * 60 / timestep_minutes]
+      end
+      Schedule.set_weekday_rule(rule)
+      Schedule.set_weekend_rule(rule)
+      for w in 0..52 # max num of weeks
+        next if d + (w * 7 * weeks) > num_days_in_year
+
+        date_s = OpenStudio::Date::fromDayOfYear(d + (w * 7 * weeks), assumed_year)
+        rule.addSpecificDate(date_s)
+      end
+    end
+
+    Schedule.set_schedule_type_limits(@model, schedule, @schedule_type_limits_name)
+
+    return schedule
+  end
+end
+
 class Schedule
   def self.allday_name
     return 'allday'
@@ -692,7 +922,7 @@ class Schedule
     return annual_flh
   end
 
-  def self.ruleset_from_fixedinterval(model, hrly_sched, sch_name, winter_design_day_sch, summer_design_day_sch)
+  def self.fixedinterval_to_ruleset(model, hrly_sched, sch_name, winter_design_day_sch=nil, summer_design_day_sch=nil)
     # Returns schedule rules from a fixed interval object (60 min interval only)
     year_description = model.getYearDescription
     assumed_year = year_description.assumedYear
@@ -701,13 +931,19 @@ class Schedule
     start_day = run_period_start.yday
 
     hrly_sched = hrly_sched.timeSeries.values
-    hrs = hrly_sched.length
+    timesteps = hrly_sched.length
+    ts_per_hr = model.getTimestep.numberOfTimestepsPerHour
+    hrs = timesteps / ts_per_hr
     days = hrs / 24
     time = []
-    for h in 1..24
-      time[h] = OpenStudio::Time.new(0, h, 0, 0)
-    end
 
+    ts_per_day = 24 * ts_per_hr
+    for ts in 1..(ts_per_day+1)
+      mins = ((ts-1) % ts_per_hr)*(60 / ts_per_hr)
+      h = ((ts-1)/ts_per_hr).to_i
+      time[ts] = OpenStudio::Time.new(0, h, mins, 0)
+    end
+  
     schedule = OpenStudio::Model::ScheduleRuleset.new(model)
     schedule.setName(sch_name + ' ruleset')
     previous_value = hrly_sched[0]
@@ -722,15 +958,15 @@ class Schedule
       day_sched = day_rule.daySchedule
       day_sched.setName("#{sch_name} day schedule")
       day_ct = day - start_day + 1
-      previous_value = hrly_sched[(day_ct - 1) * 24]
+      previous_value = hrly_sched[(day_ct - 1) * ts_per_day]
 
-      for h in 1..24
-        hr = (day_ct - 1) * 24 + h - 1
-        next if (h != 24) && (hrly_sched[hr + 1] == previous_value)
+      for ts in 1..ts_per_day
+        ts_yr = (day_ct - 1) * ts_per_day + ts - 1  # ts of year
+        next if (ts != ts_per_day) && (hrly_sched[ts_yr + 1] == previous_value)
 
-        day_sched.addValue(time[h], previous_value)
-        if hr != hrs - 1
-          previous_value = hrly_sched[hr + 1]
+        day_sched.addValue(time[ts+1], previous_value)
+        if ts_yr != hrs - 1
+          previous_value = hrly_sched[ts_yr + 1]
         end
       end
 
@@ -776,6 +1012,33 @@ class Schedule
 
     return schedule
   end
+
+  def self.schedulefile_to_fixedinterval(model, schedule_file, sch_name=nil)
+    # Get schedule timeseries data     
+    col_data = []
+    filename = schedule_file.to_ScheduleFile.get.externalFile.filePath.to_s
+    col_idx = schedule_file.to_ScheduleFile.get.columnNumber
+
+    CSV.foreach(filename) {|row| col_data << row[col_idx-1].to_f}
+    col_data = col_data[1..]
+
+    # Write timeseries data to fixed interval schedule
+    year_description = model.getYearDescription
+    assumed_year = year_description.assumedYear
+    timestep_minutes = (60.0 / model.getTimestep.numberOfTimestepsPerHour).to_i
+    start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, assumed_year)
+    timestep_interval = OpenStudio::Time.new(0, 0, timestep_minutes)
+
+    timeseries = OpenStudio::TimeSeries.new(start_date, timestep_interval, OpenStudio::createVector(col_data), '')
+    fixed_interval = OpenStudio::Model::ScheduleFixedInterval.fromTimeSeries(timeseries, model).get
+
+    if not sch_name.nil?
+      fixed_interval.setName(sch_name)
+    end
+
+    return(fixed_interval)
+  end
+
 
   def self.set_schedule_type_limits(model, schedule, schedule_type_limits_name)
     return if schedule_type_limits_name.nil?

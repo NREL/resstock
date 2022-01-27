@@ -139,6 +139,15 @@ class ResidentialHotWaterHeaterTank < OpenStudio::Measure::ModelMeasure
     oncyc_power.setDefaultValue(0)
     args << oncyc_power
 
+    # make a string argument for mixed or stratified tank
+    tank_model_type_display_name = OpenStudio::StringVector.new
+    tank_model_type_display_name << Constants.WaterHeaterTypeTankModelTypeMixed
+    tank_model_type_display_name << Constants.WaterHeaterTypeTankModelTypeStratified
+    tank_model_type = OpenStudio::Measure::OSArgument::makeChoiceArgument('tank_model_type', tank_model_type_display_name, true)
+    tank_model_type.setDisplayName('Tank Type')
+    tank_model_type.setDescription("Type of tank model to use. The '#{Constants.WaterHeaterTypeTankModelTypeStratified}' tank generally provide more accurate results, but may significantly increase run time.")
+    tank_model_type.setDefaultValue(Constants.WaterHeaterTypeTankModelTypeMixed)
+    args << tank_model_type
     # make a bool argument for open water heater flue
     has_water_heater_flue = OpenStudio::Measure::OSArgument::makeBoolArgument('has_water_heater_flue', true)
     has_water_heater_flue.setDisplayName('Air Leakage: Has Open Water Heater Flue')
