@@ -43,6 +43,9 @@ class TesBuildStockBatch < MiniTest::Test
     assert(!up00.include?('in.idf'))
     assert(!up00.include?('schedules.csv'))
 
+    assert(timeseries.include?('Time'))
+    assert(timeseries.include?('TimeDST'))
+    assert(timeseries.include?('TimeUTC'))
     assert(timeseries.include?('Fuel Use:'))
     assert(timeseries.include?('End Use:'))
     assert(!timeseries.include?('Load:'))
@@ -79,6 +82,9 @@ class TesBuildStockBatch < MiniTest::Test
     assert(!up00.include?('in.idf'))
     assert(!up00.include?('schedules.csv'))
 
+    assert(timeseries.include?('Time'))
+    assert(timeseries.include?('TimeDST'))
+    assert(timeseries.include?('TimeUTC'))
     assert(timeseries.include?('Fuel Use:'))
     assert(timeseries.include?('End Use:'))
     assert(!timeseries.include?('Load:'))
@@ -117,6 +123,9 @@ class TesBuildStockBatch < MiniTest::Test
     assert(up01.include?('eplusout.sql'))
     assert(!up01.include?('schedules.csv'))
 
+    assert(timeseries.include?('Time'))
+    assert(timeseries.include?('TimeDST'))
+    assert(timeseries.include?('TimeUTC'))
     assert(timeseries.include?('Fuel Use:'))
     assert(timeseries.include?('End Use:'))
     assert(!timeseries.include?('Load:'))
@@ -155,6 +164,9 @@ class TesBuildStockBatch < MiniTest::Test
     assert(up01.include?('eplusout.sql'))
     assert(!up01.include?('schedules.csv'))
 
+    assert(timeseries.include?('Time'))
+    assert(timeseries.include?('TimeDST'))
+    assert(timeseries.include?('TimeUTC'))
     assert(timeseries.include?('Fuel Use:'))
     assert(timeseries.include?('End Use:'))
     assert(!timeseries.include?('Load:'))
