@@ -129,9 +129,9 @@ df_national['PROJECT'] = 'project_national'
 df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
-results_output = pd.concat([df_national, df_testing]).fillna(0).round(2)
+results_output = pd.concat([df_national, df_testing]).fillna(0)
 results_output = results_output.set_index('PROJECT')
-results_output = convert_units(results_output)
+results_output = convert_units(results_output).round(2)
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
@@ -241,8 +241,8 @@ df_national['PROJECT'] = 'project_national'
 df_testing = reduce(lambda x, y: x.add(y, fill_value=0), df_testings)
 df_testing['PROJECT'] = 'project_testing'
 
-results_output = pd.concat([df_national, df_testing]).fillna(0).round(2)
+results_output = pd.concat([df_national, df_testing]).fillna(0)
 results_output = results_output.set_index('PROJECT')
-results_output = convert_units(results_output)
+results_output = convert_units(results_output).round(2)
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))

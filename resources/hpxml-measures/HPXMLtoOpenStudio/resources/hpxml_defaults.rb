@@ -32,10 +32,12 @@ class HPXMLDefaults
     end
 
     apply_header(hpxml, epw_file)
+    apply_emissions_scenarios(hpxml)
     apply_site(hpxml)
     apply_neighbor_buildings(hpxml)
     apply_building_occupancy(hpxml, nbeds, schedules_file)
     apply_building_construction(hpxml, cfa, nbeds, infil_volume)
+    apply_climate_and_risk_zones(hpxml, epw_file)
     apply_infiltration(hpxml, infil_volume, infil_height, infil_measurements)
     apply_attics(hpxml)
     apply_foundations(hpxml)
@@ -187,6 +189,70 @@ class HPXMLDefaults
       hpxml.header.use_max_load_for_heat_pumps = true
       hpxml.header.use_max_load_for_heat_pumps_isdefaulted = true
     end
+
+    if (not epw_file.nil?) && hpxml.header.state_code.nil?
+      state_province_region = epw_file.stateProvinceRegion.upcase
+      if /^[A-Z]{2}$/.match(state_province_region)
+        hpxml.header.state_code = state_province_region
+        hpxml.header.state_code_isdefaulted = true
+      end
+    end
+
+    if (not epw_file.nil?) && hpxml.header.time_zone_utc_offset.nil?
+      hpxml.header.time_zone_utc_offset = epw_file.timeZone
+      hpxml.header.time_zone_utc_offset_isdefaulted = true
+    end
+  end
+
+  def self.apply_emissions_scenarios(hpxml)
+    hpxml.header.emissions_scenarios.each do |scenario|
+      default_units = HPXML::EmissionsScenario::UnitsLbPerMBtu
+      if scenario.emissions_type.downcase == 'co2'
+        natural_gas, propane, fuel_oil, coal, wood, wood_pellets = 117.6, 136.6, 161.0, 211.1, nil, nil
+      elsif scenario.emissions_type.downcase == 'nox'
+        natural_gas, propane, fuel_oil, coal, wood, wood_pellets = 0.0922, 0.1421, 0.1300, nil, nil, nil
+      elsif scenario.emissions_type.downcase == 'so2'
+        natural_gas, propane, fuel_oil, coal, wood, wood_pellets = 0.0006, 0.0002, 0.0015, nil, nil, nil
+      else
+        natural_gas, propane, fuel_oil, coal, wood, wood_pellets = nil, nil, nil, nil, nil, nil
+      end
+      if (scenario.natural_gas_units.nil? || scenario.natural_gas_value.nil?) && (not natural_gas.nil?)
+        scenario.natural_gas_units = default_units
+        scenario.natural_gas_units_isdefaulted = true
+        scenario.natural_gas_value = natural_gas
+        scenario.natural_gas_value_isdefaulted = true
+      end
+      if (scenario.propane_units.nil? || scenario.propane_value.nil?) && (not propane.nil?)
+        scenario.propane_units = default_units
+        scenario.propane_units_isdefaulted = true
+        scenario.propane_value = propane
+        scenario.propane_value_isdefaulted = true
+      end
+      if (scenario.fuel_oil_units.nil? || scenario.fuel_oil_value.nil?) && (not fuel_oil.nil?)
+        scenario.fuel_oil_units = default_units
+        scenario.fuel_oil_units_isdefaulted = true
+        scenario.fuel_oil_value = fuel_oil
+        scenario.fuel_oil_value_isdefaulted = true
+      end
+      if (scenario.coal_units.nil? || scenario.coal_value.nil?) && (not coal.nil?)
+        scenario.coal_units = default_units
+        scenario.coal_units_isdefaulted = true
+        scenario.coal_value = coal
+        scenario.coal_value_isdefaulted = true
+      end
+      if (scenario.wood_units.nil? || scenario.wood_value.nil?) && (not wood.nil?)
+        scenario.wood_units = default_units
+        scenario.wood_units_isdefaulted = true
+        scenario.wood_value = wood
+        scenario.wood_value_isdefaulted = true
+      end
+      next unless (scenario.wood_pellets_units.nil? || scenario.wood_pellets_value.nil?) && (not wood_pellets.nil?)
+
+      scenario.wood_pellets_units = default_units
+      scenario.wood_pellets_units_isdefaulted = true
+      scenario.wood_pellets_value = wood_pellets
+      scenario.wood_pellets_value_isdefaulted = true
+    end
   end
 
   def self.apply_site(hpxml)
@@ -285,6 +351,23 @@ class HPXMLDefaults
         end
 
         hpxml.building_construction.has_flue_or_chimney = true
+      end
+    end
+  end
+
+  def self.apply_climate_and_risk_zones(hpxml, epw_file)
+    if (not epw_file.nil?) && (hpxml.climate_and_risk_zones.iecc_zone.nil? || hpxml.climate_and_risk_zones.iecc_year.nil?)
+      if hpxml.climate_and_risk_zones.iecc_zone.nil?
+        climate_zone_iecc = Location.get_climate_zone_iecc(epw_file.wmoNumber)
+        if Constants.IECCZones.include? climate_zone_iecc
+          hpxml.climate_and_risk_zones.iecc_zone = climate_zone_iecc
+          hpxml.climate_and_risk_zones.iecc_zone_isdefaulted = true
+        end
+      end
+
+      if (not hpxml.climate_and_risk_zones.iecc_zone.nil?) && hpxml.climate_and_risk_zones.iecc_year.nil?
+        hpxml.climate_and_risk_zones.iecc_year = 2006
+        hpxml.climate_and_risk_zones.iecc_year_isdefaulted = true
       end
     end
   end
@@ -1219,21 +1302,21 @@ class HPXMLDefaults
   def self.apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     hpxml.hvac_distributions.each do |hvac_distribution|
       next unless [HPXML::HVACDistributionTypeAir].include? hvac_distribution.distribution_system_type
-
-      # Default return registers
-      if hvac_distribution.number_of_return_registers.nil?
-        hvac_distribution.number_of_return_registers = ncfl.ceil # Add 1 return register per conditioned floor if not provided
-        hvac_distribution.number_of_return_registers_isdefaulted = true
-      end
-
       next if hvac_distribution.ducts.empty?
 
       # Default ducts
 
-      cfa_served = hvac_distribution.conditioned_floor_area_served
-      n_returns = hvac_distribution.number_of_return_registers
       supply_ducts = hvac_distribution.ducts.select { |duct| duct.duct_type == HPXML::DuctTypeSupply }
       return_ducts = hvac_distribution.ducts.select { |duct| duct.duct_type == HPXML::DuctTypeReturn }
+
+      # Default return registers
+      if hvac_distribution.number_of_return_registers.nil? && (return_ducts.size > 0)
+        hvac_distribution.number_of_return_registers = ncfl.ceil # Add 1 return register per conditioned floor if not provided
+        hvac_distribution.number_of_return_registers_isdefaulted = true
+      end
+
+      cfa_served = hvac_distribution.conditioned_floor_area_served
+      n_returns = hvac_distribution.number_of_return_registers
 
       if hvac_distribution.ducts[0].duct_location.nil?
         # Default both duct location(s) and duct surface area(s)

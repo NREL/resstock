@@ -11,7 +11,7 @@ require_relative '../HPXMLtoOpenStudio/resources/version'
 basedir = File.expand_path(File.dirname(__FILE__))
 
 def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseries_outputs, skip_validation, add_comp_loads,
-                 output_format, building_id, ep_input_format, detailed_schedules_type, local_clock_time_types)
+                 output_format, building_id, ep_input_format, detailed_schedules_type, timeseries_time_column_types)
   measures_dir = File.join(basedir, '..')
 
   measures = {}
@@ -45,14 +45,15 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['timeseries_frequency'] = timeseries_output_freq
   args['include_timeseries_fuel_consumptions'] = timeseries_outputs.include? 'fuels'
   args['include_timeseries_end_use_consumptions'] = timeseries_outputs.include? 'enduses'
+  args['include_timeseries_emissions'] = timeseries_outputs.include? 'emissions'
   args['include_timeseries_hot_water_uses'] = timeseries_outputs.include? 'hotwater'
   args['include_timeseries_total_loads'] = timeseries_outputs.include? 'loads'
   args['include_timeseries_component_loads'] = timeseries_outputs.include? 'componentloads'
   args['include_timeseries_zone_temperatures'] = timeseries_outputs.include? 'temperatures'
   args['include_timeseries_airflows'] = timeseries_outputs.include? 'airflows'
   args['include_timeseries_weather'] = timeseries_outputs.include? 'weather'
-  args['timestamps_daylight_saving_time'] = local_clock_time_types.include? 'DST'
-  args['timestamps_coordinated_universal_time'] = local_clock_time_types.include? 'UTC'
+  args['add_timeseries_dst_column'] = timeseries_time_column_types.include? 'DST'
+  args['add_timeseries_utc_column'] = timeseries_time_column_types.include? 'UTC'
   update_args_hash(measures, measure_subdir, args)
 
   # Add hpxml output measure to workflow
@@ -66,7 +67,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   return results[:success]
 end
 
-timeseries_types = ['ALL', 'fuels', 'enduses', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
+timeseries_types = ['ALL', 'fuels', 'enduses', 'emissions', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
 
 options = {}
 OptionParser.new do |opts|
@@ -85,22 +86,22 @@ OptionParser.new do |opts|
   end
 
   options[:hourly_outputs] = []
-  opts.on('--hourly TYPE', timeseries_types, "Request hourly output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--hourly TYPE', timeseries_types, "Request hourly output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
     options[:hourly_outputs] << t
   end
 
   options[:daily_outputs] = []
-  opts.on('--daily TYPE', timeseries_types, "Request daily output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--daily TYPE', timeseries_types, "Request daily output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
     options[:daily_outputs] << t
   end
 
   options[:monthly_outputs] = []
-  opts.on('--monthly TYPE', timeseries_types, "Request monthly output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--monthly TYPE', timeseries_types, "Request monthly output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
     options[:monthly_outputs] << t
   end
 
   options[:timestep_outputs] = []
-  opts.on('--timestep TYPE', timeseries_types, "Request timestep output type (#{timeseries_types[0..4].join(', ')},", "#{timeseries_types[5..-1].join(', ')}); can be called multiple times") do |t|
+  opts.on('--timestep TYPE', timeseries_types, "Request timestep output type (#{timeseries_types[0..5].join(', ')},", "#{timeseries_types[6..-1].join(', ')}); can be called multiple times") do |t|
     options[:timestep_outputs] << t
   end
 
@@ -118,9 +119,9 @@ OptionParser.new do |opts|
     options[:detailed_schedules_type] = t
   end
 
-  options[:local_clock_time_types] = []
-  opts.on('--add-local-clock-time TYPE', ['DST', 'UTC'], 'Add local clock time column (DST, UTC); can be called multiple times') do |t|
-    options[:local_clock_time_types] << t
+  options[:timeseries_time_column_types] = []
+  opts.on('--add-timeseries-time-column TYPE', ['DST', 'UTC'], 'Add timeseries time column (DST, UTC); can be called multiple times') do |t|
+    options[:timeseries_time_column_types] << t
   end
 
   options[:ep_input_format] = 'idf'
@@ -212,7 +213,7 @@ rundir = File.join(options[:output_dir], 'run')
 puts "HPXML: #{options[:hpxml]}"
 success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
                        options[:skip_validation], options[:add_comp_loads], options[:output_format], options[:building_id],
-                       options[:ep_input_format], options[:detailed_schedules_type], options[:local_clock_time_types])
+                       options[:ep_input_format], options[:detailed_schedules_type], options[:timeseries_time_column_types])
 
 if not success
   exit! 1

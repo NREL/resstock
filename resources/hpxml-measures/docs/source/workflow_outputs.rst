@@ -201,6 +201,33 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
    End Use: Coal: Fireplace (MBtu)
    ===================================================================  ====================================================
 
+Annual Emissions
+~~~~~~~~~~~~~~~~
+
+Results for each emissions scenario defined in the HPXML file is listed as shown below.
+
+   ==============================================================  ==================================================================
+   Type                                                            Notes
+   ==============================================================  ==================================================================
+   Emissions: <EmissionsType>: <Scenario1Name>: Total (lb)         Scenario 1 total emissions
+   Emissions: <EmissionsType>: <Scenario1Name>: Electricity (lb)   Scenario 1 emissions for Electricity only
+   Emissions: <EmissionsType>: <Scenario1Name>: Natural Gas (lb)   Scenario 1 emissions for Natural Gas only
+   Emissions: <EmissionsType>: <Scenario1Name>: Fuel Oil (lb)      Scenario 1 emissions for Fuel Oil only
+   Emissions: <EmissionsType>: <Scenario1Name>: Propane (lb)       Scenario 1 emissions for Propane only
+   Emissions: <EmissionsType>: <Scenario1Name>: Wood Cord (lb)     Scenario 1 emissions for Wood Cord only
+   Emissions: <EmissionsType>: <Scenario1Name>: Wood Pellets (lb)  Scenario 1 emissions for Wood Pellets only
+   Emissions: <EmissionsType>: <Scenario1Name>: Coal (lb)          Scenario 1 emissions for Coal only
+   Emissions: <EmissionsType>: <Scenario2Name>: Total (lb)         Scenario 2 total emissions
+   Emissions: <EmissionsType>: <Scenario2Name>: Electricity (lb)   Scenario 2 emissions for Electricity only
+   Emissions: <EmissionsType>: <Scenario2Name>: Natural Gas (lb)   Scenario 2 emissions for Natural Gas only
+   Emissions: <EmissionsType>: <Scenario2Name>: Fuel Oil (lb)      Scenario 2 emissions for Fuel Oil only
+   Emissions: <EmissionsType>: <Scenario2Name>: Propane (lb)       Scenario 2 emissions for Propane only
+   Emissions: <EmissionsType>: <Scenario2Name>: Wood Cord (lb)     Scenario 2 emissions for Wood Cord only
+   Emissions: <EmissionsType>: <Scenario2Name>: Wood Pellets (lb)  Scenario 2 emissions for Wood Pellets only
+   Emissions: <EmissionsType>: <Scenario2Name>: Coal (lb)          Scenario 2 emissions for Coal only
+   ...
+   ==============================================================  ==================================================================
+
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -321,6 +348,7 @@ Depending on the outputs requested, the file may include:
    ===================================  ==================================================================================================================================
    Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
+   Emissions                            Emissions (e.g., CO2) for each scenario defined in the HPXML file.
    Hot Water Uses                       Water use for each end use type (in gallons).
    Total Loads                          Heating, cooling, and hot water loads (in kBtu) for the building.
    Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
@@ -332,6 +360,7 @@ Depending on the outputs requested, the file may include:
 Timeseries outputs can be one of the following frequencies: hourly, daily, monthly, or timestep (i.e., equal to the simulation timestep, which defaults to an hour but can be sub-hourly).
 
 Timestamps in the output use the end-of-hour (or end-of-day for daily frequency, etc.) convention.
+Additional timestamp columns can be optionally requested that reflect daylight saving time (DST) and/or coordinated universal time (UTC).
 Most outputs will be summed over the hour (e.g., energy) but some will be averaged over the hour (e.g., temperatures, airflows).
 
 .. _hpxml_outputs:
