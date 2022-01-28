@@ -8,7 +8,7 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 250
+    n_datapoints: 3
 
 workflow_generator:
   type: residential_hpxml
@@ -22,9 +22,17 @@ workflow_generator:
       simulation_control_run_period_calendar_year: 2007
 
     emissions:
-      - scenario_name: Scenario1
+      - scenario_name: LRMER_MidCase_15
         type: CO2
-        elec_folder: hpxml-measures/HPXMLtoOpenStudio/resources/data/cambium # kg/MWh, relative to buildstock_directory's resources folder
+        elec_folder: cambium/LRMER_MidCase_15 # kg/MWh, relative to buildstock_directory's resources folder
+        gas_value: 117.6 # lb/MBtu (million Btu)
+        propane_value: 136.6 # lb/MBtu (million Btu)
+        oil_value: 161.0 # lb/MBtu (million Btu)
+        wood_value: 200.0 # lb/MBtu (million Btu)
+
+      - scenario_name: LRMER_MidCase_30
+        type: CO2
+        elec_folder: cambium/LRMER_MidCase_30 # kg/MWh, relative to buildstock_directory's resources folder
         gas_value: 117.6 # lb/MBtu (million Btu)
         propane_value: 136.6 # lb/MBtu (million Btu)
         oil_value: 161.0 # lb/MBtu (million Btu)
