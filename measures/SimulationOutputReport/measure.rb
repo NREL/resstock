@@ -384,9 +384,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
     # Get upgrade cost value/multiplier pairs and lifetimes from the upgrade measure
     has_costs = false
     option_cost_pairs = {}
+    option_names = {}
     option_lifetimes = {}
     for option_num in 1..num_options # Sync with ApplyUpgrade measure
       option_cost_pairs[option_num] = []
+      option_names[option_num] = nil
       option_lifetimes[option_num] = nil
       for cost_num in 1..num_costs_per_option # Sync with ApplyUpgrade measure
         cost_value = values["option_%02d_cost_#{cost_num}_value_to_apply" % option_num]
@@ -398,10 +400,11 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
         has_costs = true
         option_cost_pairs[option_num] << [cost_value.to_f, cost_mult_type]
       end
+      name = values['option_%02d_name_applied' % option_num]
       lifetime = values['option_%02d_lifetime_to_apply' % option_num]
-      next if lifetime.nil?
 
-      option_lifetimes[option_num] = lifetime.to_f
+      option_names[option_num] = name
+      option_lifetimes[option_num] = lifetime.to_f if !lifetime.nil?
     end
 
     if not has_costs
@@ -424,13 +427,18 @@ class SimulationOutputReport < OpenStudio::Measure::ReportingMeasure
       end
       upgrade_cost += option_cost
 
-      # Save option cost/lifetime to results.csv
+      # Save option cost/name/lifetime to results.csv
       next unless option_cost != 0
 
       option_cost = option_cost.round(2)
       option_cost_name = 'option_%02d_cost_usd' % option_num
       register_value(runner, option_cost_name, option_cost)
       runner.registerInfo("Registering #{option_cost} for #{option_cost_name}.")
+
+      name = option_names[option_num]
+      option_name_name = 'option_%02d_name' % option_num
+      register_value(runner, option_name_name, name)
+      runner.registerInfo("Registering #{name} for #{option_name_name}.")
       next unless (not option_lifetimes[option_num].nil?) && (option_lifetimes[option_num] != 0)
 
       lifetime = option_lifetimes[option_num].round(2)

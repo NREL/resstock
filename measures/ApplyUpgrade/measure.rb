@@ -265,7 +265,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         # Print this option assignment
         print_option_assignment(parameter_name, option_name, runner)
 
-        # Register cost values/multipliers/lifetime for applied options; used by the SimulationOutputReport measure
+        # Register cost names/values/multipliers/lifetime for applied options; used by the SimulationOutputReport measure
         register_value(runner, 'option_%02d_name_applied' % option_num, option)
         for cost_num in 1..num_costs_per_option
           cost_value = runner.getOptionalDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value", user_arguments)
