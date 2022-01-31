@@ -34,12 +34,19 @@ def run_workflow(yml, measures_only, debug)
 
     steps = []
     measure_dir_names.each do |k, v|
-      workflow_args.each do |measure_dir_name, args|
+      workflow_args.each do |measure_dir_name, arguments|
         next if k != measure_dir_name
 
-        arguments = args.clone
         if measure_dir_name == 'build_existing_model'
           arguments['building_id'] = 1
+
+          arguments['simulation_control_timestep'] = 60 if !arguments.keys.include?('simulation_control_timestep')
+          arguments['simulation_control_run_period_begin_month'] = 1 if !arguments.keys.include?('simulation_control_run_period_begin_month')
+          arguments['simulation_control_run_period_begin_day_of_month'] = 1 if !arguments.keys.include?('simulation_control_run_period_begin_day_of_month')
+          arguments['simulation_control_run_period_end_month'] = 12 if !arguments.keys.include?('simulation_control_run_period_end_month')
+          arguments['simulation_control_run_period_end_day_of_month'] = 31 if !arguments.keys.include?('simulation_control_run_period_end_day_of_month')
+          arguments['simulation_control_run_period_calendar_year'] = 2007 if !arguments.keys.include?('simulation_control_run_period_calendar_year')
+
           if workflow_args.keys.include?('emissions')
             arguments['emissions_scenario_names'] = workflow_args['emissions'].collect { |s| s['scenario_name'] }.join(',')
             arguments['emissions_types'] = workflow_args['emissions'].collect { |s| s['type'] }.join(',')
@@ -49,7 +56,16 @@ def run_workflow(yml, measures_only, debug)
             arguments['emissions_fuel_oil_values'] = workflow_args['emissions'].collect { |s| s['oil_value'] }.join(',')
             arguments['emissions_wood_values'] = workflow_args['emissions'].collect { |s| s['wood_value'] }.join(',')
           end
+        elsif measure_dir_name == 'simulation_output_report'
+          arguments['include_timeseries_end_use_consumptions'] = true if !arguments.keys.include?('include_timeseries_end_use_consumptions')
+          arguments['include_timeseries_total_loads'] = true if !arguments.keys.include?('include_timeseries_total_loads')
+          arguments['add_timeseries_dst_column'] = true if !arguments.keys.include?('add_timeseries_dst_column')
+          arguments['add_timeseries_utc_column'] = true if !arguments.keys.include?('add_timeseries_utc_column')
+        elsif measure_dir_name == 'server_directory_cleanup'
+          arguments['retain_in_idf'] = true if !arguments.keys.include?('retain_in_idf')
+          arguments['retain_schedules_csv'] = true if !arguments.keys.include?('retain_schedules_csv')
         end
+
         steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
                    'arguments' => arguments }
       end
