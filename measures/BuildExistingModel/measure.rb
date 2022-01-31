@@ -294,18 +294,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Emissions
     if args['emissions_scenario_names'].is_initialized
-      ba_to_gea_csv_path = File.join(resources_dir, 'data/cambium/ba_to_gea.csv')
-      ba_to_gea_csv = CSV.open(ba_to_gea_csv_path, headers: true)
-
-      gea = nil
-      CSV.foreach(ba_to_gea_csv_path, headers: true) do |row|
-        next if row[0] != "p#{bldg_data['REEDS Balancing Area']}"
-
-        gea = row[1]
-      end
-
-      if gea.nil?
-        runner.registerError("Could not find balancing area 'p#{bldg_data['REEDS Balancing Area']}' in #{ba_to_gea_csv_path}.")
+      if !bldg_data.keys.include?('Generation And Emissions Assessment Region')
+        runner.registerError('Emissions scenario(s) were specified, but could not find the Generation and Emissions Assessment (GEA) region.')
         return false
       end
 
@@ -313,13 +303,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       scenarios = args['emissions_electricity_folders'].get.split(',')
       scenarios.each do |scenario|
         scenario = File.join(resources_dir, scenario)
-        if not File.exist? scenario
-          runner.registerError("CO2 emissions scenario folder '#{scenario}' does not exist.")
+        if !File.exist?(scenario)
+          runner.registerError("Emissions scenario electricity folder '#{scenario}' does not exist.")
           return false
         end
 
         Dir["#{scenario}/*.csv"].each do |filepath|
-          emissions_electricity_filepaths << filepath if filepath.include?(gea)
+          emissions_electricity_filepaths << filepath if filepath.include?(bldg_data['Generation And Emissions Assessment Region'])
         end
       end
 
