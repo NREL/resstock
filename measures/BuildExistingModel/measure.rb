@@ -294,7 +294,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Emissions
     if args['emissions_scenario_names'].is_initialized
-      ba_to_gea_csv_path = File.join(resources_dir, 'ba_to_gea.csv')
+      ba_to_gea_csv_path = File.join(resources_dir, 'data/cambium/ba_to_gea.csv')
       ba_to_gea_csv = CSV.open(ba_to_gea_csv_path, headers: true)
 
       gea = nil
