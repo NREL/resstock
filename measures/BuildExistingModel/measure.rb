@@ -12,6 +12,7 @@ elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../re
 elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 end
+require File.join(resources_path, 'hpxml')
 require File.join(resources_path, 'meta_measure')
 
 # in addition to the above requires, this measure is expected to run in an
@@ -121,27 +122,32 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_folders', false)
     arg.setDisplayName('Emissions: Electricity Folders')
-    arg.setDescription('Absolute/relative paths of electricity emissions factor schedule files with hourly values. If multiple scenarios, use a comma-separated list.')
+    arg.setDescription('Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. File names must contain GEA region names.')
+    arg.setUnits(HPXML::EmissionsScenario::UnitsKgPerMWh)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_natural_gas_values', false)
     arg.setDisplayName('Emissions: Natural Gas Values')
     arg.setDescription('Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
+    arg.setUnits(HPXML::EmissionsScenario::UnitsLbPerMBtu)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_propane_values', false)
     arg.setDisplayName('Emissions: Propane Values')
     arg.setDescription('Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
+    arg.setUnits(HPXML::EmissionsScenario::UnitsLbPerMBtu)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_fuel_oil_values', false)
     arg.setDisplayName('Emissions: Fuel Oil Values')
     arg.setDescription('Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
+    arg.setUnits(HPXML::EmissionsScenario::UnitsLbPerMBtu)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_wood_values', false)
     arg.setDisplayName('Emissions: Wood Values')
     arg.setDescription('Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
+    arg.setUnits(HPXML::EmissionsScenario::UnitsLbPerMBtu)
     args << arg
 
     return args
