@@ -112,6 +112,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       name = values['option_%02d_name_applied' % option_num]
       lifetime = values['option_%02d_lifetime_to_apply' % option_num]
 
+      option_names[option_num] = name
       option_lifetimes[option_num] = lifetime.to_f if !lifetime.nil?
     end
 
