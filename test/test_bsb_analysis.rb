@@ -49,6 +49,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert(timeseries.include?('Fuel Use:'))
     assert(timeseries.include?('End Use:'))
     assert(!timeseries.include?('Load:'))
+    assert(timeseries.include?('Emissions:'))
   end
 
   def test_national_baseline
@@ -88,6 +89,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert(timeseries.include?('Fuel Use:'))
     assert(timeseries.include?('End Use:'))
     assert(!timeseries.include?('Load:'))
+    assert(timeseries.include?('Emissions:'))
   end
 
   def test_testing_upgrades
@@ -129,6 +131,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert(timeseries.include?('Fuel Use:'))
     assert(timeseries.include?('End Use:'))
     assert(!timeseries.include?('Load:'))
+    assert(timeseries.include?('Emissions:'))
   end
 
   def test_national_upgrades
@@ -170,5 +173,6 @@ class TesBuildStockBatch < MiniTest::Test
     assert(timeseries.include?('Fuel Use:'))
     assert(timeseries.include?('End Use:'))
     assert(!timeseries.include?('Load:'))
+    assert(timeseries.include?('Emissions:'))
   end
 end

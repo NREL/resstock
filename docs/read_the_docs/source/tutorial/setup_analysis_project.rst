@@ -29,7 +29,14 @@ This measure creates the baseline scenario. Set the following inputs:
 #. ``Simulation Control: Run Period End Day of Month``: This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.
 #. ``Simulation Control: Run Period Calendar Year``: This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.
 #. ``Debug Mode?``: If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.
-#. ``Add annual component loads output``: If true, output the annual component loads.
+#. ``Annual Component Loads?``: If true, output the annual component loads.
+#. ``emissions_scenario_names``: Names of emissions scenarios. If multiple scenarios, use a comma-separated list.
+#. ``emissions_types``: Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.
+#. ``emissions_electricity_folders``: Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. File names must contain GEA region names. Units are kg/MWh.
+#. ``emissions_natural_gas_values``: Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``emissions_propane_values``: Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``emissions_fuel_oil_values``: Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``emissions_wood_values``: Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
 
 As a meta measure, it incrementally applies the following OpenStudio measures to create residential building models:
 
@@ -39,8 +46,6 @@ As a meta measure, it incrementally applies the following OpenStudio measures to
 #. ``HPXMLtoOpenStudio``
 
 All of these measures, with the exception of ``ResStockArguments``, are located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
-
-.. _custom region map: https://github.com/NREL/resstock/wiki/Custom-Region-(CR)-Map
 
 .. note::
    

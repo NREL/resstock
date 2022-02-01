@@ -140,7 +140,7 @@ class MoreCompare(BaseCompare):
       feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
 
     # Skip mapping if not needed
-    if list(df_to_map.columns) == list(df_to_keep.columns):
+    if set(df_to_map.columns).issubset(set(df_to_keep.columns)) or set(df_to_keep).issubset(set(df_to_map.columns)):
       self.write_map_results(map_results, df_to_keep, df_to_map)
       return
 

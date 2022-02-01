@@ -39,12 +39,23 @@ def run_workflow(yml, measures_only, debug)
 
         if measure_dir_name == 'build_existing_model'
           arguments['building_id'] = 1
+
           arguments['simulation_control_timestep'] = 60 if !arguments.keys.include?('simulation_control_timestep')
           arguments['simulation_control_run_period_begin_month'] = 1 if !arguments.keys.include?('simulation_control_run_period_begin_month')
           arguments['simulation_control_run_period_begin_day_of_month'] = 1 if !arguments.keys.include?('simulation_control_run_period_begin_day_of_month')
           arguments['simulation_control_run_period_end_month'] = 12 if !arguments.keys.include?('simulation_control_run_period_end_month')
           arguments['simulation_control_run_period_end_day_of_month'] = 31 if !arguments.keys.include?('simulation_control_run_period_end_day_of_month')
           arguments['simulation_control_run_period_calendar_year'] = 2007 if !arguments.keys.include?('simulation_control_run_period_calendar_year')
+
+          if workflow_args.keys.include?('emissions')
+            arguments['emissions_scenario_names'] = workflow_args['emissions'].collect { |s| s['scenario_name'] }.join(',')
+            arguments['emissions_types'] = workflow_args['emissions'].collect { |s| s['type'] }.join(',')
+            arguments['emissions_electricity_folders'] = workflow_args['emissions'].collect { |s| s['elec_folder'] }.join(',')
+            arguments['emissions_natural_gas_values'] = workflow_args['emissions'].collect { |s| s['gas_value'] }.join(',')
+            arguments['emissions_propane_values'] = workflow_args['emissions'].collect { |s| s['propane_value'] }.join(',')
+            arguments['emissions_fuel_oil_values'] = workflow_args['emissions'].collect { |s| s['oil_value'] }.join(',')
+            arguments['emissions_wood_values'] = workflow_args['emissions'].collect { |s| s['wood_value'] }.join(',')
+          end
         elsif measure_dir_name == 'simulation_output_report'
           arguments['include_timeseries_end_use_consumptions'] = true if !arguments.keys.include?('include_timeseries_end_use_consumptions')
           arguments['include_timeseries_total_loads'] = true if !arguments.keys.include?('include_timeseries_total_loads')
