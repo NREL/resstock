@@ -91,7 +91,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert(up01.include?('measures.osw'))
     assert(up01.include?('measures-upgrade.osw'))
     assert(up01.include?('enduse_timeseries.csv'))
-    assert(up00.include?('in.osm'))
+    assert(up01.include?('in.osm'))
     assert(up01.include?('in.idf'))
     assert(up01.include?('schedules.csv'))
   end
