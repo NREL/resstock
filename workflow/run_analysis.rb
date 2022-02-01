@@ -11,9 +11,9 @@ require_relative '../resources/util'
 
 require_relative '../resources/measures/HPXMLtoOpenStudio/resources/version'
 
-start_time = Time.now
+$start_time = Time.now
 
-def run_workflow(yml, measures_only)
+def run_workflow(yml, n_threads, measures_only)
   cfg = YAML.load_file(yml)
 
   upgrade_names = ['Baseline']
@@ -179,14 +179,17 @@ def run_workflow(yml, measures_only)
 
   all_results_characteristics = []
   all_results_output = []
+  all_cli_output = []
   osw_paths.each do |upgrade_name, osw_path|
-    samples_osw(results_dir, osw_path, upgrade_name, n_datapoints, all_results_characteristics, all_results_output, measures_only)
+    samples_osw(results_dir, osw_path, upgrade_name, n_datapoints, n_threads, all_results_characteristics, all_results_output, all_cli_output, measures_only)
 
     change_building_id(osw_path, 1)
   end
 
+  puts
   results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
   results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
+  IO.write(File.join(results_dir, 'cli_output.log'), all_cli_output.join('\n'))
 
   return true
 end
@@ -200,9 +203,22 @@ end
 def create_buildstock_csv(project_dir, num_samples, outfile)
   r = RunSampling.new
   r.run(project_dir, num_samples, outfile)
+  puts "Sampling took: #{get_elapsed(Time.now, $start_time)}."
 end
 
-def samples_osw(results_dir, osw_path, upgrade_name, num_samples, all_results_characteristics, all_results_output, measures_only)
+def get_elapsed(t1, t0)
+  s = t1 - t0
+  if s > 60 # min
+    t = "#{(s / 60).round(1)}min"
+  elsif s > 3600 # hr
+    t = "#{(s / 3600).round(1)}hr"
+  else # sec
+    t = "#{s.round(1)}s"
+  end
+  return t
+end
+
+def samples_osw(results_dir, osw_path, upgrade_name, num_samples, in_threads, all_results_characteristics, all_results_output, all_cli_output, measures_only)
   osw_dir = File.join(results_dir, 'osw')
   Dir.mkdir(osw_dir) unless File.exist?(osw_dir)
 
@@ -214,12 +230,19 @@ def samples_osw(results_dir, osw_path, upgrade_name, num_samples, all_results_ch
     workflow_and_building_ids << [osw_path, building_id]
   end
 
-  Parallel.map(workflow_and_building_ids, in_threads: Parallel.processor_count) do |workflow, building_id|
-    worker_number = Parallel.worker_number
+  Parallel.map(workflow_and_building_ids, in_threads: in_threads) do |workflow, building_id|
+    job_id = Parallel.worker_number + 1
     osw_basename = File.basename(workflow)
-    puts "\nWorkflow: #{osw_basename}, Building ID: #{building_id} (#{workflow_and_building_ids.index([workflow, building_id]) + 1} / #{workflow_and_building_ids.size}), Worker Number: #{worker_number} ...\n"
 
-    worker_folder = "run#{worker_number}"
+    info = "[Parallel(n_jobs=#{in_threads})]: "
+    max_size = "#{workflow_and_building_ids.size}".size
+    info += "%#{max_size}s" % "#{workflow_and_building_ids.index([workflow, building_id]) + 1}"
+    info += " / #{workflow_and_building_ids.size}"
+    info += ' | elapsed: '
+    info += '%8s' % "#{get_elapsed(Time.now, $start_time)}"
+    puts info
+
+    worker_folder = "run#{job_id}"
     worker_dir = File.join(results_dir, worker_folder)
     Dir.mkdir(worker_dir) unless File.exist?(worker_dir)
     FileUtils.cp(workflow, worker_dir)
@@ -227,18 +250,21 @@ def samples_osw(results_dir, osw_path, upgrade_name, num_samples, all_results_ch
 
     change_building_id(osw, building_id)
 
-    completed_status, result_characteristics, result_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
+    completed_status, result_characteristics, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
 
     osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
 
     result_characteristics['OSW'] = osw
+    result_characteristics['job_id'] = job_id
     result_characteristics['completed_status'] = completed_status
 
     result_output['OSW'] = osw
+    result_output['job_id'] = job_id
     result_output['completed_status'] = completed_status
 
     all_results_characteristics << result_characteristics
     all_results_output << result_output
+    all_cli_output << cli_output
 
     run_dir = File.join(worker_dir, 'run')
     if File.exist?(File.join(run_dir, 'measures.osw'))
@@ -288,9 +314,9 @@ OptionParser.new do |opts|
     options[:yml] = t
   end
 
-  options[:version] = false
-  opts.on('-v', '--version', 'Reports the version') do |t|
-    options[:version] = true
+  options[:threads] = Parallel.processor_count
+  opts.on('-n', '--threads N', Integer, 'Number of parallel simulations (defaults to processor count)') do |t|
+    options[:threads] = t
   end
 
   options[:measures_only] = false
@@ -302,12 +328,12 @@ OptionParser.new do |opts|
     puts opts
     exit!
   end
-end.parse!
 
-if options[:version]
-  puts "#{Version.software_program_used} v#{Version.software_program_version}"
-  exit!
-end
+  opts.on_tail('-v', '--version', 'Display version') do
+    puts "#{Version.software_program_used} v#{Version.software_program_version}"
+    exit!
+  end
+end.parse!
 
 if not options[:yml]
   fail "YML argument is required. Call #{File.basename(__FILE__)} -h for usage."
@@ -315,10 +341,10 @@ end
 
 # Run analysis
 puts "YML: #{options[:yml]}"
-success = run_workflow(options[:yml], options[:measures_only])
+success = run_workflow(options[:yml], options[:threads], options[:measures_only])
 
 if not success
   exit! 1
 end
 
-puts "Completed in #{(Time.now - start_time).round(1)}s."
+puts "\nCompleted in #{get_elapsed(Time.now, $start_time)}."
