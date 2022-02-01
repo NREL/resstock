@@ -865,6 +865,7 @@ class HPXML < Object
     ATTRS = [:xml_type, :xml_generated_by, :created_date_and_time, :transaction,
              :software_program_used, :software_program_version, :eri_calculation_version,
              :eri_design, :timestep, :building_id, :event_type, :state_code, :zip_code,
+             :egrid_region, :egrid_subregion, :cambium_region_gea, :time_zone_utc_offset,
              :sim_begin_month, :sim_begin_day, :sim_end_month, :sim_end_day, :sim_calendar_year,
              :dst_enabled, :dst_begin_month, :dst_begin_day, :dst_end_month, :dst_end_day,
              :use_max_load_for_heat_pumps, :allow_increased_fixed_capacities,
@@ -970,13 +971,28 @@ class HPXML < Object
       building = XMLHelper.add_element(hpxml, 'Building')
       building_building_id = XMLHelper.add_element(building, 'BuildingID')
       XMLHelper.add_attribute(building_building_id, 'id', @building_id)
-      if (not @state_code.nil?) || (not @zip_code.nil?)
+      if (not @state_code.nil?) || (not @zip_code.nil?) || (not @time_zone_utc_offset.nil?) || (not @egrid_region.nil?) || (not @egrid_subregion.nil?) || (not @cambium_region_gea.nil?)
         site = XMLHelper.add_element(building, 'Site')
         site_id = XMLHelper.add_element(site, 'SiteID')
         XMLHelper.add_attribute(site_id, 'id', 'SiteID')
-        address = XMLHelper.add_element(site, 'Address')
-        XMLHelper.add_element(address, 'StateCode', @state_code, :string, @state_code_isdefaulted) unless @state_code.nil?
-        XMLHelper.add_element(address, 'ZipCode', @zip_code, :string) unless @zip_code.nil?
+        if (not @state_code.nil?) || (not @zip_code.nil?)
+          address = XMLHelper.add_element(site, 'Address')
+          XMLHelper.add_element(address, 'StateCode', @state_code, :string, @state_code_isdefaulted) unless @state_code.nil?
+          XMLHelper.add_element(address, 'ZipCode', @zip_code, :string) unless @zip_code.nil?
+        end
+        if not @egrid_region.nil?
+          XMLHelper.add_element(site, 'eGridRegion', @egrid_region, :string, @egrid_region_isdefaulted)
+        end
+        if not @egrid_subregion.nil?
+          XMLHelper.add_element(site, 'eGridSubregion', @egrid_subregion, :string, @egrid_subregion_isdefaulted)
+        end
+        if not @cambium_region_gea.nil?
+          XMLHelper.add_element(site, 'CambiumRegionGEA', @cambium_region_gea, :string, @cambium_region_gea_isdefaulted)
+        end
+        if not @time_zone_utc_offset.nil?
+          time_zone = XMLHelper.add_element(site, 'TimeZone')
+          XMLHelper.add_element(time_zone, 'UTCOffset', @time_zone_utc_offset, :float, @time_zone_utc_offset_isdefaulted)
+        end
       end
       project_status = XMLHelper.add_element(building, 'ProjectStatus')
       XMLHelper.add_element(project_status, 'EventType', @event_type, :string)
@@ -1014,6 +1030,10 @@ class HPXML < Object
       @event_type = XMLHelper.get_value(hpxml, 'Building/ProjectStatus/EventType', :string)
       @state_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/StateCode', :string)
       @zip_code = XMLHelper.get_value(hpxml, 'Building/Site/Address/ZipCode', :string)
+      @egrid_region = XMLHelper.get_value(hpxml, 'Building/Site/eGridRegion', :string)
+      @egrid_subregion = XMLHelper.get_value(hpxml, 'Building/Site/eGridSubregion', :string)
+      @cambium_region_gea = XMLHelper.get_value(hpxml, 'Building/Site/CambiumRegionGEA', :string)
+      @time_zone_utc_offset = XMLHelper.get_value(hpxml, 'Building/Site/TimeZone/UTCOffset', :float)
     end
   end
 

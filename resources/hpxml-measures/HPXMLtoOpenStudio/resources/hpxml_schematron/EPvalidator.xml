@@ -18,9 +18,9 @@
   <sch:pattern>
     <sch:title>[Building]</sch:title>
     <sch:rule context='/h:HPXML/h:Building'>
-      <sch:assert role='ERROR' test='count(h:Site/h:Address) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Building/Site/Address</sch:assert> <!-- See [Address] -->
-      <sch:assert role='ERROR' test='count(h:ProjectStatus/h:EventType) = 1'>Expected 1 element(s) for xpath: Building/ProjectStatus/EventType</sch:assert>
-      <sch:assert role='ERROR' test='count(h:BuildingDetails) = 1'>Expected 1 element(s) for xpath: Building/BuildingDetails</sch:assert> <!-- See [BuildingDetails] -->
+      <sch:assert role='ERROR' test='count(h:Site) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Site</sch:assert> <!-- See [BuildingSite] -->
+      <sch:assert role='ERROR' test='count(h:ProjectStatus/h:EventType) = 1'>Expected 1 element(s) for xpath: ProjectStatus/EventType</sch:assert>
+      <sch:assert role='ERROR' test='count(h:BuildingDetails) = 1'>Expected 1 element(s) for xpath: BuildingDetails</sch:assert> <!-- See [BuildingDetails] -->
     </sch:rule>
   </sch:pattern>
   
@@ -95,10 +95,13 @@
   </sch:pattern>
 
   <sch:pattern>
-    <sch:title>[Address]</sch:title>
-    <sch:rule context='/h:HPXML/h:Building/h:Site/h:Address'>
-      <sch:assert role='ERROR' test='count(h:StateCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: StateCode</sch:assert>
-      <sch:assert role='ERROR' test='count(h:ZipCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: ZipCode</sch:assert>
+    <sch:title>[BuildingSite]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:Site'>
+      <sch:assert role='ERROR' test='count(h:Address/h:StateCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/StateCode</sch:assert>
+      <sch:assert role='ERROR' test='count(h:Address/h:ZipCode) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Address/ZipCode</sch:assert>
+      <sch:assert role='ERROR' test='count(h:TimeZone/h:UTCOffset) &lt;= 1'>Expected 0 or 1 element(s) for xpath: TimeZone/UTCOffset</sch:assert>
+      <sch:assert role='ERROR' test='number(h:TimeZone/h:UTCOffset) &gt;= -12 or not(h:TimeZone/h:UTCOffset)'>Expected TimeZone/UTCOffset to be greater than or equal to -12</sch:assert>
+      <sch:assert role='ERROR' test='number(h:TimeZone/h:UTCOffset) &lt;= 14 or not(h:TimeZone/h:UTCOffset)'>Expected TimeZone/UTCOffset to be less than or equal to 14</sch:assert>
     </sch:rule>
   </sch:pattern>
 

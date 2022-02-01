@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>20113118-8512-45b0-b9df-b4b790b6f3c2</version_id>
-  <version_modified>20220125T002908Z</version_modified>
+  <version_id>973e6264-c9bb-4153-99f8-45f4646c7c93</version_id>
+  <version_modified>20220127T193558Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder (Beta)</display_name>
@@ -447,6 +447,15 @@
           <display_name>WY</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>site_time_zone_utc_offset</name>
+      <display_name>Site: Time Zone UTC Offset</display_name>
+      <description>Time zone UTC offset of the home address. Must be between -12 and 14.</description>
+      <type>Double</type>
+      <units>hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>weather_station_epw_filepath</name>
@@ -5899,7 +5908,7 @@
     <argument>
       <name>emissions_electricity_units</name>
       <display_name>Emissions: Electricity Units</display_name>
-      <description>Electricity emissions factors units. If multiple scenarios, use a comma-separated list.</description>
+      <description>Electricity emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MWh and kg/MWh are allowed.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -5908,6 +5917,62 @@
       <name>emissions_electricity_values_or_filepaths</name>
       <display_name>Emissions: Electricity Values or File Paths</display_name>
       <description>Electricity emissions factors values, specified as either an annual factor or an absolute/relative path to a file with hourly factors. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_fossil_fuel_units</name>
+      <display_name>Emissions: Fossil Fuel Units</display_name>
+      <description>Fossil fuel emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MBtu and kg/MBtu are allowed.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_natural_gas_values</name>
+      <display_name>Emissions: Natural Gas Values</display_name>
+      <description>Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_propane_values</name>
+      <display_name>Emissions: Propane Values</display_name>
+      <description>Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_fuel_oil_values</name>
+      <display_name>Emissions: Fuel Oil Values</display_name>
+      <description>Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_coal_values</name>
+      <display_name>Emissions: Coal Values</display_name>
+      <description>Coal emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_wood_values</name>
+      <display_name>Emissions: Wood Values</display_name>
+      <description>Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_wood_pellets_values</name>
+      <display_name>Emissions: Wood Pellets Values</display_name>
+      <description>Wood pellets emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -5926,6 +5991,12 @@
     </attribute>
   </attributes>
   <files>
+    <file>
+      <filename>geometry.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>6977E044</checksum>
+    </file>
     <file>
       <filename>extra_files/extra-auto.xml</filename>
       <filetype>xml</filetype>
@@ -6575,6 +6646,12 @@
       <checksum>42AEBCC0</checksum>
     </file>
     <file>
+      <filename>extra_files/extra-dhw-solar-latitude.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>72383EF2</checksum>
+    </file>
+    <file>
       <filename>extra_files/warning-conditioned-attic-with-floor-insulation.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
@@ -6677,22 +6754,10 @@
       <checksum>A887B353</checksum>
     </file>
     <file>
-      <filename>extra_files/extra-dhw-solar-latitude.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>72383EF2</checksum>
-    </file>
-    <file>
-      <filename>geometry.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>6977E044</checksum>
-    </file>
-    <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>7221D74F</checksum>
+      <checksum>9E1237A6</checksum>
     </file>
     <file>
       <version>
@@ -6703,7 +6768,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>D6FCDD83</checksum>
+      <checksum>FAE4E376</checksum>
     </file>
   </files>
 </measure>

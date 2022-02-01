@@ -133,6 +133,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'hvac-frac-load-served' => ['Expected sum(FractionHeatLoadServed) to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails]',
                                                         'Expected sum(FractionCoolLoadServed) to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails]'],
                             'invalid-assembly-effective-rvalue' => ['Expected AssemblyEffectiveRValue to be greater than 0 [context: /HPXML/Building/BuildingDetails/Enclosure/Walls/Wall/Insulation, id: "Wall1Insulation"]'],
+                            'invalid-calendar-year-low' => ['Expected CalendarYear to be greater than or equal to 1600'],
+                            'invalid-calendar-year-high' => ['Expected CalendarYear to be less than or equal to 9999'],
                             'invalid-duct-area-fractions' => ['Expected sum(Ducts/FractionDuctArea) for DuctType="supply" to be 1 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution, id: "HVACDistribution1"]',
                                                               'Expected sum(Ducts/FractionDuctArea) for DuctType="return" to be 1 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution, id: "HVACDistribution1"]'],
                             'invalid-facility-type' => ['Expected 1 element(s) for xpath: ../../../BuildingSummary/BuildingConstruction[ResidentialFacilityType[text()="single-family attached" or text()="apartment unit"]] [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[IsSharedSystem="true"], id: "WaterHeatingSystem1"]',
@@ -157,6 +159,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'invalid-number-of-conditioned-floors' => ['Expected NumberofConditionedFloors to be greater than or equal to NumberofConditionedFloorsAboveGrade [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]'],
                             'invalid-number-of-units-served' => ['Expected NumberofUnitsServed to be greater than 1 [context: /HPXML/Building/BuildingDetails/Systems/WaterHeating/WaterHeatingSystem[IsSharedSystem="true"], id: "WaterHeatingSystem1"]'],
                             'invalid-shared-vent-in-unit-flowrate' => ['Expected RatedFlowRate to be greater than extension/InUnitFlowRate [context: /HPXML/Building/BuildingDetails/Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForWholeBuildingVentilation="true" and IsSharedSystem="true"], id: "VentilationFan1"]'],
+                            'invalid-timezone-utcoffset-low' => ['Expected TimeZone/UTCOffset to be greater than or equal to -12'],
+                            'invalid-timezone-utcoffset-high' => ['Expected TimeZone/UTCOffset to be less than or equal to 14'],
                             'invalid-window-height' => ['Expected DistanceToBottomOfWindow to be greater than DistanceToTopOfWindow [context: /HPXML/Building/BuildingDetails/Enclosure/Windows/Window/Overhangs[number(Depth) > 0], id: "Window2"]'],
                             'lighting-fractions' => ['Expected sum(LightingGroup/FractionofUnitsInLocation) for Location="interior" to be less than or equal to 1 [context: /HPXML/Building/BuildingDetails/Lighting]'],
                             'missing-distribution-cfa-served' => ['Expected 1 element(s) for xpath: ../../../ConditionedFloorAreaServed [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctSurfaceArea)], id: "HVACDistribution1"]'],
@@ -332,6 +336,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['invalid-assembly-effective-rvalue'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.walls[0].insulation_assembly_r_value = 0.0
+      elsif ['invalid-calendar-year-low'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.header.sim_calendar_year = 1575
+      elsif ['invalid-calendar-year-high'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.header.sim_calendar_year = 20000
       elsif ['invalid-duct-area-fractions'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-ducts-area-fractions.xml'))
         hpxml.hvac_distributions[0].ducts[0].duct_surface_area = nil
@@ -381,6 +391,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['invalid-shared-vent-in-unit-flowrate'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-mechvent.xml'))
         hpxml.ventilation_fans[0].rated_flow_rate = 80
+      elsif ['invalid-timezone-utcoffset-low'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.header.time_zone_utc_offset = -13
+      elsif ['invalid-timezone-utcoffset-high'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.header.time_zone_utc_offset = 15
       elsif ['invalid-window-height'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-overhangs.xml'))
         hpxml.windows[1].overhangs_distance_to_bottom_of_window = 1.0
