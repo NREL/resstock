@@ -16,6 +16,21 @@ $start_time = Time.now
 def run_workflow(yml, n_threads, measures_only)
   cfg = YAML.load_file(yml)
 
+  thisdir = File.dirname(__FILE__)
+
+  buildstock_directory = cfg['buildstock_directory']
+  project_directory = cfg['project_directory']
+  output_directory = cfg['output_directory']
+  n_datapoints = cfg['sampler']['args']['n_datapoints']
+
+  results_dir = File.absolute_path(File.join(thisdir, output_directory))
+  fail "Output directory #{output_directory} already exists." if File.exist?(results_dir)
+
+  Dir.mkdir(results_dir)
+
+  osw_dir = File.join(results_dir, 'osw')
+  Dir.mkdir(osw_dir)
+
   upgrade_names = ['Baseline']
   if cfg.keys.include?('upgrades')
     cfg['upgrades'].each do |upgrade|
@@ -24,9 +39,10 @@ def run_workflow(yml, n_threads, measures_only)
   end
 
   osw_paths = {}
-  thisdir = File.dirname(__FILE__)
-
   upgrade_names.each_with_index do |upgrade_name, upgrade_idx|
+    scenario_dir = File.join(results_dir, 'osw', upgrade_name)
+    Dir.mkdir(scenario_dir)
+
     workflow_args = {
       'residential_simulation_controls' => {},
       'simulation_output' => {}
@@ -129,16 +145,6 @@ def run_workflow(yml, n_threads, measures_only)
     end
   end
 
-  buildstock_directory = cfg['buildstock_directory']
-  project_directory = cfg['project_directory']
-  output_directory = cfg['output_directory']
-  n_datapoints = cfg['sampler']['args']['n_datapoints']
-
-  results_dir = File.absolute_path(File.join(thisdir, output_directory))
-  fail "Output directory #{output_directory} already exists." if File.exist?(results_dir)
-
-  Dir.mkdir(results_dir)
-
   # Create lib folder
   lib_dir = File.join(thisdir, '..', 'lib')
   resources_dir = File.join(thisdir, '..', 'resources')
@@ -177,13 +183,29 @@ def run_workflow(yml, n_threads, measures_only)
   outfile = File.join('..', 'lib', 'housing_characteristics', 'buildstock.csv')
   create_buildstock_csv(project_directory, n_datapoints, outfile)
 
+  workflow_and_building_ids = []
+  osw_paths.each do |upgrade_name, osw_path|
+    (1..n_datapoints).to_a.each do |building_id|
+      workflow_and_building_ids << [upgrade_name, osw_path, building_id]
+    end
+  end
+
   all_results_characteristics = []
   all_results_output = []
   all_cli_output = []
-  osw_paths.each do |upgrade_name, osw_path|
-    samples_osw(results_dir, osw_path, upgrade_name, n_datapoints, n_threads, all_results_characteristics, all_results_output, all_cli_output, measures_only)
 
-    change_building_id(osw_path, 1)
+  Parallel.map(workflow_and_building_ids, in_threads: n_threads) do |upgrade_name, workflow, building_id|
+    job_id = Parallel.worker_number + 1
+
+    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_characteristics, all_results_output, all_cli_output, measures_only)
+
+    info = "[Parallel(n_jobs=#{n_threads})]: "
+    max_size = "#{workflow_and_building_ids.size}".size
+    info += "%#{max_size}s" % "#{all_results_output.size}"
+    info += " / #{workflow_and_building_ids.size}"
+    info += ' | elapsed: '
+    info += '%8s' % "#{get_elapsed_time(Time.now, $start_time)}"
+    puts info
   end
 
   puts
@@ -203,10 +225,10 @@ end
 def create_buildstock_csv(project_dir, num_samples, outfile)
   r = RunSampling.new
   r.run(project_dir, num_samples, outfile)
-  puts "Sampling took: #{get_elapsed(Time.now, $start_time)}."
+  puts "Sampling took: #{get_elapsed_time(Time.now, $start_time)}."
 end
 
-def get_elapsed(t1, t0)
+def get_elapsed_time(t1, t0)
   s = t1 - t0
   if s > 60 # min
     t = "#{(s / 60).round(1)}min"
@@ -218,61 +240,41 @@ def get_elapsed(t1, t0)
   return t
 end
 
-def samples_osw(results_dir, osw_path, upgrade_name, num_samples, in_threads, all_results_characteristics, all_results_output, all_cli_output, measures_only)
-  osw_dir = File.join(results_dir, 'osw')
-  Dir.mkdir(osw_dir) unless File.exist?(osw_dir)
-
+def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_characteristics, all_results_output, all_cli_output, measures_only)
   scenario_dir = File.join(results_dir, 'osw', upgrade_name)
-  Dir.mkdir(scenario_dir) unless File.exist?(scenario_dir)
 
-  workflow_and_building_ids = []
-  (1..num_samples).to_a.each do |building_id|
-    workflow_and_building_ids << [osw_path, building_id]
+  osw_basename = File.basename(workflow)
+
+  worker_folder = "run#{job_id}"
+  worker_dir = File.join(results_dir, worker_folder)
+  Dir.mkdir(worker_dir) unless File.exist?(worker_dir)
+  FileUtils.cp(workflow, worker_dir)
+  osw = File.join(worker_dir, File.basename(workflow))
+
+  change_building_id(osw, building_id)
+
+  completed_status, result_characteristics, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
+
+  osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
+
+  result_characteristics['OSW'] = osw
+  result_characteristics['job_id'] = job_id
+  result_characteristics['completed_status'] = completed_status
+
+  result_output['OSW'] = osw
+  result_output['job_id'] = job_id
+  result_output['completed_status'] = completed_status
+
+  all_results_characteristics << result_characteristics
+  all_results_output << result_output
+  all_cli_output << cli_output
+
+  run_dir = File.join(worker_dir, 'run')
+  if File.exist?(File.join(run_dir, 'measures.osw'))
+    FileUtils.mv(File.join(run_dir, 'measures.osw'), File.join(scenario_dir, "#{building_id}-measures.osw"))
   end
-
-  Parallel.map(workflow_and_building_ids, in_threads: in_threads) do |workflow, building_id|
-    job_id = Parallel.worker_number + 1
-    osw_basename = File.basename(workflow)
-
-    info = "[Parallel(n_jobs=#{in_threads})]: "
-    max_size = "#{workflow_and_building_ids.size}".size
-    info += "%#{max_size}s" % "#{workflow_and_building_ids.index([workflow, building_id]) + 1}"
-    info += " / #{workflow_and_building_ids.size}"
-    info += ' | elapsed: '
-    info += '%8s' % "#{get_elapsed(Time.now, $start_time)}"
-    puts info
-
-    worker_folder = "run#{job_id}"
-    worker_dir = File.join(results_dir, worker_folder)
-    Dir.mkdir(worker_dir) unless File.exist?(worker_dir)
-    FileUtils.cp(workflow, worker_dir)
-    osw = File.join(worker_dir, File.basename(workflow))
-
-    change_building_id(osw, building_id)
-
-    completed_status, result_characteristics, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
-
-    osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
-
-    result_characteristics['OSW'] = osw
-    result_characteristics['job_id'] = job_id
-    result_characteristics['completed_status'] = completed_status
-
-    result_output['OSW'] = osw
-    result_output['job_id'] = job_id
-    result_output['completed_status'] = completed_status
-
-    all_results_characteristics << result_characteristics
-    all_results_output << result_output
-    all_cli_output << cli_output
-
-    run_dir = File.join(worker_dir, 'run')
-    if File.exist?(File.join(run_dir, 'measures.osw'))
-      FileUtils.mv(File.join(run_dir, 'measures.osw'), File.join(scenario_dir, "#{building_id}-measures.osw"))
-    end
-    if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
-      FileUtils.mv(File.join(run_dir, 'measures-upgrade.osw'), File.join(scenario_dir, "#{building_id}-measures-upgrade.osw")) if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
-    end
+  if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
+    FileUtils.mv(File.join(run_dir, 'measures-upgrade.osw'), File.join(scenario_dir, "#{building_id}-measures-upgrade.osw")) if File.exist?(File.join(run_dir, 'measures-upgrade.osw'))
   end
 end
 
@@ -329,22 +331,25 @@ OptionParser.new do |opts|
     exit!
   end
 
+  options[:version] = false
   opts.on_tail('-v', '--version', 'Display version') do
+    options[:version] = true
     puts "#{Version.software_program_used} v#{Version.software_program_version}"
-    exit!
   end
 end.parse!
 
-if not options[:yml]
-  fail "YML argument is required. Call #{File.basename(__FILE__)} -h for usage."
+if not options[:version]
+  if not options[:yml]
+    fail "YML argument is required. Call #{File.basename(__FILE__)} -h for usage."
+  end
+
+  # Run analysis
+  puts "YML: #{options[:yml]}"
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only])
+
+  if not success
+    exit! 1
+  end
+
+  puts "\nCompleted in #{get_elapsed_time(Time.now, $start_time)}."
 end
-
-# Run analysis
-puts "YML: #{options[:yml]}"
-success = run_workflow(options[:yml], options[:threads], options[:measures_only])
-
-if not success
-  exit! 1
-end
-
-puts "\nCompleted in #{get_elapsed(Time.now, $start_time)}."
