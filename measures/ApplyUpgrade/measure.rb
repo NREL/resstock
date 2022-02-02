@@ -259,7 +259,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         # Print this option assignment
         print_option_assignment(parameter_name, option_name, runner)
 
-        # Register cost values/multipliers/lifetime for applied options; used by the ReportSimulationOutput measure
+        # Register cost names/values/multipliers/lifetime for applied options; used by the UpgradeCosts measure
         register_value(runner, 'option_%02d_name_applied' % option_num, option)
         for cost_num in 1..num_costs_per_option
           cost_value = runner.getOptionalDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value", user_arguments)
@@ -381,6 +381,17 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['simulation_control_run_period'] = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
     end
     measures['BuildResidentialHPXML'][0]['simulation_control_run_period_calendar_year'] = values['simulation_control_run_period_calendar_year']
+
+    # Emissions
+    measures['BuildResidentialHPXML'][0]['emissions_scenario_names'] = values['emissions_scenario_names']
+    measures['BuildResidentialHPXML'][0]['emissions_types'] = values['emissions_types']
+    measures['BuildResidentialHPXML'][0]['emissions_electricity_units'] = values['emissions_electricity_units']
+    measures['BuildResidentialHPXML'][0]['emissions_electricity_values_or_filepaths'] = values['emissions_electricity_values_or_filepaths']
+    measures['BuildResidentialHPXML'][0]['emissions_fossil_fuel_units'] = values['emissions_fossil_fuel_units']
+    measures['BuildResidentialHPXML'][0]['emissions_natural_gas_values'] = values['emissions_natural_gas_values']
+    measures['BuildResidentialHPXML'][0]['emissions_propane_values'] = values['emissions_propane_values']
+    measures['BuildResidentialHPXML'][0]['emissions_fuel_oil_values'] = values['emissions_fuel_oil_values']
+    measures['BuildResidentialHPXML'][0]['emissions_wood_values'] = values['emissions_wood_values']
 
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
