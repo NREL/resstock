@@ -36,7 +36,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'results_output.csv')))
 
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1-measures.osw')))
-    assert(!File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1-measures.osw')))
+    assert(!File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1-measures-upgrade.osw')))
 
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'data_point_out.json')))
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'enduse_timeseries.csv')))
@@ -54,7 +54,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_baseline, 'results_output.csv')))
 
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1-measures.osw')))
-    assert(!File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1-measures.osw')))
+    assert(!File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1-measures-upgrade.osw')))
 
     assert(File.exist?(File.join(@national_baseline, 'run1', 'run', 'data_point_out.json')))
     assert(File.exist?(File.join(@national_baseline, 'run1', 'run', 'enduse_timeseries.csv')))
