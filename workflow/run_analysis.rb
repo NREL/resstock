@@ -139,20 +139,20 @@ def run_workflow(yml, n_threads, measures_only)
 
     base, ext = File.basename(yml).split('.')
 
-    osw_paths[upgrade_name] = File.join(thisdir, "#{base}-#{upgrade_name}.osw")
+    osw_paths[upgrade_name] = File.join(results_dir, "#{base}-#{upgrade_name}.osw")
     File.open(osw_paths[upgrade_name], 'w') do |f|
       f.write(JSON.pretty_generate(osw))
     end
   end
 
   # Create lib folder
-  lib_dir = File.join(thisdir, '..', 'lib')
-  resources_dir = File.join(thisdir, '..', 'resources')
+  lib_dir = File.join(thisdir, '../lib')
+  resources_dir = File.join(thisdir, '../resources')
   housing_characteristics_dir = File.join(File.dirname(yml), 'housing_characteristics')
   create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
 
   # Create weather folder
-  weather_dir = File.join(thisdir, '..', 'weather')
+  weather_dir = File.join(thisdir, '../weather')
   if !File.exist?(weather_dir)
     Dir.mkdir(weather_dir)
 
@@ -180,7 +180,7 @@ def run_workflow(yml, n_threads, measures_only)
   end
 
   # Create buildstock.csv
-  outfile = File.join('..', 'lib', 'housing_characteristics', 'buildstock.csv')
+  outfile = File.join('../lib/housing_characteristics/buildstock.csv')
   create_buildstock_csv(project_directory, n_datapoints, outfile)
 
   workflow_and_building_ids = []
@@ -213,11 +213,14 @@ def run_workflow(yml, n_threads, measures_only)
   results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
   IO.write(File.join(results_dir, 'cli_output.log'), all_cli_output.join('\n'))
 
+  FileUtils.rm_rf(lib_dir)
+
   return true
 end
 
 def create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
-  Dir.mkdir(lib_dir) unless File.exist?(lib_dir)
+  FileUtils.rm_rf(lib_dir)
+  Dir.mkdir(lib_dir)
   FileUtils.cp_r(resources_dir, lib_dir)
   FileUtils.cp_r(housing_characteristics_dir, lib_dir)
 end

@@ -457,7 +457,7 @@ class RunOSWs
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
 
-    return completed_status, result_characteristics, result_output if measures_only || !File.exist?(data_point_out)
+    return completed_status, result_characteristics, result_output, cli_output if measures_only || !File.exist?(data_point_out)
 
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     if rows.keys.include? 'BuildExistingModel'
