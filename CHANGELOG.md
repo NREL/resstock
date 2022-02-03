@@ -2,15 +2,15 @@
 
 Features
 - Update to OpenStudio v3.3.0 ([#604](https://github.com/NREL/resstock/pull/604))
-- Model multifamily and single-family attached buildings as individual dwelling units ([#439](https://github.com/NREL/resstock/pull/439))
-- Reduce vacant unit heating setpoints to 55F ([#541](https://github.com/NREL/resstock/pull/541))
+- Model multifamily and single-family attached buildings as individual dwelling units instead of multiple units representing a building ([#439](https://github.com/NREL/resstock/pull/439))
+- Reduce vacant unit heating setpoints to 55ºF ([#541](https://github.com/NREL/resstock/pull/541))
 - Introduce a CEC Building Climate Zone tag for samples in California ([#548](https://github.com/NREL/resstock/pull/548))
 - Increase LED saturation to approximately 2019 levels ([#545](https://github.com/NREL/resstock/pull/545))
 - Introduce GEB capabilities for water heaters, including the ability to schedule setpoint and HPWH operating mode ([#483](https://github.com/NREL/resstock/pull/483))
-- Include HVAC cooling type as a dependency to cooling setpoint ([#551](https://github.com/NREL/resstock/pull/551))
+- Introduce different cooling setpoint distributions for window ACs ([#551](https://github.com/NREL/resstock/pull/551))
 - Include electric zonal heating equipment as a dependency in heating setpoint-related tsvs ([#549](https://github.com/NREL/resstock/pull/549))
 - Geo-temporal shifting of the stochastic load model schedules using the American Time Use Survey ([#550](https://github.com/NREL/resstock/pull/550))
-- Switch data source for `geometry wall type.tsv` from RECS 2009 to Lightbox ([#561](https://github.com/NREL/resstock/pull/561))
+- Switch data source for `geometry wall type.tsv` from RECS 2009 to Homeland Infrastructure Foundation-Level Data (HIFLD) Parcel data ([#561](https://github.com/NREL/resstock/pull/561))
 - Use Schedule:File with well pump / vehicle plug loads, as well as gas grill / fireplace / lighting fuel loads. This enables the optional vacancy period to apply to these end uses ([#566](https://github.com/NREL/resstock/pull/556))
 - Update example project yaml files to use buildstockbatch input schema version 0.3 ([#583](https://github.com/NREL/resstock/pull/583))
 - Update default daylight saving start and end dates to March 12 and November 5, respectively ([#585](https://github.com/NREL/resstock/pull/585))
@@ -52,8 +52,8 @@ Fixes
 - Exclude adiabatic doors when outputting the door area cost multiplier ([#674](https://github.com/NREL/resstock/pull/674))
 - Disaggregate the shared fan coil's fan energy use into heating and cooling ([#694](https://github.com/NREL/resstock/pull/694))
 - Fixes hours setpoint not met output to exclude A) no heating and/or cooling equipment and B) finished basements ([#700](https://github.com/NREL/resstock/pull/700))
-- Revert fix to make all Brick >1960 to Wood Frame + Brick facade ([#759](https://github.com/NREL/resstock/pull/759))
-- Fixes for wall constructions - remove sheathing on CMU and brick walls, better data for exterior finish absorptances and wall densities ([#789](https://github.com/NREL/resstock/pull/789))
+- Revert wall type constraint that assumes all brick facades built >1960 are wood-framed with 4" face brick. Also add constraint to force all buildings > 8 stories to have steel-framed wall type ([#759](https://github.com/NREL/resstock/pull/759))
+- Fixes for wall constructions: remove wood sheathing on CMU and brick walls; better data for exterior finish absorptances and wall densities ([#789](https://github.com/NREL/resstock/pull/789))
 - Fixes unit conversion bugs in solar hot water model ([#809](https://github.com/NREL/resstock/pull/809))
 
 ## ResStock v2.4.0
