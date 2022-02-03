@@ -54,7 +54,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_baseline, 'results_output.csv')))
 
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
-    assert(!File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
+    assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
 
     assert(File.exist?(File.join(@national_baseline, 'run1', 'run', 'data_point_out.json')))
     assert(File.exist?(File.join(@national_baseline, 'run1', 'run', 'results_timeseries.csv')))
