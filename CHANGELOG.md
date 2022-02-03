@@ -55,6 +55,7 @@ Fixes
 - Revert fix to make all Brick >1960 to Wood Frame + Brick facade ([#759](https://github.com/NREL/resstock/pull/759))
 - Fixes for wall constructions - remove sheathing on CMU and brick walls, better data for exterior finish absorptances and wall densities ([#789](https://github.com/NREL/resstock/pull/789))
 - Fixes unit conversion bugs in solar hot water model ([#809](https://github.com/NREL/resstock/pull/809))
+- Update the number of units represented in the national project YAML files to the American Community Survey 2019 5-year estimate ([#821](https://github.com/NREL/resstock/pull/821))
 
 ## ResStock v2.4.0
 
