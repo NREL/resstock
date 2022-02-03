@@ -32,6 +32,7 @@ Features
 - Add PV ownership and PV system size distributions using 2019 Tracking the Sun and GTM report on solar installation. ([#673](https://github.com/NREL/resstock/pull/673))
 - Add optional argument to ResidentialLocation measure for setting the IECC climate zone ([#755](https://github.com/NREL/resstock/pull/764))
 - Add Geometry Story Bin tsv and Geometry Story Bin dep to Geometry Wall Type. ([#759](https://github.com/NREL/resstock/pull/759))
+- Add arguments to the ServerDirectoryCleanup measure for controlling deletion of files in the run folder. ([#661](https://github.com/NREL/resstock/pull/661), [#818](https://github.com/NREL/resstock/pull/818))
 
 Fixes
 - Fixes significant runtime bottleneck in TSV fetching in BuildExistingModel & ApplyUpgrade measures ([#543](https://github.com/NREL/resstock/pull/543))
@@ -53,7 +54,7 @@ Fixes
 - Fixes hours setpoint not met output to exclude A) no heating and/or cooling equipment and B) finished basements ([#700](https://github.com/NREL/resstock/pull/700))
 - Revert fix to make all Brick >1960 to Wood Frame + Brick facade ([#759](https://github.com/NREL/resstock/pull/759))
 - Fixes for wall constructions - remove sheathing on CMU and brick walls, better data for exterior finish absorptances and wall densities ([#789](https://github.com/NREL/resstock/pull/789))
-- Fixes unit conversion bugs in solar hot water model  ([#809](https://github.com/NREL/resstock/pull/809))
+- Fixes unit conversion bugs in solar hot water model ([#809](https://github.com/NREL/resstock/pull/809))
 
 ## ResStock v2.4.0
 
@@ -202,7 +203,7 @@ Features
 - Add new ResidentialDemandResponse measure that allows for 8760 DR schedules to be applied to heating/cooling schedules ([#276](https://github.com/NREL/resstock/pull/276))
 - Additional options for HVAC, dehumidifier, clothes washer, misc loads, infiltration, etc. ([#264](https://github.com/NREL/resstock/pull/264), [#278](https://github.com/NREL/resstock/pull/278), [#292](https://github.com/NREL/resstock/pull/292))
 - Add EV options and update ResidentialMiscLargeUncommonLoads measure with new electric vehicle argument ([#282](https://github.com/NREL/resstock/pull/282))
-- Update ResidentialSimulation Controls measure to include a calendar year argument for controlling the simulation start day of week ([#287](https://github.com/NREL/resstock/pull/287))
+- Update ResidentialSimulationControls measure to include a calendar year argument for controlling the simulation start day of week ([#287](https://github.com/NREL/resstock/pull/287))
 - Increase number of possible upgrade options from 10 to 25 ([#273](https://github.com/NREL/resstock/pull/273), [#293](https://github.com/NREL/resstock/pull/293))
 - Additional "max-tech" options for slab, wall, refrigerator, dishwasher, clothes washer, and lighting ([#296](https://github.com/NREL/resstock/pull/296))
 - Add references to ResStock trademark in both the license and readme files ([#302](https://github.com/NREL/resstock/pull/302))

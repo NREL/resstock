@@ -38,15 +38,33 @@ jobs:
         run: |
           rake unit_tests:measure_tests
 
-      - name: Run all analysis tests
-        run: |
-          rake workflow:analysis_tests
-
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
         with:
           path: resources/buildstock.csv
           name: samples
+
+  analysis-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://nrel/openstudio:3.3.0
+    steps:
+      - name: Show environment
+        run: |
+          bundle -v
+          ruby -v
+
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install gems
+        run: |
+          rm -f Gemfile.lock && bundle install
+
+      - name: Run run_analysis.rb
+        run: |
+          rake workflow:analysis_tests
 
   integration-tests:
     runs-on: ubuntu-latest
@@ -112,7 +130,7 @@ jobs:
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests]
+    needs: [unit-tests, analysis-tests, integration-tests]
     steps:
       - name: Show environment
         run: |
@@ -206,7 +224,7 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests]
+    needs: [unit-tests, analysis-tests, integration-tests]
     steps:
       - uses: actions/checkout@v2
         with:

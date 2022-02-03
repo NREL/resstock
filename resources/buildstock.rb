@@ -436,7 +436,9 @@ class RunOSWs
     command += ' -m' if measures_only
     command += " -w \"#{in_osw}\""
 
-    system(command)
+    cli_output = in_osw
+    cli_output += '\n'
+    cli_output += `#{command}`
 
     result_characteristics = {}
     result_output = {}
@@ -447,7 +449,7 @@ class RunOSWs
 
     results = File.join(parent_dir, 'run/results.json')
 
-    return completed_status, result_characteristics, result_output if measures_only || !File.exist?(results)
+    return completed_status, result_characteristics, result_output, cli_output if measures_only || !File.exist?(results)
 
     rows = {}
     old_rows = JSON.parse(File.read(File.expand_path(results)))
@@ -464,7 +466,7 @@ class RunOSWs
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
     result_output = get_measure_results(rows, result_output, 'QOIReport')
 
-    return completed_status, result_characteristics, result_output
+    return completed_status, result_characteristics, result_output, cli_output
   end
 
   def self.get_measure_results(rows, result, measure)
@@ -490,6 +492,8 @@ class RunOSWs
       end
     end
     column_headers = column_headers.sort
+    column_headers.delete('job_id')
+    column_headers.insert(1, 'job_id')
 
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
@@ -502,7 +506,7 @@ class RunOSWs
       end
     end
 
-    puts "\nWrote: #{csv_out}\n"
+    puts "Wrote: #{csv_out}"
     return csv_out
   end
 
