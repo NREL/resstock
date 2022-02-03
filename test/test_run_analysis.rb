@@ -40,8 +40,8 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'data_point_out.json')))
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'enduse_timeseries.csv')))
-    assert(!File.exist?(File.join(@testing_baseline, 'run1', 'run', 'in.idf')))
-    assert(!File.exist?(File.join(@testing_baseline, 'run1', 'run', 'schedules.csv')))
+    assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'in.idf')))
+    assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'schedules.csv')))
   end
 
   def test_national_baseline
@@ -79,8 +79,8 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'data_point_out.json')))
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'enduse_timeseries.csv')))
-    assert(!File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'in.idf')))
-    assert(!File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'schedules.csv')))
+    assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'in.idf')))
+    assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'schedules.csv')))
   end
 
   def test_national_upgrades
