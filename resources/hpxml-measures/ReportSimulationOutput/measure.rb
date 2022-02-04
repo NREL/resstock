@@ -815,7 +815,15 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         key = [scenario.emissions_type, scenario.name]
         if not scenario.elec_schedule_filepath.nil?
           # Obtain Cambium hourly factors for the simulation run period
-          hourly_elec_factors = File.readlines(scenario.elec_schedule_filepath).map(&:strip).map { |x| Float(x) }
+          num_header_rows = scenario.elec_schedule_number_of_header_rows
+          col_index = scenario.elec_schedule_column_number - 1
+          data = File.readlines(scenario.elec_schedule_filepath)[num_header_rows, 8760]
+          hourly_elec_factors = data.map { |x| x.split(',')[col_index].strip }
+          begin
+            hourly_elec_factors = hourly_elec_factors.map { |x| Float(x) }
+          rescue
+            fail 'Emissions File has non-numeric values.'
+          end
         elsif not scenario.elec_value.nil?
           # Use annual value for all hours
           hourly_elec_factors = [scenario.elec_value] * 8760

@@ -218,7 +218,12 @@ One or more emissions scenarios can be entered as an ``/HPXML/SoftwareInfo/exten
   .. [#] EmissionsType can be anything. But if certain values are provided (e.g., "CO2"), then some emissions factors can be defaulted as described further below.
   .. [#] EmissionsFactor is required for electricity and optional for all non-electric fuel types.
 
-For each scenario, **electricity** emissions factors must be entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
+See :ref:`annual_outputs` and :ref:`timeseries_outputs` for descriptions of how the calculated emissions appear in the output files.
+
+Electricity Emissions
+~~~~~~~~~~~~~~~~~~~~~
+
+For each scenario, electricity emissions factors must be entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
 
   =================================  ================  =====  ===========  ========  ========  ============================================================
   Element                            Type              Units  Constraints  Required  Default   Notes
@@ -229,10 +234,22 @@ For each scenario, **electricity** emissions factors must be entered as an ``/HP
   =================================  ================  =====  ===========  ========  ========  ============================================================
 
   .. [#] Units choices are "lb/MWh" and "kg/MWh".
-  .. [#] ScheduleFilePath must point to a file with a single column of 8760 numeric hourly values.
-         NREL's `Cambium data sets <https://www.nrel.gov/analysis/cambium.html>`_ are typically used, but OpenStudio-HPXML can accommodate alternative data sets as well.
+  .. [#] ScheduleFilePath must point to a CSV file with 8760 numeric hourly values.
+         Sources of electricity emissions data include `NREL's Cambium database <https://www.nrel.gov/analysis/cambium.html>`_ and `EPA's eGRID <https://www.epa.gov/egrid>`_.
 
-For each scenario, **fuel** emissions factors can be optionally entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
+If an electricity schedule file is used, additional information can be entered in the ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
+
+  =================================  ================  =====  ===========  ========  ========  ============================================================
+  Element                            Type              Units  Constraints  Required  Default   Notes
+  =================================  ================  =====  ===========  ========  ========  ============================================================
+  ``NumberofHeaderRows``             integer           #      >= 0         No        0         Number of header rows in the schedule file
+  ``ColumnNumber``                   integer           #      >= 1         No        1         Column number of the data in the schedule file
+  =================================  ================  =====  ===========  ========  ========  ============================================================
+
+Fuel Emissions
+~~~~~~~~~~~~~~
+
+For each scenario, fuel emissions factors can be optionally entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
 
   ================================  ========  =====  ===========  ========  ========  ============================================================
   Element                           Type      Units  Constraints  Required  Default   Notes
@@ -244,6 +261,9 @@ For each scenario, **fuel** emissions factors can be optionally entered as an ``
 
   .. [#] FuelType choices are "natural gas", "propane", "fuel oil", "coal", "wood", and "wood pellets".
   .. [#] Units choices are "lb/MBtu" and "kg/MBtu".
+
+Default Values
+~~~~~~~~~~~~~~
 
 If EmissionsType is "CO2", "NOx" or "SO2" and a given fuel's emissions factor is not entered, they will be defaulted as follows.
 Values are based on `EPA data <https://www.epa.gov/air-emissions-factors-and-quantification/ap-42-fifth-edition-volume-i-chapter-1-external-0>`_ and `EIA data <https://www.eia.gov/environment/emissions/co2_vol_mass.php>`_.
@@ -259,8 +279,6 @@ If no default value is available, a warning will be issued.
   wood          --             --             --
   wood pellets  --             --             --
   ============  =============  =============  =============
-
-See :ref:`annual_outputs` and :ref:`timeseries_outputs` for descriptions of how the calculated emissions appear in the output files.
 
 .. _buildingsite:
 
@@ -1356,7 +1374,7 @@ If a backup type of "separate" is provided, additional information is entered in
   ``BackupHeatingSwitchoverTemperature``  double    F                    No        <none>     Separate backup heating system switchover temperature [#]_
   ======================================  ========  ======  ===========  ========  =========  ==========================================
   
-  .. [#] HeatingSystem must be of type ``ElectricResistance``, ``WallFurnace``, ``FloorFurnace``, ``Boiler``, ``Stove``, ``PortableHeater``, ``FixedHeater``, or ``Fireplace``.
+  .. [#] BackupSystem must reference a ``HeatingSystem``.
   .. [#] Provide BackupHeatingSwitchoverTemperature for a situation in which there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
          If not provided, the backup heating system will operate as needed for hours when the heat pump has insufficient capacity.
 
@@ -2019,7 +2037,7 @@ If a combination boiler w/ storage tank (sometimes referred to as an indirect wa
   ``StandbyLoss``                                double   F/hr          > 0          No            See [#]_  Storage tank standby losses
   =============================================  =======  ============  ===========  ============  ========  ==================================================
 
-  .. [#] RelatedHVACSystem must reference a ``HeatingSystem`` of type Boiler.
+  .. [#] RelatedHVACSystem must reference a ``HeatingSystem`` (Boiler).
   .. [#] If StandbyLoss not provided, defaults based on a regression analysis of `AHRI Directory of Certified Product Performance <https://www.ahridirectory.org>`_.
 
 Combi Boiler w/ Tankless Coil
@@ -2296,7 +2314,7 @@ If not entered, the simulation will not include batteries.
   ====================================================  =======  =========  ===========  ========  ========  ============================================
 
   .. [#] Location choices are "living space", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic - vented", "attic - unvented", "garage", or "outside".
-  .. [#] BatteryType choices are "Li-ion".
+  .. [#] BatteryType only choice is "Li-ion".
   .. [#] NominalCapacity is defaulted to 10 kWh if RatedPowerOutput is not specified; otherwise it is calculated as (RatedPowerOutput / 1000) / 0.5.
   .. [#] RatedPowerOutput is defaulted to 5000 W if NominalCapacity is not specified; otherwise it is calculated as NominalCapacity * 1000 * 0.5.
   .. [#] LifetimeModel choices are "None" or "KandlerSmith".

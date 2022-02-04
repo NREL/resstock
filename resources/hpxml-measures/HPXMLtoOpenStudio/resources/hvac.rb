@@ -4045,7 +4045,7 @@ class HVAC
     return true
   end
 
-  def self.get_hpxml_hvac_systems(hpxml, exclude_hp_backup_systems: false)
+  def self.get_hpxml_hvac_systems(hpxml)
     # Returns a list of heating/cooling systems, incorporating whether
     # multiple systems are connected to the same distribution system
     # (e.g., a furnace + central air conditioner w/ the same ducts).
@@ -4063,9 +4063,6 @@ class HVAC
     hpxml.heating_systems.each do |heating_system|
       if is_attached_heating_and_cooling_systems(hpxml, heating_system, heating_system.attached_cooling_system)
         next # Already processed with cooling
-      end
-      if exclude_hp_backup_systems && heating_system.is_heat_pump_backup_system
-        next
       end
 
       hvac_systems << { cooling: nil,
