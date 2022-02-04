@@ -2069,7 +2069,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def test_batteries
     # Test inputs not overridden by defaults
-    hpxml = _create_hpxml('base-pv-battery-outside.xml')
+    hpxml = _create_hpxml('base-pv-battery.xml')
     hpxml.batteries[0].nominal_capacity_kwh = 45.0
     hpxml.batteries[0].nominal_capacity_ah = nil
     hpxml.batteries[0].rated_power_output = 1234.0

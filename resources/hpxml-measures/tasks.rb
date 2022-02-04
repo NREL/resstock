@@ -56,7 +56,7 @@ def create_hpxmls
     'base-atticroof-radiant-barrier.xml' => 'base-location-dallas-tx.xml',
     'base-atticroof-unvented-insulated-roof.xml' => 'base.xml',
     'base-atticroof-vented.xml' => 'base.xml',
-    'base-battery-outside.xml' => 'base.xml',
+    'base-battery.xml' => 'base.xml',
     'base-bldgtype-multifamily.xml' => 'base.xml',
     'base-bldgtype-multifamily-adjacent-to-multifamily-buffer-space.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-adjacent-to-multiple.xml' => 'base-bldgtype-multifamily.xml',
@@ -190,6 +190,7 @@ def create_hpxmls
     'base-hvac-air-to-air-heat-pump-var-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler-switchover-temperature.xml' => 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml',
+    'base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml' => 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml',
     'base-hvac-autosize.xml' => 'base.xml',
     'base-hvac-autosize-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-autosize-air-to-air-heat-pump-1-speed-cooling-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml',
@@ -200,6 +201,7 @@ def create_hpxmls
     'base-hvac-autosize-air-to-air-heat-pump-var-speed.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-autosize-air-to-air-heat-pump-var-speed-manual-s-oversize-allowances.xml' => 'base-hvac-autosize-air-to-air-heat-pump-var-speed.xml',
     'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-boiler.xml' => 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-furnace.xml' => 'base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml',
     'base-hvac-autosize-boiler-elec-only.xml' => 'base-hvac-boiler-elec-only.xml',
     'base-hvac-autosize-boiler-gas-central-ac-1-speed.xml' => 'base-hvac-boiler-gas-central-ac-1-speed.xml',
     'base-hvac-autosize-boiler-gas-only.xml' => 'base-hvac-boiler-gas-only.xml',
@@ -337,7 +339,7 @@ def create_hpxmls
     'base-mechvent-supply.xml' => 'base.xml',
     'base-mechvent-whole-house-fan.xml' => 'base.xml',
     'base-misc-defaults.xml' => 'base.xml',
-    'base-misc-emissions.xml' => 'base-pv-battery-outside.xml',
+    'base-misc-emissions.xml' => 'base-pv-battery.xml',
     'base-misc-generators.xml' => 'base.xml',
     'base-misc-loads-large-uncommon.xml' => 'base-schedules-simple.xml',
     'base-misc-loads-large-uncommon2.xml' => 'base-misc-loads-large-uncommon.xml',
@@ -347,9 +349,9 @@ def create_hpxmls
     'base-misc-usage-multiplier.xml' => 'base.xml',
     'base-multiple-buildings.xml' => 'base.xml',
     'base-pv.xml' => 'base.xml',
-    'base-pv-battery-ah.xml' => 'base-pv-battery-outside.xml',
-    'base-pv-battery-outside.xml' => 'base-battery-outside.xml',
-    'base-pv-battery-outside-degrades.xml' => 'base-pv-battery-outside.xml',
+    'base-pv-battery.xml' => 'base-battery.xml',
+    'base-pv-battery-ah.xml' => 'base-pv-battery.xml',
+    'base-pv-battery-lifetime-model.xml' => 'base-pv-battery.xml',
     'base-pv-battery-garage.xml' => 'base-enclosure-garage.xml',
     'base-schedules-simple.xml' => 'base.xml',
     'base-schedules-detailed-smooth.xml' => 'base.xml',
@@ -399,7 +401,7 @@ def create_hpxmls
       # Apply measure
       success = apply_measures(measures_dir, measures, runner, model)
 
-      # Report warnings/errors
+      # Report errors
       runner.result.stepErrors.each do |s|
         puts "Error: #{s}"
       end
@@ -442,19 +444,6 @@ def create_hpxmls
 
       XMLHelper.write_file(hpxml_doc, hpxml_path)
       hpxml_docs[File.basename(hpxml_file)] = deep_copy_object(hpxml_doc)
-
-      # Validate file against HPXML schema
-      schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), 'HPXMLtoOpenStudio/resources/hpxml_schema'))
-      errors = XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), nil)
-      if errors.size > 0
-        fail "ERRORS: #{errors}"
-      end
-
-      # Check for errors
-      errors = hpxml.check_for_errors()
-      if errors.size > 0
-        fail "ERRORS: #{errors}"
-      end
     rescue Exception => e
       puts "\n#{e}\n#{e.backtrace.join('\n')}"
       puts "\nError: Did not successfully generate #{hpxml_file}."
@@ -494,6 +483,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   else
     args['hpxml_path'] = "../workflow/sample_files/#{hpxml_file}"
   end
+  args['apply_validation'] = true
 
   if ['base.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 60
@@ -2356,11 +2346,11 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   end
 
   # Battery
-  if ['base-battery-outside.xml'].include? hpxml_file
+  if ['base-battery.xml'].include? hpxml_file
     args['battery_location'] = HPXML::LocationOutside
     args['battery_power'] = '15000'
     args['battery_capacity'] = '20'
-  elsif ['base-pv-battery-outside.xml'].include? hpxml_file
+  elsif ['base-pv-battery.xml'].include? hpxml_file
     args['pv_system_module_type'] = HPXML::PVModuleTypeStandard
     args['pv_system_location'] = HPXML::LocationRoof
     args['pv_system_tracking'] = HPXML::PVTrackingTypeFixed
@@ -4010,6 +4000,17 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                             fraction_served: 0.25,
                             location: HPXML::LocationLivingSpace)
   end
+  if ['base-hvac-air-to-air-heat-pump-var-speed-backup-furnace.xml',
+      'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-furnace.xml'].include? hpxml_file
+    # Switch backup boiler with hydronic distribution to backup furnace with air distribution
+    hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeFurnace
+    hpxml.hvac_distributions[0].distribution_system_type = HPXML::HVACDistributionTypeAir
+    hpxml.hvac_distributions[0].air_type = HPXML::AirTypeRegularVelocity
+    hpxml.hvac_distributions[0].duct_leakage_measurements << hpxml.hvac_distributions[1].duct_leakage_measurements[0].dup
+    hpxml.hvac_distributions[0].duct_leakage_measurements << hpxml.hvac_distributions[1].duct_leakage_measurements[1].dup
+    hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[1].ducts[0].dup
+    hpxml.hvac_distributions[0].ducts << hpxml.hvac_distributions[1].ducts[1].dup
+  end
 
   # ------------------ #
   # HPXML WaterHeating #
@@ -4297,7 +4298,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
   # HPXML Battery #
   # ------------- #
 
-  if ['base-pv-battery-outside-degrades.xml'].include? hpxml_file
+  if ['base-pv-battery-lifetime-model.xml'].include? hpxml_file
     hpxml.batteries[0].lifetime_model = HPXML::BatteryLifetimeModelKandlerSmith
   elsif ['base-pv-battery-ah.xml'].include? hpxml_file
     default_voltage = Battery.get_battery_default_values()[:nominal_voltage]

@@ -57,9 +57,9 @@ class HPXMLtoOpenStudioBatteryTest < MiniTest::Test
     end
   end
 
-  def test_battery_outside
+  def test_battery
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-battery-outside.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-battery.xml'))
     model, hpxml = _test_measure(args_hash)
 
     hpxml.batteries.each do |hpxml_battery|
@@ -72,9 +72,9 @@ class HPXMLtoOpenStudioBatteryTest < MiniTest::Test
     assert_equal(0, elcds.size)
   end
 
-  def test_pv_battery_outside
+  def test_pv_battery
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-pv-battery-outside.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-pv-battery.xml'))
     model, hpxml = _test_measure(args_hash)
 
     hpxml.batteries.each do |hpxml_battery|
@@ -104,9 +104,9 @@ class HPXMLtoOpenStudioBatteryTest < MiniTest::Test
     end
   end
 
-  def test_pv_battery_outside_degrades
+  def test_pv_battery_lifetime_model
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-pv-battery-outside-degrades.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-pv-battery-lifetime-model.xml'))
     model, hpxml = _test_measure(args_hash)
 
     hpxml.batteries.each do |hpxml_battery|

@@ -529,7 +529,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
       # Create HPXML object
       if ['battery-pv-output-power-low'].include? warning_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-pv-battery-outside.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-pv-battery.xml'))
         hpxml.batteries[0].rated_power_output = 0.1
         hpxml.pv_systems[0].max_power_output = 0.1
         hpxml.pv_systems[1].max_power_output = 0.1
@@ -629,7 +629,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'emissions-wrong-columns' => ['Emissions File has multiple columns. Must be a single column of data.'],
                             'emissions-wrong-filename' => ["Emissions File file path 'invalid-wrong-filename.csv' does not exist."],
                             'emissions-wrong-rows' => ['Emissions File has invalid number of rows (8759). Must be 8760.'],
-                            'heat-pump-backup-system-furnace' => ["Heat pump backup system cannot be of type 'Furnace'."],
                             'heat-pump-backup-system-load-fraction' => ['Heat pump backup system cannot have a fraction heat load served specified.'],
                             'hvac-distribution-multiple-attached-cooling' => ["Multiple cooling systems found attached to distribution system 'HVACDistribution2'."],
                             'hvac-distribution-multiple-attached-heating' => ["Multiple heating systems found attached to distribution system 'HVACDistribution1'."],
@@ -722,12 +721,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.emissions_scenarios[1].elec_schedule_filepath))
         File.write(@tmp_csv_path, csv_data[0..-2].map(&:to_csv).join)
         hpxml.header.emissions_scenarios[1].elec_schedule_filepath = @tmp_csv_path
-      elsif ['heat-pump-backup-system-furnace'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml'))
-        hpxml.heating_systems[0].heating_system_type = HPXML::HVACTypeFurnace
-        hpxml.hvac_distributions[0].distribution_system_type = HPXML::HVACDistributionTypeDSE
-        hpxml.hvac_distributions[0].annual_heating_dse = 0.9
-        hpxml.hvac_distributions[0].annual_cooling_dse = 0.9
       elsif ['heat-pump-backup-system-load-fraction'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml'))
         hpxml.heating_systems[0].fraction_heat_load_served = 0.5

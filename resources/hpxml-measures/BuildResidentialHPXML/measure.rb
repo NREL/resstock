@@ -204,7 +204,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('geometry_unit_num_floors_above_grade', true)
     arg.setDisplayName('Geometry: Unit Number of Floors Above Grade')
     arg.setUnits('#')
-    arg.setDescription("The number of floors above grade in the unit. Conditioned attics are included. Assumed to be 1 if #{HPXML::ResidentialTypeApartment}.")
+    arg.setDescription("The number of floors above grade in the unit. Attic type #{HPXML::AtticTypeConditioned} is included. Assumed to be 1 for #{HPXML::ResidentialTypeApartment}s.")
     arg.setDefaultValue(2)
     args << arg
 
@@ -294,39 +294,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('Right')
     args << arg
 
-    # Currently hiding these detailed and seldom used geometry inputs
-
-    # arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_inset_width', true)
-    # arg.setDisplayName('Geometry: Inset Width')
-    # arg.setUnits('ft')
-    # arg.setDescription("The width of the inset. Only applies to #{HPXML::ResidentialTypeApartment}s.")
-    # arg.setDefaultValue(0.0)
-    # args << arg
-
-    # arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_inset_depth', true)
-    # arg.setDisplayName('Geometry: Inset Depth')
-    # arg.setUnits('ft')
-    # arg.setDescription("The depth of the inset. Only applies to #{HPXML::ResidentialTypeApartment}s.")
-    # arg.setDefaultValue(0.0)
-    # args << arg
-
-    # inset_position_choices = OpenStudio::StringVector.new
-    # inset_position_choices << 'Right'
-    # inset_position_choices << 'Left'
-
-    # arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_inset_position', inset_position_choices, true)
-    # arg.setDisplayName('Geometry: Inset Position')
-    # arg.setDescription("The position of the inset. Only applies to #{HPXML::ResidentialTypeApartment}s.")
-    # arg.setDefaultValue('Right')
-    # args << arg
-
-    # arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_balcony_depth', true)
-    # arg.setDisplayName('Geometry: Balcony Depth')
-    # arg.setUnits('ft')
-    # arg.setDescription("The depth of the balcony. Only applies to #{HPXML::ResidentialTypeApartment}s.")
-    # arg.setDefaultValue(0.0)
-    # args << arg
-
     foundation_type_choices = OpenStudio::StringVector.new
     foundation_type_choices << HPXML::FoundationTypeSlab
     foundation_type_choices << HPXML::FoundationTypeCrawlspaceVented
@@ -339,7 +306,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_foundation_type', foundation_type_choices, true)
     arg.setDisplayName('Geometry: Foundation Type')
-    arg.setDescription('The foundation type of the building.')
+    arg.setDescription("The foundation type of the building. Foundation types #{HPXML::FoundationTypeBasementConditioned} and #{HPXML::FoundationTypeCrawlspaceConditioned} are not allowed for #{HPXML::ResidentialTypeApartment}s.")
     arg.setDefaultValue(HPXML::FoundationTypeSlab)
     args << arg
 
@@ -372,7 +339,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('geometry_attic_type', attic_type_choices, true)
     arg.setDisplayName('Geometry: Attic Type')
-    arg.setDescription('The attic type of the building.')
+    arg.setDescription("The attic type of the building. Attic type #{HPXML::AtticTypeConditioned} is not allowed for #{HPXML::ResidentialTypeApartment}s.")
     arg.setDefaultValue(HPXML::AtticTypeVented)
     args << arg
 
@@ -2920,6 +2887,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       args << arg
     end
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_validation', false)
+    arg.setDisplayName('Apply Validation?')
+    arg.setDescription('If true, validates the output HPXML file. Set to false for faster performance. Note that validation is not needed if the HPXML file will be validated downstream (e.g., via the HPXMLtoOpenStudio measure).')
+    arg.setDefaultValue(false)
+    args << arg
+
     return args
   end
 
@@ -2966,8 +2939,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     epw_file = OpenStudio::EpwFile.new(epw_path)
 
     # Create HPXML file
-    skip_error_checking = false
-    hpxml_doc = HPXMLFile.create(runner, model, args, epw_file, skip_error_checking)
+    hpxml_doc = HPXMLFile.create(runner, model, args, epw_file)
     if not hpxml_doc
       runner.registerError('Unsuccessful creation of HPXML file.')
       return false
@@ -2979,7 +2951,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     end
 
     # Check for invalid HPXML file
-    if not skip_error_checking
+    if args[:apply_validation].is_initialized && args[:apply_validation].get
       if not validate_hpxml(runner, hpxml_path, hpxml_doc)
         return false
       end
@@ -3097,8 +3069,8 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFD) && (args[:geometry_unit_left_wall_is_adiabatic] || args[:geometry_unit_right_wall_is_adiabatic] || args[:geometry_unit_front_wall_is_adiabatic] || args[:geometry_unit_back_wall_is_adiabatic] || (args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment) || (args[:geometry_foundation_type] == HPXML::FoundationTypeAboveApartment))
     errors << 'No adiabatic surfaces can be applied to single-family detached homes.' if error
 
-    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented, HPXML::AtticTypeConditioned].include?(args[:geometry_attic_type])
-    errors << 'Apartment units can only have a flat roof or be below another apartment unit.' if error
+    error = (args[:geometry_unit_type] == HPXML::ResidentialTypeApartment) && (args[:geometry_attic_type] == HPXML::AtticTypeConditioned)
+    errors << 'Conditioned attic type for apartment units is not currently supported.' if error
 
     error = (args[:geometry_unit_num_floors_above_grade] == 1 && args[:geometry_attic_type] == HPXML::AtticTypeConditioned)
     errors << 'Units with a conditioned attic must have at least two above-grade floors.' if error
@@ -3173,10 +3145,6 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     error = (args[:geometry_unit_type] == HPXML::ResidentialTypeSFA) && (args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment)
     errors << 'Single-family attached units cannot be below another unit.' if error
 
-    # These detailed geometry inputs are not currently exposed
-    # error = (args[:geometry_balcony_depth] > 0) && (args[:geometry_inset_width] * args[:geometry_inset_depth] == 0)
-    # errors << 'Specified a balcony, but there is not inset.' if error
-
     error = (args[:geometry_garage_protrusion] > 0) && (args[:geometry_roof_type] == 'hip') && (args[:geometry_garage_width] * args[:geometry_garage_depth] > 0)
     errors << 'Cannot handle protruding garage and hip roof.' if error
 
@@ -3224,7 +3192,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 end
 
 class HPXMLFile
-  def self.create(runner, model, args, epw_file, skip_error_checking)
+  def self.create(runner, model, args, epw_file)
     success = create_geometry_envelope(runner, model, args)
     return false if not success
 
@@ -3307,7 +3275,7 @@ class HPXMLFile
     end
 
     # Check for errors in the HPXML object
-    if not skip_error_checking
+    if args[:apply_validation].is_initialized && args[:apply_validation].get
       errors = hpxml.check_for_errors()
       if errors.size > 0
         fail "ERROR: Invalid HPXML object produced.\n#{errors}"
@@ -3360,12 +3328,6 @@ class HPXMLFile
       args[:geometry_rim_joist_height] = 0.0
     end
 
-    # These detailed geometry inputs are not currently exposed
-    args[:geometry_inset_width] = 0.0
-    args[:geometry_inset_depth] = 0.0
-    args[:geometry_inset_position] = 'Right'
-    args[:geometry_balcony_depth] = 0.0
-
     if model.getSpaces.size > 0
       runner.registerError('Starting model is not empty.')
       return false
@@ -3376,7 +3338,7 @@ class HPXMLFile
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
       success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
-      success = Geometry.create_multifamily(runner: runner, model: model, **args)
+      success = Geometry.create_apartment(runner: runner, model: model, **args)
     end
     return false if not success
 
