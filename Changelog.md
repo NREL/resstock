@@ -1,6 +1,7 @@
 ## OpenStudio-HPXML v1.4.0
 __New Features__
 - Allows calculating one or more emissions scenarios (e.g., high renewable penetration vs business as usual) for different emissions types (e.g., CO2).
+- Allows a heat pump separate backup system to be a central system (e.g., central furnace w/ ducts). Previously only non-central system types were allowed.
 - Allows an optional `AirInfiltrationMeasurement/InfiltrationHeight` input.
 - Adds a "Fuel Use: Electricity: Net" timeseries output column for homes with electricity generation.
 - The `WaterFixturesUsageMultiplier` input now also applies to general water use internal gains and recirculation pump energy (for some control types).
@@ -8,6 +9,7 @@ __New Features__
 - BuildResidentialHPXML measure:
   - **Breaking change**: Changes the zip code argument name to `site_zip_code`.
   - Adds support for ambient foundations for single-family attached and apartment units.
+  - Adds support for unconditioned attics for apartment units.
   - Adds an optional argument to allow the HPXML file to be written with default values applied.
 - ReportSimulationOutput measure:
   - Add ability to include `TimeDST` and/or `TimeUTC` timestamp column(s) in results_timeseries.csv.

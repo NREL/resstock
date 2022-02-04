@@ -1200,8 +1200,13 @@ class HPXMLTest < MiniTest::Test
       energy_dhw = results.fetch("End Use: #{fuel_name}: Hot Water (MBtu)", 0)
       energy_cd = results.fetch("End Use: #{fuel_name}: Clothes Dryer (MBtu)", 0)
       energy_cr = results.fetch("End Use: #{fuel_name}: Range/Oven (MBtu)", 0)
-      if htg_fuels.include?(fuel) && (not hpxml_path.include? 'location-miami') && (not hpxml_path.include? 'location-honolulu') && (not hpxml_path.include? 'location-phoenix')
-        assert_operator(energy_htg, :>, 0)
+      if htg_fuels.include? fuel
+        if (not hpxml_path.include? 'location-miami') && \
+           (not hpxml_path.include? 'location-honolulu') && \
+           (not hpxml_path.include? 'location-phoenix') && \
+           (not (hpxml_path.include?('autosize') && hpxml_path.include?('backup')))
+          assert_operator(energy_htg, :>, 0)
+        end
       else
         assert_equal(0, energy_htg)
       end

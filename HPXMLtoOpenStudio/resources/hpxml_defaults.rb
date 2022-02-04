@@ -206,6 +206,19 @@ class HPXMLDefaults
 
   def self.apply_emissions_scenarios(hpxml)
     hpxml.header.emissions_scenarios.each do |scenario|
+      # Electricity
+      if not scenario.elec_schedule_filepath.nil?
+        if scenario.elec_schedule_number_of_header_rows.nil?
+          scenario.elec_schedule_number_of_header_rows = 0
+          scenario.elec_schedule_number_of_header_rows_isdefaulted = true
+        end
+        if scenario.elec_schedule_column_number.nil?
+          scenario.elec_schedule_column_number = 1
+          scenario.elec_schedule_column_number_isdefaulted = true
+        end
+      end
+
+      # Fossil fuels
       default_units = HPXML::EmissionsScenario::UnitsLbPerMBtu
       if scenario.emissions_type.downcase == 'co2'
         natural_gas, propane, fuel_oil, coal, wood, wood_pellets = 117.6, 136.6, 161.0, 211.1, nil, nil
@@ -2402,7 +2415,7 @@ class HPXMLDefaults
       end
     end
 
-    hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml, exclude_hp_backup_systems: true)
+    hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml)
 
     # Calculate building design loads and equipment capacities/airflows
     bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(weather, hpxml, cfa, nbeds, hvac_systems)
