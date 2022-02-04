@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>6a7d09d3-c7e3-4a69-be02-926c8fedfbd4</version_id>
-  <version_modified>20220204T150313Z</version_modified>
+  <version_id>3d7f454a-e290-4fd5-8764-4ee722f50ae0</version_id>
+  <version_modified>20220204T045049Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder (Beta)</display_name>
@@ -5922,6 +5922,22 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>emissions_electricity_number_of_header_rows</name>
+      <display_name>Emissions: Electricity Files Number of Header Rows</display_name>
+      <description>The number of header rows in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_electricity_column_numbers</name>
+      <display_name>Emissions: Electricity Files Column Numbers</display_name>
+      <description>The column number in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>emissions_fossil_fuel_units</name>
       <display_name>Emissions: Fossil Fuel Units</display_name>
       <description>Fossil fuel emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MBtu and kg/MBtu are allowed.</description>
@@ -5977,25 +5993,6 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
-    <argument>
-      <name>apply_validation</name>
-      <display_name>Apply Validation?</display_name>
-      <description>If true, validates the output HPXML file. Set to false for faster performance. Note that validation is not needed if the HPXML file will be validated downstream (e.g., via the HPXMLtoOpenStudio measure).</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -6015,23 +6012,6 @@
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>2E568E41</checksum>
-    </file>
-    <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>288BCD4E</checksum>
-    </file>
-    <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>2.9.0</identifier>
-        <min_compatible>2.9.0</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>82BD7DB7</checksum>
     </file>
     <file>
       <filename>extra_files/extra-auto.xml</filename>
@@ -6110,6 +6090,102 @@
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
       <checksum>97A5F5F4</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-no-rim-joists.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>15510E9E</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-pv-roofpitch.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>96727187</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-second-heating-system-boiler-to-heat-pump.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>301C9883</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-second-heating-system-boiler-to-heating-system.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7DC198F4</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-second-heating-system-fireplace-to-heat-pump.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F03D167C</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-second-heating-system-portable-heater-to-heat-pump.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>50054AD5</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-second-heating-system-portable-heater-to-heating-system.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>970D6E72</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-second-refrigerator.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>2D9E0D4A</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-state-code-different-than-epw.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>80AB592A</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-zero-clothes-washer-kwh.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FBA73BE4</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-zero-dishwasher-kwh.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>06800BD3</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-zero-extra-refrigerator-kwh.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>742E8CD1</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-zero-freezer-kwh.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>742E8CD1</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-zero-refrigerator-kwh.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C2338102</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-dhw-solar-latitude.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3C69C059</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-time-zone-different-than-epw.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>51B7BF16</checksum>
     </file>
     <file>
       <filename>extra_files/extra-mf-eaves.xml</filename>
@@ -6490,54 +6566,6 @@
       <checksum>A9E8933B</checksum>
     </file>
     <file>
-      <filename>extra_files/extra-no-rim-joists.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>15510E9E</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-pv-roofpitch.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>96727187</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-second-heating-system-boiler-to-heat-pump.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>301C9883</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-second-heating-system-boiler-to-heating-system.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>7DC198F4</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-second-heating-system-fireplace-to-heat-pump.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F03D167C</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-second-heating-system-portable-heater-to-heat-pump.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>50054AD5</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-second-heating-system-portable-heater-to-heating-system.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>970D6E72</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-second-refrigerator.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2D9E0D4A</checksum>
-    </file>
-    <file>
       <filename>extra_files/extra-sfa-atticroof-conditioned-eaves-gable.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
@@ -6646,48 +6674,6 @@
       <checksum>6B8359C7</checksum>
     </file>
     <file>
-      <filename>extra_files/extra-state-code-different-than-epw.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>80AB592A</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-zero-clothes-washer-kwh.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>FBA73BE4</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-zero-dishwasher-kwh.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>06800BD3</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-zero-extra-refrigerator-kwh.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>742E8CD1</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-zero-freezer-kwh.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>742E8CD1</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-zero-refrigerator-kwh.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C2338102</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-dhw-solar-latitude.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>3C69C059</checksum>
-    </file>
-    <file>
       <filename>extra_files/warning-conditioned-attic-with-floor-insulation.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
@@ -6790,6 +6776,23 @@
       <checksum>1B214F55</checksum>
     </file>
     <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.9.0</identifier>
+        <min_compatible>2.9.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>D9E58A5E</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B0512A95</checksum>
+    </file>
+    <file>
       <filename>extra_files/extra-emissions-fossil-fuel-factors.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
@@ -6818,12 +6821,6 @@
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
       <checksum>1AC59B1D</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-time-zone-different-than-epw.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>51B7BF16</checksum>
     </file>
   </files>
 </measure>

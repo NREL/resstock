@@ -218,7 +218,12 @@ One or more emissions scenarios can be entered as an ``/HPXML/SoftwareInfo/exten
   .. [#] EmissionsType can be anything. But if certain values are provided (e.g., "CO2"), then some emissions factors can be defaulted as described further below.
   .. [#] EmissionsFactor is required for electricity and optional for all non-electric fuel types.
 
-For each scenario, **electricity** emissions factors must be entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
+See :ref:`annual_outputs` and :ref:`timeseries_outputs` for descriptions of how the calculated emissions appear in the output files.
+
+Electricity Emissions
+~~~~~~~~~~~~~~~~~~~~~
+
+For each scenario, electricity emissions factors must be entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
 
   =================================  ================  =====  ===========  ========  ========  ============================================================
   Element                            Type              Units  Constraints  Required  Default   Notes
@@ -229,10 +234,22 @@ For each scenario, **electricity** emissions factors must be entered as an ``/HP
   =================================  ================  =====  ===========  ========  ========  ============================================================
 
   .. [#] Units choices are "lb/MWh" and "kg/MWh".
-  .. [#] ScheduleFilePath must point to a file with a single column of 8760 numeric hourly values.
-         NREL's `Cambium data sets <https://www.nrel.gov/analysis/cambium.html>`_ are typically used, but OpenStudio-HPXML can accommodate alternative data sets as well.
+  .. [#] ScheduleFilePath must point to a CSV file with 8760 numeric hourly values.
+         Sources of electricity emissions data include `NREL's Cambium database <https://www.nrel.gov/analysis/cambium.html>`_ and `EPA's eGRID <https://www.epa.gov/egrid>`_.
 
-For each scenario, **fuel** emissions factors can be optionally entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
+If an electricity schedule file is used, additional information can be entered in the ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
+
+  =================================  ================  =====  ===========  ========  ========  ============================================================
+  Element                            Type              Units  Constraints  Required  Default   Notes
+  =================================  ================  =====  ===========  ========  ========  ============================================================
+  ``NumberofHeaderRows``             integer           #      >= 0         No        0         Number of header rows in the schedule file
+  ``ColumnNumber``                   integer           #      >= 1         No        1         Column number of the data in the schedule file
+  =================================  ================  =====  ===========  ========  ========  ============================================================
+
+Fuel Emissions
+~~~~~~~~~~~~~~
+
+For each scenario, fuel emissions factors can be optionally entered as an ``/HPXML/SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario/EmissionsFactor``.
 
   ================================  ========  =====  ===========  ========  ========  ============================================================
   Element                           Type      Units  Constraints  Required  Default   Notes
@@ -244,6 +261,9 @@ For each scenario, **fuel** emissions factors can be optionally entered as an ``
 
   .. [#] FuelType choices are "natural gas", "propane", "fuel oil", "coal", "wood", and "wood pellets".
   .. [#] Units choices are "lb/MBtu" and "kg/MBtu".
+
+Default Values
+~~~~~~~~~~~~~~
 
 If EmissionsType is "CO2", "NOx" or "SO2" and a given fuel's emissions factor is not entered, they will be defaulted as follows.
 Values are based on `EPA data <https://www.epa.gov/air-emissions-factors-and-quantification/ap-42-fifth-edition-volume-i-chapter-1-external-0>`_ and `EIA data <https://www.eia.gov/environment/emissions/co2_vol_mass.php>`_.
@@ -259,8 +279,6 @@ If no default value is available, a warning will be issued.
   wood          --             --             --
   wood pellets  --             --             --
   ============  =============  =============  =============
-
-See :ref:`annual_outputs` and :ref:`timeseries_outputs` for descriptions of how the calculated emissions appear in the output files.
 
 .. _buildingsite:
 

@@ -223,6 +223,7 @@ class OSModel
 
     weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
     set_defaults_and_globals(runner, output_dir, epw_file, weather, @schedules_file)
+    validate_emissions_files()
     @schedules_file.validate_schedules(year: @hpxml.header.sim_calendar_year) if not @schedules_file.nil?
     Location.apply(model, runner, weather, epw_file, @hpxml)
     add_simulation_params(model)
@@ -316,15 +317,22 @@ class OSModel
       scenario.elec_schedule_filepath = FilePath.check_path(scenario.elec_schedule_filepath,
                                                             File.dirname(hpxml_path),
                                                             'Emissions File')
+    end
+  end
+
+  def self.validate_emissions_files()
+    @hpxml.header.emissions_scenarios.each do |scenario|
+      next if scenario.elec_schedule_filepath.nil?
+
       data = File.readlines(scenario.elec_schedule_filepath)
-      if data.size != 8760
-        fail "Emissions File has invalid number of rows (#{data.size}). Must be 8760."
+      num_header_rows = scenario.elec_schedule_number_of_header_rows
+      col_index = scenario.elec_schedule_column_number - 1
+
+      if data.size != 8760 + num_header_rows
+        fail "Emissions File has invalid number of rows (#{data.size}). Expected 8760 plus #{num_header_rows} header row(s)."
       end
-      if data.select { |x| x.include? ',' }.size > 0
-        fail 'Emissions File has multiple columns. Must be a single column of data.'
-      end
-      if data.map(&:strip).map { |x| Float(x) rescue nil }.any? nil
-        fail 'Emissions File has non-numeric values.'
+      if col_index > data[num_header_rows, 8760].map { |x| x.count(',') }.min
+        fail "Emissions File has too few columns. Cannot find column number (#{scenario.elec_schedule_column_number})."
       end
     end
   end

@@ -1058,6 +1058,7 @@ class HPXML < Object
     UnitsLbPerMBtu = 'lb/MBtu'
 
     ATTRS = [:name, :emissions_type, :elec_units, :elec_value, :elec_schedule_filepath,
+             :elec_schedule_number_of_header_rows, :elec_schedule_column_number,
              :natural_gas_units, :natural_gas_value, :propane_units, :propane_value,
              :fuel_oil_units, :fuel_oil_value, :coal_units, :coal_value,
              :wood_units, :wood_value, :wood_pellets_units, :wood_pellets_value]
@@ -1082,6 +1083,8 @@ class HPXML < Object
         XMLHelper.add_element(emissions_factor, 'FuelType', HPXML::FuelTypeElectricity, :string)
         XMLHelper.add_element(emissions_factor, 'Units', @elec_units, :string)
         XMLHelper.add_element(emissions_factor, 'ScheduleFilePath', @elec_schedule_filepath, :string)
+        XMLHelper.add_element(emissions_factor, 'NumberofHeaderRows', @elec_schedule_number_of_header_rows, :integer, @elec_schedule_number_of_header_rows_isdefaulted) unless @elec_schedule_number_of_header_rows.nil?
+        XMLHelper.add_element(emissions_factor, 'ColumnNumber', @elec_schedule_column_number, :integer, @elec_schedule_column_number_isdefaulted) unless @elec_schedule_column_number.nil?
       end
       { HPXML::FuelTypeElectricity => [@elec_units, @elec_units_isdefaulted,
                                        @elec_value, @elec_value_isdefaulted],
@@ -1115,6 +1118,8 @@ class HPXML < Object
       @elec_units = XMLHelper.get_value(emissions_scenario, "EmissionsFactor[FuelType='#{HPXML::FuelTypeElectricity}']/Units", :string)
       @elec_value = XMLHelper.get_value(emissions_scenario, "EmissionsFactor[FuelType='#{HPXML::FuelTypeElectricity}']/Value", :float)
       @elec_schedule_filepath = XMLHelper.get_value(emissions_scenario, "EmissionsFactor[FuelType='#{HPXML::FuelTypeElectricity}']/ScheduleFilePath", :string)
+      @elec_schedule_number_of_header_rows = XMLHelper.get_value(emissions_scenario, "EmissionsFactor[FuelType='#{HPXML::FuelTypeElectricity}']/NumberofHeaderRows", :integer)
+      @elec_schedule_column_number = XMLHelper.get_value(emissions_scenario, "EmissionsFactor[FuelType='#{HPXML::FuelTypeElectricity}']/ColumnNumber", :integer)
       @natural_gas_units = XMLHelper.get_value(emissions_scenario, "EmissionsFactor[FuelType='#{HPXML::FuelTypeNaturalGas}']/Units", :string)
       @natural_gas_value = XMLHelper.get_value(emissions_scenario, "EmissionsFactor[FuelType='#{HPXML::FuelTypeNaturalGas}']/Value", :float)
       @propane_units = XMLHelper.get_value(emissions_scenario, "EmissionsFactor[FuelType='#{HPXML::FuelTypePropane}']/Units", :string)

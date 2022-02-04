@@ -2871,6 +2871,16 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Electricity emissions factors values, specified as either an annual factor or an absolute/relative path to a file with hourly factors. If multiple scenarios, use a comma-separated list.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_number_of_header_rows', false)
+    arg.setDisplayName('Emissions: Electricity Files Number of Header Rows')
+    arg.setDescription('The number of header rows in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_column_numbers', false)
+    arg.setDisplayName('Emissions: Electricity Files Column Numbers')
+    arg.setDescription('The column number in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_fossil_fuel_units', false)
     arg.setDisplayName('Emissions: Fossil Fuel Units')
     arg.setDescription('Fossil fuel emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MBtu and kg/MBtu are allowed.')
@@ -3107,17 +3117,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     end
 
     if emissions_args_initialized.uniq.size == 1 && emissions_args_initialized.uniq[0]
-      emissions_scenario_lengths = [args[:emissions_scenario_names].get.split(',').length,
-                                    args[:emissions_types].get.split(',').length,
-                                    args[:emissions_electricity_units].get.split(',').length,
-                                    args[:emissions_electricity_values_or_filepaths].get.split(',').length]
+      emissions_scenario_lengths = [args[:emissions_scenario_names].get.count(','),
+                                    args[:emissions_types].get.count(','),
+                                    args[:emissions_electricity_units].get.count(','),
+                                    args[:emissions_electricity_values_or_filepaths].get.count(',')]
 
-      emissions_scenario_lengths += [args[:emissions_fossil_fuel_units].get.split(',').length] if args[:emissions_fossil_fuel_units].is_initialized
+      emissions_scenario_lengths += [args[:emissions_electricity_number_of_header_rows].get.count(',')] if args[:emissions_electricity_number_of_header_rows].is_initialized
+      emissions_scenario_lengths += [args[:emissions_electricity_column_numbers].get.count(',')] if args[:emissions_electricity_column_numbers].is_initialized
 
       Constants.FossilFuels.each do |fossil_fuel|
         underscore_case = OpenStudio::toUnderscoreCase(fossil_fuel)
 
-        emissions_scenario_lengths += [args["emissions_#{underscore_case}_values".to_sym].get.split(',').length] if args["emissions_#{underscore_case}_values".to_sym].is_initialized
+        emissions_scenario_lengths += [args["emissions_#{underscore_case}_values".to_sym].get.count(',')] if args["emissions_#{underscore_case}_values".to_sym].is_initialized
       end
 
       error = (emissions_scenario_lengths.uniq.size != 1)
@@ -3412,6 +3423,16 @@ class HPXMLFile
       emissions_electricity_units = args[:emissions_electricity_units].get.split(',').map(&:strip)
       emissions_electricity_values_or_filepaths = args[:emissions_electricity_values_or_filepaths].get.split(',').map(&:strip)
 
+      if args[:emissions_electricity_number_of_header_rows].is_initialized
+        emissions_electricity_number_of_header_rows = args[:emissions_electricity_number_of_header_rows].get.split(',').map(&:strip)
+      else
+        emissions_electricity_number_of_header_rows = [nil] * emissions_scenario_names.size
+      end
+      if args[:emissions_electricity_column_numbers].is_initialized
+        emissions_electricity_column_numbers = args[:emissions_electricity_column_numbers].get.split(',').map(&:strip)
+      else
+        emissions_electricity_column_numbers = [nil] * emissions_scenario_names.size
+      end
       if args[:emissions_fossil_fuel_units].is_initialized
         fuel_units = args[:emissions_fossil_fuel_units].get.split(',').map(&:strip)
       else
@@ -3429,11 +3450,26 @@ class HPXMLFile
         end
       end
 
-      emissions_scenarios = emissions_scenario_names.zip(emissions_types, emissions_electricity_units, emissions_electricity_values_or_filepaths, fuel_units, fuel_values[HPXML::FuelTypeNaturalGas], fuel_values[HPXML::FuelTypePropane], fuel_values[HPXML::FuelTypeOil], fuel_values[HPXML::FuelTypeCoal], fuel_values[HPXML::FuelTypeWoodCord], fuel_values[HPXML::FuelTypeWoodPellets])
+      emissions_scenarios = emissions_scenario_names.zip(emissions_types,
+                                                         emissions_electricity_units,
+                                                         emissions_electricity_values_or_filepaths,
+                                                         emissions_electricity_number_of_header_rows,
+                                                         emissions_electricity_column_numbers,
+                                                         fuel_units,
+                                                         fuel_values[HPXML::FuelTypeNaturalGas],
+                                                         fuel_values[HPXML::FuelTypePropane],
+                                                         fuel_values[HPXML::FuelTypeOil],
+                                                         fuel_values[HPXML::FuelTypeCoal],
+                                                         fuel_values[HPXML::FuelTypeWoodCord],
+                                                         fuel_values[HPXML::FuelTypeWoodPellets])
       emissions_scenarios.each do |emissions_scenario|
-        name, emissions_type, elec_units, elec_value_or_schedule_filepath, fuel_units, natural_gas_value, propane_value, fuel_oil_value, coal_value, wood_value, wood_pellets_value = emissions_scenario
+        name, emissions_type, elec_units, elec_value_or_schedule_filepath, elec_num_headers, elec_column_num, fuel_units, natural_gas_value, propane_value, fuel_oil_value, coal_value, wood_value, wood_pellets_value = emissions_scenario
         elec_value = Float(elec_value_or_schedule_filepath) rescue nil
-        elec_schedule_filepath = elec_value_or_schedule_filepath if elec_value.nil?
+        if elec_value.nil?
+          elec_schedule_filepath = elec_value_or_schedule_filepath
+          elec_num_headers = Integer(elec_num_headers) rescue nil
+          elec_column_num = Integer(elec_column_num) rescue nil
+        end
         natural_gas_value = Float(natural_gas_value) rescue nil
         propane_value = Float(propane_value) rescue nil
         fuel_oil_value = Float(fuel_oil_value) rescue nil
@@ -3446,6 +3482,8 @@ class HPXMLFile
                                              elec_units: elec_units,
                                              elec_value: elec_value,
                                              elec_schedule_filepath: elec_schedule_filepath,
+                                             elec_schedule_number_of_header_rows: elec_num_headers,
+                                             elec_schedule_column_number: elec_column_num,
                                              natural_gas_units: fuel_units,
                                              natural_gas_value: natural_gas_value,
                                              propane_units: fuel_units,

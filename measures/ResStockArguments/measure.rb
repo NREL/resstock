@@ -86,6 +86,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The building vintage, used for informational purposes only')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('exterior_finish_r', true)
+    arg.setDisplayName('Building Construction: Exterior Finish R-Value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('R-value of the exterior finish')
+    arg.setDefaultValue(0.6)
+    args << arg
+
     level_choices = OpenStudio::StringVector.new
     level_choices << 'Bottom'
     level_choices << 'Middle'
@@ -682,6 +689,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
       end
     end
+
+    # Wall Assembly R-Value
+    args['wall_assembly_r'] += args['exterior_finish_r']
 
     args.each do |arg_name, arg_value|
       begin

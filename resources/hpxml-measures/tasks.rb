@@ -2240,10 +2240,12 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['whole_house_fan_flow_rate'] = Constants.Auto
     args['whole_house_fan_power'] = Constants.Auto
   elsif ['base-misc-emissions.xml'].include? hpxml_file
-    args['emissions_scenario_names'] = 'Cambium 2022 Hourly MidCase AER Using RMPA Region, Cambium 2022 Hourly MidCase AER Using National, Cambium 2022 Annual MidCase AER Using National, eGRID 2019 Total Emissions Rate Using RMPA Region, eGRID 2019 Total Emissions Rate Using RMPA Region'
+    args['emissions_scenario_names'] = 'Cambium Hourly MidCase LRMER RMPA, Cambium Hourly LowRECosts LRMER RMPA, Cambium Annual MidCase AER National, eGRID RMPA, eGRID RMPA'
     args['emissions_types'] = 'CO2, CO2, CO2, SO2, NOx'
     args['emissions_electricity_units'] = 'kg/MWh, kg/MWh, kg/MWh, lb/MWh, lb/MWh'
-    args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_RMPAc_2022.csv, ../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_usa_2022.csv, 392.6, 0.384, 0.67'
+    args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_MidCase.csv, ../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_LowRECosts.csv, 392.6, 0.384, 0.67'
+    args['emissions_electricity_number_of_header_rows'] = '1, 1, , , '
+    args['emissions_electricity_column_numbers'] = '17, 17, , , '
   elsif ['base-misc-loads-large-uncommon.xml'].include? hpxml_file
     args['extra_refrigerator_location'] = Constants.Auto
     args['extra_refrigerator_rated_annual_kwh'] = 700.0

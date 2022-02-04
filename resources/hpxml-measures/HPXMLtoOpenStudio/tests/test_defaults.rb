@@ -121,7 +121,9 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       hpxml.header.emissions_scenarios.add(name: emissions_type,
                                            emissions_type: emissions_type,
                                            elec_units: HPXML::EmissionsScenario::UnitsLbPerMWh,
-                                           elec_value: 0.0,
+                                           elec_schedule_filepath: File.join(File.dirname(__FILE__), '..', 'resources', 'data', 'cambium', 'LRMER_MidCase.csv'),
+                                           elec_schedule_number_of_header_rows: 1,
+                                           elec_schedule_column_number: 9,
                                            natural_gas_units: HPXML::EmissionsScenario::UnitsLbPerMBtu,
                                            natural_gas_value: 123.0,
                                            propane_units: HPXML::EmissionsScenario::UnitsLbPerMBtu,
@@ -138,7 +140,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     hpxml_default.header.emissions_scenarios.each do |scenario|
-      _test_default_emissions_values(scenario,
+      _test_default_emissions_values(scenario, 1, 9,
                                      HPXML::EmissionsScenario::UnitsLbPerMBtu, 123.0,
                                      HPXML::EmissionsScenario::UnitsLbPerMBtu, 234.0,
                                      HPXML::EmissionsScenario::UnitsKgPerMBtu, 345.0,
@@ -149,6 +151,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
     # Test defaults
     hpxml.header.emissions_scenarios.each do |scenario|
+      scenario.elec_schedule_column_number = nil
       scenario.natural_gas_units = nil
       scenario.natural_gas_value = nil
       scenario.propane_units = nil
@@ -174,7 +177,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
       else
         natural_gas_value, propane_value, fuel_oil_value, coal_value = nil, nil, nil, nil
       end
-      _test_default_emissions_values(scenario,
+      _test_default_emissions_values(scenario, 1, 1,
                                      HPXML::EmissionsScenario::UnitsLbPerMBtu, natural_gas_value,
                                      HPXML::EmissionsScenario::UnitsLbPerMBtu, propane_value,
                                      HPXML::EmissionsScenario::UnitsLbPerMBtu, fuel_oil_value,
@@ -2928,9 +2931,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(time_zone_utc_offset, hpxml.header.time_zone_utc_offset)
   end
 
-  def _test_default_emissions_values(scenario, natural_gas_units, natural_gas_value, propane_units, propane_value,
+  def _test_default_emissions_values(scenario, elec_schedule_number_of_header_rows, elec_schedule_column_number,
+                                     natural_gas_units, natural_gas_value, propane_units, propane_value,
                                      fuel_oil_units, fuel_oil_value, coal_units, coal_value, wood_units, wood_value,
                                      wood_pellets_units, wood_pellets_value)
+    assert_equal(elec_schedule_number_of_header_rows, scenario.elec_schedule_number_of_header_rows)
+    assert_equal(elec_schedule_column_number, scenario.elec_schedule_column_number)
     if natural_gas_value.nil?
       assert_nil(scenario.natural_gas_units)
       assert_nil(scenario.natural_gas_value)
