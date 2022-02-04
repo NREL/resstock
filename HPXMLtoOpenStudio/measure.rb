@@ -1696,12 +1696,6 @@ class OSModel
       sys_id = heating_system.id
       if [HPXML::HVACTypeFurnace, HPXML::HVACTypePTACHeating].include? heating_system.heating_system_type
 
-        if heating_system.is_heat_pump_backup_system
-          # If we ever want to support this in the future, we have to address HVAC
-          # sizing related to 1) distribution losses and 2) calculating the airflow rate.
-          fail "Heat pump backup system cannot be of type '#{heating_system.heating_system_type}'."
-        end
-
         airloop_map[sys_id] = HVAC.apply_air_source_hvac_systems(model, runner, nil, heating_system,
                                                                  [0], sequential_heat_load_fracs,
                                                                  living_zone)

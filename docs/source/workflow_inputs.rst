@@ -1356,7 +1356,7 @@ If a backup type of "separate" is provided, additional information is entered in
   ``BackupHeatingSwitchoverTemperature``  double    F                    No        <none>     Separate backup heating system switchover temperature [#]_
   ======================================  ========  ======  ===========  ========  =========  ==========================================
   
-  .. [#] HeatingSystem must be of type ``ElectricResistance``, ``WallFurnace``, ``FloorFurnace``, ``Boiler``, ``Stove``, ``PortableHeater``, ``FixedHeater``, or ``Fireplace``.
+  .. [#] BackupSystem must reference a ``HeatingSystem``.
   .. [#] Provide BackupHeatingSwitchoverTemperature for a situation in which there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
          If not provided, the backup heating system will operate as needed for hours when the heat pump has insufficient capacity.
 
@@ -2019,7 +2019,7 @@ If a combination boiler w/ storage tank (sometimes referred to as an indirect wa
   ``StandbyLoss``                                double   F/hr          > 0          No            See [#]_  Storage tank standby losses
   =============================================  =======  ============  ===========  ============  ========  ==================================================
 
-  .. [#] RelatedHVACSystem must reference a ``HeatingSystem`` of type Boiler.
+  .. [#] RelatedHVACSystem must reference a ``HeatingSystem`` (Boiler).
   .. [#] If StandbyLoss not provided, defaults based on a regression analysis of `AHRI Directory of Certified Product Performance <https://www.ahridirectory.org>`_.
 
 Combi Boiler w/ Tankless Coil
@@ -2296,7 +2296,7 @@ If not entered, the simulation will not include batteries.
   ====================================================  =======  =========  ===========  ========  ========  ============================================
 
   .. [#] Location choices are "living space", "basement - conditioned", "basement - unconditioned", "crawlspace - vented", "crawlspace - unvented", "crawlspace - conditioned", "attic - vented", "attic - unvented", "garage", or "outside".
-  .. [#] BatteryType choices are "Li-ion".
+  .. [#] BatteryType only choice is "Li-ion".
   .. [#] NominalCapacity is defaulted to 10 kWh if RatedPowerOutput is not specified; otherwise it is calculated as (RatedPowerOutput / 1000) / 0.5.
   .. [#] RatedPowerOutput is defaulted to 5000 W if NominalCapacity is not specified; otherwise it is calculated as NominalCapacity * 1000 * 0.5.
   .. [#] LifetimeModel choices are "None" or "KandlerSmith".

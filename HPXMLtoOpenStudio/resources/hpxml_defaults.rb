@@ -2402,7 +2402,7 @@ class HPXMLDefaults
       end
     end
 
-    hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml, exclude_hp_backup_systems: true)
+    hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml)
 
     # Calculate building design loads and equipment capacities/airflows
     bldg_design_loads, all_hvac_sizing_values = HVACSizing.calculate(weather, hpxml, cfa, nbeds, hvac_systems)
