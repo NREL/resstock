@@ -169,18 +169,16 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError('Cannot find last model.')
+      runner.registerError('Cannot find OpenStudio model.')
       return false
     end
     model = model.get
+    @model = model
 
     # use the built-in error checking
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return result
     end
-
-    # get the last model and sql file
-    @model = runner.lastOpenStudioModel.get
 
     setup_outputs()
 
@@ -357,10 +355,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       runner.registerError('Cannot find OpenStudio model.')
       return false
     end
-    @model = model.get
+    model = model.get
+    @model = model
 
     # use the built-in error checking
-    if !runner.validateUserArguments(arguments(@model), user_arguments)
+    if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
@@ -392,11 +391,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       runner.registerError('EnergyPlus simulation failed.')
       return false
     end
-    @model.setSqlFile(@sqlFile)
+    model.setSqlFile(@sqlFile)
 
-    hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
-    hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
-    building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
+    hpxml_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
+    hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
+    building_id = model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
     @hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
     HVAC.apply_shared_systems(@hpxml) # Needed for ERI shared HVAC systems
     @eri_design = @hpxml.header.eri_design
