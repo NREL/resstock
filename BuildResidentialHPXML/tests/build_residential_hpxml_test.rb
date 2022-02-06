@@ -315,19 +315,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
         hpxml_doc = hpxml.to_oga()
         XMLHelper.write_file(hpxml_doc, hpxml_path)
-
-        # Validate file against HPXML schema
-        schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources/hpxml_schema'))
-        errors = XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), nil)
-        if errors.size > 0
-          fail "ERRORS: #{errors}"
-        end
-
-        # Check for errors
-        errors = hpxml.check_for_errors()
-        if errors.size > 0
-          fail "ERRORS: #{errors}"
-        end
       rescue Exception => e
         flunk "Error: Did not successfully generate #{hpxml_file}.\n#{e}\n#{e.backtrace.join('\n')}"
       end
@@ -339,6 +326,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   def _set_measure_argument_values(hpxml_file, args)
     args['hpxml_path'] = "tests/extra_files/#{hpxml_file}"
     args['apply_defaults'] = true
+    args['apply_validation'] = true
 
     # Base
     if ['base-sfd.xml'].include? hpxml_file

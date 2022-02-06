@@ -448,16 +448,16 @@ HPXML Air Infiltration
 
 Building air leakage is entered in ``/HPXML/Building/BuildingDetails/Enclosure/AirInfiltration/AirInfiltrationMeasurement``.
 
-  ====================================  ======  =====  ============================  =========  =========================  ===============================================
-  Element                               Type    Units  Constraints                   Required   Default                    Notes
-  ====================================  ======  =====  ============================  =========  =========================  ===============================================
-  ``SystemIdentifier``                  id                                           Yes                                   Unique identifier
-  ``BuildingAirLeakage/UnitofMeasure``  string         See [#]_                      Yes                                   Units for air leakage
-  ``HousePressure``                     double  Pa     > 0                           See [#]_                              House pressure with respect to outside [#]_
-  ``BuildingAirLeakage/AirLeakage``     double         > 0                           Yes                                   Value for air leakage
-  ``InfiltrationVolume``                double  ft3    >= ConditionedBuildingVolume  No         ConditionedBuildingVolume  Volume associated with infiltration measurement
-  ``InfiltrationHeight``                double  ft     > 0                           No         See [#]_                   Height associated with infiltration measurement [#]_
-  ====================================  ======  =====  ============================  =========  =========================  ===============================================
+  ====================================  ======  =====  ===========  =========  =========================  ===============================================
+  Element                               Type    Units  Constraints  Required   Default                    Notes
+  ====================================  ======  =====  ===========  =========  =========================  ===============================================
+  ``SystemIdentifier``                  id                          Yes                                   Unique identifier
+  ``BuildingAirLeakage/UnitofMeasure``  string         See [#]_     Yes                                   Units for air leakage
+  ``HousePressure``                     double  Pa     > 0          See [#]_                              House pressure with respect to outside [#]_
+  ``BuildingAirLeakage/AirLeakage``     double         > 0          Yes                                   Value for air leakage
+  ``InfiltrationVolume``                double  ft3    > 0          No         ConditionedBuildingVolume  Volume associated with infiltration measurement
+  ``InfiltrationHeight``                double  ft     > 0          No         See [#]_                   Height associated with infiltration measurement [#]_
+  ====================================  ======  =====  ===========  =========  =========================  ===============================================
 
   .. [#] UnitofMeasure choices are "ACH" (air changes per hour at user-specified pressure), "CFM" (cubic feet per minute at user-specified pressure), or "ACHnatural" (natural air changes per hour).
   .. [#] HousePressure only required if BuildingAirLeakage/UnitofMeasure is not "ACHnatural".

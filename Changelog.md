@@ -10,7 +10,8 @@ __New Features__
   - **Breaking change**: Changes the zip code argument name to `site_zip_code`.
   - Adds support for ambient foundations for single-family attached and apartment units.
   - Adds support for unconditioned attics for apartment units.
-  - Adds an optional argument to allow the HPXML file to be written with default values applied.
+  - Adds an optional argument for whether the HPXML file is written with default values applied; defaults to false.
+  - Adds an optional argument for whether the HPXML file is validated; defaults to false.
 - ReportSimulationOutput measure:
   - Add ability to include `TimeDST` and/or `TimeUTC` timestamp column(s) in results_timeseries.csv.
   - Timestamps in results_timeseries.csv are output in ISO 8601 standard format.

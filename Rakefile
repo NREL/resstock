@@ -12,3 +12,17 @@ Rake::TestTask.new('test_all') do |t|
   t.warning = false
   t.verbose = true
 end
+
+desc 'Run measure unit tests'
+Rake::TestTask.new('test_measures') do |t|
+  t.test_files = Dir['*/tests/*.rb'] - Dir['workflow/tests/*.rb']
+  t.warning = false
+  t.verbose = true
+end
+
+desc 'Run workflow tests'
+Rake::TestTask.new('test_workflow') do |t|
+  t.test_files = Dir['workflow/tests/*.rb']
+  t.warning = false
+  t.verbose = true
+end

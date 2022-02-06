@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>3d7f454a-e290-4fd5-8764-4ee722f50ae0</version_id>
-  <version_modified>20220204T045049Z</version_modified>
+  <version_id>52e30d38-8259-4735-96e2-996a1bd57b16</version_id>
+  <version_modified>20220205T181123Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder (Beta)</display_name>
@@ -5871,25 +5871,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>apply_defaults</name>
-      <display_name>Apply default values</display_name>
-      <description>Sets OS-HPXML default values in the HPXML output file</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>emissions_scenario_names</name>
       <display_name>Emissions: Scenario Names</display_name>
       <description>Names of emissions scenarios. If multiple scenarios, use a comma-separated list.</description>
@@ -5992,6 +5973,44 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>apply_defaults</name>
+      <display_name>Apply Default Values?</display_name>
+      <description>If true, applies OS-HPXML default values to the HPXML output file.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>apply_validation</name>
+      <display_name>Apply Validation?</display_name>
+      <description>If true, validates the HPXML output file. Set to false for faster performance. Note that validation is not needed if the HPXML file will be validated downstream (e.g., via the HPXMLtoOpenStudio measure).</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
   </arguments>
   <outputs />
@@ -6776,23 +6795,6 @@
       <checksum>1B214F55</checksum>
     </file>
     <file>
-      <version>
-        <software_program>OpenStudio</software_program>
-        <identifier>2.9.0</identifier>
-        <min_compatible>2.9.0</min_compatible>
-      </version>
-      <filename>measure.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>script</usage_type>
-      <checksum>D9E58A5E</checksum>
-    </file>
-    <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>B0512A95</checksum>
-    </file>
-    <file>
       <filename>extra_files/extra-emissions-fossil-fuel-factors.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
@@ -6805,22 +6807,69 @@
       <checksum>7F3AB2D5</checksum>
     </file>
     <file>
+      <filename>extra_files/extra-sfa-ambient.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1AC59B1D</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>EC2C759D</checksum>
+    </file>
+    <file>
       <filename>extra_files/extra-mf-atticroof-flat.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>68BC0185</checksum>
+      <checksum>228BA7BB</checksum>
     </file>
     <file>
       <filename>extra_files/extra-mf-atticroof-vented.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>F7DFE521</checksum>
+      <checksum>EC0F1768</checksum>
     </file>
     <file>
-      <filename>extra_files/extra-sfa-ambient.xml</filename>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>2.9.0</identifier>
+        <min_compatible>2.9.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>2D2857D8</checksum>
+    </file>
+    <file>
+      <filename>extra_files/error-hip-roof-and-protruding-garage.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>1AC59B1D</checksum>
+      <checksum>1C2C3DDC</checksum>
+    </file>
+    <file>
+      <filename>extra_files/error-invalid-living-and-garage-1.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0FEA5D8B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/error-invalid-living-and-garage-2.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>54090807</checksum>
+    </file>
+    <file>
+      <filename>extra_files/error-invalid-time-zone.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F0FB2E25</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-ambient - Copy.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C028936D</checksum>
     </file>
   </files>
 </measure>
