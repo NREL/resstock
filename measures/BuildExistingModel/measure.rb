@@ -111,7 +111,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('os_hescore_directory', false)
     arg.setDisplayName('HEScore Workflow: OpenStudio-HEScore directory path')
-    arg.setDescription('Path to the OpenStudio-HEScore directory. If specified, the HEScore workflow will run')
+    arg.setDescription('Path to the OpenStudio-HEScore directory. If specified, the HEScore workflow will run.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_scenario_names', false)
@@ -386,9 +386,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Run HEScore Measures
     if run_hescore_workflow
-      measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => hpxml_path, 'output_path' => File.expand_path('../hes.json') }]
-      measures['HEScoreRuleset'] = [{ 'json_path' => File.expand_path('../hes.json'), 'hpxml_output_path' => File.expand_path('../hes.xml') }]
-      measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = measures['HEScoreRuleset'][0]['hpxml_output_path']
+      hes_json_path = File.expand_path('../hes.json')
+      hes_hpxml_path = File.expand_path('../hes.xml')
+      measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => hpxml_path, 'output_path' => hes_json_path }]
+      measures['HEScoreRuleset'] = [{ 'json_path' => hes_json_path, 'hpxml_output_path' => hes_hpxml_path }]
+      measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = hes_hpxml_path)
 
       # HPXMLtoHEScore and HEScoreRuleset
       measures_hash = { 'HPXMLtoHEScore' => measures['HPXMLtoHEScore'], 'HEScoreRuleset' => measures['HEScoreRuleset'] }
