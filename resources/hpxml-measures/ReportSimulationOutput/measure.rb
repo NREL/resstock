@@ -169,18 +169,16 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError('Cannot find last model.')
+      runner.registerError('Cannot find OpenStudio model.')
       return false
     end
     model = model.get
+    @model = model
 
     # use the built-in error checking
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return result
     end
-
-    # get the last model and sql file
-    @model = runner.lastOpenStudioModel.get
 
     setup_outputs()
 
@@ -357,10 +355,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       runner.registerError('Cannot find OpenStudio model.')
       return false
     end
-    @model = model.get
+    model = model.get
+    @model = model
 
     # use the built-in error checking
-    if !runner.validateUserArguments(arguments(@model), user_arguments)
+    if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
 
@@ -392,11 +391,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       runner.registerError('EnergyPlus simulation failed.')
       return false
     end
-    @model.setSqlFile(@sqlFile)
+    model.setSqlFile(@sqlFile)
 
-    hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
-    hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
-    building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
+    hpxml_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
+    hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
+    building_id = model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
     @hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
     HVAC.apply_shared_systems(@hpxml) # Needed for ERI shared HVAC systems
     @eri_design = @hpxml.header.eri_design
@@ -815,7 +814,15 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         key = [scenario.emissions_type, scenario.name]
         if not scenario.elec_schedule_filepath.nil?
           # Obtain Cambium hourly factors for the simulation run period
-          hourly_elec_factors = File.readlines(scenario.elec_schedule_filepath).map(&:strip).map { |x| Float(x) }
+          num_header_rows = scenario.elec_schedule_number_of_header_rows
+          col_index = scenario.elec_schedule_column_number - 1
+          data = File.readlines(scenario.elec_schedule_filepath)[num_header_rows, 8760]
+          hourly_elec_factors = data.map { |x| x.split(',')[col_index].strip }
+          begin
+            hourly_elec_factors = hourly_elec_factors.map { |x| Float(x) }
+          rescue
+            fail 'Emissions File has non-numeric values.'
+          end
         elsif not scenario.elec_value.nil?
           # Use annual value for all hours
           hourly_elec_factors = [scenario.elec_value] * 8760

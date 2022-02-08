@@ -25,7 +25,19 @@ You can also request that only measures are applied (i.e., no simulations are ru
 For example:
 ``openstudio workflow/run_analysis.rb -y project_testing/testing_baseline.yml -m``
 
-Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arguments.
+Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arguments:
+
+.. code:: bash
+
+  $ openstudio workflow/run_analysis.rb -h
+  Usage: run_analysis.rb -y buildstockbatch.yml
+   e.g., run_analysis.rb -y national_baseline.yml
+      -y, --yml <FILE>                 YML file
+      -n, --threads N                  Number of parallel simulations (defaults to processor count)
+      -m, --measures_only              Only run the OpenStudio and EnergyPlus measures
+      -d, --debug                      Save both existing and upgraded osw files
+      -h, --help                       Display help
+      -v, --version                    Display version
 
 .. note::
   At this time the ``residential_quota_downselect`` sampler with ``resample`` is not supported.

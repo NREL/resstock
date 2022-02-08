@@ -39,15 +39,15 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-zero-freezer-kwh.xml' => 'base-sfd.xml',
       'extra-zero-clothes-washer-kwh.xml' => 'base-sfd.xml',
       'extra-zero-dishwasher-kwh.xml' => 'base-sfd.xml',
-      'extra-sfa-atticroof-flat.xml' => 'base-sfa.xml',
       'extra-gas-pool-heater-with-zero-kwh.xml' => 'base-sfd.xml',
       'extra-gas-hot-tub-heater-with-zero-kwh.xml' => 'base-sfd.xml',
       'extra-no-rim-joists.xml' => 'base-sfd.xml',
       'extra-iecc-zone-different-than-epw.xml' => 'base-sfd.xml',
       'extra-state-code-different-than-epw.xml' => 'base-sfd.xml',
-      'extra-emissions-fossil-fuel-factors.xml' => 'base-sfd.xml',
       'extra-time-zone-different-than-epw.xml' => 'base-sfd.xml',
+      'extra-emissions-fossil-fuel-factors.xml' => 'base-sfd.xml',
 
+      'extra-sfa-atticroof-flat.xml' => 'base-sfa.xml',
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
       'extra-sfa-atticroof-conditioned-eaves-hip.xml' => 'extra-sfa-atticroof-conditioned-eaves-gable.xml',
       'extra-mf-eaves.xml' => 'extra-mf-slab.xml',
@@ -70,6 +70,9 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-sfa-unvented-crawlspace-right.xml' => 'extra-sfa-unvented-crawlspace.xml',
       'extra-sfa-unconditioned-basement-middle.xml' => 'extra-sfa-unconditioned-basement.xml',
       'extra-sfa-unconditioned-basement-right.xml' => 'extra-sfa-unconditioned-basement.xml',
+
+      'extra-mf-atticroof-flat.xml' => 'base-mf.xml',
+      'extra-mf-atticroof-vented.xml' => 'base-mf.xml',
 
       'extra-mf-slab.xml' => 'base-mf.xml',
       'extra-mf-vented-crawlspace.xml' => 'base-mf.xml',
@@ -155,7 +158,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-mf-no-building-num-units.xml' => 'base-mf.xml',
       'error-mf-all-adiabatic-walls.xml' => 'base-mf.xml',
       'error-mf-two-stories.xml' => 'base-mf.xml',
-      'error-mf-vented-attic.xml' => 'base-mf.xml',
+      'error-mf-conditioned-attic.xml' => 'base-mf.xml',
       'error-dhw-indirect-without-boiler.xml' => 'base-sfd.xml',
       'error-conditioned-attic-with-one-floor-above-grade.xml' => 'base-sfd.xml',
       'error-zero-number-of-bedrooms.xml' => 'base-sfd.xml',
@@ -217,7 +220,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-mf-no-building-num-units.xml' => 'Did not specify the number of units in the building for single-family attached or apartment units.',
       'error-mf-all-adiabatic-walls.xml' => 'At least one wall must be set to non-adiabatic.',
       'error-mf-two-stories.xml' => 'Apartment units can only have one above-grade floor.',
-      'error-mf-vented-attic.xml' => 'Apartment units can only have a flat roof or be below another apartment unit.',
+      'error-mf-conditioned-attic.xml' => 'Conditioned attic type for apartment units is not currently supported.',
       'error-dhw-indirect-without-boiler.xml' => 'Must specify a boiler when modeling an indirect water heater type.',
       'error-conditioned-attic-with-one-floor-above-grade.xml' => 'Units with a conditioned attic must have at least two above-grade floors.',
       'error-zero-number-of-bedrooms.xml' => 'Number of bedrooms must be greater than zero.',
@@ -302,8 +305,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
           next if hpxml_file.start_with?('error')
 
-          puts "\nError: Did not successfully generate #{hpxml_file}."
-          exit!
+          flunk "Error: Did not successfully generate #{hpxml_file}."
         end
 
         hpxml_path = File.absolute_path(File.join(tests_dir, hpxml_file))
@@ -313,23 +315,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
         hpxml_doc = hpxml.to_oga()
         XMLHelper.write_file(hpxml_doc, hpxml_path)
-
-        # Validate file against HPXML schema
-        schemas_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources/hpxml_schema'))
-        errors = XMLHelper.validate(hpxml_doc.to_s, File.join(schemas_dir, 'HPXML.xsd'), nil)
-        if errors.size > 0
-          fail "ERRORS: #{errors}"
-        end
-
-        # Check for errors
-        errors = hpxml.check_for_errors()
-        if errors.size > 0
-          fail "ERRORS: #{errors}"
-        end
       rescue Exception => e
-        puts "\n#{e}\n#{e.backtrace.join('\n')}"
-        puts "\nError: Did not successfully generate #{hpxml_file}."
-        exit!
+        flunk "Error: Did not successfully generate #{hpxml_file}.\n#{e}\n#{e.backtrace.join('\n')}"
       end
     end
   end
@@ -339,6 +326,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   def _set_measure_argument_values(hpxml_file, args)
     args['hpxml_path'] = "tests/extra_files/#{hpxml_file}"
     args['apply_defaults'] = true
+    args['apply_validation'] = true
 
     # Base
     if ['base-sfd.xml'].include? hpxml_file
@@ -833,12 +821,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['clothes_dryer_location'] = 'none'
     elsif ['extra-zero-dishwasher-kwh.xml'].include? hpxml_file
       args['dishwasher_efficiency'] = 0
-    elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
-      args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
-      args['ducts_supply_leakage_to_outside_value'] = 0.0
-      args['ducts_return_leakage_to_outside_value'] = 0.0
-      args['ducts_supply_location'] = HPXML::LocationBasementConditioned
-      args['ducts_return_location'] = HPXML::LocationBasementConditioned
     elsif ['extra-gas-pool-heater-with-zero-kwh.xml'].include? hpxml_file
       args['pool_present'] = true
       args['pool_heater_type'] = HPXML::HeaterTypeGas
@@ -854,6 +836,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['site_iecc_zone'] = '6B'
     elsif ['extra-state-code-different-than-epw.xml'].include? hpxml_file
       args['site_state_code'] = 'WY'
+    elsif ['extra-time-zone-different-than-epw.xml'].include? hpxml_file
+      args['site_time_zone_utc_offset'] = '-6'
     elsif ['extra-emissions-fossil-fuel-factors.xml'].include? hpxml_file
       args['emissions_scenario_names'] = 'Scenario1, Scenario2'
       args['emissions_types'] = 'CO2, SO2'
@@ -865,8 +849,12 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['emissions_fuel_oil_values'] = '161.0, 0.0015'
       args['emissions_coal_values'] = '211.1, 0.0020'
       args['emissions_wood_values'] = '200.0, 0.0025'
-    elsif ['extra-time-zone-different-than-epw.xml'].include? hpxml_file
-      args['site_time_zone_utc_offset'] = '-6'
+    elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
+      args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
+      args['ducts_supply_leakage_to_outside_value'] = 0.0
+      args['ducts_return_leakage_to_outside_value'] = 0.0
+      args['ducts_supply_location'] = HPXML::LocationBasementConditioned
+      args['ducts_return_location'] = HPXML::LocationBasementConditioned
     elsif ['extra-sfa-atticroof-conditioned-eaves-gable.xml'].include? hpxml_file
       args['geometry_unit_num_floors_above_grade'] = 2
       args['geometry_attic_type'] = HPXML::AtticTypeConditioned
@@ -924,6 +912,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
            'extra-sfa-unvented-crawlspace-right.xml',
            'extra-sfa-unconditioned-basement-right.xml'].include? hpxml_file
       args['geometry_unit_left_wall_is_adiabatic'] = true
+    elsif ['extra-mf-atticroof-flat.xml'].include? hpxml_file
+      args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
+    elsif ['extra-mf-atticroof-vented.xml'].include? hpxml_file
+      args['geometry_attic_type'] = HPXML::AtticTypeVented
     elsif ['extra-mf-slab.xml'].include? hpxml_file
       args['geometry_building_num_units'] = 18
       args['geometry_foundation_type'] = HPXML::FoundationTypeSlab
@@ -1090,8 +1082,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['geometry_unit_back_wall_is_adiabatic'] = true
     elsif ['error-mf-two-stories.xml'].include? hpxml_file
       args['geometry_unit_num_floors_above_grade'] = 2
-    elsif ['error-mf-vented-attic.xml'].include? hpxml_file
-      args['geometry_attic_type'] = HPXML::AtticTypeVented
+    elsif ['error-mf-conditioned-attic.xml'].include? hpxml_file
+      args['geometry_attic_type'] = HPXML::AtticTypeConditioned
     elsif ['error-dhw-indirect-without-boiler.xml'].include? hpxml_file
       args['water_heater_type'] = HPXML::WaterHeaterTypeCombiStorage
     elsif ['error-conditioned-attic-with-one-floor-above-grade.xml'].include? hpxml_file
@@ -1111,7 +1103,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['emissions_scenario_names'] = 'Scenario1'
       args['emissions_types'] = 'CO2,CO2'
       args['emissions_electricity_units'] = HPXML::EmissionsScenario::UnitsLbPerMWh
-      args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/StdScen21_MidCase_hourly_RMPAc_2022.csv'
+      args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_MidCase.csv'
     elsif ['error-emissions-natural-gas-args-not-all-specified.xml'].include? hpxml_file
       args['emissions_natural_gas_values'] = '117.6'
     elsif ['error-invalid-aspect-ratio.xml'].include? hpxml_file

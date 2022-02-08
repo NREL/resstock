@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>14c8f22c-0b0a-4cc0-9ac6-8f1e5b5dab63</version_id>
-  <version_modified>20211111T020031Z</version_modified>
+  <version_id>4b0ad06d-584e-4976-a9f9-301c25696a10</version_id>
+  <version_modified>20220204T200355Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -113,9 +113,9 @@
       </choices>
     </argument>
     <argument>
-      <name>zip_code</name>
-      <display_name>Zip Code</display_name>
-      <description>Zip code - used for informational purposes only</description>
+      <name>site_zip_code</name>
+      <display_name>Site: Zip Code</display_name>
+      <description>Zip code of the home address.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -123,7 +123,7 @@
     <argument>
       <name>site_iecc_zone</name>
       <display_name>Site: IECC Zone</display_name>
-      <description>IECC zone of the home address. If not provided, uses the IECC zone corresponding to the EPW weather file.</description>
+      <description>IECC zone of the home address.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -213,7 +213,7 @@
     <argument>
       <name>site_state_code</name>
       <display_name>Site: State Code</display_name>
-      <description>State code of the home address. If not provided, uses the EPW weather file state code.</description>
+      <description>State code of the home address.</description>
       <type>Choice</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -425,6 +425,15 @@
       </choices>
     </argument>
     <argument>
+      <name>site_time_zone_utc_offset</name>
+      <display_name>Site: Time Zone UTC Offset</display_name>
+      <description>Time zone UTC offset of the home address. Must be between -12 and 14.</description>
+      <type>Double</type>
+      <units>hr</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>weather_station_epw_filepath</name>
       <display_name>Weather Station: EnergyPlus Weather (EPW) Filepath</display_name>
       <description>Path of the EPW file.</description>
@@ -585,7 +594,7 @@
     <argument>
       <name>geometry_foundation_type</name>
       <display_name>Geometry: Foundation Type</display_name>
-      <description>The foundation type of the building.</description>
+      <description>The foundation type of the building. Foundation types ConditionedBasement and ConditionedCrawlspace are not allowed for apartment units.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -657,7 +666,7 @@
     <argument>
       <name>geometry_attic_type</name>
       <display_name>Geometry: Attic Type</display_name>
-      <description>The attic type of the building.</description>
+      <description>The attic type of the building. Attic type ConditionedAttic is not allowed for apartment units.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2335,25 +2344,6 @@
       <default_value>0.25</default_value>
     </argument>
     <argument>
-      <name>hvac_control_type</name>
-      <display_name>HVAC Control: Type</display_name>
-      <description>The type of thermostat.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>manual thermostat</default_value>
-      <choices>
-        <choice>
-          <value>manual thermostat</value>
-          <display_name>manual thermostat</display_name>
-        </choice>
-        <choice>
-          <value>programmable thermostat</value>
-          <display_name>programmable thermostat</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>hvac_control_heating_season_period</name>
       <display_name>HVAC Control: Heating Season Period</display_name>
       <description>Enter a date like "Nov 1 - Jun 30".</description>
@@ -2619,10 +2609,10 @@
     <argument>
       <name>ducts_number_of_return_registers</name>
       <display_name>Ducts: Number of Return Registers</display_name>
-      <description>The number of return registers of the ducts. Ignored for ducted evaporative cooler.</description>
+      <description>The number of return registers of the ducts. Only used if duct surface areas are set to auto.</description>
       <type>String</type>
       <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
     </argument>
@@ -5638,6 +5628,129 @@
       <default_value>1</default_value>
     </argument>
     <argument>
+      <name>apply_defaults</name>
+      <display_name>Apply default values</display_name>
+      <description>Sets OS-HPXML default values in the HPXML output file</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>emissions_scenario_names</name>
+      <display_name>Emissions: Scenario Names</display_name>
+      <description>Names of emissions scenarios. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_types</name>
+      <display_name>Emissions: Types</display_name>
+      <description>Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_electricity_units</name>
+      <display_name>Emissions: Electricity Units</display_name>
+      <description>Electricity emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MWh and kg/MWh are allowed.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_electricity_values_or_filepaths</name>
+      <display_name>Emissions: Electricity Values or File Paths</display_name>
+      <description>Electricity emissions factors values, specified as either an annual factor or an absolute/relative path to a file with hourly factors. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_electricity_number_of_header_rows</name>
+      <display_name>Emissions: Electricity Files Number of Header Rows</display_name>
+      <description>The number of header rows in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_electricity_column_numbers</name>
+      <display_name>Emissions: Electricity Files Column Numbers</display_name>
+      <description>The column number in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_fossil_fuel_units</name>
+      <display_name>Emissions: Fossil Fuel Units</display_name>
+      <description>Fossil fuel emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MBtu and kg/MBtu are allowed.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_natural_gas_values</name>
+      <display_name>Emissions: Natural Gas Values</display_name>
+      <description>Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_propane_values</name>
+      <display_name>Emissions: Propane Values</display_name>
+      <description>Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_fuel_oil_values</name>
+      <display_name>Emissions: Fuel Oil Values</display_name>
+      <description>Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_coal_values</name>
+      <display_name>Emissions: Coal Values</display_name>
+      <description>Coal emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_wood_values</name>
+      <display_name>Emissions: Wood Values</display_name>
+      <description>Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_wood_pellets_values</name>
+      <display_name>Emissions: Wood Pellets Values</display_name>
+      <description>Wood pellets emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>schedules_type</name>
       <display_name>Schedules: Type</display_name>
       <description>The type of occupant-related schedules to use.</description>
@@ -5699,6 +5812,16 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>exterior_finish_r</name>
+      <display_name>Building Construction: Exterior Finish R-Value</display_name>
+      <description>R-value of the exterior finish</description>
+      <type>Double</type>
+      <units>h-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.6</default_value>
     </argument>
     <argument>
       <name>geometry_unit_level</name>
@@ -6095,7 +6218,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>91B81FCF</checksum>
+      <checksum>6C7A2B71</checksum>
     </file>
   </files>
 </measure>

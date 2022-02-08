@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  run-unit-tests:
     runs-on: ubuntu-latest
     container:
       image: docker://nrel/openstudio:3.3.0
@@ -36,15 +36,9 @@ jobs:
           export SCTPATH=HPXMLtoOpenStudio/resources/hpxml_schematron/EPvalidator.xml
           for xmlfile in workflow/sample_files/*.xml; do XMLPATH=$xmlfile python3 -c "import os; import sys; from lxml import isoschematron, etree; from pathlib import Path; sct = Path(os.environ.get('SCTPATH')).read_text(); sct_doc = etree.fromstring(bytes(sct, encoding='utf-8')); schematron = isoschematron.Schematron(sct_doc, store_report = True); xml_path = os.environ.get('XMLPATH'); xml = Path(xml_path).read_text(); xml_doc = etree.fromstring(bytes(xml, encoding='utf-8')); valid = schematron.validate(xml_doc); (not valid) and print(schematron.validation_report); (not valid) and print(f'{xml_path} fails to validate'); valid and print(f'{xml_path} validates'); (not valid) and sys.exit(1)"; done
 
-      - name: Run tests
+      - name: Run measure unit tests
         run: |
-          bundle exec rake test_all
-
-      - name: Store results
-        uses: actions/upload-artifact@v2
-        with:
-          path: workflow/tests/results
-          name: results
+          bundle exec rake test_measures
 
       - name: Store code coverage
         uses: actions/upload-artifact@v2
@@ -52,10 +46,33 @@ jobs:
           path: coverage
           name: coverage
 
+  run-workflow-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://nrel/openstudio:3.3.0
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install software
+        run: |
+          rm -f Gemfile.lock && bundle install
+
+      - name: Run workflow tests
+        run: |
+          bundle exec rake test_workflow
+
+      - name: Store results
+        uses: actions/upload-artifact@v2
+        with:
+          path: workflow/tests/results
+          name: results
+
   compare-results:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: build
+    needs: [run-unit-tests, run-workflow-tests]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -107,7 +124,7 @@ jobs:
 
   update-results:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [run-unit-tests, run-workflow-tests]
     steps:
       - uses: actions/checkout@v2
         with:

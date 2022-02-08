@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>973e6264-c9bb-4153-99f8-45f4646c7c93</version_id>
-  <version_modified>20220127T193558Z</version_modified>
+  <version_id>52e30d38-8259-4735-96e2-996a1bd57b16</version_id>
+  <version_modified>20220205T181123Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder (Beta)</display_name>
@@ -576,7 +576,7 @@
     <argument>
       <name>geometry_unit_num_floors_above_grade</name>
       <display_name>Geometry: Unit Number of Floors Above Grade</display_name>
-      <description>The number of floors above grade in the unit. Conditioned attics are included. Assumed to be 1 if apartment unit.</description>
+      <description>The number of floors above grade in the unit. Attic type ConditionedAttic is included. Assumed to be 1 for apartment units.</description>
       <type>Integer</type>
       <units>#</units>
       <required>true</required>
@@ -714,7 +714,7 @@
     <argument>
       <name>geometry_foundation_type</name>
       <display_name>Geometry: Foundation Type</display_name>
-      <description>The foundation type of the building.</description>
+      <description>The foundation type of the building. Foundation types ConditionedBasement and ConditionedCrawlspace are not allowed for apartment units.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -786,7 +786,7 @@
     <argument>
       <name>geometry_attic_type</name>
       <display_name>Geometry: Attic Type</display_name>
-      <description>The attic type of the building.</description>
+      <description>The attic type of the building. Attic type ConditionedAttic is not allowed for apartment units.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -5871,25 +5871,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>apply_defaults</name>
-      <display_name>Apply default values</display_name>
-      <description>Sets OS-HPXML default values in the HPXML output file</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>emissions_scenario_names</name>
       <display_name>Emissions: Scenario Names</display_name>
       <description>Names of emissions scenarios. If multiple scenarios, use a comma-separated list.</description>
@@ -5917,6 +5898,22 @@
       <name>emissions_electricity_values_or_filepaths</name>
       <display_name>Emissions: Electricity Values or File Paths</display_name>
       <description>Electricity emissions factors values, specified as either an annual factor or an absolute/relative path to a file with hourly factors. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_electricity_number_of_header_rows</name>
+      <display_name>Emissions: Electricity Files Number of Header Rows</display_name>
+      <description>The number of header rows in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_electricity_column_numbers</name>
+      <display_name>Emissions: Electricity Files Column Numbers</display_name>
+      <description>The column number in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -5977,6 +5974,44 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
+    <argument>
+      <name>apply_defaults</name>
+      <display_name>Apply Default Values?</display_name>
+      <description>If true, applies OS-HPXML default values to the HPXML output file.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>apply_validation</name>
+      <display_name>Apply Validation?</display_name>
+      <description>If true, validates the HPXML output file. Set to false for faster performance. Note that validation is not needed if the HPXML file will be validated downstream (e.g., via the HPXMLtoOpenStudio measure).</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -5995,769 +6030,805 @@
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>6977E044</checksum>
+      <checksum>2E568E41</checksum>
     </file>
     <file>
       <filename>extra_files/extra-auto.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>CE8B80B7</checksum>
+      <checksum>8DEAE32A</checksum>
     </file>
     <file>
       <filename>extra_files/extra-second-heating-system-fireplace-to-heating-system.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>5D5101CC</checksum>
+      <checksum>DD30EC95</checksum>
     </file>
     <file>
       <filename>extra_files/base-mf.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>CE559523</checksum>
+      <checksum>CFFB4345</checksum>
     </file>
     <file>
       <filename>extra_files/base-sfa.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>A77C384B</checksum>
+      <checksum>91ED5DED</checksum>
     </file>
     <file>
       <filename>extra_files/base-sfd.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>415957AF</checksum>
+      <checksum>742E8CD1</checksum>
     </file>
     <file>
       <filename>extra_files/extra-enclosure-atticroof-conditioned-eaves-gable.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>B2A1C486</checksum>
+      <checksum>ED50173E</checksum>
     </file>
     <file>
       <filename>extra_files/extra-enclosure-atticroof-conditioned-eaves-hip.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>928AC799</checksum>
+      <checksum>F19BAAF7</checksum>
     </file>
     <file>
       <filename>extra_files/extra-enclosure-garage-atticroof-conditioned.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>2FCD642B</checksum>
+      <checksum>4F87CFA6</checksum>
     </file>
     <file>
       <filename>extra_files/extra-enclosure-garage-partially-protruded.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>50E1F03A</checksum>
+      <checksum>73F0D8A5</checksum>
     </file>
     <file>
       <filename>extra_files/extra-enclosure-windows-shading.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>1D2560A6</checksum>
+      <checksum>21D446CA</checksum>
     </file>
     <file>
       <filename>extra_files/extra-gas-hot-tub-heater-with-zero-kwh.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>12364E7F</checksum>
+      <checksum>092A5AB1</checksum>
     </file>
     <file>
       <filename>extra_files/extra-gas-pool-heater-with-zero-kwh.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>3CE771CD</checksum>
+      <checksum>6B8FDC75</checksum>
     </file>
     <file>
       <filename>extra_files/extra-iecc-zone-different-than-epw.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>A2D22E8A</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-eaves.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A202CF44</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-exterior-corridor.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CE559523</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CE559523</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-left-bottom-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6CEE0843</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-left-bottom.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>00FF645C</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-left-middle-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2A985B1D</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-left-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CE559523</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-left-top-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2A985B1D</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-left-top.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CE559523</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-middle-bottom-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4C32F545</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-middle-bottom.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>3D069763</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-middle-middle-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-middle-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-middle-top-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-middle-top.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>6CEE0843</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-right-bottom-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>4C32F545</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-right-bottom.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>3D069763</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-right-middle-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-right-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-right-top-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab-right-top.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-slab.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>00FF645C</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-left-bottom-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A1EA5BC7</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-left-bottom.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>454A93AC</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-left-middle-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2A985B1D</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-left-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CE559523</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-left-top-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2A985B1D</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-left-top.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CE559523</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-middle-bottom-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DF784FEA</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-middle-bottom.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>EE8D1A0D</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-middle-middle-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-middle-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-middle-top-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-middle-top.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A1EA5BC7</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-right-bottom-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DF784FEA</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-right-bottom.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>EE8D1A0D</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-right-middle-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-right-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-right-top-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace-right-top.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-unvented-crawlspace.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>454A93AC</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-left-bottom-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>25704BA5</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-left-bottom.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>19666A0E</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-left-middle-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2A985B1D</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-left-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CE559523</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-left-top-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>2A985B1D</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-left-top.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>CE559523</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-middle-bottom-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>30D68EF7</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-middle-bottom.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F196AA8E</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-middle-middle-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-middle-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-middle-top-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-middle-top.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>25704BA5</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-right-bottom-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>30D68EF7</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-right-bottom.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F196AA8E</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-right-middle-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-right-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-right-top-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9B00B6E6</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace-right-top.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>DBD9C9CE</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-mf-vented-crawlspace.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>19666A0E</checksum>
+      <checksum>97A5F5F4</checksum>
     </file>
     <file>
       <filename>extra_files/extra-no-rim-joists.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>57F4EE9C</checksum>
+      <checksum>15510E9E</checksum>
     </file>
     <file>
       <filename>extra_files/extra-pv-roofpitch.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>488ECB01</checksum>
+      <checksum>96727187</checksum>
     </file>
     <file>
       <filename>extra_files/extra-second-heating-system-boiler-to-heat-pump.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>B2288CD1</checksum>
+      <checksum>301C9883</checksum>
     </file>
     <file>
       <filename>extra_files/extra-second-heating-system-boiler-to-heating-system.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>F8F44C3B</checksum>
+      <checksum>7DC198F4</checksum>
     </file>
     <file>
       <filename>extra_files/extra-second-heating-system-fireplace-to-heat-pump.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>ED1BECD7</checksum>
+      <checksum>F03D167C</checksum>
     </file>
     <file>
       <filename>extra_files/extra-second-heating-system-portable-heater-to-heat-pump.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>8BB1BE99</checksum>
+      <checksum>50054AD5</checksum>
     </file>
     <file>
       <filename>extra_files/extra-second-heating-system-portable-heater-to-heating-system.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>8A83E0B1</checksum>
+      <checksum>970D6E72</checksum>
     </file>
     <file>
       <filename>extra_files/extra-second-refrigerator.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>18B82C45</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-atticroof-conditioned-eaves-gable.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>9C882440</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-atticroof-conditioned-eaves-hip.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>5293940B</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-atticroof-flat.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>F4402A1B</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-conditioned-crawlspace.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>D04099F4</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-exterior-corridor.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A77C384B</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-rear-units.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>A77C384B</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-slab-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>17A9EC6B</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-slab-right.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>17A9EC6B</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-slab.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>004B1AC1</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-unconditioned-basement-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C8A6003A</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-unconditioned-basement-right.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>C8A6003A</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-unconditioned-basement.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>22D018C4</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-unvented-crawlspace-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>18197322</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-unvented-crawlspace-right.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>18197322</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-unvented-crawlspace.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>5ACB0D51</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-vented-crawlspace-middle.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>668F8FD7</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-vented-crawlspace-right.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>668F8FD7</checksum>
-    </file>
-    <file>
-      <filename>extra_files/extra-sfa-vented-crawlspace.xml</filename>
-      <filetype>xml</filetype>
-      <usage_type>test</usage_type>
-      <checksum>024064E2</checksum>
+      <checksum>2D9E0D4A</checksum>
     </file>
     <file>
       <filename>extra_files/extra-state-code-different-than-epw.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>7D75A9B0</checksum>
+      <checksum>80AB592A</checksum>
     </file>
     <file>
       <filename>extra_files/extra-zero-clothes-washer-kwh.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>F0402A30</checksum>
+      <checksum>FBA73BE4</checksum>
     </file>
     <file>
       <filename>extra_files/extra-zero-dishwasher-kwh.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>E1EBF131</checksum>
+      <checksum>06800BD3</checksum>
     </file>
     <file>
       <filename>extra_files/extra-zero-extra-refrigerator-kwh.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>415957AF</checksum>
+      <checksum>742E8CD1</checksum>
     </file>
     <file>
       <filename>extra_files/extra-zero-freezer-kwh.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>415957AF</checksum>
+      <checksum>742E8CD1</checksum>
     </file>
     <file>
       <filename>extra_files/extra-zero-refrigerator-kwh.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>42AEBCC0</checksum>
+      <checksum>C2338102</checksum>
     </file>
     <file>
       <filename>extra_files/extra-dhw-solar-latitude.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>72383EF2</checksum>
+      <checksum>3C69C059</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-time-zone-different-than-epw.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>51B7BF16</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-eaves.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>07B18752</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-exterior-corridor.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFFB4345</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFFB4345</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-left-bottom-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>04EF0AA5</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-left-bottom.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4C13E085</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-left-middle-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3DC7BE42</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-left-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFFB4345</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-left-top-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3DC7BE42</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-left-top.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFFB4345</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-middle-bottom-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>56A143F6</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-middle-bottom.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6598C5AE</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-middle-middle-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-middle-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-middle-top-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-middle-top.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>04EF0AA5</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-right-bottom-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>56A143F6</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-right-bottom.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6598C5AE</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-right-middle-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-right-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-right-top-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab-right-top.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-slab.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>4C13E085</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-left-bottom-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>926546E1</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-left-bottom.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>79025980</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-left-middle-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3DC7BE42</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-left-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFFB4345</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-left-top-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3DC7BE42</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-left-top.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFFB4345</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-middle-bottom-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E07A2D39</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-middle-bottom.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>75DD2F39</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-middle-middle-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-middle-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-middle-top-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-middle-top.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>926546E1</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-right-bottom-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>E07A2D39</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-right-bottom.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>75DD2F39</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-right-middle-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-right-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-right-top-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace-right-top.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-unvented-crawlspace.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>79025980</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-left-bottom-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C165D7B6</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-left-bottom.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A9E8933B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-left-middle-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3DC7BE42</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-left-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFFB4345</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-left-top-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3DC7BE42</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-left-top.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CFFB4345</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-middle-bottom-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F48929C4</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-middle-bottom.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D9628445</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-middle-middle-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-middle-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-middle-top-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-middle-top.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C165D7B6</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-right-bottom-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F48929C4</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-right-bottom.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D9628445</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-right-middle-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-right-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-right-top-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>B727CF0B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace-right-top.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>FF9EEE95</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-vented-crawlspace.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A9E8933B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-atticroof-conditioned-eaves-gable.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>298DDE0F</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-atticroof-conditioned-eaves-hip.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>9F11D0EC</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-atticroof-flat.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A8D546A6</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-conditioned-crawlspace.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>3CD5E573</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-exterior-corridor.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>91ED5DED</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-rear-units.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>91ED5DED</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-slab-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>234DBB6F</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-slab-right.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>234DBB6F</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-slab.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D134A0C6</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-unconditioned-basement-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A15F3030</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-unconditioned-basement-right.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>A15F3030</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-unconditioned-basement.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>D832451F</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-unvented-crawlspace-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C9B09FA1</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-unvented-crawlspace-right.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C9B09FA1</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-unvented-crawlspace.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CD815A07</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-vented-crawlspace-middle.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>42E1EF12</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-vented-crawlspace-right.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>42E1EF12</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-vented-crawlspace.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>6B8359C7</checksum>
     </file>
     <file>
       <filename>extra_files/warning-conditioned-attic-with-floor-insulation.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>7DCE1EC5</checksum>
+      <checksum>AD5B31E2</checksum>
     </file>
     <file>
       <filename>extra_files/warning-conditioned-basement-with-ceiling-insulation.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>415957AF</checksum>
+      <checksum>742E8CD1</checksum>
     </file>
     <file>
       <filename>extra_files/warning-mf-bottom-slab-non-zero-foundation-height.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>00FF645C</checksum>
+      <checksum>4C13E085</checksum>
     </file>
     <file>
       <filename>extra_files/warning-multipliers-without-fuel-loads.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>415957AF</checksum>
+      <checksum>742E8CD1</checksum>
     </file>
     <file>
       <filename>extra_files/warning-multipliers-without-other-plug-loads.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>F0B6D83D</checksum>
+      <checksum>5AFD095B</checksum>
     </file>
     <file>
       <filename>extra_files/warning-multipliers-without-tv-plug-loads.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>D96178DE</checksum>
+      <checksum>7D1AF762</checksum>
     </file>
     <file>
       <filename>extra_files/warning-multipliers-without-vehicle-plug-loads.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>415957AF</checksum>
+      <checksum>742E8CD1</checksum>
     </file>
     <file>
       <filename>extra_files/warning-multipliers-without-well-pump-plug-loads.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>415957AF</checksum>
+      <checksum>742E8CD1</checksum>
     </file>
     <file>
       <filename>extra_files/warning-non-electric-heat-pump-water-heater.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>2ADF2171</checksum>
+      <checksum>5370327F</checksum>
     </file>
     <file>
       <filename>extra_files/warning-second-heating-system-serves-majority-heat.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>0212A41B</checksum>
+      <checksum>92D853FB</checksum>
     </file>
     <file>
       <filename>extra_files/warning-sfd-slab-non-zero-foundation-height.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>A14AF5F1</checksum>
+      <checksum>849FE397</checksum>
     </file>
     <file>
       <filename>extra_files/warning-slab-non-zero-foundation-height-above-grade.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>A14AF5F1</checksum>
+      <checksum>849FE397</checksum>
     </file>
     <file>
       <filename>extra_files/warning-unconditioned-basement-with-wall-and-ceiling-insulation.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>0CC75E39</checksum>
+      <checksum>8B37DDCC</checksum>
     </file>
     <file>
       <filename>extra_files/warning-unvented-attic-with-floor-and-roof-insulation.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>397BAA2C</checksum>
+      <checksum>058A8C40</checksum>
     </file>
     <file>
       <filename>extra_files/warning-unvented-crawlspace-with-wall-and-ceiling-insulation.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>C93C16EA</checksum>
+      <checksum>CA70565D</checksum>
     </file>
     <file>
       <filename>extra_files/warning-vented-attic-with-floor-and-roof-insulation.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>11BAA9F6</checksum>
+      <checksum>656305EF</checksum>
     </file>
     <file>
       <filename>extra_files/warning-vented-crawlspace-with-wall-and-ceiling-insulation.xml</filename>
       <filetype>xml</filetype>
       <usage_type>test</usage_type>
-      <checksum>A887B353</checksum>
+      <checksum>1B214F55</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-emissions-fossil-fuel-factors.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>29BF6BF8</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-ambient.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>7F3AB2D5</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-ambient.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1AC59B1D</checksum>
     </file>
     <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>9E1237A6</checksum>
+      <checksum>EC2C759D</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-atticroof-flat.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>228BA7BB</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-mf-atticroof-vented.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>EC0F1768</checksum>
     </file>
     <file>
       <version>
@@ -6768,7 +6839,37 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FAE4E376</checksum>
+      <checksum>2D2857D8</checksum>
+    </file>
+    <file>
+      <filename>extra_files/error-hip-roof-and-protruding-garage.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1C2C3DDC</checksum>
+    </file>
+    <file>
+      <filename>extra_files/error-invalid-living-and-garage-1.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>0FEA5D8B</checksum>
+    </file>
+    <file>
+      <filename>extra_files/error-invalid-living-and-garage-2.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>54090807</checksum>
+    </file>
+    <file>
+      <filename>extra_files/error-invalid-time-zone.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>F0FB2E25</checksum>
+    </file>
+    <file>
+      <filename>extra_files/extra-sfa-ambient - Copy.xml</filename>
+      <filetype>xml</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C028936D</checksum>
     </file>
   </files>
 </measure>
