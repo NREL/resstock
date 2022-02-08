@@ -1,50 +1,10 @@
 <?xml version="1.0"?>
 <measure>
   <schema_version>3.0</schema_version>
-  <error>C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:393: syntax error, unexpected ')', expecting `end'
-...'hpxml_path'] = hes_hpxml_path)
-...                              ^
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:396: syntax error, unexpected =&gt;, expecting `end'
-...es_hash = { 'HPXMLtoHEScore' =&gt; measures['HPXMLtoHEScore'], ...
-...                             ^~
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:396: syntax error, unexpected =&gt;, expecting '.' or &amp;. or :: or '['
-...oHEScore'], 'HEScoreRuleset' =&gt; measures['HEScoreRuleset'] }
-...                             ^~
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:396: syntax error, unexpected '}', expecting `end'
-...=&gt; measures['HEScoreRuleset'] }
-...                              ^
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:404: syntax error, unexpected tLAMBEG
-      measures_hash = { 'HPXMLtoOpenStudio' =&gt; measu...
-                      ^
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:404: syntax error, unexpected =&gt;, expecting `end'
-...hash = { 'HPXMLtoOpenStudio' =&gt; measures['HPXMLtoOpenStudio'...
-...                             ^~
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:404: syntax error, unexpected '}', expecting `end'
-...measures['HPXMLtoOpenStudio'] }
-...                              ^
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:420: syntax error, unexpected `do' for lambda
-...s][:problem][:workflow].each do |wf|
-...                             ^~
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:421: void value expression
-        next if wf[:name] != 'build_exist...
-        ^~~~
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:423: syntax error, unexpected `do' for lambda
-        wf[:variables].each do |v|
-                            ^~
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:424: void value expression
-          next if v[:argument][:name] != 'b...
-          ^~~~
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:431: Invalid return in class/module body
-        return false
-        ^~~~~~
-C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442: syntax error, unexpected `end', expecting end-of-input
-  end
-  ^~~
-</error>
   <name>build_existing_model</name>
   <uid>dedf59bb-3b88-4f16-8755-2c1ff5519cbf</uid>
-  <version_id>6fa8f796-c676-427f-a164-fc8b7505dabd</version_id>
-  <version_modified>20220208T201659Z</version_modified>
+  <version_id>7a74a988-2038-4ce8-b0e6-f85fdb177a18</version_id>
+  <version_modified>20220208T221627Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildExistingModel</class_name>
   <display_name>Build Existing Model</display_name>
@@ -56,60 +16,40 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
       <display_name>Building Unit ID</display_name>
       <description>The building unit number (between 1 and the number of samples).</description>
       <type>Integer</type>
-      <units></units>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>number_of_buildings_represented</name>
       <display_name>Number of Buildings Represented</display_name>
       <description>The total number of buildings represented by the existing building models.</description>
       <type>Integer</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>sample_weight</name>
       <display_name>Sample Weight of Simulation</display_name>
       <description>Number of buildings this simulation represents.</description>
       <type>Double</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>downselect_logic</name>
       <display_name>Downselect Logic</display_name>
       <description>Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>measures_to_ignore</name>
       <display_name>Measures to Ignore</display_name>
       <description>Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (this measure will fail). INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>simulation_control_timestep</name>
@@ -119,9 +59,6 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
       <units>min</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>simulation_control_run_period_begin_month</name>
@@ -131,9 +68,6 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
       <units>month</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>simulation_control_run_period_begin_day_of_month</name>
@@ -143,9 +77,6 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
       <units>day</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>simulation_control_run_period_end_month</name>
@@ -155,9 +86,6 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
       <units>month</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>simulation_control_run_period_end_day_of_month</name>
@@ -167,9 +95,6 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
       <units>day</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>simulation_control_run_period_calendar_year</name>
@@ -179,19 +104,14 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
       <units>year</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>debug</name>
       <display_name>Debug Mode?</display_name>
       <description>If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.</description>
       <type>Boolean</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
       <choices>
         <choice>
           <value>true</value>
@@ -202,18 +122,14 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
           <display_name>false</display_name>
         </choice>
       </choices>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>add_component_loads</name>
       <display_name>Annual Component Loads?</display_name>
       <description>If true, output the annual component loads.</description>
       <type>Boolean</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
       <choices>
         <choice>
           <value>true</value>
@@ -224,104 +140,70 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
           <display_name>false</display_name>
         </choice>
       </choices>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>os_hescore_directory</name>
       <display_name>HEScore Workflow: OpenStudio-HEScore directory path</display_name>
-      <description>Path to the OpenStudio-HEScore directory. If specified, the HEScore workflow will run</description>
+      <description>Path to the OpenStudio-HEScore directory. If specified, the HEScore workflow will run.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>emissions_scenario_names</name>
       <display_name>Emissions: Scenario Names</display_name>
       <description>Names of emissions scenarios. If multiple scenarios, use a comma-separated list.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>emissions_types</name>
       <display_name>Emissions: Types</display_name>
       <description>Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>emissions_electricity_folders</name>
       <display_name>Emissions: Electricity Folders</display_name>
       <description>Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. File names must contain GEA region names.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>emissions_natural_gas_values</name>
       <display_name>Emissions: Natural Gas Values</display_name>
       <description>Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>emissions_propane_values</name>
       <display_name>Emissions: Propane Values</display_name>
       <description>Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>emissions_fuel_oil_values</name>
       <display_name>Emissions: Fuel Oil Values</display_name>
       <description>Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
     <argument>
       <name>emissions_wood_values</name>
       <display_name>Emissions: Wood Values</display_name>
       <description>Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
       <type>String</type>
-      <units></units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value></default_value>
-      <min_value></min_value>
-      <max_value></max_value>
     </argument>
   </arguments>
   <outputs />
@@ -346,7 +228,7 @@ C:/Users/aspeake/Documents/resstock-2/measures/BuildExistingModel/measure.rb:442
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>74BB6981</checksum>
+      <checksum>07B6954C</checksum>
     </file>
   </files>
 </measure>

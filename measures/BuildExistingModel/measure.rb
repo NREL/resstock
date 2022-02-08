@@ -390,7 +390,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       hes_hpxml_path = File.expand_path('../hes.xml')
       measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => hpxml_path, 'output_path' => hes_json_path }]
       measures['HEScoreRuleset'] = [{ 'json_path' => hes_json_path, 'hpxml_output_path' => hes_hpxml_path }]
-      measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = hes_hpxml_path)
+      measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = hes_hpxml_path
 
       # HPXMLtoHEScore and HEScoreRuleset
       measures_hash = { 'HPXMLtoHEScore' => measures['HPXMLtoHEScore'], 'HEScoreRuleset' => measures['HEScoreRuleset'] }
