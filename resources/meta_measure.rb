@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 # Helper methods related to having a meta-measure
 
 def get_measures(workflow_json, include_only = nil)
   result = []
-  JSON.parse(File.read(workflow_json), :symbolize_names => true).each do |group|
+  JSON.parse(File.read(workflow_json), symbolize_names: true).each do |group|
     group[:group_steps].each do |step|
       step[:measures].each do |measure_dir|
-        if (not include_only.nil?) and (not include_only.include? measure_dir)
+        if (not include_only.nil?) && (not include_only.include? measure_dir)
           next
         end
 
@@ -40,7 +42,7 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, o
     # Create a workflow based on the measures we're going to call. Convenient for debugging.
     workflowJSON = OpenStudio::WorkflowJSON.new
     workflowJSON.setOswPath(File.expand_path("../#{osw_out}"))
-    workflowJSON.addMeasurePath("measures")
+    workflowJSON.addMeasurePath('measures')
     steps = OpenStudio::WorkflowStepVector.new
     workflow_order.each do |measure_subdir|
       measures[measure_subdir].each do |args|
@@ -60,7 +62,7 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, o
   # Call each measure in the specified order
   workflow_order.each do |measure_subdir|
     # Gather measure arguments and call measure
-    full_measure_path = File.join(measures_dir, measure_subdir, "measure.rb")
+    full_measure_path = File.join(measures_dir, measure_subdir, 'measure.rb')
     check_file_exists(full_measure_path, runner)
     measure_instance = get_measure_instance(full_measure_path)
     measures[measure_subdir].each do |args|
@@ -79,15 +81,15 @@ def apply_measures(measures_dir, measures, runner, model, workflow_json = nil, o
 end
 
 def print_measure_call(measure_args, measure_dir, runner)
-  if measure_args.nil? or measure_dir.nil?
+  if measure_args.nil? || measure_dir.nil?
     return
   end
 
-  args_s = hash_to_string(measure_args, delim = " -> ", separator = " \n")
+  args_s = hash_to_string(measure_args, delim = ' -> ', separator = " \n")
   if args_s.size > 0
-    runner.registerInfo("Calling #{measure_dir.to_s} measure with arguments:\n#{args_s}")
+    runner.registerInfo("Calling #{measure_dir} measure with arguments:\n#{args_s}")
   else
-    runner.registerInfo("Calling #{measure_dir.to_s} measure with no arguments.")
+    runner.registerInfo("Calling #{measure_dir} measure with no arguments.")
   end
 end
 
@@ -95,38 +97,38 @@ def get_measure_instance(measure_rb_path)
   # Parse XML file for class name
   require 'rexml/document'
   require 'rexml/xpath'
-  xmldoc = REXML::Document.new(File.read(measure_rb_path.sub(".rb", ".xml")))
-  measure_class = REXML::XPath.first(xmldoc, "//measure/class_name").text
+  xmldoc = REXML::Document.new(File.read(measure_rb_path.sub('.rb', '.xml')))
+  measure_class = REXML::XPath.first(xmldoc, '//measure/class_name').text
   # Create new instance
-  require (File.absolute_path(measure_rb_path))
+  require File.absolute_path(measure_rb_path)
   measure = eval(measure_class).new
   return measure
 end
 
 def validate_measure_args(measure_args, provided_args, lookup_file, measure_name, runner = nil)
   measure_arg_names = measure_args.map { |arg| arg.name }
-  lookup_file_str = ""
+  lookup_file_str = ''
   if not lookup_file.nil?
-    lookup_file_str = " in #{lookup_file.to_s}"
+    lookup_file_str = " in #{lookup_file}"
   end
   # Verify all arguments have been provided
   measure_args.each do |arg|
     next if provided_args.keys.include?(arg.name)
     next if not arg.required
 
-    register_error("Required argument '#{arg.name}' not provided#{lookup_file_str} for measure '#{measure_name.to_s}'.", runner)
+    register_error("Required argument '#{arg.name}' not provided#{lookup_file_str} for measure '#{measure_name}'.", runner)
   end
   provided_args.keys.each do |k|
     next if measure_arg_names.include?(k)
 
-    register_error("Extra argument '#{k}' specified#{lookup_file_str} for measure '#{measure_name.to_s}'.", runner)
+    register_error("Extra argument '#{k}' specified#{lookup_file_str} for measure '#{measure_name}'.", runner)
   end
   # Check for valid argument values
   measure_args.each do |arg|
     # Get measure provided arg
     if provided_args[arg.name].nil?
       if arg.required
-        register_error("Required argument '#{arg.name.to_s}' for measure '#{measure_name.to_s}' must have a value provided.", runner)
+        register_error("Required argument '#{arg.name}' for measure '#{measure_name}' must have a value provided.", runner)
       else
         next
       end
@@ -134,23 +136,23 @@ def validate_measure_args(measure_args, provided_args, lookup_file, measure_name
       provided_args[arg.name] = provided_args[arg.name].to_s
     end
     case arg.type.valueName.downcase
-    when "boolean"
+    when 'boolean'
       if not ['true', 'false'].include?(provided_args[arg.name])
-        register_error("Value of '#{provided_args[arg.name].to_s}' for argument '#{arg.name.to_s}' and measure '#{measure_name.to_s}' must be 'true' or 'false'.", runner)
+        register_error("Value of '#{provided_args[arg.name]}' for argument '#{arg.name}' and measure '#{measure_name}' must be 'true' or 'false'.", runner)
       end
-    when "double"
+    when 'double'
       if not provided_args[arg.name].is_number?
-        register_error("Value of '#{provided_args[arg.name].to_s}' for argument '#{arg.name.to_s}' and measure '#{measure_name.to_s}' must be a number.", runner)
+        register_error("Value of '#{provided_args[arg.name]}' for argument '#{arg.name}' and measure '#{measure_name}' must be a number.", runner)
       end
-    when "integer"
+    when 'integer'
       if not provided_args[arg.name].is_integer?
-        register_error("Value of '#{provided_args[arg.name].to_s}' for argument '#{arg.name.to_s}' and measure '#{measure_name.to_s}' must be an integer.", runner)
+        register_error("Value of '#{provided_args[arg.name]}' for argument '#{arg.name}' and measure '#{measure_name}' must be an integer.", runner)
       end
-    when "string"
+    when 'string'
     # no op
-    when "choice"
-      if not arg.choiceValues.include?(provided_args[arg.name]) and not arg.modelDependent
-        register_error("Value of '#{provided_args[arg.name].to_s}' for argument '#{arg.name.to_s}' and measure '#{measure_name.to_s}' must be one of: #{arg.choiceValues.to_s}.", runner)
+    when 'choice'
+      if (not arg.choiceValues.include?(provided_args[arg.name])) && (not arg.modelDependent)
+        register_error("Value of '#{provided_args[arg.name]}' for argument '#{arg.name}' and measure '#{measure_name}' must be one of: #{arg.choiceValues}.", runner)
       end
     end
   end
@@ -208,21 +210,21 @@ def run_measure(model, measure, argument_map, runner)
     end
 
     # convert a return false in the measure to a return false and error here.
-    if result_child.value.valueName == "Fail"
-      runner.registerError("The measure was not successful")
+    if result_child.value.valueName == 'Fail'
+      runner.registerError('The measure was not successful')
       return false
     end
   rescue => e
-    runner.registerError("Measure Failed with an error: #{e.inspect.to_s} at: #{e.backtrace.join("\n")}")
+    runner.registerError("Measure Failed with an error: #{e.inspect} at: #{e.backtrace.join("\n")}")
     return false
   end
   return true
 end
 
-def hash_to_string(hash, delim = "=", separator = ",")
-  hash_s = ""
+def hash_to_string(hash, delim = '=', separator = ',')
+  hash_s = ''
   hash.each do |k, v|
-    hash_s << "#{k.to_s}#{delim.to_s}#{v.to_s}#{separator.to_s}"
+    hash_s += "#{k}#{delim}#{v}#{separator}"
   end
   if hash_s.size > 0
     hash_s = hash_s.chomp(separator.to_s)
@@ -241,13 +243,13 @@ end
 
 def check_file_exists(full_path, runner = nil)
   if not File.exist?(full_path)
-    register_error("Cannot find file #{full_path.to_s}.", runner)
+    register_error("Cannot find file #{full_path}.", runner)
   end
 end
 
 def check_dir_exists(full_path, runner = nil)
   if not Dir.exist?(full_path)
-    register_error("Cannot find directory #{full_path.to_s}.", runner)
+    register_error("Cannot find directory #{full_path}.", runner)
   end
 end
 
@@ -269,7 +271,7 @@ class String
   end
 
   def is_integer?
-    if not self.is_number?
+    if not is_number?
       return false
     end
     if Integer(Float(self)).to_f != Float(self)

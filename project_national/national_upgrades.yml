@@ -1,0 +1,179 @@
+schema_version: '0.3'
+buildstock_directory: ../ # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: national_upgrades
+weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 1
+
+workflow_generator:
+  type: residential_default
+  args:
+    residential_simulation_controls:
+      timesteps_per_hr: 1
+      begin_month: 1
+      begin_day_of_month: 1
+      end_month: 12
+      end_day_of_month: 31
+      calendar_year: 2007
+
+    simulation_output:
+      include_enduse_subcategories: true
+
+    timeseries_csv_export:
+      reporting_frequency: Hourly
+      include_enduse_subcategories: true
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+
+upgrades:
+  - upgrade_name: Windows
+    options:
+      - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+        costs:
+          - value: 45.77
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+
+  - upgrade_name: Walls
+    options:
+      - option: Insulation Wall|Wood Stud, R-13
+        costs:
+          - value: 2.21
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
+
+  - upgrade_name: Air Leakage
+    options:
+      - option: Infiltration|3 ACH50
+        costs:
+          - value: 3.55
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+
+  - upgrade_name: Refrigerator
+    options:
+      - option: Refrigerator|EF 21.9, 100% Usage
+        costs:
+          - value: 2500.0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+
+  - upgrade_name: Lighting
+    options:
+      - option: Lighting|100% LED
+        costs:
+          - value: 0.75
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 25
+      - option: Lighting Interior Use|100% Usage
+      - option: Lighting Other Use|100% Usage
+      - option: Holiday Lighting|No Exterior Use
+
+  - upgrade_name: ASHP
+    options:
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 30
+
+  - upgrade_name: HPWH
+    options:
+      - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        costs:
+          - value: 100.0
+            multiplier: Size, Water Heater (gal)
+        lifetime: 12
+      - option: Solar Hot Water|40 sqft, South, Roof Pitch
+
+  - upgrade_name: PV
+    options:
+      - option: Has PV|Yes
+        costs:
+          - value: 15000.0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: PV System Size|5.0 kWDC
+      - option: PV Orientation|South
+
+  - upgrade_name: All Upgrades
+    package_apply_logic:
+      or:
+        - County|AZ, Maricopa County
+        - County|CA, Los Angeles County
+        - County|GA, Fulton County
+        - County|IL, Cook County
+        - County|TX, Harris County
+        - County|WA, King County
+    options:
+      - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+        costs:
+          - value: 45.77
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - option: Insulation Wall|Wood Stud, R-13
+        costs:
+          - value: 2.21
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
+      - option: Infiltration|3 ACH50
+        costs:
+          - value: 3.55
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - option: Refrigerator|EF 21.9, 100% Usage
+        costs:
+          - value: 2500.0
+            multiplier: Fixed (1)
+        lifetime: 17.4
+      - option: Lighting|100% LED
+        costs:
+          - value: 0.75
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 25
+      - option: Lighting Interior Use|100% Usage
+      - option: Lighting Other Use|100% Usage
+      - option: Holiday Lighting|No Exterior Use
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 30
+      - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        costs:
+          - value: 100.0
+            multiplier: Size, Water Heater (gal)
+        lifetime: 12
+      - option: Solar Hot Water|40 sqft, South, Roof Pitch
+      - option: Has PV|Yes
+        costs:
+          - value: 15000.0
+            multiplier: Fixed (1)
+        lifetime: 30
+      - option: PV System Size|5.0 kWDC
+      - option: PV Orientation|South
+
+eagle:
+  n_jobs: 3
+  minutes_per_sim: 30
+  account: <account you are authorized to use>
+  postprocessing:
+    time: 20
+    n_workers: 1
+  sampling:
+    time: 5

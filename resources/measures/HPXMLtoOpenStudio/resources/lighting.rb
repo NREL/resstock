@@ -1,6 +1,8 @@
-require_relative "schedules"
-require_relative "geometry"
-require_relative "unit_conversions"
+# frozen_string_literal: true
+
+require_relative 'schedules'
+require_relative 'geometry'
+require_relative 'unit_conversions'
 
 class Lighting
   def self.apply_interior(model, unit, runner, weather, sch, interior_ann, schedules_file)
@@ -13,16 +15,16 @@ class Lighting
 
     # Finished spaces for the unit
     unit_finished_spaces.each do |space|
-      space_obj_name = "#{Constants.ObjectNameLightingInterior(unit.name.to_s)} #{space.name.to_s}"
+      space_obj_name = "#{Constants.ObjectNameLightingInterior(unit.name.to_s)} #{space.name}"
 
-      col_name = "lighting_interior"
+      col_name = 'lighting_interior'
       if sch.nil?
         # Create schedule
         sch = schedules_file.create_schedule_file(col_name: col_name)
       end
 
       if unit_finished_spaces.include?(space)
-        space_ltg_ann = interior_ann * UnitConversions.convert(space.floorArea, "m^2", "ft^2") / ffa
+        space_ltg_ann = interior_ann * UnitConversions.convert(space.floorArea, 'm^2', 'ft^2') / ffa
       end
       space_design_level = schedules_file.calc_design_level_from_annual_kwh(col_name: col_name, annual_kwh: space_ltg_ann)
 
@@ -48,10 +50,10 @@ class Lighting
     garage_spaces = Geometry.get_garage_spaces(model.getSpaces)
     gfa = Geometry.get_floor_area_from_spaces(garage_spaces)
     garage_spaces.each do |garage_space|
-      space_obj_name = "#{Constants.ObjectNameLightingGarage} #{garage_space.name.to_s}"
-      space_ltg_ann = garage_ann * UnitConversions.convert(garage_space.floorArea, "m^2", "ft^2") / gfa
+      space_obj_name = "#{Constants.ObjectNameLightingGarage} #{garage_space.name}"
+      space_ltg_ann = garage_ann * UnitConversions.convert(garage_space.floorArea, 'm^2', 'ft^2') / gfa
 
-      col_name = "lighting_garage"
+      col_name = 'lighting_garage'
       if sch.nil?
         # Create schedule
         sch = schedules_file.create_schedule_file(col_name: col_name)
@@ -77,7 +79,7 @@ class Lighting
   end
 
   def self.apply_exterior(model, runner, weather, exterior_ann, schedules_file)
-    col_name = "lighting_exterior"
+    col_name = 'lighting_exterior'
 
     obj_name = Constants.ObjectNameLightingExterior
 
@@ -99,7 +101,7 @@ class Lighting
   end
 
   def self.apply_exterior_holiday(model, runner, exterior_ann, schedules_file)
-    col_name = "lighting_exterior_holiday"
+    col_name = 'lighting_exterior_holiday'
 
     obj_name = Constants.ObjectNameLightingExteriorHoliday
 
@@ -132,7 +134,7 @@ class Lighting
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing interior lighting from the model.")
+      runner.registerInfo('Removed existing interior lighting from the model.')
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -162,7 +164,7 @@ class Lighting
       end
     end
     if objects_to_remove.size > 0
-      runner.registerInfo("Removed existing garage/exterior lighting from the model.")
+      runner.registerInfo('Removed existing garage/exterior lighting from the model.')
     end
     objects_to_remove.uniq.each do |object|
       begin
@@ -194,7 +196,7 @@ class Lighting
   end
 
   def self.calc_lighting_energy(eri_version, cfa, garage_present, fFI_int, fFI_ext, fFI_grg, fFII_int, fFII_ext, fFII_grg)
-    if eri_version.include? "G"
+    if eri_version.include? 'G'
       # ANSI/RESNET/ICC 301-2014 Addendum G-2018, Solid State Lighting
       int_kwh = 0.9 / 0.925 * (455.0 + 0.8 * cfa) * ((1.0 - fFII_int - fFI_int) + fFI_int * 15.0 / 60.0 + fFII_int * 15.0 / 90.0) + 0.1 * (455.0 + 0.8 * cfa) # Eq 4.2-2)
       ext_kwh = (100.0 + 0.05 * cfa) * (1.0 - fFI_ext - fFII_ext) + 15.0 / 60.0 * (100.0 + 0.05 * cfa) * fFI_ext + 15.0 / 90.0 * (100.0 + 0.05 * cfa) * fFII_ext # Eq 4.2-3

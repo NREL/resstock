@@ -1,20 +1,22 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
-unless File.exists? resources_path
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
+unless File.exist? resources_path
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
 end
-require File.join(resources_path, "util")
-require File.join(resources_path, "geometry")
-require File.join(resources_path, "constructions")
+require File.join(resources_path, 'util')
+require File.join(resources_path, 'geometry')
+require File.join(resources_path, 'constructions')
 
 # start the measure
 class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
   # define the name that a user will see, this method may be deprecated as
   # the display name in PAT comes from the name field in measure.xml
   def name
-    return "Set Residential Slab Construction"
+    return 'Set Residential Slab Construction'
   end
 
   def description
@@ -22,7 +24,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
   end
 
   def modeler_description
-    return "Calculates and assigns material layer properties of slab constructions of finished spaces. Any existing constructions for these surfaces will be removed."
+    return 'Calculates and assigns material layer properties of slab constructions of finished spaces. Any existing constructions for these surfaces will be removed.'
   end
 
   # define the arguments that the user will input
@@ -30,50 +32,50 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # make a double argument for slab perimeter insulation R-value
-    perimeter_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("perimeter_r", true)
-    perimeter_r.setDisplayName("Perimeter Insulation Nominal R-value")
-    perimeter_r.setUnits("hr-ft^2-R/Btu")
-    perimeter_r.setDescription("Perimeter insulation is placed horizontally below the perimeter of the slab.")
+    perimeter_r = OpenStudio::Measure::OSArgument::makeDoubleArgument('perimeter_r', true)
+    perimeter_r.setDisplayName('Perimeter Insulation Nominal R-value')
+    perimeter_r.setUnits('hr-ft^2-R/Btu')
+    perimeter_r.setDescription('Perimeter insulation is placed horizontally below the perimeter of the slab.')
     perimeter_r.setDefaultValue(0.0)
     args << perimeter_r
 
     # make a double argument for slab perimeter insulation width
-    perimeter_width = OpenStudio::Measure::OSArgument::makeDoubleArgument("perimeter_width", true)
-    perimeter_width.setDisplayName("Perimeter Insulation Width")
-    perimeter_width.setUnits("ft")
-    perimeter_width.setDescription("The distance from the perimeter of the house where the perimeter insulation ends.")
+    perimeter_width = OpenStudio::Measure::OSArgument::makeDoubleArgument('perimeter_width', true)
+    perimeter_width.setDisplayName('Perimeter Insulation Width')
+    perimeter_width.setUnits('ft')
+    perimeter_width.setDescription('The distance from the perimeter of the house where the perimeter insulation ends.')
     perimeter_width.setDefaultValue(0.0)
     args << perimeter_width
 
     # make a double argument for whole slab insulation R-value
-    whole_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("whole_r", true)
-    whole_r.setDisplayName("Whole Slab Insulation Nominal R-value")
-    whole_r.setUnits("hr-ft^2-R/Btu")
-    whole_r.setDescription("Whole slab insulation is placed horizontally below the entire slab.")
+    whole_r = OpenStudio::Measure::OSArgument::makeDoubleArgument('whole_r', true)
+    whole_r.setDisplayName('Whole Slab Insulation Nominal R-value')
+    whole_r.setUnits('hr-ft^2-R/Btu')
+    whole_r.setDescription('Whole slab insulation is placed horizontally below the entire slab.')
     whole_r.setDefaultValue(0.0)
     args << whole_r
 
     # make a double argument for slab gap R-value
-    gap_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("gap_r", true)
-    gap_r.setDisplayName("Gap Insulation Nominal R-value")
-    gap_r.setUnits("hr-ft^2-R/Btu")
-    gap_r.setDescription("Gap insulation is placed vertically between the edge of the slab and the foundation wall.")
+    gap_r = OpenStudio::Measure::OSArgument::makeDoubleArgument('gap_r', true)
+    gap_r.setDisplayName('Gap Insulation Nominal R-value')
+    gap_r.setUnits('hr-ft^2-R/Btu')
+    gap_r.setDescription('Gap insulation is placed vertically between the edge of the slab and the foundation wall.')
     gap_r.setDefaultValue(0.0)
     args << gap_r
 
     # make a double argument for slab exterior insulation R-value
-    exterior_r = OpenStudio::Measure::OSArgument::makeDoubleArgument("exterior_r", true)
-    exterior_r.setDisplayName("Exterior Insulation Nominal R-value")
-    exterior_r.setUnits("hr-ft^2-R/Btu")
-    exterior_r.setDescription("Exterior insulation is placed vertically on the exterior of the foundation wall.")
+    exterior_r = OpenStudio::Measure::OSArgument::makeDoubleArgument('exterior_r', true)
+    exterior_r.setDisplayName('Exterior Insulation Nominal R-value')
+    exterior_r.setUnits('hr-ft^2-R/Btu')
+    exterior_r.setDescription('Exterior insulation is placed vertically on the exterior of the foundation wall.')
     exterior_r.setDefaultValue(0.0)
     args << exterior_r
 
     # make a double argument for slab exterior insulation depth
-    exterior_depth = OpenStudio::Measure::OSArgument::makeDoubleArgument("exterior_depth", true)
-    exterior_depth.setDisplayName("Exterior Insulation Depth")
-    exterior_depth.setUnits("ft")
-    exterior_depth.setDescription("The depth of the exterior foundation insulation.")
+    exterior_depth = OpenStudio::Measure::OSArgument::makeDoubleArgument('exterior_depth', true)
+    exterior_depth.setDisplayName('Exterior Insulation Depth')
+    exterior_depth.setUnits('ft')
+    exterior_depth.setDescription('The depth of the exterior foundation insulation.')
     exterior_depth.setDefaultValue(0.0)
     args << exterior_depth
 
@@ -92,12 +94,12 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
     floors_by_type = SurfaceTypes.get_floors(model, runner)
 
     # Get Inputs
-    perimeter_r = runner.getDoubleArgumentValue("perimeter_r", user_arguments)
-    perimeter_width = runner.getDoubleArgumentValue("perimeter_width", user_arguments)
-    whole_r = runner.getDoubleArgumentValue("whole_r", user_arguments)
-    gap_r = runner.getDoubleArgumentValue("gap_r", user_arguments)
-    exterior_r = runner.getDoubleArgumentValue("exterior_r", user_arguments)
-    exterior_depth = runner.getDoubleArgumentValue("exterior_depth", user_arguments)
+    perimeter_r = runner.getDoubleArgumentValue('perimeter_r', user_arguments)
+    perimeter_width = runner.getDoubleArgumentValue('perimeter_width', user_arguments)
+    whole_r = runner.getDoubleArgumentValue('whole_r', user_arguments)
+    gap_r = runner.getDoubleArgumentValue('gap_r', user_arguments)
+    exterior_r = runner.getDoubleArgumentValue('exterior_r', user_arguments)
+    exterior_depth = runner.getDoubleArgumentValue('exterior_depth', user_arguments)
 
     # Apply constructions
     floors_by_type[Constants.SurfaceTypeFloorFndGrndFinSlab].each do |floor_surface|
@@ -126,6 +128,23 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
 
     # Get geometry values
     surfaces = floors_by_type[Constants.SurfaceTypeFloorFndGrndFinSlab]
+    space_surfaces = []
+    living_space = nil
+    surfaces.each do |surface|
+      next if not Geometry.is_living(surface.space.get)
+
+      living_space = surface.space.get
+      break
+    end
+
+    surfaces.each do |surface|
+      if surface.space.get == living_space
+        space_surfaces << surface
+      end
+    end
+
+    # Calculate slab area based on one unit
+    slabArea = Geometry.calculate_total_area_from_surfaces(space_surfaces)
 
     # Define materials
     slabCarpetPerimeterConduction, slabBarePerimeterConduction = SlabPerimeterConductancesByType(perimeter_r, gap_r, perimeter_width, exterior_r, whole_r, exterior_depth)
@@ -133,9 +152,7 @@ class ProcessConstructionsSlab < OpenStudio::Measure::ModelMeasure
     slab_perimeter_conduction = slabCarpetPerimeterConduction * carpetFloorFraction + slabBarePerimeterConduction * (1 - carpetFloorFraction)
 
     surfaces.each do |surface|
-      slabArea = UnitConversions.convert(surface.grossArea, "m^2", "ft^2")
       slabExtPerimeter = Geometry.calculate_exposed_perimeter(model, [surface], false)
-
       if slabExtPerimeter > 0
         effective_slab_Rvalue = slabArea / (slabExtPerimeter * slab_perimeter_conduction)
       else

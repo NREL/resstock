@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
 
@@ -8,32 +10,32 @@ require 'csv'
 require 'openstudio'
 
 require 'openstudio'
-if File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../lib/resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources")) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../../resources/measures/HPXMLtoOpenStudio/resources"))
-elsif File.exists? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources") # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, "HPXMLtoOpenStudio/resources")
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), "../HPXMLtoOpenStudio/resources"))
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
-require File.join(resources_path, "constants")
+require File.join(resources_path, 'constants')
 
 # start the measure
 class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
   # human readable name
   def name
-    return "Apply Upgrade"
+    return 'Apply Upgrade'
   end
 
   # human readable description
   def description
-    return "Measure that applies an upgrade (one or more child measures) to a building model based on the specified logic."
+    return 'Measure that applies an upgrade (one or more child measures) to a building model based on the specified logic.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return "Determines if the upgrade should apply to a given building model. If so, calls one or more child measures with the appropriate arguments."
+    return 'Determines if the upgrade should apply to a given building model. If so, calls one or more child measures with the appropriate arguments.'
   end
 
   def num_options
@@ -49,10 +51,10 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     # Make string arg for upgrade name
-    upgrade_name = OpenStudio::Ruleset::OSArgument::makeStringArgument("upgrade_name", true)
-    upgrade_name.setDisplayName("Upgrade Name")
-    upgrade_name.setDescription("User-specificed name that describes the upgrade.")
-    upgrade_name.setDefaultValue("My Upgrade")
+    upgrade_name = OpenStudio::Ruleset::OSArgument::makeStringArgument('upgrade_name', true)
+    upgrade_name.setDisplayName('Upgrade Name')
+    upgrade_name.setDescription('User-specificed name that describes the upgrade.')
+    upgrade_name.setDefaultValue('My Upgrade')
     args << upgrade_name
 
     for option_num in 1..num_options
@@ -60,7 +62,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       # Option name argument
       option = OpenStudio::Ruleset::OSArgument.makeStringArgument("option_#{option_num}", (option_num == 1))
       option.setDisplayName("Option #{option_num}")
-      option.setDescription("Specify the parameter|option as found in resources\\options_lookup.tsv.")
+      option.setDescription('Specify the parameter|option as found in resources\\options_lookup.tsv.')
       args << option
 
       # Option Apply Logic argument
@@ -75,26 +77,26 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         cost_value = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("option_#{option_num}_cost_#{cost_num}_value", false)
         cost_value.setDisplayName("Option #{option_num} Cost #{cost_num} Value")
         cost_value.setDescription("Total option #{option_num} cost is the sum of all: (Cost N Value) x (Cost N Multiplier).")
-        cost_value.setUnits("$")
+        cost_value.setUnits('$')
         args << cost_value
 
         # Option Cost Multiplier argument
         choices = [
-          "",
-          "Fixed (1)",
-          "Wall Area, Above-Grade, Conditioned (ft^2)",
-          "Wall Area, Above-Grade, Exterior (ft^2)",
-          "Wall Area, Below-Grade (ft^2)",
-          "Floor Area, Conditioned (ft^2)",
-          "Floor Area, Attic (ft^2)",
-          "Floor Area, Lighting (ft^2)",
-          "Roof Area (ft^2)",
-          "Window Area (ft^2)",
-          "Door Area (ft^2)",
-          "Duct Surface Area (ft^2)",
-          "Size, Heating System (kBtu/h)",
-          "Size, Cooling System (kBtu/h)",
-          "Size, Water Heater (gal)",
+          '',
+          'Fixed (1)',
+          'Wall Area, Above-Grade, Conditioned (ft^2)',
+          'Wall Area, Above-Grade, Exterior (ft^2)',
+          'Wall Area, Below-Grade (ft^2)',
+          'Floor Area, Conditioned (ft^2)',
+          'Floor Area, Attic (ft^2)',
+          'Floor Area, Lighting (ft^2)',
+          'Roof Area (ft^2)',
+          'Window Area (ft^2)',
+          'Door Area (ft^2)',
+          'Duct Unconditioned Surface Area (ft^2)',
+          'Size, Heating System (kBtu/h)',
+          'Size, Cooling System (kBtu/h)',
+          'Size, Water Heater (gal)',
         ]
         cost_multiplier = OpenStudio::Ruleset::OSArgument.makeChoiceArgument("option_#{option_num}_cost_#{cost_num}_multiplier", choices, false)
         cost_multiplier.setDisplayName("Option #{option_num} Cost #{cost_num} Multiplier")
@@ -107,22 +109,22 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
       # Option Lifetime argument
       option_lifetime = OpenStudio::Ruleset::OSArgument.makeDoubleArgument("option_#{option_num}_lifetime", false)
       option_lifetime.setDisplayName("Option #{option_num} Lifetime")
-      option_lifetime.setDescription("The option lifetime.")
-      option_lifetime.setUnits("years")
+      option_lifetime.setDescription('The option lifetime.')
+      option_lifetime.setUnits('years')
       args << option_lifetime
 
     end
 
     # Package Apply Logic argument
-    package_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument("package_apply_logic", false)
-    package_apply_logic.setDisplayName("Package Apply Logic")
+    package_apply_logic = OpenStudio::Ruleset::OSArgument.makeStringArgument('package_apply_logic', false)
+    package_apply_logic.setDisplayName('Package Apply Logic')
     package_apply_logic.setDescription("Logic that specifies if the entire package upgrade (all options) will apply based on the existing building's options. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << package_apply_logic
 
     # Make integer arg to run measure [1 is run, 0 is no run]
-    run_measure = OpenStudio::Ruleset::OSArgument::makeIntegerArgument("run_measure", true)
-    run_measure.setDisplayName("Run Measure")
-    run_measure.setDescription("integer argument to run measure [1 is run, 0 is no run]")
+    run_measure = OpenStudio::Ruleset::OSArgument::makeIntegerArgument('run_measure', true)
+    run_measure.setDisplayName('Run Measure')
+    run_measure.setDescription('integer argument to run measure [1 is run, 0 is no run]')
     run_measure.setDefaultValue(1)
     args << run_measure
 
@@ -139,13 +141,13 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     end
 
     # Return N/A if not selected to run
-    run_measure = runner.getIntegerArgumentValue("run_measure", user_arguments)
+    run_measure = runner.getIntegerArgumentValue('run_measure', user_arguments)
     if run_measure == 0
       runner.registerAsNotApplicable("Run Measure set to #{run_measure}.")
       return true
     end
 
-    upgrade_name = runner.getStringArgumentValue("upgrade_name", user_arguments)
+    upgrade_name = runner.getStringArgumentValue('upgrade_name', user_arguments)
 
     # Retrieve Option X argument values
     options = {}
@@ -188,7 +190,7 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     end
 
     # Retrieve Package Apply Logic argument value
-    arg = runner.getOptionalStringArgumentValue("package_apply_logic", user_arguments)
+    arg = runner.getOptionalStringArgumentValue('package_apply_logic', user_arguments)
     if not arg.is_initialized
       package_apply_logic = nil
     else
@@ -205,19 +207,25 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
     end
 
     # Get file/dir paths
-    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "resources")) # Should have been uploaded per 'Additional Analysis Files' in PAT
+    resources_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'resources')) # Should have been uploaded per 'Additional Analysis Files' in PAT
     check_dir_exists(resources_dir, runner)
-    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), "..", "..", "lib", "housing_characteristics")) # Should have been uploaded per 'Additional Analysis Files' in PAT
+    characteristics_dir = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..', 'lib', 'housing_characteristics')) # Should have been uploaded per 'Additional Analysis Files' in PAT
     check_dir_exists(characteristics_dir, runner)
-    buildstock_file = File.join(resources_dir, "buildstock.rb")
-    measures_dir = File.join(resources_dir, "measures")
-    lookup_file = File.join(resources_dir, "options_lookup.tsv")
+    buildstock_file = File.join(resources_dir, 'buildstock.rb')
+    measures_dir = File.join(resources_dir, 'measures')
+    lookup_file = File.join(resources_dir, 'options_lookup.tsv')
+
+    # Check file/dir paths exist
+    check_file_exists(lookup_file, runner)
+
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
     # Retrieve workflow_json from BuildExistingModel measure if provided
-    workflow_json = get_value_from_runner_past_results(runner, "workflow_json", "build_existing_model", false)
+    values = get_values_from_runner_past_results(runner, 'build_existing_model')
+    workflow_json = values['workflow_json']
     if not workflow_json.nil?
       workflow_json = File.join(resources_dir, workflow_json)
     end
@@ -257,7 +265,8 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         # Print this option assignment
         print_option_assignment(parameter_name, option_name, runner)
 
-        # Register cost values/multipliers/lifetime for applied options; used by the SimulationOutputReport measure
+        # Register cost names/values/multipliers/lifetime for applied options; used by the SimulationOutputReport measure
+        register_value(runner, 'option_%02d_name_applied' % option_num, option)
         for cost_num in 1..num_costs_per_option
           cost_value = runner.getOptionalDoubleArgumentValue("option_#{option_num}_cost_#{cost_num}_value", user_arguments)
           if cost_value.nil?
@@ -271,25 +280,22 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         if lifetime.nil?
           lifetime = 0.0
         end
-        register_value(runner, "option_%02d_lifetime_to_apply" % option_num, lifetime.to_s)
-
-        # Check file/dir paths exist
-        check_file_exists(lookup_file, runner)
+        register_value(runner, 'option_%02d_lifetime_to_apply' % option_num, lifetime.to_s)
 
         # Get measure name and arguments associated with the option
-        options_measure_args = get_measure_args_from_option_names(lookup_file, [option_name], parameter_name, runner)
+        options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
         options_measure_args[option_name].each do |measure_subdir, args_hash|
           update_args_hash(measures, measure_subdir, args_hash, add_new = false)
         end
       end
 
       # Add measure arguments from existing building if needed
-      parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_file, characteristics_dir)
+      parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
       measures.keys.each do |measure_subdir|
         parameters.each do |parameter_name|
-          existing_option_name = get_value_from_runner_past_results(runner, parameter_name, "build_existing_model")
+          existing_option_name = values[OpenStudio::toUnderscoreCase(parameter_name)]
 
-          options_measure_args = get_measure_args_from_option_names(lookup_file, [existing_option_name], parameter_name, runner)
+          options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [existing_option_name], parameter_name, lookup_file, runner)
           options_measure_args[existing_option_name].each do |measure_subdir2, args_hash|
             next if measure_subdir != measure_subdir2
 
@@ -305,14 +311,14 @@ class ApplyUpgrade < OpenStudio::Ruleset::ModelUserScript
         end
       end
 
-      if not apply_measures(measures_dir, measures, runner, model, workflow_json, "measures-upgrade.osw", true)
+      if not apply_measures(measures_dir, measures, runner, model, workflow_json, 'measures-upgrade.osw', true)
         return false
       end
 
     end # apply_package_upgrade
 
     # Register the upgrade name
-    register_value(runner, "upgrade_name", upgrade_name)
+    register_value(runner, 'upgrade_name', upgrade_name)
 
     if measures.size == 0
       # Upgrade not applied; don't re-run existing home simulation
