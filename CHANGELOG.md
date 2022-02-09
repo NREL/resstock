@@ -57,6 +57,7 @@ Fixes
 - Fixes for wall constructions: remove wood sheathing on CMU and brick walls; better data for exterior finish absorptances and wall densities ([#789](https://github.com/NREL/resstock/pull/789))
 - Fixes unit conversion bugs in solar hot water model ([#809](https://github.com/NREL/resstock/pull/809))
 - Update the number of units represented in the national project YAML files to the American Community Survey 2019 5-year estimate ([#821](https://github.com/NREL/resstock/pull/821))
+- Properly apply roof insulation when the attic type is Finished Attic or Cathedral Ceilings ([#817](https://github.com/NREL/resstock/pull/817))
 
 ## ResStock v2.4.0
 ###### January 27, 2021 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.3.0...v2.4.0)
