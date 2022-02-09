@@ -211,7 +211,12 @@ def run_workflow(yml, n_threads, measures_only)
   puts
   results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
   results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
-  IO.write(File.join(results_dir, 'cli_output.log'), all_cli_output.join('\n'))
+  File.open(File.join(results_dir, 'cli_output.log'), 'a') do |f|
+    all_cli_output.each do |cli_output|
+      f.puts(cli_output)
+      f.puts
+    end
+  end
 
   completed_statuses = all_results_output.collect { |x| x['completed_status'] }
   puts "\nFailures detected. See #{File.join(results_dir, 'cli_output.log')}." if completed_statuses.include?('Fail')
@@ -259,7 +264,8 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
 
   change_building_id(osw, building_id)
 
-  completed_status, result_characteristics, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, measures_only)
+  cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{job_id}.\n"
+  completed_status, result_characteristics, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, cli_output, measures_only)
 
   osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
 
