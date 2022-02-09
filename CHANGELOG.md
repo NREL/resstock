@@ -11,7 +11,7 @@ Features
 - Introduce different cooling setpoint distributions for window ACs ([#551](https://github.com/NREL/resstock/pull/551))
 - Include electric zonal heating equipment as a dependency in heating setpoint-related tsvs ([#549](https://github.com/NREL/resstock/pull/549))
 - Geo-temporal shifting of the stochastic load model schedules using the American Time Use Survey ([#550](https://github.com/NREL/resstock/pull/550))
-- Switch data source for `geometry wall type.tsv` from RECS 2009 to Homeland Infrastructure Foundation-Level Data (HIFLD) Parcel data ([#561](https://github.com/NREL/resstock/pull/561))
+- Switch data source for `Geometry Wall Type.tsv` from RECS 2009 to Homeland Infrastructure Foundation-Level Data (HIFLD) Parcel data ([#561](https://github.com/NREL/resstock/pull/561))
 - Use Schedule:File with well pump / vehicle plug loads, as well as gas grill / fireplace / lighting fuel loads. This enables the optional vacancy period to apply to these end uses ([#566](https://github.com/NREL/resstock/pull/556))
 - Update example project yaml files to use buildstockbatch input schema version 0.3 ([#583](https://github.com/NREL/resstock/pull/583))
 - Update default daylight saving start and end dates to March 12 and November 5, respectively ([#585](https://github.com/NREL/resstock/pull/585))
@@ -32,7 +32,7 @@ Features
 - Updates mechanical ventilation options/model to ASHRAE 62.2-2019 and adds a "Flow Rate, Mechanical Ventilation (cfm)" output ([#675](https://github.com/NREL/resstock/pull/675))
 - Add PV ownership and PV system size distributions using 2019 Tracking the Sun and GTM report on solar installation. ([#673](https://github.com/NREL/resstock/pull/673))
 - Add optional argument to ResidentialLocation measure for setting the IECC climate zone ([#755](https://github.com/NREL/resstock/pull/764))
-- Add Geometry Story Bin tsv and Geometry Story Bin dep to Geometry Wall Type. ([#759](https://github.com/NREL/resstock/pull/759))
+- Add Geometry Story Bin tsv and Geometry Story Bin dependency to Geometry Wall Type. ([#759](https://github.com/NREL/resstock/pull/759))
 - Add arguments to the ServerDirectoryCleanup measure for controlling deletion of files in the run folder. ([#661](https://github.com/NREL/resstock/pull/661), [#818](https://github.com/NREL/resstock/pull/818))
 
 Fixes
