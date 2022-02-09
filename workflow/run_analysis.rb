@@ -213,6 +213,9 @@ def run_workflow(yml, n_threads, measures_only)
   results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
   IO.write(File.join(results_dir, 'cli_output.log'), all_cli_output.join('\n'))
 
+  completed_statuses = all_results_output.collect { |x| x['completed_status'] }
+  puts "\nFailures detected. See #{File.join(results_dir, 'cli_output.log')}." if completed_statuses.include?('Fail')
+
   FileUtils.rm_rf(lib_dir)
 
   return true
