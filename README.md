@@ -10,17 +10,19 @@ The `develop` branch is under active development. Find the latest release [here]
 
 This repository contains:
 
-- [Housing characteristics of the U.S. residential building stock](https://github.com/NREL/resstock/tree/main/project_national/housing_characteristics), in the form of conditional probability distributions stored as tab-separated value (.tsv) files. A visualization of the dependency structure can be found [here](https://htmlpreview.github.io/?https://github.com/NREL/resstock/blob/main/project_national/util/dependency_wheel/dep_wheel.html).
-- [A library of housing characteristic "options"](https://github.com/NREL/resstock/blob/main/resources/options_lookup.tsv) that translate high-level characteristic parameters into arguments for [OpenStudio Measures](https://github.com/NREL/resstock/tree/main/resources/measures), and which are referenced by the housing characteristic .tsv files and building energy upgrades defined in project definition files
+- [Housing characteristics of the U.S. residential building stock](https://github.com/NREL/resstock/tree/main/project_national/housing_characteristics), in the form of conditional probability distributions stored as tab-separated value (.tsv) files. A visualization of the dependency structure can be found [here](https://htmlpreview.github.io/?https://github.com/NREL/resstock/blob/main/project_national/util/dependency_wheel/dep_wheel.html)
+- [A library of housing characteristic "options"](https://github.com/NREL/resstock/blob/main/resources/options_lookup.tsv) that translate high-level characteristic parameters into arguments for OpenStudio measures, and which are referenced by the housing characteristic .tsv files and building energy upgrades defined in project definition files
 - Project definition files:
   - v2.3.0 and later: [buildstockbatch YML files openable in any text editor](https://github.com/NREL/resstock/blob/main/project_national/national.yml)
   - v2.2.5 and prior: [Project folder openable in PAT](https://github.com/NREL/resstock/tree/v2.2.5/project_singlefamilydetached)
-- [Building-level OpenStudio Measures](https://github.com/NREL/resstock/tree/main/resources/measures) for automatically constructing OpenStudio Models of each representative building model
+- Unit-level OpenStudio Measures for automatically constructing OpenStudio Models of each representative dwelling unit model:
+  - v2.6.0 and later: [OpenStudio-HPXML Measures](https://github.com/NREL/resstock/tree/main/resources/hpxml-measures)
+  - v2.5.0 and prior: [OpenStudio Measures](https://github.com/NREL/resstock/tree/main/resources/measures)
 - [Higher-level OpenStudio Measures](https://github.com/NREL/resstock/tree/main/measures) for controlling simulation inputs and outputs
 
 This repository does not contain software for running ResStock simulations, which can be found as follows:
 
- - [Versions 2.3.0](https://github.com/NREL/resstock/releases/tag/untagged-af060c990f21d5ca539f) and later only support the use of [buildstockbatch](https://github.com/NREL/buildstockbatch) for deploying simulations on high-performance or cloud computing. Version 2.3.0 also removed separate projects for single-family detached and multifamily buildings, in lieu of a combined `project_national` representing the U.S. residential building stock. See the [changelog](https://github.com/NREL/resstock/blob/main/CHANGELOG.md) for more details. 
+ - [Versions 2.3.0](https://github.com/NREL/resstock/releases/tag/v2.3.0) and later only support the use of [buildstockbatch](https://github.com/NREL/buildstockbatch) for deploying simulations on high-performance or cloud computing. Version 2.3.0 also removed separate projects for single-family detached and multifamily buildings, in lieu of a combined `project_national` representing the U.S. residential building stock. See the [changelog](https://github.com/NREL/resstock/blob/main/CHANGELOG.md) for more details. 
  - [Versions 2.2.5](https://github.com/NREL/resstock/releases/tag/v2.2.5) and prior support the use of the publicly available [OpenStudio-PAT](https://github.com/NREL/OpenStudio-PAT) software as an interface for deploying simulations on cloud computing. Read the [documentation for v2.2.5](https://resstock.readthedocs.io/en/v2.2.5/).
 
 Note that calibration/validation of the multifamily sector, as well as timeseries output, is still ongoing, under the [End-Use Load Profile for the U.S. Building Stock project](https://www.nrel.gov/buildings/end-use-load-profiles.html).
