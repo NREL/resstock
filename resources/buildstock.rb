@@ -1,7 +1,16 @@
 # frozen_string_literal: true
 
+require 'openstudio'
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), 'hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
+  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
+end
+require File.join(resources_path, 'meta_measure')
+
 require 'csv'
-require "#{File.dirname(__FILE__)}/meta_measure"
 
 class TsvFile
   def initialize(full_path, runner)
@@ -138,7 +147,7 @@ class TsvFile
     end
 
     # Sum of values within 2% of 100%?
-    sum_rowvals = rowvals.values.sum()
+    sum_rowvals = rowvals.values.reduce(:+)
     if (sum_rowvals < 0.98) || (sum_rowvals > 1.02)
       register_error("Values in #{@filename} incorrectly sum to #{sum_rowvals}.", @runner)
     end
@@ -420,23 +429,6 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.add_simulation_output_report(osw)
-    json = JSON.parse(File.read(osw), symbolize_names: true)
-    measures = []
-    json[:steps].each do |measure|
-      measures << measure[:measure_dir_name]
-    end
-
-    unless measures.include? 'SimulationOutputReport'
-      simulation_output_report = { measure_dir_name: 'SimulationOutputReport' }
-      json[:steps] << simulation_output_report
-    end
-
-    File.open(osw, 'w') do |f|
-      f.write(JSON.pretty_generate(json))
-    end
-  end
-
   def self.run_and_check(in_osw, parent_dir, cli_output, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
@@ -453,79 +445,32 @@ class RunOSWs
     out = JSON.parse(File.read(File.expand_path(out)))
     completed_status = out['completed_status']
 
-    data_point_out = File.join(parent_dir, 'run/data_point_out.json')
+    results = File.join(parent_dir, 'run/results.json')
 
-    return completed_status, result_characteristics, result_output, cli_output if measures_only || !File.exist?(data_point_out)
+    return completed_status, result_characteristics, result_output, cli_output if measures_only || !File.exist?(results)
 
-    rows = JSON.parse(File.read(File.expand_path(data_point_out)))
-    if rows.keys.include? 'BuildExistingModel'
-      result_characteristics = get_build_existing_model(result_characteristics, rows)
+    rows = {}
+    old_rows = JSON.parse(File.read(File.expand_path(results)))
+    old_rows.each do |measure, values|
+      rows[measure] = {}
+      values.each do |arg, val|
+        rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
+      end
     end
-    if rows.keys.include? 'ApplyUpgrade'
-      result_output = get_apply_upgrade(result_output, rows)
-    end
-    if rows.keys.include? 'SimulationOutputReport'
-      result_output = get_simulation_output_report(result_output, rows)
-    end
-    if rows.keys.include? 'LoadComponentsReport'
-      result_output = get_load_components_report(result_output, rows)
-    end
-    if rows.keys.include? 'QOIReport'
-      result_output = get_qoi_report(result_output, rows)
-    end
+
+    result_characteristics = get_measure_results(rows, result_characteristics, 'BuildExistingModel')
+    result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
+    result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
+    result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
+    result_output = get_measure_results(rows, result_output, 'QOIReport')
 
     return completed_status, result_characteristics, result_output, cli_output
   end
 
-  def self.get_build_existing_model(result, rows)
-    result = result.merge(rows['BuildExistingModel'])
-    result.delete('applicable')
-    return result
-  end
-
-  def self.get_apply_upgrade(result, rows)
-    if rows.keys.include?('ApplyUpgrade')
-      result = result.merge(rows['ApplyUpgrade'])
+  def self.get_measure_results(rows, result, measure)
+    if rows.keys.include?(measure)
+      result = result.merge(rows[measure])
       result.delete('applicable')
-    end
-    return result
-  end
-
-  def self.get_simulation_output_report(result, rows)
-    rows['SimulationOutputReport'].each do |k, v|
-      begin
-        rows['SimulationOutputReport'][k] = v.round(1)
-      rescue NoMethodError
-      end
-    end
-    result = result.merge(rows['SimulationOutputReport'])
-    result.delete('applicable')
-    result.delete('upgrade_name')
-    result.delete('upgrade_cost_usd')
-    return result
-  end
-
-  def self.get_load_components_report(result, rows)
-    rows['LoadComponentsReport'].each do |k, v|
-      begin
-        rows['LoadComponentsReport'][k] = v.round(1)
-      rescue NoMethodError
-      end
-    end
-    result = result.merge(rows['LoadComponentsReport'])
-    result.delete('applicable')
-    return result
-  end
-
-  def self.get_qoi_report(result, rows)
-    rows['QOIReport'].each do |k, v|
-      begin
-        rows['QOIReport'][k] = v.round(1)
-      rescue NoMethodError
-      end
-    end
-    rows['QOIReport'].each do |k, v|
-      result["qoi_#{k}"] = v unless k == 'applicable'
     end
     return result
   end
@@ -572,5 +517,26 @@ class RunOSWs
 
       sleep(0.01)
     end
+  end
+end
+
+class Version
+  def self.version
+    version = {}
+    File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
+      file.each_line do |line|
+        key, value = line.split(' = ')
+        version[key] = value.chomp.gsub("'", '')
+      end
+    end
+    return version
+  end
+
+  def self.software_program_used
+    return version['__title__']
+  end
+
+  def self.software_program_version
+    return version['__resstock_version__']
   end
 end

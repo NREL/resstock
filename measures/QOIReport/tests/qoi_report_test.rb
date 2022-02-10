@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../../../test/minitest_helper'
 require 'openstudio'
-require 'openstudio/ruleset/ShowRunnerOutput'
-require 'minitest/autorun'
+
 require_relative '../measure.rb'
-require 'fileutils'
+require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 
 class QOIReportTest < MiniTest::Test
   # create an instance of the measure

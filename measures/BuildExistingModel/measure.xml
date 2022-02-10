@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_existing_model</name>
   <uid>dedf59bb-3b88-4f16-8755-2c1ff5519cbf</uid>
-  <version_id>518e2399-ebe3-4dee-b61a-8c76e8a0ff62</version_id>
-  <version_modified>20210909T180621Z</version_modified>
+  <version_id>ba9d730d-fcbb-4261-a3a2-8b27ba990042</version_id>
+  <version_modified>20220203T180638Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildExistingModel</class_name>
   <display_name>Build Existing Model</display_name>
@@ -13,18 +13,10 @@
   <arguments>
     <argument>
       <name>building_id</name>
-      <display_name>Building ID</display_name>
-      <description>The building number (between 1 and the number of samples).</description>
+      <display_name>Building Unit ID</display_name>
+      <description>The building unit number (between 1 and the number of samples).</description>
       <type>Integer</type>
       <required>true</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>workflow_json</name>
-      <display_name>Workflow JSON</display_name>
-      <description>The name of the JSON file (in the resources dir) that dictates the order in which measures are to be run. If not provided, the order specified in resources/options_lookup.tsv will be used.</description>
-      <type>String</type>
-      <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
@@ -59,6 +51,152 @@
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
+    <argument>
+      <name>simulation_control_timestep</name>
+      <display_name>Simulation Control: Timestep</display_name>
+      <description>Value must be a divisor of 60.</description>
+      <type>Integer</type>
+      <units>min</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_run_period_begin_month</name>
+      <display_name>Simulation Control: Run Period Begin Month</display_name>
+      <description>This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.</description>
+      <type>Integer</type>
+      <units>month</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_run_period_begin_day_of_month</name>
+      <display_name>Simulation Control: Run Period Begin Day of Month</display_name>
+      <description>This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.</description>
+      <type>Integer</type>
+      <units>day</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_run_period_end_month</name>
+      <display_name>Simulation Control: Run Period End Month</display_name>
+      <description>This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.</description>
+      <type>Integer</type>
+      <units>month</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_run_period_end_day_of_month</name>
+      <display_name>Simulation Control: Run Period End Day of Month</display_name>
+      <description>This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.</description>
+      <type>Integer</type>
+      <units>day</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_run_period_calendar_year</name>
+      <display_name>Simulation Control: Run Period Calendar Year</display_name>
+      <description>This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.</description>
+      <type>Integer</type>
+      <units>year</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>debug</name>
+      <display_name>Debug Mode?</display_name>
+      <description>If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>add_component_loads</name>
+      <display_name>Annual Component Loads?</display_name>
+      <description>If true, output the annual component loads.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>emissions_scenario_names</name>
+      <display_name>Emissions: Scenario Names</display_name>
+      <description>Names of emissions scenarios. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_types</name>
+      <display_name>Emissions: Types</display_name>
+      <description>Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_electricity_folders</name>
+      <display_name>Emissions: Electricity Folders</display_name>
+      <description>Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. File names must contain GEA region names.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_natural_gas_values</name>
+      <display_name>Emissions: Natural Gas Values</display_name>
+      <description>Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_propane_values</name>
+      <display_name>Emissions: Propane Values</display_name>
+      <description>Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_fuel_oil_values</name>
+      <display_name>Emissions: Fuel Oil Values</display_name>
+      <description>Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>emissions_wood_values</name>
+      <display_name>Emissions: Wood Values</display_name>
+      <description>Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
   </arguments>
   <outputs />
   <provenances />
@@ -82,7 +220,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>A5B06C0D</checksum>
+      <checksum>27D70E3F</checksum>
     </file>
   </files>
 </measure>

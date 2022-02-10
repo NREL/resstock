@@ -9,26 +9,12 @@ At the top level of the ResStock repository you just downloaded, you will see tw
 OpenStudio Measures
 -------------------
 
-.. _simulation-controls:
-
-Simulation Controls
-*******************
-
-Using this measure you can set the simulation timesteps per hour, the run period begin month/day and end month/day, and the calendar year (for start day of week). By default the simulations use a 10-min timestep (i.e., the number of timesteps per hour is 6), start on January 1, end on December 31, and run with a calendar year of 2007 (start day of week is Monday).
-
-#. ``Simulation Timesteps Per Hour``: The value entered here is the number of (zone) timesteps to use within an hour. For example a value of 6 entered here directs the program to use a zone timestep of 10 minutes and a value of 60 means a 1 minute timestep.
-#. ``Run Period Begin Month``: This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.
-#. ``Run Period Begin Day of Month: This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.
-#. ``Run Period End Month``: This numeric field should contain the ending month number (1 = January, 2 = February, etc.) for the annual run period desired.
-#. ``End Period End Day of Month``: This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.
-#. ``Calendar Year``:This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.
-
 .. _build-existing-model:
 
 Build Existing Model
 ********************
 
-This measure creates the baseline scenario. It incrementally applies OpenStudio measures (located in the ``resources`` directory, which should be at the same level as your project directory) to create residential building models. Set the following inputs:
+This measure creates the baseline scenario. Set the following inputs:
 
 #. ``Building ID``: This sets the number of simulations to run in the baseline and each upgrade case.
 #. ``Workflow JSON``: The name of the JSON file (in the resources dir) that dictates the order in which measures are to be run. If not provided, the order specified in ``resources/options_lookup.tsv`` will be used.
@@ -36,8 +22,30 @@ This measure creates the baseline scenario. It incrementally applies OpenStudio 
 #. ``Sample Weight of Simulation``: The number of buildings each simulation represents. Total number of buildings / Number of simulations. This argument is optional (it is only needed for running simulations on NREL HPC), so you can leave it blank.
 #. ``Downselect Logic``: Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more ``parameter|option`` as found in the ``resources/options_lookup.tsv``. (This uses the same syntax as the :ref:`tutorial-apply-upgrade` measure.) For example, if you wanted to only simulate California homes you could enter ``Location Region|CR11`` in this field (CR refers to "Custom Region", which is based on RECS 2009 reportable domains aggregated into groups with similar climates; see the entire `custom region map`_). Datapoints that are excluded from the downselect logic will result in "completed invalid workflow". Note that the ``Building ID`` input refers to the number of datapoints *before* downselection, not after. This means that the number of datapoints remaining after downselection would be somewhere between zero (i.e., no datapoints matched the downselect logic) and ``Building ID`` (i.e., all datapoints matched the downselect logic).
 #. ``Measures to Ignore``: **INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS ONLY.** Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (the Build Existing Model measure will fail).
+#. ``Simulation Control: Timestep``: Value must be a divisor of 60.
+#. ``Simulation Control: Run Period Begin Month``: This numeric field should contain the starting month number (1 = January, 2 = February, etc.) for the annual run period desired.
+#. ``Simulation Control: Run Period Begin Day of Month``: This numeric field should contain the starting day of the starting month (must be valid for month) for the annual run period desired.
+#. ``Simulation Control: Run Period End Month``: This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.
+#. ``Simulation Control: Run Period End Day of Month``: This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.
+#. ``Simulation Control: Run Period Calendar Year``: This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.
+#. ``Debug Mode?``: If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.
+#. ``Annual Component Loads?``: If true, output the annual component loads.
+#. ``emissions_scenario_names``: Names of emissions scenarios. If multiple scenarios, use a comma-separated list.
+#. ``emissions_types``: Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.
+#. ``emissions_electricity_folders``: Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. File names must contain GEA region names. Units are kg/MWh.
+#. ``emissions_natural_gas_values``: Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``emissions_propane_values``: Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``emissions_fuel_oil_values``: Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``emissions_wood_values``: Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
 
-.. _custom region map: https://github.com/NREL/resstock/wiki/Custom-Region-(CR)-Map
+As a meta measure, it incrementally applies the following OpenStudio measures to create residential building models:
+
+#. ``ResStockArguments``
+#. ``BuildResidentialHPXML``
+#. ``BuildResidentialScheduleFile``
+#. ``HPXMLtoOpenStudio``
+
+All of these measures, with the exception of ``ResStockArguments``, are located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
 
 .. note::
    
@@ -61,93 +69,25 @@ Like the **downselect logic**, excluded datapoints (i.e., datapoints for which t
 Reporting Measures
 ------------------
 
-In general, reporting measures process data after the simulation has finished and produced results. As a note, make sure that the **Timeseries CSV Export** and **Utility Bill Calculations** measures are placed before the **Server Directory Cleanup** measure.
+In general, reporting measures process data after the simulation has finished and produced results.
 
-.. _simulation-output-report:
+.. _report-simulation-output:
 
-Simulation Output Report
+Report Simulation Output
 ************************
 
-#. ``Include End Use Subcategories``: Leave this alone if you do not want to report annual totals for end use subcategories. Select it if you want to report them. See below for a list of available end use subcategories.
+This measure reports simulation outputs for residential HPXML-based models, and is located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
 
-.. _timeseries-csv-export:
+.. _report-hpxml-output:
 
-Timeseries CSV Export
-*********************
+Report HPXML Output
+*******************
 
-If you do not need the timeseries data for your simulations, you can skip this measure to save disk space. Otherwise, one csv file per datapoint will be written containing end use timeseries data for their model.
+This measure reports HPXML outputs for residential HPXML-based models, and is located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
 
-End uses are listed below.
+.. _upgrade-costs:
 
-   ====================================  ===========================
-   End Use                               Units
-   ====================================  ===========================
-   total site energy [MBtu]              MBtu
-   net site energy [MBtu]                MBtu
-   total site                            electric (kWh), gas (therm), oil/propane/wood (MBtu)
-   net site                              electric (kWh)
-   heating                               electric (kWh), gas (therm), oil/propane/wood (MBtu)
-   cooling                               electric (kWh)
-   central system heating                electric (kWh), gas (therm), oil/propane (MBtu)
-   central system cooling                electric (kWh)
-   interior lighting                     electric (kWh)
-   exterior lighting                     electric (kWh)
-   exterior holiday lighting             electric (kWh)
-   garage lighting                       electric (kWh)
-   interior equipment                    electric (kWh), gas (therm), propane (MBtu)
-   fans heating                          electric (kWh)
-   fans cooling                          electric (kWh)
-   pumps heating                         electric (kWh)
-   pumps cooling                         electric (kWh)
-   central system pumps heating          electric (kWh)
-   central system pumps cooling          electric (kWh)
-   water heating                         electric (kWh), gas (therm), oil/propane (MBtu)
-   pv                                    electric (kWh)
-   ====================================  ===========================
+Upgrade Costs
+*************
 
-1. ``Reporting Frequency``: The timeseries data will be reported at hourly intervals unless otherwise specified. Available reporting frequencies are listed below.
-
-  - Timestep
-  - Daily
-  - Monthly
-  - Runperiod
-  
-  Setting the reporting frequency to 'Timestep' will give you interval output equal to the zone timestep set by the :ref:`simulation-controls` measure. Thus, this measure will produce 10-min interval output when you select 'Timestep' and leave the :ref:`simulation-controls` measure at its default settings.
-
-2. ``Include End Use Subcategories``: Select this to include end use subcategories. The default is to not include end use subcategories. End use subcategories are listed below.
-  
-   ====================================  ===========================
-   End Use Subcategory                   Units
-   ====================================  ===========================
-   refrigerator                          electric (kWh)
-   clothes washer                        electric (kWh)
-   clothes dryer                         electric (kWh), gas (therm), propane (MBtu)
-   cooking range                         electric (kWh), gas (therm), propane (MBtu)
-   dishwasher                            electric (kWh)
-   plug loads                            electric (kWh)
-   house fan                             electric (kWh)
-   range fan                             electric (kWh)
-   bath fan                              electric (kWh)
-   ceiling fan                           electric (kWh)
-   extra refrigerator                    electric (kWh)
-   freezer                               electric (kWh)
-   pool heater                           electric (kWh), gas (therm)
-   pool pump                             electric (kWh)
-   hot tub heater                        electric (kWh), gas (therm)
-   hot tub pump                          electric (kWh)
-   gas grill                             gas (therm)
-   gas lighting                          gas (therm)
-   gas fireplace                         gas (therm)
-   well pump                             electric (kWh)  
-   hot water recirculation pump          electric (kWh)
-   vehicle                               electric (kWh)
-   ====================================  ===========================
-
-3. ``Output Variables``: If you choose to report any output variables (e.g., "Zone Air Temperature" or "Site Outdoor Air Humidity Ratio"), enter a comma-separated list of output variable names. A list of available output variables can be viewed in EnergyPlus's ``.rdd`` file.
-
-.. _utility-bill-calculations:
-
-Utility Bill Calculations
-*************************
-
-This measure is currently under construction.
+This measure calculates upgrade costs by multiplying cost values by cost multipliers.

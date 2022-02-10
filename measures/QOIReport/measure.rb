@@ -1,17 +1,22 @@
 # frozen_string_literal: true
 
+# see the URL below for information on how to write OpenStudio measures
+# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
+
 require 'openstudio'
-if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/measures/HPXMLtoOpenStudio/resources'))
+if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
+elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
+  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
 elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
 else
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
-require File.join(resources_path, 'constants')
 require File.join(resources_path, 'unit_conversions')
+
+require_relative 'resources/constants'
+
 require 'enumerator'
 
 # start the measure
@@ -33,25 +38,14 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     return args
   end
 
-  # return a vector of IdfObject's to request EnergyPlus objects needed by the run method
-  # Warning: Do not change the name of this method to be snake_case. The method must be lowerCamelCase.
   def energyPlusOutputRequests(runner, user_arguments)
     super(runner, user_arguments)
 
     return OpenStudio::IdfObjectVector.new if runner.halted
 
-    # get the last model and sql file
-    model = runner.lastOpenStudioModel
-    if model.empty?
-      runner.registerError('Cannot find last model.')
-      return false
-    end
-    model = model.get
-
-    output_meters = OutputMeters.new(model, runner, 'Hourly')
-    results = output_meters.create_custom_building_unit_meters
-
+    results = OpenStudio::IdfObjectVector.new
     results << OpenStudio::IdfObject.load('Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;').get
+    results << OpenStudio::IdfObject.load('Output:Meter,Electricity:Facility,hourly;').get
 
     return results
   end
@@ -188,47 +182,51 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    output_meters = OutputMeters.new(model, runner, 'Hourly')
+    query_str = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('Electricity:Facility') AND ReportingFrequency='Hourly' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    electricity_total_end_uses = sqlFile.execAndReturnVectorOfDouble(query_str).get
 
-    electricity = output_meters.electricity(sqlFile, ann_env_pd)
+    steps_per_hour = 6
+    if model.getSimulationControl.timestep.is_initialized
+      steps_per_hour = model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
+    end
 
     # ELECTRICITY
 
-    timeseries['total_site_electricity_kw'] = electricity.total_end_uses.map { |x| UnitConversions.convert(x, 'GJ', 'kW', nil, false, output_meters.steps_per_hour) }
+    timeseries['total_site_electricity_kw'] = electricity_total_end_uses.map { |x| x * 1000000000.0 / (1000.0 * (3600.0 / steps_per_hour)) }
 
     # Peak magnitude (1)
-    report_sim_output(runner, 'peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
+    report_sim_output(runner, 'qoi_peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
 
     # Timing of peak magnitude (1)
-    report_sim_output(runner, 'peak_magnitude_timing_hour', timing(timeseries, [-1e9, 1e9], 'max'), '', '')
+    report_sim_output(runner, 'qoi_peak_magnitude_timing_hour', timing(timeseries, [-1e9, 1e9], 'max'), '', '')
 
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "average_minimum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'min'), '', '')
+      report_sim_output(runner, "qoi_average_minimum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'min'), '', '')
     end
 
     # Average daily peak magnitude (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "average_maximum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max'), '', '')
+      report_sim_output(runner, "qoi_average_maximum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max'), '', '')
     end
 
     # Average daily peak timing (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "average_maximum_daily_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max'), '', '')
+      report_sim_output(runner, "qoi_average_maximum_daily_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max'), '', '')
     end
 
     # Top 10 daily seasonal peak magnitude (2)
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "average_of_top_ten_highest_peaks_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max', 10), '', '')
+      report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max', 10), '', '')
     end
 
     # Top 10 seasonal timing of peak (2)
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max', 10), '', '')
+      report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max', 10), '', '')
     end
 
     sqlFile.close
@@ -378,8 +376,9 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     else
       valInUnits = UnitConversions.convert(total_val, os_units, desired_units)
     end
+    valInUnits = valInUnits.round(2)
     runner.registerValue(name, valInUnits)
-    runner.registerInfo("Registering #{valInUnits.round(2)} for #{name}.")
+    runner.registerInfo("Registering #{valInUnits} for #{name}.")
   end
 end
 

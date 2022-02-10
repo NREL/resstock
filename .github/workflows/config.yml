@@ -26,29 +26,23 @@ jobs:
         run: |
           rm -f Gemfile.lock && bundle install
 
-      - name: Regenerate test osms
+      - name: Run integrity checks for all projects
         run: |
-          rake test:regenerate_osms
+          rake unit_tests:project_integrity_checks
 
-      - name: Run all unit tests
+      - name: Run all integrity check unit tests
         run: |
-          rake test:unit_tests
+          rake unit_tests:integrity_check_tests
 
-      - name: Run all project tests
+      - name: Run all measure tests
         run: |
-          rake test:project_tests
+          rake unit_tests:measure_tests
 
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
         with:
           path: resources/buildstock.csv
           name: samples
-
-      - name: Upload schedules
-        uses: actions/upload-artifact@v2
-        with:
-          path: resources/measures/ResidentialScheduleGenerator/tests/output/test_sweep_building_ids_and_num_occupants
-          name: schedules
 
   analysis-tests:
     runs-on: ubuntu-latest
@@ -70,7 +64,7 @@ jobs:
 
       - name: Run run_analysis.rb
         run: |
-          rake test:analysis_tests
+          rake workflow:analysis_tests
 
   integration-tests:
     runs-on: ubuntu-latest
@@ -86,13 +80,23 @@ jobs:
 
       - name: Run buildstockbatch
         run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@v0.21
+          pip install git+https://github.com/NREL/buildstockbatch.git@restructure-v3
           
           buildstock_docker project_national/national_baseline.yml
           buildstock_docker project_testing/testing_baseline.yml
           
           buildstock_docker project_national/national_upgrades.yml
           buildstock_docker project_testing/testing_upgrades.yml
+
+      # - name: Upload bsb results
+        # uses: actions/upload-artifact@v2
+        # with:
+          # path: |
+            # project_national/national_baseline
+            # project_testing/testing_baseline
+            # project_national/national_upgrades
+            # project_testing/testing_upgrades
+          # name: bsb_results
 
       - name: Run tests
         run: |
@@ -166,7 +170,7 @@ jobs:
           name: results
 
       - name: Compare samples and results
-        run: |
+        run: |          
           pip install numpy
           pip install pandas
           pip install plotly
@@ -180,29 +184,37 @@ jobs:
           
           python test/compare.py -a samples -b base/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual
           
-          python test/compare.py -a results -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a results -af sum -ac geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -m feature -b base/baseline/annual -f results/baseline/annual
           
-          python test/compare.py -a visualize -dc geometry_building_type_recs -x results_output_building_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc geometry_foundation_type -x results_output_foundation_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc census_region -x results_output_cr.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc geometry_building_type_recs -ac census_region -af sum -x results_output_cr_sum.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a results -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
+          
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.census_region -x results_output_cr.html -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.census_region -af sum -x results_output_cr_sum.html -b base/baseline/annual/map -f results/baseline/annual/map -e test/base_results/comparisons/baseline/annual
           
           mkdir test/base_results/comparisons/baseline/timeseries
           
-          python test/compare.py -a timeseries -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
+          python test/compare.py -m feature -b base/baseline/timeseries -f results/baseline/timeseries
+          
+          python test/compare.py -a timeseries -b base/baseline/timeseries/map -f results/baseline/timeseries/map -e test/base_results/comparisons/baseline/timeseries
           
           mkdir test/base_results/comparisons/upgrades
           
           mkdir test/base_results/comparisons/upgrades/annual
           
-          python test/compare.py -a results -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
+          python test/compare.py -m feature -b base/upgrades/annual -f results/upgrades/annual
           
-          python test/compare.py -a visualize -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
+          python test/compare.py -a results -b base/upgrades/annual/map -f results/upgrades/annual/map -e test/base_results/comparisons/upgrades/annual
+          
+          python test/compare.py -a visualize -x results_output.html -b base/upgrades/annual/map -f results/upgrades/annual/map -e test/base_results/comparisons/upgrades/annual
           
           mkdir test/base_results/comparisons/upgrades/timeseries
           
-          python test/compare.py -a timeseries -b base/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
+          python test/compare.py -m feature -b base/upgrades/timeseries -f results/upgrades/timeseries
+          
+          python test/compare.py -a timeseries -b base/upgrades/timeseries/map -f results/upgrades/timeseries/map -e test/base_results/comparisons/upgrades/timeseries
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2

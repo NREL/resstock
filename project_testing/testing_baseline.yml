@@ -11,22 +11,31 @@ sampler:
     n_datapoints: 100
 
 workflow_generator:
-  type: residential_default
+  type: residential_hpxml
   args:
-    residential_simulation_controls:
-      timesteps_per_hr: 1
-      begin_month: 1
-      begin_day_of_month: 1
-      end_month: 12
-      end_day_of_month: 31
-      calendar_year: 2007
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
 
-    simulation_output:
-      include_enduse_subcategories: true
+    emissions:
+      - scenario_name: LRMER_MidCase_15
+        type: CO2
+        elec_folder: data/cambium/LRMER_MidCase_15
+        gas_value: 117.6
+        propane_value: 136.6
+        oil_value: 161.0
+        wood_value: 200.0
 
-    timeseries_csv_export:
-      reporting_frequency: Hourly
-      include_enduse_subcategories: true
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: false
 
     reporting_measures:
       - measure_dir_name: QOIReport
@@ -38,11 +47,11 @@ baseline:
   n_buildings_represented: 110000000
 
 eagle:
-  n_jobs: 3
-  minutes_per_sim: 30
+  n_jobs: 2
+  minutes_per_sim: 1
   account: <account you are authorized to use>
-  postprocessing:
-    time: 20
-    n_workers: 1
   sampling:
-    time: 5
+    time: 10
+  postprocessing:
+    time: 10
+    n_workers: 1

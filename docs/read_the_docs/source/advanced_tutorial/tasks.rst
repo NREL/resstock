@@ -18,14 +18,10 @@ Run ``rake -T`` to see the list of possible rake tasks. The ``-T`` is replaced w
 .. code:: bash
 
   $ rake -T
-  rake integrity_check_all         # Run tests for integrity_check_all
-  rake integrity_check_national    # Run tests for integrity_check_national  
-  rake integrity_check_testing     # Run tests for integrity_check_testing   
-  rake integrity_check_unit_tests  # Run tests for integrity_check_unit_tests
-  rake test:analysis_tests         # Run tests for analysis_tests
-  rake test:project_tests          # Run tests for project_tests
-  rake test:regenerate_osms        # Run tests for regenerate_osms
-  rake test:unit_tests             # Run tests for unit_tests
+  rake unit_tests:integrity_check_tests     # Run tests for integrity_check_t...
+  rake unit_tests:measure_tests             # Run tests for measure_tests
+  rake unit_tests:project_integrity_checks  # Run tests for project_integrity...
+  rake workflow:analysis_tests              # Run tests for analysis_tests
 
 .. _integrity-checks:
 

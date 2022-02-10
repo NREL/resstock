@@ -8,17 +8,19 @@ import plotly
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 sys.path.pop(0)
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../../resources/measures/HPXMLtoOpenStudio/workflow/tests')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.abspath(__file__), '../../resources/hpxml-measures/workflow/tests')))
 
 from compare import BaseCompare
 
-enum_maps = {'geometry_building_type_recs': {'Single-Family Detached': 'SFD',
-                                             'Mobile Home': 'SFD',
-                                             'Single-Family Attached': 'SFA',
-                                             'Multi-Family with 2 - 4 Units': 'MF',
-                                             'Multi-Family with 5+ Units': 'MF'} }
+enum_maps = {'build_existing_model.geometry_building_type_recs': {'Single-Family Detached': 'SFD',
+                                                                  'Mobile Home': 'SFD',
+                                                                  'Single-Family Attached': 'SFA',
+                                                                  'Multi-Family with 2 - 4 Units': 'MF',
+                                                                  'Multi-Family with 5+ Units': 'MF'} }
 
-cols_to_ignore = ['include_',
+cols_to_ignore = ['applicable',
+                  'output_format',
+                  'timeseries_frequency',
                   'completed_status',
                   'color_index',
                   'upgrade_name']
@@ -74,11 +76,26 @@ class MoreCompare(BaseCompare):
 
     return
 
+  def write_map_results(self, map_results, df_to_keep, df_to_map):
+    if map_results == 'base':
+      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
+      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
+    elif map_results == 'feature':
+      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
+      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
+      
+    return
+
   def map_columns(self, map_results):
     # Read in files
+
     ## Characteristics
-    base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
-    feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
+    # This is optional since you aren't necessarily going to visualize by characteristics
+    has_characteristics = False
+    if os.path.exists(os.path.join(self.base_folder, 'results_characteristics.csv')) and os.path.exists(os.path.join(self.feature_folder, 'results_characteristics.csv')):
+      has_characteristics = True
+      base_df_char = pd.read_csv(os.path.join(self.base_folder, 'results_characteristics.csv'), index_col=0)
+      feature_df_char = pd.read_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'), index_col=0)
 
     ## Outputs
     base_df = pd.read_csv(os.path.join(self.base_folder, 'results_output.csv'), index_col=0)
@@ -98,27 +115,34 @@ class MoreCompare(BaseCompare):
     if not os.path.exists(self.feature_folder):
       os.makedirs(self.feature_folder)
 
-    # Align results_charactersitics columns
-    base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
-    feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
-
-    base_df_char.columns = base_cols
-    feature_df_char.columns = feature_cols
-
-    common_cols = np.intersect1d(base_df_char.columns, feature_df_char.columns)
-    base_df_char = base_df_char[common_cols]
-    feature_df_char = feature_df_char[common_cols]
-
-    base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
-    feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
-
     # Map results_output columns
     if map_results == 'base':
       df_to_keep = base_df
       df_to_map = feature_df
     elif map_results == 'feature':
-      df_to_keep  = feature_df
+      df_to_keep = feature_df
       df_to_map = base_df
+
+    ## Characteristics
+    if has_characteristics:
+      # Align results_charactersitics columns
+      base_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in base_df_char.columns]
+      feature_cols = ['build_existing_model.' + col if  'build_existing_model' not in col else col for col in feature_df_char.columns]
+
+      base_df_char.columns = base_cols
+      feature_df_char.columns = feature_cols
+
+      common_cols = np.intersect1d(base_df_char.columns, feature_df_char.columns)
+      base_df_char = base_df_char[common_cols]
+      feature_df_char = feature_df_char[common_cols]
+
+      base_df_char.to_csv(os.path.join(self.base_folder, 'results_characteristics.csv'))
+      feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
+
+    # Skip mapping if not needed
+    if set(df_to_map.columns).issubset(set(df_to_keep.columns)) or set(df_to_keep).issubset(set(df_to_map.columns)):
+      self.write_map_results(map_results, df_to_keep, df_to_map)
+      return
 
     # Aggregate variables w/ multiple cols
     for cols, map_to in map_dict.items():
@@ -162,13 +186,7 @@ class MoreCompare(BaseCompare):
     df_to_map = df_to_map.reindex(sorted(df_to_map.columns), axis=1)
 
     # Store new mapped csvs
-    if map_results == 'base':
-      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
-      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
-    elif map_results == 'feature':
-      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
-      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
-
+    self.write_map_results(map_results, df_to_keep, df_to_map)
     return
 
   def timeseries(self):
@@ -235,17 +253,17 @@ class MoreCompare(BaseCompare):
 
 if __name__ == '__main__':
 
-  default_base_folder = 'test/test_samples_osw/baseline'
-  default_feature_folder = 'test/test_samples_osw/results'
-  default_export_folder = 'test/test_samples_osw/comparisons'
+  default_base_folder = 'test/base_results/baseline'
+  default_feature_folder = 'test/base_results/results'
+  default_export_folder = 'test/base_results/comparisons'
   actions = [method for method in dir(MoreCompare) if method.startswith('__') is False]
   actions += ['timeseries']
-  aggregate_columns = ['geometry_building_type_recs',
-                       'census_region']
+  aggregate_columns = ['build_existing_model.geometry_building_type_recs',
+                       'build_existing_model.census_region']
   aggregate_functions = ['sum', 'mean']
-  display_columns = ['geometry_building_type_recs',
-                     'geometry_foundation_type',
-                     'census_region']
+  display_columns = ['build_existing_model.geometry_building_type_recs',
+                     'build_existing_model.geometry_foundation_type',
+                     'build_existing_model.census_region']
   map_result_choices = ['base', 'feature']
 
   parser = argparse.ArgumentParser()

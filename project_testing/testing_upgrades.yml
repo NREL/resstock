@@ -11,22 +11,31 @@ sampler:
     n_datapoints: 1
 
 workflow_generator:
-  type: residential_default
+  type: residential_hpxml
   args:
-    residential_simulation_controls:
-      timesteps_per_hr: 1
-      begin_month: 1
-      begin_day_of_month: 1
-      end_month: 12
-      end_day_of_month: 31
-      calendar_year: 2007
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
 
-    simulation_output:
-      include_enduse_subcategories: true
+    emissions:
+      - scenario_name: LRMER_MidCase_15
+        type: CO2
+        elec_folder: data/cambium/LRMER_MidCase_15
+        gas_value: 117.6
+        propane_value: 136.6
+        oil_value: 161.0
+        wood_value: 200.0
 
-    timeseries_csv_export:
-      reporting_frequency: Hourly
-      include_enduse_subcategories: true
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: false
 
     reporting_measures:
       - measure_dir_name: QOIReport
@@ -87,8 +96,10 @@ upgrades:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         costs:
           - value: 50.0
-            multiplier: Size, Heating System (kBtu/h)
+            multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+      - option: HVAC Cooling Efficiency|None
 
   - upgrade_name: HPWH
     options:
@@ -149,8 +160,10 @@ upgrades:
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         costs:
           - value: 50.0
-            multiplier: Size, Heating System (kBtu/h)
+            multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
+      - option: HVAC Heating Type And Fuel|Electricity ASHP
+      - option: HVAC Cooling Efficiency|None
       - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         costs:
           - value: 100.0

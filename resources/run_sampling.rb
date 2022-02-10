@@ -167,7 +167,7 @@ class RunSampling
 
   def binary_search(arr, value)
     # Implementation of binary search
-    if arr.nil? || (arr.size == 0)
+    if arr.nil? || arr.size == 0
       return 0
     end
 
