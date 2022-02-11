@@ -11,7 +11,7 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug)
+def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   cfg = YAML.load_file(yml)
 
   thisdir = File.dirname(__FILE__)
@@ -211,9 +211,13 @@ def run_workflow(yml, n_threads, measures_only, debug)
   outfile = File.join('../lib/housing_characteristics/buildstock.csv')
   create_buildstock_csv(project_directory, n_datapoints, outfile)
 
+  building_ids = (1..n_datapoints).to_a if building_ids.empty?
+
   workflow_and_building_ids = []
   osw_paths.each do |upgrade_name, osw_path|
     (1..n_datapoints).to_a.each do |building_id|
+      next if !building_ids.include?(building_id)
+
       workflow_and_building_ids << [upgrade_name, osw_path, building_id]
     end
   end
@@ -249,7 +253,7 @@ def run_workflow(yml, n_threads, measures_only, debug)
   completed_statuses = all_results_output.collect { |x| x['completed_status'] }
   puts "\nFailures detected. See #{File.join(results_dir, 'cli_output.log')}." if completed_statuses.include?('Fail')
 
-  # FileUtils.rm_rf(lib_dir)
+  FileUtils.rm_rf(lib_dir)
 
   return true
 end
@@ -388,6 +392,11 @@ OptionParser.new do |opts|
     options[:debug] = true
   end
 
+  options[:building_ids] = []
+  opts.on('-i', '--building_id ID', Integer, 'Only run this building ID; can be called multiple times') do |t|
+    options[:building_ids] << t
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -407,7 +416,7 @@ if not options[:version]
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug])
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug], options[:building_ids])
 
   if not success
     exit! 1
