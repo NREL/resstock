@@ -4,6 +4,7 @@ Features
 - Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 
 Fixes
+- Remove the zero degree switchover temperature for heat pump backup heating ([#833](https://github.com/NREL/resstock/pull/833))
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)
