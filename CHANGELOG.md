@@ -1,6 +1,7 @@
 ## ResStock v2.6.0 (pending)
 
 Features
+- Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 
 Fixes
 
