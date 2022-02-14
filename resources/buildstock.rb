@@ -470,7 +470,6 @@ class RunOSWs
   def self.get_measure_results(rows, result, measure)
     if rows.keys.include?(measure)
       result = result.merge(rows[measure])
-      result.delete('applicable')
     end
     return result
   end
@@ -484,14 +483,19 @@ class RunOSWs
     column_headers = []
     results.each do |result|
       result.keys.each do |col|
-        next if col == 'building_id'
-
         column_headers << col unless column_headers.include?(col)
       end
     end
     column_headers = column_headers.sort
-    column_headers.delete('job_id')
-    column_headers.insert(1, 'job_id')
+
+    if column_headers.include?('job_id')
+      column_headers.delete('job_id')
+      column_headers.insert(1, 'job_id')
+    end
+    if column_headers.include?('building_id')
+      column_headers.delete('building_id')
+      column_headers.insert(1, 'building_id')
+    end
 
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers

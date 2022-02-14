@@ -250,8 +250,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
     end
   end
 
-  completed_statuses = all_results_output.collect { |x| x['completed_status'] }
-  puts "\nFailures detected. See #{File.join(results_dir, 'cli_output.log')}." if completed_statuses.include?('Fail')
+  failures = all_results_output.select { |x| x['completed_status'] == 'Fail' }.collect { |x| x['building_id'] }.sort
+  puts "\nFailures detected for: #{failures.join(', ')}.\nSee #{File.join(results_dir, 'cli_output.log')}." if !failures.empty?
 
   FileUtils.rm_rf(lib_dir)
 
@@ -308,6 +308,7 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
   result_characteristics['completed_status'] = completed_status
 
   result_output['OSW'] = osw
+  result_output['building_id'] = building_id
   result_output['job_id'] = job_id
   result_output['completed_status'] = completed_status
 
