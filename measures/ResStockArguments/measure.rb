@@ -48,7 +48,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     measure.arguments(model).each do |arg|
       next if Constants.build_residential_hpxml_excludes.include? arg.name
 
-      # Following are arguments with the same namber but different options
+      # Following are arguments with the same name but different options
       next if arg.name == 'geometry_unit_cfa'
 
       args << arg
@@ -144,6 +144,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Rim Joist: Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Nominal R-value for the rim joist insulation. Only applies to basements/crawlspaces.')
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_r', true)
+    arg.setDisplayName('Rim Joist: Assembly R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Assembly R-value for the rim joists. Only applies to basements/crawlspaces.')
     arg.setDefaultValue(0)
     args << arg
 
@@ -701,7 +708,21 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['wall_assembly_r'] += args['exterior_finish_r']
 
     # Rim Joist Assembly R-Value
-    args['rim_joist_assembly_r'] = args['wall_assembly_r'] + args['rim_joist_insulation_r']
+    if args['geometry_rim_joist_height'].get > 0
+      if args['foundation_wall_insulation_location'].get == 'interior'
+        # rim joist assembly = siding + rim joist insulation - drywall
+        # (rim joist insulation is nominal cavity + 1/2 in sheathing + 1/2 in drywall)
+        rim_joist_assembly_r = args['exterior_finish_r']
+        rim_joist_assembly_r += (args['rim_joist_insulation_r'] + 3.4 - 0.9) / 2.0 # parallel to floor joists
+        rim_joist_assembly_r += (args['rim_joist_assembly_r'] - 0.9) / 2.0 # derated
+        args['rim_joist_assembly_r'] = rim_joist_assembly_r
+      elsif args['foundation_wall_insulation_location'].get == 'exterior'
+        # rim joist assembly = siding + continuous foundation insulation + uninsulated wall - drywall
+        # (uninsulated wall is nominal cavity + 1/2 in sheating + 1/2 in drywall)
+        rim_joist_assembly_r = args['exterior_finish_r'] + args['rim_joist_insulation_r'] + 3.4 - 0.9
+        args['rim_joist_assembly_r'] = rim_joist_assembly_r
+      end
+    end
 
     args.each do |arg_name, arg_value|
       begin
