@@ -11,7 +11,7 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug)
+def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   cfg = YAML.load_file(yml)
 
   thisdir = File.dirname(__FILE__)
@@ -211,9 +211,13 @@ def run_workflow(yml, n_threads, measures_only, debug)
   outfile = File.join('../lib/housing_characteristics/buildstock.csv')
   create_buildstock_csv(project_directory, n_datapoints, outfile)
 
+  building_ids = (1..n_datapoints).to_a if building_ids.empty?
+
   workflow_and_building_ids = []
   osw_paths.each do |upgrade_name, osw_path|
     (1..n_datapoints).to_a.each do |building_id|
+      next if !building_ids.include?(building_id)
+
       workflow_and_building_ids << [upgrade_name, osw_path, building_id]
     end
   end
@@ -246,10 +250,10 @@ def run_workflow(yml, n_threads, measures_only, debug)
     end
   end
 
-  completed_statuses = all_results_output.collect { |x| x['completed_status'] }
-  puts "\nFailures detected. See #{File.join(results_dir, 'cli_output.log')}." if completed_statuses.include?('Fail')
+  failures = all_results_output.select { |x| x['completed_status'] == 'Fail' }.collect { |x| x['building_id'] }.sort
+  puts "\nFailures detected for: #{failures.join(', ')}.\nSee #{File.join(results_dir, 'cli_output.log')}." if !failures.empty?
 
-  # FileUtils.rm_rf(lib_dir)
+  FileUtils.rm_rf(lib_dir)
 
   return true
 end
@@ -304,6 +308,7 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
   result_characteristics['completed_status'] = completed_status
 
   result_output['OSW'] = osw
+  result_output['building_id'] = building_id
   result_output['job_id'] = job_id
   result_output['completed_status'] = completed_status
 
@@ -388,6 +393,11 @@ OptionParser.new do |opts|
     options[:debug] = true
   end
 
+  options[:building_ids] = []
+  opts.on('-i', '--building_id ID', Integer, 'Only run this building ID; can be called multiple times') do |t|
+    options[:building_ids] << t
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -407,7 +417,7 @@ if not options[:version]
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug])
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug], options[:building_ids])
 
   if not success
     exit! 1
