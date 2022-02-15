@@ -5,6 +5,8 @@ Features
 
 Fixes
 - Clean up option names for natural ventilation and hot water distribution ([#828](https://github.com/NREL/resstock/pull/828))
+- For homes with a finished attic or cathedral ceilings, models a conditioned attic instead of a vented attic ([#830](https://github.com/NREL/resstock/pull/830))
+- Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)
