@@ -26,13 +26,25 @@ class TestRunAnalysis < MiniTest::Test
     assert("#{Version.software_program_used} v#{Version.software_program_version}", cli_output)
   end
 
+  def test_errors
+    yml = ' -y test/yml_bad_value/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+
+    assert(File.read(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
+    assert(cli_output.include?('Failures detected for: 1, 2.'))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
   def test_testing_baseline
     yml = ' -y project_testing/testing_baseline.yml'
     @command += yml
 
     system(@command)
 
-    assert(!File.readlines(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
+    assert(!File.read(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@testing_baseline, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@testing_baseline, 'results_output.csv')))
@@ -52,7 +64,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    assert(!File.readlines(File.join(@national_baseline, 'cli_output.log')).include?('ERROR'))
+    assert(!File.read(File.join(@national_baseline, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@national_baseline, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@national_baseline, 'results_output.csv')))
@@ -73,7 +85,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    assert(!File.readlines(File.join(@testing_upgrades, 'cli_output.log')).include?('ERROR'))
+    assert(!File.read(File.join(@testing_upgrades, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@testing_upgrades, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@testing_upgrades, 'results_output.csv')))
@@ -105,7 +117,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    assert(!File.readlines(File.join(@national_upgrades, 'cli_output.log')).include?('ERROR'))
+    assert(!File.read(File.join(@national_upgrades, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@national_upgrades, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@national_upgrades, 'results_output.csv')))
