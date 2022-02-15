@@ -176,7 +176,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   # Create lib folder
   lib_dir = File.join(thisdir, '../lib')
   resources_dir = File.join(thisdir, '../resources')
-  housing_characteristics_dir = File.join(File.dirname(yml), 'housing_characteristics')
+  housing_characteristics_dir = File.join(project_directory, 'housing_characteristics')
   create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
 
   # Create weather folder
