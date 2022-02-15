@@ -1,10 +1,11 @@
 ## ResStock v2.6.0 (pending)
 
 Features
-- Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 - Enable rim joists for homes with basements/crawlspaces; assumes a height of 9.25 inches and insulation equal to foundation walls ([#831](https://github.com/NREL/resstock/pull/831))
+- Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 
 Fixes
+- For homes with a finished attic or cathedral ceilings, models a conditioned attic instead of a vented attic ([#830](https://github.com/NREL/resstock/pull/830))
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)
