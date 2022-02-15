@@ -140,6 +140,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(10.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_insulation_r', true)
+    arg.setDisplayName('Rim Joist: Insulation Nominal R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Nominal R-value for the rim joist insulation. Only applies to basements/crawlspaces.')
+    arg.setDefaultValue(0)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
@@ -692,6 +699,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Wall Assembly R-Value
     args['wall_assembly_r'] += args['exterior_finish_r']
+
+    # Rim Joist Assembly R-Value
+    args['rim_joist_assembly_r'] = args['wall_assembly_r'] + args['rim_joist_insulation_r']
 
     args.each do |arg_name, arg_value|
       begin
