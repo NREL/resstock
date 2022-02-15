@@ -32,7 +32,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    assert(!File.readlines(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR')
+    assert(!File.readlines(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@testing_baseline, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@testing_baseline, 'results_output.csv')))
