@@ -488,13 +488,9 @@ class RunOSWs
     end
     column_headers = column_headers.sort
 
-    if column_headers.include?('job_id')
-      column_headers.delete('job_id')
-      column_headers.insert(1, 'job_id')
-    end
-    if column_headers.include?('building_id')
-      column_headers.delete('building_id')
-      column_headers.insert(1, 'building_id')
+    ['job_id', 'building_id'].each do |col|
+      column_headers.delete(col)
+      column_headers.insert(1, col)
     end
 
     CSV.open(csv_out, 'wb') do |csv|
