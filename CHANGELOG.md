@@ -1,7 +1,7 @@
 ## ResStock v2.6.0 (pending)
 
 Features
-- Enable rim joists for homes with basements/crawlspaces; assumes a height of 9.25 inches and insulation equal to foundation walls ([#831](https://github.com/NREL/resstock/pull/831))
+- Enable rim joists for homes with basements/crawlspaces; assumes a height of 9.25 inches and insulation equal to above-grade wall assembly plus foundation wall ([#831](https://github.com/NREL/resstock/pull/831))
 - Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 
 Fixes
