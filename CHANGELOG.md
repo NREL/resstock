@@ -5,6 +5,7 @@ Features
 
 Fixes
 - Remove the zero degree switchover temperature for heat pump backup heating ([#833](https://github.com/NREL/resstock/pull/833))
+- For homes with a finished attic or cathedral ceilings, models a conditioned attic instead of a vented attic ([#830](https://github.com/NREL/resstock/pull/830))
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)
