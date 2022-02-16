@@ -8,7 +8,7 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 1
+    n_datapoints: 3
 
 workflow_generator:
   type: residential_hpxml
@@ -64,6 +64,14 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
+
+  - upgrade_name: Rim Joists
+    options:
+      - option: Insulation Rim Joist|R-13, Interior
+        costs:
+          - value: 3.11
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
 
   - upgrade_name: Air Leakage
     options:
@@ -142,6 +150,11 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
+      - option: Insulation Rim Joist|R-13, Interior
+        costs:
+          - value: 3.11
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
       - option: Infiltration|3 ACH50
         costs:
           - value: 3.55
