@@ -1,7 +1,7 @@
 ## ResStock v2.6.0 (pending)
 
 Features
-- For the testing project, sample equal distributions of smooth and stochastic schedules (each 50%) ([#828](https://github.com/NREL/resstock/pull/828))
+- For the testing project, sample equal distributions of (1) smooth and stochastic schedules (each 50%) and (2) faulted and non-faulted HVAC systems (each 50%) ([#828](https://github.com/NREL/resstock/pull/828))
 - Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 
 Fixes
