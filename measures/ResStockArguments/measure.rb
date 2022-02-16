@@ -725,9 +725,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       if args['rim_joist_continuous_interior_r'] > 0 && args['rim_joist_assembly_interior_r'] > 0
         # rim joist assembly = siding + half continuous interior insulation + half rim joist assembly - drywall
         # (rim joist assembly = nominal cavity + 1/2 in sheathing + 1/2 in drywall)
-        assembly_interior_r = (args['rim_joist_continuous_interior_r'] + uninsulated_wall_assembly_r) / 2.0 # parallel to floor joists
+        assembly_interior_r = (args['rim_joist_continuous_interior_r'] + uninsulated_wall_assembly_r - drywall_assembly_r) / 2.0 # parallel to floor joists
         assembly_interior_r += (args['rim_joist_assembly_interior_r']) / 2.0 # derated
-        assembly_interior_r -= drywall_assembly_r
       elsif args['rim_joist_continuous_interior_r'] > 0 || args['rim_joist_assembly_interior_r'] > 0
         runner.registerError('ResStockArguments: For rim joist interior insulation, must provide both continuous and assembly R-values.')
         return false
