@@ -56,6 +56,8 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'results_timeseries.csv')))
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'in.idf')))
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'schedules.csv')))
+
+    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_national_baseline
@@ -76,6 +78,8 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_baseline, 'run1', 'run', 'results_timeseries.csv')))
     assert(!File.exist?(File.join(@national_baseline, 'run1', 'run', 'in.idf')))
     assert(!File.exist?(File.join(@national_baseline, 'run1', 'run', 'schedules.csv')))
+
+    FileUtils.rm_rf(@national_baseline)
   end
 
   def test_testing_upgrades
@@ -108,6 +112,8 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'results_timeseries.csv')))
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'in.idf')))
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'schedules.csv')))
+
+    FileUtils.rm_rf(@testing_upgrades)
   end
 
   def test_national_upgrades
@@ -140,5 +146,7 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_upgrades, 'run1', 'run', 'results_timeseries.csv')))
     assert(!File.exist?(File.join(@national_upgrades, 'run1', 'run', 'in.idf')))
     assert(!File.exist?(File.join(@national_upgrades, 'run1', 'run', 'schedules.csv')))
+
+    FileUtils.rm_rf(@national_upgrades)
   end
 end
