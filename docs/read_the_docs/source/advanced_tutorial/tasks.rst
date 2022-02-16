@@ -1,9 +1,6 @@
 Tasks
 =====
 
-Run tasks.rb
-------------
-
 Run ``openstudio tasks.rb`` to see available task commands:
 
 .. code:: bash
@@ -17,7 +14,20 @@ Run ``openstudio tasks.rb`` to see available task commands:
     integrity_check_testing
     download_weather
 
-Use ``openstudio tasks.rb update_measures`` to apply rubocop auto-correct to measures, and to update measure.xml files.
+.. _update-measures:
+
+Update Measures
+---------------
+
+Use ``openstudio tasks.rb update_measures`` to apply rubocop auto-correct to measures, and to update measure.xml files:
+
+  $ openstudio tasks.rb update_measures
+  Applying rubocop auto-correct to measures...
+  Running RuboCop...
+
+  91 files inspected, no offenses detected
+  Updating measure.xmls...
+  Done.
 
 .. _integrity-checks:
 
@@ -38,10 +48,23 @@ Run ``openstudio tasks.rb integrity_check_<project_name>``, where ``<project_nam
 
 If the integrity check for a given project fails, you will need to update either your tsv files and/or the ``resources/options_lookup.tsv`` file. See :doc:`options_lookup` for information about the ``options_lookup.tsv`` file.
 
-.. _using-the-rakefile:
+.. download-weather:
 
-Using the Rakefile
-------------------
+Download Weather
+----------------
+
+Run ``openstudio tasks.rb download_weather`` to download available EPW weather files:
+
+  $ /c/openstudio-3.3.0/bin/openstudio.exe tasks.rb download_weather
+  Downloading /files/156/BuildStock_TMY3_FIPS.zip (  1%) 
+  Downloading /files/156/BuildStock_TMY3_FIPS.zip (  2%) 
+  Downloading /files/156/BuildStock_TMY3_FIPS.zip (  3%)
+  ...
+
+.. _rakefile:
+
+Rakefile
+========
 
 Once you have completed instructions found in :doc:`installer_setup`, you can then use the `Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_ contained at the top level of this repository. You will run rake task(s) for :ref:`performing integrity checks on project inputs <integrity-checks>`.
 
