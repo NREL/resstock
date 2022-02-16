@@ -4,7 +4,39 @@ Tasks
 Run tasks.rb
 ------------
 
+Run ``openstudio tasks.rb`` to see available task commands:
+
+.. code:: bash
+
+  $ openstudio tasks.rb 
+  ERROR: Missing command.
+  Usage: openstudio tasks.rb [COMMAND]
+  Commands:
+    update_measures
+    integrity_check_national
+    integrity_check_testing
+    download_weather
+
 Use ``openstudio tasks.rb update_measures`` to apply rubocop auto-correct to measures, and to update measure.xml files.
+
+.. _integrity-checks:
+
+Integrity Checks
+----------------
+
+Run ``openstudio tasks.rb integrity_check_<project_name>``, where ``<project_name>`` matches the project you are working with. If no task exists for the project you are working with, extend the list of integrity check tasks to accommodate your project by modifying the ``tasks.rb`` file. An example for running a project's integrity checks is given below:
+
+.. code:: bash
+
+  $ openstudio tasks.rb integrity_check_national
+  Checking for issues with project_national/Location Region...
+  Checking for issues with project_national/Location EPW...
+  Checking for issues with project_national/Vintage...
+  Checking for issues with project_national/Heating Fuel...
+  Checking for issues with project_national/Usage Level...
+  ...
+
+If the integrity check for a given project fails, you will need to update either your tsv files and/or the ``resources/options_lookup.tsv`` file. See :doc:`options_lookup` for information about the ``options_lookup.tsv`` file.
 
 .. _using-the-rakefile:
 
@@ -22,22 +54,3 @@ Run ``rake -T`` to see the list of possible rake tasks. The ``-T`` is replaced w
   rake unit_tests:measure_tests             # Run tests for measure_tests
   rake unit_tests:project_integrity_checks  # Run tests for project_integrity...
   rake workflow:analysis_tests              # Run tests for analysis_tests
-
-.. _integrity-checks:
-
-Integrity Checks
-----------------
-
-Run ``rake integrity_check_<project_name>``, where ``<project_name>`` matches the project you are working with. If no rake task exists for the project you are working with, extend the list of integrity check rake tasks to accommodate your project by copy-pasting and renaming the ``integrity_check_national`` rake task found in the `Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_. An example for running a project's integrity checks is given below:
-
-.. code:: bash
-
-  $ rake integrity_check_national
-  Checking for issues with project_national/Location Region...
-  Checking for issues with project_national/Location EPW...
-  Checking for issues with project_national/Vintage...
-  Checking for issues with project_national/Heating Fuel...
-  Checking for issues with project_national/Usage Level...
-  ...
-
-If the integrity check for a given project fails, you will need to update either your tsv files and/or the ``resources/options_lookup.tsv`` file. See :doc:`options_lookup` for information about the ``options_lookup.tsv`` file.
