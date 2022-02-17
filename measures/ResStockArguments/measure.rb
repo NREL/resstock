@@ -48,7 +48,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     measure.arguments(model).each do |arg|
       next if Constants.build_residential_hpxml_excludes.include? arg.name
 
-      # Following are arguments with the same namber but different options
+      # Following are arguments with the same name but different options
       next if arg.name == 'geometry_unit_cfa'
 
       args << arg
@@ -138,6 +138,27 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setUnits('ft')
     arg.setDescription("The width of the corridor. Only applies to #{HPXML::ResidentialTypeApartment}s.")
     arg.setDefaultValue(10.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_exterior_r', true)
+    arg.setDisplayName('Rim Joist: Continuous Exterior Insulation Nominal R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Nominal R-value for the rim joist continuous exterior insulation. Only applies to basements/crawlspaces.')
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_interior_r', true)
+    arg.setDisplayName('Rim Joist: Continuous Interior Insulation Nominal R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Nominal R-value for the rim joist continuous interior insulation that runs parallel to floor joists. Only applies to basements/crawlspaces.')
+    arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_assembly_interior_r', true)
+    arg.setDisplayName('Rim Joist: Interior Assembly R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Assembly R-value for the rim joist assembly interior insulation that runs perpendicular to floor joists. Only applies to basements/crawlspaces.')
+    arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
@@ -692,6 +713,32 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Wall Assembly R-Value
     args['wall_assembly_r'] += args['exterior_finish_r']
+
+    # Rim Joist Assembly R-Value
+    rim_joist_assembly_r = 0
+    if args['geometry_rim_joist_height'].get > 0
+      drywall_assembly_r = 0.9
+      uninsulated_wall_assembly_r = 3.4
+
+      assembly_exterior_r = args['exterior_finish_r'] + args['rim_joist_continuous_exterior_r']
+
+      if args['rim_joist_continuous_interior_r'] > 0 && args['rim_joist_assembly_interior_r'] > 0
+        # rim joist assembly = siding + half continuous interior insulation + half rim joist assembly - drywall
+        # (rim joist assembly = nominal cavity + 1/2 in sheathing + 1/2 in drywall)
+        assembly_interior_r = (args['rim_joist_continuous_interior_r'] + uninsulated_wall_assembly_r - drywall_assembly_r) / 2.0 # parallel to floor joists
+        assembly_interior_r += (args['rim_joist_assembly_interior_r']) / 2.0 # derated
+      elsif args['rim_joist_continuous_interior_r'] > 0 || args['rim_joist_assembly_interior_r'] > 0
+        runner.registerError('ResStockArguments: For rim joist interior insulation, must provide both continuous and assembly R-values.')
+        return false
+      else
+        # rim joist assembly = siding + continuous foundation insulation + uninsulated wall - drywall
+        # (uninsulated wall is nominal cavity + 1/2 in sheating + 1/2 in drywall)
+        assembly_interior_r = uninsulated_wall_assembly_r - drywall_assembly_r
+      end
+
+      rim_joist_assembly_r = assembly_exterior_r + assembly_interior_r
+    end
+    args['rim_joist_assembly_r'] = rim_joist_assembly_r
 
     args.each do |arg_name, arg_value|
       begin

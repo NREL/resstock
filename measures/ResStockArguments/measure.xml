@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>4b0ad06d-584e-4976-a9f9-301c25696a10</version_id>
-  <version_modified>20220204T200355Z</version_modified>
+  <version_id>85eaed03-08a2-49b8-b6a7-915d1ef44205</version_id>
+  <version_modified>20220216T004847Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -5628,25 +5628,6 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>apply_defaults</name>
-      <display_name>Apply default values</display_name>
-      <description>Sets OS-HPXML default values in the HPXML output file</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
       <name>emissions_scenario_names</name>
       <display_name>Emissions: Scenario Names</display_name>
       <description>Names of emissions scenarios. If multiple scenarios, use a comma-separated list.</description>
@@ -5749,6 +5730,44 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>apply_defaults</name>
+      <display_name>Apply Default Values?</display_name>
+      <description>If true, applies OS-HPXML default values to the HPXML output file.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>apply_validation</name>
+      <display_name>Apply Validation?</display_name>
+      <description>If true, validates the HPXML output file. Set to false for faster performance. Note that validation is not needed if the HPXML file will be validated downstream (e.g., via the HPXMLtoOpenStudio measure).</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>schedules_type</name>
@@ -5916,6 +5935,36 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>10</default_value>
+    </argument>
+    <argument>
+      <name>rim_joist_continuous_exterior_r</name>
+      <display_name>Rim Joist: Continuous Exterior Insulation Nominal R-value</display_name>
+      <description>Nominal R-value for the rim joist continuous exterior insulation. Only applies to basements/crawlspaces.</description>
+      <type>Double</type>
+      <units>h-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>rim_joist_continuous_interior_r</name>
+      <display_name>Rim Joist: Continuous Interior Insulation Nominal R-value</display_name>
+      <description>Nominal R-value for the rim joist continuous interior insulation that runs parallel to floor joists. Only applies to basements/crawlspaces.</description>
+      <type>Double</type>
+      <units>h-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
+    </argument>
+    <argument>
+      <name>rim_joist_assembly_interior_r</name>
+      <display_name>Rim Joist: Interior Assembly R-value</display_name>
+      <description>Assembly R-value for the rim joist assembly interior insulation that runs perpendicular to floor joists. Only applies to basements/crawlspaces.</description>
+      <type>Double</type>
+      <units>h-ft^2-R/Btu</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_other_2_usage_multiplier</name>
@@ -6218,7 +6267,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>6C7A2B71</checksum>
+      <checksum>3CF47895</checksum>
     </file>
   </files>
 </measure>
