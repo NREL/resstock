@@ -250,7 +250,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
     end
   end
 
-  failures = all_results_output.select { |x| x['completed_status'] == 'Fail' }.collect { |x| x['building_id'] }.sort
+  failures = all_results_output.select { |x| x['completed_status'] == 'Fail' }.collect { |x| x['building_id'] }.uniq.sort
   puts "\nFailures detected for: #{failures.join(', ')}.\nSee #{File.join(results_dir, 'cli_output.log')}." if !failures.empty?
 
   FileUtils.rm_rf(lib_dir)
