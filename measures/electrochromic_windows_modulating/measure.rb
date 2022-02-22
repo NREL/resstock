@@ -2,7 +2,7 @@
 
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
-require 'openstudio-standards'
+# require 'openstudio-standards'
 
 # start the measure
 class ElectrochromicWindowsModulating < OpenStudio::Measure::ModelMeasure
@@ -183,9 +183,9 @@ class ElectrochromicWindowsModulating < OpenStudio::Measure::ModelMeasure
     end
 
     # build standard
-    standard = Standard.build('ComStock 90.1-2019')
+    # standard = Standard.build('ComStock 90.1-2019')
     # get climate zone
-    climate_zone = standard.model_standards_climate_zone(model)
+    # climate_zone = standard.model_standards_climate_zone(model)
 
     # loop through subsurfaces and glazings
     sub_surfaces = []

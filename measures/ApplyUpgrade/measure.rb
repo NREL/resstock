@@ -285,7 +285,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       measures['ResStockArguments'] = [{}] if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
-      upgrade_measures = measures.keys - ['ResStockArguments']
 
       # Add measure arguments from existing building if needed
       parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
@@ -405,24 +404,18 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
 
-    if not apply_measures(hpxml_measures_dir, { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
-      new_runner.result.warnings.each do |warning|
-        runner.registerWarning(warning.logMessage)
-      end
-      new_runner.result.info.each do |info|
-        runner.registerInfo(info.logMessage)
-      end
-      new_runner.result.errors.each do |error|
-        runner.registerError(error.logMessage)
-      end
-      return false
-    end
+    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] },
+                               measures_dir => {} }
 
-    upgrade_measures_to_apply = {}
+    upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
     upgrade_measures.each do |upgrade_measure|
-      upgrade_measures_to_apply[upgrade_measure] = measures[upgrade_measure]
+      measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
     end
-    if not apply_measures(measures_dir, upgrade_measures_to_apply, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+    measures_to_apply_hash.each do |dir, measures_to_apply|
+      next if measures_to_apply.empty?
+
+      next unless not apply_measures(dir, measures_to_apply, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+
       new_runner.result.warnings.each do |warning|
         runner.registerWarning(warning.logMessage)
       end
