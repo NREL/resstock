@@ -411,10 +411,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     upgrade_measures.each do |upgrade_measure|
       measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
     end
-    measures_to_apply_hash.each do |dir, measures_to_apply|
+    measures_to_apply_hash.each_with_index do |(dir, measures_to_apply), i|
       next if measures_to_apply.empty?
 
-      next unless not apply_measures(dir, measures_to_apply, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'upgraded.osw')
+      osw_out = 'upgraded.osw'
+      osw_out = "upgraded#{i + 1}.osw" if i > 0
+      next unless not apply_measures(dir, measures_to_apply, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', osw_out)
 
       new_runner.result.warnings.each do |warning|
         runner.registerWarning(warning.logMessage)
