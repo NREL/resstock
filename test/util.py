@@ -76,25 +76,6 @@ def rename_ts_col(col):
   col = 'report_simulation_output.{}'.format(col)
   return col
 
-def convert_units(df):
-  for col in df.columns:
-    old_units = col.split('_')[-1]
-    if old_units == 'kwh':
-      df[col] *= 3412.14/1000000  # to mbtu
-      df[col] = df[col].round(2)
-      new_units = 'm_btu'
-    elif old_units == 'kbtu':
-      df[col] /= 1000  # to mbtu
-      df[col] = df[col].round(2)
-      new_units = 'm_btu'
-    elif old_units == 'lb':
-      # no op
-      new_units = 'lb'
-    else:
-      sys.exit("Units '{}' not recognized.".format(old_units))
-    df = df.rename(columns={col: col.replace(old_units, new_units)})
-  return df
-
 outdir = 'baseline/timeseries'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
@@ -140,7 +121,6 @@ df_testing['PROJECT'] = 'project_testing'
 
 results_output = pd.concat([df_national, df_testing]).fillna(0)
 results_output = results_output.set_index('PROJECT')
-results_output = convert_units(results_output)
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
@@ -252,6 +232,5 @@ df_testing['PROJECT'] = 'project_testing'
 
 results_output = pd.concat([df_national, df_testing]).fillna(0)
 results_output = results_output.set_index('PROJECT')
-results_output = convert_units(results_output)
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
