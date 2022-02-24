@@ -686,7 +686,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['air_leakage_value'] *= exposed_wall_area_ratio
 
       if args['air_leakage_value_reduction'].is_initialized
-        args['air_leakage_value'] *= (1.0 - args['air_leakage_value_reduction'].get)
+        args['air_leakage_value'] *= (1.0 - args['air_leakage_value_reduction'].get / 100.0)
       end
 
       if horiz_location == 'Left'

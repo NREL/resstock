@@ -73,13 +73,23 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     # Retrieve values from ReportHPXMLOutput
     hpxml = get_values_from_runner_past_results(runner, 'report_hpxml_output')
 
+    # Get existing/upgraded hpxmls
+    existing_path = File.expand_path('../existing.xml')
+    if File.exist?(existing_path)
+      existing = HPXML.new(hpxml_path: existing_path)
+    end
+    upgraded_path = File.expand_path('../upgraded.xml')
+    if File.exist?(upgraded_path)
+      upgraded = HPXML.new(hpxml_path: upgraded_path)
+    end
+
     # Report cost multipliers
     cost_multiplier_choices.each do |cost_mult_type|
       next if cost_mult_type.empty?
       next if cost_mult_type.include?('Fixed')
 
       cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(cost_mult_type, hpxml)
+      cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
       cost_mult = cost_mult.round(2)
       register_value(runner, cost_mult_type_str, cost_mult)
     end
@@ -127,7 +137,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     option_cost_pairs.keys.each do |option_num|
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
-        cost_mult = get_cost_multiplier(cost_mult_type, hpxml)
+        cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
         total_cost = cost_value * cost_mult
         next if total_cost == 0
 
@@ -162,7 +172,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
-  def get_cost_multiplier(cost_mult_type, hpxml)
+  def get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
     cost_mult = 0.0
     if cost_mult_type == 'Fixed (1)'
       cost_mult += 1.0
@@ -210,6 +220,13 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['systems_water_heater_tank_volume_gal']
     elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
       cost_mult += hpxml['systems_mechanical_ventilation_flow_rate_cfm']
+    elsif cost_mult_type == 'Infiltration Reduction (%)'
+      if !upgraded.nil?
+        existing_air_leakage_value = existing.air_infiltration_measurements[0].air_leakage
+        upgraded_air_leakage_value = upgraded.air_infiltration_measurements[0].air_leakage
+        air_leakage_value_reduction = (1.0 - upgraded_air_leakage_value / existing_air_leakage_value)
+        cost_mult += air_leakage_value_reduction * 100.0
+      end
     end
     return cost_mult
   end # end get_cost_multiplier
