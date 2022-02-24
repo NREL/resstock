@@ -73,13 +73,23 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     # Retrieve values from ReportHPXMLOutput
     hpxml = get_values_from_runner_past_results(runner, 'report_hpxml_output')
 
+    # Get existing/upgraded hpxmls
+    existing_path = File.expand_path('../existing.xml')
+    if File.exist?(existing_path)
+      existing = HPXML.new(hpxml_path: existing_path)
+    end
+    upgraded_path = File.expand_path('../upgraded.xml')
+    if File.exist?(upgraded_path)
+      upgraded = HPXML.new(hpxml_path: upgraded_path)
+    end
+
     # Report cost multipliers
     cost_multiplier_choices.each do |cost_mult_type|
       next if cost_mult_type.empty?
       next if cost_mult_type.include?('Fixed')
 
       cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(cost_mult_type, hpxml)
+      cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
       cost_mult = cost_mult.round(2)
       register_value(runner, cost_mult_type_str, cost_mult)
     end
@@ -127,7 +137,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     option_cost_pairs.keys.each do |option_num|
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
-        cost_mult = get_cost_multiplier(cost_mult_type, hpxml)
+        cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
         total_cost = cost_value * cost_mult
         next if total_cost == 0
 
@@ -162,7 +172,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
-  def get_cost_multiplier(cost_mult_type, hpxml)
+  def get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
     cost_mult = 0.0
     if cost_mult_type == 'Fixed (1)'
       cost_mult += 1.0
@@ -170,6 +180,27 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_wall_area_thermal_boundary_ft_2']
     elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'
       cost_mult += hpxml['enclosure_wall_area_exterior_ft_2']
+    elsif cost_mult_type == 'Insulation Increase * Wall Area, Above-Grade, Exterior (R-value * ft^2)'
+      if !upgraded.nil?
+        existing_wall_assembly_r = 0.0
+        existing.walls.each do |wall|
+          next unless wall.is_exterior
+
+          existing_wall_assembly_r = wall.insulation_assembly_r_value
+          break
+        end
+
+        upgraded_wall_assembly_r = 0.0
+        upgraded.walls.each do |wall|
+          next unless wall.is_exterior
+
+          upgraded_wall_assembly_r = wall.insulation_assembly_r_value
+          break
+        end
+
+        wall_assembly_r_increase = upgraded_wall_assembly_r - existing_wall_assembly_r
+        cost_mult += wall_assembly_r_increase * hpxml['enclosure_wall_area_exterior_ft_2']
+      end
     elsif cost_mult_type == 'Wall Area, Below-Grade (ft^2)'
       cost_mult += hpxml['enclosure_foundation_wall_area_exterior_ft_2']
     elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
