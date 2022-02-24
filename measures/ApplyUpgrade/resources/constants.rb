@@ -31,7 +31,7 @@ class Constants
       'Size, Heat Pump Backup Primary (kBtu/h)',
       'Size, Water Heater (gal)',
       'Flow Rate, Mechanical Ventilation (cfm)',
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)'
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)'
     ]
   end
 end

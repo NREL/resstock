@@ -28,7 +28,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 180.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 157.5,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH.osw', cost_multipliers)
   end
@@ -54,7 +54,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 117.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 108.9,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_1story_FB_UA_GRG_RoomAC_ElecBoiler_FuelTanklessWH.osw', cost_multipliers)
   end
@@ -80,7 +80,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 176.2,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_1story_UB_UA_ASHP2_HPWH.osw', cost_multipliers)
   end
@@ -106,7 +106,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 219.4,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_1story_UB_UA_GRG_ACV_FuelFurnace_HPWH.osw', cost_multipliers)
   end
@@ -132,7 +132,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 219.4,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_1story_UB_UA_GRG_ACV_FuelFurnace_PortableHeater_HPWH.osw', cost_multipliers)
   end
@@ -158,7 +158,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 101.8,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_2story_CS_UA_AC2_FuelBoiler_FuelTankWH.osw', cost_multipliers)
   end
@@ -184,7 +184,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 124.8,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_2story_CS_UA_GRG_ASHPV_FuelTanklessWH.osw', cost_multipliers)
   end
@@ -210,7 +210,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 140.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 126.6,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_AC1_ElecBaseboard_FuelTankWH.osw', cost_multipliers)
   end
@@ -236,7 +236,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 140.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 126.6,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_AC1_UnitHeater_FuelTankWH.osw', cost_multipliers)
   end
@@ -262,7 +262,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 140.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 126.6,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_2story_FB_UA_GRG_GSHP_ElecTanklessWH.osw', cost_multipliers)
   end
@@ -288,7 +288,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 0.0,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_2story_PB_UA_ElecFurnace_ElecTankWH.osw', cost_multipliers)
   end
@@ -314,7 +314,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 138.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 0.0,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_2story_S_UA_GRG_ASHP1_FuelTanklessWH.osw', cost_multipliers)
   end
@@ -340,7 +340,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 138.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 0.0,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_2story_S_UA_GRG_ASHP1_Fireplace_FuelTanklessWH.osw', cost_multipliers)
   end
@@ -366,7 +366,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 110.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 138.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 0.0,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFD_2story_S_UA_GRG_ASHP1_Fireplace_FuelTanklessWH_ERV.osw', cost_multipliers)
   end
@@ -392,7 +392,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 51.0,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFA_2story_UB_Furnace_RoomAC_FuelTankWH.osw', cost_multipliers)
   end
@@ -418,7 +418,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 51.0,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFA_2story_UB_FuelBoiler_RoomAC_FuelTankWH.osw', cost_multipliers)
   end
@@ -444,7 +444,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 51.0,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFA_2story_UB_ASHP2_HPWH.osw', cost_multipliers)
   end
@@ -470,7 +470,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 37.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 41.6,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('SFA_2story_FB_FuelBoiler_RoomAC_FuelTankWH.osw', cost_multipliers)
   end
@@ -496,7 +496,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 71.8,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('MF_2story_UB_Furnace_AC1_FuelTankWH.osw', cost_multipliers)
   end
@@ -522,7 +522,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 71.8,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('MF_2story_UB_FuelBoiler_AC1_FuelTankWH.osw', cost_multipliers)
   end
@@ -548,7 +548,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 71.8,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('MF_2story_UB_ASHP2_HPWH.osw', cost_multipliers)
   end
@@ -574,7 +574,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 0.0,
       'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 71.8,
-      'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)' => 0.0
+      'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)' => 0.0
     }
     _test_cost_multipliers('MF_1story_UB_Furnace_AC1_FuelTankWH.osw', cost_multipliers)
   end
