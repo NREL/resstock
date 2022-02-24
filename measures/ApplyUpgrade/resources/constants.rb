@@ -15,6 +15,7 @@ class Constants
       'Fixed (1)',
       'Wall Area, Above-Grade, Conditioned (ft^2)',
       'Wall Area, Above-Grade, Exterior (ft^2)',
+      'Insulation Increase * Wall Area, Above-Grade, Exterior (R-value * ft^2)',
       'Wall Area, Below-Grade (ft^2)',
       'Floor Area, Conditioned (ft^2)',
       'Floor Area, Lighting (ft^2)',
