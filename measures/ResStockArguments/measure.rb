@@ -93,11 +93,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.6)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_assembly_r_increase', false)
-    arg.setDisplayName('Wall: Assembly R-value Increase')
-    arg.setDescription('Increase (%) on the assembly R-value of the walls.')
-    args << arg
-
     level_choices = OpenStudio::StringVector.new
     level_choices << 'Bottom'
     level_choices << 'Middle'
@@ -718,10 +713,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Wall Assembly R-Value
     args['wall_assembly_r'] += args['exterior_finish_r']
-
-    if args['wall_assembly_r_increase'].is_initialized
-      args['wall_assembly_r'] *= (1.0 + args['wall_assembly_r_increase'].get / 100.0)
-    end
 
     # Rim Joist Assembly R-Value
     rim_joist_assembly_r = 0

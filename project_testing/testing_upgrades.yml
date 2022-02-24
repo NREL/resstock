@@ -8,7 +8,7 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 1
+    n_datapoints: 3
 
 workflow_generator:
   type: residential_hpxml
@@ -57,10 +57,10 @@ upgrades:
 
   - upgrade_name: Walls
     options:
-      - option: Insulation Wall Increase|25%
+      - option: Insulation Wall|Wood Stud, R-13
         costs:
-          - value: 0.21
-            multiplier: Insulation Increase * Wall Area, Above-Grade, Exterior (R-value * ft^2)
+          - value: 2.21
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
 
@@ -70,6 +70,14 @@ upgrades:
         costs:
           - value: 3.11
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
+
+  - upgrade_name: Ceilings
+    options:
+      - option: Insulation Ceiling|R-60
+        costs:
+          - value: 0.11
+            multiplier: Insulation Increase * Floor Area, Attic (Delta R-value * ft^2)
         lifetime: 999
 
   - upgrade_name: Air Leakage
@@ -141,16 +149,21 @@ upgrades:
           - value: 45.77
             multiplier: Window Area (ft^2)
         lifetime: 30
-      - option: Insulation Wall Increase|25%
+      - option: Insulation Wall|Wood Stud, R-13
         costs:
-          - value: 0.21
-            multiplier: Insulation Increase * Wall Area, Above-Grade, Exterior (R-value * ft^2)
+          - value: 2.21
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
       - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
       - option: Insulation Rim Joist|R-13, Interior
         costs:
           - value: 3.11
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
+      - option: Insulation Ceiling|R-60
+        costs:
+          - value: 0.11
+            multiplier: Insulation Increase * Floor Area, Attic (Delta R-value * ft^2)
         lifetime: 999
       - option: Infiltration|3 ACH50
         costs:

@@ -180,27 +180,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_wall_area_thermal_boundary_ft_2']
     elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'
       cost_mult += hpxml['enclosure_wall_area_exterior_ft_2']
-    elsif cost_mult_type == 'Insulation Increase * Wall Area, Above-Grade, Exterior (R-value * ft^2)'
-      if !upgraded.nil?
-        existing_wall_assembly_r = 0.0
-        existing.walls.each do |wall|
-          next unless wall.is_exterior
-
-          existing_wall_assembly_r = wall.insulation_assembly_r_value
-          break
-        end
-
-        upgraded_wall_assembly_r = 0.0
-        upgraded.walls.each do |wall|
-          next unless wall.is_exterior
-
-          upgraded_wall_assembly_r = wall.insulation_assembly_r_value
-          break
-        end
-
-        wall_assembly_r_increase = upgraded_wall_assembly_r - existing_wall_assembly_r
-        cost_mult += wall_assembly_r_increase * hpxml['enclosure_wall_area_exterior_ft_2']
-      end
     elsif cost_mult_type == 'Wall Area, Below-Grade (ft^2)'
       cost_mult += hpxml['enclosure_foundation_wall_area_exterior_ft_2']
     elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
@@ -209,6 +188,35 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_floor_area_lighting_ft_2']
     elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
       cost_mult += hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
+    elsif cost_mult_type == 'Insulation Increase * Floor Area, Attic (Delta R-value * ft^2)'
+      if !upgraded.nil?
+        existing_ceiling_assembly_r = 0.0
+        existing.frame_floors.each do |frame_floor|
+          next unless frame_floor.is_thermal_boundary
+          next unless frame_floor.is_interior
+          next unless frame_floor.is_ceiling
+          next unless [HPXML::LocationAtticVented,
+                       HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
+
+          existing_ceiling_assembly_r = frame_floor.insulation_assembly_r_value
+          break
+        end
+
+        upgraded_ceiling_assembly_r = 0.0
+        upgraded.frame_floors.each do |frame_floor|
+          next unless frame_floor.is_thermal_boundary
+          next unless frame_floor.is_interior
+          next unless frame_floor.is_ceiling
+          next unless [HPXML::LocationAtticVented,
+                       HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
+
+          upgraded_ceiling_assembly_r = frame_floor.insulation_assembly_r_value
+          break
+        end
+
+        ceiling_assembly_r_increase = upgraded_ceiling_assembly_r - existing_ceiling_assembly_r
+        cost_mult += ceiling_assembly_r_increase * hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
+      end
     elsif cost_mult_type == 'Roof Area (ft^2)'
       cost_mult += hpxml['enclosure_roof_area_ft_2']
     elsif cost_mult_type == 'Window Area (ft^2)'
