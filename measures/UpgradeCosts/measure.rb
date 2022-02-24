@@ -220,12 +220,12 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['systems_water_heater_tank_volume_gal']
     elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
       cost_mult += hpxml['systems_mechanical_ventilation_flow_rate_cfm']
-    elsif cost_mult_type == 'Infiltration Reduction (%)'
+    elsif cost_mult_type == 'Infiltration Reduction * Floor Area, Conditioned (ACH50 * ft^2)'
       if !upgraded.nil?
         existing_air_leakage_value = existing.air_infiltration_measurements[0].air_leakage
         upgraded_air_leakage_value = upgraded.air_infiltration_measurements[0].air_leakage
-        air_leakage_value_reduction = (1.0 - upgraded_air_leakage_value / existing_air_leakage_value)
-        cost_mult += air_leakage_value_reduction * 100.0
+        air_leakage_value_reduction = existing_air_leakage_value - upgraded_air_leakage_value
+        cost_mult += air_leakage_value_reduction * hpxml['enclosure_floor_area_conditioned_ft_2']
       end
     end
     return cost_mult
