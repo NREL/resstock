@@ -730,7 +730,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       elsif args['rim_joist_continuous_interior_r'] > 0 || args['rim_joist_assembly_interior_r'] > 0
         runner.registerError('ResStockArguments: For rim joist interior insulation, must provide both continuous and assembly R-values.')
         return false
-      else
+      else # uninsulated interior
         # rim joist assembly = siding + continuous foundation insulation + uninsulated wall - drywall
         # (uninsulated wall is nominal cavity + 1/2 in sheating + 1/2 in drywall)
         assembly_interior_r = uninsulated_wall_assembly_r - drywall_assembly_r
