@@ -136,7 +136,6 @@ if not os.path.exists(outdir):
   os.makedirs(outdir)
 
 frames = []
-upgrades = {}
 
 national_num_scenarios = sum([len(files) for r, d, files in os.walk('project_national/national_upgrades/results_csvs')])
 testing_num_scenarios = sum([len(files) for r, d, files in os.walk('project_testing/testing_upgrades/results_csvs')])
@@ -148,14 +147,14 @@ for i in range(1, national_num_scenarios):
   df_testing = pd.read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
 
   assert df_national['apply_upgrade.upgrade_name'][0] == df_testing['apply_upgrade.upgrade_name'][0]
-  upgrades[i] = df_national['apply_upgrade.upgrade_name'][0]
+  upgrade_name = df_national['apply_upgrade.upgrade_name'][0]
 
-  df_national['building_id'] = 'project_national-{}.osw'.format(upgrades[i])
+  df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}-{}.osw'.format(upgrade_name, '%04d' % x))
   df_national.insert(1, 'color_index', 1)
 
   frames.append(df_national)
   
-  df_testing['building_id'] = 'project_testing-{}.osw'.format(upgrades[i])
+  df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}-{}.osw'.format(upgrade_name, '%04d' % x))
   df_testing.insert(1, 'color_index', 0)
 
   frames.append(df_testing)
