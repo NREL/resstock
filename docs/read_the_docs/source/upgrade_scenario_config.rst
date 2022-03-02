@@ -67,7 +67,7 @@ The cost above is multiplied by this value, which is a function of the building.
    - Floor Area, Conditioned (ft^2)
    - Floor Area, Lighting (ft^2)
    - Floor Area, Attic (ft^2)
-   - Insulation Increase * Floor Area, Attic (Delta R-value * ft^2)
+   - Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)
    - Roof Area (ft^2)
    - Window Area (ft^2)
    - Door Area (ft^2)

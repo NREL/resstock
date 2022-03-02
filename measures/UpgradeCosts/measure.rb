@@ -73,27 +73,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     # Retrieve values from ReportHPXMLOutput
     hpxml = get_values_from_runner_past_results(runner, 'report_hpxml_output')
 
-    # Get existing/upgraded hpxmls
-    existing_path = File.expand_path('../existing.xml')
-    if File.exist?(existing_path)
-      existing = HPXML.new(hpxml_path: existing_path)
-    end
-    upgraded_path = File.expand_path('../upgraded.xml')
-    if File.exist?(upgraded_path)
-      upgraded = HPXML.new(hpxml_path: upgraded_path)
-    end
-
-    # Report cost multipliers
-    cost_multiplier_choices.each do |cost_mult_type|
-      next if cost_mult_type.empty?
-      next if cost_mult_type.include?('Fixed')
-
-      cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
-      cost_mult = cost_mult.round(2)
-      register_value(runner, cost_mult_type_str, cost_mult)
-    end
-
     # Retrieve values from ApplyUpgrade
     values = get_values_from_runner_past_results(runner, 'apply_upgrade')
 
@@ -133,10 +112,24 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     # Obtain cost multiplier values and calculate upgrade costs
+    existing = nil
+    upgraded = nil
     upgrade_cost = 0.0
     option_cost_pairs.keys.each do |option_num|
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
+        # Get existing/upgraded hpxmls
+        if cost_mult_type.include?('*') && existing.nil? && upgraded.nil? # incremental cost multiplier
+          existing_path = File.expand_path('../existing.xml')
+          if File.exist?(existing_path)
+            existing = HPXML.new(hpxml_path: existing_path)
+          end
+          upgraded_path = File.expand_path('../upgraded.xml')
+          if File.exist?(upgraded_path)
+            upgraded = HPXML.new(hpxml_path: upgraded_path)
+          end
+        end
+
         cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
         total_cost = cost_value * cost_mult
         next if total_cost == 0
@@ -169,6 +162,17 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     register_value(runner, upgrade_cost_name, upgrade_cost)
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
+    # Report cost multipliers
+    cost_multiplier_choices.each do |cost_mult_type|
+      next if cost_mult_type.empty?
+      next if cost_mult_type.include?('Fixed')
+
+      cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
+      cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
+      cost_mult = cost_mult.round(2)
+      register_value(runner, cost_mult_type_str, cost_mult)
+    end
+
     return true
   end
 
@@ -188,34 +192,26 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_floor_area_lighting_ft_2']
     elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
       cost_mult += hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
-    elsif cost_mult_type == 'Insulation Increase * Floor Area, Attic (Delta R-value * ft^2)'
+    elsif cost_mult_type == 'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)'
       if !upgraded.nil?
-        existing_ceiling_assembly_r = 0.0
-        existing.frame_floors.each do |frame_floor|
-          next unless frame_floor.is_thermal_boundary
-          next unless frame_floor.is_interior
-          next unless frame_floor.is_ceiling
-          next unless [HPXML::LocationAtticVented,
-                       HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
+        ceiling_assembly_r = { existing => [], upgraded => [] }
+        [existing, upgraded].each do |hpxml_obj|
+          hpxml_obj.frame_floors.each do |frame_floor|
+            next unless frame_floor.is_thermal_boundary
+            next unless frame_floor.is_interior
+            next unless frame_floor.is_ceiling
+            next unless [HPXML::LocationAtticVented,
+                         HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
 
-          existing_ceiling_assembly_r = frame_floor.insulation_assembly_r_value
-          break
+            ceiling_assembly_r[hpxml_obj] << frame_floor.insulation_assembly_r_value unless frame_floor.insulation_assembly_r_value.nil?
+          end
         end
+        fail 'Found multiple ceiling assembly R-values.' if ceiling_assembly_r[existing].uniq.size > 1 || ceiling_assembly_r[upgraded].uniq.size > 1
 
-        upgraded_ceiling_assembly_r = 0.0
-        upgraded.frame_floors.each do |frame_floor|
-          next unless frame_floor.is_thermal_boundary
-          next unless frame_floor.is_interior
-          next unless frame_floor.is_ceiling
-          next unless [HPXML::LocationAtticVented,
-                       HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
-
-          upgraded_ceiling_assembly_r = frame_floor.insulation_assembly_r_value
-          break
+        if !ceiling_assembly_r[existing].empty? && !ceiling_assembly_r[upgraded].empty?
+          ceiling_assembly_r_increase = ceiling_assembly_r[upgraded][0] - ceiling_assembly_r[existing][0]
+          cost_mult += ceiling_assembly_r_increase * hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
         end
-
-        ceiling_assembly_r_increase = upgraded_ceiling_assembly_r - existing_ceiling_assembly_r
-        cost_mult += ceiling_assembly_r_increase * hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
       end
     elsif cost_mult_type == 'Roof Area (ft^2)'
       cost_mult += hpxml['enclosure_roof_area_ft_2']
