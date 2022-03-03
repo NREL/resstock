@@ -8,7 +8,7 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 3
+    n_datapoints: 5
 
 workflow_generator:
   type: residential_hpxml
@@ -70,6 +70,14 @@ upgrades:
         costs:
           - value: 3.11
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
+
+  - upgrade_name: Ceilings
+    options:
+      - option: Insulation Ceiling|R-60
+        costs:
+          - value: 1.11
+            multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
 
   - upgrade_name: Air Leakage
@@ -151,6 +159,11 @@ upgrades:
         costs:
           - value: 3.11
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
+      - option: Insulation Ceiling|R-60
+        costs:
+          - value: 1.11
+            multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
       - option: Infiltration Reduction|25%
         costs:

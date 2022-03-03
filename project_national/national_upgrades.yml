@@ -8,7 +8,7 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 1
+    n_datapoints: 5
 
 workflow_generator:
   type: residential_hpxml
@@ -73,6 +73,14 @@ upgrades:
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
         lifetime: 999
 
+  - upgrade_name: Ceilings
+    options:
+      - option: Insulation Ceiling|R-60
+        costs:
+          - value: 1.11
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+
   - upgrade_name: Air Leakage
     options:
       - option: Infiltration Reduction|25%
@@ -130,14 +138,6 @@ upgrades:
       - option: PV Orientation|South
 
   - upgrade_name: All Upgrades
-    package_apply_logic:
-      or:
-        - County|AZ, Maricopa County
-        - County|CA, Los Angeles County
-        - County|GA, Fulton County
-        - County|IL, Cook County
-        - County|TX, Harris County
-        - County|WA, King County
     options:
       - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
         costs:
@@ -154,6 +154,11 @@ upgrades:
         costs:
           - value: 3.11
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
+      - option: Insulation Ceiling|R-60
+        costs:
+          - value: 1.11
+            multiplier: Floor Area, Attic (ft^2)
         lifetime: 999
       - option: Infiltration Reduction|25%
         costs:
