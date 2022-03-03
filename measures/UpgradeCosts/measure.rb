@@ -73,27 +73,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     # Retrieve values from ReportHPXMLOutput
     hpxml = get_values_from_runner_past_results(runner, 'report_hpxml_output')
 
-    # Get existing/upgraded hpxmls
-    existing_path = File.expand_path('../existing.xml')
-    if File.exist?(existing_path)
-      existing = HPXML.new(hpxml_path: existing_path)
-    end
-    upgraded_path = File.expand_path('../upgraded.xml')
-    if File.exist?(upgraded_path)
-      upgraded = HPXML.new(hpxml_path: upgraded_path)
-    end
-
-    # Report cost multipliers
-    cost_multiplier_choices.each do |cost_mult_type|
-      next if cost_mult_type.empty?
-      next if cost_mult_type.include?('Fixed')
-
-      cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
-      cost_mult = cost_mult.round(2)
-      register_value(runner, cost_mult_type_str, cost_mult)
-    end
-
     # Retrieve values from ApplyUpgrade
     values = get_values_from_runner_past_results(runner, 'apply_upgrade')
 
@@ -133,10 +112,24 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     # Obtain cost multiplier values and calculate upgrade costs
+    existing = nil
+    upgraded = nil
     upgrade_cost = 0.0
     option_cost_pairs.keys.each do |option_num|
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
+        # Get existing/upgraded hpxmls
+        if cost_mult_type.include?('*') && existing.nil? && upgraded.nil? # incremental cost multiplier
+          existing_path = File.expand_path('../existing.xml')
+          if File.exist?(existing_path)
+            existing = HPXML.new(hpxml_path: existing_path)
+          end
+          upgraded_path = File.expand_path('../upgraded.xml')
+          if File.exist?(upgraded_path)
+            upgraded = HPXML.new(hpxml_path: upgraded_path)
+          end
+        end
+
         cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
         total_cost = cost_value * cost_mult
         next if total_cost == 0
@@ -169,6 +162,17 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     register_value(runner, upgrade_cost_name, upgrade_cost)
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
+    # Report cost multipliers
+    cost_multiplier_choices.each do |cost_mult_type|
+      next if cost_mult_type.empty?
+      next if cost_mult_type.include?('Fixed')
+
+      cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
+      cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
+      cost_mult = cost_mult.round(2)
+      register_value(runner, cost_mult_type_str, cost_mult)
+    end
+
     return true
   end
 
@@ -184,6 +188,21 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_foundation_wall_area_exterior_ft_2']
     elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
       cost_mult += hpxml['enclosure_floor_area_conditioned_ft_2']
+    elsif cost_mult_type == 'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)'
+      if !upgraded.nil?
+        air_leakage_value = { existing => [], upgraded => [] }
+        [existing, upgraded].each do |hpxml_obj|
+          hpxml_obj.air_infiltration_measurements.each do |air_infiltration_measurement|
+            air_leakage_value[hpxml_obj] << air_infiltration_measurement.air_leakage unless air_infiltration_measurement.air_leakage.nil?
+          end
+        end
+        fail 'Found multiple air infiltration measurement values.' if air_leakage_value[existing].uniq.size > 1 || air_leakage_value[upgraded].uniq.size > 1
+
+        if !air_leakage_value[existing].empty? && !air_leakage_value[upgraded].empty?
+          air_leakage_value_reduction = air_leakage_value[existing][0] - air_leakage_value[upgraded][0]
+          cost_mult += air_leakage_value_reduction * hpxml['enclosure_floor_area_conditioned_ft_2']
+        end
+      end
     elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
       cost_mult += hpxml['enclosure_floor_area_lighting_ft_2']
     elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
@@ -220,13 +239,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['systems_water_heater_tank_volume_gal']
     elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
       cost_mult += hpxml['systems_mechanical_ventilation_flow_rate_cfm']
-    elsif cost_mult_type == 'Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)'
-      if !upgraded.nil?
-        existing_air_leakage_value = existing.air_infiltration_measurements[0].air_leakage
-        upgraded_air_leakage_value = upgraded.air_infiltration_measurements[0].air_leakage
-        air_leakage_value_reduction = existing_air_leakage_value - upgraded_air_leakage_value
-        cost_mult += air_leakage_value_reduction * hpxml['enclosure_floor_area_conditioned_ft_2']
-      end
     end
     return cost_mult
   end # end get_cost_multiplier
