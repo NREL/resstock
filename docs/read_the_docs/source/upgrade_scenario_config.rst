@@ -65,6 +65,7 @@ The cost above is multiplied by this value, which is a function of the building.
    - Wall Area, Above-Grade, Exterior (ft^2)
    - Wall Area, Below-Grade (ft^2)
    - Floor Area, Conditioned (ft^2)
+   - Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)
    - Floor Area, Lighting (ft^2)
    - Floor Area, Attic (ft^2)
    - Roof Area (ft^2)
@@ -79,7 +80,6 @@ The cost above is multiplied by this value, which is a function of the building.
    - Size, Heat Pump Backup Primary (kBtu/h)
    - Size, Water Heater (gal)
    - Flow Rate, Mechanical Ventilation (cfm)
-   - Infiltration Reduction * Floor Area, Conditioned (Delta ACH50 * ft^2)
 
 Package Apply Logic
 ===================
