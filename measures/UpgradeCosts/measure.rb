@@ -125,6 +125,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     # Obtain cost multiplier values and calculate upgrade costs
     upgrade_cost = 0.0
     option_cost_pairs.keys.each do |option_num|
+      next if option_cost_pairs[option_num].empty?
+
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
         cost_mult = get_cost_multiplier(cost_mult_type, hpxml)
@@ -138,9 +140,9 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
       # Save option cost/name/lifetime to results.csv
       name = option_names[option_num]
-      option_name_name = 'option_%02d_name' % option_num
-      register_value(runner, option_name_name, name)
-      runner.registerInfo("Registering #{name} for #{option_name_name}.")
+      option_name = 'option_%02d_name' % option_num
+      register_value(runner, option_name, name)
+      runner.registerInfo("Registering #{name} for #{option_name}.")
       next unless option_cost != 0
 
       option_cost = option_cost.round(2)
