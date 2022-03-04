@@ -86,7 +86,7 @@ class MoreCompare(BaseCompare):
     # This function uses a column mapping csv (specified with the -m argument) with columns "map_from" and "map_to"
     # If a "map_from" column is found in either the base or feature results, the column will be updated to the "map_to" value
     # Any columns that do not appear in both base and feature after the mapping will be dropped
-    # An entry in the column mapping csv may have multiple column headers separtated by a coma, in which case the columns will be summed and first entry will be used as the column header
+    # An entry in the column mapping csv may have multiple column headers separated by a comma, in which case the columns will be summed and first entry will be used as the column header
 
     ## Characteristics
     # This is optional since you aren't necessarily going to visualize by characteristics
@@ -280,7 +280,7 @@ if __name__ == '__main__':
   parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
   parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
   parser.add_argument('-dc', '--display_column', choices=display_columns, help='How to organize the subplots.')
-  parser.add_argument('-m', '--map_file', help='Column mapping csv path')
+  parser.add_argument('-m', '--map_file', help='Column mapping csv path.')
 
   args = parser.parse_args()
   print(args)
