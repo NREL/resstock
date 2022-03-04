@@ -188,6 +188,21 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_foundation_wall_area_exterior_ft_2']
     elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
       cost_mult += hpxml['enclosure_floor_area_conditioned_ft_2']
+    elsif cost_mult_type == 'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)'
+      if !upgraded.nil?
+        air_leakage_value = { existing => [], upgraded => [] }
+        [existing, upgraded].each do |hpxml_obj|
+          hpxml_obj.air_infiltration_measurements.each do |air_infiltration_measurement|
+            air_leakage_value[hpxml_obj] << air_infiltration_measurement.air_leakage unless air_infiltration_measurement.air_leakage.nil?
+          end
+        end
+        fail 'Found multiple air infiltration measurement values.' if air_leakage_value[existing].uniq.size > 1 || air_leakage_value[upgraded].uniq.size > 1
+
+        if !air_leakage_value[existing].empty? && !air_leakage_value[upgraded].empty?
+          air_leakage_value_reduction = air_leakage_value[existing][0] - air_leakage_value[upgraded][0]
+          cost_mult += air_leakage_value_reduction * hpxml['enclosure_floor_area_conditioned_ft_2']
+        end
+      end
     elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
       cost_mult += hpxml['enclosure_floor_area_lighting_ft_2']
     elsif cost_mult_type == 'Floor Area, Attic (ft^2)'

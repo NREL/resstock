@@ -161,6 +161,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('air_leakage_value_reduction', false)
+    arg.setDisplayName('Air Leakage: Value Reduction')
+    arg.setDescription('Reduction (%) on the air exchange rate value.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
     arg.setDisplayName('Plug Loads: Other Usage Multiplier 2')
     arg.setDescription('Additional multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.')
@@ -679,6 +684,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
       # Apply adjustment to infiltration value
       args['air_leakage_value'] *= exposed_wall_area_ratio
+
+      if args['air_leakage_value_reduction'].is_initialized
+        args['air_leakage_value'] *= (1.0 - args['air_leakage_value_reduction'].get / 100.0)
+      end
 
       if horiz_location == 'Left'
         args['geometry_unit_right_wall_is_adiabatic'] = true
