@@ -76,25 +76,6 @@ def rename_ts_col(col):
   col = 'report_simulation_output.{}'.format(col)
   return col
 
-def convert_units(df):
-  for col in df.columns:
-    old_units = col.split('_')[-1]
-    if old_units == 'kwh':
-      df[col] *= 3412.14/1000000  # to mbtu
-      df[col] = df[col].round(2)
-      new_units = 'm_btu'
-    elif old_units == 'kbtu':
-      df[col] /= 1000  # to mbtu
-      df[col] = df[col].round(2)
-      new_units = 'm_btu'
-    elif old_units == 'lb':
-      # no op
-      new_units = 'lb'
-    else:
-      sys.exit("Units '{}' not recognized.".format(old_units))
-    df = df.rename(columns={col: col.replace(old_units, new_units)})
-  return df
-
 outdir = 'baseline/timeseries'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
@@ -140,7 +121,6 @@ df_testing['PROJECT'] = 'project_testing'
 
 results_output = pd.concat([df_national, df_testing]).fillna(0)
 results_output = results_output.set_index('PROJECT')
-results_output = convert_units(results_output)
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
@@ -156,7 +136,6 @@ if not os.path.exists(outdir):
   os.makedirs(outdir)
 
 frames = []
-upgrades = {}
 
 national_num_scenarios = sum([len(files) for r, d, files in os.walk('project_national/national_upgrades/results_csvs')])
 testing_num_scenarios = sum([len(files) for r, d, files in os.walk('project_testing/testing_upgrades/results_csvs')])
@@ -168,14 +147,14 @@ for i in range(1, national_num_scenarios):
   df_testing = pd.read_csv('project_testing/testing_upgrades/results_csvs/results_up{}.csv'.format('%02d' % i))
 
   assert df_national['apply_upgrade.upgrade_name'][0] == df_testing['apply_upgrade.upgrade_name'][0]
-  upgrades[i] = df_national['apply_upgrade.upgrade_name'][0]
+  upgrade_name = df_national['apply_upgrade.upgrade_name'][0]
 
-  df_national['building_id'] = 'project_national-{}.osw'.format(upgrades[i])
+  df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}-{}.osw'.format(upgrade_name, '%04d' % x))
   df_national.insert(1, 'color_index', 1)
 
   frames.append(df_national)
   
-  df_testing['building_id'] = 'project_testing-{}.osw'.format(upgrades[i])
+  df_testing['building_id'] = df_testing['building_id'].apply(lambda x: 'project_testing-{}-{}.osw'.format(upgrade_name, '%04d' % x))
   df_testing.insert(1, 'color_index', 0)
 
   frames.append(df_testing)
@@ -252,6 +231,5 @@ df_testing['PROJECT'] = 'project_testing'
 
 results_output = pd.concat([df_national, df_testing]).fillna(0)
 results_output = results_output.set_index('PROJECT')
-results_output = convert_units(results_output)
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
