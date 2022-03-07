@@ -441,6 +441,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       runner.haltWorkflow('Invalid')
       return true
     end
+
+    return false
   end
 
   def get_system_upgrades(hpxml, system_upgrades, args_hash)
