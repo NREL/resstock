@@ -284,6 +284,10 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         end
       end
 
+      if halt_workflow(runner, measures)
+        return false
+      end
+
       measures['ResStockArguments'] = [{}] if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
 
       # Add measure arguments from existing building if needed
@@ -318,9 +322,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Register the upgrade name
     register_value(runner, 'upgrade_name', upgrade_name)
 
-    if measures.size == 0
-      # Upgrade not applied; don't re-run existing home simulation
-      runner.haltWorkflow('Invalid')
+    if halt_workflow(runner, measures)
       return false
     end
 
@@ -431,6 +433,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     return true
+  end
+
+  def halt_workflow(runner, measures)
+    if measures.size == 0
+      # Upgrade not applied; don't re-run existing home simulation
+      runner.haltWorkflow('Invalid')
+      return true
+    end
   end
 
   def get_system_upgrades(hpxml, system_upgrades, args_hash)

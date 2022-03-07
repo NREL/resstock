@@ -117,8 +117,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     if not has_costs
-      register_value(runner, upgrade_cost_name, '')
-      runner.registerInfo("Registering (blank) for #{upgrade_cost_name}.")
+      register_value(runner, upgrade_cost_name, 0.0)
+      runner.registerInfo("Registering 0.0 for #{upgrade_cost_name}.")
       return true
     end
 
