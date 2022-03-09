@@ -117,14 +117,16 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     if not has_costs
-      register_value(runner, upgrade_cost_name, '')
-      runner.registerInfo("Registering (blank) for #{upgrade_cost_name}.")
+      register_value(runner, upgrade_cost_name, 0.0)
+      runner.registerInfo("Registering 0.0 for #{upgrade_cost_name}.")
       return true
     end
 
     # Obtain cost multiplier values and calculate upgrade costs
     upgrade_cost = 0.0
     option_cost_pairs.keys.each do |option_num|
+      next if option_cost_pairs[option_num].empty?
+
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
         cost_mult = get_cost_multiplier(cost_mult_type, hpxml)
@@ -137,17 +139,16 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       upgrade_cost += option_cost
 
       # Save option cost/name/lifetime to results.csv
+      name = option_names[option_num]
+      option_name = 'option_%02d_name' % option_num
+      register_value(runner, option_name, name)
+      runner.registerInfo("Registering #{name} for #{option_name}.")
       next unless option_cost != 0
 
       option_cost = option_cost.round(2)
       option_cost_name = 'option_%02d_cost_usd' % option_num
       register_value(runner, option_cost_name, option_cost)
       runner.registerInfo("Registering #{option_cost} for #{option_cost_name}.")
-
-      name = option_names[option_num]
-      option_name_name = 'option_%02d_name' % option_num
-      register_value(runner, option_name_name, name)
-      runner.registerInfo("Registering #{name} for #{option_name_name}.")
       next unless (not option_lifetimes[option_num].nil?) && (option_lifetimes[option_num] != 0)
 
       lifetime = option_lifetimes[option_num].round(2)

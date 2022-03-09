@@ -454,6 +454,8 @@ class RunOSWs
     old_rows.each do |measure, values|
       rows[measure] = {}
       values.each do |arg, val|
+        next if arg == 'applicable'
+
         rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
       end
     end
