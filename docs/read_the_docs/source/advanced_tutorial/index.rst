@@ -7,7 +7,7 @@ This advanced tutorial describes the process for developing residential measures
 
 At this point in the tutorial, it is assumed that you have checked out a new branch that is up-to-date with the ``develop`` of the `ResStock <https://github.com/NREL/resstock>`_ repository. Optionally, you may have created a new project folder (i.e., copied an existing project folder) and modified the set of tsv files in its ``housing_characteristics`` folder.
 
-If your changes are intended to be merged into the develop branch of the `ResStock <https://github.com/NREL/resstock>`_ repository, a pull request review is required.
+If your changes are intended to be merged into the ``develop`` branch of the `ResStock <https://github.com/NREL/resstock>`_ repository, a pull request review is required.
 
 .. toctree::
 
