@@ -1,11 +1,13 @@
 ## ResStock v2.6.0 (pending)
 
 Features
+- For the testing project, sample equal distributions of (1) smooth and stochastic schedules (each 50%) and (2) faulted and non-faulted HVAC systems (each 50%) ([#828](https://github.com/NREL/resstock/pull/828))
 - Allow upgrade options to be defined in the lookup using measures other than ResStockArguments ([#839](https://github.com/NREL/resstock/pull/839))
 - Enable rim joists for homes with basements/crawlspaces; assumes a height of 9.25 inches and calculates rim joist assembly R-value from new insulation arguments ([#831](https://github.com/NREL/resstock/pull/831))
 - Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 
 Fixes
+- Clean up option names for natural ventilation and hot water distribution ([#828](https://github.com/NREL/resstock/pull/828))
 - Remove the zero degree switchover temperature for heat pump backup heating ([#833](https://github.com/NREL/resstock/pull/833))
 - For homes with a finished attic or cathedral ceilings, models a conditioned attic instead of a vented attic ([#830](https://github.com/NREL/resstock/pull/830))
 

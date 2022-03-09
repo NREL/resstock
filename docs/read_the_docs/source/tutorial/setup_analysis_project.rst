@@ -6,6 +6,8 @@ At the top level of the ResStock repository you just downloaded, you will see tw
 - ``project_national``
 - ``project_testing``
  
+The following OpenStudio measures are used in the ResStock workflow. Their arguments can be set based on the method that is chosen for running ResStock. See :doc:`run_project` for more information.
+ 
 OpenStudio Measures
 -------------------
 
@@ -30,13 +32,13 @@ This measure creates the baseline scenario. Set the following inputs:
 #. ``Simulation Control: Run Period Calendar Year``: This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.
 #. ``Debug Mode?``: If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.
 #. ``Annual Component Loads?``: If true, output the annual component loads.
-#. ``emissions_scenario_names``: Names of emissions scenarios. If multiple scenarios, use a comma-separated list.
-#. ``emissions_types``: Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.
-#. ``emissions_electricity_folders``: Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. File names must contain GEA region names. Units are kg/MWh.
-#. ``emissions_natural_gas_values``: Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
-#. ``emissions_propane_values``: Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
-#. ``emissions_fuel_oil_values``: Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
-#. ``emissions_wood_values``: Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``Emissions: Scenario Names``: Names of emissions scenarios. If multiple scenarios, use a comma-separated list.
+#. ``Emissions: Types``: Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.
+#. ``Emissions: Electricity Folders``: Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder. If multiple scenarios, use a comma-separated list. File names must contain GEA region names. Units are kg/MWh.
+#. ``Emissions: Natural Gas Values``: Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``Emissions: Propane Values``: Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``Emissions: Fuel Oil Values``: Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``Emissions: Wood Values``: Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
 
 As a meta measure, it incrementally applies the following OpenStudio measures to create residential building models:
 
@@ -51,7 +53,7 @@ All of these measures, with the exception of ``ResStockArguments``, are located 
    
   **Manual Sampling**: To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_national -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
    
-  If a custom ``buildstock.csv`` file is located in a project's ``housing_characteristics`` directory when you run the project, it will automatically be used to generate simulations. If it’s not found, the ``run_sampling.rb`` script will be run automatically on OpenStudio-Server to create one. You’ll also want to make sure that the number of buildings in the sampling csv file matches the max value for the Building ID argument in the Build Existing Model, as that tells OpenStudio how many datapoints to run. (For each datapoint, the measure will then look up its building description from the sampling csv.) 
+  If a custom ``buildstock.csv`` file is located in a project's ``housing_characteristics`` directory when you run the project, it will automatically be used to generate simulations. If it’s not found, the sampling will be run automatically to create one. For each datapoint, the measure will then look up its building description from the sampled csv.
    
   You can use this manual sampling process to downselect which simulations you want to run. For example, you can use the command above to generate a ``buildstock.csv`` for the entire U.S. and then open up this file in Excel and delete all of the rows that you don't want to simulate (e.g., all rows that aren't in New York). Keep in mind that if you do this, you will need to re-enumerate the "Building" column as "1" through the number of rows.
   

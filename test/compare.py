@@ -26,14 +26,14 @@ cols_to_ignore = ['applicable',
                   'upgrade_name']
 
 class MoreCompare(BaseCompare):
-  def __init__(self, base_folder, feature_folder, export_folder, export_file, map_results):
+  def __init__(self, base_folder, feature_folder, export_folder, export_file, map_file):
     self.base_folder = base_folder
     self.feature_folder = feature_folder
     self.export_folder = export_folder
     self.export_file = export_file
 
-    if map_results:
-      self.map_columns(map_results)
+    if map_file:
+      self.map_columns(map_file)
 
 
   def samples(self):
@@ -76,18 +76,17 @@ class MoreCompare(BaseCompare):
 
     return
 
-  def write_map_results(self, map_results, df_to_keep, df_to_map):
-    if map_results == 'base':
-      df_to_keep.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
-      df_to_map.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
-    elif map_results == 'feature':
-      df_to_keep.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
-      df_to_map.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
-      
-    return
 
-  def map_columns(self, map_results):
-    # Read in files
+  def write_results(self, base_df, feature_df):
+    base_df.to_csv(os.path.join(self.base_folder, 'results_output.csv'))
+    feature_df.to_csv(os.path.join(self.feature_folder, 'results_output.csv'))
+      
+
+  def map_columns(self, map_file):
+    # This function uses a column mapping csv (specified with the -m argument) with columns "map_from" and "map_to"
+    # If a "map_from" column is found in either the base or feature results, the column will be updated to the "map_to" value
+    # Any columns that do not appear in both base and feature after the mapping will be dropped
+    # An entry in the column mapping csv may have multiple column headers separated by a comma, in which case the columns will be summed and first entry will be used as the column header
 
     ## Characteristics
     # This is optional since you aren't necessarily going to visualize by characteristics
@@ -103,9 +102,9 @@ class MoreCompare(BaseCompare):
 
     ## Mapping
     cwd = os.path.dirname(os.path.realpath(__file__))
-    map_df = pd.read_csv(os.path.join(cwd, 'column_mapping.csv'), usecols=['restructure_cols','develop_cols'])
+    map_df = pd.read_csv(map_file, usecols=['map_from','map_to'])
     map_df = map_df.dropna(axis=0)
-    map_dict = {k:v for k,v in zip(map_df['develop_cols'], map_df['restructure_cols'])}
+    map_dict = {k:v for k,v in zip(map_df['map_from'], map_df['map_to'])}
 
     # Set new base and feature folders
     self.base_folder = os.path.join(self.base_folder, 'map')
@@ -114,14 +113,6 @@ class MoreCompare(BaseCompare):
       os.makedirs(self.base_folder)
     if not os.path.exists(self.feature_folder):
       os.makedirs(self.feature_folder)
-
-    # Map results_output columns
-    if map_results == 'base':
-      df_to_keep = base_df
-      df_to_map = feature_df
-    elif map_results == 'feature':
-      df_to_keep = feature_df
-      df_to_map = base_df
 
     ## Characteristics
     if has_characteristics:
@@ -140,54 +131,68 @@ class MoreCompare(BaseCompare):
       feature_df_char.to_csv(os.path.join(self.feature_folder, 'results_characteristics.csv'))
 
     # Skip mapping if not needed
-    if set(df_to_map.columns).issubset(set(df_to_keep.columns)) or set(df_to_keep).issubset(set(df_to_map.columns)):
-      self.write_map_results(map_results, df_to_keep, df_to_map)
+    if set(base_df.columns).issubset(set(feature_df.columns)) or set(feature_df).issubset(set(base_df.columns)):
+      self.write_results(base_df, feature_df)
       return
 
-    # Aggregate variables w/ multiple cols
-    for cols, map_to in map_dict.items():
-      map_to_s = map_to.split(',')
-      if len(map_to_s) > 1: # Sum columns and use first parameter as col name
-        map_to = map_to_s[0]
-        try:
-          df_to_keep[map_to] = df_to_keep[map_to_s].sum(axis=1)
-        except:
-          for col in map_to_s:
-            if col in df_to_keep.columns:
-              df_to_keep[map_to] = df_to_keep[col]
-        map_dict[cols] = map_to
+    # Sum columns with more than 1 column header in mapping csv
+    results_dfs = {'base': base_df, 'feature': feature_df}
+    map_dict_copy = map_dict.copy()
+    for key, df in results_dfs.items():
+      column_headers = df.columns
 
-      cols_s = cols.split(',')
-      if len(cols_s)>1:
-        cols_s = [col.split('.')[1] for col in cols_s]
-        try:
-          df_to_map[cols] = df_to_map[cols_s].sum(axis=1)
-        except:
-          for col in cols_s:
-            if col in df_to_map.columns:
-              df_to_map[map_to] = df_to_map[col]
+      for map_from, map_to in map_dict.items():
+        # Sum 'map to' columns and use first parameter as col name
+        map_to_s = map_to.split(',')
+        if len(map_to_s) > 1: 
+          map_to = map_to_s[0]
+          if map_to in column_headers:
+            # sum columns
+            df[map_to] = df[map_to_s].sum(axis=1)
+            # update mapping
+            map_dict_copy[map_from] = map_to 
+            # drop summed columns
+            df.drop(map_to_s[1:], axis='columns', inplace=True)
+
+        # Sum 'map from' columns and use first parameter as col name
+        map_from_s = map_from.split(',')
+        if len(map_from_s)>1:
+          map_from = map_from_s[0]
+          if map_from in column_headers:
+            # sum columns
+            df[map_from] = df[map_from_s].sum(axis=1)
+            # update mapping
+            map_dict_copy[map_from] = map_to
+            # drop summed columns
+            df.drop(map_from_s[1:], axis='columns', inplace=True)
+
+      results_dfs[key] = df
+
+    base_df = results_dfs['base']
+    feature_df = results_dfs['feature']
 
     # Convert units
-    self.convert_units(df_to_map)
-    self.convert_units(df_to_keep)
+    self.convert_units(base_df)
+    self.convert_units(feature_df)
    
     # Map column headers
-    map_dict = {k.split('.')[1] if ',' not in k else k:v for k,v in map_dict.items()}
-    df_to_map.rename(columns=map_dict, inplace=True)
+    map_dict = map_dict_copy
+    base_df.rename(columns=map_dict, inplace=True)
+    feature_df.rename(columns=map_dict, inplace=True)
 
-    # Filter out aggregated and non-overlapping columns   
-    mapped_cols = list(set(map_dict.values()).intersection(list(df_to_map.columns)))
-    df_to_map = df_to_map[mapped_cols]
-    missing_cols = list(set(df_to_keep.columns) - set(df_to_map.columns))
-    df_to_map[missing_cols] = np.nan
+    # Output only columns in common
+    common_cols = base_df.columns.intersection(feature_df.columns)
+    base_df = base_df[common_cols]
+    feature_df = feature_df[common_cols]
 
-    # Re-order columns for comparison
-    df_to_keep = df_to_keep.reindex(sorted(df_to_keep.columns), axis=1)
-    df_to_map = df_to_map.reindex(sorted(df_to_map.columns), axis=1)
+    base_df = base_df.reindex(sorted(base_df.columns), axis=1)
+    feature_df = feature_df.reindex(sorted(feature_df.columns), axis=1)
 
     # Store new mapped csvs
-    self.write_map_results(map_results, df_to_keep, df_to_map)
+    self.write_results(base_df, feature_df)
+    print("Wrote mapped results_output.csv for base and feature results")
     return
+
 
   def timeseries(self):
     files = []
@@ -275,14 +280,15 @@ if __name__ == '__main__':
   parser.add_argument('-ac', '--aggregate_column', choices=aggregate_columns, help='On which column to aggregate data.')
   parser.add_argument('-af', '--aggregate_function', choices=aggregate_functions, help='Function to use for aggregating data.')
   parser.add_argument('-dc', '--display_column', choices=display_columns, help='How to organize the subplots.')
-  parser.add_argument('-m', '--map_results', choices=map_result_choices, help='Map to columns of base or feature.')
+  parser.add_argument('-m', '--map_file', help='Column mapping csv path.')
+
   args = parser.parse_args()
   print(args)
 
   if not os.path.exists(args.export_folder):
     os.makedirs(args.export_folder)
     
-  compare = MoreCompare(args.base_folder, args.feature_folder, args.export_folder, args.export_file, args.map_results)
+  compare = MoreCompare(args.base_folder, args.feature_folder, args.export_folder, args.export_file, args.map_file)
 
   if args.actions == None:
     args.actions = [] 
