@@ -140,6 +140,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(10.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_insulation_r', true)
+    arg.setDisplayName('Ceiling: Insulation Nominal R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Nominal R-value for the ceiling (attic floor).')
+    arg.setDefaultValue(0)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_exterior_r', true)
     arg.setDisplayName('Rim Joist: Continuous Exterior Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
@@ -763,7 +770,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 
-      runner.registerValue(arg_name, arg_value)
+      register_value(runner, arg_name, arg_value)
     end
 
     return true

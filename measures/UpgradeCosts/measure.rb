@@ -70,11 +70,10 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    # Retrieve values from ReportHPXMLOutput
-    hpxml = get_values_from_runner_past_results(runner, 'report_hpxml_output')
-
-    # Retrieve values from ApplyUpgrade
-    values = get_values_from_runner_past_results(runner, 'apply_upgrade')
+    # Retrieve values from BuildExistingModel, ApplyUpgrade, ReportHPXMLOutput
+    values = { 'build_existing_model' => get_values_from_runner_past_results(runner, 'build_existing_model'),
+               'apply_upgrade' => get_values_from_runner_past_results(runner, 'apply_upgrade'),
+               'report_hpxml_output' => get_values_from_runner_past_results(runner, 'report_hpxml_output') }
 
     # UPGRADE COSTS
     upgrade_cost_name = 'upgrade_cost_usd'
@@ -89,17 +88,17 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       option_names[option_num] = nil
       option_lifetimes[option_num] = nil
       for cost_num in 1..num_costs_per_option # Sync with ApplyUpgrade measure
-        cost_value = values["option_%02d_cost_#{cost_num}_value_to_apply" % option_num]
+        cost_value = values['apply_upgrade']["option_%02d_cost_#{cost_num}_value_to_apply" % option_num]
         next if cost_value.nil?
 
-        cost_mult_type = values["option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num]
+        cost_mult_type = values['apply_upgrade']["option_%02d_cost_#{cost_num}_multiplier_to_apply" % option_num]
         next if cost_mult_type.nil?
 
         has_costs = true
         option_cost_pairs[option_num] << [cost_value.to_f, cost_mult_type]
       end
-      name = values['option_%02d_name_applied' % option_num]
-      lifetime = values['option_%02d_lifetime_to_apply' % option_num]
+      name = values['apply_upgrade']['option_%02d_name_applied' % option_num]
+      lifetime = values['apply_upgrade']['option_%02d_lifetime_to_apply' % option_num]
 
       option_names[option_num] = name
       option_lifetimes[option_num] = lifetime.to_f if !lifetime.nil?
@@ -132,7 +131,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
           end
         end
 
-        cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
+        cost_mult = get_cost_multiplier(cost_mult_type, values, existing, upgraded)
         total_cost = cost_value * cost_mult
         next if total_cost == 0
 
@@ -169,7 +168,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       next if cost_mult_type.include?('Fixed')
 
       cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
+      cost_mult = get_cost_multiplier(cost_mult_type, values, existing, upgraded)
       cost_mult = cost_mult.round(2)
       register_value(runner, cost_mult_type_str, cost_mult)
     end
@@ -177,7 +176,9 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     return true
   end
 
-  def get_cost_multiplier(cost_mult_type, hpxml, existing, upgraded)
+  def get_cost_multiplier(cost_mult_type, values, existing, upgraded)
+    hpxml = values['report_hpxml_output']
+
     cost_mult = 0.0
     if cost_mult_type == 'Fixed (1)'
       cost_mult += 1.0
@@ -225,7 +226,9 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         fail 'Found multiple ceiling assembly R-values.' if ceiling_assembly_r[existing].uniq.size > 1 || ceiling_assembly_r[upgraded].uniq.size > 1
 
         if !ceiling_assembly_r[existing].empty? && !ceiling_assembly_r[upgraded].empty?
-          ceiling_assembly_r_increase = ceiling_assembly_r[upgraded][0] - ceiling_assembly_r[existing][0]
+          ceiling_insulation_r_upgraded = values['apply_upgrade']['resstock_arguments_ceiling_insulation_r']
+          ceiling_insulation_r_existing = values['build_existing_model']['resstock_arguments_ceiling_insulation_r']
+          ceiling_assembly_r_increase = ceiling_insulation_r_upgraded - ceiling_insulation_r_existing
           cost_mult += ceiling_assembly_r_increase * hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
         end
       end

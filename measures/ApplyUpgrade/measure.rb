@@ -315,6 +315,10 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       # Get the absolute paths relative to this meta measure in the run directory
       if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         return false
+      else
+        measures['ResStockArguments'][0].each do |arg_name, arg_value|
+          register_value(runner, "resstock_arguments_#{arg_name}", arg_value)
+        end
       end
 
     end # apply_package_upgrade

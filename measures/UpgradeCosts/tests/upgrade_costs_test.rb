@@ -16,7 +16,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 2250.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (2250.0 * 2),
       'Floor Area, Attic (ft^2)' => 2250.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 2250.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 2250.0,
       'Floor Area, Lighting (ft^2)' => 2250.0 * 2 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 1338.0 + 101.0 * 2 + 1237.0 + 61.0,
       'Window Area (ft^2)' => 0.12 * (196.0 + 96.0 * 2 + 429.0 + 292.0 + 525.0 - 96.0 * 2),
@@ -43,7 +43,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1000.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1000.0 * 2),
       'Floor Area, Attic (ft^2)' => 1000.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 1000.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 1000.0,
       'Floor Area, Lighting (ft^2)' => 1000.0 * 2 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 640.0 + 101.0 * 2 + 599.0,
       'Window Area (ft^2)' => 0.12 * (106.0 + 96.0 * 2 + 267.0 + 202.0 + 363.0 - 96.0 * 2),
@@ -70,7 +70,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 3000.0,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * 3000.0,
       'Floor Area, Attic (ft^2)' => 3000.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 3000.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 3000.0,
       'Floor Area, Lighting (ft^2)' => 3000.0,
       'Roof Area (ft^2)' => 1677.0 * 2,
       'Window Area (ft^2)' => 0.12 * (327.0 * 2 + 588.0 * 2),
@@ -97,7 +97,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 4500.0,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * 4500.0,
       'Floor Area, Attic (ft^2)' => 4500.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 4500.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 4500.0,
       'Floor Area, Lighting (ft^2)' => 4500.0 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 2596.0 + 101.0 * 2 + 2471.0 + 85.0,
       'Window Area (ft^2)' => 0.12 * (310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0 - 96.0 * 2),
@@ -124,7 +124,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 4500.0,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * 4500.0,
       'Floor Area, Attic (ft^2)' => 4500.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 4500.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 4500.0,
       'Floor Area, Lighting (ft^2)' => 4500.0 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 2596.0 + 101.0 * 2 + 2471.0 + 85.0,
       'Window Area (ft^2)' => 0.12 * (310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0 - 96.0 * 2),
@@ -151,7 +151,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1000.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1000.0 * 2),
       'Floor Area, Attic (ft^2)' => 1000.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 1000.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 1000.0,
       'Floor Area, Lighting (ft^2)' => 1000.0 * 2,
       'Roof Area (ft^2)' => 559.0 * 2,
       'Window Area (ft^2)' => 0.12 * (189.0 * 4 + 339.0 * 4),
@@ -178,7 +178,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1500.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1500.0 * 2),
       'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * (1500.0 + 144.0),
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1500.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
@@ -205,7 +205,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1500.0 * 3,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1500.0 * 3),
       'Floor Area, Attic (ft^2)' => 1548.0 + 144.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * (1548.0 + 144.0),
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1548.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 3 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 865.0 + 101.0 * 2 + 825.0,
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
@@ -232,7 +232,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1500.0 * 3,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1500.0 * 3),
       'Floor Area, Attic (ft^2)' => 1548.0 + 144.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * (1548.0 + 144.0),
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1548.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 3 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 865.0 + 101.0 * 2 + 825.0,
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
@@ -259,7 +259,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1500.0 * 3,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1500.0 * 3),
       'Floor Area, Attic (ft^2)' => 1548.0 + 144.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * (1548.0 + 144.0),
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1548.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 3 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 865.0 + 101.0 * 2 + 825.0,
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
@@ -286,7 +286,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1000.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1000.0 * 2),
       'Floor Area, Attic (ft^2)' => 1000.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 1000.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 1000.0,
       'Floor Area, Lighting (ft^2)' => 1000.0 * 2,
       'Roof Area (ft^2)' => 559.0 * 2,
       'Window Area (ft^2)' => 0.12 * (189.0 * 4 + 339.0 * 4),
@@ -313,7 +313,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1500.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1500.0 * 2),
       'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * (1500.0 + 144.0),
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1500.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
@@ -340,7 +340,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1500.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1500.0 * 2),
       'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * (1500.0 + 144.0),
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1500.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
@@ -367,7 +367,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 1500.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (1500.0 * 2),
       'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * (1500.0 + 144.0),
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1500.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
       'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
@@ -394,7 +394,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 250.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (250.0 * 2),
       'Floor Area, Attic (ft^2)' => 250.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 250.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 250.0,
       'Floor Area, Lighting (ft^2)' => 250.0 * 2,
       'Roof Area (ft^2)' => 140.0 * 2,
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
@@ -421,7 +421,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 250.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (250.0 * 2),
       'Floor Area, Attic (ft^2)' => 250.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 250.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 250.0,
       'Floor Area, Lighting (ft^2)' => 250.0 * 2,
       'Roof Area (ft^2)' => 140.0 * 2,
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
@@ -448,7 +448,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 250.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (250.0 * 2),
       'Floor Area, Attic (ft^2)' => 250.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 250.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 250.0,
       'Floor Area, Lighting (ft^2)' => 250.0 * 2,
       'Roof Area (ft^2)' => 140.0 * 2,
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
@@ -475,7 +475,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 167.0 + 167.0 * 2,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * (167.0 + 167.0 * 2),
       'Floor Area, Attic (ft^2)' => 167.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 167.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 167.0,
       'Floor Area, Lighting (ft^2)' => 167.0 + 167.0 * 2,
       'Roof Area (ft^2)' => 93.0 * 2,
       'Window Area (ft^2)' => 0.18 * (139.0 * 2 + 77.0 * 4),
@@ -502,7 +502,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 500.0,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * 500.0,
       'Floor Area, Attic (ft^2)' => 0.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 0.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 0.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
@@ -529,7 +529,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 500.0,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * 500.0,
       'Floor Area, Attic (ft^2)' => 0.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 0.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 0.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
@@ -556,7 +556,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 500.0,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * 500.0,
       'Floor Area, Attic (ft^2)' => 0.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 0.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 0.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
@@ -583,7 +583,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Conditioned (ft^2)' => 500.0,
       'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)' => (3 - 2.25) * 500.0,
       'Floor Area, Attic (ft^2)' => 0.0,
-      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (61.6 - 39.3) * 0.0,
+      'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)' => (60.0 - 38.0) * 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 500.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
@@ -626,8 +626,9 @@ class UpgradeCostsTest < MiniTest::Test
     assert(success)
   end
 
-  def _upgrade_osw(osw)
-    upgrades = { 'ceiling_assembly_r' => 61.6, 'air_leakage_value' => 2.25 }
+  def _upgrade_osw(osw, values)
+    upgrades = { 'ceiling_assembly_r' => 61.6,
+                 'air_leakage_value' => 2.25 }
 
     osw_hash = JSON.parse(File.read(osw))
     osw_hash['steps'].each do |step|
@@ -637,6 +638,10 @@ class UpgradeCostsTest < MiniTest::Test
       end
     end
     File.open(osw, 'w') { |json| json.write(JSON.pretty_generate(osw_hash)) }
+
+    # ResStockArguments
+    values['build_existing_model']['resstock_arguments_ceiling_insulation_r'] = 38
+    values['apply_upgrade']['resstock_arguments_ceiling_insulation_r'] = 60
   end
 
   def _test_cost_multipliers(osw_file, cost_multipliers)
@@ -644,6 +649,10 @@ class UpgradeCostsTest < MiniTest::Test
 
     puts "\nTesting #{osw_file}..."
     this_dir = File.dirname(__FILE__)
+
+    values = { 'build_existing_model' => {},
+               'apply_upgrade' => {},
+               'report_hpxml_output' => {} }
 
     # Existing
     osw = File.absolute_path("#{this_dir}/#{osw_file}")
@@ -659,7 +668,7 @@ class UpgradeCostsTest < MiniTest::Test
     upgrade_osw_file = "Upgrade_#{osw_file}"
     upgrade_osw = File.absolute_path("#{this_dir}/#{upgrade_osw_file}")
     FileUtils.cp(osw, upgrade_osw)
-    _upgrade_osw(upgrade_osw)
+    _upgrade_osw(upgrade_osw, values)
     _run_osw(upgrade_osw)
 
     upgraded_path = File.join(this_dir, upgrade_osw_file.gsub('osw', 'xml'))
@@ -671,7 +680,7 @@ class UpgradeCostsTest < MiniTest::Test
 
     # Check for correct cost multiplier values
     hpxml_output_report.assign_primary_and_secondary(hpxml_in, cost_multipliers)
-    hpxml = {}
+    hpxml = values['report_hpxml_output']
     cost_multipliers.each do |cost_mult_type, mult_value|
       if cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
         hpxml['enclosure_wall_area_thermal_boundary_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Wall Area Thermal Boundary')
@@ -727,7 +736,7 @@ class UpgradeCostsTest < MiniTest::Test
     cost_multipliers.each do |mult_type, mult_value|
       next if mult_type.include?('Systems:')
 
-      value = upgrade_costs.get_cost_multiplier(mult_type, hpxml, existing, upgraded)
+      value = upgrade_costs.get_cost_multiplier(mult_type, values, existing, upgraded)
       assert(!value.nil?)
       if mult_type.include?('ft^2') || mult_type.include?('gal')
         assert_in_epsilon(mult_value, value, 0.005)
