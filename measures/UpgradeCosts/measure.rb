@@ -226,8 +226,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         fail 'Found multiple ceiling assembly R-values.' if ceiling_assembly_r[existing].uniq.size > 1 || ceiling_assembly_r[upgraded].uniq.size > 1
 
         if !ceiling_assembly_r[existing].empty? && !ceiling_assembly_r[upgraded].empty?
-          ceiling_insulation_r_upgraded = values['apply_upgrade']['resstock_arguments_ceiling_insulation_r']
-          ceiling_insulation_r_existing = values['build_existing_model']['resstock_arguments_ceiling_insulation_r']
+          ceiling_insulation_r_upgraded = values['apply_upgrade']['resstock_arguments_ceiling_insulation_r'].to_f
+          ceiling_insulation_r_existing = values['build_existing_model']['resstock_arguments_ceiling_insulation_r'].to_f
           ceiling_assembly_r_increase = ceiling_insulation_r_upgraded - ceiling_insulation_r_existing
           cost_mult += ceiling_assembly_r_increase * hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
         end
