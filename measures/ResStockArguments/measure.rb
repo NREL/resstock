@@ -168,7 +168,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('air_leakage_value_reduction', false)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('air_leakage_percent_reduction', false)
     arg.setDisplayName('Air Leakage: Value Reduction')
     arg.setDescription('Reduction (%) on the air exchange rate value.')
     args << arg
@@ -692,8 +692,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       # Apply adjustment to infiltration value
       args['air_leakage_value'] *= exposed_wall_area_ratio
 
-      if args['air_leakage_value_reduction'].is_initialized
-        args['air_leakage_value'] *= (1.0 - args['air_leakage_value_reduction'].get / 100.0)
+      if args['air_leakage_percent_reduction'].is_initialized
+        args['air_leakage_value'] *= (1.0 - args['air_leakage_percent_reduction'].get / 100.0)
       end
 
       if horiz_location == 'Left'

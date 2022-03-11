@@ -662,7 +662,7 @@ class UpgradeCostsTest < MiniTest::Test
     hpxml_in = HPXML.new(hpxml_path: hpxml_path)
 
     existing_path = File.join(this_dir, osw_file.gsub('osw', 'xml'))
-    existing = HPXML.new(hpxml_path: existing_path)
+    existing_hpxml = HPXML.new(hpxml_path: existing_path)
 
     # Upgraded
     upgrade_osw_file = "Upgrade_#{osw_file}"
@@ -672,7 +672,7 @@ class UpgradeCostsTest < MiniTest::Test
     _run_osw(upgrade_osw)
 
     upgraded_path = File.join(this_dir, upgrade_osw_file.gsub('osw', 'xml'))
-    upgraded = HPXML.new(hpxml_path: upgraded_path)
+    upgraded_hpxml = HPXML.new(hpxml_path: upgraded_path)
 
     # Create instance of the measures
     hpxml_output_report = ReportHPXMLOutput.new
@@ -736,7 +736,7 @@ class UpgradeCostsTest < MiniTest::Test
     cost_multipliers.each do |mult_type, mult_value|
       next if mult_type.include?('Systems:')
 
-      value = upgrade_costs.get_cost_multiplier(mult_type, values, existing, upgraded)
+      value = upgrade_costs.get_cost_multiplier(mult_type, values, existing_hpxml, upgraded_hpxml)
       assert(!value.nil?)
       if mult_type.include?('ft^2') || mult_type.include?('gal')
         assert_in_epsilon(mult_value, value, 0.005)
