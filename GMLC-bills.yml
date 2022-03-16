@@ -5,7 +5,8 @@ output_directory: national_upgrades
 weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
-sampler: residential_quota_downselect
+sampler: 
+  type: residential_quota_downselect
   args:
     n_datapoints: 10
     logic:
@@ -223,7 +224,7 @@ upgrades:
       - option: Lighting|100% LED
         costs:
           - value: 0
-            multiplier: Fixed(1)
+            multiplier: Fixed (1)
         lifetime: 999
 
   # - upgrade_name: EE Thermostat Controls
