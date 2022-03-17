@@ -76,6 +76,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
           arguments['include_timeseries_total_loads'] = true if !arguments.keys.include?('include_timeseries_total_loads')
           arguments['add_timeseries_dst_column'] = true if !arguments.keys.include?('add_timeseries_dst_column')
           arguments['add_timeseries_utc_column'] = true if !arguments.keys.include?('add_timeseries_utc_column')
+
+          workflow_args[measure_dir_name]['user_output_variables'] = arguments['user_output_variables'].collect { |o| o['name'] }.join(',') if arguments.keys.include?('user_output_variables')
         elsif measure_dir_name == 'server_directory_cleanup'
           arguments['retain_in_idf'] = true if !arguments.keys.include?('retain_in_idf')
           arguments['retain_schedules_csv'] = true if !arguments.keys.include?('retain_schedules_csv')
