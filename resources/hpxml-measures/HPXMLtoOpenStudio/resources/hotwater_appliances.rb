@@ -410,6 +410,8 @@ class HotWaterAndAppliances
     if not @runner.nil?
       @runner.registerWarning('Negative energy use calculated for cooking range/oven; this may indicate incorrect ENERGY GUIDE label inputs.') if (annual_kwh < 0) || (annual_therm < 0)
     end
+    annual_kwh = 0.0 if annual_kwh < 0
+    annual_therm = 0.0 if annual_therm < 0
 
     return annual_kwh, annual_therm, frac_sens, frac_lat
   end
@@ -473,6 +475,8 @@ class HotWaterAndAppliances
       @runner.registerWarning('Negative energy use calculated for dishwasher; this may indicate incorrect ENERGY GUIDE label inputs.') if annual_kwh < 0
       @runner.registerWarning('Negative hot water use calculated for dishwasher; this may indicate incorrect ENERGY GUIDE label inputs.') if gpd < 0
     end
+    annual_kwh = 0.0 if annual_kwh < 0
+    gpd = 0.0 if gpd < 0
 
     return annual_kwh, frac_sens, frac_lat, gpd
   end
@@ -574,6 +578,8 @@ class HotWaterAndAppliances
     if not @runner.nil?
       @runner.registerWarning('Negative energy use calculated for clothes dryer; this may indicate incorrect ENERGY GUIDE label inputs.') if (annual_kwh < 0) || (annual_therm < 0)
     end
+    annual_kwh = 0.0 if annual_kwh < 0
+    annual_therm = 0.0 if annual_therm < 0
 
     return annual_kwh, annual_therm, frac_sens, frac_lat
   end
@@ -644,6 +650,8 @@ class HotWaterAndAppliances
       @runner.registerWarning('Negative energy use calculated for clothes washer; this may indicate incorrect ENERGY GUIDE label inputs.') if annual_kwh < 0
       @runner.registerWarning('Negative hot water use calculated for clothes washer; this may indicate incorrect ENERGY GUIDE label inputs.') if gpd < 0
     end
+    annual_kwh = 0.0 if annual_kwh < 0
+    gpd = 0.0 if gpd < 0
 
     return annual_kwh, frac_sens, frac_lat, gpd
   end
@@ -671,6 +679,7 @@ class HotWaterAndAppliances
     if not @runner.nil?
       @runner.registerWarning('Negative energy use calculated for refrigerator; this may indicate incorrect ENERGY GUIDE label inputs.') if annual_kwh < 0
     end
+    annual_kwh = 0.0 if annual_kwh < 0
 
     return annual_kwh, frac_sens, frac_lat
   end
@@ -734,7 +743,7 @@ class HotWaterAndAppliances
   private
 
   def self.add_electric_equipment(model, obj_name, space, design_level_w, frac_sens, frac_lat, schedule)
-    return if design_level_w <= 0.0
+    return if design_level_w == 0.0
 
     ee_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     ee = OpenStudio::Model::ElectricEquipment.new(ee_def)
@@ -752,7 +761,7 @@ class HotWaterAndAppliances
   end
 
   def self.add_other_equipment(model, obj_name, space, design_level_w, frac_sens, frac_lat, schedule, fuel_type)
-    return if design_level_w <= 0.0
+    return if design_level_w == 0.0 # Negative values intentinally allowed, e.g. for water sensible
 
     oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
     oe = OpenStudio::Model::OtherEquipment.new(oe_def)
@@ -775,7 +784,7 @@ class HotWaterAndAppliances
   end
 
   def self.add_water_use_equipment(model, obj_name, peak_flow, schedule, water_use_connections, mw_temp_schedule = nil)
-    return if peak_flow <= 0.0
+    return if peak_flow == 0.0
 
     wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
     wu = OpenStudio::Model::WaterUseEquipment.new(wu_def)
