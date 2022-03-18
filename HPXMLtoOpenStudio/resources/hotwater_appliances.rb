@@ -4,6 +4,7 @@ class HotWaterAndAppliances
   def self.apply(model, runner, hpxml, weather, spaces, hot_water_distribution,
                  solar_thermal_system, eri_version, schedules_file, plantloop_map)
 
+    @runner = runner
     cfa = hpxml.building_construction.conditioned_floor_area
     nbeds = hpxml.building_construction.number_of_bedrooms
     ncfl = hpxml.building_construction.number_of_conditioned_floors
@@ -733,7 +734,7 @@ class HotWaterAndAppliances
   private
 
   def self.add_electric_equipment(model, obj_name, space, design_level_w, frac_sens, frac_lat, schedule)
-    return if design_level_w == 0.0
+    return if design_level_w <= 0.0
 
     ee_def = OpenStudio::Model::ElectricEquipmentDefinition.new(model)
     ee = OpenStudio::Model::ElectricEquipment.new(ee_def)
@@ -751,7 +752,7 @@ class HotWaterAndAppliances
   end
 
   def self.add_other_equipment(model, obj_name, space, design_level_w, frac_sens, frac_lat, schedule, fuel_type)
-    return if design_level_w == 0.0
+    return if design_level_w <= 0.0
 
     oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
     oe = OpenStudio::Model::OtherEquipment.new(oe_def)
@@ -774,7 +775,7 @@ class HotWaterAndAppliances
   end
 
   def self.add_water_use_equipment(model, obj_name, peak_flow, schedule, water_use_connections, mw_temp_schedule = nil)
-    return if peak_flow == 0.0
+    return if peak_flow <= 0.0
 
     wu_def = OpenStudio::Model::WaterUseEquipmentDefinition.new(model)
     wu = OpenStudio::Model::WaterUseEquipment.new(wu_def)
@@ -866,14 +867,14 @@ class HotWaterAndAppliances
     # Annual electricity consumption factor for hot water recirculation system pumps
     # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
-      if (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeNone) ||
-         (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTimer)
+      if [HPXML::DHWRecirControlTypeNone,
+          HPXML::DHWRecirControlTypeTimer].include? hot_water_distribution.recirculation_control_type
         dist_pump_annual_kwh += (8.76 * hot_water_distribution.recirculation_pump_power)
-      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTemperature
+      elsif [HPXML::DHWRecirControlTypeTemperature].include? hot_water_distribution.recirculation_control_type
         dist_pump_annual_kwh += (1.46 * hot_water_distribution.recirculation_pump_power)
-      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeSensor
+      elsif [HPXML::DHWRecirControlTypeSensor].include? hot_water_distribution.recirculation_control_type
         dist_pump_annual_kwh += (0.15 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
-      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeManual
+      elsif [HPXML::DHWRecirControlTypeManual].include? hot_water_distribution.recirculation_control_type
         dist_pump_annual_kwh += (0.10 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
       else
         fail "Unexpected hot water distribution system recirculation type: '#{hot_water_distribution.recirculation_control_type}'."
@@ -888,11 +889,12 @@ class HotWaterAndAppliances
     # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.has_shared_recirculation
       n_dweq = hot_water_distribution.shared_recirculation_number_of_units_served
-      if (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeNone) ||
-         (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeTimer)
+      if [HPXML::DHWRecirControlTypeNone,
+          HPXML::DHWRecirControlTypeTimer,
+          HPXML::DHWRecirControlTypeTemperature].include? hot_water_distribution.shared_recirculation_control_type
         op_hrs = 8760.0
-      elsif (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeSensor) ||
-            (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeManual)
+      elsif [HPXML::DHWRecirControlTypeSensor,
+             HPXML::DHWRecirControlTypeManual].include? hot_water_distribution.shared_recirculation_control_type
         op_hrs = 730.0 * fixtures_usage_multiplier
       else
         fail "Unexpected hot water distribution system shared recirculation type: '#{hot_water_distribution.shared_recirculation_control_type}'."
