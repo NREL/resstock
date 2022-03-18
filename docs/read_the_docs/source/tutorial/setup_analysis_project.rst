@@ -48,6 +48,7 @@ As a meta measure, it incrementally applies the following OpenStudio measures to
 #. ``HPXMLtoOpenStudio``
 
 All of these measures, with the exception of ``ResStockArguments``, are located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
+See the `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/>`_ for information on workflow inputs and outputs.
 
 .. note::
    

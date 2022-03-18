@@ -4,7 +4,7 @@ Run the Project
 Run using buildstockbatch
 -------------------------
 
-See the `buildstockbatch documentation <https://nrel.github.io/buildstockbatch>`_ for information on running projects (large-scale).
+See the `BuildStock Batch documentation <https://buildstockbatch.readthedocs.io/en/latest/>`_ for information on running projects (large-scale).
 
 Run using run_analysis.rb
 -------------------------
