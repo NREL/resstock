@@ -225,7 +225,7 @@ class OSModel
     set_defaults_and_globals(runner, output_dir, epw_file, weather, @schedules_file)
     validate_emissions_files()
     @schedules_file.validate_schedules(year: @hpxml.header.sim_calendar_year) if not @schedules_file.nil?
-    Location.apply(model, runner, weather, epw_file, @hpxml)
+    Location.apply(model, weather, epw_file, @hpxml)
     add_simulation_params(model)
 
     # Conditioned space/zone

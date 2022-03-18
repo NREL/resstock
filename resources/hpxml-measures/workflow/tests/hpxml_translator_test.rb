@@ -571,6 +571,9 @@ class HPXMLTest < MiniTest::Test
       if !hpxml.pv_systems.empty? && !hpxml.batteries.empty?
         next if log_line.include? "Due to an OpenStudio bug, the battery's rated power output will not be honored; the simulation will proceed without a maximum charge/discharge limit."
       end
+      if hpxml_path.include? 'base-location-capetown-zaf.xml'
+        next if log_line.include?('OS Message: Minutes field (60) on line 9 of EPW file')
+      end
 
       flunk "Unexpected warning found in run.log: #{log_line}"
     end
