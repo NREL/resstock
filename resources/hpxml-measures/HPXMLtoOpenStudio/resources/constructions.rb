@@ -848,7 +848,7 @@ class Constructions
     return if subsurfaces.empty?
 
     # Define materials
-    door_Rvalue = 1.0 / ufactor - inside_film.rvalue - outside_film.rvalue
+    door_Rvalue = [1.0 / ufactor - inside_film.rvalue - outside_film.rvalue, 0.1].max
     door_thickness = 1.75 # in
     fin_door_mat = Material.new(name: 'door material', thick_in: door_thickness, mat_base: BaseMaterial.Wood, k_in: 1.0 / door_Rvalue * door_thickness)
 
