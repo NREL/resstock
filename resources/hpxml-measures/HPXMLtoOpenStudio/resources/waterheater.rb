@@ -357,7 +357,7 @@ class Waterheater
       # ProgramCallingManagers
       program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
       program_calling_manager.setName("#{combi_sys_id} ProgramManager")
-      program_calling_manager.setCallingPoint('BeginTimestepBeforePredictor')
+      program_calling_manager.setCallingPoint('BeginZoneTimestepAfterInitHeatBalance')
       program_calling_manager.addProgram(combi_ctrl_program)
     end
   end
@@ -1297,7 +1297,8 @@ class Waterheater
       ec_adj_program.addLine("Set dhw_e_cons = #{ec_adj_oncyc_sensor.name} + #{ec_adj_offcyc_sensor.name}")
       ec_adj_program.addLine('Set htg_e_cons = dhw_e_cons')
       ec_adj_program.addLine("If #{ec_adj_sensor_boiler_heating.name} > 0")
-      ec_adj_program.addLine("  Set dhw_frac = (@Abs #{ec_adj_sensor_hx.name}) / #{ec_adj_sensor_boiler_heating.name}")
+      ec_adj_program.addLine("  Set dhw_frac = (@Abs #{ec_adj_sensor_hx.name} / #{ec_adj_sensor_boiler_heating.name})")
+      ec_adj_program.addLine('  Set dhw_frac = (@Min dhw_frac 1)')
       ec_adj_program.addLine("  Set dhw_e_cons = dhw_e_cons + dhw_frac * #{ec_adj_sensor_boiler.name}")
       ec_adj_program.addLine("  Set htg_e_cons = htg_e_cons + (1.0 - dhw_frac) * #{ec_adj_sensor_boiler.name}")
       ec_adj_program.addLine('EndIf')
@@ -1309,6 +1310,7 @@ class Waterheater
       ec_adj_program.addLine("Set dhw_e_cons = #{ec_adj_sensor.name} + #{ec_adj_oncyc_sensor.name} + #{ec_adj_offcyc_sensor.name}")
     end
     ec_adj_program.addLine("Set #{ec_adj_actuator.name} = #{adjustment} * dhw_e_cons")
+    ec_adj_program.addLine("Set ec_adj_energy = #{ec_adj_actuator.name} * 3600 * SystemTimeStep")
 
     # Program Calling Manager
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
@@ -1316,13 +1318,8 @@ class Waterheater
     program_calling_manager.setCallingPoint('EndOfSystemTimestepBeforeHVACReporting')
     program_calling_manager.addProgram(ec_adj_program)
 
-    # Sensor for EMS reporting
-    ec_adj_object_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, "Other Equipment #{EPlus.fuel_type(fuel_type)} Energy")
-    ec_adj_object_sensor.setName("#{ec_adj_object.name} energy consumption")
-    ec_adj_object_sensor.setKeyName(ec_adj_object.name.to_s)
-
     # EMS Output Variable for EC_adj reporting
-    ec_adj_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, ec_adj_object_sensor)
+    ec_adj_output_var = OpenStudio::Model::EnergyManagementSystemOutputVariable.new(model, 'ec_adj_energy')
     ec_adj_output_var.setName("#{Constants.ObjectNameWaterHeaterAdjustment(heater.name)} outvar")
     ec_adj_output_var.setTypeOfDataInVariable('Summed')
     ec_adj_output_var.setUpdateFrequency('SystemTimestep')

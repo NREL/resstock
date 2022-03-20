@@ -180,7 +180,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w \"#{osw_path_test}\""
     system(command, err: File::NULL)
 
     # Check for output files
@@ -224,7 +224,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w \"#{osw_path_test}\""
     system(command, err: File::NULL)
 
     # Check for output files
@@ -270,7 +270,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w \"#{osw_path_test}\""
     system(command, err: File::NULL)
 
     # Check for output files
