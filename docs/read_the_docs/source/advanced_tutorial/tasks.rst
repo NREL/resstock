@@ -21,6 +21,8 @@ Update Measures
 
 Use ``openstudio tasks.rb update_measures`` to apply rubocop auto-correct to measures, and to update measure.xml files:
 
+.. code:: bash
+
   $ openstudio tasks.rb update_measures
   Applying rubocop auto-correct to measures...
   Running RuboCop...
@@ -54,6 +56,8 @@ Download Weather
 ----------------
 
 Run ``openstudio tasks.rb download_weather`` to download available EPW weather files:
+
+.. code:: bash
 
   $ /c/openstudio-3.3.0/bin/openstudio.exe tasks.rb download_weather
   Downloading /files/156/BuildStock_TMY3_FIPS.zip (  1%) 
