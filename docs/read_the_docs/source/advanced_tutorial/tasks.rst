@@ -65,10 +65,10 @@ Run ``openstudio tasks.rb download_weather`` to download available EPW weather f
   Downloading /files/156/BuildStock_TMY3_FIPS.zip (  3%)
   ...
 
-.. _rakefile:
+.. rakefile:
 
 Rakefile
-========
+--------
 
 Once you have completed instructions found in :doc:`installer_setup`, you can then use the `Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_ contained at the top level of this repository. You will run rake task(s) for :ref:`performing integrity checks on project inputs <integrity-checks>`.
 
