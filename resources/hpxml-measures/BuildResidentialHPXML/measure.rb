@@ -38,7 +38,7 @@ require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
 class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
-    return 'HPXML Builder (Beta)'
+    return 'HPXML Builder'
   end
 
   # human readable description
@@ -2852,7 +2852,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_types', false)
     arg.setDisplayName('Emissions: Types')
-    arg.setDescription('Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.')
+    arg.setDescription('Types of emissions (e.g., CO2e, NOx, etc.). If multiple scenarios, use a comma-separated list.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_units', false)
