@@ -603,7 +603,7 @@ class UpgradeCostsTest < MiniTest::Test
 
   private
 
-  def _run_osw(osw)
+  def _run_osw(model, osw)
     measures = {}
 
     osw_hash = JSON.parse(File.read(osw))
@@ -611,7 +611,6 @@ class UpgradeCostsTest < MiniTest::Test
     osw_hash['steps'].each do |step|
       measures[step['measure_dir_name']] = [step['arguments']]
     end
-    model = OpenStudio::Model::Model.new
     runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new)
     # Apply measure
     success = apply_measures(measures_dir, measures, runner, model)
@@ -626,7 +625,7 @@ class UpgradeCostsTest < MiniTest::Test
     assert(success)
   end
 
-  def _upgrade_osw(osw, values)
+  def _upgrade_osw(model, osw, values)
     upgrades = { 'ceiling_assembly_r' => 61.6,
                  'air_leakage_value' => 2.25 }
 
@@ -640,8 +639,8 @@ class UpgradeCostsTest < MiniTest::Test
     File.open(osw, 'w') { |json| json.write(JSON.pretty_generate(osw_hash)) }
 
     # ResStockArguments
-    values['build_existing_model']['resstock_arguments_ceiling_insulation_r'] = 38
-    values['apply_upgrade']['resstock_arguments_ceiling_insulation_r'] = 60
+    model.getBuilding.additionalProperties.setFeature('existing_ceiling_insulation_r', 38)
+    model.getBuilding.additionalProperties.setFeature('upgraded_ceiling_insulation_r', 60)
   end
 
   def _test_cost_multipliers(osw_file, cost_multipliers)
@@ -655,8 +654,9 @@ class UpgradeCostsTest < MiniTest::Test
                'report_hpxml_output' => {} }
 
     # Existing
+    model = OpenStudio::Model::Model.new
     osw = File.absolute_path("#{this_dir}/#{osw_file}")
-    _run_osw(osw)
+    _run_osw(model, osw)
 
     hpxml_path = File.join(this_dir, 'in.xml')
     hpxml_in = HPXML.new(hpxml_path: hpxml_path)
@@ -668,8 +668,8 @@ class UpgradeCostsTest < MiniTest::Test
     upgrade_osw_file = "Upgrade_#{osw_file}"
     upgrade_osw = File.absolute_path("#{this_dir}/#{upgrade_osw_file}")
     FileUtils.cp(osw, upgrade_osw)
-    _upgrade_osw(upgrade_osw, values)
-    _run_osw(upgrade_osw)
+    _upgrade_osw(model, upgrade_osw, values)
+    _run_osw(model, upgrade_osw)
 
     upgraded_path = File.join(this_dir, upgrade_osw_file.gsub('osw', 'xml'))
     upgraded_hpxml = HPXML.new(hpxml_path: upgraded_path)
@@ -736,7 +736,7 @@ class UpgradeCostsTest < MiniTest::Test
     cost_multipliers.each do |mult_type, mult_value|
       next if mult_type.include?('Systems:')
 
-      value = upgrade_costs.get_cost_multiplier(mult_type, values, existing_hpxml, upgraded_hpxml)
+      value = upgrade_costs.get_cost_multiplier(model, mult_type, values, existing_hpxml, upgraded_hpxml)
       assert(!value.nil?)
       if mult_type.include?('ft^2') || mult_type.include?('gal')
         assert_in_epsilon(mult_value, value, 0.005)

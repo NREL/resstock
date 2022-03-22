@@ -119,7 +119,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
-        cost_mult = get_cost_multiplier(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+        cost_mult = get_cost_multiplier(model, cost_mult_type, values, existing_hpxml, upgraded_hpxml)
         total_cost = cost_value * cost_mult
         next if total_cost == 0
 
@@ -156,7 +156,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       next if cost_mult_type.include?('Fixed')
 
       cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+      cost_mult = get_cost_multiplier(model, cost_mult_type, values, existing_hpxml, upgraded_hpxml)
       cost_mult = cost_mult.round(2)
       register_value(runner, cost_mult_type_str, cost_mult)
     end
@@ -176,7 +176,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     return existing_hpxml, upgraded_hpxml
   end
 
-  def get_cost_multiplier(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+  def get_cost_multiplier(model, cost_mult_type, values, existing_hpxml, upgraded_hpxml)
     hpxml = values['report_hpxml_output']
 
     cost_mult = 0.0
@@ -228,8 +228,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
         fail 'Found multiple ceiling assembly R-values.' if ceiling_assembly_r[existing_hpxml].uniq.size > 1 || ceiling_assembly_r[upgraded_hpxml].uniq.size > 1
 
         if !ceiling_assembly_r[existing_hpxml].empty? && !ceiling_assembly_r[upgraded_hpxml].empty?
-          ceiling_insulation_r_upgraded = values['apply_upgrade']['resstock_arguments_ceiling_insulation_r'].to_f
-          ceiling_insulation_r_existing = values['build_existing_model']['resstock_arguments_ceiling_insulation_r'].to_f
+          ceiling_insulation_r_upgraded = get_value_from_additional_properties(model.getBuilding, 'upgraded_ceiling_insulation_r')
+          ceiling_insulation_r_existing = get_value_from_additional_properties(model.getBuilding, 'existing_ceiling_insulation_r')
           ceiling_assembly_r_increase = ceiling_insulation_r_upgraded - ceiling_insulation_r_existing
           cost_mult += ceiling_assembly_r_increase * hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
         end
