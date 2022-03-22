@@ -125,7 +125,7 @@ latex_elements = {
 
     # Additional stuff for the LaTeX preamble.
     #
-    'preamble': '''
+    'preamble': r'''
       \usepackage[landscape]{geometry}
         \geometry{left=49.5pt, right=49.5pt}
     '''

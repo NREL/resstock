@@ -37,7 +37,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.sim_begin_day = 2
     hpxml.header.sim_end_month = 11
     hpxml.header.sim_end_day = 11
-    hpxml.header.sim_calendar_year = 2008
+    hpxml.header.sim_calendar_year = 2009
     hpxml.header.dst_enabled = false
     hpxml.header.dst_begin_month = 3
     hpxml.header.dst_begin_day = 3
@@ -49,7 +49,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.time_zone_utc_offset = -8
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2008, false, 3, 3, 10, 10, false, true, 'CA', -8)
+    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2009, false, 3, 3, 10, 10, false, true, 'CA', -8)
 
     # Test defaults - DST not in weather file
     hpxml.header.timestep = nil
@@ -117,7 +117,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   def test_emissions_factors
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
-    for emissions_type in ['CO2', 'NOx', 'SO2', 'foo']
+    for emissions_type in ['CO2e', 'NOx', 'SO2', 'foo']
       hpxml.header.emissions_scenarios.add(name: emissions_type,
                                            emissions_type: emissions_type,
                                            elec_units: HPXML::EmissionsScenario::UnitsLbPerMWh,
@@ -168,20 +168,20 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     hpxml_default.header.emissions_scenarios.each do |scenario|
-      if scenario.emissions_type == 'CO2'
-        natural_gas_value, propane_value, fuel_oil_value, coal_value = 117.6, 136.6, 161.0, 211.1 # lb/MBtu
+      if scenario.emissions_type == 'CO2e'
+        natural_gas_value, propane_value, fuel_oil_value = 147.3, 177.8, 195.9 # lb/MBtu
       elsif scenario.emissions_type == 'NOx'
-        natural_gas_value, propane_value, fuel_oil_value, coal_value = 0.0922, 0.1421, 0.1300, nil # lb/MBtu
+        natural_gas_value, propane_value, fuel_oil_value = 0.0922, 0.1421, 0.1300 # lb/MBtu
       elsif scenario.emissions_type == 'SO2'
-        natural_gas_value, propane_value, fuel_oil_value, coal_value = 0.0006, 0.0002, 0.0015, nil # lb/MBtu
+        natural_gas_value, propane_value, fuel_oil_value = 0.0006, 0.0002, 0.0015 # lb/MBtu
       else
-        natural_gas_value, propane_value, fuel_oil_value, coal_value = nil, nil, nil, nil
+        natural_gas_value, propane_value, fuel_oil_value = nil, nil, nil
       end
       _test_default_emissions_values(scenario, 1, 1,
                                      HPXML::EmissionsScenario::UnitsLbPerMBtu, natural_gas_value,
                                      HPXML::EmissionsScenario::UnitsLbPerMBtu, propane_value,
                                      HPXML::EmissionsScenario::UnitsLbPerMBtu, fuel_oil_value,
-                                     HPXML::EmissionsScenario::UnitsLbPerMBtu, coal_value,
+                                     nil, nil,
                                      nil, nil,
                                      nil, nil)
     end
