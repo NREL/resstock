@@ -190,7 +190,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_foundation_wall_area_exterior_ft_2']
     elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
       cost_mult += hpxml['enclosure_floor_area_conditioned_ft_2']
-    elsif cost_mult_type == 'Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)'
+    elsif cost_mult_type == 'Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)'
       existing_hpxml, upgraded_hpxml = retrieve_hpxmls(existing_hpxml, upgraded_hpxml)
       if !upgraded_hpxml.nil?
         air_leakage_value = { existing_hpxml => [], upgraded_hpxml => [] }
@@ -210,7 +210,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       cost_mult += hpxml['enclosure_floor_area_lighting_ft_2']
     elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
       cost_mult += hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
-    elsif cost_mult_type == 'Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)'
+    elsif cost_mult_type == 'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)'
       existing_hpxml, upgraded_hpxml = retrieve_hpxmls(existing_hpxml, upgraded_hpxml)
       if !upgraded_hpxml.nil?
         ceiling_assembly_r = { existing_hpxml => [], upgraded_hpxml => [] }
