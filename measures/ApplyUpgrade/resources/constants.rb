@@ -30,7 +30,9 @@ class Constants
       'Size, Cooling System Primary (kBtu/h)',
       'Size, Heat Pump Backup Primary (kBtu/h)',
       'Size, Water Heater (gal)',
-      'Flow Rate, Mechanical Ventilation (cfm)'
+      'Flow Rate, Mechanical Ventilation (cfm)',
+      'Units, Heating System (#)',
+      'Units, Cooling System (#)'
     ]
   end
 end
