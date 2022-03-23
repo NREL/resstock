@@ -27,7 +27,9 @@ class UpgradeCostsTest < MiniTest::Test
       'Size, Water Heater (gal)' => 0.0,
       'Flow Rate, Mechanical Ventilation (cfm)' => 0.0,
       'Slab Perimeter, Exposed, Conditioned (ft)' => 180.0,
-      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 157.5
+      'Rim Joist Area, Above-Grade, Exterior (ft^2)' => 157.5,
+      'Units, Heating System (#)' => 3,
+      'Units, Cooling System (#)' => 2
     }
     _test_cost_multipliers('SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH.osw', cost_multipliers)
   end
