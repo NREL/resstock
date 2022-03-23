@@ -108,7 +108,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
           apply_upgrade_measure['arguments']["option_#{opt_num}_lifetime"] = option['lifetime']
         end
         if option.include?('apply_logic')
-          apply_upgrade_measure['arguments']["option_#{opt_num}_apply_logic"] = option['apply_logic']
+          apply_upgrade_measure['arguments']["option_#{opt_num}_apply_logic"] = make_apply_logic_arg(option['apply_logic'])
         end
         next unless option.keys.include?('costs')
 
