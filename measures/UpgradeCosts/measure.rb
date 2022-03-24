@@ -75,6 +75,19 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
                'apply_upgrade' => get_values_from_runner_past_results(runner, 'apply_upgrade'),
                'report_hpxml_output' => get_values_from_runner_past_results(runner, 'report_hpxml_output') }
 
+    # Report cost multipliers
+    existing_hpxml = nil
+    upgraded_hpxml = nil
+    cost_multiplier_choices.each do |cost_mult_type|
+      next if cost_mult_type.empty?
+      next if cost_mult_type.include?('Fixed')
+
+      cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
+      cost_mult = get_cost_multiplier(model, cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+      cost_mult = cost_mult.round(2)
+      register_value(runner, cost_mult_type_str, cost_mult)
+    end
+
     # UPGRADE COSTS
     upgrade_cost_name = 'upgrade_cost_usd'
 
@@ -111,8 +124,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     # Obtain cost multiplier values and calculate upgrade costs
-    existing_hpxml = nil
-    upgraded_hpxml = nil
     upgrade_cost = 0.0
     option_cost_pairs.keys.each do |option_num|
       next if option_cost_pairs[option_num].empty?
@@ -149,17 +160,6 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     upgrade_cost = upgrade_cost.round(2)
     register_value(runner, upgrade_cost_name, upgrade_cost)
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
-
-    # Report cost multipliers
-    cost_multiplier_choices.each do |cost_mult_type|
-      next if cost_mult_type.empty?
-      next if cost_mult_type.include?('Fixed')
-
-      cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(model, cost_mult_type, values, existing_hpxml, upgraded_hpxml)
-      cost_mult = cost_mult.round(2)
-      register_value(runner, cost_mult_type_str, cost_mult)
-    end
 
     return true
   end
