@@ -16,6 +16,14 @@ class TestRunAnalysis < MiniTest::Test
     @national_baseline = File.join(workflow_dir, 'national_baseline')
     @testing_upgrades = File.join(workflow_dir, 'testing_upgrades')
     @national_upgrades = File.join(workflow_dir, 'national_upgrades')
+
+    @expected_baseline_columns = [
+      'report_simulation_output.energy_use_total_m_btu',
+      'report_simulation_output.energy_use_net_m_btu',
+    ]
+    @expected_nonzero_columns = [
+      'report_simulation_output.energy_use_total_m_btu',
+    ]
   end
 
   def test_version
@@ -49,6 +57,14 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@testing_baseline, 'results_output.csv')))
 
+    results_output = CSV.read(File.join(@testing_baseline, 'results_output.csv'), headers: true)
+    assert((@expected_baseline_columns - results_output.headers).empty?)
+    @expected_nonzero_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| i == 0 })
+    end
+
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@testing_baseline, 'xml', 'Baseline', '1.xml')))
 
@@ -70,6 +86,14 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@national_baseline, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@national_baseline, 'results_output.csv')))
+
+    results_output = CSV.read(File.join(@national_baseline, 'results_output.csv'), headers: true)
+    assert((@expected_baseline_columns - results_output.headers).empty?)
+    @expected_nonzero_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| i == 0 })
+    end
 
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
@@ -93,6 +117,14 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_upgrades, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@testing_upgrades, 'results_output.csv')))
+
+    results_output = CSV.read(File.join(@testing_upgrades, 'results_output.csv'), headers: true)
+    assert((@expected_baseline_columns - results_output.headers).empty?)
+    @expected_nonzero_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| i == 0 })
+    end
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
@@ -127,6 +159,14 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@national_upgrades, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@national_upgrades, 'results_output.csv')))
+
+    results_output = CSV.read(File.join(@national_upgrades, 'results_output.csv'), headers: true)
+    assert((@expected_baseline_columns - results_output.headers).empty?)
+    @expected_nonzero_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| i == 0 })
+    end
 
     assert(File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
