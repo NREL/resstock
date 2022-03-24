@@ -346,6 +346,7 @@ Depending on the outputs requested, the file may include:
    ===================================  ==================================================================================================================================
    Type                                 Notes
    ===================================  ==================================================================================================================================
+   Total Consumptions                   Energy use for building total.
    Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
    Emissions                            Emissions (e.g., CO2) for each scenario defined in the HPXML file.

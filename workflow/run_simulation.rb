@@ -23,7 +23,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
     args['hpxml_path'] = hpxml
     args['hpxml_output_path'] = hpxml
     args['schedules_type'] = detailed_schedules_type
-    args['output_csv_path'] = "workflow/sample_files/run/#{detailed_schedules_type}.csv"
+    args['output_csv_path'] = File.join(rundir, "#{detailed_schedules_type}.csv")
     update_args_hash(measures, measure_subdir, args)
   end
 
@@ -43,6 +43,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args = {}
   args['output_format'] = output_format
   args['timeseries_frequency'] = timeseries_output_freq
+  args['include_timeseries_total_consumptions'] = timeseries_outputs.include? 'total'
   args['include_timeseries_fuel_consumptions'] = timeseries_outputs.include? 'fuels'
   args['include_timeseries_end_use_consumptions'] = timeseries_outputs.include? 'enduses'
   args['include_timeseries_emissions'] = timeseries_outputs.include? 'emissions'
@@ -67,7 +68,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   return results[:success]
 end
 
-timeseries_types = ['ALL', 'fuels', 'enduses', 'emissions', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
+timeseries_types = ['ALL', 'total', 'fuels', 'enduses', 'emissions', 'hotwater', 'loads', 'componentloads', 'temperatures', 'airflows', 'weather']
 
 options = {}
 OptionParser.new do |opts|
