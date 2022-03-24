@@ -32,7 +32,8 @@ class TestRunAnalysis < MiniTest::Test
     @expected_nonnull_columns = [
       'apply_upgrade.upgrade_name',
       'upgrade_costs.door_area_ft_2',
-      'upgrade_costs.option_01_name'
+      'upgrade_costs.option_01_name',
+      'upgrade_costs.option_01_cost_usd'
     ]
     @expected_nonzero_columns = [
       'upgrade_costs.upgrade_cost_usd'
@@ -75,12 +76,12 @@ class TestRunAnalysis < MiniTest::Test
     @expected_nonnull_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| !i.nil? })
+      assert(!results_output[col].all? { |i| i.nil? })
     end
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| !i.nil? })
+      assert(!results_output[col].all? { |i| i == 0 })
     end
 
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
@@ -110,12 +111,12 @@ class TestRunAnalysis < MiniTest::Test
     @expected_nonnull_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| !i.nil? })
+      assert(!results_output[col].all? { |i| i.nil? })
     end
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| !i.nil? })
+      assert(!results_output[col].all? { |i| i == 0 })
     end
 
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
@@ -146,12 +147,12 @@ class TestRunAnalysis < MiniTest::Test
     @expected_nonnull_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].any? { |i| !i.nil? })
+      assert(!results_output[col].all? { |i| i.nil? })
     end
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| !i.nil? })
+      assert(!results_output[col].all? { |i| i == 0 })
     end
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-existing.osw')))
@@ -193,12 +194,12 @@ class TestRunAnalysis < MiniTest::Test
     @expected_nonnull_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].any? { |i| !i.nil? })
+      assert(!results_output[col].all? { |i| i.nil? })
     end
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| !i.nil? })
+      assert(!results_output[col].all? { |i| i == 0 })
     end
 
     assert(File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))

@@ -218,7 +218,7 @@ for dp in dps:
 dps = sorted(os.listdir('project_testing/testing_upgrades/simulation_output/up00'))
 for dp in dps:
   for i in range(1, national_num_scenarios):
-    if not os.path.exists('project_testing/national_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp)):
+    if not os.path.exists('project_testing/testing_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp)):
       continue
 
     df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col)
