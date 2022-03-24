@@ -66,6 +66,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    assert(File.exist?(File.join(@testing_baseline, 'cli_output.log')))
     assert(!File.read(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@testing_baseline, 'results_characteristics.csv')))
@@ -101,6 +102,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    assert(File.exist?(File.join(@national_baseline, 'cli_output.log')))
     assert(!File.read(File.join(@national_baseline, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@national_baseline, 'results_characteristics.csv')))
@@ -137,6 +139,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    assert(File.exist?(File.join(@testing_upgrades, 'cli_output.log')))
     assert(!File.read(File.join(@testing_upgrades, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@testing_upgrades, 'results_characteristics.csv')))
@@ -184,6 +187,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    assert(File.exist?(File.join(@national_upgrades, 'cli_output.log')))
     assert(!File.read(File.join(@national_upgrades, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@national_upgrades, 'results_characteristics.csv')))
