@@ -62,7 +62,7 @@ class TestRunAnalysis < MiniTest::Test
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| i == 0 })
+      assert(!results_output[col].all? { |i| i == 0 })
     end
 
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
@@ -92,7 +92,7 @@ class TestRunAnalysis < MiniTest::Test
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| i == 0 })
+      assert(!results_output[col].all? { |i| i == 0 })
     end
 
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
@@ -123,7 +123,7 @@ class TestRunAnalysis < MiniTest::Test
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| i == 0 })
+      assert(!results_output[col].all? { |i| i == 0 })
     end
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-existing.osw')))
@@ -165,7 +165,7 @@ class TestRunAnalysis < MiniTest::Test
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
-      assert(results_output[col].all? { |i| i == 0 })
+      assert(!results_output[col].all? { |i| i == 0 })
     end
 
     assert(File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
