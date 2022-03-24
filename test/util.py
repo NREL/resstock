@@ -198,28 +198,33 @@ if not os.path.exists(outdir):
 df_nationals = []
 df_testings = []
 
-for i in range(1, national_num_scenarios):
-  df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/bldg0000001/run/results_timeseries.csv'.format('%02d' % i), index_col=index_col)
-  df_national = df_national.drop(drops, axis=1)
+dps = sorted(os.listdir('project_national/national_upgrades/simulation_output/up00'))
+for dp in dps:
+  for i in range(1, national_num_scenarios):
+    df_national = pd.read_csv('project_national/national_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col)
+    df_national = df_national.drop(drops, axis=1)
 
-  for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
-    new_col = rename_ts_col('{}_{}'.format(col, units))
-    df_national = df_national.rename(columns={col: new_col})
+    for col, units in list(zip(df_national.columns.values, df_national.iloc[0, :].values)):
+      new_col = rename_ts_col('{}_{}'.format(col, units))
+      df_national = df_national.rename(columns={col: new_col})
 
-  df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
+    df_national = df_national.iloc[1:, :].apply(pd.to_numeric)
 
-  df_nationals.append(df_national)
+    df_nationals.append(df_national)
 
-  df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/bldg0000001/run/results_timeseries.csv'.format('%02d' % i), index_col=index_col)
-  df_testing = df_testing.drop(drops, axis=1)
+dps = sorted(os.listdir('project_testing/testing_upgrades/simulation_output/up00'))
+for dp in dps:
+  for i in range(1, national_num_scenarios):
+    df_testing = pd.read_csv('project_testing/testing_upgrades/simulation_output/up{}/{}/run/results_timeseries.csv'.format('%02d' % i, dp), index_col=index_col)
+    df_testing = df_testing.drop(drops, axis=1)
 
-  for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
-    new_col = rename_ts_col('{}_{}'.format(col, units))
-    df_testing = df_testing.rename(columns={col: new_col})
+    for col, units in list(zip(df_testing.columns.values, df_testing.iloc[0, :].values)):
+      new_col = rename_ts_col('{}_{}'.format(col, units))
+      df_testing = df_testing.rename(columns={col: new_col})
 
-  df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
+    df_testing = df_testing.iloc[1:, :].apply(pd.to_numeric)
 
-  df_testings.append(df_testing)
+    df_testings.append(df_testing)
 
 # results_output.csv
 
