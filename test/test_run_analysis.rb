@@ -16,6 +16,27 @@ class TestRunAnalysis < MiniTest::Test
     @national_baseline = File.join(workflow_dir, 'national_baseline')
     @testing_upgrades = File.join(workflow_dir, 'testing_upgrades')
     @national_upgrades = File.join(workflow_dir, 'national_upgrades')
+
+    @expected_baseline_columns = [
+      'building_id',
+      'job_id',
+      'completed_status',
+      'report_simulation_output.add_timeseries_dst_column',
+      'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_electricity_lb',
+      'upgrade_costs.door_area_ft_2',
+      'qoi_report.qoi_average_maximum_daily_timing_cooling_hour'
+    ]
+    @expected_upgrades_columns = @expected_baseline_columns + [
+      'apply_upgrade.option_01_cost_1_multiplier_to_apply'
+    ]
+    @expected_nonnull_columns = [
+      'apply_upgrade.upgrade_name',
+      'upgrade_costs.door_area_ft_2',
+      'upgrade_costs.option_01_name'
+    ]
+    @expected_nonzero_columns = [
+      'upgrade_costs.upgrade_cost_usd'
+    ]
   end
 
   def test_version
@@ -49,6 +70,19 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@testing_baseline, 'results_output.csv')))
 
+    results_output = CSV.read(File.join(@testing_baseline, 'results_output.csv'), headers: true)
+    assert((@expected_baseline_columns - results_output.headers).empty?)
+    @expected_nonnull_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| !i.nil? })
+    end
+    @expected_nonzero_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| !i.nil? })
+    end
+
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@testing_baseline, 'xml', 'Baseline', '1.xml')))
 
@@ -70,6 +104,19 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@national_baseline, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@national_baseline, 'results_output.csv')))
+
+    results_output = CSV.read(File.join(@national_baseline, 'results_output.csv'), headers: true)
+    assert((@expected_baseline_columns - results_output.headers).empty?)
+    @expected_nonnull_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| !i.nil? })
+    end
+    @expected_nonzero_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| !i.nil? })
+    end
 
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
@@ -93,6 +140,19 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_upgrades, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@testing_upgrades, 'results_output.csv')))
+
+    results_output = CSV.read(File.join(@testing_upgrades, 'results_output.csv'), headers: true)
+    assert((@expected_upgrades_columns - results_output.headers).empty?)
+    @expected_nonnull_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].any? { |i| !i.nil? })
+    end
+    @expected_nonzero_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| !i.nil? })
+    end
 
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
@@ -127,6 +187,19 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@national_upgrades, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@national_upgrades, 'results_output.csv')))
+
+    results_output = CSV.read(File.join(@national_upgrades, 'results_output.csv'), headers: true)
+    assert((@expected_upgrades_columns - results_output.headers).empty?)
+    @expected_nonnull_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].any? { |i| !i.nil? })
+    end
+    @expected_nonzero_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(results_output[col].all? { |i| !i.nil? })
+    end
 
     assert(File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
