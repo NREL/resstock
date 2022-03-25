@@ -729,6 +729,10 @@ class HPXMLDefaults
       next unless window.ufactor.nil? || window.shgc.nil?
 
       # Frame/Glass provided instead, fill in more defaults as needed
+      if window.glass_type.nil?
+        window.glass_type = HPXML::WindowGlassTypeClear
+        window.glass_type_isdefaulted = true
+      end
       if window.thermal_break.nil? && [HPXML::WindowFrameTypeAluminum, HPXML::WindowFrameTypeMetal].include?(window.frame_type)
         if window.glass_layers == HPXML::WindowLayersSinglePane
           window.thermal_break = false
@@ -789,6 +793,10 @@ class HPXMLDefaults
       next unless skylight.ufactor.nil? || skylight.shgc.nil?
 
       # Frame/Glass provided instead, fill in more defaults as needed
+      if skylight.glass_type.nil?
+        skylight.glass_type = HPXML::WindowGlassTypeClear
+        skylight.glass_type_isdefaulted = true
+      end
       if skylight.thermal_break.nil? && [HPXML::WindowFrameTypeAluminum, HPXML::WindowFrameTypeMetal].include?(skylight.frame_type)
         if skylight.glass_layers == HPXML::WindowLayersSinglePane
           skylight.thermal_break = false
@@ -1678,22 +1686,41 @@ class HPXMLDefaults
         battery.nominal_voltage = default_values[:nominal_voltage] # V
         battery.nominal_voltage_isdefaulted = true
       end
-      if battery.rated_power_output.nil? && battery.nominal_capacity_kwh.nil? && battery.nominal_capacity_ah.nil?
-        battery.rated_power_output = default_values[:rated_power_output] # W
-        battery.rated_power_output_isdefaulted = true
-        battery.nominal_capacity_kwh = default_values[:nominal_capacity_kwh] # kWh
-        battery.nominal_capacity_kwh_isdefaulted = true
-      elsif battery.rated_power_output.nil?
-        nominal_capacity_kwh = battery.nominal_capacity_kwh
-        if nominal_capacity_kwh.nil?
-          nominal_capacity_kwh = Battery.get_kWh_from_Ah(battery.nominal_capacity_ah, battery.nominal_voltage)
+      if battery.nominal_capacity_kwh.nil? && battery.nominal_capacity_ah.nil?
+        # Calculate nominal capacity from usable capacity or rated power output if available
+        if not battery.usable_capacity_kwh.nil?
+          battery.nominal_capacity_kwh = (battery.usable_capacity_kwh / default_values[:usable_fraction]).round(2)
+          battery.nominal_capacity_kwh_isdefaulted = true
+        elsif not battery.usable_capacity_ah.nil?
+          battery.nominal_capacity_ah = (battery.usable_capacity_ah / default_values[:usable_fraction]).round(2)
+          battery.nominal_capacity_ah_isdefaulted = true
+        elsif not battery.rated_power_output.nil?
+          battery.nominal_capacity_kwh = (UnitConversions.convert(battery.rated_power_output, 'W', 'kW') / 0.5).round(2)
+          battery.nominal_capacity_kwh_isdefaulted = true
+        else
+          battery.nominal_capacity_kwh = default_values[:nominal_capacity_kwh] # kWh
+          battery.nominal_capacity_kwh_isdefaulted = true
         end
-        battery.rated_power_output = UnitConversions.convert(nominal_capacity_kwh, 'kWh', 'Wh') * 0.5 # W
-        battery.rated_power_output_isdefaulted = true
-      elsif battery.nominal_capacity_kwh.nil? && battery.nominal_capacity_ah.nil?
-        battery.nominal_capacity_kwh = UnitConversions.convert(battery.rated_power_output, 'W', 'kW') / 0.5 # kWh
-        battery.nominal_capacity_kwh_isdefaulted = true
       end
+      if battery.usable_capacity_kwh.nil? && battery.usable_capacity_ah.nil?
+        # Calculate usable capacity from nominal capacity
+        if not battery.nominal_capacity_kwh.nil?
+          battery.usable_capacity_kwh = (battery.nominal_capacity_kwh * default_values[:usable_fraction]).round(2)
+          battery.usable_capacity_kwh_isdefaulted = true
+        elsif not battery.nominal_capacity_ah.nil?
+          battery.usable_capacity_ah = (battery.nominal_capacity_ah * default_values[:usable_fraction]).round(2)
+          battery.usable_capacity_ah_isdefaulted = true
+        end
+      end
+      next unless battery.rated_power_output.nil?
+
+      # Calculate rated power from nominal capacity
+      if not battery.nominal_capacity_kwh.nil?
+        battery.rated_power_output = (UnitConversions.convert(battery.nominal_capacity_kwh, 'kWh', 'Wh') * 0.5).round(0)
+      elsif not battery.nominal_capacity_ah.nil?
+        battery.rated_power_output = (UnitConversions.convert(Battery.get_kWh_from_Ah(battery.nominal_capacity_ah, battery.nominal_voltage), 'kWh', 'Wh') * 0.5).round(0)
+      end
+      battery.rated_power_output_isdefaulted = true
     end
   end
 
