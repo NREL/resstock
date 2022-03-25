@@ -207,15 +207,26 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
     end
   end
 
-  # Create buildstock.csv
+  # Create or read buildstock.csv
   outfile = File.join('../lib/housing_characteristics/buildstock.csv')
-  create_buildstock_csv(project_directory, n_datapoints, outfile)
+  if !['precomputed'].include?(cfg['sampler']['type'])
+    create_buildstock_csv(project_directory, n_datapoints, outfile)
 
-  building_ids = (1..n_datapoints).to_a if building_ids.empty?
+    datapoints = (1..n_datapoints).to_a
+  else
+    src = File.expand_path(File.join(File.dirname(yml), cfg['sampler']['args']['sample_file']))
+    des = File.expand_path(File.join(File.dirname(__FILE__), outfile))
+    FileUtils.cp(src, des)
+
+    buildstock_csv = CSV.read(des, headers: true)
+    datapoints = buildstock_csv['Building']
+  end
+
+  building_ids = datapoints if building_ids.empty?
 
   workflow_and_building_ids = []
   osw_paths.each do |upgrade_name, osw_path|
-    (1..n_datapoints).to_a.each do |building_id|
+    datapoints.each do |building_id|
       next if !building_ids.include?(building_id)
 
       workflow_and_building_ids << [upgrade_name, osw_path, building_id]
@@ -292,7 +303,8 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
 
   worker_folder = "run#{job_id}"
   worker_dir = File.join(results_dir, worker_folder)
-  Dir.mkdir(worker_dir) unless File.exist?(worker_dir)
+  FileUtils.rm_rf(worker_dir)
+  Dir.mkdir(worker_dir)
   FileUtils.cp(workflow, worker_dir)
   osw = File.join(worker_dir, File.basename(workflow))
 
