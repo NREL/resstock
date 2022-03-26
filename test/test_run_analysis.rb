@@ -93,6 +93,9 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'in.idf')))
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'schedules.csv')))
 
+    results_timeseries = CSV.read(File.join(@testing_baseline, 'run1', 'run', 'results_timeseries.csv'), headers: true)
+    assert(results_timeseries.headers.include?('Zone People Occupant Count: Living Space'))
+
     FileUtils.rm_rf(@testing_baseline)
   end
 
@@ -176,6 +179,9 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'results_timeseries.csv')))
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'in.idf')))
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'schedules.csv')))
+
+    results_timeseries = CSV.read(File.join(@testing_upgrades, 'run1', 'run', 'results_timeseries.csv'), headers: true)
+    assert(results_timeseries.headers.include?('Zone People Occupant Count: Living Space'))
 
     FileUtils.rm_rf(@testing_upgrades)
   end
