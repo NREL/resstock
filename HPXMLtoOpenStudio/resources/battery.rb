@@ -7,9 +7,19 @@ class Battery
     rated_power_output = battery.rated_power_output # W
     nominal_voltage = battery.nominal_voltage # V
     if not battery.nominal_capacity_kwh.nil?
+      if battery.usable_capacity_kwh.nil?
+        fail "UsableCapacity and NominalCapacity for Battery '#{battery.id}' must be in the same units."
+      end
+
       nominal_capacity_kwh = battery.nominal_capacity_kwh # kWh
+      usable_fraction = battery.usable_capacity_kwh / nominal_capacity_kwh
     else
+      if battery.usable_capacity_ah.nil?
+        fail "UsableCapacity and NominalCapacity for Battery '#{battery.id}' must be in the same units."
+      end
+
       nominal_capacity_kwh = get_kWh_from_Ah(battery.nominal_capacity_ah, nominal_voltage) # kWh
+      usable_fraction = battery.usable_capacity_ah / battery.nominal_capacity_ah
     end
 
     return if rated_power_output <= 0 || nominal_capacity_kwh <= 0 || nominal_voltage <= 0
@@ -29,9 +39,9 @@ class Battery
     battery_mass = (nominal_capacity_kwh / 10.0) * 99.0 # kg
     battery_surface_area = 0.306 * (nominal_capacity_kwh**(2.0 / 3.0)) # m^2
 
-    minimum_storage_state_of_charge_fraction = 0.15 # from SAM
-    maximum_storage_state_of_charge_fraction = 0.95 # from SAM
-    initial_fractional_state_of_charge = 0.5 # from SAM
+    # Assuming 3/4 of unusable charge is minimum SOC and 1/4 of unusable charge is maximum SOC, based on SAM defaults
+    minimum_storage_state_of_charge_fraction = 0.75 * (1.0 - usable_fraction)
+    maximum_storage_state_of_charge_fraction = 1.0 - 0.25 * (1.0 - usable_fraction)
 
     elcs = OpenStudio::Model::ElectricLoadCenterStorageLiIonNMCBattery.new(model, number_of_cells_in_series, number_of_strings_in_parallel, battery_mass, battery_surface_area)
     elcs.setName("#{obj_name} li ion")
@@ -44,7 +54,7 @@ class Battery
     elcs.setLifetimeModel(battery.lifetime_model)
     elcs.setNumberofCellsinSeries(number_of_cells_in_series)
     elcs.setNumberofStringsinParallel(number_of_strings_in_parallel)
-    elcs.setInitialFractionalStateofCharge(initial_fractional_state_of_charge)
+    elcs.setInitialFractionalStateofCharge(0.0)
     elcs.setBatteryMass(battery_mass)
     elcs.setBatterySurfaceArea(battery_surface_area)
     elcs.setDefaultNominalCellVoltage(default_nominal_cell_voltage)
@@ -68,9 +78,9 @@ class Battery
   def self.get_battery_default_values()
     return { location: HPXML::LocationOutside,
              lifetime_model: HPXML::BatteryLifetimeModelNone,
-             rated_power_output: 5000.0,
              nominal_capacity_kwh: 10.0,
-             nominal_voltage: 50.0 }
+             nominal_voltage: 50.0,
+             usable_fraction: 0.9 } # Fraction of usable capacity to nominal capacity
   end
 
   def self.get_Ah_from_kWh(nominal_capacity_kwh, nominal_voltage)
