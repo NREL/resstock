@@ -20,9 +20,27 @@ class TestRunAnalysis < MiniTest::Test
     @expected_baseline_columns = [
       'report_simulation_output.energy_use_total_m_btu',
       'report_simulation_output.energy_use_net_m_btu',
+      'building_id',
+      'job_id',
+      'completed_status',
+      'report_simulation_output.add_timeseries_dst_column',
+      'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_electricity_lb',
+      'upgrade_costs.door_area_ft_2',
+      'qoi_report.qoi_average_maximum_daily_timing_cooling_hour'
+    ]
+    @expected_upgrades_columns = @expected_baseline_columns + [
+      'apply_upgrade.option_01_cost_1_multiplier_to_apply'
+    ]
+    @expected_nonnull_columns = [
+      'report_simulation_output.energy_use_net_m_btu',
+      'apply_upgrade.upgrade_name',
+      'upgrade_costs.door_area_ft_2',
+      'upgrade_costs.option_01_name',
+      'upgrade_costs.option_01_cost_usd'
     ]
     @expected_nonzero_columns = [
       'report_simulation_output.energy_use_total_m_btu',
+      'upgrade_costs.upgrade_cost_usd'
     ]
   end
 
@@ -52,6 +70,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    assert(File.exist?(File.join(@testing_baseline, 'cli_output.log')))
     assert(!File.read(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@testing_baseline, 'results_characteristics.csv')))
@@ -59,6 +78,11 @@ class TestRunAnalysis < MiniTest::Test
 
     results_output = CSV.read(File.join(@testing_baseline, 'results_output.csv'), headers: true)
     assert((@expected_baseline_columns - results_output.headers).empty?)
+    @expected_nonnull_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(!results_output[col].all? { |i| i.nil? })
+    end
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
@@ -82,6 +106,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    assert(File.exist?(File.join(@national_baseline, 'cli_output.log')))
     assert(!File.read(File.join(@national_baseline, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@national_baseline, 'results_characteristics.csv')))
@@ -89,6 +114,11 @@ class TestRunAnalysis < MiniTest::Test
 
     results_output = CSV.read(File.join(@national_baseline, 'results_output.csv'), headers: true)
     assert((@expected_baseline_columns - results_output.headers).empty?)
+    @expected_nonnull_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(!results_output[col].all? { |i| i.nil? })
+    end
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
@@ -113,13 +143,19 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    assert(File.exist?(File.join(@testing_upgrades, 'cli_output.log')))
     assert(!File.read(File.join(@testing_upgrades, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@testing_upgrades, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@testing_upgrades, 'results_output.csv')))
 
     results_output = CSV.read(File.join(@testing_upgrades, 'results_output.csv'), headers: true)
-    assert((@expected_baseline_columns - results_output.headers).empty?)
+    assert((@expected_upgrades_columns - results_output.headers).empty?)
+    @expected_nonnull_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(!results_output[col].all? { |i| i.nil? })
+    end
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
@@ -155,13 +191,19 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    assert(File.exist?(File.join(@national_upgrades, 'cli_output.log')))
     assert(!File.read(File.join(@national_upgrades, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@national_upgrades, 'results_characteristics.csv')))
     assert(File.exist?(File.join(@national_upgrades, 'results_output.csv')))
 
     results_output = CSV.read(File.join(@national_upgrades, 'results_output.csv'), headers: true)
-    assert((@expected_baseline_columns - results_output.headers).empty?)
+    assert((@expected_upgrades_columns - results_output.headers).empty?)
+    @expected_nonnull_columns.each do |col|
+      next if !results_output.headers.include?(col)
+
+      assert(!results_output[col].all? { |i| i.nil? })
+    end
     @expected_nonzero_columns.each do |col|
       next if !results_output.headers.include?(col)
 
