@@ -18,6 +18,7 @@ __New Features__
   - Adds an optional argument for whether the HPXML file is written with default values applied; defaults to false.
   - Adds an optional argument for whether the HPXML file is validated; defaults to false.
 - ReportSimulationOutput measure:
+  - Add optional argument for requesting timeseries EnergyPlus output variables.
   - Add ability to include `TimeDST` and/or `TimeUTC` timestamp column(s) in results_timeseries.csv.
   - Timestamps in results_timeseries.csv are output in ISO 8601 standard format.
   - Allows user-specified annual/timeseries output file names.
@@ -28,6 +29,7 @@ __Bugfixes__
 - Fixes possible HVAC sizing error if design temperature difference (TD) is negative.
 - Fixes an error if there is a pool or hot tub, but the pump `Type` is set to "none".
 - Adds more decimal places in output files as needed for simulations with shorter timesteps and/or abbreviated run periods.
+- Timeseries output fixes: some outputs off by 1 hour; possible negative combi boiler values.
 
 ## OpenStudio-HPXML v1.3.0
 
