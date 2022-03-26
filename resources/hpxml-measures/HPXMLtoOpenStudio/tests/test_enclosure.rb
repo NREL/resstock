@@ -449,6 +449,26 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
       assert_in_epsilon(window.ufactor, UnitConversions.convert(os_simple_glazing.uFactor, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)'), 0.001)
     end
 
+    # Storm windows
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
+    hpxml = _create_hpxml('base.xml')
+    hpxml.windows.each do |window|
+      window.ufactor = 0.6
+      window.storm_type = HPXML::WindowGlassTypeLowE
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    model, hpxml = _test_measure(args_hash)
+
+    # Check window properties
+    hpxml.windows.each do |window|
+      os_window = model.getSubSurfaces.select { |w| w.name.to_s == window.id }[0]
+      os_simple_glazing = os_window.construction.get.to_LayeredConstruction.get.getLayer(0).to_SimpleGlazing.get
+
+      assert_equal(0.36, os_simple_glazing.solarHeatGainCoefficient)
+      assert_in_epsilon(0.2936, UnitConversions.convert(os_simple_glazing.uFactor, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)'), 0.001)
+    end
+
     # Check window shading
     ['USA_CO_Denver.Intl.AP.725650_TMY3.epw',
      'ZAF_Cape.Town.688160_IWEC.epw'].each do |epw_path| # Test both northern & southern hemisphere
