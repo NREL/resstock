@@ -10,6 +10,11 @@ sampler:
   args:
     n_datapoints: 5
 
+# sampler:
+  # type: precomputed
+  # args:
+    # sample_file: ../buildstock.csv
+
 workflow_generator:
   type: residential_hpxml
   args:
@@ -77,6 +82,11 @@ upgrades:
   - upgrade_name: Ceilings
     options:
       - option: Insulation Ceiling|R-60
+        apply_logic:
+          or:
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|Uninsulated
         costs:
           - value: 1.11
             multiplier: Floor Area, Attic (ft^2)
