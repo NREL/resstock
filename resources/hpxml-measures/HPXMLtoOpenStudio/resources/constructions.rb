@@ -1054,7 +1054,7 @@ class Constructions
       fail "Unexpected #{type.downcase} frame type."
     end
 
-    if window_or_skylight.glass_type.nil?
+    if [HPXML::WindowGlassTypeClear].include? window_or_skylight.glass_type
       glass_type = 'clear'
     elsif [HPXML::WindowGlassTypeTinted,
            HPXML::WindowGlassTypeTintedReflective].include? window_or_skylight.glass_type

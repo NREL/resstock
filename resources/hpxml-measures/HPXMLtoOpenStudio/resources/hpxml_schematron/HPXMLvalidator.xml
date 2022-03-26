@@ -473,6 +473,10 @@
       <sch:assert role='ERROR' test='h:Units[text()="kWh" or text()="Ah"] or not(h:Units)'>Expected Units to be 'kWh' or 'Ah'</sch:assert>
       <sch:assert role='ERROR' test='number(h:Value) &gt;= 0 or not(h:Value)'>Expected Value to be greater than or equal to 0</sch:assert>
     </sch:rule>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:Batteries/h:Battery/h:UsableCapacity'>
+      <sch:assert role='ERROR' test='h:Units[text()="kWh" or text()="Ah"] or not(h:Units)'>Expected Units to be 'kWh' or 'Ah'</sch:assert>
+      <sch:assert role='ERROR' test='number(h:Value) &gt;= 0 or not(h:Value)'>Expected Value to be greater than or equal to 0</sch:assert>
+    </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Appliances/h:ClothesWasher'>
       <sch:assert role='ERROR' test='h:Location[text()="basement" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="garage" or text()="garage - conditioned" or text()="garage - unconditioned" or text()="laundry room" or text()="living space" or text()="other" or text()="other heated space" or text()="other housing unit" or text()="other multifamily buffer space" or text()="other non-freezing space" or text()="unconditioned space"] or not(h:Location)'>Expected Location to be 'basement' or 'basement - conditioned' or 'basement - unconditioned' or 'garage' or 'garage - conditioned' or 'garage - unconditioned' or 'laundry room' or 'living space' or 'other' or 'other heated space' or 'other housing unit' or 'other multifamily buffer space' or 'other non-freezing space' or 'unconditioned space'</sch:assert>
       <sch:assert role='ERROR' test='number(h:RatedAnnualkWh) &gt; 0 or not(h:RatedAnnualkWh)'>Expected RatedAnnualkWh to be greater than 0</sch:assert>

@@ -2116,6 +2116,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('battery_usable_capacity', true)
+    arg.setDisplayName('Battery: Usable Capacity')
+    arg.setDescription('The usable capacity of the lithium ion battery.')
+    arg.setUnits('kWh')
+    arg.setDefaultValue(Constants.Auto)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('lighting_present', false)
     arg.setDisplayName('Lighting: Present')
     arg.setDescription('Whether there is lighting energy use.')
@@ -5220,11 +5227,16 @@ class HPXMLFile
       nominal_capacity_kwh = Float(args[:battery_capacity])
     end
 
+    if args[:battery_usable_capacity] != Constants.Auto
+      usable_capacity_kwh = Float(args[:battery_usable_capacity])
+    end
+
     hpxml.batteries.add(id: "Battery#{hpxml.batteries.size + 1}",
                         type: HPXML::BatteryTypeLithiumIon,
                         location: location,
                         rated_power_output: rated_power_output,
-                        nominal_capacity_kwh: nominal_capacity_kwh)
+                        nominal_capacity_kwh: nominal_capacity_kwh,
+                        usable_capacity_kwh: usable_capacity_kwh)
   end
 
   def self.set_lighting(hpxml, runner, args)
