@@ -773,6 +773,15 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Exterior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.')
     args << arg
 
+    storm_window_type_choices = OpenStudio::StringVector.new
+    storm_window_type_choices << HPXML::WindowGlassTypeClear
+    storm_window_type_choices << HPXML::WindowGlassTypeLowE
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('window_storm_type', storm_window_type_choices, false)
+    arg.setDisplayName('Windows: Storm Type')
+    arg.setDescription('The type of storm, if present.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_front_depth', true)
     arg.setDisplayName('Overhangs: Front Depth')
     arg.setDescription('The depth of overhangs for windows for the front facade.')
@@ -881,6 +890,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     skylight_shgc.setDescription('Full-assembly NFRC solar heat gain coefficient.')
     skylight_shgc.setDefaultValue(0.45)
     args << skylight_shgc
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('skylight_storm_type', storm_window_type_choices, false)
+    arg.setDisplayName('Skylights: Storm Type')
+    arg.setDescription('The type of storm, if present.')
+    args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('door_area', true)
     arg.setDisplayName('Doors: Area')
@@ -4099,6 +4113,10 @@ class HPXMLFile
         fraction_operable = args[:window_fraction_operable].get
       end
 
+      if args[:window_storm_type].is_initialized
+        window_storm_type = args[:window_storm_type].get
+      end
+
       wall_idref = @surface_ids[surface.name.to_s]
       next if wall_idref.nil?
 
@@ -4107,6 +4125,7 @@ class HPXMLFile
                         azimuth: azimuth,
                         ufactor: args[:window_ufactor],
                         shgc: args[:window_shgc],
+                        storm_type: window_storm_type,
                         overhangs_depth: overhangs_depth,
                         overhangs_distance_to_top_of_window: overhangs_distance_to_top_of_window,
                         overhangs_distance_to_bottom_of_window: overhangs_distance_to_bottom_of_window,
@@ -4128,6 +4147,10 @@ class HPXMLFile
       sub_surface_facade = Geometry.get_facade_for_surface(sub_surface)
       azimuth = Geometry.get_azimuth_from_facade(facade: sub_surface_facade, orientation: args[:geometry_unit_orientation])
 
+      if args[:skylight_storm_type].is_initialized
+        skylight_storm_type = args[:skylight_storm_type].get
+      end
+
       roof_idref = @surface_ids[surface.name.to_s]
       next if roof_idref.nil?
 
@@ -4136,6 +4159,7 @@ class HPXMLFile
                           azimuth: azimuth,
                           ufactor: args[:skylight_ufactor],
                           shgc: args[:skylight_shgc],
+                          storm_type: skylight_storm_type,
                           roof_idref: roof_idref)
     end
   end

@@ -18,6 +18,8 @@ class TestRunAnalysis < MiniTest::Test
     @national_upgrades = File.join(workflow_dir, 'national_upgrades')
 
     @expected_baseline_columns = [
+      'report_simulation_output.energy_use_total_m_btu',
+      'report_simulation_output.energy_use_net_m_btu',
       'building_id',
       'job_id',
       'completed_status',
@@ -30,12 +32,14 @@ class TestRunAnalysis < MiniTest::Test
       'apply_upgrade.option_01_cost_1_multiplier_to_apply'
     ]
     @expected_nonnull_columns = [
+      'report_simulation_output.energy_use_net_m_btu',
       'apply_upgrade.upgrade_name',
       'upgrade_costs.door_area_ft_2',
       'upgrade_costs.option_01_name',
       'upgrade_costs.option_01_cost_usd'
     ]
     @expected_nonzero_columns = [
+      'report_simulation_output.energy_use_total_m_btu',
       'upgrade_costs.upgrade_cost_usd'
     ]
   end
