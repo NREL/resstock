@@ -418,7 +418,7 @@ class Airflow
 
     manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     manager.setName("#{vent_program.name} calling manager")
-    manager.setCallingPoint('BeginTimestepBeforePredictor')
+    manager.setCallingPoint('BeginZoneTimestepAfterInitHeatBalance')
     manager.addProgram(vent_program)
   end
 
@@ -1708,7 +1708,7 @@ class Airflow
 
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{infil_program.name} calling manager")
-    program_calling_manager.setCallingPoint('BeginTimestepBeforePredictor')
+    program_calling_manager.setCallingPoint('BeginZoneTimestepAfterInitHeatBalance')
     program_calling_manager.addProgram(infil_program)
   end
 

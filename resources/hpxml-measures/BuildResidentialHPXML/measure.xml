@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>ae249fd0-acfe-4051-a1e5-ea39fc05ec05</version_id>
-  <version_modified>20220318T004656Z</version_modified>
+  <version_id>54f0ab49-df8e-455f-803a-e17ed4425b36</version_id>
+  <version_modified>20220324T220358Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -1596,6 +1596,24 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>window_storm_type</name>
+      <display_name>Windows: Storm Type</display_name>
+      <description>The type of storm, if present.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>clear</value>
+          <display_name>clear</display_name>
+        </choice>
+        <choice>
+          <value>low-e</value>
+          <display_name>low-e</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>overhangs_front_depth</name>
       <display_name>Overhangs: Front Depth</display_name>
       <description>The depth of overhangs for windows for the front facade.</description>
@@ -1757,6 +1775,24 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.45</default_value>
+    </argument>
+    <argument>
+      <name>skylight_storm_type</name>
+      <display_name>Skylights: Storm Type</display_name>
+      <description>The type of storm, if present.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>clear</value>
+          <display_name>clear</display_name>
+        </choice>
+        <choice>
+          <value>low-e</value>
+          <display_name>low-e</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>door_area</name>
@@ -4245,6 +4281,16 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
+      <name>battery_usable_capacity</name>
+      <display_name>Battery: Usable Capacity</display_name>
+      <description>The usable capacity of the lithium ion battery.</description>
+      <type>String</type>
+      <units>kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
       <name>lighting_present</name>
       <display_name>Lighting: Present</display_name>
       <description>Whether there is lighting energy use.</description>
@@ -6033,6 +6079,12 @@
       <checksum>2E568E41</checksum>
     </file>
     <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>43553C6E</checksum>
+    </file>
+    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>2.9.0</identifier>
@@ -6041,13 +6093,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>5A7435D3</checksum>
-    </file>
-    <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>AFBDA179</checksum>
+      <checksum>774ECC9A</checksum>
     </file>
   </files>
 </measure>

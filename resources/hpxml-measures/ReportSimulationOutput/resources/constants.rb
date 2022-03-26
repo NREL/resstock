@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+class TE
+  # Total Energy
+  Total = 'Total'
+  Net = 'Net'
+end
+
 class FT
   # Fuel Types
   Elec = 'Electricity'
