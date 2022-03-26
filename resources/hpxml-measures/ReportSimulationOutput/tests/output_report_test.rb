@@ -246,6 +246,56 @@ class ReportSimulationOutputTest < MiniTest::Test
     'Weather: Direct Solar Radiation',
   ]
 
+  BaseHPXMLTimeseriesColsStandardOutputVariables = [
+    'Zone People Occupant Count: Living Space',
+    'Zone People Total Heating Energy: Living Space'
+  ]
+
+  BaseHPXMLTimeseriesColsAdvancedOutputVariables = [
+    'Surface Construction Index: Door1',
+    'Surface Construction Index: Foundationwall1',
+    'Surface Construction Index: Framefloor1',
+    'Surface Construction Index: Furniture Mass Living Space 1 Above Grade',
+    'Surface Construction Index: Furniture Mass Living Space 1 Below Grade',
+    'Surface Construction Index: Inferred Conditioned Ceiling',
+    'Surface Construction Index: Inferred Conditioned Floor',
+    'Surface Construction Index: Partition Wall Mass Above Grade',
+    'Surface Construction Index: Partition Wall Mass Below Grade',
+    'Surface Construction Index: Rimjoist1:0',
+    'Surface Construction Index: Rimjoist1:90',
+    'Surface Construction Index: Rimjoist1:180',
+    'Surface Construction Index: Rimjoist1:270',
+    'Surface Construction Index: Roof1:0',
+    'Surface Construction Index: Roof1:90',
+    'Surface Construction Index: Roof1:180',
+    'Surface Construction Index: Roof1:270',
+    'Surface Construction Index: Slab1',
+    'Surface Construction Index: Surface 1',
+    'Surface Construction Index: Surface 1 Reversed',
+    'Surface Construction Index: Surface 2',
+    'Surface Construction Index: Surface 3',
+    'Surface Construction Index: Surface 4',
+    'Surface Construction Index: Surface 5',
+    'Surface Construction Index: Surface 6',
+    'Surface Construction Index: Surface Door1',
+    'Surface Construction Index: Surface Window1',
+    'Surface Construction Index: Surface Window2',
+    'Surface Construction Index: Surface Window3',
+    'Surface Construction Index: Surface Window4',
+    'Surface Construction Index: Wall1:0',
+    'Surface Construction Index: Wall1:90',
+    'Surface Construction Index: Wall1:180',
+    'Surface Construction Index: Wall1:270',
+    'Surface Construction Index: Wall2:0',
+    'Surface Construction Index: Wall2:90',
+    'Surface Construction Index: Wall2:180',
+    'Surface Construction Index: Wall2:270',
+    'Surface Construction Index: Window1',
+    'Surface Construction Index: Window2',
+    'Surface Construction Index: Window3',
+    'Surface Construction Index: Window4'
+  ]
+
   ERIRows = [
     'hpxml_heat_sys_ids',
     'hpxml_cool_sys_ids',
@@ -846,6 +896,31 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
   end
 
+  def test_timeseries_timestep_emissions
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-misc-emissions.xml',
+                  'timeseries_frequency' => 'timestep',
+                  'include_timeseries_fuel_consumptions' => false,
+                  'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_emissions' => true,
+                  'include_timeseries_hot_water_uses' => false,
+                  'include_timeseries_total_loads' => false,
+                  'include_timeseries_component_loads' => false,
+                  'include_timeseries_zone_temperatures' => false,
+                  'include_timeseries_airflows' => false,
+                  'include_timeseries_weather' => false }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + emissions_timeseries_cols
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    _check_for_constant_timeseries_step(timeseries_cols[0])
+    _check_for_nonzero_timeseries_value(timeseries_csv, emissions_timeseries_cols[0..2])
+  end
+
   def test_timeseries_timestep_10min
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base-simcontrol-timestep-10-mins.xml',
                   'timeseries_frequency' => 'timestep',
@@ -976,6 +1051,60 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[2]))
   end
 
+  def test_timeseries_user_defined_standard_output_variables
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_fuel_consumptions' => false,
+                  'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_emissions' => false,
+                  'include_timeseries_hot_water_uses' => false,
+                  'include_timeseries_total_loads' => false,
+                  'include_timeseries_component_loads' => false,
+                  'include_timeseries_zone_temperatures' => false,
+                  'include_timeseries_airflows' => false,
+                  'include_timeseries_weather' => false,
+                  'user_output_variables' => 'Zone People Occupant Count, Zone People Total Heating Energy, Foo' }
+    annual_csv, timeseries_csv, run_log = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsStandardOutputVariables
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsStandardOutputVariables)
+    assert(File.readlines(run_log).any? { |line| line.include?("Request for output variable 'Foo'") })
+  end
+
+  def test_timeseries_user_defined_advanced_output_variables
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+                  'add_component_loads' => true,
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_fuel_consumptions' => false,
+                  'include_timeseries_end_use_consumptions' => false,
+                  'include_timeseries_emissions' => false,
+                  'include_timeseries_hot_water_uses' => false,
+                  'include_timeseries_total_loads' => false,
+                  'include_timeseries_component_loads' => false,
+                  'include_timeseries_zone_temperatures' => false,
+                  'include_timeseries_airflows' => false,
+                  'include_timeseries_weather' => false,
+                  'user_output_variables' => 'Surface Construction Index' }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsAdvancedOutputVariables
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    _check_for_nonzero_timeseries_value(timeseries_csv, BaseHPXMLTimeseriesColsAdvancedOutputVariables)
+  end
+
   def test_eri_designs
     # Create derivative HPXML file w/ ERI design type set
     require 'fileutils'
@@ -1033,7 +1162,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(args_hash.size, found_args.size)
 
     # Run OSW
-    success = system("#{OpenStudio.getOpenStudioCLI} run -w #{osw_path}")
+    success = system("#{OpenStudio.getOpenStudioCLI} run -w \"#{osw_path}\"")
     assert_equal(true, success)
 
     # Cleanup
@@ -1044,11 +1173,13 @@ class ReportSimulationOutputTest < MiniTest::Test
       hpxml_name = File.basename(args_hash['hpxml_path']).gsub('.xml', '')
       annual_csv = File.join(output_dir, "#{hpxml_name}.csv")
       timeseries_csv = File.join(output_dir, "#{hpxml_name}_Hourly.csv")
+      run_log = File.join(output_dir, 'run.log')
     else
       annual_csv = File.join(File.dirname(template_osw), 'run', 'results_annual.csv')
       timeseries_csv = File.join(File.dirname(template_osw), 'run', 'results_timeseries.csv')
+      run_log = File.join(File.dirname(template_osw), 'run', 'run.log')
     end
-    return annual_csv, timeseries_csv
+    return annual_csv, timeseries_csv, run_log
   end
 
   def _parse_time(ts)

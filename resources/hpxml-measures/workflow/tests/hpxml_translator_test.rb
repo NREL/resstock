@@ -207,6 +207,29 @@ class HPXMLTest < MiniTest::Test
     assert_equal(1, timeseries_rows[0].select { |r| r == 'TimeUTC' }.size)
   end
 
+  def test_run_simulation_timeseries_output_variables
+    # Check that the simulation produces timeseries with request output variables
+    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
+    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --add-timeseries-output-variable 'Zone People Occupant Count' --add-timeseries-output-variable 'Zone People Total Heating Energy'"
+    system(command, err: File::NULL)
+
+    # Check for output files
+    sql_path = File.join(File.dirname(xml), 'run', 'eplusout.sql')
+    assert(File.exist? sql_path)
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_annual.csv')
+    assert(File.exist? csv_output_path)
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_hpxml.csv')
+    assert(File.exist? csv_output_path)
+    csv_output_path = File.join(File.dirname(xml), 'run', 'results_timeseries.csv')
+    assert(File.exist? csv_output_path)
+
+    # Check timeseries output variables exist
+    timeseries_rows = CSV.read(csv_output_path)
+    assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Occupant Count: Living Space' }.size)
+    assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Total Heating Energy: Living Space' }.size)
+  end
+
   def test_template_osw
     # Check that simulation works using template.osw
     require 'json'
@@ -230,7 +253,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w \"#{osw_path_test}\""
     system(command, err: File::NULL)
 
     # Check for output files
@@ -274,7 +297,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w \"#{osw_path_test}\""
     system(command, err: File::NULL)
 
     # Check for output files
@@ -320,7 +343,7 @@ class HPXMLTest < MiniTest::Test
       f.write(JSON.pretty_generate(json))
     end
 
-    command = "#{OpenStudio.getOpenStudioCLI} run -w #{osw_path_test}"
+    command = "#{OpenStudio.getOpenStudioCLI} run -w \"#{osw_path_test}\""
     system(command, err: File::NULL)
 
     # Check for output files

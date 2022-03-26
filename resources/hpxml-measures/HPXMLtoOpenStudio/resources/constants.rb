@@ -47,12 +47,12 @@ class Constants
     return 'auto using max load'
   end
 
-  def self.CalcTypeCO2RatedHome
-    return 'CO2 Rated Home'
+  def self.CalcTypeCO2eRatedHome
+    return 'CO2e Rated Home'
   end
 
-  def self.CalcTypeCO2ReferenceHome
-    return 'CO2 Reference Home'
+  def self.CalcTypeCO2eReferenceHome
+    return 'CO2e Reference Home'
   end
 
   def self.CalcTypeERIRatedHome

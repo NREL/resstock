@@ -220,7 +220,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
     assert_equal(args_hash.size, found_args.size)
 
     # Run OSW
-    success = system("#{OpenStudio.getOpenStudioCLI} run -w #{osw_path}")
+    success = system("#{OpenStudio.getOpenStudioCLI} run -w \"#{osw_path}\"")
     assert_equal(true, success)
 
     # Cleanup
