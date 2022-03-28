@@ -692,10 +692,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       # Apply adjustment to infiltration value
       args['air_leakage_value'] *= exposed_wall_area_ratio
 
-      if args['air_leakage_percent_reduction'].is_initialized
-        args['air_leakage_value'] *= (1.0 - args['air_leakage_percent_reduction'].get / 100.0)
-      end
-
       if horiz_location == 'Left'
         args['geometry_unit_right_wall_is_adiabatic'] = true
       elsif horiz_location == 'Middle'
@@ -704,6 +700,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       elsif horiz_location == 'Right'
         args['geometry_unit_left_wall_is_adiabatic'] = true
       end
+    end
+
+    # Infiltration Reduction
+    if args['air_leakage_percent_reduction'].is_initialized
+      args['air_leakage_value'] *= (1.0 - args['air_leakage_percent_reduction'].get / 100.0)
     end
 
     # Num Floors

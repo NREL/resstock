@@ -10,6 +10,11 @@ sampler:
   args:
     n_datapoints: 5
 
+# sampler:
+  # type: precomputed
+  # args:
+    # sample_file: ../buildstock.csv
+
 workflow_generator:
   type: residential_hpxml
   args:
@@ -23,15 +28,16 @@ workflow_generator:
 
     emissions:
       - scenario_name: LRMER_MidCase_15
-        type: CO2
+        type: CO2e
         elec_folder: data/cambium/LRMER_MidCase_15
-        gas_value: 117.6
-        propane_value: 136.6
-        oil_value: 161.0
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
         wood_value: 200.0
 
     simulation_output_report:
       timeseries_frequency: hourly
+      include_timeseries_total_consumptions: true
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
       include_timeseries_emissions: true
@@ -74,9 +80,14 @@ upgrades:
   - upgrade_name: Ceilings
     options:
       - option: Insulation Ceiling|R-60
+        apply_logic:
+          or:
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|Uninsulated
         costs:
           - value: 0.11
-            multiplier: Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
         lifetime: 999
 
   - upgrade_name: Air Leakage
@@ -84,7 +95,7 @@ upgrades:
       - option: Infiltration Reduction|25%
         costs:
           - value: 1.50
-            multiplier: Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)
+            multiplier: Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)
         lifetime: 999
 
   - upgrade_name: Refrigerator
@@ -159,14 +170,19 @@ upgrades:
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
         lifetime: 999
       - option: Insulation Ceiling|R-60
+        apply_logic:
+          or:
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|Uninsulated
         costs:
           - value: 0.11
-            multiplier: Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
         lifetime: 999
       - option: Infiltration Reduction|25%
         costs:
           - value: 1.50
-            multiplier: Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)
+            multiplier: Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)
         lifetime: 999
       - option: Refrigerator|EF 21.9, 100% Usage
         costs:

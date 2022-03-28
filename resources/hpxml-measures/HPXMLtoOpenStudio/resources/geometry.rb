@@ -584,14 +584,17 @@ class Geometry
 
   def self.tear_down_model(model, runner)
     # Tear down the existing model if it exists
-    has_existing_objects = (model.getThermalZones.size > 0)
+    # Exclude removing Building and its AdditionalProperties
     handles = OpenStudio::UUIDVector.new
     model.objects.each do |obj|
+      next if obj.to_Building.is_initialized
+      next if obj.to_AdditionalProperties.is_initialized && obj.to_AdditionalProperties.get.modelObject.to_Building.is_initialized
+
       handles << obj.handle
     end
-    model.removeObjects(handles)
-    if has_existing_objects
+    if !handles.empty?
       runner.registerWarning('The model contains existing objects and is being reset.')
+      model.removeObjects(handles)
     end
   end
 

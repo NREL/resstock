@@ -1,8 +1,8 @@
 ## ResStock v2.6.0 (pending)
 
 Features
-- Add a new "Floor Area * Insulation Increase, Attic (ft^2 * Delta R-value)" cost multiplier for handling incremental costs of adding attic insulation ([#842](https://github.com/NREL/resstock/pull/842))
-- Allow air leakage % reduction upgrades (e.g., 25%), and add a new "Floor Area * Infiltration Reduction, Conditioned (ft^2 * Delta ACH50)" cost multiplier for handling incremental costs of such upgrades ([#840](https://github.com/NREL/resstock/pull/840))
+- Add a new "Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)" cost multiplier for handling incremental costs of adding attic insulation ([#842](https://github.com/NREL/resstock/pull/842))
+- Allow air leakage % reduction upgrades (e.g., 25%), and add a new "Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)" cost multiplier for handling incremental costs of such upgrades ([#840](https://github.com/NREL/resstock/pull/840))
 - For the testing project, sample equal distributions of (1) smooth and stochastic schedules (each 50%) and (2) faulted and non-faulted HVAC systems (each 50%) ([#828](https://github.com/NREL/resstock/pull/828))
 - Allow upgrade options to be defined in the lookup using measures other than ResStockArguments ([#839](https://github.com/NREL/resstock/pull/839))
 - Enable rim joists for homes with basements/crawlspaces; assumes a height of 9.25 inches and calculates rim joist assembly R-value from new insulation arguments ([#831](https://github.com/NREL/resstock/pull/831))
