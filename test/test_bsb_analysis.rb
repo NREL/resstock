@@ -14,20 +14,19 @@ class TesBuildStockBatch < MiniTest::Test
     @expected_baseline_contents = [
       'data_point_out.json',
       'existing.xml',
-      'results_timeseries.csv',
-      'in.idf',
+      'results_timeseries.csv'
     ]
 
-    @expected_upgrade_contents += [
+    @expected_upgrade_contents = @expected_baseline_contents + [
       'upgraded.xml'
     ]
 
     @expected_timeseries_columns = [
       'TimeDST',
       'TimeUTC',
+      'Energy Use:',
       'Fuel Use:',
       'End Use:',
-      'Load:',
       'Emissions:'
     ]
   end
@@ -60,6 +59,7 @@ class TesBuildStockBatch < MiniTest::Test
       assert(up00.include?(file))
     end
     assert(up00.include?('in.osm'))
+    assert(up00.include?('in.idf'))
     assert(up00.include?('schedules.csv'))
 
     @expected_timeseries_columns.each do |col|
@@ -130,6 +130,7 @@ class TesBuildStockBatch < MiniTest::Test
       assert(up00.include?(file))
     end
     assert(up00.include?('in.osm'))
+    assert(up00.include?('in.idf'))
     assert(up00.include?('schedules.csv'))
 
     @expected_upgrade_contents.each do |file|

@@ -46,8 +46,11 @@ class TestRunAnalysis < MiniTest::Test
     @expected_baseline_contents = [
       'data_point_out.json',
       'existing.xml',
-      'results_timeseries.csv',
-      'in.idf',
+      'results_timeseries.csv'
+    ]
+
+    @expected_upgrade_contents = @expected_baseline_contents + [
+      'upgraded.xml'
     ]
 
     @expected_timeseries_columns = [
@@ -111,6 +114,7 @@ class TestRunAnalysis < MiniTest::Test
     @expected_baseline_contents.each do |col|
       assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', col)))
     end
+    assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'in.osm')))
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'in.idf')))
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'schedules.csv')))
 
@@ -155,6 +159,7 @@ class TestRunAnalysis < MiniTest::Test
       assert(File.exist?(File.join(@national_baseline, 'run1', 'run', col)))
     end
 
+    results_timeseries = CSV.read(File.join(@national_baseline, 'run1', 'run', 'results_timeseries.csv'), headers: true)
     @expected_timeseries_columns.each do |col|
       assert(results_timeseries.headers.include?(col))
     end
@@ -205,8 +210,13 @@ class TestRunAnalysis < MiniTest::Test
     @expected_baseline_contents.each do |col|
       assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', col)))
     end
+    assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'in.osm')))
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'in.idf')))
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'schedules.csv')))
+
+    @expected_upgrade_contents.each do |col|
+      assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', col)))
+    end
 
     results_timeseries = CSV.read(File.join(@testing_upgrades, 'run1', 'run', 'results_timeseries.csv'), headers: true)
     @expected_timeseries_columns.each do |col|
@@ -261,6 +271,11 @@ class TestRunAnalysis < MiniTest::Test
       assert(File.exist?(File.join(@national_upgrades, 'run1', 'run', col)))
     end
 
+    @expected_upgrade_contents.each do |col|
+      assert(File.exist?(File.join(@national_upgrades, 'run1', 'run', col)))
+    end
+
+    results_timeseries = CSV.read(File.join(@national_upgrades, 'run1', 'run', 'results_timeseries.csv'), headers: true)
     @expected_timeseries_columns.each do |col|
       assert(results_timeseries.headers.include?(col))
     end
