@@ -625,7 +625,7 @@ class UpgradeCostsTest < MiniTest::Test
     assert(success)
   end
 
-  def _upgrade_osw(model, osw, values)
+  def _upgrade_osw(osw)
     upgrades = { 'ceiling_assembly_r' => 61.6,
                  'air_leakage_value' => 2.25 }
 
@@ -637,10 +637,11 @@ class UpgradeCostsTest < MiniTest::Test
       end
     end
     File.open(osw, 'w') { |json| json.write(JSON.pretty_generate(osw_hash)) }
+  end
 
-    # ResStockArguments
-    model.getBuilding.additionalProperties.setFeature('existing_ceiling_insulation_r', 38)
-    model.getBuilding.additionalProperties.setFeature('upgraded_ceiling_insulation_r', 60)
+  def _set_additional_properties(existing_hpxml, upgraded_hpxml)
+    existing_hpxml.header.extension_properties = { 'ceiling_insulation_r' => 38 }
+    upgraded_hpxml.header.extension_properties = { 'ceiling_insulation_r' => 60 }
   end
 
   def _test_cost_multipliers(osw_file, cost_multipliers)
@@ -668,11 +669,14 @@ class UpgradeCostsTest < MiniTest::Test
     upgrade_osw_file = "Upgrade_#{osw_file}"
     upgrade_osw = File.absolute_path("#{this_dir}/#{upgrade_osw_file}")
     FileUtils.cp(osw, upgrade_osw)
-    _upgrade_osw(model, upgrade_osw, values)
+    _upgrade_osw(upgrade_osw)
     _run_osw(model, upgrade_osw)
 
     upgraded_path = File.join(this_dir, upgrade_osw_file.gsub('osw', 'xml'))
     upgraded_hpxml = HPXML.new(hpxml_path: upgraded_path)
+
+    # Set additional properties
+    _set_additional_properties(existing_hpxml, upgraded_hpxml)
 
     # Create instance of the measures
     hpxml_output_report = ReportHPXMLOutput.new

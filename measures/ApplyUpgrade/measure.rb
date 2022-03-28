@@ -316,12 +316,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         return false
       end
-
-      # Set additional properties for some cost multipliers to use
-      measures['ResStockArguments'][0].each do |arg_name, arg_value|
-        model.getBuilding.additionalProperties.setFeature("upgraded_#{arg_name}", arg_value)
-      end
-
     end # apply_package_upgrade
 
     # Register the upgrade name
@@ -347,6 +341,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
     end
+
+    # Set additional properties
+    additional_properties = []
+    ['ceiling_insulation_r'].each do |arg_name|
+      arg_value = measures['ResStockArguments'][0][arg_name]
+      additional_properties << "#{arg_name}=#{arg_value}"
+    end
+    measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
     # Retain HVAC capacities
 
