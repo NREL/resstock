@@ -126,16 +126,12 @@ class TesBuildStockBatch < MiniTest::Test
     end
     tar_extract.close
 
-    @expected_baseline_contents.each do |file|
-      assert(up00.include?(file))
-    end
-    assert(up00.include?('in.osm'))
-    assert(up00.include?('in.idf'))
-    assert(up00.include?('schedules.csv'))
-
     @expected_upgrade_contents.each do |file|
       assert(up01.include?(file))
     end
+    assert(up01.include?('in.osm'))
+    assert(up01.include?('in.idf'))
+    assert(up01.include?('schedules.csv'))
 
     @expected_timeseries_columns.each do |col|
       assert(timeseries.include?(col))
@@ -167,10 +163,6 @@ class TesBuildStockBatch < MiniTest::Test
       end
     end
     tar_extract.close
-
-    @expected_baseline_contents.each do |file|
-      assert(up00.include?(file))
-    end
 
     @expected_upgrade_contents.each do |file|
       assert(up01.include?(file))
