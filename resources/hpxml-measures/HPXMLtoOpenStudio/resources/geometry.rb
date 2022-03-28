@@ -584,12 +584,8 @@ class Geometry
 
   def self.tear_down_model(model, runner)
     # Tear down the existing model if it exists
-    # Exclude removing Building and its AdditionalProperties
     handles = OpenStudio::UUIDVector.new
     model.objects.each do |obj|
-      next if obj.to_Building.is_initialized
-      next if obj.to_AdditionalProperties.is_initialized && obj.to_AdditionalProperties.get.modelObject.to_Building.is_initialized
-
       handles << obj.handle
     end
     if !handles.empty?
