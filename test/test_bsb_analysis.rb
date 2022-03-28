@@ -10,6 +10,26 @@ class TesBuildStockBatch < MiniTest::Test
     @national_baseline = 'project_national/national_baseline'
     @testing_upgrades = 'project_testing/testing_upgrades'
     @national_upgrades = 'project_national/national_upgrades'
+
+    @expected_baseline_contents = [
+      'data_point_out.json',
+      'existing.xml',
+      'results_timeseries.csv',
+      'in.idf',
+    ]
+
+    @expected_upgrade_contents += [
+      'upgraded.xml'
+    ]
+
+    @expected_timeseries_columns = [
+      'TimeDST',
+      'TimeUTC',
+      'Fuel Use:',
+      'End Use:',
+      'Load:',
+      'Emissions:'
+    ]
   end
 
   def test_testing_baseline
@@ -36,21 +56,16 @@ class TesBuildStockBatch < MiniTest::Test
     end
     tar_extract.close
 
-    assert(up00.include?('data_point_out.json'))
-    assert(up00.include?('existing.xml'))
-    assert(!up00.include?('upgraded.xml'))
-    assert(up00.include?('results_timeseries.csv'))
+    @expected_baseline_contents.each do |file|
+      assert(up00.include?(file))
+    end
     assert(up00.include?('in.osm'))
-    assert(up00.include?('in.idf'))
     assert(up00.include?('schedules.csv'))
 
-    assert(timeseries.include?('Time'))
-    assert(timeseries.include?('TimeDST'))
-    assert(timeseries.include?('TimeUTC'))
-    assert(timeseries.include?('Fuel Use:'))
-    assert(timeseries.include?('End Use:'))
-    assert(!timeseries.include?('Load:'))
-    assert(timeseries.include?('Emissions:'))
+    @expected_timeseries_columns.each do |col|
+      assert(timeseries.include?(col))
+    end
+    assert(timeseries.include?('Zone Mean Air Temperature:'))
   end
 
   def test_national_baseline
@@ -77,20 +92,13 @@ class TesBuildStockBatch < MiniTest::Test
     end
     tar_extract.close
 
-    assert(up00.include?('data_point_out.json'))
-    assert(up00.include?('existing.xml'))
-    assert(!up00.include?('upgraded.xml'))
-    assert(up00.include?('results_timeseries.csv'))
-    assert(!up00.include?('in.idf'))
-    assert(!up00.include?('schedules.csv'))
+    @expected_baseline_contents.each do |file|
+      assert(up00.include?(file))
+    end
 
-    assert(timeseries.include?('Time'))
-    assert(timeseries.include?('TimeDST'))
-    assert(timeseries.include?('TimeUTC'))
-    assert(timeseries.include?('Fuel Use:'))
-    assert(timeseries.include?('End Use:'))
-    assert(!timeseries.include?('Load:'))
-    assert(timeseries.include?('Emissions:'))
+    @expected_timeseries_columns.each do |col|
+      assert(timeseries.include?(col))
+    end
   end
 
   def test_testing_upgrades
@@ -118,21 +126,20 @@ class TesBuildStockBatch < MiniTest::Test
     end
     tar_extract.close
 
-    assert(up01.include?('data_point_out.json'))
-    assert(up01.include?('existing.xml'))
-    assert(up01.include?('upgraded.xml'))
-    assert(up01.include?('results_timeseries.csv'))
-    assert(up01.include?('in.osm'))
-    assert(up01.include?('in.idf'))
-    assert(up01.include?('schedules.csv'))
+    @expected_baseline_contents.each do |file|
+      assert(up00.include?(file))
+    end
+    assert(up00.include?('in.osm'))
+    assert(up00.include?('schedules.csv'))
 
-    assert(timeseries.include?('Time'))
-    assert(timeseries.include?('TimeDST'))
-    assert(timeseries.include?('TimeUTC'))
-    assert(timeseries.include?('Fuel Use:'))
-    assert(timeseries.include?('End Use:'))
-    assert(!timeseries.include?('Load:'))
-    assert(timeseries.include?('Emissions:'))
+    @expected_upgrade_contents.each do |file|
+      assert(up01.include?(file))
+    end
+
+    @expected_timeseries_columns.each do |col|
+      assert(timeseries.include?(col))
+    end
+    assert(timeseries.include?('Zone Mean Air Temperature:'))
   end
 
   def test_national_upgrades
@@ -160,19 +167,16 @@ class TesBuildStockBatch < MiniTest::Test
     end
     tar_extract.close
 
-    assert(up01.include?('data_point_out.json'))
-    assert(up01.include?('existing.xml'))
-    assert(up01.include?('upgraded.xml'))
-    assert(up01.include?('results_timeseries.csv'))
-    assert(!up01.include?('in.idf'))
-    assert(!up01.include?('schedules.csv'))
+    @expected_baseline_contents.each do |file|
+      assert(up00.include?(file))
+    end
 
-    assert(timeseries.include?('Time'))
-    assert(timeseries.include?('TimeDST'))
-    assert(timeseries.include?('TimeUTC'))
-    assert(timeseries.include?('Fuel Use:'))
-    assert(timeseries.include?('End Use:'))
-    assert(!timeseries.include?('Load:'))
-    assert(timeseries.include?('Emissions:'))
+    @expected_upgrade_contents.each do |file|
+      assert(up01.include?(file))
+    end
+
+    @expected_timeseries_columns.each do |col|
+      assert(timeseries.include?(col))
+    end
   end
 end

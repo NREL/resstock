@@ -42,6 +42,22 @@ class TestRunAnalysis < MiniTest::Test
       'report_simulation_output.energy_use_total_m_btu',
       'upgrade_costs.upgrade_cost_usd'
     ]
+
+    @expected_baseline_contents = [
+      'data_point_out.json',
+      'existing.xml',
+      'results_timeseries.csv',
+      'in.idf',
+    ]
+
+    @expected_timeseries_columns = [
+      'TimeDST',
+      'TimeUTC',
+      'Energy Use: Total',
+      'Fuel Use: Electricity: Total',
+      'End Use: Electricity: Lighting Interior',
+      'Emissions: CO2e: LRMER_MidCase_15: Total'
+    ]
   end
 
   def test_version
@@ -92,13 +108,17 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@testing_baseline, 'xml', 'Baseline', '1.xml')))
 
-    assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'data_point_out.json')))
-    assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'results_timeseries.csv')))
+    @expected_baseline_contents.each do |col|
+      assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', col)))
+    end
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'in.idf')))
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run', 'schedules.csv')))
 
     results_timeseries = CSV.read(File.join(@testing_baseline, 'run1', 'run', 'results_timeseries.csv'), headers: true)
-    assert(results_timeseries.headers.include?('Zone People Occupant Count: Living Space'))
+    @expected_timeseries_columns.each do |col|
+      assert(results_timeseries.headers.include?(col))
+    end
+    assert(results_timeseries.headers.include?('Zone Mean Air Temperature: Living Space'))
 
     FileUtils.rm_rf(@testing_baseline)
   end
@@ -131,10 +151,13 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
 
-    assert(File.exist?(File.join(@national_baseline, 'run1', 'run', 'data_point_out.json')))
-    assert(File.exist?(File.join(@national_baseline, 'run1', 'run', 'results_timeseries.csv')))
-    assert(!File.exist?(File.join(@national_baseline, 'run1', 'run', 'in.idf')))
-    assert(!File.exist?(File.join(@national_baseline, 'run1', 'run', 'schedules.csv')))
+    @expected_baseline_contents.each do |col|
+      assert(File.exist?(File.join(@national_baseline, 'run1', 'run', col)))
+    end
+
+    @expected_timeseries_columns.each do |col|
+      assert(results_timeseries.headers.include?(col))
+    end
 
     FileUtils.rm_rf(@national_baseline)
   end
@@ -179,13 +202,17 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-existing.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-upgraded.xml')))
 
-    assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'data_point_out.json')))
-    assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'results_timeseries.csv')))
+    @expected_baseline_contents.each do |col|
+      assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', col)))
+    end
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'in.idf')))
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run', 'schedules.csv')))
 
     results_timeseries = CSV.read(File.join(@testing_upgrades, 'run1', 'run', 'results_timeseries.csv'), headers: true)
-    assert(results_timeseries.headers.include?('Zone People Occupant Count: Living Space'))
+    @expected_timeseries_columns.each do |col|
+      assert(results_timeseries.headers.include?(col))
+    end
+    assert(results_timeseries.headers.include?('Zone Mean Air Temperature: Living Space'))
 
     FileUtils.rm_rf(@testing_upgrades)
   end
@@ -230,10 +257,13 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-existing.xml')))
     assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-upgraded.xml')))
 
-    assert(File.exist?(File.join(@national_upgrades, 'run1', 'run', 'data_point_out.json')))
-    assert(File.exist?(File.join(@national_upgrades, 'run1', 'run', 'results_timeseries.csv')))
-    assert(!File.exist?(File.join(@national_upgrades, 'run1', 'run', 'in.idf')))
-    assert(!File.exist?(File.join(@national_upgrades, 'run1', 'run', 'schedules.csv')))
+    @expected_baseline_contents.each do |col|
+      assert(File.exist?(File.join(@national_upgrades, 'run1', 'run', col)))
+    end
+
+    @expected_timeseries_columns.each do |col|
+      assert(results_timeseries.headers.include?(col))
+    end
 
     FileUtils.rm_rf(@national_upgrades)
   end
