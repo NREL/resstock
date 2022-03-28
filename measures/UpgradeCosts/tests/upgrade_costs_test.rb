@@ -740,7 +740,7 @@ class UpgradeCostsTest < MiniTest::Test
     cost_multipliers.each do |mult_type, mult_value|
       next if mult_type.include?('Systems:')
 
-      value = upgrade_costs.get_cost_multiplier(model, mult_type, values, existing_hpxml, upgraded_hpxml)
+      value = upgrade_costs.get_cost_multiplier(mult_type, values, existing_hpxml, upgraded_hpxml)
       assert(!value.nil?)
       if mult_type.include?('ft^2') || mult_type.include?('gal')
         assert_in_epsilon(mult_value, value, 0.005)
