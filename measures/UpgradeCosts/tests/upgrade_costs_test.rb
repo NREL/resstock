@@ -650,9 +650,7 @@ class UpgradeCostsTest < MiniTest::Test
     puts "\nTesting #{osw_file}..."
     this_dir = File.dirname(__FILE__)
 
-    values = { 'build_existing_model' => {},
-               'apply_upgrade' => {},
-               'report_hpxml_output' => {} }
+    values = { 'report_hpxml_output' => {} }
 
     # Existing
     model = OpenStudio::Model::Model.new

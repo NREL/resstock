@@ -71,8 +71,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     # Retrieve values from BuildExistingModel, ApplyUpgrade, ReportHPXMLOutput
-    values = { 'build_existing_model' => get_values_from_runner_past_results(runner, 'build_existing_model'),
-               'apply_upgrade' => get_values_from_runner_past_results(runner, 'apply_upgrade'),
+    values = { 'apply_upgrade' => get_values_from_runner_past_results(runner, 'apply_upgrade'),
                'report_hpxml_output' => get_values_from_runner_past_results(runner, 'report_hpxml_output') }
 
     # Report cost multipliers
