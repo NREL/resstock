@@ -15,6 +15,7 @@ __New Features__
   - **Breaking change**: Changes the zip code argument name to `site_zip_code`.
   - Adds support for ambient foundations for single-family attached and apartment units.
   - Adds support for unconditioned attics for apartment units.
+  - Adds an optional argument to store additional custom properties in the HPXML file.
   - Adds an optional argument for whether the HPXML file is written with default values applied; defaults to false.
   - Adds an optional argument for whether the HPXML file is validated; defaults to false.
 - ReportSimulationOutput measure:
