@@ -11,16 +11,19 @@ class TesBuildStockBatch < MiniTest::Test
     @testing_upgrades = 'project_testing/testing_upgrades'
     @national_upgrades = 'project_national/national_upgrades'
 
+    # check that up00 (baseline) contains these files
     @expected_baseline_contents = [
       'data_point_out.json',
       'existing.xml',
       'results_timeseries.csv'
     ]
 
+    # check that up01 (upgrade) contains these files
     @expected_upgrade_contents = @expected_baseline_contents + [
       'upgraded.xml'
     ]
 
+    # check that results_timeseries.csv contains these column prefixes
     @expected_timeseries_columns = [
       'TimeDST',
       'TimeUTC',
@@ -49,9 +52,7 @@ class TesBuildStockBatch < MiniTest::Test
         up00 << filename
       end
 
-      if filename == 'results_timeseries.csv'
-        timeseries = entry.read
-      end
+      timeseries = entry.read if filename == 'results_timeseries.csv'
     end
     tar_extract.close
 
@@ -61,6 +62,10 @@ class TesBuildStockBatch < MiniTest::Test
     assert(up00.include?('in.osm'))
     assert(up00.include?('in.idf'))
     assert(up00.include?('schedules.csv'))
+
+    @expected_upgrade_contents.each do |file|
+      assert(!up00.include?(file))
+    end
 
     @expected_timeseries_columns.each do |col|
       assert(timeseries.include?(col))
@@ -86,14 +91,16 @@ class TesBuildStockBatch < MiniTest::Test
         up00 << filename
       end
 
-      if filename == 'results_timeseries.csv'
-        timeseries = entry.read
-      end
+      timeseries = entry.read if filename == 'results_timeseries.csv'
     end
     tar_extract.close
 
     @expected_baseline_contents.each do |file|
       assert(up00.include?(file))
+    end
+
+    @expected_upgrade_contents.each do |file|
+      assert(!up00.include?(file))
     end
 
     @expected_timeseries_columns.each do |col|
@@ -120,9 +127,7 @@ class TesBuildStockBatch < MiniTest::Test
 
       up01 << filename
 
-      if filename == 'results_timeseries.csv'
-        timeseries = entry.read
-      end
+      timeseries = entry.read if filename == 'results_timeseries.csv'
     end
     tar_extract.close
 
@@ -158,9 +163,7 @@ class TesBuildStockBatch < MiniTest::Test
 
       up01 << filename
 
-      if filename == 'results_timeseries.csv'
-        timeseries = entry.read
-      end
+      timeseries = entry.read if filename == 'results_timeseries.csv'
     end
     tar_extract.close
 
