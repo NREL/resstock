@@ -63,7 +63,7 @@ class TesBuildStockBatch < MiniTest::Test
     assert(up00.include?('in.idf'))
     assert(up00.include?('schedules.csv'))
 
-    @expected_upgrade_contents.each do |file|
+    (@expected_upgrade_contents - @expected_baseline_contents).each do |file|
       assert(!up00.include?(file))
     end
 
@@ -99,7 +99,7 @@ class TesBuildStockBatch < MiniTest::Test
       assert(up00.include?(file))
     end
 
-    @expected_upgrade_contents.each do |file|
+    (@expected_upgrade_contents - @expected_baseline_contents).each do |file|
       assert(!up00.include?(file))
     end
 
