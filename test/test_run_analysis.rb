@@ -19,13 +19,16 @@ class TestRunAnalysis < MiniTest::Test
 
     # check that all results_output.csv contain these columns
     @expected_baseline_columns = [
-      'report_simulation_output.energy_use_total_m_btu',
-      'report_simulation_output.energy_use_net_m_btu',
       'building_id',
       'job_id',
       'completed_status',
       'report_simulation_output.add_timeseries_dst_column',
-      'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_electricity_lb',
+      'report_simulation_output.add_timeseries_utc_column',
+      'report_simulation_output.energy_use_total_m_btu',
+      'report_simulation_output.energy_use_net_m_btu',
+      'report_simulation_output.fuel_use_electricity_total_m_btu',
+      'report_simulation_output.end_use_natural_gas_heating_m_btu',
+      'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_total_lb',
       'upgrade_costs.door_area_ft_2',
       'qoi_report.qoi_average_maximum_daily_timing_cooling_hour'
     ]

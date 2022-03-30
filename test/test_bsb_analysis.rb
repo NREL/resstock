@@ -27,10 +27,11 @@ class TesBuildStockBatch < MiniTest::Test
     @expected_timeseries_columns = [
       'TimeDST',
       'TimeUTC',
-      'Energy Use:',
-      'Fuel Use:',
-      'End Use:',
-      'Emissions:'
+      'Energy Use: Total',
+      'Energy Use: Net',
+      'Fuel Use: Electricity: Total',
+      'End Use: Natural Gas: Heating',
+      'Emissions: CO2e: LRMER_MidCase_15: Total'
     ]
   end
 
@@ -48,11 +49,16 @@ class TesBuildStockBatch < MiniTest::Test
       next unless entry.file?
 
       scenario, sample, subfolder, filename = entry.full_name.split('/')
-      if subfolder == 'run' && scenario == 'up00'
-        up00 << filename
-      end
+      next unless subfolder == 'run' && scenario == 'up00'
 
-      timeseries = entry.read if filename == 'results_timeseries.csv'
+      up00 << filename if !up00.include?(filename)
+
+      next unless filename == 'results_timeseries.csv'
+
+      cols = CSV.read(entry.read, headers: true)
+      cols.each do |col|
+        timeseries << col if !timeseries.include?(col)
+      end
     end
     tar_extract.close
 
@@ -70,7 +76,7 @@ class TesBuildStockBatch < MiniTest::Test
     @expected_timeseries_columns.each do |col|
       assert(timeseries.include?(col))
     end
-    assert(timeseries.include?('Zone Heat Index:'))
+    assert(timeseries.include?('Zone People Occupant Count: Living Space'))
   end
 
   def test_national_baseline
@@ -87,11 +93,16 @@ class TesBuildStockBatch < MiniTest::Test
       next unless entry.file?
 
       scenario, sample, subfolder, filename = entry.full_name.split('/')
-      if subfolder == 'run' && scenario == 'up00'
-        up00 << filename
-      end
+      next unless subfolder == 'run' && scenario == 'up00'
 
-      timeseries = entry.read if filename == 'results_timeseries.csv'
+      up00 << filename if !up00.include?(filename)
+
+      next unless filename == 'results_timeseries.csv'
+
+      cols = CSV.read(entry.read, headers: true)
+      cols.each do |col|
+        timeseries << col if !timeseries.include?(col)
+      end
     end
     tar_extract.close
 
@@ -125,9 +136,14 @@ class TesBuildStockBatch < MiniTest::Test
       scenario, sample, subfolder, filename = entry.full_name.split('/')
       next unless subfolder == 'run' && scenario == 'up01'
 
-      up01 << filename
+      up01 << filename if !up01.include?(filename)
 
-      timeseries = entry.read if filename == 'results_timeseries.csv'
+      next unless filename == 'results_timeseries.csv'
+
+      cols = CSV.read(entry.read, headers: true)
+      cols.each do |col|
+        timeseries << col if !timeseries.include?(col)
+      end
     end
     tar_extract.close
 
@@ -141,7 +157,7 @@ class TesBuildStockBatch < MiniTest::Test
     @expected_timeseries_columns.each do |col|
       assert(timeseries.include?(col))
     end
-    assert(timeseries.include?('Zone Heat Index:'))
+    assert(timeseries.include?('Zone People Occupant Count: Living Space'))
   end
 
   def test_national_upgrades
@@ -161,9 +177,14 @@ class TesBuildStockBatch < MiniTest::Test
       scenario, sample, subfolder, filename = entry.full_name.split('/')
       next unless subfolder == 'run' && scenario == 'up01'
 
-      up01 << filename
+      up01 << filename if !up01.include?(filename)
 
-      timeseries = entry.read if filename == 'results_timeseries.csv'
+      next unless filename == 'results_timeseries.csv'
+
+      cols = CSV.read(entry.read, headers: true)
+      cols.each do |col|
+        timeseries << col if !timeseries.include?(col)
+      end
     end
     tar_extract.close
 
