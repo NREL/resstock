@@ -3,6 +3,7 @@
 require 'minitest/autorun'
 require 'rubygems/package'
 require 'zlib'
+require 'csv'
 
 class TesBuildStockBatch < MiniTest::Test
   def before_setup
@@ -35,6 +36,16 @@ class TesBuildStockBatch < MiniTest::Test
     ]
   end
 
+  def _get_timeseries_columns(timeseries, entry)
+    CSV.new(entry.read).each_with_index do |row, i|
+      next if i != 0
+
+      row.each do |col|
+        timeseries << col if !timeseries.include?(col)
+      end
+    end
+  end
+
   def test_testing_baseline
     assert(File.exist?(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv.gz')))
 
@@ -52,13 +63,7 @@ class TesBuildStockBatch < MiniTest::Test
       next unless subfolder == 'run' && scenario == 'up00'
 
       up00 << filename if !up00.include?(filename)
-
-      next unless filename == 'results_timeseries.csv'
-
-      cols = CSV.read(entry.read, headers: true)
-      cols.each do |col|
-        timeseries << col if !timeseries.include?(col)
-      end
+      _get_timeseries_columns(timeseries, entry) if filename == 'results_timeseries.csv'
     end
     tar_extract.close
 
@@ -96,13 +101,7 @@ class TesBuildStockBatch < MiniTest::Test
       next unless subfolder == 'run' && scenario == 'up00'
 
       up00 << filename if !up00.include?(filename)
-
-      next unless filename == 'results_timeseries.csv'
-
-      cols = CSV.read(entry.read, headers: true)
-      cols.each do |col|
-        timeseries << col if !timeseries.include?(col)
-      end
+      _get_timeseries_columns(timeseries, entry) if filename == 'results_timeseries.csv'
     end
     tar_extract.close
 
@@ -137,13 +136,7 @@ class TesBuildStockBatch < MiniTest::Test
       next unless subfolder == 'run' && scenario == 'up01'
 
       up01 << filename if !up01.include?(filename)
-
-      next unless filename == 'results_timeseries.csv'
-
-      cols = CSV.read(entry.read, headers: true)
-      cols.each do |col|
-        timeseries << col if !timeseries.include?(col)
-      end
+      _get_timeseries_columns(timeseries, entry) if filename == 'results_timeseries.csv'
     end
     tar_extract.close
 
@@ -178,13 +171,7 @@ class TesBuildStockBatch < MiniTest::Test
       next unless subfolder == 'run' && scenario == 'up01'
 
       up01 << filename if !up01.include?(filename)
-
-      next unless filename == 'results_timeseries.csv'
-
-      cols = CSV.read(entry.read, headers: true)
-      cols.each do |col|
-        timeseries << col if !timeseries.include?(col)
-      end
+      _get_timeseries_columns(timeseries, entry) if filename == 'results_timeseries.csv'
     end
     tar_extract.close
 
