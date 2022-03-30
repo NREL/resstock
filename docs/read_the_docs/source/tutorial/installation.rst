@@ -17,6 +17,8 @@ If you are planning to perform large-scale runs on ResStock (greater than 1000 s
 Buildstockbatch can be run locally via Docker, on AWS, or on an HPC like NREL’s Eagle.
 Installation instructions can be found in buildstockbatch’s `installation documentation <https://buildstockbatch.readthedocs.io/en/latest/installation.html>`_.
 
+If you are planning to perform small-scale runs of ResStock (1000 simulations or fewer), you can use the lighter-weight option of running locally via the `run_analysis.rb script <https://resstock.readthedocs.io/en/latest/tutorial/run_project.html#run-using-run-analysis-rb>`_.
+
 Install OpenStudio
 ------------------
 
