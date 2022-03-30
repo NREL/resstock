@@ -21,6 +21,8 @@ Update Measures
 
 Use ``openstudio tasks.rb update_measures`` to apply rubocop auto-correct to measures, and to update measure.xml files:
 
+.. code:: bash
+
   $ openstudio tasks.rb update_measures
   Applying rubocop auto-correct to measures...
   Running RuboCop...
@@ -55,16 +57,18 @@ Download Weather
 
 Run ``openstudio tasks.rb download_weather`` to download available EPW weather files:
 
+.. code:: bash
+
   $ /c/openstudio-3.3.0/bin/openstudio.exe tasks.rb download_weather
   Downloading /files/156/BuildStock_TMY3_FIPS.zip (  1%) 
   Downloading /files/156/BuildStock_TMY3_FIPS.zip (  2%) 
   Downloading /files/156/BuildStock_TMY3_FIPS.zip (  3%)
   ...
 
-.. _rakefile:
+.. rakefile:
 
 Rakefile
-========
+--------
 
 Once you have completed instructions found in :doc:`installer_setup`, you can then use the `Rakefile <https://github.com/NREL/resstock/blob/develop/Rakefile>`_ contained at the top level of this repository. You will run rake task(s) for :ref:`performing integrity checks on project inputs <integrity-checks>`.
 
