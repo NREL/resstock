@@ -70,7 +70,7 @@ class TesBuildStockBatch < MiniTest::Test
     @expected_timeseries_columns.each do |col|
       assert(timeseries.include?(col))
     end
-    assert(timeseries.include?('Zone Mean Air Temperature:'))
+    assert(timeseries.include?('Zone Heat Index:'))
   end
 
   def test_national_baseline
@@ -141,7 +141,7 @@ class TesBuildStockBatch < MiniTest::Test
     @expected_timeseries_columns.each do |col|
       assert(timeseries.include?(col))
     end
-    assert(timeseries.include?('Zone Mean Air Temperature:'))
+    assert(timeseries.include?('Zone Heat Index:'))
   end
 
   def test_national_upgrades
