@@ -29,7 +29,6 @@ class TesBuildStockBatch < MiniTest::Test
       'TimeDST',
       'TimeUTC',
       'Energy Use: Total',
-      'Energy Use: Net',
       'Fuel Use: Electricity: Total',
       'End Use: Natural Gas: Heating',
       'Emissions: CO2e: LRMER_MidCase_15: Total'
@@ -71,6 +70,7 @@ class TesBuildStockBatch < MiniTest::Test
     @expected_timeseries_columns.each do |col|
       assert(timeseries.include?(col))
     end
+    assert(timeseries.include?('Energy Use: Net'))
     assert(timeseries.include?('Zone People Occupant Count: Living Space'))
   end
 
@@ -140,6 +140,7 @@ class TesBuildStockBatch < MiniTest::Test
     @expected_timeseries_columns.each do |col|
       assert(timeseries.include?(col))
     end
+    assert(timeseries.include?('Energy Use: Net'))
     assert(timeseries.include?('Zone People Occupant Count: Living Space'))
   end
 
