@@ -160,6 +160,11 @@ upgrades:
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
         lifetime: 999
       - option: Insulation Ceiling|R-60
+        apply_logic:
+          or:
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|Uninsulated
         costs:
           - value: 0.11
             multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
