@@ -36,16 +36,6 @@ class TesBuildStockBatch < MiniTest::Test
     ]
   end
 
-  def _get_timeseries_columns(timeseries, entry)
-    CSV.new(entry.read).each_with_index do |row, i|
-      next if i != 0
-
-      row.each do |col|
-        timeseries << col if !timeseries.include?(col)
-      end
-    end
-  end
-
   def test_testing_baseline
     assert(File.exist?(File.join(@testing_baseline, 'results_csvs', 'results_up00.csv.gz')))
 
@@ -181,6 +171,16 @@ class TesBuildStockBatch < MiniTest::Test
 
     @expected_timeseries_columns.each do |col|
       assert(timeseries.include?(col))
+    end
+  end
+
+  def _get_timeseries_columns(timeseries, entry)
+    CSV.new(entry.read).each_with_index do |row, i|
+      next if i != 0
+
+      row.each do |col|
+        timeseries << col if !timeseries.include?(col)
+      end
     end
   end
 end
