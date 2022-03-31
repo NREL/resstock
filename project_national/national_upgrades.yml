@@ -68,7 +68,12 @@ upgrades:
   - upgrade_name: Foundation Type
     options:
     - option: Geometry Foundation Type|Conditioned Crawlspace
-      apply_logic: Geometry Foundation Type|Vented Crawlspace
+      apply_logic:
+        and:
+          - Geometry Foundation Type|Vented Crawlspace
+          - or:
+              - Geometry Building Level MF|None
+              - Geometry Building Level MF|Bottom
       costs:
         - value: 2.21
           multiplier: Wall Area, Below-Grade (ft^2)
