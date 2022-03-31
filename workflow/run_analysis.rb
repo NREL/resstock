@@ -12,6 +12,8 @@ require_relative '../resources/util'
 $start_time = Time.now
 
 def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders)
+  fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
+
   cfg = YAML.load_file(yml)
 
   thisdir = File.dirname(__FILE__)
@@ -22,7 +24,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   n_datapoints = cfg['sampler']['args']['n_datapoints']
 
   results_dir = File.absolute_path(File.join(thisdir, output_directory))
-  fail "Output directory #{output_directory} already exists." if File.exist?(results_dir)
+  fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
   Dir.mkdir(results_dir)
 
