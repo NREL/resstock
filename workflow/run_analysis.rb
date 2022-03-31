@@ -11,7 +11,7 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug, building_ids)
+def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders)
   cfg = YAML.load_file(yml)
 
   thisdir = File.dirname(__FILE__)
@@ -242,7 +242,11 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   all_cli_output = []
 
   Parallel.map(workflow_and_building_ids, in_threads: n_threads) do |upgrade_name, workflow, building_id|
-    job_id = Parallel.worker_number + 1
+    if keep_run_folders
+      job_id = workflow_and_building_ids.index([upgrade_name, workflow, building_id]) + 1
+    else
+      job_id = Parallel.worker_number + 1
+    end
 
     samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_characteristics, all_results_output, all_cli_output, measures_only, debug)
 
@@ -414,6 +418,11 @@ OptionParser.new do |opts|
     options[:building_ids] << t
   end
 
+  options[:keep_run_folders] = false
+  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints') do |t|
+    options[:keep_run_folders] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -433,7 +442,8 @@ if not options[:version]
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug], options[:building_ids])
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only],
+                         options[:debug], options[:building_ids], options[:keep_run_folders])
 
   if not success
     exit! 1
