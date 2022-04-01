@@ -208,7 +208,7 @@ class TestResStockErrors < MiniTest::Test
 
   def test_housing_characteristics_missing_lookup_option
     begin
-      housing_characteristics_dir = 'housing_characteristics_missing_lookup_option'
+      housing_characteristics_dir = 'tests_housing_characteristics/housing_characteristics_missing_lookup_option'
       integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
       integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
     rescue Exception => e
