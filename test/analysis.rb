@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'csv'
+
 def expected_baseline_columns
   return [
     'building_id',
@@ -19,23 +21,33 @@ end
 
 def expected_upgrade_columns
   return [
-    'apply_upgrade.option_01_cost_1_multiplier_to_apply'
+    'apply_upgrade.upgrade_name'
   ]
 end
 
-def expected_nonnull_columns
+def expected_baseline_nonnull_columns
   return [
     'report_simulation_output.energy_use_net_m_btu',
-    'apply_upgrade.upgrade_name',
-    'upgrade_costs.door_area_ft_2',
-    'upgrade_costs.option_01_name',
-    'upgrade_costs.option_01_cost_usd'
+    'upgrade_costs.door_area_ft_2'
   ]
 end
 
-def expected_nonzero_columns
+def expected_upgrade_nonnull_columns
   return [
-    'report_simulation_output.energy_use_total_m_btu',
+    'upgrade_costs.option_01_name',
+    'upgrade_costs.option_01_cost_usd',
+    'upgrade_costs.upgrade_cost_usd'
+  ]
+end
+
+def expected_baseline_nonzero_columns
+  return [
+    'report_simulation_output.energy_use_total_m_btu'
+  ]
+end
+
+def expected_upgrade_nonzero_columns
+  return [
     'upgrade_costs.upgrade_cost_usd'
   ]
 end
@@ -76,6 +88,22 @@ def expected_timeseries_columns(testing)
   return contents
 end
 
+def _test_columns(results, upgrade = false)
+  assert(_test_baseline_columns(results))
+  assert(_test_upgrade_columns(results)) if upgrade
+  assert(_test_nonnull_columns(results, upgrade))
+  assert(_test_nonzero_columns(results, upgrade))
+end
+
+def _test_contents(contents, upgrade = false, testing = false)
+  assert(_test_baseline_contents(contents, testing))
+  if upgrade
+    assert(_test_upgrade_contents(contents, testing))
+  else
+    assert(!_test_upgrade_contents(contents, testing))
+  end
+end
+
 def _test_baseline_columns(results)
   expected_columns = expected_baseline_columns
 
@@ -92,9 +120,14 @@ def _test_upgrade_columns(results)
   return false
 end
 
-def _test_nonnull_columns(results)
+def _test_nonnull_columns(results, upgrade = false)
+  expected_columns = expected_baseline_nonnull_columns
+  if upgrade
+    expected_columns += expected_upgrade_nonnull_columns
+  end
+
   result = true
-  expected_nonnull_columns.each do |col|
+  expected_columns.each do |col|
     next if !results.headers.include?(col)
 
     result = false if results[col].all? { |i| i.nil? }
@@ -102,9 +135,14 @@ def _test_nonnull_columns(results)
   return result
 end
 
-def _test_nonzero_columns(results)
+def _test_nonzero_columns(results, upgrade = false)
+  expected_columns = expected_baseline_nonzero_columns
+  if upgrade
+    expected_columns += expected_upgrade_nonzero_columns
+  end
+
   result = true
-  expected_nonzero_columns.each do |col|
+  expected_columns.each do |col|
     next if !results.headers.include?(col)
 
     result = false if results[col].all? { |i| i == 0 }

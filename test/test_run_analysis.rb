@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require 'minitest/autorun'
 require 'openstudio'
 require_relative '../resources/buildstock'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../test/analysis'
 
 class TestRunAnalysis < MiniTest::Test
@@ -136,16 +136,12 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'results-Baseline.csv')))
     results = CSV.read(File.join(@testing_baseline, 'results-Baseline.csv'), headers: true)
 
-    assert(_test_baseline_columns(results))
-    assert(!_test_upgrade_columns(results))
-    assert(_test_nonnull_columns(results))
-    assert(_test_nonzero_columns(results))
+    _test_columns(results)
 
     assert(File.exist?(File.join(@testing_baseline, 'run1', 'run')))
     contents = Dir[File.join(@testing_baseline, 'run1', 'run/*')].collect { |x| File.basename(x) }
 
-    assert(_test_baseline_contents(contents, true))
-    assert(!_test_upgrade_contents(contents, true))
+    _test_contents(contents, false, true)
 
     timeseries = _get_timeseries_columns(Dir[File.join(@testing_baseline, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries, true))
@@ -169,16 +165,12 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_baseline, 'results-Baseline.csv')))
     results = CSV.read(File.join(@national_baseline, 'results-Baseline.csv'), headers: true)
 
-    assert(_test_baseline_columns(results))
-    assert(!_test_upgrade_columns(results))
-    assert(_test_nonnull_columns(results))
-    assert(_test_nonzero_columns(results))
+    _test_columns(results)
 
     assert(File.exist?(File.join(@national_baseline, 'run1', 'run')))
     contents = Dir[File.join(@national_baseline, 'run1', 'run/*')].collect { |x| File.basename(x) }
 
-    assert(_test_baseline_contents(contents))
-    assert(!_test_upgrade_contents(contents))
+    _test_contents(contents, false, false)
 
     timeseries = _get_timeseries_columns(Dir[File.join(@national_baseline, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
@@ -203,24 +195,22 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_upgrades, 'results-Baseline.csv')))
     results = CSV.read(File.join(@testing_upgrades, 'results-Baseline.csv'), headers: true)
 
-    assert(_test_baseline_columns(results))
-    assert(!_test_upgrade_columns(results))
-    assert(_test_nonnull_columns(results))
-    assert(_test_nonzero_columns(results))
-
-    assert(File.exist?(File.join(@testing_upgrades, 'results-Windows.csv')))
-    results = CSV.read(File.join(@testing_upgrades, 'results-Windows.csv'), headers: true)
-
-    assert(_test_baseline_columns(results))
-    assert(_test_upgrade_columns(results))
-    assert(_test_nonnull_columns(results))
-    assert(_test_nonzero_columns(results))
+    _test_columns(results)
 
     assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run')))
     contents = Dir[File.join(@testing_upgrades, 'run1', 'run/*')].collect { |x| File.basename(x) }
 
-    assert(_test_baseline_contents(contents, true))
-    assert(!_test_upgrade_contents(contents, true))
+    _test_contents(contents, false, true)
+
+    assert(File.exist?(File.join(@testing_upgrades, 'results-Windows.csv')))
+    results = CSV.read(File.join(@testing_upgrades, 'results-Windows.csv'), headers: true)
+
+    _test_columns(results, true)
+
+    assert(File.exist?(File.join(@testing_upgrades, 'run6', 'run')))
+    contents = Dir[File.join(@testing_upgrades, 'run6', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, true, true)
 
     timeseries = _get_timeseries_columns(Dir[File.join(@testing_upgrades, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries, true))
@@ -256,24 +246,22 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_upgrades, 'results-Baseline.csv')))
     results = CSV.read(File.join(@national_upgrades, 'results-Baseline.csv'), headers: true)
 
-    assert(_test_baseline_columns(results))
-    assert(!_test_upgrade_columns(results))
-    assert(_test_nonnull_columns(results))
-    assert(_test_nonzero_columns(results))
-
-    assert(File.exist?(File.join(@national_upgrades, 'results-Windows.csv')))
-    results = CSV.read(File.join(@national_upgrades, 'results-Windows.csv'), headers: true)
-
-    assert(_test_baseline_columns(results))
-    assert(_test_upgrade_columns(results))
-    assert(_test_nonnull_columns(results))
-    assert(_test_nonzero_columns(results))
+    _test_columns(results)
 
     assert(File.exist?(File.join(@national_upgrades, 'run1', 'run')))
     contents = Dir[File.join(@national_upgrades, 'run1', 'run/*')].collect { |x| File.basename(x) }
 
-    assert(_test_baseline_contents(contents))
-    assert(!_test_upgrade_contents(contents))
+    _test_contents(contents, false, false)
+
+    assert(File.exist?(File.join(@national_upgrades, 'results-Windows.csv')))
+    results = CSV.read(File.join(@national_upgrades, 'results-Windows.csv'), headers: true)
+
+    _test_columns(results, true)
+
+    assert(File.exist?(File.join(@national_upgrades, 'run6', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'run6', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, true, false)
 
     timeseries = _get_timeseries_columns(Dir[File.join(@national_upgrades, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
