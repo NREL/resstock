@@ -1,0 +1,480 @@
+schema_version: '0.3'
+buildstock_directory: /projects/enduse/abc_typology/repos/resstock  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /projects/enduse/abc_typology/resstock_runs/hp_analysis
+# weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+# weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
+baseline:
+  n_buildings_represented: 133172057
+
+sampler: 
+  type: residential_quota
+  args: 
+    n_datapoints: 1000
+
+workflow_generator: 
+  type: residential_default
+  args: 
+    simulation_output: 
+      include_enduse_subcategories: true
+    # residential_simulation_controls: 
+    #   timesteps_per_hr: 6
+    #   begin_month: 1
+    #   begin_day_of_month: 1
+    #   end_month: 12
+    #   end_day_of_month: 31
+    #   calendar_year: 2007
+
+eagle:
+  account: enduse
+  n_jobs: 8
+  minutes_per_sim: 10
+  sampling:
+    time: 20
+  postprocessing:
+    time: 800
+    n_workers: 2
+    # node_memory_mb: 751616
+
+upgrades:
+  - upgrade_name: HP_case_high_efficiency
+      - &water_heater_efficiency_80gal
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic:
+          - not:
+            - or: 
+              - Water Heater Efficiency|Electric Heat Pump, 50 gal
+              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal
+        costs:
+          - value: 3828
+            multiplier: Fixed (1)
+        lifetime: 12
+      
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct_maxefficiency # https://ashp.neep.org/#!/product/33195
+        option: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF, max load
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 5929
+            multiplier: Fixed (1)
+          - value: 54.14
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &HVAC_efficiency_MSHP_ductless_minefficiency
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+          - HVAC Has Ducts|No
+        costs:
+          - value: 2320
+            multiplier: Fixed (1)
+          - value: 122.46
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+
+  - upgrade_name: HP_case_medium_efficiency
+      - *water_heater_efficiency_80gal
+      
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct_medefficiency # https://ashp.neep.org/#!/product/31559
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 10 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 20, 10 HSPF, max load
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 5929
+            multiplier: Fixed (1)
+          - value: 54.14
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &HVAC_efficiency_MSHP_ductless_medefficiency
+        option: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF, max load
+          - HVAC Has Ducts|No
+        costs:
+          - value: 2320
+            multiplier: Fixed (1)
+          - value: 122.46
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+
+  - upgrade_name: HP_case_minimum_efficiency
+      - *water_heater_efficiency_80gal
+      
+      # HVAC Upgrade
+      - &HVAC_min_efficiency_ASHP_duct
+        option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
+        apply_logic:
+          - not: 
+            - or:
+              - HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 5929
+            multiplier: Fixed (1)
+          - value: 54.14
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &HVAC_min_efficiency_MSHP_ductless
+        option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+        apply_logic:
+          - not: 
+            - or:
+              - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+              - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+          - HVAC Has Ducts|No
+        costs:
+          - value: 2320
+            multiplier: Fixed (1)
+          - value: 122.46
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+
+  - upgrade_name: Reference case
+    options:
+      # Water heater upgrade
+      - option: Water Heater Efficiency|Natural Gas Premium
+        apply_logic: Water Heater Efficiency|Natural Gas Standard
+        costs:
+          - value: 928
+            multiplier: Fixed (1)
+          - value: 14.18
+            multiplier: Size, Water Heater (gal)
+        lifetime: 13
+      - option: Water Heater Efficiency|Natural Gas Premium
+        apply_logic: Water Heater Efficiency|Natural Gas Premium
+        costs:
+          - value: 928
+            multiplier: Fixed (1)
+          - value: 14.18
+            multiplier: Size, Water Heater (gal)
+        lifetime: 13
+      - option: Water Heater Efficiency|Natural Gas Tankless
+        apply_logic: Water Heater Efficiency|Natural Gas Tankless
+        costs:
+          - value: 2449
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Water Heater Efficiency|Fuel Oil Premium
+        apply_logic: Water Heater Efficiency|Fuel Oil Standard
+        costs:
+          - value: 2191
+            multiplier: Fixed (1)
+          - value: 9.54
+            multiplier: Size, Water Heater (gal)
+        lifetime: 11
+      - option: Water Heater Efficiency|Fuel Oil Premium
+        apply_logic: Water Heater Efficiency|Fuel Oil Premium
+        costs:
+          - value: 2191
+            multiplier: Fixed (1)
+          - value: 9.54
+            multiplier: Size, Water Heater (gal)
+        lifetime: 11
+      - option: Water Heater Efficiency|FIXME Fuel Oil Indirect
+        apply_logic: Water Heater Efficiency|FIXME Fuel Oil Indirect
+        costs:
+          - value: 2191
+            multiplier: Fixed (1)
+          - value: 9.54
+            multiplier: Size, Water Heater (gal)
+        lifetime: 11
+      - option: Water Heater Efficiency|Propane Premium
+        apply_logic: Water Heater Efficiency|Propane Standard
+        costs:
+          - value: 928
+            multiplier: Fixed (1)
+          - value: 14.18
+            multiplier: Size, Water Heater (gal)
+        lifetime: 13
+      - option: Water Heater Efficiency|Propane Premium
+        apply_logic: Water Heater Efficiency|Propane Premium
+        costs:
+          - value: 928
+            multiplier: Fixed (1)
+          - value: 14.18
+            multiplier: Size, Water Heater (gal)
+        lifetime: 13
+      - option: Water Heater Efficiency|Propane Tankless
+        apply_logic: Water Heater Efficiency|Propane Tankless
+        costs:
+          - value: 2449
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Water Heater Efficiency|Electric Premium
+        apply_logic: Water Heater Efficiency|Electric Standard
+        costs:
+          - value: 760
+            multiplier: Fixed (1)
+          - value: 4.51
+            multiplier: Size, Water Heater (gal)
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Premium
+        apply_logic: Water Heater Efficiency|Electric Premium
+        costs:
+          - value: 760
+            multiplier: Fixed (1)
+          - value: 4.51
+            multiplier: Size, Water Heater (gal)
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Tankless
+        apply_logic: Water Heater Efficiency|Electric Tankless
+        costs:
+          - value: 2449
+            multiplier: Fixed (1)
+        lifetime: 12
+      # Upgrading like for like for tankless WH for registering cost: Propane Tankless/Natural Gas Tankless already at 0.82 EF
+      
+      #HVAC upgrade
+      # Room AC upgrade below federal minimum standard (year 2023)
+      - option: HVAC Cooling Efficiency|Room AC, EER 11.0
+        apply_logic: 
+          or: 
+            - HVAC Cooling Efficiency|Room AC, EER 8.5
+            - HVAC Cooling Efficiency|FIXME Room AC, EER 8.5, 20% Conditioned
+            - HVAC Cooling Efficiency|Room AC, EER 9.8
+            - HVAC Cooling Efficiency|FIXME Room AC, EER 9.8, 10% Conditioned
+            - HVAC Cooling Efficiency|FIXME Room AC, EER 9.8, 20% Conditioned
+            - HVAC Cooling Efficiency|FIXME Room AC, EER 9.8, 30% Conditioned
+            - HVAC Cooling Efficiency|FIXME Room AC, EER 9.8, 50% Conditioned
+            - HVAC Cooling Efficiency|Room AC, EER 10.7
+            - HVAC Cooling Efficiency|FIXME Room AC, EER 10.7, 20% Conditioned
+        costs:
+          - value: 46.40
+            multiplier: Fixed (1)
+          - value: 58.01
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 12
+      # Room AC like to like switch above federal minimum standard
+      - option: HVAC Cooling Efficiency|Room AC, EER 12.0
+        apply_logic: HVAC Cooling Efficiency|Room AC, EER 12.0
+        costs:
+          - value: 46.40
+            multiplier: Fixed (1)
+          - value: 58.01
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 12
+
+      # Minimum efficiency level for central AC:https://www.eia.gov/todayinenergy/detail.php?id=40232
+      - option: HVAC Cooling Efficiency|AC, SEER 15
+        apply_logic: 
+          - or: 
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14
+          - or: 
+            - Location Region|CR09
+            - Location Region|CR10
+            - Location Region|CR11
+            - and: 
+              - Location Region|CR08
+              - or: &CRO8_SEER15
+                - State|KY
+                - State|TN
+                - State|VA
+                - State|MD
+                - State|DE
+        costs:
+          - value: 3609
+            multiplier: Fixed (1)
+          - value: 54.14
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+      
+      - option: HVAC Cooling Efficiency|AC, SEER 14
+        apply_logic: 
+          - or: 
+            - HVAC Cooling Efficiency|AC, SEER 8
+            - HVAC Cooling Efficiency|AC, SEER 10
+            - HVAC Cooling Efficiency|AC, SEER 13
+            - HVAC Cooling Efficiency|AC, SEER 14 # Like for like upgrade (but not included in housing distribution so may not be needed just including for completion)
+          - or: 
+            - Location Region|CR02
+            - Location Region|CR03
+            - Location Region|CR04
+            - Location Region|CR05
+            - Location Region|CR06
+            - Location Region|CR07
+            - and: 
+              - Location Region|CR08
+              - not: *CRO8_SEER15
+        costs:
+          - value: 3480
+            multiplier: Fixed (1)
+          - value: 54.14
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+
+      # Central AC like to like switch above federal minimum standard
+      - option: HVAC Cooling Efficiency|AC, SEER 15
+        apply_logic: HVAC Cooling Efficiency|AC, SEER 15
+        costs:
+          - value: 3609
+            multiplier: Fixed (1)
+          - value: 54.14
+            multiplier: Size, Cooling System (kBtu/h)
+        lifetime: 16
+
+      # Minimum AFUE for fuel boiler=85%, gas/propane=82% NREL report Table 10
+      - option: HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
+          - or: 
+            - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+            - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
+        costs:
+          - value: 3996
+            multiplier: Fixed (1)
+          - value: 30.94
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 24
+      - option: HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+          - or: 
+            - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+            - HVAC Heating Type And Fuel|Propane Fuel Boiler
+        costs:
+          - value: 3996
+            multiplier: Fixed (1)
+          - value: 30.94
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 24
+      # Like to like upgrade for boiler above federal minimum
+      - option: HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+          - or: 
+            - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+            - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
+            - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+            - HVAC Heating Type And Fuel|Propane Fuel Boiler
+        costs:
+          - value: 3996
+            multiplier: Fixed (1)
+          - value: 30.94
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 24
+      # Minimum AFUE for furnace: 78% https://starheatcool.com/what-is-afue-rating/ and 80% NREL report
+      - option: HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+        costs:
+          - value: 2320
+            multiplier: Fixed (1)
+          - value: 3.48
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      # Like to like upgrade for furnace above federal minimum
+      - option: HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        apply_logic: HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 2964
+            multiplier: Fixed (1)
+          - value: 5.03
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      # Like to like upgrade for fuel wall/floor furnace
+      - option: HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        apply_logic: HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+        costs:
+          - value: 51.56
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 20
+      - option: HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        apply_logic: HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+        costs:
+          - value: 51.56
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 20
+
+      # ASHP upgrade to SEER 15, 9.0 HSPF (8.8 HSPF is minimum)
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+        costs:
+          - value: 4254
+            multiplier: Fixed (1)
+          - value: 54.14
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      # MSHP upgrade
+      - option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+        costs:
+          - value: 1676
+            multiplier: Fixed (1)
+          - value: 72.18
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        costs:
+          - value: 1676
+            multiplier: Fixed (1)
+          - value: 72.18
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+
+      # Like to Like switch for Electric baseboard, boiler, furnace
+      - option: HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
+        costs:
+          - value: 59.29
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 20
+      - option: HVAC Heating Efficiency|Electric Boiler, 100% AFUE
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
+        costs:
+          - value: 3996
+            multiplier: Fixed (1)
+        lifetime: 24
+      - option: HVAC Heating Efficiency|Electric Furnace, 100% AFUE
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
+        costs:
+          - value: 2062
+            multiplier: Fixed (1)
+          - value: 64.45
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 24
+      - option: HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        apply_logic: 
+          - or: 
+            - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        costs: # Same cost as Electric Baseboard costs
+          - value: 59.29
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 24
+
