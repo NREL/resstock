@@ -205,4 +205,17 @@ class TestResStockErrors < MiniTest::Test
       flunk "Should have caused an error but didn't."
     end
   end
+
+  def test_housing_characteristics_missing_lookup_option
+    begin
+      housing_characteristics_dir = 'housing_characteristics_missing_lookup_option'
+      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
+      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
+    rescue Exception => e
+      puts e.message
+      assert(e.message.include? "ERROR: Could not find parameter 'Location' and option 'MissingOption' in")
+    else
+      flunk "Should have caused an error but didn't."
+    end
+  end
 end

@@ -1,10 +1,14 @@
 Run the Project
 ===============
 
+.. _buildstockbatch:
+
 Run using buildstockbatch
 -------------------------
 
 See the `BuildStock Batch documentation <https://buildstockbatch.readthedocs.io/en/latest/>`_ for information on running projects (large-scale).
+
+.. _run_analysis:
 
 Run using run_analysis.rb
 -------------------------
