@@ -188,9 +188,9 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   # Create weather folder
   weather_dir = File.join(thisdir, '../weather')
   if !File.exist?(weather_dir)
-    Dir.mkdir(weather_dir)
-
     if cfg.keys.include?('weather_files_url')
+      Dir.mkdir(weather_dir)
+
       require 'tempfile'
       tmpfile = Tempfile.new('epw')
 
@@ -199,6 +199,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
 
       weather_files_path = tmpfile.path.to_s
     elsif cfg.keys.include?('weather_files_path')
+      Dir.mkdir(weather_dir)
+
       weather_files_path = cfg['weather_files_path']
     else
       fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
