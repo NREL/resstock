@@ -3,15 +3,15 @@ Run the Project
 
 .. _buildstockbatch:
 
-buildstockbatch
----------------
+Run using buildstockbatch
+-------------------------
 
 See the `BuildStock Batch documentation <https://buildstockbatch.readthedocs.io/en/latest/>`_ for information on running projects (large-scale).
 
 .. _run_analysis:
 
-run_analysis.rb
----------------
+Run using run_analysis.rb
+-------------------------
 
 You also have the option of running (small-scale) projects using the OpenStudio `Command Line Interface <http://nrel.github.io/OpenStudio-user-documentation/reference/command_line_interface/>`_ (CLI) with buildstockbatch yml input files. This method needs only the OpenStudio CLI.
 

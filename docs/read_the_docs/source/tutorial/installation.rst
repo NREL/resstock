@@ -1,9 +1,6 @@
 Installation
 ============
 
-.. note::
-  Most people who use ResStock for analysis do so by using the datasets published to the `ResStock Data Viewer <https://resstock.nrel.gov>`_. These datasets are often the best choice because they are a verified run that can be referenced. Datasets with upgrade scenario results will be made available over time. For more complicated analyses including custom upgrade scenarios, the source code of ResStock and this documentation page is available to run your own simulations. However, running ResStock can be a complicated affair and can require a lot of computing resources. Running on Amazon Web Services requires some technical knowledge of cloud computing to deploy. Unfortunately, we don’t have the resources to provide technical support if you choose this route.
-
 Download ResStock
 -----------------
 
@@ -18,11 +15,11 @@ For the second option, you will need to have `Git <https://git-scm.com>`_ or som
 
 .. note::
 
-  If you are planning to perform large-scale runs on ResStock (greater than 1000 simulations) or analyze timeseries data, you will need to use :ref:`buildstockbatch` to run and manage batch simulations of ResStock.
+  If you are planning to perform large-scale runs on ResStock (greater than 1000 simulations) or analyze timeseries data, you will need to use :ref:`buildstockbatch <buildstockbatch>` to run and manage batch simulations of ResStock.
   Buildstockbatch can be run locally via Docker, on AWS, or on an HPC like NREL’s Eagle.
   Installation instructions can be found in buildstockbatch’s `installation documentation <https://buildstockbatch.readthedocs.io/en/latest/installation.html>`_.
 
-  If you are planning to perform small-scale runs of ResStock (1000 simulations or fewer), you can use the lighter-weight option of running locally via :ref:`run_analysis`.
+  If you are planning to perform small-scale runs of ResStock (1000 simulations or fewer), you can use the lighter-weight option of running locally via :ref:`run_analysis.rb <run_analysis>`.
 
 Install OpenStudio
 ------------------
