@@ -3,7 +3,6 @@
 require 'minitest/autorun'
 require 'openstudio'
 require_relative '../resources/buildstock'
-require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../test/analysis'
 
 class TestRunAnalysis < MiniTest::Test
