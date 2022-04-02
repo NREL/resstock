@@ -143,21 +143,21 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
 
-      - name: Upload base samples and results
+      - name: Upload base results
         uses: actions/upload-artifact@v2
         with:
           path: test/base_results
-          name: base
+          name: base_results
 
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Download base samples and results
+      - name: Download base results
         uses: actions/download-artifact@v2
         with:
-          path: base
-          name: base
+          path: base_results
+          name: base_results
 
       - name: Download feature samples
         uses: actions/download-artifact@v2
@@ -184,31 +184,31 @@ jobs:
           
           mkdir test/base_results/comparisons/baseline/annual
           
-          python test/compare.py -a samples -b base/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a samples -b base_results/baseline/annual -f samples -e test/base_results/comparisons/baseline/annual
                     
-          python test/compare.py -a results -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a results -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a results -af sum -ac build_existing_model.geometry_building_type_recs -x results_output_building_type_sum.csv -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
           
-          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc build_existing_model.census_region -x results_output_cr.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
-          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.census_region -af sum -x results_output_cr_sum.html -b base/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -x results_output_building_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_foundation_type -x results_output_foundation_type.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.census_region -x results_output_cr.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
+          python test/compare.py -a visualize -dc build_existing_model.geometry_building_type_recs -ac build_existing_model.census_region -af sum -x results_output_cr_sum.html -b base_results/baseline/annual -f results/baseline/annual -e test/base_results/comparisons/baseline/annual
           
           mkdir test/base_results/comparisons/baseline/timeseries
                     
-          python test/compare.py -a timeseries -b base/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
+          python test/compare.py -a timeseries -b base_results/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
           
           mkdir test/base_results/comparisons/upgrades
           
           mkdir test/base_results/comparisons/upgrades/annual
                     
-          python test/compare.py -a results -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
+          python test/compare.py -a results -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
           
-          python test/compare.py -a visualize -x results_output.html -b base/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
+          python test/compare.py -a visualize -x results_output.html -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
           
           mkdir test/base_results/comparisons/upgrades/timeseries
                     
-          python test/compare.py -a timeseries -b base/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
+          python test/compare.py -a timeseries -b base_results/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
 
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
