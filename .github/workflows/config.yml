@@ -28,15 +28,21 @@ jobs:
 
       - name: Run integrity checks for all projects
         run: |
-          rake unit_tests:project_integrity_checks
+          bundle exec rake unit_tests:project_integrity_checks
 
       - name: Run all integrity check unit tests
         run: |
-          rake unit_tests:integrity_check_tests
+          bundle exec rake unit_tests:integrity_check_tests
 
       - name: Run all measure tests
         run: |
-          rake unit_tests:measure_tests
+          bundle exec rake unit_tests:measure_tests
+
+      - name: Store code coverage
+        uses: actions/upload-artifact@v2
+        with:
+          path: coverage
+          name: coverage
 
       - name: Upload feature samples
         uses: actions/upload-artifact@v2
@@ -64,7 +70,7 @@ jobs:
 
       - name: Run run_analysis.rb
         run: |
-          rake workflow:analysis_tests
+          bundle exec rake workflow:analysis_tests
 
   integration-tests:
     runs-on: ubuntu-latest
