@@ -274,7 +274,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
 
-      if ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
+      if ['schedules_type', 'schedules_vacancy_period', 'heating_setpoint_offset_nighttime', 'heating_setpoint_offset_daytime_unoccupied', 'cooling_setpoint_offset_nighttime', 'cooling_setpoint_offset_daytime_unoccupied'].include?(step_value.name)
         measures['BuildResidentialScheduleFile'][0][step_value.name] = value
       else
         measures['BuildResidentialHPXML'][0][step_value.name] = value
@@ -365,6 +365,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
+    measures['BuildResidentialScheduleFile'][0]['setpoint_output_csv_path'] = File.expand_path('../setpoints.csv')
 
     # Get registered values and pass them to HPXMLtoOpenStudio
     measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
