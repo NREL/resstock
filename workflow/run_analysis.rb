@@ -11,7 +11,9 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug, building_ids)
+def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders)
+  fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
+
   cfg = YAML.load_file(yml)
 
   thisdir = File.dirname(__FILE__)
@@ -22,7 +24,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   n_datapoints = cfg['sampler']['args']['n_datapoints']
 
   results_dir = File.absolute_path(File.join(thisdir, output_directory))
-  fail "Output directory #{output_directory} already exists." if File.exist?(results_dir)
+  fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
   Dir.mkdir(results_dir)
 
@@ -76,6 +78,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
           arguments['include_timeseries_total_loads'] = true if !arguments.keys.include?('include_timeseries_total_loads')
           arguments['add_timeseries_dst_column'] = true if !arguments.keys.include?('add_timeseries_dst_column')
           arguments['add_timeseries_utc_column'] = true if !arguments.keys.include?('add_timeseries_utc_column')
+
+          arguments['user_output_variables'] = arguments['output_variables'].collect { |o| o['name'] }.join(',') if arguments.keys.include?('output_variables')
         elsif measure_dir_name == 'server_directory_cleanup'
           arguments['retain_in_idf'] = true if !arguments.keys.include?('retain_in_idf')
           arguments['retain_schedules_csv'] = true if !arguments.keys.include?('retain_schedules_csv')
@@ -85,6 +89,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
                    'arguments' => arguments }
       end
     end
+
+    workflow_args['simulation_output_report'].delete('output_variables')
 
     if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
       if cfg['sampler']['args']['resample']
@@ -108,7 +114,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
           apply_upgrade_measure['arguments']["option_#{opt_num}_lifetime"] = option['lifetime']
         end
         if option.include?('apply_logic')
-          apply_upgrade_measure['arguments']["option_#{opt_num}_apply_logic"] = option['apply_logic']
+          apply_upgrade_measure['arguments']["option_#{opt_num}_apply_logic"] = make_apply_logic_arg(option['apply_logic'])
         end
         next unless option.keys.include?('costs')
 
@@ -182,9 +188,9 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   # Create weather folder
   weather_dir = File.join(thisdir, '../weather')
   if !File.exist?(weather_dir)
-    Dir.mkdir(weather_dir)
-
     if cfg.keys.include?('weather_files_url')
+      Dir.mkdir(weather_dir)
+
       require 'tempfile'
       tmpfile = Tempfile.new('epw')
 
@@ -193,6 +199,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
 
       weather_files_path = tmpfile.path.to_s
     elsif cfg.keys.include?('weather_files_path')
+      Dir.mkdir(weather_dir)
+
       weather_files_path = cfg['weather_files_path']
     else
       fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
@@ -207,15 +215,26 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
     end
   end
 
-  # Create buildstock.csv
+  # Create or read buildstock.csv
   outfile = File.join('../lib/housing_characteristics/buildstock.csv')
-  create_buildstock_csv(project_directory, n_datapoints, outfile)
+  if !['precomputed'].include?(cfg['sampler']['type'])
+    create_buildstock_csv(project_directory, n_datapoints, outfile)
 
-  building_ids = (1..n_datapoints).to_a if building_ids.empty?
+    datapoints = (1..n_datapoints).to_a
+  else
+    src = File.expand_path(File.join(File.dirname(yml), cfg['sampler']['args']['sample_file']))
+    des = File.expand_path(File.join(File.dirname(__FILE__), outfile))
+    FileUtils.cp(src, des)
+
+    buildstock_csv = CSV.read(des, headers: true)
+    datapoints = buildstock_csv['Building']
+  end
+
+  building_ids = datapoints if building_ids.empty?
 
   workflow_and_building_ids = []
   osw_paths.each do |upgrade_name, osw_path|
-    (1..n_datapoints).to_a.each do |building_id|
+    datapoints.each do |building_id|
       next if !building_ids.include?(building_id)
 
       workflow_and_building_ids << [upgrade_name, osw_path, building_id]
@@ -227,7 +246,11 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   all_cli_output = []
 
   Parallel.map(workflow_and_building_ids, in_threads: n_threads) do |upgrade_name, workflow, building_id|
-    job_id = Parallel.worker_number + 1
+    if keep_run_folders
+      job_id = workflow_and_building_ids.index([upgrade_name, workflow, building_id]) + 1
+    else
+      job_id = Parallel.worker_number + 1
+    end
 
     samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_characteristics, all_results_output, all_cli_output, measures_only, debug)
 
@@ -292,7 +315,8 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
 
   worker_folder = "run#{job_id}"
   worker_dir = File.join(results_dir, worker_folder)
-  Dir.mkdir(worker_dir) unless File.exist?(worker_dir)
+  FileUtils.rm_rf(worker_dir)
+  Dir.mkdir(worker_dir)
   FileUtils.cp(workflow, worker_dir)
   osw = File.join(worker_dir, File.basename(workflow))
 
@@ -398,6 +422,11 @@ OptionParser.new do |opts|
     options[:building_ids] << t
   end
 
+  options[:keep_run_folders] = false
+  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints') do |t|
+    options[:keep_run_folders] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -417,7 +446,8 @@ if not options[:version]
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug], options[:building_ids])
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only],
+                         options[:debug], options[:building_ids], options[:keep_run_folders])
 
   if not success
     exit! 1

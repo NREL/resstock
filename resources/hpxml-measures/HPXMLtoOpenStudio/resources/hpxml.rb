@@ -2730,7 +2730,7 @@ class HPXML < Object
     ATTRS = [:id, :area, :azimuth, :orientation, :frame_type, :thermal_break, :glass_layers,
              :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer,
              :interior_shading_factor_winter, :interior_shading_type, :exterior_shading_factor_summer,
-             :exterior_shading_factor_winter, :exterior_shading_type, :overhangs_depth,
+             :exterior_shading_factor_winter, :exterior_shading_type, :storm_type, :overhangs_depth,
              :overhangs_distance_to_top_of_window, :overhangs_distance_to_bottom_of_window,
              :fraction_operable, :performance_class, :wall_idref]
     attr_accessor(*ATTRS)
@@ -2814,6 +2814,12 @@ class HPXML < Object
         XMLHelper.add_element(interior_shading, 'SummerShadingCoefficient', @interior_shading_factor_summer, :float, @interior_shading_factor_summer_isdefaulted) unless @interior_shading_factor_summer.nil?
         XMLHelper.add_element(interior_shading, 'WinterShadingCoefficient', @interior_shading_factor_winter, :float, @interior_shading_factor_winter_isdefaulted) unless @interior_shading_factor_winter.nil?
       end
+      if not @storm_type.nil?
+        storm_window = XMLHelper.add_element(window, 'StormWindow')
+        sys_id = XMLHelper.add_element(storm_window, 'SystemIdentifier')
+        XMLHelper.add_attribute(sys_id, 'id', "#{id}StormWindow")
+        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string) unless @storm_type.nil?
+      end
       if (not @overhangs_depth.nil?) || (not @overhangs_distance_to_top_of_window.nil?) || (not @overhangs_distance_to_bottom_of_window.nil?)
         overhangs = XMLHelper.add_element(window, 'Overhangs')
         XMLHelper.add_element(overhangs, 'Depth', @overhangs_depth, :float) unless @overhangs_depth.nil?
@@ -2858,6 +2864,7 @@ class HPXML < Object
       @fraction_operable = XMLHelper.get_value(window, 'FractionOperable', :float)
       @performance_class = XMLHelper.get_value(window, 'PerformanceClass', :string)
       @wall_idref = HPXML::get_idref(XMLHelper.get_element(window, 'AttachedToWall'))
+      @storm_type = XMLHelper.get_value(window, 'StormWindow/GlassType', :string)
     end
   end
 
@@ -2879,7 +2886,7 @@ class HPXML < Object
     ATTRS = [:id, :area, :azimuth, :orientation, :frame_type, :thermal_break, :glass_layers,
              :glass_type, :gas_fill, :ufactor, :shgc, :interior_shading_factor_summer,
              :interior_shading_factor_winter, :interior_shading_type, :exterior_shading_factor_summer,
-             :exterior_shading_factor_winter, :exterior_shading_type, :roof_idref]
+             :exterior_shading_factor_winter, :exterior_shading_type, :storm_type, :roof_idref]
     attr_accessor(*ATTRS)
 
     def roof
@@ -2961,6 +2968,12 @@ class HPXML < Object
         XMLHelper.add_element(interior_shading, 'SummerShadingCoefficient', @interior_shading_factor_summer, :float, @interior_shading_factor_summer_isdefaulted) unless @interior_shading_factor_summer.nil?
         XMLHelper.add_element(interior_shading, 'WinterShadingCoefficient', @interior_shading_factor_winter, :float, @interior_shading_factor_winter_isdefaulted) unless @interior_shading_factor_winter.nil?
       end
+      if not @storm_type.nil?
+        storm_window = XMLHelper.add_element(skylight, 'StormWindow')
+        sys_id = XMLHelper.add_element(storm_window, 'SystemIdentifier')
+        XMLHelper.add_attribute(sys_id, 'id', "#{id}StormWindow")
+        XMLHelper.add_element(storm_window, 'GlassType', @storm_type, :string) unless @storm_type.nil?
+      end
       if not @roof_idref.nil?
         attached_to_roof = XMLHelper.add_element(skylight, 'AttachedToRoof')
         XMLHelper.add_attribute(attached_to_roof, 'idref', @roof_idref)
@@ -2992,6 +3005,7 @@ class HPXML < Object
       @interior_shading_factor_summer = XMLHelper.get_value(skylight, 'InteriorShading/SummerShadingCoefficient', :float)
       @interior_shading_factor_winter = XMLHelper.get_value(skylight, 'InteriorShading/WinterShadingCoefficient', :float)
       @roof_idref = HPXML::get_idref(XMLHelper.get_element(skylight, 'AttachedToRoof'))
+      @storm_type = XMLHelper.get_value(skylight, 'StormWindow/GlassType', :string)
     end
   end
 
@@ -4912,7 +4926,8 @@ class HPXML < Object
 
   class Battery < BaseElement
     ATTRS = [:id, :type, :location, :lifetime_model, :rated_power_output,
-             :nominal_capacity_kwh, :nominal_capacity_ah, :nominal_voltage]
+             :nominal_capacity_kwh, :nominal_capacity_ah, :nominal_voltage,
+             :usable_capacity_kwh, :usable_capacity_ah]
     attr_accessor(*ATTRS)
 
     def delete
@@ -4943,6 +4958,16 @@ class HPXML < Object
         XMLHelper.add_element(nominal_capacity, 'Units', UnitsAh, :string)
         XMLHelper.add_element(nominal_capacity, 'Value', @nominal_capacity_ah, :float, @nominal_capacity_ah_isdefaulted)
       end
+      if not @usable_capacity_kwh.nil?
+        nominal_capacity = XMLHelper.add_element(battery, 'UsableCapacity')
+        XMLHelper.add_element(nominal_capacity, 'Units', UnitsKwh, :string)
+        XMLHelper.add_element(nominal_capacity, 'Value', @usable_capacity_kwh, :float, @usable_capacity_kwh_isdefaulted)
+      end
+      if not @usable_capacity_ah.nil?
+        nominal_capacity = XMLHelper.add_element(battery, 'UsableCapacity')
+        XMLHelper.add_element(nominal_capacity, 'Units', UnitsAh, :string)
+        XMLHelper.add_element(nominal_capacity, 'Value', @usable_capacity_ah, :float, @usable_capacity_ah_isdefaulted)
+      end
       XMLHelper.add_element(battery, 'RatedPowerOutput', @rated_power_output, :float, @rated_power_output_isdefaulted) unless @rated_power_output.nil?
       XMLHelper.add_element(battery, 'NominalVoltage', @nominal_voltage, :float, @nominal_voltage_isdefaulted) unless @nominal_voltage.nil?
       XMLHelper.add_extension(battery, 'LifetimeModel', @lifetime_model, :string, @lifetime_model_isdefaulted) unless @lifetime_model.nil?
@@ -4956,6 +4981,8 @@ class HPXML < Object
       @type = XMLHelper.get_value(battery, 'BatteryType', :string)
       @nominal_capacity_kwh = XMLHelper.get_value(battery, "NominalCapacity[Units='#{UnitsKwh}']/Value", :float)
       @nominal_capacity_ah = XMLHelper.get_value(battery, "NominalCapacity[Units='#{UnitsAh}']/Value", :float)
+      @usable_capacity_kwh = XMLHelper.get_value(battery, "UsableCapacity[Units='#{UnitsKwh}']/Value", :float)
+      @usable_capacity_ah = XMLHelper.get_value(battery, "UsableCapacity[Units='#{UnitsAh}']/Value", :float)
       @rated_power_output = XMLHelper.get_value(battery, 'RatedPowerOutput', :float)
       @nominal_voltage = XMLHelper.get_value(battery, 'NominalVoltage', :float)
       @lifetime_model = XMLHelper.get_value(battery, 'extension/LifetimeModel', :string)
