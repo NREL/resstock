@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
-require 'openstudio'
+require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../resources/buildstock'
 require_relative '../test/analysis'
+require 'openstudio'
 
 class TestRunAnalysis < MiniTest::Test
   def before_setup
