@@ -3,7 +3,6 @@
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../../resources/hpxml-measures/ReportHPXMLOutput/measure.rb'
 require_relative '../measure.rb'
-require 'openstudio'
 
 class UpgradeCostsTest < MiniTest::Test
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH
