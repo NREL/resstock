@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>52c33cc5-27ce-4804-aade-12e35b96fc22</version_id>
-  <version_modified>20220217T224131Z</version_modified>
+  <version_id>0d6639d7-276f-4f9f-b53e-e5b09ce25cf9</version_id>
+  <version_modified>20220404T184239Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -1467,6 +1467,24 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>window_storm_type</name>
+      <display_name>Windows: Storm Type</display_name>
+      <description>The type of storm, if present.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>clear</value>
+          <display_name>clear</display_name>
+        </choice>
+        <choice>
+          <value>low-e</value>
+          <display_name>low-e</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>overhangs_front_depth</name>
       <display_name>Overhangs: Front Depth</display_name>
       <description>The depth of overhangs for windows for the front facade.</description>
@@ -1628,6 +1646,24 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.45</default_value>
+    </argument>
+    <argument>
+      <name>skylight_storm_type</name>
+      <display_name>Skylights: Storm Type</display_name>
+      <description>The type of storm, if present.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>clear</value>
+          <display_name>clear</display_name>
+        </choice>
+        <choice>
+          <value>low-e</value>
+          <display_name>low-e</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>door_area</name>
@@ -2342,6 +2378,46 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.25</default_value>
+    </argument>
+    <argument>
+      <name>hvac_control_heating_weekday_setpoint</name>
+      <display_name>HVAC Control: Heating Weekday Setpoint Schedule</display_name>
+      <description>Specify the constant or 24-hour comma-separated weekday heating setpoint schedule.</description>
+      <type>String</type>
+      <units>deg-F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>71</default_value>
+    </argument>
+    <argument>
+      <name>hvac_control_heating_weekend_setpoint</name>
+      <display_name>HVAC Control: Heating Weekend Setpoint Schedule</display_name>
+      <description>Specify the constant or 24-hour comma-separated weekend heating setpoint schedule.</description>
+      <type>String</type>
+      <units>deg-F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>71</default_value>
+    </argument>
+    <argument>
+      <name>hvac_control_cooling_weekday_setpoint</name>
+      <display_name>HVAC Control: Cooling Weekday Setpoint Schedule</display_name>
+      <description>Specify the constant or 24-hour comma-separated weekday cooling setpoint schedule.</description>
+      <type>String</type>
+      <units>deg-F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>76</default_value>
+    </argument>
+    <argument>
+      <name>hvac_control_cooling_weekend_setpoint</name>
+      <display_name>HVAC Control: Cooling Weekend Setpoint Schedule</display_name>
+      <description>Specify the constant or 24-hour comma-separated weekend cooling setpoint schedule.</description>
+      <type>String</type>
+      <units>deg-F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>76</default_value>
     </argument>
     <argument>
       <name>hvac_control_heating_season_period</name>
@@ -4021,6 +4097,16 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
+      <name>battery_usable_capacity</name>
+      <display_name>Battery: Usable Capacity</display_name>
+      <description>The usable capacity of the lithium ion battery.</description>
+      <type>String</type>
+      <units>kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
       <name>lighting_present</name>
       <display_name>Lighting: Present</display_name>
       <description>Whether there is lighting energy use.</description>
@@ -5638,7 +5724,7 @@
     <argument>
       <name>emissions_types</name>
       <display_name>Emissions: Types</display_name>
-      <description>Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.</description>
+      <description>Types of emissions (e.g., CO2e, NOx, etc.). If multiple scenarios, use a comma-separated list.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -5732,6 +5818,14 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>additional_properties</name>
+      <display_name>Additional Properties</display_name>
+      <description>Additional properties specified as key-value pairs (i.e., key=value). If multiple additional properties, use a |-separated list. For example, 'LowIncome=false|Remodeled|Description=2-story home in Denver'. These properties will be stored in the HPXML file under /HPXML/SoftwareInfo/extension/AdditionalProperties.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>apply_defaults</name>
       <display_name>Apply Default Values?</display_name>
       <description>If true, applies OS-HPXML default values to the HPXML output file.</description>
@@ -5771,7 +5865,7 @@
     </argument>
     <argument>
       <name>schedules_type</name>
-      <display_name>Schedules: Type</display_name>
+      <display_name>Occupancy Schedules: Type</display_name>
       <description>The type of occupant-related schedules to use.</description>
       <type>Choice</type>
       <required>true</required>
@@ -5790,7 +5884,7 @@
     </argument>
     <argument>
       <name>schedules_vacancy_period</name>
-      <display_name>Schedules: Vacancy Period</display_name>
+      <display_name>Occupancy Schedules: Vacancy Period</display_name>
       <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".</description>
       <type>String</type>
       <required>false</required>
@@ -5798,10 +5892,54 @@
     </argument>
     <argument>
       <name>schedules_random_seed</name>
-      <display_name>Schedules: Random Seed</display_name>
+      <display_name>Occupancy Schedules: Random Seed</display_name>
       <description>This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.</description>
       <type>Integer</type>
       <units>#</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_setpoint_offset_nighttime</name>
+      <display_name>Setpoint Schedules: Heating Setpoint Offset Nighttime</display_name>
+      <description>The magnitude of the heating setpoint offset (setpoint is lowered) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_setpoint_offset_daytime_unoccupied</name>
+      <display_name>Setpoint Schedules: Heating Setpoint Offset Daytime Unoccupied</display_name>
+      <description>The magnitude of the heating setpoint offset (setpoint is lowered) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_setpoint_offset_nighttime</name>
+      <display_name>Setpoint Schedules: Cooling Setpoint Offset Nighttime</display_name>
+      <description>The magnitude of the cooling setpoint offset (setpoint is raised) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_setpoint_offset_daytime_unoccupied</name>
+      <display_name>Setpoint Schedules: Cooling Setpoint Offset Daytime Unoccupied</display_name>
+      <description>The magnitude of the cooling setpoint offset (setpoint is raised) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>setpoint_output_csv_path</name>
+      <display_name>Setpoint Schedules: Output CSV Path</display_name>
+      <description>Absolute/relative path of the csv file containing setpoint schedules. Relative paths are relative to the HPXML output path.</description>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -5994,64 +6132,6 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>hvac_control_heating_weekday_setpoint_temp</name>
-      <display_name>Heating Setpoint: Weekday Temperature</display_name>
-      <description>Specify the weekday heating setpoint temperature.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>71</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekend_setpoint_temp</name>
-      <display_name>Heating Setpoint: Weekend Temperature</display_name>
-      <description>Specify the weekend heating setpoint temperature.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>71</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekday_setpoint_offset_magnitude</name>
-      <display_name>Heating Setpoint: Weekday Offset Magnitude</display_name>
-      <description>Specify the weekday heating offset magnitude.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekend_setpoint_offset_magnitude</name>
-      <display_name>Heating Setpoint: Weekend Offset Magnitude</display_name>
-      <description>Specify the weekend heating offset magnitude.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekday_setpoint_schedule</name>
-      <display_name>Heating Setpoint: Weekday Schedule</display_name>
-      <description>Specify the 24-hour comma-separated weekday heating schedule of 0s and 1s.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekend_setpoint_schedule</name>
-      <display_name>Heating Setpoint: Weekend Schedule</display_name>
-      <description>Specify the 24-hour comma-separated weekend heating schedule of 0s and 1s.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
-    </argument>
-    <argument>
       <name>use_auto_heating_season</name>
       <display_name>Use Auto Heating Season</display_name>
       <description>Specifies whether to automatically define the heating season based on the weather file.</description>
@@ -6069,64 +6149,6 @@
           <display_name>false</display_name>
         </choice>
       </choices>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekday_setpoint_temp</name>
-      <display_name>Cooling Setpoint: Weekday Temperature</display_name>
-      <description>Specify the weekday cooling setpoint temperature.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>76</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekend_setpoint_temp</name>
-      <display_name>Cooling Setpoint: Weekend Temperature</display_name>
-      <description>Specify the weekend cooling setpoint temperature.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>76</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekday_setpoint_offset_magnitude</name>
-      <display_name>Cooling Setpoint: Weekday Offset Magnitude</display_name>
-      <description>Specify the weekday cooling offset magnitude.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekend_setpoint_offset_magnitude</name>
-      <display_name>Cooling Setpoint: Weekend Offset Magnitude</display_name>
-      <description>Specify the weekend cooling offset magnitude.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekday_setpoint_schedule</name>
-      <display_name>Cooling Setpoint: Weekday Schedule</display_name>
-      <description>Specify the 24-hour comma-separated weekday cooling schedule of 0s and 1s.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekend_setpoint_schedule</name>
-      <display_name>Cooling Setpoint: Weekend Schedule</display_name>
-      <description>Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
     </argument>
     <argument>
       <name>use_auto_cooling_season</name>
@@ -6256,7 +6278,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>5473255A</checksum>
+      <checksum>AADDE2A9</checksum>
     </file>
     <file>
       <version>
@@ -6267,7 +6289,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>5A9B7223</checksum>
+      <checksum>B8C4DEBB</checksum>
     </file>
   </files>
 </measure>

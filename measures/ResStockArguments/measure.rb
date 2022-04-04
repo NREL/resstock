@@ -179,90 +179,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.0)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekday_setpoint_temp', true)
-    arg.setDisplayName('Heating Setpoint: Weekday Temperature')
-    arg.setDescription('Specify the weekday heating setpoint temperature.')
-    arg.setUnits('deg-F')
-    arg.setDefaultValue(71)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekend_setpoint_temp', true)
-    arg.setDisplayName('Heating Setpoint: Weekend Temperature')
-    arg.setDescription('Specify the weekend heating setpoint temperature.')
-    arg.setUnits('deg-F')
-    arg.setDefaultValue(71)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekday_setpoint_offset_magnitude', true)
-    arg.setDisplayName('Heating Setpoint: Weekday Offset Magnitude')
-    arg.setDescription('Specify the weekday heating offset magnitude.')
-    arg.setUnits('deg-F')
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekend_setpoint_offset_magnitude', true)
-    arg.setDisplayName('Heating Setpoint: Weekend Offset Magnitude')
-    arg.setDescription('Specify the weekend heating offset magnitude.')
-    arg.setUnits('deg-F')
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_weekday_setpoint_schedule', true)
-    arg.setDisplayName('Heating Setpoint: Weekday Schedule')
-    arg.setDescription('Specify the 24-hour comma-separated weekday heating schedule of 0s and 1s.')
-    arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_weekend_setpoint_schedule', true)
-    arg.setDisplayName('Heating Setpoint: Weekend Schedule')
-    arg.setDescription('Specify the 24-hour comma-separated weekend heating schedule of 0s and 1s.')
-    arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('use_auto_heating_season', true)
     arg.setDisplayName('Use Auto Heating Season')
     arg.setDescription('Specifies whether to automatically define the heating season based on the weather file.')
     arg.setDefaultValue(false)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_weekday_setpoint_temp', true)
-    arg.setDisplayName('Cooling Setpoint: Weekday Temperature')
-    arg.setDescription('Specify the weekday cooling setpoint temperature.')
-    arg.setUnits('deg-F')
-    arg.setDefaultValue(76)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_weekend_setpoint_temp', true)
-    arg.setDisplayName('Cooling Setpoint: Weekend Temperature')
-    arg.setDescription('Specify the weekend cooling setpoint temperature.')
-    arg.setUnits('deg-F')
-    arg.setDefaultValue(76)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_weekday_setpoint_offset_magnitude', true)
-    arg.setDisplayName('Cooling Setpoint: Weekday Offset Magnitude')
-    arg.setDescription('Specify the weekday cooling offset magnitude.')
-    arg.setUnits('deg-F')
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_cooling_weekend_setpoint_offset_magnitude', true)
-    arg.setDisplayName('Cooling Setpoint: Weekend Offset Magnitude')
-    arg.setDescription('Specify the weekend cooling offset magnitude.')
-    arg.setUnits('deg-F')
-    arg.setDefaultValue(0)
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_cooling_weekday_setpoint_schedule', true)
-    arg.setDisplayName('Cooling Setpoint: Weekday Schedule')
-    arg.setDescription('Specify the 24-hour comma-separated weekday cooling schedule of 0s and 1s.')
-    arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
-    args << arg
-
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_cooling_weekend_setpoint_schedule', true)
-    arg.setDisplayName('Cooling Setpoint: Weekend Schedule')
-    arg.setDescription('Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.')
-    arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('use_auto_cooling_season', true)
@@ -447,32 +367,32 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Setpoints
-    weekday_heating_setpoints = [args['hvac_control_heating_weekday_setpoint_temp']] * 24
-    weekend_heating_setpoints = [args['hvac_control_heating_weekend_setpoint_temp']] * 24
+    # weekday_heating_setpoints = [args['hvac_control_heating_weekday_setpoint_temp']] * 24
+    # weekend_heating_setpoints = [args['hvac_control_heating_weekend_setpoint_temp']] * 24
 
-    weekday_cooling_setpoints = [args['hvac_control_cooling_weekday_setpoint_temp']] * 24
-    weekend_cooling_setpoints = [args['hvac_control_cooling_weekend_setpoint_temp']] * 24
+    # weekday_cooling_setpoints = [args['hvac_control_cooling_weekday_setpoint_temp']] * 24
+    # weekend_cooling_setpoints = [args['hvac_control_cooling_weekend_setpoint_temp']] * 24
 
-    hvac_control_heating_weekday_setpoint_offset_magnitude = args['hvac_control_heating_weekday_setpoint_offset_magnitude']
-    hvac_control_heating_weekday_setpoint_schedule = args['hvac_control_heating_weekday_setpoint_schedule'].split(',').map { |i| Float(i) }
-    weekday_heating_setpoints = modify_setpoint_schedule(weekday_heating_setpoints, hvac_control_heating_weekday_setpoint_offset_magnitude, hvac_control_heating_weekday_setpoint_schedule)
+    # hvac_control_heating_weekday_setpoint_offset_magnitude = args['hvac_control_heating_weekday_setpoint_offset_magnitude']
+    # hvac_control_heating_weekday_setpoint_schedule = args['hvac_control_heating_weekday_setpoint_schedule'].split(',').map { |i| Float(i) }
+    # weekday_heating_setpoints = modify_setpoint_schedule(weekday_heating_setpoints, hvac_control_heating_weekday_setpoint_offset_magnitude, hvac_control_heating_weekday_setpoint_schedule)
 
-    hvac_control_heating_weekend_setpoint_offset_magnitude = args['hvac_control_heating_weekend_setpoint_offset_magnitude']
-    hvac_control_heating_weekend_setpoint_schedule = args['hvac_control_heating_weekend_setpoint_schedule'].split(',').map { |i| Float(i) }
-    weekend_heating_setpoints = modify_setpoint_schedule(weekend_heating_setpoints, hvac_control_heating_weekend_setpoint_offset_magnitude, hvac_control_heating_weekend_setpoint_schedule)
+    # hvac_control_heating_weekend_setpoint_offset_magnitude = args['hvac_control_heating_weekend_setpoint_offset_magnitude']
+    # hvac_control_heating_weekend_setpoint_schedule = args['hvac_control_heating_weekend_setpoint_schedule'].split(',').map { |i| Float(i) }
+    # weekend_heating_setpoints = modify_setpoint_schedule(weekend_heating_setpoints, hvac_control_heating_weekend_setpoint_offset_magnitude, hvac_control_heating_weekend_setpoint_schedule)
 
-    hvac_control_cooling_weekday_setpoint_offset_magnitude = args['hvac_control_cooling_weekday_setpoint_offset_magnitude']
-    hvac_control_cooling_weekday_setpoint_schedule = args['hvac_control_cooling_weekday_setpoint_schedule'].split(',').map { |i| Float(i) }
-    weekday_cooling_setpoints = modify_setpoint_schedule(weekday_cooling_setpoints, hvac_control_cooling_weekday_setpoint_offset_magnitude, hvac_control_cooling_weekday_setpoint_schedule)
+    # hvac_control_cooling_weekday_setpoint_offset_magnitude = args['hvac_control_cooling_weekday_setpoint_offset_magnitude']
+    # hvac_control_cooling_weekday_setpoint_schedule = args['hvac_control_cooling_weekday_setpoint_schedule'].split(',').map { |i| Float(i) }
+    # weekday_cooling_setpoints = modify_setpoint_schedule(weekday_cooling_setpoints, hvac_control_cooling_weekday_setpoint_offset_magnitude, hvac_control_cooling_weekday_setpoint_schedule)
 
-    hvac_control_cooling_weekend_setpoint_offset_magnitude = args['hvac_control_cooling_weekend_setpoint_offset_magnitude']
-    hvac_control_cooling_weekend_setpoint_schedule = args['hvac_control_cooling_weekend_setpoint_schedule'].split(',').map { |i| Float(i) }
-    weekend_cooling_setpoints = modify_setpoint_schedule(weekend_cooling_setpoints, hvac_control_cooling_weekend_setpoint_offset_magnitude, hvac_control_cooling_weekend_setpoint_schedule)
+    # hvac_control_cooling_weekend_setpoint_offset_magnitude = args['hvac_control_cooling_weekend_setpoint_offset_magnitude']
+    # hvac_control_cooling_weekend_setpoint_schedule = args['hvac_control_cooling_weekend_setpoint_schedule'].split(',').map { |i| Float(i) }
+    # weekend_cooling_setpoints = modify_setpoint_schedule(weekend_cooling_setpoints, hvac_control_cooling_weekend_setpoint_offset_magnitude, hvac_control_cooling_weekend_setpoint_schedule)
 
-    args['hvac_control_heating_weekday_setpoint'] = weekday_heating_setpoints.join(', ')
-    args['hvac_control_heating_weekend_setpoint'] = weekend_heating_setpoints.join(', ')
-    args['hvac_control_cooling_weekday_setpoint'] = weekday_cooling_setpoints.join(', ')
-    args['hvac_control_cooling_weekend_setpoint'] = weekend_cooling_setpoints.join(', ')
+    # args['hvac_control_heating_weekday_setpoint'] = weekday_heating_setpoints.join(', ')
+    # args['hvac_control_heating_weekend_setpoint'] = weekend_heating_setpoints.join(', ')
+    # args['hvac_control_cooling_weekday_setpoint'] = weekday_cooling_setpoints.join(', ')
+    # args['hvac_control_cooling_weekend_setpoint'] = weekend_cooling_setpoints.join(', ')
 
     # Energy and hot water adjustments based on # occupants for Appliances/Fixtures
     occ_to_nbr_ratio = Float(args['geometry_unit_num_occupants']) / Float(args['geometry_unit_num_bedrooms'])
