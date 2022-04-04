@@ -342,6 +342,20 @@ def get_value_from_workflow_step_value(step_value)
   end
 end
 
+def get_value_from_additional_properties(obj, feature_name)
+  additional_properties = obj.additionalProperties
+  feature_data_type = additional_properties.getFeatureDataType(feature_name).get if additional_properties.getFeatureDataType(feature_name).is_initialized
+  if feature_data_type == 'Boolean'
+    return additional_properties.getFeatureAsBoolean(feature_name).get if additional_properties.getFeatureAsBoolean(feature_name).is_initialized
+  elsif feature_data_type == 'Double'
+    return additional_properties.getFeatureAsDouble(feature_name).get if additional_properties.getFeatureAsDouble(feature_name).is_initialized
+  elsif feature_data_type == 'Integer'
+    return additional_properties.getFeatureAsInteger(feature_name).get if additional_properties.getFeatureAsInteger(feature_name).is_initialized
+  elsif feature_data_type == 'String'
+    return additional_properties.getFeatureAsString(feature_name).get if additional_properties.getFeatureAsString(feature_name).is_initialized
+  end
+end
+
 def run_measure(model, measure, argument_map, runner)
   begin
     # run the measure

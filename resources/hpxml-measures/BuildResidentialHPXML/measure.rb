@@ -2912,6 +2912,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       args << arg
     end
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('additional_properties', false)
+    arg.setDisplayName('Additional Properties')
+    arg.setDescription("Additional properties specified as key-value pairs (i.e., key=value). If multiple additional properties, use a |-separated list. For example, 'LowIncome=false|Remodeled|Description=2-story home in Denver'. These properties will be stored in the HPXML file under /HPXML/SoftwareInfo/extension/AdditionalProperties.")
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_defaults', false)
     arg.setDisplayName('Apply Default Values?')
     arg.setDescription('If true, applies OS-HPXML default values to the HPXML output file.')
@@ -3512,6 +3517,16 @@ class HPXMLFile
                                              wood_pellets_units: fuel_units,
                                              wood_pellets_value: wood_pellets_value)
       end
+    end
+
+    if args[:additional_properties].is_initialized
+      extension_properties = {}
+      additional_properties = args[:additional_properties].get.split('|').map(&:strip)
+      additional_properties.each do |additional_property|
+        key, value = additional_property.split('=').map(&:strip)
+        extension_properties[key] = value
+      end
+      hpxml.header.extension_properties = extension_properties
     end
   end
 
