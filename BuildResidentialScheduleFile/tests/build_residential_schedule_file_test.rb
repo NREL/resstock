@@ -435,6 +435,142 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     assert(!sf.schedules.keys.include?(SchedulesFile::ColumnVacancy))
   end
 
+  def test_smooth_with_setpoint_daily_schedules
+    hpxml = _create_hpxml('base-hvac-setpoints-daily-schedules.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth.csv'))
+    @args_hash['setpoint_output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'setpoints.csv'))
+    model, hpxml, result = _test_measure()
+
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('smooth schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('setpoints') })
+
+    sf = SchedulesFile.new(model: model, schedules_paths: hpxml.header.schedules_filepaths, col_names: SchedulesFile.ColumnNames)
+    sf.validate_schedules(year: 2007)
+
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnHeatingSetpoint))
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnCoolingSetpoint))
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][0], UnitConversions.convert(64, 'F', 'C'), 0.01) # monday
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][0], UnitConversions.convert(80, 'F', 'C'), 0.01) # monday
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][5 * 24], UnitConversions.convert(68, 'F', 'C'), 0.01) # saturday
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][5 * 24], UnitConversions.convert(78, 'F', 'C'), 0.01) # saturday
+  end
+
+  def test_smooth_with_setpoint_schedules_and_offset
+    hpxml = _create_hpxml('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth.csv'))
+    @args_hash['heating_setpoint_offset_nighttime'] = 9
+    @args_hash['heating_setpoint_offset_daytime_unoccupied'] = 12
+    @args_hash['cooling_setpoint_offset_nighttime'] = 3
+    @args_hash['cooling_setpoint_offset_daytime_unoccupied'] = 6
+    @args_hash['setpoint_output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'setpoints.csv'))
+    model, hpxml, result = _test_measure()
+
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('smooth schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('setpoints') })
+
+    sf = SchedulesFile.new(model: model, schedules_paths: hpxml.header.schedules_filepaths, col_names: SchedulesFile.ColumnNames)
+    sf.validate_schedules(year: 2007)
+
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnHeatingSetpoint))
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnCoolingSetpoint))
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][0], UnitConversions.convert(59, 'F', 'C'), 0.01) # nighttime
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][0], UnitConversions.convert(81, 'F', 'C'), 0.01) # nighttime
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][7], UnitConversions.convert(68, 'F', 'C'), 0.01) # daytime occupied
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][7], UnitConversions.convert(78, 'F', 'C'), 0.01) # daytime occupied
+  end
+
+  def test_stochastic_with_setpoint_schedules_and_offset
+    hpxml = _create_hpxml('base.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+
+    @args_hash['schedules_type'] = 'stochastic'
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'stochastic.csv'))
+    @args_hash['heating_setpoint_offset_nighttime'] = 9
+    @args_hash['heating_setpoint_offset_daytime_unoccupied'] = 12
+    @args_hash['cooling_setpoint_offset_nighttime'] = 3
+    @args_hash['cooling_setpoint_offset_daytime_unoccupied'] = 6
+    @args_hash['setpoint_output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'setpoints.csv'))
+    model, hpxml, result = _test_measure()
+
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('stochastic schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=60') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+
+    sf = SchedulesFile.new(model: model, schedules_paths: hpxml.header.schedules_filepaths, col_names: SchedulesFile.ColumnNames)
+    sf.validate_schedules(year: 2007)
+
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnHeatingSetpoint))
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnCoolingSetpoint))
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][0], UnitConversions.convert(59, 'F', 'C'), 0.01) # nighttime
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][0], UnitConversions.convert(81, 'F', 'C'), 0.01) # nighttime
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][7], UnitConversions.convert(68, 'F', 'C'), 0.01) # daytime occupied
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][7], UnitConversions.convert(78, 'F', 'C'), 0.01) # daytime occupied
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][13], UnitConversions.convert(56, 'F', 'C'), 0.01) # daytime unoccupied
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][13], UnitConversions.convert(84, 'F', 'C'), 0.01) # daytime unoccupied
+  end
+
+  def test_10_min_timestep_stochastic_with_setpoint_schedules_and_offset
+    hpxml = _create_hpxml('base-simcontrol-timestep-10-mins.xml')
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+
+    @args_hash['schedules_type'] = 'stochastic'
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'stochastic.csv'))
+    @args_hash['heating_setpoint_offset_nighttime'] = 9
+    @args_hash['heating_setpoint_offset_daytime_unoccupied'] = 12
+    @args_hash['cooling_setpoint_offset_nighttime'] = 3
+    @args_hash['cooling_setpoint_offset_daytime_unoccupied'] = 6
+    @args_hash['setpoint_output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'setpoints.csv'))
+    model, hpxml, result = _test_measure()
+
+    info_msgs = result.info.map { |x| x.logMessage }
+    warn_msgs = result.warnings.map { |x| x.logMessage }
+    assert(info_msgs.any? { |info_msg| info_msg.include?('stochastic schedule') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('SimYear=2007') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('MinutesPerStep=10') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('State=CO') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('RandomSeed') })
+    assert(info_msgs.any? { |info_msg| info_msg.include?('GeometryNumOccupants=3.0') })
+    assert(!info_msgs.any? { |info_msg| info_msg.include?('VacancyPeriod') })
+
+    sf = SchedulesFile.new(model: model, schedules_paths: hpxml.header.schedules_filepaths, col_names: SchedulesFile.ColumnNames)
+    sf.validate_schedules(year: 2007)
+
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnHeatingSetpoint))
+    assert(sf.schedules.keys.include?(SchedulesFile::ColumnCoolingSetpoint))
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][0 * 6], UnitConversions.convert(59, 'F', 'C'), 0.01) # nighttime
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][0 * 6], UnitConversions.convert(81, 'F', 'C'), 0.01) # nighttime
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][7 * 6], UnitConversions.convert(68, 'F', 'C'), 0.01) # daytime occupied
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][7 * 6], UnitConversions.convert(78, 'F', 'C'), 0.01) # daytime occupied
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnHeatingSetpoint][13 * 6], UnitConversions.convert(56, 'F', 'C'), 0.01) # daytime unoccupied
+    assert_in_epsilon(sf.schedules[SchedulesFile::ColumnCoolingSetpoint][13 * 6], UnitConversions.convert(84, 'F', 'C'), 0.01) # daytime unoccupied
+  end
+
   def _test_measure()
     # create an instance of the measure
     measure = BuildResidentialScheduleFile.new
