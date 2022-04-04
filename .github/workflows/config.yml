@@ -21,6 +21,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
+          lfs: true
+      - name: Checkout LFS objects
+        run: git lfs checkout
+
 
       - name: Install gems
         run: |
@@ -57,6 +61,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
+          lfs: true
+      - name: Checkout LFS objects
+        run: git lfs checkout
 
       - name: Install gems
         run: |
@@ -77,6 +84,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
+          lfs: true
+      - name: Checkout LFS objects
+        run: git lfs checkout
 
       - name: Run buildstockbatch
         run: |
@@ -140,6 +150,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.base.sha }}
+          lfs: true
+      - name: Checkout LFS objects
+        run: git lfs checkout
 
       - name: Upload base samples and results
         uses: actions/upload-artifact@v2
@@ -150,6 +163,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          lfs: true
+      - name: Checkout LFS objects
+        run: git lfs checkout
 
       - name: Download base samples and results
         uses: actions/download-artifact@v2
@@ -221,6 +237,9 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
+          lfs: true
+      - name: Checkout LFS objects
+        run: git lfs checkout
 
       - name: Download feature samples
         uses: actions/download-artifact@v2
