@@ -387,6 +387,7 @@ Enclosure outputs are listed below.
    Enclosure: Foundation Wall Area Exterior (ft^2)          Total exterior foundation wall area
    Enclosure: Floor Area Conditioned (ft^2)                 Total conditioned floor area
    Enclosure: Floor Area Lighting (ft^2)                    Total lighting floor area
+   Enclosure: Floor Area Foundation (ft^2)                  Total foundation floor area
    Enclosure: Ceiling Area Thermal Boundary (ft^2)          Total thermal boundary ceiling area
    Enclosure: Roof Area (ft^2)                              Total roof area
    Enclosure: Window Area (ft^2)                            Total window area

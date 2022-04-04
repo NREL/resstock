@@ -6,6 +6,7 @@ class BS
   WallBelowGrade = 'Enclosure: Foundation Wall Area Exterior'
   FloorConditioned = 'Enclosure: Floor Area Conditioned'
   FloorLighting = 'Enclosure: Floor Area Lighting'
+  FloorFoundation = 'Enclosure: Floor Area Foundation'
   Ceiling = 'Enclosure: Ceiling Area Thermal Boundary'
   Roof = 'Enclosure: Roof Area'
   Window = 'Enclosure: Window Area'
