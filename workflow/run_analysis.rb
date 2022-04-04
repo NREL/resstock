@@ -11,7 +11,9 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug, building_ids)
+def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders)
+  fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
+
   cfg = YAML.load_file(yml)
 
   thisdir = File.dirname(__FILE__)
@@ -22,7 +24,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   n_datapoints = cfg['sampler']['args']['n_datapoints']
 
   results_dir = File.absolute_path(File.join(thisdir, output_directory))
-  fail "Output directory #{output_directory} already exists." if File.exist?(results_dir)
+  fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
   Dir.mkdir(results_dir)
 
@@ -186,9 +188,9 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   # Create weather folder
   weather_dir = File.join(thisdir, '../weather')
   if !File.exist?(weather_dir)
-    Dir.mkdir(weather_dir)
-
     if cfg.keys.include?('weather_files_url')
+      Dir.mkdir(weather_dir)
+
       require 'tempfile'
       tmpfile = Tempfile.new('epw')
 
@@ -197,6 +199,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
 
       weather_files_path = tmpfile.path.to_s
     elsif cfg.keys.include?('weather_files_path')
+      Dir.mkdir(weather_dir)
+
       weather_files_path = cfg['weather_files_path']
     else
       fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
@@ -242,7 +246,11 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   all_cli_output = []
 
   Parallel.map(workflow_and_building_ids, in_threads: n_threads) do |upgrade_name, workflow, building_id|
-    job_id = Parallel.worker_number + 1
+    if keep_run_folders
+      job_id = workflow_and_building_ids.index([upgrade_name, workflow, building_id]) + 1
+    else
+      job_id = Parallel.worker_number + 1
+    end
 
     samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_characteristics, all_results_output, all_cli_output, measures_only, debug)
 
@@ -414,6 +422,11 @@ OptionParser.new do |opts|
     options[:building_ids] << t
   end
 
+  options[:keep_run_folders] = false
+  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints') do |t|
+    options[:keep_run_folders] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -433,7 +446,8 @@ if not options[:version]
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug], options[:building_ids])
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only],
+                         options[:debug], options[:building_ids], options[:keep_run_folders])
 
   if not success
     exit! 1

@@ -40,7 +40,8 @@ Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arg
       -n, --threads N                  Number of parallel simulations (defaults to processor count)
       -m, --measures_only              Only run the OpenStudio and EnergyPlus measures
       -d, --debug                      Save both existing and upgraded xml/osw files
-      -i, --building_id ID             Only run this building ID; can be called multiple times     
+      -i, --building_id ID             Only run this building ID; can be called multiple times
+      -k, --keep_run_folders           Preserve run folder for all datapoints
       -h, --help                       Display help
       -v, --version                    Display version
 
