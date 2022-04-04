@@ -366,34 +366,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['pv_system_num_bedrooms_served'] = 0
     end
 
-    # Setpoints
-    # weekday_heating_setpoints = [args['hvac_control_heating_weekday_setpoint_temp']] * 24
-    # weekend_heating_setpoints = [args['hvac_control_heating_weekend_setpoint_temp']] * 24
-
-    # weekday_cooling_setpoints = [args['hvac_control_cooling_weekday_setpoint_temp']] * 24
-    # weekend_cooling_setpoints = [args['hvac_control_cooling_weekend_setpoint_temp']] * 24
-
-    # hvac_control_heating_weekday_setpoint_offset_magnitude = args['hvac_control_heating_weekday_setpoint_offset_magnitude']
-    # hvac_control_heating_weekday_setpoint_schedule = args['hvac_control_heating_weekday_setpoint_schedule'].split(',').map { |i| Float(i) }
-    # weekday_heating_setpoints = modify_setpoint_schedule(weekday_heating_setpoints, hvac_control_heating_weekday_setpoint_offset_magnitude, hvac_control_heating_weekday_setpoint_schedule)
-
-    # hvac_control_heating_weekend_setpoint_offset_magnitude = args['hvac_control_heating_weekend_setpoint_offset_magnitude']
-    # hvac_control_heating_weekend_setpoint_schedule = args['hvac_control_heating_weekend_setpoint_schedule'].split(',').map { |i| Float(i) }
-    # weekend_heating_setpoints = modify_setpoint_schedule(weekend_heating_setpoints, hvac_control_heating_weekend_setpoint_offset_magnitude, hvac_control_heating_weekend_setpoint_schedule)
-
-    # hvac_control_cooling_weekday_setpoint_offset_magnitude = args['hvac_control_cooling_weekday_setpoint_offset_magnitude']
-    # hvac_control_cooling_weekday_setpoint_schedule = args['hvac_control_cooling_weekday_setpoint_schedule'].split(',').map { |i| Float(i) }
-    # weekday_cooling_setpoints = modify_setpoint_schedule(weekday_cooling_setpoints, hvac_control_cooling_weekday_setpoint_offset_magnitude, hvac_control_cooling_weekday_setpoint_schedule)
-
-    # hvac_control_cooling_weekend_setpoint_offset_magnitude = args['hvac_control_cooling_weekend_setpoint_offset_magnitude']
-    # hvac_control_cooling_weekend_setpoint_schedule = args['hvac_control_cooling_weekend_setpoint_schedule'].split(',').map { |i| Float(i) }
-    # weekend_cooling_setpoints = modify_setpoint_schedule(weekend_cooling_setpoints, hvac_control_cooling_weekend_setpoint_offset_magnitude, hvac_control_cooling_weekend_setpoint_schedule)
-
-    # args['hvac_control_heating_weekday_setpoint'] = weekday_heating_setpoints.join(', ')
-    # args['hvac_control_heating_weekend_setpoint'] = weekend_heating_setpoints.join(', ')
-    # args['hvac_control_cooling_weekday_setpoint'] = weekday_cooling_setpoints.join(', ')
-    # args['hvac_control_cooling_weekend_setpoint'] = weekend_cooling_setpoints.join(', ')
-
     # Energy and hot water adjustments based on # occupants for Appliances/Fixtures
     occ_to_nbr_ratio = Float(args['geometry_unit_num_occupants']) / Float(args['geometry_unit_num_bedrooms'])
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
