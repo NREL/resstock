@@ -245,10 +245,24 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     # Setpoints
     if args[:setpoint_output_csv_path].is_initialized
+      return if hpxml.hvac_controls.size == 0
+
+      HPXMLDefaults.apply_hvac_control(hpxml)
+
       hvac_control = hpxml.hvac_controls[0]
+
+      htg_start_month = hvac_control.seasons_heating_begin_month
+      htg_start_day = hvac_control.seasons_heating_begin_day
+      htg_end_month = hvac_control.seasons_heating_end_month
+      htg_end_day = hvac_control.seasons_heating_end_day
+      clg_start_month = hvac_control.seasons_cooling_begin_month
+      clg_start_day = hvac_control.seasons_cooling_begin_day
+      clg_end_month = hvac_control.seasons_cooling_end_month
+      clg_end_day = hvac_control.seasons_cooling_end_day
+
+      heating_days = Schedule.get_daily_season(hpxml.header.sim_calendar_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
+      cooling_days = Schedule.get_daily_season(hpxml.header.sim_calendar_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
       has_ceiling_fan = (hpxml.ceiling_fans.size > 0)
-      heating_days = [1] * args[:total_days_in_year] # FIXME
-      cooling_days = [1] * args[:total_days_in_year] # FIXME
 
       htg_weekday_setpoints, htg_weekend_setpoints = HVAC.get_heating_setpoints(hvac_control, args[:sim_year])
       clg_weekday_setpoints, clg_weekend_setpoints = HVAC.get_cooling_setpoints(hvac_control, has_ceiling_fan, args[:sim_year], weather)
