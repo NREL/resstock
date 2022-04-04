@@ -10,26 +10,17 @@ on:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
-    container: ubuntu:20.04
+    container:
       image: docker://nrel/openstudio:3.3.0
     steps:
       - name: Show environment
         run: |
           bundle -v
           ruby -v
-          
-      - name: Obtain Latest Git ONLY within container for checkout
-        run: |
-          apt-get update
-          apt-get install -y git
 
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
-          lfs: true
-      - name: Checkout LFS objects
-        run: git lfs checkout
-
 
       - name: Install gems
         run: |
@@ -66,9 +57,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
-          lfs: true
-      - name: Checkout LFS objects
-        run: git lfs checkout
 
       - name: Install gems
         run: |
@@ -89,9 +77,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
-          lfs: true
-      - name: Checkout LFS objects
-        run: git lfs checkout
 
       - name: Run buildstockbatch
         run: |
@@ -155,9 +140,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.base.sha }}
-          lfs: true
-      - name: Checkout LFS objects
-        run: git lfs checkout
 
       - name: Upload base samples and results
         uses: actions/upload-artifact@v2
@@ -168,9 +150,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          lfs: true
-      - name: Checkout LFS objects
-        run: git lfs checkout
 
       - name: Download base samples and results
         uses: actions/download-artifact@v2
@@ -242,9 +221,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
-          lfs: true
-      - name: Checkout LFS objects
-        run: git lfs checkout
 
       - name: Download feature samples
         uses: actions/download-artifact@v2
