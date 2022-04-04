@@ -10,13 +10,18 @@ on:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
-    container:
+    container: ubuntu:20.04
       image: docker://nrel/openstudio:3.3.0
     steps:
       - name: Show environment
         run: |
           bundle -v
           ruby -v
+          
+      - name: Obtain Latest Git ONLY within container for checkout
+        run: |
+          apt-get update
+          apt-get install -y git
 
       - uses: actions/checkout@v2
         with:
