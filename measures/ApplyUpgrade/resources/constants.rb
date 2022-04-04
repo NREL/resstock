@@ -18,6 +18,7 @@ class Constants
       'Wall Area, Below-Grade (ft^2)',
       'Floor Area, Conditioned (ft^2)',
       'Floor Area, Lighting (ft^2)',
+      'Floor Area, Foundation (ft^2)',
       'Floor Area, Attic (ft^2)',
       'Roof Area (ft^2)',
       'Window Area (ft^2)',
