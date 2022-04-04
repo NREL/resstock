@@ -61,14 +61,102 @@ class TestRunAnalysis < MiniTest::Test
     assert("#{Version.software_program_used} v#{Version.software_program_version}", cli_output)
   end
 
-  def test_errors
+  def test_errors_wrong_path
     yml = ' -y test/yml_bad_value/testing_baseline.yml'
     @command += yml
 
     cli_output = `#{@command}`
 
-    assert(File.read(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
+    assert(cli_output.include?("Error: YML file does not exist at 'test/yml_bad_value/testing_baseline.yml'."))
+  end
+
+  def test_errors_bad_value
+    yml = ' -y test/tests_yml_files/yml_bad_value/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+
     assert(cli_output.include?('Failures detected for: 1, 2.'))
+
+    cli_output_log = File.read(File.join(@testing_baseline, 'cli_output.log'))
+    assert(cli_output_log.include?('ERROR'))
+    assert(cli_output_log.include?('Run Period End Day of Month (32) must be one of'))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_errors_already_exists
+    yml = ' -y test/tests_yml_files/yml_bad_value/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+    cli_output = `#{@command}`
+
+    assert(cli_output.include?("Output directory 'testing_baseline' already exists."))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_errors_downselect_resample
+    yml = ' -y test/tests_yml_files/yml_resample/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+
+    assert(cli_output.include?("Not supporting residential_quota_downselect's 'resample' at this time."))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_errors_weather_files
+    yml = ' -y test/tests_yml_files/yml_weather_files/testing_baseline.yml'
+    @command += yml
+
+    FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
+    cli_output = `#{@command}`
+
+    assert(cli_output.include?("Must include 'weather_files_url' or 'weather_files_path' in yml."))
+    assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_measures_only
+    yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
+    @command += yml
+    @command += ' -m'
+
+    system(@command)
+
+    assert(File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(!File.exist?(File.join(@testing_baseline, 'run1', 'eplusout.sql')))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_building_id
+    yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
+    @command += yml
+    @command += ' -i 1'
+
+    system(@command)
+
+    assert(File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(!File.exist?(File.join(@testing_baseline, 'run2')))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_threads_and_keep_run_folders
+    yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
+    @command += yml
+    @command += ' -n 1'
+    @command += ' -k'
+
+    system(@command)
+
+    assert(File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'run2')))
 
     FileUtils.rm_rf(@testing_baseline)
   end
