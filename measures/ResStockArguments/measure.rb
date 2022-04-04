@@ -652,13 +652,6 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def modify_setpoint_schedule(schedule, offset_magnitude, offset_schedule)
-    offset_schedule.each_with_index do |direction, i|
-      schedule[i] += offset_magnitude * direction
-    end
-    return schedule
-  end
-
   def process_weather(weather_station_epw_filepath, runner, model, hpxml_path)
     epw_path = weather_station_epw_filepath
 
