@@ -128,9 +128,7 @@
       <sch:assert role='ERROR' test='count(h:Systems/h:HVAC/h:HVACPlant/h:HeatPump) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/HVAC/HVACPlant/HeatPump</sch:assert> <!-- see [HeatPump] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:HVAC/h:HVACControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Systems/HVAC/HVACControl</sch:assert> <!-- See [HVACControl=Heating] and/or [HVACControl=Cooling] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:HVAC/h:HVACDistribution) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/HVAC/HVACDistribution</sch:assert> <!-- see [HVACDistribution] -->
-      <sch:assert role='ERROR' test='count(h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true"]) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForWholeBuildingVentilation="true"]</sch:assert> <!-- See [MechanicalVentilation] -->
-      <sch:assert role='ERROR' test='count(h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForLocalVentilation="true"]) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForLocalVentilation="true"]</sch:assert> <!-- See [LocalVentilation] -->
-      <sch:assert role='ERROR' test='count(h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForSeasonalCoolingLoadReduction="true"]) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/MechanicalVentilation/VentilationFans/VentilationFan[UsedForSeasonalCoolingLoadReduction="true"]</sch:assert> <!-- See [WholeHouseFan] -->
+      <sch:assert role='ERROR' test='count(h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/MechanicalVentilation/VentilationFans/VentilationFan</sch:assert> <!-- See [VentilationFan] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:WaterHeating/h:WaterHeatingSystem) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/WaterHeating/WaterHeatingSystem</sch:assert> <!-- See [WaterHeatingSystem] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:WaterHeating/h:HotWaterDistribution) &lt;= 1'>Expected 0 or 1 element(s) for xpath: Systems/WaterHeating/HotWaterDistribution</sch:assert> <!-- See [HotWaterDistribution] -->
       <sch:assert role='ERROR' test='count(h:Systems/h:WaterHeating/h:WaterFixture) &gt;= 0'>Expected 0 or more element(s) for xpath: Systems/WaterHeating/WaterFixture</sch:assert> <!-- See [WaterFixture] -->
@@ -1267,6 +1265,13 @@
   </sch:pattern>
 
   <sch:pattern>
+    <sch:title>[VentilationFan]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan'>
+      <sch:assert role='ERROR' test='count(h:UsedForWholeBuildingVentilation[text()="true"]) + count(h:UsedForLocalVentilation[text()="true"]) + count(h:UsedForSeasonalCoolingLoadReduction[text()="true"]) + count(h:UsedForGarageVentilation[text()="true"]) = 1'>Expected 1 element(s) for xpath: UsedForWholeBuildingVentilation[text()="true"] | UsedForLocalVentilation[text()="true"] | UsedForSeasonalCoolingLoadReduction[text()="true"] | UsedForGarageVentilation[text()="true"]</sch:assert> <!-- See [MechanicalVentilation] or [LocalVentilation] or [WholeHouseFan] or [GarageVentilation] -->
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
     <sch:title>[MechanicalVentilation]</sch:title>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true"]'>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: IsSharedSystem</sch:assert> <!-- See [MechanicalVentilationType=Shared] -->
@@ -1361,6 +1366,14 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForSeasonalCoolingLoadReduction="true"]'>
       <sch:assert role='ERROR' test='count(h:RatedFlowRate) + count(h:CalculatedFlowRate) + count(h:TestedFlowRate) + count(h:DeliveredVentilation) &gt;= 0'>Expected 0 or more element(s) for xpath: RatedFlowRate | CalculatedFlowRate | TestedFlowRate | DeliveredVentilation</sch:assert>
       <sch:assert role='ERROR' test='count(h:FanPower) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FanPower</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[GarageVentilation]</sch:title>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForGarageVentilation="true"]'>
+      <!-- Warnings -->
+      <sch:report role='WARN' test='true'>Ventilation fans for the garage are not currently modeled.</sch:report>
     </sch:rule>
   </sch:pattern>
 

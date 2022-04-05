@@ -152,7 +152,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
     end
 
-    if args[:setpoint_output_csv_path].is_initialized
+    if !args[:setpoint_output_csv_path].nil?
       if !schedules_filepaths.include?(args[:setpoint_output_csv_path].get)
         XMLHelper.add_element(extension, 'SchedulesFilePath', args[:setpoint_output_csv_path].get, :string)
         runner.registerInfo("Created #{args[:setpoint_output_csv_path].get}")
@@ -245,7 +245,11 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     # Setpoints
     if args[:setpoint_output_csv_path].is_initialized
-      return if hpxml.hvac_controls.size == 0
+      if hpxml.hvac_controls.size == 0
+        args[:setpoint_output_csv_path] = nil
+        return
+      end
+      args[:setpoint_output_csv_path] = args[:setpoint_output_csv_path].get
 
       HPXMLDefaults.apply_hvac_control(hpxml)
 
