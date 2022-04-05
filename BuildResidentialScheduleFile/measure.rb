@@ -152,7 +152,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
     end
 
-    if !args[:setpoint_output_csv_path].nil?
+    if args[:setpoint_schedules]
       if !schedules_filepaths.include?(args[:setpoint_output_csv_path].get)
         XMLHelper.add_element(extension, 'SchedulesFilePath', args[:setpoint_output_csv_path].get, :string)
         runner.registerInfo("Created #{args[:setpoint_output_csv_path].get}")
@@ -244,15 +244,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     end
 
     # Setpoints
+    args[:setpoint_schedules] = false
     if args[:setpoint_output_csv_path].is_initialized
-      if hpxml.hvac_controls.size == 0
-        args[:setpoint_output_csv_path] = nil
-        return
-      end
-      args[:setpoint_output_csv_path] = args[:setpoint_output_csv_path].get
+      return if hpxml.hvac_controls.size == 0
 
+      args[:setpoint_schedules] = true
       HPXMLDefaults.apply_hvac_control(hpxml)
-
       hvac_control = hpxml.hvac_controls[0]
 
       htg_start_month = hvac_control.seasons_heating_begin_month
