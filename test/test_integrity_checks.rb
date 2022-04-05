@@ -21,30 +21,6 @@ class TestResStockErrors < MiniTest::Test
     end
   end
 
-  def test_housing_characteristics_scientific_notation
-    begin
-      housing_characteristics_dir = 'tests_housing_characteristics/housing_characteristics_scientific_notation'
-      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
-      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
-    rescue Exception => e
-      assert_equal("ERROR: Scientific notation found in 'Location', line '2'.", e.message)
-    else
-      flunk "Should have caused an error but didn't."
-    end
-  end
-
-  def test_housing_characteristics_non_float
-    begin
-      housing_characteristics_dir = 'tests_housing_characteristics/housing_characteristics_non_float'
-      integrity_check(@project_dir_name, housing_characteristics_dir, @lookup_file)
-      integrity_check_options_lookup_tsv(@project_dir_name, housing_characteristics_dir, @lookup_file)
-    rescue Exception => e
-      assert_equal("ERROR: Incorrect non float found in 'Location', line '2'.", e.message)
-    else
-      flunk "Should have caused an error but didn't."
-    end
-  end
-
   def test_housing_characteristics_sum_not_one
     begin
       housing_characteristics_dir = 'tests_housing_characteristics/housing_characteristics_sum_not_one'
