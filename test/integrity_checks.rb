@@ -332,9 +332,7 @@ def check_parameter_file_format(tsvpath, n_deps, name)
     next if line.start_with? "\#"
 
     # Check endline character
-    if line.include? "\r\n"
-      next
-    else
+    if not line.include? "\r\n"
       # Found wrong endline format
       raise "ERROR: Incorrect newline character found in '#{name}', line '#{i}'."
     end # End checks
