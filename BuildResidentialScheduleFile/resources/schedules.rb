@@ -65,7 +65,7 @@ class ScheduleGenerator
       return false if not success
     end
 
-    if args[:setpoint_output_csv_path].is_initialized
+    if !args[:setpoint_output_csv_path].nil?
       success = create_setpoint_schedules(args: args)
       return false if not success
     end
@@ -116,7 +116,7 @@ class ScheduleGenerator
       setpoint_schedules[schedule] = setpoint_schedules[schedule].map { |x| UnitConversions.convert(x, 'F', 'C') }
     end
 
-    setpoint_output_csv_path = args[:setpoint_output_csv_path].get
+    setpoint_output_csv_path = args[:setpoint_output_csv_path]
     unless (Pathname.new setpoint_output_csv_path).absolute?
       setpoint_output_csv_path = File.expand_path(File.join(File.dirname(args[:hpxml_output_path]), setpoint_output_csv_path))
     end
