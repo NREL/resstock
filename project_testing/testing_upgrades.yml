@@ -78,7 +78,7 @@ upgrades:
       apply_logic:
         and:
           - Geometry Foundation Type|Vented Crawlspace
-          - or:
+          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
               - Geometry Building Level MF|None
               - Geometry Building Level MF|Bottom
       costs:
@@ -185,7 +185,7 @@ upgrades:
         apply_logic:
           and:
             - Geometry Foundation Type|Vented Crawlspace
-            - or:
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
                 - Geometry Building Level MF|None
                 - Geometry Building Level MF|Bottom
         costs:
