@@ -74,17 +74,28 @@ upgrades:
 
   - upgrade_name: Foundation Type
     options:
-    - option: Geometry Foundation Type|Unvented Crawlspace
-      apply_logic:
-        and:
-          - Geometry Foundation Type|Vented Crawlspace
-          - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
-              - Geometry Building Level MF|None
-              - Geometry Building Level MF|Bottom
-      costs:
-        - value: 0.84
-          multiplier: Floor Area, Foundation (ft^2)
-      lifetime: 999
+      - option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
+        costs:
+          - value: 0.84
+            multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 999
+      - option: Insulation Foundation Wall|Wall R-10, Exterior
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
+        costs:
+          - value: 1.05
+            multiplier: Wall Area, Below-Grade (ft^2)
+        lifetime: 999
 
   - upgrade_name: Rim Joists
     options:
@@ -191,6 +202,17 @@ upgrades:
         costs:
           - value: 0.84
             multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 999
+      - option: Insulation Foundation Wall|Wall R-10, Exterior
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
+        costs:
+          - value: 1.05
+            multiplier: Wall Area, Below-Grade (ft^2)
         lifetime: 999
       - option: Insulation Rim Joist|R-13, Interior
         costs:
