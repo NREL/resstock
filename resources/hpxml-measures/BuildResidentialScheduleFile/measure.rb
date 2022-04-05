@@ -10,6 +10,7 @@ require_relative 'resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/geometry'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
+require_relative '../HPXMLtoOpenStudio/resources/hpxml_defaults'
 require_relative '../HPXMLtoOpenStudio/resources/hvac'
 require_relative '../HPXMLtoOpenStudio/resources/location'
 require_relative '../HPXMLtoOpenStudio/resources/lighting'
@@ -261,8 +262,8 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       clg_end_month = hvac_control.seasons_cooling_end_month
       clg_end_day = hvac_control.seasons_cooling_end_day
 
-      heating_days = Schedule.get_daily_season(hpxml.header.sim_calendar_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
-      cooling_days = Schedule.get_daily_season(hpxml.header.sim_calendar_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+      heating_days = Schedule.get_daily_season(args[:sim_year], htg_start_month, htg_start_day, htg_end_month, htg_end_day)
+      cooling_days = Schedule.get_daily_season(args[:sim_year], clg_start_month, clg_start_day, clg_end_month, clg_end_day)
       has_ceiling_fan = (hpxml.ceiling_fans.size > 0)
 
       htg_weekday_setpoints, htg_weekend_setpoints = HVAC.get_heating_setpoints(hvac_control, args[:sim_year])
