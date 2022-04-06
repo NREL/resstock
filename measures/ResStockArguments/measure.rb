@@ -140,6 +140,13 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(10.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_insulation_r', true)
+    arg.setDisplayName('Ceiling: Insulation Nominal R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Nominal R-value for the ceiling (attic floor).')
+    arg.setDefaultValue(0)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('rim_joist_continuous_exterior_r', true)
     arg.setDisplayName('Rim Joist: Continuous Exterior Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
@@ -159,6 +166,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setUnits('h-ft^2-R/Btu')
     arg.setDescription('Assembly R-value for the rim joist assembly interior insulation that runs perpendicular to floor joists. Only applies to basements/crawlspaces.')
     arg.setDefaultValue(0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('air_leakage_percent_reduction', false)
+    arg.setDisplayName('Air Leakage: Value Reduction')
+    arg.setDescription('Reduction (%) on the air exchange rate value.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('misc_plug_loads_other_2_usage_multiplier', true)
@@ -690,6 +702,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # Infiltration Reduction
+    if args['air_leakage_percent_reduction'].is_initialized
+      args['air_leakage_value'] *= (1.0 - args['air_leakage_percent_reduction'].get / 100.0)
+    end
+
     # Num Floors
     if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
       args['geometry_unit_num_floors_above_grade'] = 1
@@ -754,7 +771,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 
-      runner.registerValue(arg_name, arg_value)
+      register_value(runner, arg_name, arg_value)
     end
 
     return true
