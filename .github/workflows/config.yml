@@ -13,18 +13,16 @@ jobs:
     container:
       image: docker://nrel/openstudio:3.3.0
     steps:
-      - name: Show environment
-        run: |
-          bundle -v
-          ruby -v
-
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Install gems
+      - name: Install gems and software
         run: |
           rm -f Gemfile.lock && bundle install
+          sudo apt update
+          sudo apt-get install -y wget unzip libxml2-utils python3-lxml python3-pip
+          sudo pip3 install sphinx sphinx-rtd-theme
 
       - name: Run integrity checks for all projects
         run: |
@@ -60,11 +58,6 @@ jobs:
     container:
       image: docker://nrel/openstudio:3.3.0
     steps:
-      - name: Show environment
-        run: |
-          bundle -v
-          ruby -v
-
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
@@ -80,11 +73,6 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Show environment
-        run: |
-          ruby -v
-          python -v
-
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
@@ -145,11 +133,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [unit-tests, analysis-tests, integration-tests]
     steps:
-      - name: Show environment
-        run: |
-          ruby -v
-          python -v
-
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.base.sha }}
