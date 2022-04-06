@@ -44,6 +44,17 @@ jobs:
           path: resources/buildstock.csv
           name: samples
 
+      - name: Build documentation
+        run: |
+          cd docs/read_the_docs
+          make html
+
+      - name: Save Docs
+        uses: actions/upload-artifact@v2
+        with:
+          name: documentation
+          path: docs/_build/html/
+
   analysis-tests:
     runs-on: ubuntu-latest
     container:
