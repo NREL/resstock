@@ -4,6 +4,7 @@ class HotWaterAndAppliances
   def self.apply(model, runner, hpxml, weather, spaces, hot_water_distribution,
                  solar_thermal_system, eri_version, schedules_file, plantloop_map)
 
+    @runner = runner
     cfa = hpxml.building_construction.conditioned_floor_area
     nbeds = hpxml.building_construction.number_of_bedrooms
     ncfl = hpxml.building_construction.number_of_conditioned_floors
@@ -409,6 +410,8 @@ class HotWaterAndAppliances
     if not @runner.nil?
       @runner.registerWarning('Negative energy use calculated for cooking range/oven; this may indicate incorrect ENERGY GUIDE label inputs.') if (annual_kwh < 0) || (annual_therm < 0)
     end
+    annual_kwh = 0.0 if annual_kwh < 0
+    annual_therm = 0.0 if annual_therm < 0
 
     return annual_kwh, annual_therm, frac_sens, frac_lat
   end
@@ -472,6 +475,8 @@ class HotWaterAndAppliances
       @runner.registerWarning('Negative energy use calculated for dishwasher; this may indicate incorrect ENERGY GUIDE label inputs.') if annual_kwh < 0
       @runner.registerWarning('Negative hot water use calculated for dishwasher; this may indicate incorrect ENERGY GUIDE label inputs.') if gpd < 0
     end
+    annual_kwh = 0.0 if annual_kwh < 0
+    gpd = 0.0 if gpd < 0
 
     return annual_kwh, frac_sens, frac_lat, gpd
   end
@@ -573,6 +578,8 @@ class HotWaterAndAppliances
     if not @runner.nil?
       @runner.registerWarning('Negative energy use calculated for clothes dryer; this may indicate incorrect ENERGY GUIDE label inputs.') if (annual_kwh < 0) || (annual_therm < 0)
     end
+    annual_kwh = 0.0 if annual_kwh < 0
+    annual_therm = 0.0 if annual_therm < 0
 
     return annual_kwh, annual_therm, frac_sens, frac_lat
   end
@@ -643,6 +650,8 @@ class HotWaterAndAppliances
       @runner.registerWarning('Negative energy use calculated for clothes washer; this may indicate incorrect ENERGY GUIDE label inputs.') if annual_kwh < 0
       @runner.registerWarning('Negative hot water use calculated for clothes washer; this may indicate incorrect ENERGY GUIDE label inputs.') if gpd < 0
     end
+    annual_kwh = 0.0 if annual_kwh < 0
+    gpd = 0.0 if gpd < 0
 
     return annual_kwh, frac_sens, frac_lat, gpd
   end
@@ -670,6 +679,7 @@ class HotWaterAndAppliances
     if not @runner.nil?
       @runner.registerWarning('Negative energy use calculated for refrigerator; this may indicate incorrect ENERGY GUIDE label inputs.') if annual_kwh < 0
     end
+    annual_kwh = 0.0 if annual_kwh < 0
 
     return annual_kwh, frac_sens, frac_lat
   end
@@ -751,7 +761,7 @@ class HotWaterAndAppliances
   end
 
   def self.add_other_equipment(model, obj_name, space, design_level_w, frac_sens, frac_lat, schedule, fuel_type)
-    return if design_level_w == 0.0
+    return if design_level_w == 0.0 # Negative values intentinally allowed, e.g. for water sensible
 
     oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
     oe = OpenStudio::Model::OtherEquipment.new(oe_def)
@@ -866,14 +876,14 @@ class HotWaterAndAppliances
     # Annual electricity consumption factor for hot water recirculation system pumps
     # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.system_type == HPXML::DHWDistTypeRecirc
-      if (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeNone) ||
-         (hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTimer)
+      if [HPXML::DHWRecirControlTypeNone,
+          HPXML::DHWRecirControlTypeTimer].include? hot_water_distribution.recirculation_control_type
         dist_pump_annual_kwh += (8.76 * hot_water_distribution.recirculation_pump_power)
-      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeTemperature
+      elsif [HPXML::DHWRecirControlTypeTemperature].include? hot_water_distribution.recirculation_control_type
         dist_pump_annual_kwh += (1.46 * hot_water_distribution.recirculation_pump_power)
-      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeSensor
+      elsif [HPXML::DHWRecirControlTypeSensor].include? hot_water_distribution.recirculation_control_type
         dist_pump_annual_kwh += (0.15 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
-      elsif hot_water_distribution.recirculation_control_type == HPXML::DHWRecirControlTypeManual
+      elsif [HPXML::DHWRecirControlTypeManual].include? hot_water_distribution.recirculation_control_type
         dist_pump_annual_kwh += (0.10 * hot_water_distribution.recirculation_pump_power * fixtures_usage_multiplier)
       else
         fail "Unexpected hot water distribution system recirculation type: '#{hot_water_distribution.recirculation_control_type}'."
@@ -888,11 +898,12 @@ class HotWaterAndAppliances
     # Assume the fixtures_usage_multiplier only applies for Sensor/Manual control type.
     if hot_water_distribution.has_shared_recirculation
       n_dweq = hot_water_distribution.shared_recirculation_number_of_units_served
-      if (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeNone) ||
-         (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeTimer)
+      if [HPXML::DHWRecirControlTypeNone,
+          HPXML::DHWRecirControlTypeTimer,
+          HPXML::DHWRecirControlTypeTemperature].include? hot_water_distribution.shared_recirculation_control_type
         op_hrs = 8760.0
-      elsif (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeSensor) ||
-            (hot_water_distribution.shared_recirculation_control_type == HPXML::DHWRecirControlTypeManual)
+      elsif [HPXML::DHWRecirControlTypeSensor,
+             HPXML::DHWRecirControlTypeManual].include? hot_water_distribution.shared_recirculation_control_type
         op_hrs = 730.0 * fixtures_usage_multiplier
       else
         fail "Unexpected hot water distribution system shared recirculation type: '#{hot_water_distribution.shared_recirculation_control_type}'."
