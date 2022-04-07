@@ -197,11 +197,11 @@ class HVACSizing
         # Attic is considered to be encapsulated. MJ8 says to use an attic
         # temperature of 95F, however alternative approaches are permissible
 
-        if is_vented
-          heat_temp = design_db
-        else # not is_vented
-          heat_temp = calculate_space_design_temps(runner, space, weather, unit, @finished_heat_design_temp, design_db, weather.data.GroundMonthlyTemps.min)
-        end
+        # For ABC Typology branch, temporarily use the attic space temperature instead of outdoor dry bulb, 
+        # to prevent very large heating equipment sizes in cases where we model finished attics as being vented. 
+        # This is fixed in ResStock-HPXML.
+        heat_temp = calculate_space_design_temps(runner, space, weather, unit, @finished_heat_design_temp, design_db, weather.data.GroundMonthlyTemps.min)
+        
 
       else
 
