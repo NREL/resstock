@@ -429,7 +429,7 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.run_and_check(in_osw, parent_dir, cli_output, measures_only = false)
+  def self.run_and_check(in_osw, parent_dir, cli_output, upgrade, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
@@ -438,7 +438,6 @@ class RunOSWs
 
     cli_output += `#{command}`
 
-    result_characteristics = {}
     result_output = {}
 
     out = File.join(parent_dir, 'out.osw')
@@ -447,7 +446,7 @@ class RunOSWs
 
     results = File.join(parent_dir, 'run/results.json')
 
-    return completed_status, result_characteristics, result_output, cli_output if measures_only || !File.exist?(results)
+    return completed_status, result_output, cli_output if measures_only || !File.exist?(results)
 
     rows = {}
     old_rows = JSON.parse(File.read(File.expand_path(results)))
@@ -460,13 +459,13 @@ class RunOSWs
       end
     end
 
-    result_characteristics = get_measure_results(rows, result_characteristics, 'BuildExistingModel')
+    result_output = get_measure_results(rows, result_output, 'BuildExistingModel') if !upgrade
     result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
     result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
     result_output = get_measure_results(rows, result_output, 'QOIReport')
 
-    return completed_status, result_characteristics, result_output, cli_output
+    return completed_status, result_output, cli_output
   end
 
   def self.get_measure_results(rows, result, measure)
