@@ -2,8 +2,8 @@ schema_version: '0.3'
 buildstock_directory: /home/epresent/resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 output_directory: national_upgrades
-weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2019_FIPS.zip
 
 sampler: 
   type: residential_quota_downselect
@@ -169,7 +169,7 @@ workflow_generator:
       simulation_control_run_period_calendar_year: 2018
 
     emissions:
-      - scenario_name: LRMER_MidCase_15
+      - scenario_name: LRMER_LowRECost_15
         type: CO2
         elec_folder: data/cambium/LRMER_LowRECost_15
         gas_value: 117.6
@@ -195,30 +195,65 @@ baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
-  # - upgrade_name: Package with Fuel Switching
-  #   options:
-  #     - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
-  #       costs:
-  #         - value: 45.77
-  #           multiplier: Window Area (ft^2)
-  #       lifetime: 30
-
-  # - upgrade_name: Package without Fuel Switching
-  #   options:
-  #     - option: Insulation Wall|Wood Stud, R-13
-  #       costs:
-  #         - value: 2.21
-  #           multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
-  #       lifetime: 999
-
-  # - upgrade_name: Envelope Only
-  #   options:
-  #     - option: Insulation Rim Joist|R-13, Interior
-  #       costs:
-  #         - value: 3.11
-  #           multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
-  #       lifetime: 999
-
+   - upgrade_name: Package with Fuel Switching
+     options:
+       - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
+         costs:
+           - value: 45.77
+             multiplier: Window Area (ft^2)
+         lifetime: 30
+#     a. HVAC: 
+#       i. Homes with ducts: ASHP, SEER 22, 10HSPF
+#       ii. Homes without ducts: MSHP, SEER 29.3, 14 HSPF
+#       iii. All ducts in unconditioned space upgraded to 10% leakage, R-8
+#       iv. (This is from ABC Package 1 - it's somewhat aggressive, appropriate for cold climates)
+#     b. Water heating: Current HPWH line (3.35-3.45 UEF), size based on occupants
+#     c. Appliances: 
+#       i. Maintain presence and usage level 
+#       ii. Refrigerator: EF 21.9, 348 rated kWh/yr
+#       iii. Clothes washer: EnergyStar (Efficiency 2.07, 123 rated kWh/yr)
+#         1) Note we have 3 more efficient levels available
+#       iv. Clothes dryer: EnergyStar (Efficiency 3.93)
+#       v. Dishwasher: 199 Rated kWh
+# Cooking range: Electric for all? Electric induction for all? No change? 
+  - upgrade_name: Package without Fuel Switching
+    options:
+      - option: Insulation Wall|Wood Stud, R-13
+        costs:
+          - value: 2.21
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+# Equipment Package (no fuel switching) 
+#     a. HVAC: 
+#       i. If home has AC but non-electric heat, upgrade CAC to SEER 18, and room AC to EER 12
+#       ii. If home has AC and electric heat, same as (1)
+#       iii. If home has electric heat and no AC, same as (1)?  
+#     b. Water heating 
+#       i. Same as (1), but do not upgrade non-electric WH
+#     c. Appliances:
+# Same as (1), but do not upgrade non-electric appliances
+  - upgrade_name: Envelope Only
+    options:
+      - option: Insulation Rim Joist|R-13, Interior
+        costs:
+          - value: 3.11
+            multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
+        lifetime: 999
+# 3. Envelope Package - ABC "Market Ready Envelope" package
+#     a. Duct sealing
+#       i. Same as package 1 & 2? 
+#     b. Attic insulation 
+#       i. R-values for 2021 IECC for homes with vented attics
+#         1) R-30 for zone 1A
+#         2) R-49 for zone 2-3
+#         3) R-60 for zone 4-7
+#       ii. Air leakage reduction for homes with insulation being added
+#     c. Wall insulation
+#       i. Add R-6.5 XPS (polyiso) to homes older than 1990 with <R-19 nominal wall insulation
+#       ii. Air leakage reduction for homes with insulation being added
+#     d. Windows 
+#       i. Add exterior low-E storms for single and double pane windows
+# Air leakage reduction for homes with low-e storms being added
   - upgrade_name: Lighting Only
     options:
       - option: Lighting|100% LED
