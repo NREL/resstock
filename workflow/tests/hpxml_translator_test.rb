@@ -1243,13 +1243,20 @@ class HPXMLTest < MiniTest::Test
 
     # Get fuels
     htg_fuels = []
+    htg_backup_fuels = []
+    wh_fuels = []
     hpxml.heating_systems.each do |heating_system|
-      htg_fuels << heating_system.heating_system_fuel
+      if heating_system.is_heat_pump_backup_system
+        htg_backup_fuels << heating_system.heating_system_fuel
+      else
+        htg_fuels << heating_system.heating_system_fuel
+      end
     end
     hpxml.heat_pumps.each do |heat_pump|
-      htg_fuels << heat_pump.backup_heating_fuel
+      if heat_pump.fraction_heat_load_served > 0
+        htg_backup_fuels << heat_pump.backup_heating_fuel
+      end
     end
-    wh_fuels = []
     hpxml.water_heating_systems.each do |water_heating_system|
       related_hvac = water_heating_system.related_hvac_system
       if related_hvac.nil?
@@ -1257,6 +1264,13 @@ class HPXMLTest < MiniTest::Test
       elsif related_hvac.respond_to? :heating_system_fuel
         wh_fuels << related_hvac.heating_system_fuel
       end
+    end
+
+    is_warm_climate = false
+    if ['USA_FL_Miami.Intl.AP.722020_TMY3.epw',
+        'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw',
+        'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'].include? hpxml.climate_and_risk_zones.weather_station_epw_filepath
+      is_warm_climate = true
     end
 
     # Fuel consumption checks
@@ -1270,18 +1284,23 @@ class HPXMLTest < MiniTest::Test
       fuel_name = fuel.split.map(&:capitalize).join(' ')
       fuel_name += ' Cord' if fuel_name == 'Wood'
       energy_htg = results.fetch("End Use: #{fuel_name}: Heating (MBtu)", 0)
+      energy_hp_backup = results.fetch("End Use: #{fuel_name}: Heating Heat Pump Backup (MBtu)", 0)
       energy_dhw = results.fetch("End Use: #{fuel_name}: Hot Water (MBtu)", 0)
       energy_cd = results.fetch("End Use: #{fuel_name}: Clothes Dryer (MBtu)", 0)
       energy_cr = results.fetch("End Use: #{fuel_name}: Range/Oven (MBtu)", 0)
       if htg_fuels.include? fuel
-        if (not hpxml_path.include? 'location-miami') && \
-           (not hpxml_path.include? 'location-honolulu') && \
-           (not hpxml_path.include? 'location-phoenix') && \
-           (not (hpxml_path.include?('autosize') && hpxml_path.include?('backup')))
+        if (not hpxml_path.include? 'autosize') && (not is_warm_climate)
           assert_operator(energy_htg, :>, 0)
         end
       else
         assert_equal(0, energy_htg)
+      end
+      if htg_backup_fuels.include? fuel
+        if (not hpxml_path.include? 'autosize') && (not is_warm_climate)
+          assert_operator(energy_hp_backup, :>, 0)
+        end
+      else
+        assert_equal(0, energy_hp_backup)
       end
       if wh_fuels.include? fuel
         assert_operator(energy_dhw, :>, 0)

@@ -1,16 +1,15 @@
 ## OpenStudio-HPXML v1.4.0
 __New Features__
 - Updates to OpenStudio 3.4.0/EnergyPlus 22.1.
-- Adds "Energy Use: Total" and "Energy Use: Net" columns to the annual results output file; allows timeseries outputs.
 - Allows calculating one or more emissions scenarios (e.g., high renewable penetration vs business as usual) for different emissions types (e.g., CO2e).
 - Allows a heat pump separate backup system to be a central system (e.g., central furnace w/ ducts). Previously only non-central system types were allowed.
 - Allows specifying a `StormWindow` element for windows/skylights; U-factors and SHGCs are automatically adjusted.
 - Allows an optional `AirInfiltrationMeasurement/InfiltrationHeight` input.
 - Allows an optional `Battery/UsableCapacity` input; now defaults to 0.9 x NominalCapacity (previously 0.8).
 - Adds support for shared hot water recirculation systems controlled by temperature.
-- Adds a "Fuel Use: Electricity: Net" timeseries output column for homes with electricity generation.
 - The `WaterFixturesUsageMultiplier` input now also applies to general water use internal gains and recirculation pump energy (for some control types).
 - Relaxes requirement for `ConditionedFloorAreaServed` for air distribution systems; now only needed if duct surface areas not provided.
+- **Breaking change**: Each `VentilationFan` must have one (and only one) `UsedFor...` element set to true.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Changes the zip code argument name to `site_zip_code`.
   - Adds support for ambient foundations for single-family attached and apartment units.
@@ -19,10 +18,15 @@ __New Features__
   - Adds an optional argument for whether the HPXML file is written with default values applied; defaults to false.
   - Adds an optional argument for whether the HPXML file is validated; defaults to false.
 - ReportSimulationOutput measure:
-  - Add optional argument for requesting timeseries EnergyPlus output variables.
-  - Add ability to include `TimeDST` and/or `TimeUTC` timestamp column(s) in results_timeseries.csv.
+  - **Breaking change**: New "End Use: \<Fuel\>: Heating Heat Pump Backup" output, disaggregated from "End Use: \<Fuel\>: Heating".
+  - Adds "Energy Use: Total" and "Energy Use: Net" columns to the annual results output file; allows timeseries outputs.
+  - Adds a "Fuel Use: Electricity: Net" timeseries output column for homes with electricity generation.
+  - Adds optional argument for requesting timeseries EnergyPlus output variables.
+  - Adds ability to include `TimeDST` and/or `TimeUTC` timestamp column(s) in results_timeseries.csv.
   - Timestamps in results_timeseries.csv are output in ISO 8601 standard format.
   - Allows user-specified annual/timeseries output file names.
+- ReportHPXMLOutput measure:
+  - Adds "Enclosure: Floor Area Foundation" output row in results_hpxml.csv.
 
 __Bugfixes__
 - Adds more stringent limits for `AirflowDefectRatio` and `ChargeDefectRatio` (now allows values from 1/10th to 10x the design value).
@@ -31,6 +35,7 @@ __Bugfixes__
 - Fixes an error if there is a pool or hot tub, but the pump `Type` is set to "none".
 - Adds more decimal places in output files as needed for simulations with shorter timesteps and/or abbreviated run periods.
 - Timeseries output fixes: some outputs off by 1 hour; possible negative combi boiler values.
+- Fixes range hood ventilation interaction with infiltration to take into account the location of the cooking range.
 
 ## OpenStudio-HPXML v1.3.0
 
