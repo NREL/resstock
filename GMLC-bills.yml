@@ -195,13 +195,276 @@ baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
-   - upgrade_name: Package with Fuel Switching
-     options:
-       - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
-         costs:
-           - value: 45.77
-             multiplier: Window Area (ft^2)
-         lifetime: 30
+  - upgrade_name: Package with Fuel Switching
+    options:
+      # Clothes washer Upgrade
+      - &clothes_washer_80pct
+        option: Clothes Washer|EnergyStar, 80% Usage
+        apply_logic: Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 72
+            multiplier: Fixed (1)
+        lifetime: 14
+      - &clothes_washer_100pct
+        option: Clothes Washer|EnergyStar, 100% Usage
+        apply_logic: Clothes Washer|Standard, 100% Usage
+        costs:
+          - value: 72
+            multiplier: Fixed (1)
+        lifetime: 14
+      - &clothes_washer_120pct
+        option: Clothes Washer|EnergyStar, 120% Usage
+        apply_logic: Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 72
+            multiplier: Fixed (1)
+        lifetime: 14
+      
+      # Dishwasher Upgrade
+      - &dishwasher_80pct
+        option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic:
+          or: 
+            - Dishwasher|290 Rated kWh, 80% Usage
+            - Dishwasher|318 Rated kWh, 80% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - &dishwasher_100pct
+        option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic:
+          or: 
+            - Dishwasher|290 Rated kWh, 100% Usage
+            - Dishwasher|318 Rated kWh, 100% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1)
+        lifetime: 11
+      - &dishwasher_120pct
+        option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic:
+          or: 
+            - Dishwasher|290 Rated kWh, 120% Usage
+            - Dishwasher|318 Rated kWh, 120% Usage
+        costs:
+          - value: 1000
+            multiplier: Fixed (1) 
+        lifetime: 11
+      
+      # Refrigerator Upgrade
+      - &refrigerator
+        option: Refrigerator|EF 21.9, 100% Usage
+        apply_logic:
+          not: Refrigerator|EF 21.9, 100% Usage
+        costs:
+          - value: 670
+            multiplier: Fixed (1)
+        lifetime: 17.4
+      
+      # Clothes Dryer Upgrade
+      - &clothes_dryer_80pct
+        option: Clothes Dryer|Electric, EnergyStar 80% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Gas, 80% Usage
+            - Clothes Dryer|Propane, 80% Usage
+        costs:
+          - value: 1200
+            multiplier: Fixed (1)
+        lifetime: 13
+      - &clothes_dryer_100pct
+        option: Clothes Dryer|Electric, EnergyStar 100% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Gas, 100% Usage
+            - Clothes Dryer|Propane, 100% Usage
+        costs:
+          - value: 1200
+            multiplier: Fixed (1)
+        lifetime: 13
+      - &clothes_dryer_120pct
+        option: Clothes Dryer|Electric, EnergyStar 120% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Gas, 120% Usage
+            - Clothes Dryer|Propane, 120% Usage
+        costs:
+          - value: 1200
+            multiplier: Fixed (1)
+        lifetime: 13
+      #got to here
+      # Lighting Upgrade
+      - &lighting
+        option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|20% LED
+            - Lighting|100% LED
+        costs:
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+        
+      # Cooking upgrade
+      - &cooking_range
+        option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          not: Cooking Range|Electric, Induction, 100% Usage
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+
+      # Ducts sealing and insulation Upgrade to R-8, 10% leakage
+      - &ducts_category1
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|85% Leakage, Uninsulated
+            - Ducts|53% Leakage, Uninsulated
+            - Ducts|34% Leakage, Uninsulated
+            - Ducts|30% Leakage, Uninsulated
+            - Ducts|85% Leakage, R-4
+            - Ducts|85% Leakage, R-6
+            - Ducts|53% Leakage, R-4
+            - Ducts|53% Leakage, R-6
+            - Ducts|34% Leakage, R-4
+            - Ducts|34% Leakage, R-6
+            - Ducts|30% Leakage, R-4
+            - Ducts|30% Leakage, R-6            
+        costs:
+          - value: 2.2
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category2
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|85% Leakage, R-8
+            - Ducts|53% Leakage, R-8
+            - Ducts|34% Leakage, R-8
+            - Ducts|30% Leakage, R-8   
+        costs:
+          - value: 0.81
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category3
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|24% Leakage, Uninsulated
+            - Ducts|24% Leakage, R-4
+            - Ducts|24% Leakage, R-6
+            - Ducts|20% Leakage, Uninsulated
+            - Ducts|20% Leakage, R-4
+            - Ducts|20% Leakage, R-6 
+        costs:
+          - value: 0.4
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category4
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|24% Leakage, R-8
+            - Ducts|20% Leakage, R-8
+        costs:
+          - value: 0.4
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category5
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|15% Leakage, Uninsulated
+            - Ducts|15% Leakage, R-4
+            - Ducts|15% Leakage, R-6
+            - Ducts|14% Leakage, Uninsulated
+            - Ducts|14% Leakage, R-4
+            - Ducts|14% Leakage, R-6
+            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+        costs:
+          - value: 1.6
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category6
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|15% Leakage, R-8
+            - Ducts|14% Leakage, R-8
+        costs:
+          - value: 0.2
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category7
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|10% Leakage, Uninsulated
+            - Ducts|10% Leakage, R-4
+            - Ducts|10% Leakage, R-6
+        costs:
+          - value: 1.4
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+
+      # Heat Pump Water Heater Upgrade
+      # - &water_heater_efficiency_50gal
+      #   option: Water Heater Efficiency|Electric Heat Pump, 50 gal
+      #   apply_logic:
+      #     - not: 
+      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal
+      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
+      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal, In Confined Space
+      #       - Water Heater Efficiency|Electric Heat Pump, 80 gal
+      #     - Water Heater In Unit|Yes
+      #   costs:
+      #     - value: 1700
+      #       multiplier: Fixed (1)
+      #   lifetime: 12
+      - &water_heater_efficiency_80gal
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal
+        apply_logic:
+          - not: 
+            - Water Heater Efficiency|Electric Heat Pump, 50 gal
+            - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
+            - Water Heater Efficiency|Electric Heat Pump, 80 gal
+        costs:
+          - value: 2000
+            multiplier: Fixed (1)
+        lifetime: 12
+      
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct
+        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &HVAC_efficiency_MSHP_ductless
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+        apply_logic:
+          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+          - HVAC Has Ducts|No
+        costs:
+          - value: 2510
+            multiplier: Fixed (1)
+          - value: 95
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
 #     a. HVAC: 
 #       i. Homes with ducts: ASHP, SEER 22, 10HSPF
 #       ii. Homes without ducts: MSHP, SEER 29.3, 14 HSPF
