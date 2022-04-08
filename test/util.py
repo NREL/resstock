@@ -7,7 +7,8 @@ col_exclusions = ['applicable',
                   'output_format',
                   'timeseries_frequency',
                   'upgrade_name',
-                  'add_timeseries_']
+                  'add_timeseries_',
+                  'user_output_variables']
 
 # BASELINE
 

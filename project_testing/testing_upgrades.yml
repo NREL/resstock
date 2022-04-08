@@ -25,6 +25,7 @@ workflow_generator:
       simulation_control_run_period_end_month: 12
       simulation_control_run_period_end_day_of_month: 31
       simulation_control_run_period_calendar_year: 2007
+      debug: true
 
     emissions:
       - scenario_name: LRMER_MidCase_15
@@ -42,6 +43,8 @@ workflow_generator:
       include_timeseries_end_use_consumptions: true
       include_timeseries_emissions: true
       include_timeseries_total_loads: false
+      output_variables:
+        - name: Zone People Occupant Count
 
     reporting_measures:
       - measure_dir_name: QOIReport
@@ -86,16 +89,16 @@ upgrades:
             - Insulation Ceiling|R-7
             - Insulation Ceiling|Uninsulated
         costs:
-          - value: 1.11
-            multiplier: Floor Area, Attic (ft^2)
+          - value: 0.11
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
         lifetime: 999
 
   - upgrade_name: Air Leakage
     options:
-      - option: Infiltration|3 ACH50
+      - option: Infiltration Reduction|25%
         costs:
-          - value: 3.55
-            multiplier: Floor Area, Conditioned (ft^2)
+          - value: 1.50
+            multiplier: Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)
         lifetime: 999
 
   - upgrade_name: Refrigerator
@@ -170,14 +173,19 @@ upgrades:
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
         lifetime: 999
       - option: Insulation Ceiling|R-60
+        apply_logic:
+          or:
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|Uninsulated
         costs:
-          - value: 1.11
-            multiplier: Floor Area, Attic (ft^2)
+          - value: 0.11
+            multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
         lifetime: 999
-      - option: Infiltration|3 ACH50
+      - option: Infiltration Reduction|25%
         costs:
-          - value: 3.55
-            multiplier: Floor Area, Conditioned (ft^2)
+          - value: 1.50
+            multiplier: Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)
         lifetime: 999
       - option: Refrigerator|EF 21.9, 100% Usage
         costs:

@@ -11,7 +11,9 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug, building_ids)
+def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders)
+  fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
+
   cfg = YAML.load_file(yml)
 
   thisdir = File.dirname(__FILE__)
@@ -22,7 +24,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   n_datapoints = cfg['sampler']['args']['n_datapoints']
 
   results_dir = File.absolute_path(File.join(thisdir, output_directory))
-  fail "Output directory #{output_directory} already exists." if File.exist?(results_dir)
+  fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
   Dir.mkdir(results_dir)
 
@@ -76,6 +78,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
           arguments['include_timeseries_total_loads'] = true if !arguments.keys.include?('include_timeseries_total_loads')
           arguments['add_timeseries_dst_column'] = true if !arguments.keys.include?('add_timeseries_dst_column')
           arguments['add_timeseries_utc_column'] = true if !arguments.keys.include?('add_timeseries_utc_column')
+
+          arguments['user_output_variables'] = arguments['output_variables'].collect { |o| o['name'] }.join(',') if arguments.keys.include?('output_variables')
         elsif measure_dir_name == 'server_directory_cleanup'
           arguments['retain_in_idf'] = true if !arguments.keys.include?('retain_in_idf')
           arguments['retain_schedules_csv'] = true if !arguments.keys.include?('retain_schedules_csv')
@@ -85,6 +89,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
                    'arguments' => arguments }
       end
     end
+
+    workflow_args['simulation_output_report'].delete('output_variables')
 
     if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
       if cfg['sampler']['args']['resample']
@@ -182,9 +188,9 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   # Create weather folder
   weather_dir = File.join(thisdir, '../weather')
   if !File.exist?(weather_dir)
-    Dir.mkdir(weather_dir)
-
     if cfg.keys.include?('weather_files_url')
+      Dir.mkdir(weather_dir)
+
       require 'tempfile'
       tmpfile = Tempfile.new('epw')
 
@@ -193,6 +199,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
 
       weather_files_path = tmpfile.path.to_s
     elsif cfg.keys.include?('weather_files_path')
+      Dir.mkdir(weather_dir)
+
       weather_files_path = cfg['weather_files_path']
     else
       fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
@@ -211,6 +219,9 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   outfile = File.join('../lib/housing_characteristics/buildstock.csv')
   if !['precomputed'].include?(cfg['sampler']['type'])
     create_buildstock_csv(project_directory, n_datapoints, outfile)
+    src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
+    des = results_dir
+    FileUtils.cp(src, des)
 
     datapoints = (1..n_datapoints).to_a
   else
@@ -233,18 +244,22 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
     end
   end
 
-  all_results_characteristics = []
-  all_results_output = []
+  all_results_output = {}
   all_cli_output = []
 
   Parallel.map(workflow_and_building_ids, in_threads: n_threads) do |upgrade_name, workflow, building_id|
-    job_id = Parallel.worker_number + 1
+    if keep_run_folders
+      job_id = workflow_and_building_ids.index([upgrade_name, workflow, building_id]) + 1
+    else
+      job_id = Parallel.worker_number + 1
+    end
 
-    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_characteristics, all_results_output, all_cli_output, measures_only, debug)
+    all_results_output[upgrade_name] = [] if !all_results_output.keys.include?(upgrade_name)
+    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures_only, debug)
 
     info = "[Parallel(n_jobs=#{n_threads})]: "
     max_size = "#{workflow_and_building_ids.size}".size
-    info += "%#{max_size}s" % "#{all_results_output.size}"
+    info += "%#{max_size}s" % "#{all_results_output.values.flatten.size}"
     info += " / #{workflow_and_building_ids.size}"
     info += ' | elapsed: '
     info += '%8s' % "#{get_elapsed_time(Time.now, $start_time)}"
@@ -252,17 +267,23 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids)
   end
 
   puts
-  results_csv_characteristics = RunOSWs.write_summary_results(results_dir, 'results_characteristics.csv', all_results_characteristics)
-  results_csv_output = RunOSWs.write_summary_results(results_dir, 'results_output.csv', all_results_output)
+  failures = []
+  all_results_output.each do |upgrade_name, results_output|
+    RunOSWs.write_summary_results(results_dir, "results-#{upgrade_name}.csv", results_output)
+
+    results_output.each do |results|
+      failures << results['building_id'] if results['completed_status'] == 'Fail'
+    end
+  end
+  failures.uniq.sort!
+  puts "\nFailures detected for: #{failures.join(', ')}.\nSee #{File.join(results_dir, 'cli_output.log')}." if !failures.empty?
+
   File.open(File.join(results_dir, 'cli_output.log'), 'a') do |f|
     all_cli_output.each do |cli_output|
       f.puts(cli_output)
       f.puts
     end
   end
-
-  failures = all_results_output.select { |x| x['completed_status'] == 'Fail' }.collect { |x| x['building_id'] }.uniq.sort
-  puts "\nFailures detected for: #{failures.join(', ')}.\nSee #{File.join(results_dir, 'cli_output.log')}." if !failures.empty?
 
   FileUtils.rm_rf(lib_dir)
 
@@ -294,7 +315,7 @@ def get_elapsed_time(t1, t0)
   return t
 end
 
-def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_characteristics, all_results_output, all_cli_output, measures_only, debug)
+def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures_only, debug)
   scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
 
   scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
@@ -311,35 +332,31 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
   change_building_id(osw, building_id)
 
   cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{job_id}.\n"
-  completed_status, result_characteristics, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, cli_output, measures_only)
+  upgrade = upgrade_name != 'Baseline'
+  completed_status, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, cli_output, upgrade, measures_only)
 
   osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
-
-  result_characteristics['OSW'] = osw
-  result_characteristics['job_id'] = job_id
-  result_characteristics['completed_status'] = completed_status
 
   result_output['OSW'] = osw
   result_output['building_id'] = building_id
   result_output['job_id'] = job_id
   result_output['completed_status'] = completed_status
 
-  all_results_characteristics << result_characteristics
-  all_results_output << result_output
+  all_results_output[upgrade_name] << result_output
   all_cli_output << cli_output
 
   run_dir = File.join(worker_dir, 'run')
   if debug
-    FileUtils.mv(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}-existing-defaulted.xml")) if File.exist?(File.join(run_dir, 'in.xml')) && !File.exist?(File.join(run_dir, 'upgraded.xml'))
-    FileUtils.mv(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}-upgraded-defaulted.xml")) if File.exist?(File.join(run_dir, 'in.xml')) && File.exist?(File.join(run_dir, 'upgraded.xml'))
-    FileUtils.mv(File.join(run_dir, 'existing.xml'), File.join(scenario_xml_dir, "#{building_id}-existing.xml")) if File.exist?(File.join(run_dir, 'existing.xml'))
-    FileUtils.mv(File.join(run_dir, 'upgraded.xml'), File.join(scenario_xml_dir, "#{building_id}-upgraded.xml")) if File.exist?(File.join(run_dir, 'upgraded.xml'))
-    FileUtils.mv(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}-existing.osw")) if File.exist?(File.join(run_dir, 'existing.osw'))
-    FileUtils.mv(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}-upgraded.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
+    FileUtils.cp(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}-existing-defaulted.xml")) if File.exist?(File.join(run_dir, 'in.xml')) && !File.exist?(File.join(run_dir, 'upgraded.xml'))
+    FileUtils.cp(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}-upgraded-defaulted.xml")) if File.exist?(File.join(run_dir, 'in.xml')) && File.exist?(File.join(run_dir, 'upgraded.xml'))
+    FileUtils.cp(File.join(run_dir, 'existing.xml'), File.join(scenario_xml_dir, "#{building_id}-existing.xml")) if File.exist?(File.join(run_dir, 'existing.xml'))
+    FileUtils.cp(File.join(run_dir, 'upgraded.xml'), File.join(scenario_xml_dir, "#{building_id}-upgraded.xml")) if File.exist?(File.join(run_dir, 'upgraded.xml'))
+    FileUtils.cp(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}-existing.osw")) if File.exist?(File.join(run_dir, 'existing.osw'))
+    FileUtils.cp(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}-upgraded.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
   else
-    FileUtils.mv(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}.xml")) if File.exist?(File.join(run_dir, 'in.xml'))
-    FileUtils.mv(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'existing.osw')) && !File.exist?(File.join(run_dir, 'upgraded.osw'))
-    FileUtils.mv(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
+    FileUtils.cp(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}.xml")) if File.exist?(File.join(run_dir, 'in.xml'))
+    FileUtils.cp(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'existing.osw')) && !File.exist?(File.join(run_dir, 'upgraded.osw'))
+    FileUtils.cp(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
   end
 end
 
@@ -410,6 +427,11 @@ OptionParser.new do |opts|
     options[:building_ids] << t
   end
 
+  options[:keep_run_folders] = false
+  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints') do |t|
+    options[:keep_run_folders] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -429,7 +451,8 @@ if not options[:version]
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug], options[:building_ids])
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only],
+                         options[:debug], options[:building_ids], options[:keep_run_folders])
 
   if not success
     exit! 1

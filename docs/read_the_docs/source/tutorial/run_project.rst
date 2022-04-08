@@ -1,25 +1,37 @@
 Run the Project
 ===============
 
+.. _buildstockbatch:
+
 Run using buildstockbatch
 -------------------------
 
-See the `buildstockbatch documentation <https://nrel.github.io/buildstockbatch>`_ for information on running projects (large-scale).
+See the `BuildStock Batch documentation <https://buildstockbatch.readthedocs.io/en/latest/>`_ for information on running projects (large-scale).
+
+.. _run_analysis:
 
 Run using run_analysis.rb
 -------------------------
 
-You also have the option of running (small-scale) projects using the OpenStudio `Command Line Interface <http://nrel.github.io/OpenStudio-user-documentation/reference/command_line_interface/>`_ (CLI) with buildstockbatch yml input files. This methods needs only the OpenStudio CLI.
+You also have the option of running (small-scale) projects using the OpenStudio `Command Line Interface <http://nrel.github.io/OpenStudio-user-documentation/reference/command_line_interface/>`_ (CLI) with buildstockbatch yml input files.
+This method needs only the OpenStudio CLI.
 
-.. note:: 
+The primary differences relative to buildstockbatch are:
 
-  If the ``openstudio`` command is not found, it's because the executable is not in your PATH. Either add the executable to your PATH or point directly to the executable found in the openstudio-X.X.X/bin directory.
+#. ``Debugging``: Individual, or sets of (e.g., 1, 2, 4), building ID(s) from the entire sampled space can be run. (See the related ``--building_id`` argument below.)
+#. ``Convenience``: Simulation input files (both OSW and HPXML) are collected and stored on-the-fly. (See the related ``--debug`` argument below.)
+#. ``Size``: Folders containing intermediate files can be either preserved or successively overwritten. (See the related ``--keep_run_folders`` argument below.)
+#. ``Accessibility``: Simulation input and output files are organized and stored differently, and are not tarred or compressed.
 
 Call the OpenStudio CLI with the provided ``workflow/run_analysis.rb`` script.
 For example:
 ``openstudio workflow/run_analysis.rb -y project_testing/testing_baseline.yml``
 The previous command samples from ``project_testing`` and runs simulations using baseline workflows generated from the specified yml file.
-An "output directory" (as specified in the yml file) is created with all input (osw and hpxml) files and simulation results.
+An "output directory" (as specified in the yml file) is created with all input (OSW and HPXML) files and simulation results.
+
+.. note::
+
+  If the ``openstudio`` command is not found, it's because the executable is not in your PATH. Either add the executable to your PATH or point directly to the executable found in the openstudio-X.X.X/bin directory.
 
 You can also request that only measures are applied (i.e., no simulations are run) using the ``--measures_only`` flag.
 For example:
@@ -36,7 +48,8 @@ Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arg
       -n, --threads N                  Number of parallel simulations (defaults to processor count)
       -m, --measures_only              Only run the OpenStudio and EnergyPlus measures
       -d, --debug                      Save both existing and upgraded xml/osw files
-      -i, --building_id ID             Only run this building ID; can be called multiple times     
+      -i, --building_id ID             Only run this building ID; can be called multiple times
+      -k, --keep_run_folders           Preserve run folder for all datapoints
       -h, --help                       Display help
       -v, --version                    Display version
 
