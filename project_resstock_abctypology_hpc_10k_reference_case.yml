@@ -1,7 +1,7 @@
 schema_version: '0.3'
-buildstock_directory: /projects/abctypol/repos/resstock  # Relative to this file or absolute
+buildstock_directory: /projects/enduse/abc_typology/repos/resstock  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/abctypol/resstock_runs/abc_typology_550k_v2
+output_directory: /projects/enduse/abc_typology/resstock_runs/abc_typology_10k_reference_case
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 # weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
@@ -16,8 +16,7 @@ sampler:
 workflow_generator: 
   type: residential_default
   args: 
-    timeseries_csv_export: 
-      reporting_frequency: Hourly
+    simulation_output: 
       include_enduse_subcategories: true
     # residential_simulation_controls: 
     #   timesteps_per_hr: 6
@@ -162,7 +161,7 @@ upgrades:
         apply_logic:
           not: Cooking Range|Electric, Induction, 100% Usage
         costs:
-          - value: 1220 
+          - value: 1420.26
             multiplier: Fixed (1)
         lifetime: 999
 
@@ -289,25 +288,28 @@ upgrades:
       
       # HVAC Upgrade
       - &HVAC_efficiency_ASHP_duct
-        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 10 HSPF, max load
         apply_logic:
-          - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
+          - not: HVAC Heating Efficiency|ASHP, SEER 20, 10 HSPF, max load
           - HVAC Has Ducts|Yes
         costs:
-          - value: 5929
+          - value: 8950.78
             multiplier: Fixed (1)
-          - value: 54.14
+          - value: 155.17
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - &HVAC_efficiency_MSHP_ductless
-        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+        option: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF, max load
         apply_logic:
-          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+          - not: 
+            - or: 
+              - HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF, max load
+              - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
           - HVAC Has Ducts|No
         costs:
-          - value: 2320
+          - value: 2556.60
             multiplier: Fixed (1)
-          - value: 122.46
+          - value: 331.22
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
 
@@ -380,7 +382,7 @@ upgrades:
           or: 
             - Dishwasher|290 Rated kWh, 80% Usage
         costs:
-          - value: 1289
+          - value: 864
             multiplier: Fixed (1)
         lifetime: 11
       - &dishwasher_100pct_ref_318kwh
@@ -398,7 +400,7 @@ upgrades:
           or: 
             - Dishwasher|290 Rated kWh, 100% Usage
         costs:
-          - value: 1289
+          - value: 864
             multiplier: Fixed (1)
         lifetime: 11
       - &dishwasher_120pct_ref_318kwh
@@ -416,7 +418,7 @@ upgrades:
           or: 
             - Dishwasher|290 Rated kWh, 120% Usage
         costs:
-          - value: 1289
+          - value: 864
             multiplier: Fixed (1) 
         lifetime: 11
       
@@ -530,7 +532,7 @@ upgrades:
       - option: Water Heater Efficiency|Natural Gas Premium
         apply_logic: Water Heater Efficiency|Natural Gas Standard
         costs:
-          - value: 928
+          - value: 1227.28
             multiplier: Fixed (1)
           - value: 14.18
             multiplier: Size, Water Heater (gal)
@@ -538,7 +540,7 @@ upgrades:
       - option: Water Heater Efficiency|Natural Gas Premium
         apply_logic: Water Heater Efficiency|Natural Gas Premium
         costs:
-          - value: 928
+          - value: 1293.84
             multiplier: Fixed (1)
           - value: 14.18
             multiplier: Size, Water Heater (gal)
@@ -546,15 +548,15 @@ upgrades:
       - option: Water Heater Efficiency|Natural Gas Tankless
         apply_logic: Water Heater Efficiency|Natural Gas Tankless
         costs:
-          - value: 2449
+          - value: 3224
             multiplier: Fixed (1)
         lifetime: 13
       - option: Water Heater Efficiency|Fuel Oil Premium
         apply_logic: Water Heater Efficiency|Fuel Oil Standard
         costs:
-          - value: 2191
+          - value: 2062.40
             multiplier: Fixed (1)
-          - value: 9.54
+          - value: 5.93
             multiplier: Size, Water Heater (gal)
         lifetime: 11
       - option: Water Heater Efficiency|Fuel Oil Premium
@@ -568,7 +570,7 @@ upgrades:
       - option: Water Heater Efficiency|FIXME Fuel Oil Indirect
         apply_logic: Water Heater Efficiency|FIXME Fuel Oil Indirect
         costs:
-          - value: 2191
+          - value: 2916.46
             multiplier: Fixed (1)
           - value: 9.54
             multiplier: Size, Water Heater (gal)
@@ -576,7 +578,7 @@ upgrades:
       - option: Water Heater Efficiency|Propane Premium
         apply_logic: Water Heater Efficiency|Propane Standard
         costs:
-          - value: 928
+          - value: 1227.84
             multiplier: Fixed (1)
           - value: 14.18
             multiplier: Size, Water Heater (gal)
@@ -584,7 +586,7 @@ upgrades:
       - option: Water Heater Efficiency|Propane Premium
         apply_logic: Water Heater Efficiency|Propane Premium
         costs:
-          - value: 928
+          - value: 1293.84
             multiplier: Fixed (1)
           - value: 14.18
             multiplier: Size, Water Heater (gal)
@@ -592,21 +594,21 @@ upgrades:
       - option: Water Heater Efficiency|Propane Tankless
         apply_logic: Water Heater Efficiency|Propane Tankless
         costs:
-          - value: 2449
+          - value: 3248
             multiplier: Fixed (1)
         lifetime: 13
       - option: Water Heater Efficiency|Electric Premium
         apply_logic: Water Heater Efficiency|Electric Standard
         costs:
-          - value: 760
+          - value: 1537.55
             multiplier: Fixed (1)
-          - value: 4.51
+          - value: 2.45
             multiplier: Size, Water Heater (gal)
         lifetime: 12
       - option: Water Heater Efficiency|Electric Premium
         apply_logic: Water Heater Efficiency|Electric Premium
         costs:
-          - value: 760
+          - value: 1537.55
             multiplier: Fixed (1)
           - value: 4.51
             multiplier: Size, Water Heater (gal)
@@ -670,7 +672,7 @@ upgrades:
                 - State|MD
                 - State|DE
         costs:
-          - value: 3609
+          - value: 4396.03
             multiplier: Fixed (1)
           - value: 54.14
             multiplier: Size, Cooling System (kBtu/h)
@@ -694,7 +696,7 @@ upgrades:
               - Location Region|CR08
               - not: *CRO8_SEER15
         costs:
-          - value: 3480
+          - value: 4267.13
             multiplier: Fixed (1)
           - value: 54.14
             multiplier: Size, Cooling System (kBtu/h)
@@ -704,7 +706,7 @@ upgrades:
       - option: HVAC Cooling Efficiency|AC, SEER 15
         apply_logic: HVAC Cooling Efficiency|AC, SEER 15
         costs:
-          - value: 3609
+          - value: 4396.03
             multiplier: Fixed (1)
           - value: 54.14
             multiplier: Size, Cooling System (kBtu/h)
@@ -722,7 +724,7 @@ upgrades:
             - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
             - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
         costs:
-          - value: 3996
+          - value: 4077.62
             multiplier: Fixed (1)
           - value: 30.94
             multiplier: Size, Heating System (kBtu/h)
@@ -737,7 +739,7 @@ upgrades:
             - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
             - HVAC Heating Type And Fuel|Propane Fuel Boiler
         costs:
-          - value: 3996
+          - value: 3424.04
             multiplier: Fixed (1)
           - value: 30.94
             multiplier: Size, Heating System (kBtu/h)
@@ -753,9 +755,9 @@ upgrades:
             - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
             - HVAC Heating Type And Fuel|Propane Fuel Boiler
         costs:
-          - value: 3996
+          - value: 5869.72
             multiplier: Fixed (1)
-          - value: 30.94
+          - value: 41.25
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 24
       # Minimum AFUE for furnace: 78% https://starheatcool.com/what-is-afue-rating/ and 80% NREL report
@@ -768,7 +770,7 @@ upgrades:
             - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
             - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
         costs:
-          - value: 2320
+          - value: 4203.60
             multiplier: Fixed (1)
           - value: 3.48
             multiplier: Size, Heating System (kBtu/h)
@@ -777,7 +779,7 @@ upgrades:
       - option: HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
         apply_logic: HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
         costs:
-          - value: 2964
+          - value: 5876.60
             multiplier: Fixed (1)
           - value: 5.03
             multiplier: Size, Heating System (kBtu/h)
@@ -804,9 +806,9 @@ upgrades:
             - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
             - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
         costs:
-          - value: 4254
+          - value: 3907.01
             multiplier: Fixed (1)
-          - value: 54.14
+          - value: 155.17
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       # MSHP upgrade
@@ -815,9 +817,9 @@ upgrades:
           - or: 
             - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
         costs:
-          - value: 1676
+          - value: 2472.60
             multiplier: Fixed (1)
-          - value: 72.18
+          - value: 320.42
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
 
@@ -883,25 +885,25 @@ upgrades:
 
       # HVAC Upgrade
       - &HVAC_efficiency_ASHP_duct_1b
-        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        option: HVAC Heating Efficiency|ASHP, SEER 20, 10 HSPF
         apply_logic:
-          - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+          - not: HVAC Heating Efficiency|ASHP, SEER 20, 10 HSPF
           - HVAC Has Ducts|Yes
         costs:
-          - value: 5929
+          - value: 8950.78
             multiplier: Fixed (1)
-          - value: 54.14
+          - value: 155.17
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       - &HVAC_efficiency_MSHP_ductless_1b
-        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        option: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
         apply_logic:
-          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+          - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
           - HVAC Has Ducts|No
         costs:
-          - value: 2320
+          - value: 2556.60
             multiplier: Fixed (1)
-          - value: 122.46
+          - value: 331.22
             multiplier: Size, Heating System (kBtu/h)
         lifetime: 15
       
@@ -6410,29 +6412,29 @@ upgrades:
           - not: 
             - Insulation Foundation Wall|Wall R-15, Exterior
     
-      # Slab Insulation Upgrade
-      - option: Insulation Slab|2ft R10 Perimeter, Vertical
-        apply_logic: 
-          and: 
-            - or: 
-              - ASHRAE IECC Climate Zone 2004|3A
-              - ASHRAE IECC Climate Zone 2004|3B
-              - ASHRAE IECC Climate Zone 2004|3C
-            - Geometry Foundation Type|Slab
-      - option: Insulation Slab|4ft R10 Perimeter, Vertical
-        apply_logic: 
-          and: 
-            - or: 
-              - ASHRAE IECC Climate Zone 2004|4A
-              - ASHRAE IECC Climate Zone 2004|4B
-              - ASHRAE IECC Climate Zone 2004|4C
-              - ASHRAE IECC Climate Zone 2004|5A
-              - ASHRAE IECC Climate Zone 2004|5B
-              - ASHRAE IECC Climate Zone 2004|6A
-              - ASHRAE IECC Climate Zone 2004|6B
-              - ASHRAE IECC Climate Zone 2004|7A
-              - ASHRAE IECC Climate Zone 2004|7B
-            - Geometry Foundation Type|Slab
+      # # Slab Insulation Upgrade
+      # - option: Insulation Slab|2ft R10 Perimeter, Vertical
+      #   apply_logic: 
+      #     and: 
+      #       - or: 
+      #         - ASHRAE IECC Climate Zone 2004|3A
+      #         - ASHRAE IECC Climate Zone 2004|3B
+      #         - ASHRAE IECC Climate Zone 2004|3C
+      #       - Geometry Foundation Type|Slab
+      # - option: Insulation Slab|4ft R10 Perimeter, Vertical
+        # apply_logic: 
+        #   and: 
+        #     - or: 
+        #       - ASHRAE IECC Climate Zone 2004|4A
+        #       - ASHRAE IECC Climate Zone 2004|4B
+        #       - ASHRAE IECC Climate Zone 2004|4C
+        #       - ASHRAE IECC Climate Zone 2004|5A
+        #       - ASHRAE IECC Climate Zone 2004|5B
+        #       - ASHRAE IECC Climate Zone 2004|6A
+        #       - ASHRAE IECC Climate Zone 2004|6B
+        #       - ASHRAE IECC Climate Zone 2004|7A
+        #       - ASHRAE IECC Climate Zone 2004|7B
+        #     - Geometry Foundation Type|Slab
 
       # Wall Insulation Upgrade
       - option: Insulation Wall|Wood Stud, R-13
