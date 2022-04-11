@@ -89,6 +89,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     cost_multipliers[BS::WallBelowGrade] = BaseOutput.new
     cost_multipliers[BS::FloorConditioned] = BaseOutput.new
     cost_multipliers[BS::FloorLighting] = BaseOutput.new
+    cost_multipliers[BS::FloorFoundation] = BaseOutput.new
     cost_multipliers[BS::Ceiling] = BaseOutput.new
     cost_multipliers[BS::Roof] = BaseOutput.new
     cost_multipliers[BS::Window] = BaseOutput.new
@@ -227,6 +228,12 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       hpxml.slabs.each do |slab|
         next unless [HPXML::LocationGarage].include?(slab.interior_adjacent_to)
         next if hpxml.lighting.garage_usage_multiplier == 0
+
+        cost_mult += slab.area
+      end
+    elsif cost_mult_type == 'Enclosure: Floor Area Foundation'
+      hpxml.slabs.each do |slab|
+        next if slab.interior_adjacent_to == HPXML::LocationGarage
 
         cost_mult += slab.area
       end

@@ -22,6 +22,8 @@ __New Features__
   - Add ability to include `TimeDST` and/or `TimeUTC` timestamp column(s) in results_timeseries.csv.
   - Timestamps in results_timeseries.csv are output in ISO 8601 standard format.
   - Allows user-specified annual/timeseries output file names.
+- ReportHPXMLOutput measure:
+  - Adds "Enclosure: Floor Area Foundation" output row in results_hpxml.csv.
 
 __Bugfixes__
 - Adds more stringent limits for `AirflowDefectRatio` and `ChargeDefectRatio` (now allows values from 1/10th to 10x the design value).
