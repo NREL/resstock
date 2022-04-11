@@ -281,6 +281,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
+    # Set additional properties
+    additional_properties = []
+    ['ceiling_insulation_r'].each do |arg_name|
+      arg_value = measures['ResStockArguments'][0][arg_name]
+      additional_properties << "#{arg_name}=#{arg_value}"
+    end
+    measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
+
     # Get software program used and version
     measures['BuildResidentialHPXML'][0]['software_info_program_used'] = Version.software_program_used
     measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version.software_program_version
@@ -388,12 +396,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     if run_hescore_workflow
       hes_json_path = File.expand_path('../hes.json')
       hes_hpxml_path = File.expand_path('../hes.xml')
+      hes_results_path = File.expand_path('../hes_results.json')
       measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => hpxml_path, 'output_path' => hes_json_path }]
       measures['HEScoreRuleset'] = [{ 'json_path' => hes_json_path, 'hpxml_output_path' => hes_hpxml_path }]
+      measures['ReportHEScoreOutput'] = [{ 'json_path' => hes_json_path, 'hpxml_path' => hpxml_path, 'json_output_path' => hes_results_path }]
       measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = hes_hpxml_path
 
-      # HPXMLtoHEScore and HEScoreRuleset
-      measures_hash = { 'HPXMLtoHEScore' => measures['HPXMLtoHEScore'], 'HEScoreRuleset' => measures['HEScoreRuleset'] }
+      # HPXMLtoHEScore, HEScoreRuleset, and ReportHEScoreOutput
+      measures_hash = { 'HPXMLtoHEScore' => measures['HPXMLtoHEScore'], 'HEScoreRuleset' => measures['HEScoreRuleset'], 'ReportHEScoreOutput' => measures['ReportHEScoreOutput'] }
 
       if not apply_measures(hes_ruleset_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
         register_logs(runner, new_runner)

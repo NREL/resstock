@@ -336,6 +336,7 @@ def check_parameter_file_format(tsvpath, n_deps, name)
       # Found wrong endline format
       raise "ERROR: Incorrect newline character found in '#{name}', line '#{i}'."
     end # End checks
+
     i += 1
   end
 end
