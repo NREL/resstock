@@ -1,0 +1,253 @@
+<?xml version="1.0"?>
+<measure>
+  <schema_version>3.0</schema_version>
+  <name>electrochromic_windows_modulating</name>
+  <uid>e41d5e62-b905-4943-adc3-615f968a847a</uid>
+  <version_id>a5a2cfa1-3c47-4b0f-9ef8-ccdb3beecb7d</version_id>
+  <version_modified>20220311T210714Z</version_modified>
+  <xml_checksum>9C8A26EB</xml_checksum>
+  <class_name>ElectrochromicWindowsModulating</class_name>
+  <display_name>Electrochromic Windows Modulating</display_name>
+  <description>Adds electrochromic windows. SHGC and VLT will modulate linearly between specified clear and tinted properties.</description>
+  <modeler_description>Adds electrochromic windows. SHGC and VLT will modulate linearly between specified clear and tinted properties.</modeler_description>
+  <arguments>
+    <argument>
+      <name>shgc_clear</name>
+      <display_name>SHGC Clear</display_name>
+      <description>Sets SHGC for clear state. Value of 0 will use current glazing property.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.319</default_value>
+    </argument>
+    <argument>
+      <name>vt_clear</name>
+      <display_name>VT Clear</display_name>
+      <description>Sets VT for clear state. Value of 0 will use current glazing property.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.396</default_value>
+    </argument>
+    <argument>
+      <name>shgc_tinted</name>
+      <display_name>SHGC Tinted</display_name>
+      <description>Sets SHGC for tinted state.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.077</default_value>
+    </argument>
+    <argument>
+      <name>vt_tinted</name>
+      <display_name>VT Tinted</display_name>
+      <description>Sets VT for tinted state.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.007</default_value>
+    </argument>
+    <argument>
+      <name>u_value</name>
+      <display_name>U-value (Btu/h·ft2·°F)</display_name>
+      <description>Replaces u-value of existing applicable windows with this value. Use IP units.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>0.322</default_value>
+    </argument>
+    <argument>
+      <name>max_rad_w_per_m2</name>
+      <display_name>Maximum Allowable Radiation (W/m^2)</display_name>
+      <description>Windows will switch to a darker state if threshold is exceeded.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>180</default_value>
+    </argument>
+    <argument>
+      <name>gi</name>
+      <display_name>Maximum Allowable Glare Index</display_name>
+      <description>Sets maximum glare index allowance for EC windows.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>24</default_value>
+    </argument>
+    <argument>
+      <name>min_temp</name>
+      <display_name>Minimum Temperature for EC Tinting</display_name>
+      <description>Sets minimum temperature to allow for EC tinting. A low value will mitigate heating penalties.</description>
+      <type>Double</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>55</default_value>
+    </argument>
+    <argument>
+      <name>ec_priority_logic</name>
+      <display_name>Prioritize Glare Over Temperature?</display_name>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>North</name>
+      <display_name>Apply electrochromic glazing to North facade windows.</display_name>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>East</name>
+      <display_name>Apply electrochromic glazing to East facade windows.</display_name>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>South</name>
+      <display_name>Apply electrochromic glazing to South facade windows.</display_name>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>West</name>
+      <display_name>Apply electrochromic glazing to West facade windows.</display_name>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+  </arguments>
+  <outputs />
+  <provenances />
+  <tags>
+    <tag>Envelope.Fenestration</tag>
+  </tags>
+  <attributes>
+    <attribute>
+      <name>Measure Type</name>
+      <value>ModelMeasure</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Apply Measure Now</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>OpenStudio Application</value>
+      <datatype>string</datatype>
+    </attribute>
+    <attribute>
+      <name>Intended Software Tool</name>
+      <value>Parametric Analysis Tool</value>
+      <datatype>string</datatype>
+    </attribute>
+  </attributes>
+  <files>
+    <file>
+      <filename>LICENSE.md</filename>
+      <filetype>md</filetype>
+      <usage_type>license</usage_type>
+      <checksum>CD7F5672</checksum>
+    </file>
+    <file>
+      <filename>README.md.erb</filename>
+      <filetype>erb</filetype>
+      <usage_type>readmeerb</usage_type>
+      <checksum>703C9964</checksum>
+    </file>
+    <file>
+      <filename>.gitkeep</filename>
+      <filetype>gitkeep</filetype>
+      <usage_type>doc</usage_type>
+      <checksum>00000000</checksum>
+    </file>
+    <file>
+      <filename>electrochromic_windows_modulating_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>972E68A7</checksum>
+    </file>
+    <file>
+      <filename>example_model.osm</filename>
+      <filetype>osm</filetype>
+      <usage_type>test</usage_type>
+      <checksum>53D14E69</checksum>
+    </file>
+    <file>
+      <filename>README.md</filename>
+      <filetype>md</filetype>
+      <usage_type>readme</usage_type>
+      <checksum>C2673774</checksum>
+    </file>
+    <file>
+      <version>
+        <software_program>OpenStudio</software_program>
+        <identifier>3.1.0</identifier>
+        <min_compatible>3.1.0</min_compatible>
+      </version>
+      <filename>measure.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>script</usage_type>
+      <checksum>3F6F5A0E</checksum>
+    </file>
+  </files>
+</measure>
