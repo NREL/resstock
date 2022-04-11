@@ -19,7 +19,7 @@ For the second option, you will need to have `Git <https://git-scm.com>`_ or som
   Buildstockbatch can be run locally via Docker, on AWS, or on an HPC like NREL’s Eagle.
   Installation instructions can be found in buildstockbatch’s `installation documentation <https://buildstockbatch.readthedocs.io/en/latest/installation.html>`_.
 
-  If you are planning to perform small-scale runs of ResStock (1000 simulations or fewer), you can use the lighter-weight option of running locally via :ref:`run_analysis.rb <run_analysis>`.
+  If you are planning to perform small-scale runs of ResStock (1000 simulations or fewer), you can use the Docker-less option of running locally via :ref:`run_analysis.rb <run_analysis>`.
 
 Install OpenStudio
 ------------------
