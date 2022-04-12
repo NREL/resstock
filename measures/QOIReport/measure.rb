@@ -10,8 +10,6 @@ elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../re
   resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
 elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
   resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
-else
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../HPXMLtoOpenStudio/resources'))
 end
 require File.join(resources_path, 'unit_conversions')
 
@@ -44,8 +42,8 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     return OpenStudio::IdfObjectVector.new if runner.halted
 
     results = OpenStudio::IdfObjectVector.new
-    results << OpenStudio::IdfObject.load('Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;').get
-    results << OpenStudio::IdfObject.load('Output:Meter,Electricity:Facility,hourly;').get
+    results << OpenStudio::IdfObject.load('Output:Variable,*,Site Outdoor Air Drybulb Temperature,timestep;').get
+    results << OpenStudio::IdfObject.load('Output:Meter,Electricity:Facility,timestep;').get
 
     return results
   end
@@ -152,29 +150,16 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
     sqlFile = sqlFile.get
-    model.setSqlFile(sqlFile)
-
-    ann_env_pd = nil
-    sqlFile.availableEnvPeriods.each do |env_pd|
-      env_type = sqlFile.environmentType(env_pd)
-      next unless env_type.is_initialized
-
-      if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
-        ann_env_pd = env_pd
-      end
-    end
-    if ann_env_pd == false
-      runner.registerError("Can't find a weather runperiod, make sure you ran an annual simulation, not just the design days.")
+    if not sqlFile.connectionOpen
+      runner.registerError('EnergyPlus simulation failed.')
       return false
     end
+    model.setSqlFile(sqlFile)
 
     # Initialize timeseries hash
     timeseries = { 'Temperature' => [] }
 
-    env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
-    env_period_ix = sqlFile.execAndReturnFirstInt(env_period_ix_query).get
-
-    temperature_query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName IN ('Site Outdoor Air Drybulb Temperature') AND ReportingFrequency='Hourly' AND VariableUnits='C') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    temperature_query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName IN ('Site Outdoor Air Drybulb Temperature') AND ReportingFrequency='Zone Timestep' AND VariableUnits='C') GROUP BY TimeIndex ORDER BY TimeIndex"
     unless sqlFile.execAndReturnVectorOfDouble(temperature_query).get.empty?
       temperatures = sqlFile.execAndReturnVectorOfDouble(temperature_query).get
       temperatures.each do |val|
@@ -182,17 +167,17 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    query_str = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('Electricity:Facility') AND ReportingFrequency='Hourly' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    query_str = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('Electricity:Facility') AND ReportingFrequency='Zone Timestep' AND VariableUnits='J') GROUP BY TimeIndex ORDER BY TimeIndex"
     electricity_total_end_uses = sqlFile.execAndReturnVectorOfDouble(query_str).get
 
-    steps_per_hour = 6
+    @steps_per_hour = 6
     if model.getSimulationControl.timestep.is_initialized
-      steps_per_hour = model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
+      @steps_per_hour = model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
     end
 
     # ELECTRICITY
 
-    timeseries['total_site_electricity_kw'] = electricity_total_end_uses.map { |x| x * 1000000000.0 / (1000.0 * (3600.0 / steps_per_hour)) }
+    timeseries['total_site_electricity_kw'] = electricity_total_end_uses.map { |x| x * 1000000000.0 / (1000.0 * (3600.0 / @steps_per_hour)) }
 
     # Peak magnitude (1)
     report_sim_output(runner, 'qoi_peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
@@ -276,9 +261,9 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       end
     end
     if min_or_max == 'min'
-      return vals.index(vals.min)
+      return (vals.index(vals.min) / @steps_per_hour).floor
     elsif min_or_max == 'max'
-      return vals.index(vals.max)
+      return (vals.index(vals.max) / @steps_per_hour).floor
     end
   end
 
@@ -294,8 +279,8 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       average_daily_use: float or nil
     "''
     daily_vals = []
-    timeseries['total_site_electricity_kw'].each_slice(24).with_index do |kws, i|
-      temps = timeseries['Temperature'][(24 * i)...(24 * i + 24)]
+    timeseries['total_site_electricity_kw'].each_slice(24 * @steps_per_hour).with_index do |kws, i|
+      temps = timeseries['Temperature'][(24 * @steps_per_hour * i)...(24 * @steps_per_hour * i + 24 * @steps_per_hour)]
       avg_temp = temps.inject { |sum, el| sum + el }.to_f / temps.size
       if (avg_temp > temperature_range[0]) && (avg_temp < temperature_range[1]) # day is in this season
         if min_or_max == 'min'
@@ -331,16 +316,16 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       average_daily_use: float or nil
     "''
     daily_vals = { 'hour' => [], 'use' => [] }
-    timeseries['total_site_electricity_kw'].each_slice(24).with_index do |kws, i|
-      temps = timeseries['Temperature'][(24 * i)...(24 * i + 24)]
+    timeseries['total_site_electricity_kw'].each_slice(24 * @steps_per_hour).with_index do |kws, i|
+      temps = timeseries['Temperature'][(24 * @steps_per_hour * i)...(24 * @steps_per_hour * i + 24 * @steps_per_hour)]
       avg_temp = temps.inject { |sum, el| sum + el }.to_f / temps.size
       if (avg_temp > temperature_range[0]) && (avg_temp < temperature_range[1]) # day is in this season
         if min_or_max == 'min'
-          hour = kws.index(kws.min)
+          hour = (kws.index(kws.min) / @steps_per_hour).floor
           daily_vals['hour'] << hour
           daily_vals['use'] << kws.min
         elsif min_or_max == 'max'
-          hour = kws.index(kws.max)
+          hour = (kws.index(kws.max) / @steps_per_hour).floor
           daily_vals['hour'] << hour
           daily_vals['use'] << kws.max
         end
