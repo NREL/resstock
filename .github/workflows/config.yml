@@ -11,7 +11,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.3.0
+      image: docker://nrel/openstudio:3.4.0-rc1
     steps:
       - uses: actions/checkout@v2
         with:
@@ -56,7 +56,7 @@ jobs:
   analysis-tests:
     runs-on: ubuntu-latest
     container:
-      image: docker://nrel/openstudio:3.3.0
+      image: docker://nrel/openstudio:3.4.0-rc1
     steps:
       - uses: actions/checkout@v2
         with:
@@ -79,7 +79,7 @@ jobs:
 
       - name: Run buildstockbatch
         run: |
-          pip install git+https://github.com/NREL/buildstockbatch.git@develop
+          pip install git+https://github.com/NREL/buildstockbatch.git@os340
           
           buildstock_docker project_national/national_baseline.yml
           buildstock_docker project_testing/testing_baseline.yml

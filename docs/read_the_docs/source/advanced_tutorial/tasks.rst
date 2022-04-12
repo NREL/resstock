@@ -59,7 +59,7 @@ Run ``openstudio tasks.rb download_weather`` to download available EPW weather f
 
 .. code:: bash
 
-  $ /c/openstudio-3.3.0/bin/openstudio.exe tasks.rb download_weather
+  $ /c/openstudio-3.4.0/bin/openstudio.exe tasks.rb download_weather
   Downloading /files/156/BuildStock_TMY3_FIPS.zip (  1%) 
   Downloading /files/156/BuildStock_TMY3_FIPS.zip (  2%) 
   Downloading /files/156/BuildStock_TMY3_FIPS.zip (  3%)
