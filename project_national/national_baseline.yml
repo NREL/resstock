@@ -1,14 +1,14 @@
 schema_version: '0.3'
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /scratch/pwhite/ec_windows/HPXML_ec01
+output_directory: /scratch/pwhite/ec_windows/HPXML_ec04
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 50
+    n_datapoints: 10
 
 workflow_generator:
   type: residential_hpxml
@@ -44,6 +44,8 @@ workflow_generator:
         - name: Site Outdoor Air Drybulb Temperature
         - name: Daylighting Reference Point 1 Glare Index
         - name: Surface Inside Face Exterior Windows Incident Beam Solar Radiation Rate per Area
+        - name: Zone Windows Total Transmitted Solar Radiation Rate
+        - name: Surface Outside Face Incident Solar Radiation Rate per Area
 
     reporting_measures:
       - measure_dir_name: QOIReport
@@ -79,7 +81,7 @@ eagle:
   minutes_per_sim: 30
   account: enduse
   postprocessing:
-    time: 20
-    n_workers: 1
+    time: 60
+    n_workers: 10
   sampling:
     time: 5
