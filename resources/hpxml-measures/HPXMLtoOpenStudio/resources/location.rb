@@ -41,9 +41,11 @@ class Location
   end
 
   def self.apply_year(model, hpxml, epw_file)
-    n_hours = epw_file.data.size
-    if n_hours != 8784 && Date.leap?(hpxml.header.sim_calendar_year)
-      fail "Specified a leap year (#{hpxml.header.sim_calendar_year}) but weather data has #{n_hours} hours."
+    if Date.leap?(hpxml.header.sim_calendar_year)
+      n_hours = epw_file.data.size
+      if n_hours != 8784
+        fail "Specified a leap year (#{hpxml.header.sim_calendar_year}) but weather data has #{n_hours} hours."
+      end
     end
 
     year_description = model.getYearDescription

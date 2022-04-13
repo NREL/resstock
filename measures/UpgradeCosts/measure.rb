@@ -207,6 +207,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       end
     elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
       cost_mult += hpxml['enclosure_floor_area_lighting_ft_2']
+    elsif cost_mult_type == 'Floor Area, Foundation (ft^2)'
+      cost_mult += hpxml['enclosure_floor_area_foundation_ft_2']
     elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
       cost_mult += hpxml['enclosure_ceiling_area_thermal_boundary_ft_2']
     elsif cost_mult_type == 'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)'

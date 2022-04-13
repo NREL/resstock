@@ -67,6 +67,7 @@ The cost above is multiplied by this value, which is a function of the building.
    - Floor Area, Conditioned (ft^2)
    - Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)
    - Floor Area, Lighting (ft^2)
+   - Floor Area, Foundation (ft^2)
    - Floor Area, Attic (ft^2)
    - Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
    - Roof Area (ft^2)
