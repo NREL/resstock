@@ -170,14 +170,14 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     query_str = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('Electricity:Facility') AND ReportingFrequency='Zone Timestep' AND VariableUnits='J') GROUP BY TimeIndex ORDER BY TimeIndex"
     electricity_total_end_uses = sqlFile.execAndReturnVectorOfDouble(query_str).get
 
-    @steps_per_hour = 6
+    steps_per_hour = 6
     if model.getSimulationControl.timestep.is_initialized
-      @steps_per_hour = model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
+      steps_per_hour = model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
     end
 
     # ELECTRICITY
 
-    timeseries['total_site_electricity_kw'] = electricity_total_end_uses.map { |x| x * 1000000000.0 / (1000.0 * (3600.0 / @steps_per_hour)) }
+    timeseries['total_site_electricity_kw'] = electricity_total_end_uses.map { |x| x * 1000000000.0 / (1000.0 * (3600.0 / steps_per_hour)) }
 
     # Peak magnitude (1)
     report_sim_output(runner, 'qoi_peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
@@ -187,31 +187,31 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
     # Average daily base magnitude (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "qoi_average_minimum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'min'), '', '')
+      report_sim_output(runner, "qoi_average_minimum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'min', steps_per_hour), '', '')
     end
 
     # Average daily peak magnitude (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "qoi_average_maximum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max'), '', '')
+      report_sim_output(runner, "qoi_average_maximum_daily_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max', steps_per_hour), '', '')
     end
 
     # Average daily peak timing (by season) (3)
     seasons.each do |season, temperature_range|
-      report_sim_output(runner, "qoi_average_maximum_daily_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max'), '', '')
+      report_sim_output(runner, "qoi_average_maximum_daily_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max', steps_per_hour), '', '')
     end
 
     # Top 10 daily seasonal peak magnitude (2)
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max', 10), '', '')
+      report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_use_#{season.downcase}_kw", average_daily_use(timeseries, temperature_range, 'max', steps_per_hour, 10), '', '')
     end
 
     # Top 10 seasonal timing of peak (2)
     seasons.each do |season, temperature_range|
       next if season == Constants.SeasonOverlap
 
-      report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max', 10), '', '')
+      report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max', steps_per_hour, 10), '', '')
     end
 
     sqlFile.close
@@ -243,7 +243,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     end
   end
 
-  def timing(timeseries, temperature_range, min_or_max)
+  def timing(timeseries, temperature_range, min_or_max, steps_per_hour)
     ''"
     Determines the hour of annual base or peak use value.
     Parameters:
@@ -261,13 +261,13 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       end
     end
     if min_or_max == 'min'
-      return (vals.index(vals.min) / @steps_per_hour).floor
+      return (vals.index(vals.min) / steps_per_hour).floor
     elsif min_or_max == 'max'
-      return (vals.index(vals.max) / @steps_per_hour).floor
+      return (vals.index(vals.max) / steps_per_hour).floor
     end
   end
 
-  def average_daily_use(timeseries, temperature_range, min_or_max, top = 'all')
+  def average_daily_use(timeseries, temperature_range, min_or_max, steps_per_hour, top = 'all')
     ''"
     Calculates the average of daily base or peak use values during heating, cooling, or overlap seasons.
     Parameters:
@@ -279,8 +279,8 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       average_daily_use: float or nil
     "''
     daily_vals = []
-    timeseries['total_site_electricity_kw'].each_slice(24 * @steps_per_hour).with_index do |kws, i|
-      temps = timeseries['Temperature'][(24 * @steps_per_hour * i)...(24 * @steps_per_hour * i + 24 * @steps_per_hour)]
+    timeseries['total_site_electricity_kw'].each_slice(24 * steps_per_hour).with_index do |kws, i|
+      temps = timeseries['Temperature'][(24 * steps_per_hour * i)...(24 * steps_per_hour * i + 24 * steps_per_hour)]
       avg_temp = temps.inject { |sum, el| sum + el }.to_f / temps.size
       if (avg_temp > temperature_range[0]) && (avg_temp < temperature_range[1]) # day is in this season
         if min_or_max == 'min'
@@ -304,7 +304,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     return daily_vals.inject { |sum, el| sum + el }.to_f / daily_vals.size
   end
 
-  def average_daily_timing(timeseries, temperature_range, min_or_max, top = 'all')
+  def average_daily_timing(timeseries, temperature_range, min_or_max, steps_per_hour, top = 'all')
     ''"
     Calculates the average hour of daily base or peak use values during heating, cooling, or overlap seasons.
     Parameters:
@@ -316,16 +316,16 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       average_daily_use: float or nil
     "''
     daily_vals = { 'hour' => [], 'use' => [] }
-    timeseries['total_site_electricity_kw'].each_slice(24 * @steps_per_hour).with_index do |kws, i|
-      temps = timeseries['Temperature'][(24 * @steps_per_hour * i)...(24 * @steps_per_hour * i + 24 * @steps_per_hour)]
+    timeseries['total_site_electricity_kw'].each_slice(24 * steps_per_hour).with_index do |kws, i|
+      temps = timeseries['Temperature'][(24 * steps_per_hour * i)...(24 * steps_per_hour * i + 24 * steps_per_hour)]
       avg_temp = temps.inject { |sum, el| sum + el }.to_f / temps.size
       if (avg_temp > temperature_range[0]) && (avg_temp < temperature_range[1]) # day is in this season
         if min_or_max == 'min'
-          hour = (kws.index(kws.min) / @steps_per_hour).floor
+          hour = (kws.index(kws.min) / steps_per_hour).floor
           daily_vals['hour'] << hour
           daily_vals['use'] << kws.min
         elsif min_or_max == 'max'
-          hour = (kws.index(kws.max) / @steps_per_hour).floor
+          hour = (kws.index(kws.max) / steps_per_hour).floor
           daily_vals['hour'] << hour
           daily_vals['use'] << kws.max
         end
