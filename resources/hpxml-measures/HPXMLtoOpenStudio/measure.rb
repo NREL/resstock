@@ -214,6 +214,14 @@ class OSModel
     @apply_ashrae140_assumptions = @hpxml.header.apply_ashrae140_assumptions # Hidden feature
     @apply_ashrae140_assumptions = false if @apply_ashrae140_assumptions.nil?
 
+    # Here we turn off OS error-checking so that any invalid values provided
+    # to OS SDK methods are passed along to EnergyPlus and produce errors. If
+    # we didn't go this, we'd end up with successful EnergyPlus simulations that
+    # use the wrong (default) value unless we check the return value of *every*
+    # OS SDK setter method to notice there was an invalid value provided.
+    # See https://github.com/NREL/OpenStudio/pull/4505 for more background.
+    model.setStrictnessLevel('None'.to_StrictnessLevel)
+
     # Init
 
     check_file_references(hpxml_path)

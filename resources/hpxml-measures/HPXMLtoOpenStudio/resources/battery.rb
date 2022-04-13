@@ -69,7 +69,6 @@ class Battery
       elcd.setMaximumStorageStateofChargeFraction(maximum_storage_state_of_charge_fraction)
       elcd.setStorageOperationScheme('TrackFacilityElectricDemandStoreExcessOnSite')
       elcd.setElectricalStorage(elcs)
-      runner.registerWarning("Due to an OpenStudio bug, the battery's rated power output will not be honored; the simulation will proceed without a maximum charge/discharge limit.")
       elcd.setDesignStorageControlDischargePower(rated_power_output)
       elcd.setDesignStorageControlChargePower(rated_power_output)
     end

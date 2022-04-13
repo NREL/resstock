@@ -59,6 +59,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
       'Enclosure: Foundation Wall Area Exterior (ft^2)' => 1200.0,
       'Enclosure: Floor Area Conditioned (ft^2)' => 2700.0,
       'Enclosure: Floor Area Lighting (ft^2)' => 2700.0,
+      'Enclosure: Floor Area Foundation (ft^2)' => 1350.0,
       'Enclosure: Ceiling Area Thermal Boundary (ft^2)' => 1350.0,
       'Enclosure: Roof Area (ft^2)' => 1509.4,
       'Enclosure: Window Area (ft^2)' => 360.0,
@@ -103,14 +104,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
       'Design Loads Cooling Latent: Internal Gains (Btu/h)' => 0.0
     }
 
-    actual_multipliers = {}
-    File.readlines(hpxml_csv).each do |line|
-      next if line.strip.empty?
-
-      key, value = line.split(',').map { |x| x.strip }
-      actual_multipliers[key] = Float(value)
-    end
-
+    actual_multipliers = _get_actual_multipliers(hpxml_csv)
     assert_equal(expected_multipliers, actual_multipliers)
   end
 
@@ -136,6 +130,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
         'Enclosure: Foundation Wall Area Exterior (ft^2)' => 1200.0,
         'Enclosure: Floor Area Conditioned (ft^2)' => 2700.0,
         'Enclosure: Floor Area Lighting (ft^2)' => 2700.0,
+        'Enclosure: Floor Area Foundation (ft^2)' => 1350.0,
         'Enclosure: Ceiling Area Thermal Boundary (ft^2)' => 1350.0,
         'Enclosure: Roof Area (ft^2)' => 1509.4,
         'Enclosure: Window Area (ft^2)' => 360.0,
@@ -180,16 +175,79 @@ class ReportHPXMLOutputTest < MiniTest::Test
         'Design Loads Cooling Latent: Internal Gains (Btu/h)' => 0.0
       }
 
-      actual_multipliers = {}
-      File.readlines(hpxml_csv).each do |line|
-        next if line.strip.empty?
-
-        key, value = line.split(',').map { |x| x.strip }
-        actual_multipliers[key] = Float(value)
-      end
-
+      actual_multipliers = _get_actual_multipliers(hpxml_csv)
       assert_equal(expected_multipliers, actual_multipliers)
     end
+  end
+
+  def test_foundations
+    hpxml_files = ['base-foundation-ambient.xml',
+                   'base-foundation-basement-garage.xml',
+                   'base-foundation-conditioned-basement-slab-insulation.xml',
+                   'base-foundation-conditioned-crawlspace.xml',
+                   'base-foundation-slab.xml',
+                   'base-foundation-unconditioned-basement.xml',
+                   'base-foundation-unvented-crawlspace.xml',
+                   'base-foundation-vented-crawlspace.xml',
+                   'base-foundation-walkout-basement.xml']
+    hpxml_files.each do |hpxml_file|
+      args_hash = { 'hpxml_path' => "../workflow/sample_files/#{hpxml_file}" }
+      hpxml_csv = _test_measure(args_hash)
+      assert(File.exist?(hpxml_csv))
+
+      foundation_wall_area_exterior = 1200.0
+      floor_area_foundation = 1350.0
+      rim_joist_area = 115.6
+      slab_exposed_perimeter_thermal_boundary = 150.0
+
+      if hpxml_file == 'base-foundation-ambient.xml'
+        foundation_wall_area_exterior = 0.0
+        floor_area_foundation = 0.0
+        rim_joist_area = 0.0
+        slab_exposed_perimeter_thermal_boundary = 0.0
+      elsif hpxml_file == 'base-foundation-basement-garage.xml'
+        floor_area_foundation = 950.0
+        slab_exposed_perimeter_thermal_boundary = 110.0
+      elsif hpxml_file == 'base-foundation-conditioned-crawlspace.xml'
+        foundation_wall_area_exterior = 600.0
+      elsif hpxml_file == 'base-foundation-slab.xml'
+        foundation_wall_area_exterior = 0.0
+        rim_joist_area = 0.0
+      elsif hpxml_file == 'base-foundation-unconditioned-basement.xml'
+        slab_exposed_perimeter_thermal_boundary = 0.0
+      elsif hpxml_file == 'base-foundation-unvented-crawlspace.xml'
+        foundation_wall_area_exterior = 600.0
+        slab_exposed_perimeter_thermal_boundary = 0.0
+      elsif hpxml_file == 'base-foundation-vented-crawlspace.xml'
+        foundation_wall_area_exterior = 600.0
+        slab_exposed_perimeter_thermal_boundary = 0.0
+      elsif hpxml_file == 'base-foundation-walkout-basement.xml'
+        foundation_wall_area_exterior = 660.0
+      end
+
+      expected_multipliers = {
+        'Enclosure: Foundation Wall Area Exterior (ft^2)' => foundation_wall_area_exterior,
+        'Enclosure: Floor Area Foundation (ft^2)' => floor_area_foundation,
+        'Enclosure: Rim Joist Area (ft^2)' => rim_joist_area,
+        'Enclosure: Slab Exposed Perimeter Thermal Boundary (ft)' => slab_exposed_perimeter_thermal_boundary
+      }
+
+      actual_multipliers = _get_actual_multipliers(hpxml_csv)
+      expected_multipliers.each do |multiplier_name, expected_multiplier|
+        assert_equal(expected_multiplier, actual_multipliers[multiplier_name])
+      end
+    end
+  end
+
+  def _get_actual_multipliers(hpxml_csv)
+    actual_multipliers = {}
+    File.readlines(hpxml_csv).each do |line|
+      next if line.strip.empty?
+
+      key, value = line.split(',').map { |x| x.strip }
+      actual_multipliers[key] = Float(value)
+    end
+    return actual_multipliers
   end
 
   def _test_measure(args_hash)
