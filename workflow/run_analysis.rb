@@ -23,7 +23,15 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   output_directory = cfg['output_directory']
   n_datapoints = cfg['sampler']['args']['n_datapoints']
 
-  results_dir = File.absolute_path(File.join(thisdir, output_directory))
+  if !(Pathname.new buildstock_directory).absolute?
+    buildstock_directory = File.absolute_path(File.join(File.dirname(yml), buildstock_directory))
+  end
+
+  if (Pathname.new output_directory).absolute?
+    results_dir = output_directory
+  else
+    results_dir = File.absolute_path(File.join(File.dirname(yml), output_directory))
+  end
   fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
   Dir.mkdir(results_dir)
@@ -182,7 +190,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   # Create lib folder
   lib_dir = File.join(thisdir, '../lib')
   resources_dir = File.join(thisdir, '../resources')
-  housing_characteristics_dir = File.join(project_directory, 'housing_characteristics')
+  housing_characteristics_dir = File.join(buildstock_directory, project_directory, 'housing_characteristics')
+  puts File.absolute_path(housing_characteristics_dir)
   create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
 
   # Create weather folder
