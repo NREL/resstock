@@ -1816,6 +1816,22 @@ class Geometry
       end
     end
 
+    # Adiabatic gable walls for cathedral ceilings
+    if attic_type == HPXML::AtticTypeConditioned
+      attic_space.surfaces.each do |surface|
+        os_facade = get_facade_for_surface(surface)
+        next unless surface.surfaceType == 'Wall'
+        next unless adb_facades.include? os_facade
+
+        x_ft = UnitConversions.convert(x, 'm', 'ft')
+        max_x = getSurfaceXValues([surface]).max
+        min_x = getSurfaceXValues([surface]).min
+        next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
+
+        surface.setOutsideBoundaryCondition('Adiabatic')
+      end
+    end
+
     # put all of the spaces in the model into a vector
     spaces = OpenStudio::Model::SpaceVector.new
     model.getSpaces.each do |space|
