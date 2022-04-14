@@ -27,6 +27,8 @@ __New Features__
   - Allows user-specified annual/timeseries output file names.
 - ReportHPXMLOutput measure:
   - Adds "Enclosure: Floor Area Foundation" output row in results_hpxml.csv.
+- New ReportUtilityBills measure:
+  - Adds a new results_bills.csv output file to summarize calculated utility bills.
 
 __Bugfixes__
 - Adds more stringent limits for `AirflowDefectRatio` and `ChargeDefectRatio` (now allows values from 1/10th to 10x the design value).
