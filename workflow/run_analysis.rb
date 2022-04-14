@@ -30,7 +30,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   if (Pathname.new output_directory).absolute?
     results_dir = output_directory
   else
-    results_dir = File.absolute_path(File.join(File.dirname(yml), output_directory))
+    results_dir = File.absolute_path(output_directory)
   end
   fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
@@ -173,8 +173,13 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       end
     end
 
+    measure_paths = [
+      File.absolute_path(File.join(File.dirname(__FILE__), '../measures')),
+      File.absolute_path(File.join(File.dirname(__FILE__), '../resources/hpxml-measures'))
+    ]
+
     osw = {
-      'measure_paths': ['../../../measures', '../../../resources/hpxml-measures'],
+      'measure_paths': measure_paths,
       'run_options': { 'skip_zip_results': true },
       'steps': steps
     }
