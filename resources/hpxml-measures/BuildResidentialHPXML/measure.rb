@@ -135,7 +135,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     site_state_code_choices = OpenStudio::StringVector.new
-    Constants.StateCodes.each do |sc|
+    Constants.StateCodesMap.keys.each do |sc|
       site_state_code_choices << sc
     end
 

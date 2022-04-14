@@ -150,6 +150,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       cost_mult_type_str = OpenStudio::toUnderscoreCase("#{cost_mult_type} #{cost_mult.units}")
       cost_mult = cost_mult.output.round(2)
       runner.registerValue(cost_mult_type_str, cost_mult)
+      runner.registerInfo("Registering #{cost_mult} for #{cost_mult_type_str}.")
     end
 
     # Write results
