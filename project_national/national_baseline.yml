@@ -37,6 +37,23 @@ workflow_generator:
       include_timeseries_end_use_consumptions: true
       include_timeseries_emissions: true
       include_timeseries_total_loads: false
+      # Option 1
+      include_utility_bills: true
+
+    # Option 2
+    utility_bills_report:
+      electricity_fixed_charge: 12
+      electricity_marginal_rate: auto
+      natural_gas_fixed_charge: 12
+      natural_gas_marginal_rate: auto
+      ...
+      pv_compensation_type: Net Metering
+      pv_annual_excess_sellback_rate_type: User-Specified
+      pv_net_metering_annual_excess_sellback_rate: 0.03
+      ...
+
+    # Option 3
+    # ?
 
     reporting_measures:
       - measure_dir_name: QOIReport
