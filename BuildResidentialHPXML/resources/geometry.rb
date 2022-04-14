@@ -1800,24 +1800,10 @@ class Geometry
       attic_space_type = OpenStudio::Model::SpaceType.new(model)
       attic_space_type.setStandardsSpaceType(attic_space_name)
       attic_space.setSpaceType(attic_space_type)
-
-      # Adiabatic surfaces for attic walls
-      attic_space.surfaces.each do |surface|
-        os_facade = get_facade_for_surface(surface)
-        next unless surface.surfaceType == 'Wall'
-        next unless adb_facades.include? os_facade
-
-        x_ft = UnitConversions.convert(x, 'm', 'ft')
-        max_x = getSurfaceXValues([surface]).max
-        min_x = getSurfaceXValues([surface]).min
-        next if ((max_x - x_ft).abs >= 0.01) && (min_x > 0)
-
-        surface.setOutsideBoundaryCondition('Adiabatic')
-      end
     end
 
-    # Adiabatic gable walls for cathedral ceilings
-    if attic_type == HPXML::AtticTypeConditioned
+    # Adiabatic gable walls
+    if [HPXML::AtticTypeVented, HPXML::AtticTypeUnvented, HPXML::AtticTypeConditioned].include? attic_type
       attic_space.surfaces.each do |surface|
         os_facade = get_facade_for_surface(surface)
         next unless surface.surfaceType == 'Wall'
