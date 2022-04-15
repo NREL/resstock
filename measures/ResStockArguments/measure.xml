@@ -3,13 +3,13 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>c6e73634-b0d7-4cb9-af51-50a162403b2f</version_id>
-  <version_modified>20220323T220550Z</version_modified>
+  <version_id>2ef2e7b7-4619-4397-a39f-969b7226390f</version_id>
+  <version_modified>20220413T002300Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
-  <description>Measure that pre-processes the arguments passed to the BuildResidentialHPXML measure.</description>
-  <modeler_description>Defines the set of arguments needed for ResStock that are not available in BuildResidentialHPXML.</modeler_description>
+  <description>Measure that pre-processes the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.</description>
+  <modeler_description>Passes in all arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.</modeler_description>
   <arguments>
     <argument>
       <name>simulation_control_timestep</name>
@@ -1467,6 +1467,24 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>window_storm_type</name>
+      <display_name>Windows: Storm Type</display_name>
+      <description>The type of storm, if present.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>clear</value>
+          <display_name>clear</display_name>
+        </choice>
+        <choice>
+          <value>low-e</value>
+          <display_name>low-e</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>overhangs_front_depth</name>
       <display_name>Overhangs: Front Depth</display_name>
       <description>The depth of overhangs for windows for the front facade.</description>
@@ -1628,6 +1646,24 @@
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.45</default_value>
+    </argument>
+    <argument>
+      <name>skylight_storm_type</name>
+      <display_name>Skylights: Storm Type</display_name>
+      <description>The type of storm, if present.</description>
+      <type>Choice</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>clear</value>
+          <display_name>clear</display_name>
+        </choice>
+        <choice>
+          <value>low-e</value>
+          <display_name>low-e</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>door_area</name>
@@ -4021,6 +4057,16 @@
       <default_value>auto</default_value>
     </argument>
     <argument>
+      <name>battery_usable_capacity</name>
+      <display_name>Battery: Usable Capacity</display_name>
+      <description>The usable capacity of the lithium ion battery.</description>
+      <type>String</type>
+      <units>kWh</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>auto</default_value>
+    </argument>
+    <argument>
       <name>lighting_present</name>
       <display_name>Lighting: Present</display_name>
       <description>Whether there is lighting energy use.</description>
@@ -5732,6 +5778,14 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>additional_properties</name>
+      <display_name>Additional Properties</display_name>
+      <description>Additional properties specified as key-value pairs (i.e., key=value). If multiple additional properties, use a |-separated list. For example, 'LowIncome=false|Remodeled|Description=2-story home in Denver'. These properties will be stored in the HPXML file under /HPXML/SoftwareInfo/extension/AdditionalProperties.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>apply_defaults</name>
       <display_name>Apply Default Values?</display_name>
       <description>If true, applies OS-HPXML default values to the HPXML output file.</description>
@@ -6285,7 +6339,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>BC1CD1F0</checksum>
+      <checksum>D481A2D1</checksum>
     </file>
   </files>
 </measure>
