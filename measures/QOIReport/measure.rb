@@ -157,7 +157,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     # Initialize timeseries hash
     timeseries = { 'Temperature' => [] }
 
-    temperature_query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName IN ('Site Outdoor Air Drybulb Temperature') AND ReportingFrequency='Zone Timestep' AND VariableUnits='C') GROUP BY TimeIndex ORDER BY TimeIndex"
+    temperature_query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName IN ('Site Outdoor Air Drybulb Temperature') AND ReportingFrequency='Hourly' AND VariableUnits='C') GROUP BY TimeIndex ORDER BY TimeIndex"
     unless sqlFile.execAndReturnVectorOfDouble(temperature_query).get.empty?
       temperatures = sqlFile.execAndReturnVectorOfDouble(temperature_query).get
       temperatures.each do |val|
