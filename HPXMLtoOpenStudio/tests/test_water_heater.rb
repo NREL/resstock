@@ -885,25 +885,14 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     assert_in_epsilon(t_set, wh.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, 0.001)
     assert_equal(1.0, wh.offCycleLossFractiontoThermalZone)
 
-    # Heat exchanger
-    assert_equal(1, model.getHeatExchangerFluidToFluids.size)
-    hx = model.getHeatExchangerFluidToFluids[0]
-    hx_attached_to_boiler = false
-    hx_attached_to_tank = false
+    tank_attached_to_boiler = false
     model.getPlantLoops.each do |plant_loop|
-      next if plant_loop.demandComponents.select { |comp| comp == hx }.empty?
+      next if plant_loop.demandComponents.select { |comp| comp == wh }.empty?
       next if plant_loop.supplyComponents.select { |comp| comp.name.get.include? 'boiler' }.empty?
 
-      hx_attached_to_boiler = true
+      tank_attached_to_boiler = true
     end
-    model.getPlantLoops.each do |plant_loop|
-      next if plant_loop.supplyComponents.select { |comp| comp == hx }.empty?
-      next if plant_loop.demandComponents.select { |comp| comp == wh }.empty?
-
-      hx_attached_to_tank = true
-    end
-    assert_equal(hx_attached_to_boiler, true)
-    assert_equal(hx_attached_to_tank, true)
+    assert_equal(tank_attached_to_boiler, true)
   end
 
   def test_tank_combi_tankless
@@ -933,25 +922,14 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     assert_in_epsilon(t_set, wh.setpointTemperatureSchedule.get.to_ScheduleConstant.get.value, 0.001)
     assert_equal(1.0, wh.offCycleLossFractiontoThermalZone)
 
-    # Heat exchanger
-    assert_equal(1, model.getHeatExchangerFluidToFluids.size)
-    hx = model.getHeatExchangerFluidToFluids[0]
-    hx_attached_to_boiler = false
-    hx_attached_to_tank = false
+    tank_attached_to_boiler = false
     model.getPlantLoops.each do |plant_loop|
-      next if plant_loop.demandComponents.select { |comp| comp == hx }.empty?
+      next if plant_loop.demandComponents.select { |comp| comp == wh }.empty?
       next if plant_loop.supplyComponents.select { |comp| comp.name.get.include? 'boiler' }.empty?
 
-      hx_attached_to_boiler = true
+      tank_attached_to_boiler = true
     end
-    model.getPlantLoops.each do |plant_loop|
-      next if plant_loop.supplyComponents.select { |comp| comp == hx }.empty?
-      next if plant_loop.demandComponents.select { |comp| comp == wh }.empty?
-
-      hx_attached_to_tank = true
-    end
-    assert_equal(hx_attached_to_boiler, true)
-    assert_equal(hx_attached_to_tank, true)
+    assert_equal(tank_attached_to_boiler, true)
   end
 
   def test_tank_heat_pump

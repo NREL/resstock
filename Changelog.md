@@ -10,6 +10,7 @@ __New Features__
 - The `WaterFixturesUsageMultiplier` input now also applies to general water use internal gains and recirculation pump energy (for some control types).
 - Relaxes requirement for `ConditionedFloorAreaServed` for air distribution systems; now only needed if duct surface areas not provided.
 - **Breaking change**: Each `VentilationFan` must have one (and only one) `UsedFor...` element set to true.
+- Updates combi boiler model to be simpler, faster, and more robust by using separate space/water heating plant loops and boilers.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Changes the zip code argument name to `site_zip_code`.
   - Adds support for ambient foundations for single-family attached and apartment units.
@@ -31,6 +32,7 @@ __New Features__
   - Adds a new results_bills.csv output file to summarize calculated utility bills.
 
 __Bugfixes__
+- Fixes `UseMaxLoadForHeatPumps` option to take into account the reduced heat pump capacity at the heating design temperature.
 - Adds more stringent limits for `AirflowDefectRatio` and `ChargeDefectRatio` (now allows values from 1/10th to 10x the design value).
 - Catches case where leap year is specified but weather file does not contain 8784 hours.
 - Fixes possible HVAC sizing error if design temperature difference (TD) is negative.
