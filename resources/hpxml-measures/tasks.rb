@@ -91,6 +91,7 @@ def create_hpxmls
     'base-bldgtype-multifamily-shared-water-heater-recirc.xml' => 'base-bldgtype-multifamily-shared-water-heater.xml',
     'base-bldgtype-single-family-attached.xml' => 'base.xml',
     'base-bldgtype-single-family-attached-2stories.xml' => 'base-bldgtype-single-family-attached.xml',
+    'base-bldgtype-single-family-attached-atticroof-cathedral.xml' => 'base-bldgtype-single-family-attached-2stories.xml',
     'base-dhw-combi-tankless.xml' => 'base-dhw-indirect.xml',
     'base-dhw-combi-tankless-outside.xml' => 'base-dhw-combi-tankless.xml',
     'base-dhw-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
@@ -1343,6 +1344,12 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['ducts_supply_surface_area'] = 112.5
     args['ducts_return_surface_area'] = 37.5
     args['misc_plug_loads_other_annual_kwh'] = 2457.0
+  elsif ['base-bldgtype-single-family-attached-atticroof-cathedral.xml'].include? hpxml_file
+    args['geometry_attic_type'] = HPXML::AtticTypeConditioned
+    args['ducts_supply_location'] = HPXML::LocationLivingSpace
+    args['ducts_return_location'] = HPXML::LocationLivingSpace
+    args['ducts_supply_leakage_to_outside_value'] = 0
+    args['ducts_return_leakage_to_outside_value'] = 0
   end
 
   # Multifamily
