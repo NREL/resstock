@@ -1,20 +1,9 @@
 # frozen_string_literal: true
 
 # see the URL below for information on how to write OpenStudio measures
-# http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
+# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
-if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
-end
-require File.join(resources_path, 'location')
-require File.join(resources_path, 'meta_measure')
-require File.join(resources_path, 'weather')
-
 require_relative 'resources/constants'
 
 # start the measure
@@ -27,12 +16,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'Measure that pre-processes the arguments passed to the BuildResidentialHPXML measure.'
+    return 'Measure that pre-processes the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return ''
+    return 'Passes in all arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.'
   end
 
   # define the arguments that the user will input

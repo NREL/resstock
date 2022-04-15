@@ -10,11 +10,12 @@ class TestRunAnalysis < MiniTest::Test
     cli_path = OpenStudio.getOpenStudioCLI
     @command = "\"#{cli_path}\" workflow/run_analysis.rb"
 
-    workflow_dir = File.join(File.dirname(__FILE__), '../workflow')
-    @testing_baseline = File.join(workflow_dir, 'testing_baseline')
-    @national_baseline = File.join(workflow_dir, 'national_baseline')
-    @testing_upgrades = File.join(workflow_dir, 'testing_upgrades')
-    @national_upgrades = File.join(workflow_dir, 'national_upgrades')
+    buildstock_directory = File.join(File.dirname(__FILE__), '..')
+
+    @testing_baseline = File.join(buildstock_directory, 'testing_baseline')
+    @national_baseline = File.join(buildstock_directory, 'national_baseline')
+    @testing_upgrades = File.join(buildstock_directory, 'testing_upgrades')
+    @national_upgrades = File.join(buildstock_directory, 'national_upgrades')
   end
 
   def test_version
