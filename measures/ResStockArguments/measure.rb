@@ -5,6 +5,7 @@
 
 require 'openstudio'
 require_relative 'resources/constants'
+require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 # start the measure
 class ResStockArguments < OpenStudio::Measure::ModelMeasure
