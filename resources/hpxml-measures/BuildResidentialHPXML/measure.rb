@@ -135,7 +135,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     site_state_code_choices = OpenStudio::StringVector.new
-    Constants.StateCodes.each do |sc|
+    Constants.StateCodesMap.keys.each do |sc|
       site_state_code_choices << sc
     end
 
@@ -4226,6 +4226,15 @@ class HPXMLFile
 
         surf_hash['ids'] << surface.id
       end
+    end
+
+    # Add attached roofs for cathedral ceiling
+    living_space = HPXML::LocationLivingSpace
+    surf_ids['roofs']['surfaces'].each do |surface|
+      next if (living_space != surface.interior_adjacent_to) &&
+              (living_space != surface.exterior_adjacent_to)
+
+      surf_ids['roofs']['ids'] << surface.id
     end
 
     hpxml.attics.add(id: "Attic#{hpxml.attics.size + 1}",

@@ -23,7 +23,15 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   output_directory = cfg['output_directory']
   n_datapoints = cfg['sampler']['args']['n_datapoints']
 
-  results_dir = File.absolute_path(File.join(thisdir, output_directory))
+  if !(Pathname.new buildstock_directory).absolute?
+    buildstock_directory = File.absolute_path(File.join(File.dirname(yml), buildstock_directory))
+  end
+
+  if (Pathname.new output_directory).absolute?
+    results_dir = output_directory
+  else
+    results_dir = File.absolute_path(output_directory)
+  end
   fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
   Dir.mkdir(results_dir)
@@ -165,8 +173,13 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       end
     end
 
+    measure_paths = [
+      File.absolute_path(File.join(File.dirname(__FILE__), '../measures')),
+      File.absolute_path(File.join(File.dirname(__FILE__), '../resources/hpxml-measures'))
+    ]
+
     osw = {
-      'measure_paths': ['../../../measures', '../../../resources/hpxml-measures'],
+      'measure_paths': measure_paths,
       'run_options': { 'skip_zip_results': true },
       'steps': steps
     }
@@ -182,7 +195,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   # Create lib folder
   lib_dir = File.join(thisdir, '../lib')
   resources_dir = File.join(thisdir, '../resources')
-  housing_characteristics_dir = File.join(project_directory, 'housing_characteristics')
+  housing_characteristics_dir = File.join(buildstock_directory, project_directory, 'housing_characteristics')
   create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
 
   # Create weather folder

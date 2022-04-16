@@ -48,7 +48,9 @@ def create_hpxmls
     'base-appliances-modified.xml' => 'base.xml',
     'base-appliances-none.xml' => 'base.xml',
     'base-appliances-oil.xml' => 'base.xml',
+    'base-appliances-oil-location-miami-fl.xml' => 'base-appliances-oil.xml',
     'base-appliances-propane.xml' => 'base.xml',
+    'base-appliances-propane-location-portland-or.xml' => 'base-appliances-propane.xml',
     'base-appliances-wood.xml' => 'base.xml',
     'base-atticroof-cathedral.xml' => 'base.xml',
     'base-atticroof-conditioned.xml' => 'base.xml',
@@ -89,6 +91,7 @@ def create_hpxmls
     'base-bldgtype-multifamily-shared-water-heater-recirc.xml' => 'base-bldgtype-multifamily-shared-water-heater.xml',
     'base-bldgtype-single-family-attached.xml' => 'base.xml',
     'base-bldgtype-single-family-attached-2stories.xml' => 'base-bldgtype-single-family-attached.xml',
+    'base-bldgtype-single-family-attached-atticroof-cathedral.xml' => 'base-bldgtype-single-family-attached-2stories.xml',
     'base-dhw-combi-tankless.xml' => 'base-dhw-indirect.xml',
     'base-dhw-combi-tankless-outside.xml' => 'base-dhw-combi-tankless.xml',
     'base-dhw-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
@@ -1247,12 +1250,14 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['dishwasher_location'] = 'none'
     args['refrigerator_location'] = 'none'
     args['cooking_range_oven_location'] = 'none'
-  elsif ['base-appliances-oil.xml'].include? hpxml_file
+  elsif ['base-appliances-oil.xml',
+         'base-appliances-oil-location-miami-fl.xml'].include? hpxml_file
     args['clothes_dryer_fuel_type'] = HPXML::FuelTypeOil
     args['clothes_dryer_efficiency'] = 3.3
     args['clothes_dryer_vented_flow_rate'] = Constants.Auto
     args['cooking_range_oven_fuel_type'] = HPXML::FuelTypeOil
-  elsif ['base-appliances-propane.xml'].include? hpxml_file
+  elsif ['base-appliances-propane.xml',
+         'base-appliances-propane-location-portland-or.xml'].include? hpxml_file
     args['clothes_dryer_fuel_type'] = HPXML::FuelTypePropane
     args['clothes_dryer_efficiency'] = 3.3
     args['clothes_dryer_vented_flow_rate'] = Constants.Auto
@@ -1339,6 +1344,12 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['ducts_supply_surface_area'] = 112.5
     args['ducts_return_surface_area'] = 37.5
     args['misc_plug_loads_other_annual_kwh'] = 2457.0
+  elsif ['base-bldgtype-single-family-attached-atticroof-cathedral.xml'].include? hpxml_file
+    args['geometry_attic_type'] = HPXML::AtticTypeConditioned
+    args['ducts_supply_location'] = HPXML::LocationLivingSpace
+    args['ducts_return_location'] = HPXML::LocationLivingSpace
+    args['ducts_supply_leakage_to_outside_value'] = 0
+    args['ducts_return_leakage_to_outside_value'] = 0
   end
 
   # Multifamily
@@ -2096,7 +2107,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['site_state_code'] = 'HI'
     args['weather_station_epw_filepath'] = 'USA_HI_Honolulu.Intl.AP.911820_TMY3.epw'
     args['heating_system_heating_capacity'] = 12000.0
-  elsif ['base-location-miami-fl.xml'].include? hpxml_file
+  elsif ['base-location-miami-fl.xml',
+         'base-appliances-oil-location-miami-fl.xml'].include? hpxml_file
     args['site_iecc_zone'] = '1A'
     args['site_state_code'] = 'FL'
     args['weather_station_epw_filepath'] = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
@@ -2106,7 +2118,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
     args['site_state_code'] = 'AZ'
     args['weather_station_epw_filepath'] = 'USA_AZ_Phoenix-Sky.Harbor.Intl.AP.722780_TMY3.epw'
     args['heating_system_heating_capacity'] = 24000.0
-  elsif ['base-location-portland-or.xml'].include? hpxml_file
+  elsif ['base-location-portland-or.xml',
+         'base-appliances-propane-location-portland-or.xml'].include? hpxml_file
     args['site_iecc_zone'] = '4C'
     args['site_state_code'] = 'OR'
     args['weather_station_epw_filepath'] = 'USA_OR_Portland.Intl.AP.726980_TMY3.epw'

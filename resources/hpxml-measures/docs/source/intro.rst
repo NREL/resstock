@@ -11,6 +11,7 @@ The OpenStudio measures used by the workflow are:
 #. ``HPXMLtoOpenStudio``: A measure that translates an HPXML file to an OpenStudio model.
 #. ``ReportSimulationOutput``: A reporting measure that generates a variety of simulation-based annual/timeseries outputs in CSV or JSON format.
 #. ``ReportHPXMLOutput``: A reporting measure that generates a variety of HPXML-based outputs (including defaults like autosized HVAC capacities) in CSV or JSON format.
+#. ``ReportUtilityBills``: A reporting measure that generates utility bill outputs in CSV or JSON format.
 
 
 Scope (Dwelling Units)
