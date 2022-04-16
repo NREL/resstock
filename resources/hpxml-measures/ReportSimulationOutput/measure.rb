@@ -3,10 +3,10 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require_relative 'resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/energyplus.rb'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml.rb'
+require_relative '../HPXMLtoOpenStudio/resources/output.rb'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions.rb'
 
 # start the measure
@@ -181,9 +181,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError('Cannot find OpenStudio model.')
-      return false
+      return result
     end
+
     @model = model.get
 
     # use the built-in error checking
@@ -471,13 +471,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    @timestamps = get_timestamps(timeseries_frequency)
+    @timestamps = OutputMethods.get_timestamps(timeseries_frequency, @sqlFile, @hpxml)
     if timeseries_frequency != 'none'
       if add_timeseries_dst_column.is_initialized
-        timestamps_dst = get_timestamps(timeseries_frequency, 'DST') if add_timeseries_dst_column.get
+        timestamps_dst = OutputMethods.get_timestamps(timeseries_frequency, @sqlFile, @hpxml, 'DST') if add_timeseries_dst_column.get
       end
       if add_timeseries_utc_column.is_initialized
-        timestamps_utc = get_timestamps(timeseries_frequency, 'UTC') if add_timeseries_utc_column.get
+        timestamps_utc = OutputMethods.get_timestamps(timeseries_frequency, @sqlFile, @hpxml, 'UTC') if add_timeseries_utc_column.get
       end
     end
 
@@ -495,7 +495,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                           include_timeseries_weather)
 
     if not check_for_errors(runner, outputs)
-      teardown()
+      OutputMethods.teardown(@sqlFile)
       return false
     end
 
@@ -529,60 +529,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                                     timestamps_dst,
                                     timestamps_utc)
 
-    teardown()
+    OutputMethods.teardown(@sqlFile)
     return true
-  end
-
-  def teardown
-    @sqlFile.close()
-
-    # Ensure sql file is immediately freed; otherwise we can get
-    # errors on Windows when trying to delete this file.
-    GC.start()
-  end
-
-  def get_timestamps(timeseries_frequency, timestamps_local_time = nil)
-    if timeseries_frequency == 'hourly'
-      interval_type = 1
-    elsif timeseries_frequency == 'daily'
-      interval_type = 2
-    elsif timeseries_frequency == 'monthly'
-      interval_type = 3
-    elsif timeseries_frequency == 'timestep'
-      interval_type = -1
-    end
-
-    query = "SELECT Year || ' ' || Month || ' ' || Day || ' ' || Hour || ' ' || Minute As Timestamp FROM Time WHERE IntervalType='#{interval_type}'"
-    values = @sqlFile.execAndReturnVectorOfString(query)
-    fail "Query error: #{query}" unless values.is_initialized
-
-    if timestamps_local_time == 'DST'
-      dst_start_ts = Time.utc(@hpxml.header.sim_calendar_year, @hpxml.header.dst_begin_month, @hpxml.header.dst_begin_day, 2)
-      dst_end_ts = Time.utc(@hpxml.header.sim_calendar_year, @hpxml.header.dst_end_month, @hpxml.header.dst_end_day, 1)
-    elsif timestamps_local_time == 'UTC'
-      utc_offset = @hpxml.header.time_zone_utc_offset
-      utc_offset *= 3600 # seconds
-    end
-
-    timestamps = []
-    values.get.each do |value|
-      year, month, day, hour, minute = value.split(' ')
-      ts = Time.utc(year, month, day, hour, minute)
-
-      if timestamps_local_time == 'DST'
-        if (ts >= dst_start_ts) && (ts < dst_end_ts)
-          ts += 3600 # 1 hr shift forward
-        end
-      elsif timestamps_local_time == 'UTC'
-        ts -= utc_offset
-      end
-
-      ts_iso8601 = ts.iso8601
-      ts_iso8601 = ts_iso8601.delete('Z') if timestamps_local_time != 'UTC'
-      timestamps << ts_iso8601
-    end
-
-    return timestamps
   end
 
   def get_outputs(runner, timeseries_frequency,
@@ -2066,7 +2014,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Coal, EUT::Lighting]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::Lighting]))
     @end_uses[[FT::Coal, EUT::Fireplace]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::Fireplace]))
     @end_uses[[FT::Coal, EUT::Generator]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::Generator]))
-
     @end_uses.each do |key, end_use|
       fuel_type, end_use_type = key
       end_use.name = "End Use: #{fuel_type}: #{end_use_type}"
