@@ -1087,8 +1087,13 @@ class HVAC
 
     # Derive coefficients from user input for capacity retention at outdoor drybulb temperature X [C].
     if heat_pump.heating_capacity_17F.nil? || ((heat_pump.heating_capacity_17F == 0) && (heat_pump.heating_capacity == 0))
-      cap_retention_frac = 0.25 # frac
-      cap_retention_temp = -5.0 # deg-F
+      if heat_pump.heating_efficiency_hspf >= 10.0 # Threshold for better capacity retention based on pre-HPXML options_lookup.tsv (sha 58ff627)
+        cap_retention_frac = 0.50 # frac
+        cap_retention_temp = -15.0 # deg-F
+      else
+        cap_retention_frac = 0.25 # frac
+        cap_retention_temp = -5.0 # deg-F
+      end
     else
       cap_retention_frac = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
       cap_retention_temp = 17.0 # deg-F
