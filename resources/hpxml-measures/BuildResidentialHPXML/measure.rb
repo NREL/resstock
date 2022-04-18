@@ -1228,6 +1228,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_capacity_retention_fraction', false)
+    arg.setDisplayName('Heat Pump: Capacity Retention Fraction')
+    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
+    arg.setUnits('Frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_capacity_retention_temp', false)
+    arg.setDisplayName('Heat Pump: Capacity Retention Temperature')
+    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
+    arg.setUnits('deg-F')
+    args << arg
+
     heating_system_2_type_choices = OpenStudio::StringVector.new
     heating_system_2_type_choices << 'none'
     heating_system_2_type_choices << HPXML::HVACTypeWallFurnace
@@ -4479,6 +4491,14 @@ class HPXMLFile
       charge_defect_ratio = args[:heat_pump_charge_defect_ratio].get
     end
 
+    if args[:heat_pump_capacity_retention_fraction].is_initialized
+      capacity_retention_fraction = args[:heat_pump_capacity_retention_fraction].get
+    end
+
+    if args[:heat_pump_capacity_retention_temp].is_initialized
+      capacity_retention_temp = args[:heat_pump_capacity_retention_temp].get
+    end
+
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
     fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
 
@@ -4513,6 +4533,8 @@ class HPXMLFile
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio,
+                         capacity_retention_fraction: capacity_retention_fraction,
+                         capacity_retention_temp: capacity_retention_temp,
                          primary_heating_system: primary_heating_system,
                          primary_cooling_system: primary_cooling_system)
   end
