@@ -1,10 +1,10 @@
-These are all five available Standard Scenarios for three metrics at GEA geographic resolution:
+These are all five available Standard Scenarios for three metrics at GEA geographic resolution. Metrics:
 1. LRMER levelized over 15 years
 2. LRMER levelized over 30 years
-3. average (AER) emissions
+3. average emissions rate (AER) non-levelized
 
 2021 Cambium release data:
-- Levelized LRMER come from Cambium21_LRMER_GEAregionsl.xlsx (available at https://data.nrel.gov/submissions/183):
+- Levelized LRMER come from Cambium21_LRMER_GEAregions.xlsx (available at https://data.nrel.gov/submissions/183):
 
   On the "Levelized LRMER" tab:
   - Emission | CO2e
@@ -15,7 +15,6 @@ These are all five available Standard Scenarios for three metrics at GEA geograp
   - Scenario | Mid-case, Low RE Costs, High RE Costs, 95% Decarb by 2050, 95% Decarb by 2035
   - Global Warming Potentials | 100-year (AR5)
   - Location | End-use
-  - 2050 Fraction | 0.00
 
 - Non-levelized AER come from the Scenario Viewer (available at cambium.nrel.gov):
 
