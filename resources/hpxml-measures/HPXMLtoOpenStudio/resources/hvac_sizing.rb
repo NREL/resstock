@@ -73,6 +73,7 @@ class HVACSizing
 
       hvac_sizing_values = HVACSizingValues.new
       apply_hvac_loads(hvac, hvac_sizing_values, bldg_design_loads)
+      apply_hvac_heat_pump_logic(hvac_sizing_values, hvac)
       apply_hvac_equipment_adjustments(hvac_sizing_values, weather, hvac, cfa)
       apply_hvac_installation_quality(hvac_sizing_values, weather, hvac)
       apply_hvac_fixed_capacities(hvac_sizing_values, hvac)
@@ -1132,6 +1133,27 @@ class HVACSizing
     hvac_sizing_values.Cool_Load_Lat = bldg_design_loads.Cool_Lat * hvac.CoolingLoadFraction
   end
 
+  def self.apply_hvac_heat_pump_logic(hvac_sizing_values, hvac)
+    # If true, uses the larger of heating and cooling loads for heat pump capacity sizing (required for ERI).
+    # Otherwise, uses standard Manual S oversize allowances.
+    if [HPXML::HVACTypeHeatPumpAirToAir,
+        HPXML::HVACTypeHeatPumpMiniSplit,
+        HPXML::HVACTypeHeatPumpGroundToAir,
+        HPXML::HVACTypeHeatPumpWaterLoopToAir].include? hvac.CoolType
+      if (@hpxml.header.heat_pump_sizing_methodology == HPXML::HeatPumpSizingHERS) && (hvac.CoolingLoadFraction > 0) && (hvac.HeatingLoadFraction > 0)
+        max_load = [hvac_sizing_values.Heat_Load, hvac_sizing_values.Cool_Load_Tot].max
+        hvac_sizing_values.Heat_Load = max_load
+        hvac_sizing_values.Cool_Load_Sens *= max_load / hvac_sizing_values.Cool_Load_Tot
+        hvac_sizing_values.Cool_Load_Lat *= max_load / hvac_sizing_values.Cool_Load_Tot
+        hvac_sizing_values.Cool_Load_Tot = max_load
+
+        # Override Manual S oversize allowances:
+        hvac.OverSizeLimit = 1.0
+        hvac.OverSizeDelta = 0.0
+      end
+    end
+  end
+
   def self.get_duct_regain_factor(duct)
     # dse_Fregain values comes from MJ8 pg 204 and Walker (1998) "Technical background for default
     # values used for forced air systems in proposed ASHRAE Std. 152"
@@ -1958,10 +1980,10 @@ class HVACSizing
       hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Cool_Capacity
     else
       cfm_per_btuh = hvac_sizing_values.Cool_Airflow / hvac_sizing_values.Cool_Capacity
-      if @hpxml.header.use_max_load_for_heat_pumps
+      if @hpxml.header.heat_pump_sizing_methodology == HPXML::HeatPumpSizingMaxLoad
         # Size based on heating
         hvac_sizing_values.Cool_Capacity = heat_cap_rated
-      else
+      elsif @hpxml.header.heat_pump_sizing_methodology != HPXML::HeatPumpSizingHERS
         # Size based on cooling, but with ACCA oversizing allowances for heating
         load_shr = hvac_sizing_values.Cool_Load_Sens / hvac_sizing_values.Cool_Load_Tot
         if ((weather.data.HDD65F / weather.data.CDD50F) < 2.0) || (load_shr < 0.95)
