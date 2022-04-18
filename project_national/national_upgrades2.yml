@@ -6,9 +6,23 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
-  type: residential_quota
+  type: residential_quota_downselect
   args:
-    n_datapoints: 100
+    n_datapoints: 250
+    logic:
+      and:
+        - or:
+          - Geometry Building Type RECS|Single-Family Attached
+          - Geometry Building Type RECS|Multi-Family with 2 - 4 Units
+          - Geometry Building Type RECS|Multi-Family with 5+ Units
+        - or:
+          - ASHRAE IECC Climate Zone 2004|4A
+          - ASHRAE IECC Climate Zone 2004|4B
+          - ASHRAE IECC Climate Zone 2004|4C
+          - ASHRAE IECC Climate Zone 2004|5A
+          - ASHRAE IECC Climate Zone 2004|5B
+          - ASHRAE IECC Climate Zone 2004|6A
+          - ASHRAE IECC Climate Zone 2004|6B
 
 workflow_generator:
   type: residential_hpxml
@@ -25,10 +39,6 @@ workflow_generator:
       - scenario_name: LRMER_MidCase_15
         type: CO2e
         elec_folder: data/cambium/LRMER_MidCase_15
-        gas_value: 147.3
-        propane_value: 177.8
-        oil_value: 195.9
-        wood_value: 200.0
 
     simulation_output_report:
       timeseries_frequency: hourly
@@ -36,41 +46,21 @@ workflow_generator:
       include_timeseries_fuel_consumptions: true
       include_timeseries_end_use_consumptions: true
       include_timeseries_emissions: true
-      include_timeseries_total_loads: false
-
-    reporting_measures:
-      - measure_dir_name: QOIReport
-
-    server_directory_cleanup:
-      retain_in_idf: false
-      retain_schedules_csv: false
+      include_timeseries_hot_water_uses: true
+      include_timeseries_total_loads: true
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
   - upgrade_name: Zonal Heat Pump And Sheathing
-    package_apply_logic:
-      and:
-        - or:
-          - Geometry Building Type RECS|Single-Family Attached
-          - Geometry Building Type RECS|Multi-Family with 2 - 4 Units
-          - Geometry Building Type RECS|Multi-Family with 5+ Units
-        - or:
-          - ASHRAE IECC Climate Zone 2004|4A
-          - ASHRAE IECC Climate Zone 2004|4B
-          - ASHRAE IECC Climate Zone 2004|4C
-          - ASHRAE IECC Climate Zone 2004|5A
-          - ASHRAE IECC Climate Zone 2004|5B
-          - ASHRAE IECC Climate Zone 2004|6A
-          - ASHRAE IECC Climate Zone 2004|6B
     options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+      - option: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
         costs:
           - value: 50.0
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: 30
-      - option: HVAC Heating Type And Fuel|Electricity ASHP
+      - option: HVAC Heating Type And Fuel|Electricity MSHP
       - option: HVAC Cooling Efficiency|None
       - option: HVAC Heating Type|Non-Ducted Heat Pump
       - option: Insulation Sheathing|R-30
