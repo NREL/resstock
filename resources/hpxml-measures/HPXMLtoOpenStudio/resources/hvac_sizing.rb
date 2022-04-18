@@ -1972,18 +1972,23 @@ class HVACSizing
 
     heat_cap_rated = (hvac_sizing_values.Heat_Load / MathTools.biquadratic(@heat_setpoint, weather.design.HeatingDrybulb, coefficients)) / capacity_ratio
 
-    if totalCap_CurveValue.nil?
-      # Heat pump has no cooling, size based on heating
-      hvac_sizing_values.Heat_Capacity = heat_cap_rated
+    if totalCap_CurveValue.nil? # Heat pump has no cooling
+      if @hpxml.header.heat_pump_sizing_methodology == HPXML::HeatPumpSizingMaxLoad
+        # Size based on heating, taking into account reduced heat pump capacity at the design temperature
+        hvac_sizing_values.Heat_Capacity = heat_cap_rated
+      else
+        # Size equal to heating design load
+        hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
+      end
     elsif heat_cap_rated < hvac_sizing_values.Cool_Capacity
       # Size based on cooling
       hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Cool_Capacity
     else
       cfm_per_btuh = hvac_sizing_values.Cool_Airflow / hvac_sizing_values.Cool_Capacity
       if @hpxml.header.heat_pump_sizing_methodology == HPXML::HeatPumpSizingMaxLoad
-        # Size based on heating
+        # Size based on heating, taking into account reduced heat pump capacity at the design temperature
         hvac_sizing_values.Cool_Capacity = heat_cap_rated
-      elsif @hpxml.header.heat_pump_sizing_methodology != HPXML::HeatPumpSizingHERS
+      else
         # Size based on cooling, but with ACCA oversizing allowances for heating
         load_shr = hvac_sizing_values.Cool_Load_Sens / hvac_sizing_values.Cool_Load_Tot
         if ((weather.data.HDD65F / weather.data.CDD50F) < 2.0) || (load_shr < 0.95)
