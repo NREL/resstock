@@ -5,6 +5,7 @@
 
 require 'openstudio'
 require_relative 'resources/constants'
+require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 # in addition to the above requires, this measure is expected to run in an
 # environment with resstock/resources/buildstock.rb loaded
