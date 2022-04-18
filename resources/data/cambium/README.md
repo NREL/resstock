@@ -24,6 +24,6 @@ These are all five available Standard Scenarios for three metrics at GEA geograp
   - Time Resolutions | hourly
   - Location Types | GEA
 
-  Use column "aer_load_co2e" from each "StdScen21_[Scenario]_hourly_[GEA]_2022.csv" file.
+  Use column "aer_load_co2e" from each "StdScen21_[Scenario]\_hourly_[GEA]_2022.csv" file.
 
 See the Generation And Emissions Assessment Region map [here](https://github.com/NREL/resstock/wiki/Generation-And-Emissions-Assessment-Region-Map).
