@@ -86,6 +86,17 @@ class TestRunAnalysis < MiniTest::Test
     FileUtils.rm_rf(@testing_baseline)
   end
 
+  def test_errors_downsampler
+    yml = ' -y test/tests_yml_files/yml_downsampler/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+
+    assert(cli_output.include?("Sampler type 'residential_quota_downsampler' is invalid or not supported."))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
   def test_measures_only
     yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
     @command += yml
@@ -95,6 +106,19 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(!File.exist?(File.join(@testing_baseline, 'run1', 'eplusout.sql')))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_sampling_only
+    yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
+    @command += yml
+    @command += ' -s'
+
+    system(@command)
+
+    assert(!File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'buildstock.csv')))
 
     FileUtils.rm_rf(@testing_baseline)
   end
