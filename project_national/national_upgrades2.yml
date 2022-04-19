@@ -8,7 +8,7 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 250
+    n_datapoints: 100
     logic:
       and:
         - or:
@@ -53,7 +53,15 @@ baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
-  - upgrade_name: Zonal Heat Pump And Sheathing
+  - upgrade_name: Sheathing Only
+    options:
+      - option: Insulation Sheathing|R-30
+        costs:
+          - value: 2.01
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+
+  - upgrade_name: Sheathing And MSHP, No Insulation Reduction
     options:
       - option: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
         costs:
@@ -68,6 +76,41 @@ upgrades:
           - value: 2.01
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
+      - option: Insulation Sheathing Heat Pump|R-30
+
+  - upgrade_name: Sheathing And MSHP, Minimal Insulation
+    options:
+      - option: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - option: HVAC Heating Type And Fuel|Electricity MSHP
+      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Heating Type|Non-Ducted Heat Pump
+      - option: Insulation Sheathing|R-30
+        costs:
+          - value: 2.01
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Sheathing Heat Pump|R-5
+
+  - upgrade_name: Sheathing And MSHP, Medium Insulation
+    options:
+      - option: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - option: HVAC Heating Type And Fuel|Electricity MSHP
+      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Heating Type|Non-Ducted Heat Pump
+      - option: Insulation Sheathing|R-30
+        costs:
+          - value: 2.01
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - option: Insulation Sheathing Heat Pump|R-15
 
 eagle:
   n_jobs: 3
