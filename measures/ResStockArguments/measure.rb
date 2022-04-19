@@ -142,6 +142,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Area of the above-grade walls.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_continuous_exterior_r', false)
+    arg.setDisplayName('Heat Pump: Continuous Exterior Insulation Nominal R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Nominal R-value for the heat pump continuous exterior insulation.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_insulation_r', true)
     arg.setDisplayName('Ceiling: Insulation Nominal R-value')
     arg.setUnits('h-ft^2-R/Btu')
@@ -742,7 +748,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
         zonal_heat_pump_wall_area = 6.0 # ft^2
         zonal_heat_pump_wall_area *= args['geometry_unit_num_bedrooms']
-        zonal_heat_pump_r = 15.0 # h-ft^2-R/Btu
+        if args['heat_pump_continuous_exterior_r'].is_initialized
+          zonal_heat_pump_r = args['heat_pump_continuous_exterior_r'].get # h-ft^2-R/Btu
+        else
+          zonal_heat_pump_r = wall_continuous_exterior_r
+        end
         actual_wall_area = args['wall_area'].get - zonal_heat_pump_wall_area
 
         wall_continuous_exterior_r = (actual_wall_area / wall_area * wall_continuous_exterior_r) + (zonal_heat_pump_wall_area / wall_area * zonal_heat_pump_r)
