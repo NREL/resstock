@@ -9,6 +9,7 @@ Features
 - Allow upgrade options to be defined in the lookup using measures other than ResStockArguments ([#839](https://github.com/NREL/resstock/pull/839))
 - Enable rim joists for homes with basements/crawlspaces; assumes a height of 9.25 inches and calculates rim joist assembly R-value from new insulation arguments ([#831](https://github.com/NREL/resstock/pull/831))
 - Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
+- Update tsvs with new sampling_probability calculation ([]())
 
 Fixes
 - Clean up option names for natural ventilation and hot water distribution ([#828](https://github.com/NREL/resstock/pull/828))
