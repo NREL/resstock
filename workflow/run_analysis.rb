@@ -11,10 +11,14 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders)
+def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders, samplingonly)
   fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
 
   cfg = YAML.load_file(yml)
+
+  if !['residential_quota', 'residential_quota_downselect', 'precomputed'].include?(cfg['sampler']['type'])
+    fail "Sampler type '#{cfg['sampler']['type']}' is invalid or not supported."
+  end
 
   thisdir = File.dirname(__FILE__)
 
@@ -100,7 +104,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
 
     workflow_args['simulation_output_report'].delete('output_variables')
 
-    if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
+    if cfg['sampler']['type'] == 'residential_quota_downselect'
       if cfg['sampler']['args']['resample']
         fail "Not supporting residential_quota_downselect's 'resample' at this time."
       end
@@ -235,6 +239,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
     des = results_dir
     FileUtils.cp(src, des)
+
+    return if samplingonly
 
     datapoints = (1..n_datapoints).to_a
   else
@@ -445,6 +451,11 @@ OptionParser.new do |opts|
     options[:keep_run_folders] = true
   end
 
+  options[:samplingonly] = false
+  opts.on('-s', '--samplingonly', 'Run the sampling only') do |t|
+    options[:samplingonly] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -464,8 +475,8 @@ if not options[:version]
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only],
-                         options[:debug], options[:building_ids], options[:keep_run_folders])
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug],
+                         options[:building_ids], options[:keep_run_folders], options[:samplingonly])
 
   if not success
     exit! 1
