@@ -1,21 +1,11 @@
 # frozen_string_literal: true
 
 # see the URL below for information on how to write OpenStudio measures
-# http://nrel.github.io/OpenStudio-user-documentation/measures/measure_writing_guide/
+# http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
-if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
-end
-require File.join(resources_path, 'location')
-require File.join(resources_path, 'meta_measure')
-require File.join(resources_path, 'weather')
-
 require_relative 'resources/constants'
+require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 # start the measure
 class ResStockArguments < OpenStudio::Measure::ModelMeasure
@@ -27,12 +17,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
   # human readable description
   def description
-    return 'Measure that pre-processes the arguments passed to the BuildResidentialHPXML measure.'
+    return 'Measure that pre-processes the arguments passed to the BuildResidentialHPXML and BuildResidentialScheduleFile measures.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return ''
+    return 'Passes in all arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.'
   end
 
   # define the arguments that the user will input
@@ -69,27 +59,27 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_unit_cfa_bin', true)
     arg.setDisplayName('Geometry: Unit Conditioned Floor Area Bin')
-    arg.setDescription("E.g., '2000-2499'")
+    arg.setDescription("E.g., '2000-2499'.")
     arg.setDefaultValue('2000-2499')
     args << arg
 
     # Adds a geometry_unit_cfa argument similar to the BuildResidentialHPXML measure, but as a string with "auto" allowed
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('geometry_unit_cfa', true)
     arg.setDisplayName('Geometry: Unit Conditioned Floor Area')
-    arg.setDescription("E.g., '2000' or '#{Constants.Auto}'")
+    arg.setDescription("E.g., '2000' or '#{Constants.Auto}'.")
     arg.setUnits('sqft')
     arg.setDefaultValue('2000')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('vintage', false)
     arg.setDisplayName('Building Construction: Vintage')
-    arg.setDescription('The building vintage, used for informational purposes only')
+    arg.setDescription('The building vintage, used for informational purposes only.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('exterior_finish_r', true)
     arg.setDisplayName('Building Construction: Exterior Finish R-Value')
     arg.setUnits('h-ft^2-R/Btu')
-    arg.setDescription('R-value of the exterior finish')
+    arg.setDescription('R-value of the exterior finish.')
     arg.setDefaultValue(0.6)
     args << arg
 
@@ -138,6 +128,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setUnits('ft')
     arg.setDescription("The width of the corridor. Only applies to #{HPXML::ResidentialTypeApartment}s.")
     arg.setDefaultValue(10.0)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wall_continuous_exterior_r', false)
+    arg.setDisplayName('Wall: Continuous Exterior Insulation Nominal R-value')
+    arg.setUnits('h-ft^2-R/Btu')
+    arg.setDescription('Nominal R-value for the wall continuous exterior insulation.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_insulation_r', true)
@@ -730,6 +726,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Wall Assembly R-Value
     args['wall_assembly_r'] += args['exterior_finish_r']
+
+    if args['wall_continuous_exterior_r'].is_initialized
+      args['wall_assembly_r'] += args['wall_continuous_exterior_r'].get
+    end
 
     # Rim Joist Assembly R-Value
     rim_joist_assembly_r = 0

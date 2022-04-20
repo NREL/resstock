@@ -10,11 +10,12 @@ class TestRunAnalysis < MiniTest::Test
     cli_path = OpenStudio.getOpenStudioCLI
     @command = "\"#{cli_path}\" workflow/run_analysis.rb"
 
-    workflow_dir = File.join(File.dirname(__FILE__), '../workflow')
-    @testing_baseline = File.join(workflow_dir, 'testing_baseline')
-    @national_baseline = File.join(workflow_dir, 'national_baseline')
-    @testing_upgrades = File.join(workflow_dir, 'testing_upgrades')
-    @national_upgrades = File.join(workflow_dir, 'national_upgrades')
+    buildstock_directory = File.join(File.dirname(__FILE__), '..')
+
+    @testing_baseline = File.join(buildstock_directory, 'testing_baseline')
+    @national_baseline = File.join(buildstock_directory, 'national_baseline')
+    @testing_upgrades = File.join(buildstock_directory, 'testing_upgrades')
+    @national_upgrades = File.join(buildstock_directory, 'national_upgrades')
   end
 
   def test_version
@@ -85,6 +86,17 @@ class TestRunAnalysis < MiniTest::Test
     FileUtils.rm_rf(@testing_baseline)
   end
 
+  def test_errors_downsampler
+    yml = ' -y test/tests_yml_files/yml_downsampler/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+
+    assert(cli_output.include?("Sampler type 'residential_quota_downsampler' is invalid or not supported."))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
   def test_measures_only
     yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
     @command += yml
@@ -94,6 +106,19 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(!File.exist?(File.join(@testing_baseline, 'run1', 'eplusout.sql')))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_sampling_only
+    yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
+    @command += yml
+    @command += ' -s'
+
+    system(@command)
+
+    assert(!File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'buildstock.csv')))
 
     FileUtils.rm_rf(@testing_baseline)
   end

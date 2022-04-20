@@ -11,10 +11,14 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders)
+def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders, samplingonly)
   fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
 
   cfg = YAML.load_file(yml)
+
+  if !['residential_quota', 'residential_quota_downselect', 'precomputed'].include?(cfg['sampler']['type'])
+    fail "Sampler type '#{cfg['sampler']['type']}' is invalid or not supported."
+  end
 
   thisdir = File.dirname(__FILE__)
 
@@ -23,7 +27,15 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   output_directory = cfg['output_directory']
   n_datapoints = cfg['sampler']['args']['n_datapoints']
 
-  results_dir = File.absolute_path(File.join(thisdir, output_directory))
+  if !(Pathname.new buildstock_directory).absolute?
+    buildstock_directory = File.absolute_path(File.join(File.dirname(yml), buildstock_directory))
+  end
+
+  if (Pathname.new output_directory).absolute?
+    results_dir = output_directory
+  else
+    results_dir = File.absolute_path(output_directory)
+  end
   fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
   Dir.mkdir(results_dir)
@@ -92,7 +104,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
 
     workflow_args['simulation_output_report'].delete('output_variables')
 
-    if ['residential_quota_downselect'].include?(cfg['sampler']['type'])
+    if cfg['sampler']['type'] == 'residential_quota_downselect'
       if cfg['sampler']['args']['resample']
         fail "Not supporting residential_quota_downselect's 'resample' at this time."
       end
@@ -165,8 +177,13 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       end
     end
 
+    measure_paths = [
+      File.absolute_path(File.join(File.dirname(__FILE__), '../measures')),
+      File.absolute_path(File.join(File.dirname(__FILE__), '../resources/hpxml-measures'))
+    ]
+
     osw = {
-      'measure_paths': ['../../../measures', '../../../resources/hpxml-measures'],
+      'measure_paths': measure_paths,
       'run_options': { 'skip_zip_results': true },
       'steps': steps
     }
@@ -182,7 +199,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   # Create lib folder
   lib_dir = File.join(thisdir, '../lib')
   resources_dir = File.join(thisdir, '../resources')
-  housing_characteristics_dir = File.join(project_directory, 'housing_characteristics')
+  housing_characteristics_dir = File.join(buildstock_directory, project_directory, 'housing_characteristics')
   create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
 
   # Create weather folder
@@ -222,6 +239,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
     des = results_dir
     FileUtils.cp(src, des)
+
+    return if samplingonly
 
     datapoints = (1..n_datapoints).to_a
   else
@@ -432,6 +451,11 @@ OptionParser.new do |opts|
     options[:keep_run_folders] = true
   end
 
+  options[:samplingonly] = false
+  opts.on('-s', '--samplingonly', 'Run the sampling only') do |t|
+    options[:samplingonly] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -451,8 +475,8 @@ if not options[:version]
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only],
-                         options[:debug], options[:building_ids], options[:keep_run_folders])
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug],
+                         options[:building_ids], options[:keep_run_folders], options[:samplingonly])
 
   if not success
     exit! 1

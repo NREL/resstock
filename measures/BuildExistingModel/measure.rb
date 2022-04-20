@@ -3,16 +3,8 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require 'csv'
 require 'openstudio'
-if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
-end
-require File.join(resources_path, 'meta_measure')
+require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 # in addition to the above requires, this measure is expected to run in an
 # environment with resstock/resources/buildstock.rb loaded
@@ -184,6 +176,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
     # Check file/dir paths exist
+    check_dir_exists(resources_dir, runner)
     [measures_dir, hpxml_measures_dir].each do |dir|
       check_dir_exists(dir, runner)
     end
@@ -396,14 +389,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     if run_hescore_workflow
       hes_json_path = File.expand_path('../hes.json')
       hes_hpxml_path = File.expand_path('../hes.xml')
-      hes_results_path = File.expand_path('../hes_results.json')
       measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => hpxml_path, 'output_path' => hes_json_path }]
       measures['HEScoreRuleset'] = [{ 'json_path' => hes_json_path, 'hpxml_output_path' => hes_hpxml_path }]
-      measures['ReportHEScoreOutput'] = [{ 'json_path' => hes_json_path, 'hpxml_path' => hpxml_path, 'json_output_path' => hes_results_path }]
       measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = hes_hpxml_path
 
-      # HPXMLtoHEScore, HEScoreRuleset, and ReportHEScoreOutput
-      measures_hash = { 'HPXMLtoHEScore' => measures['HPXMLtoHEScore'], 'HEScoreRuleset' => measures['HEScoreRuleset'], 'ReportHEScoreOutput' => measures['ReportHEScoreOutput'] }
+      # HPXMLtoHEScore and HEScoreRuleset
+      measures_hash = { 'HPXMLtoHEScore' => measures['HPXMLtoHEScore'], 'HEScoreRuleset' => measures['HEScoreRuleset'] }
 
       if not apply_measures(hes_ruleset_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
         register_logs(runner, new_runner)

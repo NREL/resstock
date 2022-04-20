@@ -137,3 +137,57 @@ class WT
   DiffuseSolar = 'Diffuse Solar Radiation'
   DirectSolar = 'Direct Solar Radiation'
 end
+
+class OutputMethods
+  def self.get_timestamps(timeseries_frequency, sqlFile, hpxml, timestamps_local_time = nil)
+    if timeseries_frequency == 'hourly'
+      interval_type = 1
+    elsif timeseries_frequency == 'daily'
+      interval_type = 2
+    elsif timeseries_frequency == 'monthly'
+      interval_type = 3
+    elsif timeseries_frequency == 'timestep'
+      interval_type = -1
+    end
+
+    query = "SELECT Year || ' ' || Month || ' ' || Day || ' ' || Hour || ' ' || Minute As Timestamp FROM Time WHERE IntervalType='#{interval_type}'"
+    values = sqlFile.execAndReturnVectorOfString(query)
+    fail "Query error: #{query}" unless values.is_initialized
+
+    if timestamps_local_time == 'DST'
+      dst_start_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_begin_month, hpxml.header.dst_begin_day, 2)
+      dst_end_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_end_month, hpxml.header.dst_end_day, 1)
+    elsif timestamps_local_time == 'UTC'
+      utc_offset = hpxml.header.time_zone_utc_offset
+      utc_offset *= 3600 # seconds
+    end
+
+    timestamps = []
+    values.get.each do |value|
+      year, month, day, hour, minute = value.split(' ')
+      ts = Time.utc(year, month, day, hour, minute)
+
+      if timestamps_local_time == 'DST'
+        if (ts >= dst_start_ts) && (ts < dst_end_ts)
+          ts += 3600 # 1 hr shift forward
+        end
+      elsif timestamps_local_time == 'UTC'
+        ts -= utc_offset
+      end
+
+      ts_iso8601 = ts.iso8601
+      ts_iso8601 = ts_iso8601.delete('Z') if timestamps_local_time != 'UTC'
+      timestamps << ts_iso8601
+    end
+
+    return timestamps
+  end
+
+  def self.teardown(sqlFile)
+    sqlFile.close()
+
+    # Ensure sql file is immediately freed; otherwise we can get
+    # errors on Windows when trying to delete this file.
+    GC.start()
+  end
+end
