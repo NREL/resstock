@@ -443,6 +443,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     setup_outputs()
 
+    if not File.exist? File.join(output_dir, 'eplusout.msgpack')
+      runner.registerError('Cannot find eplusout.msgpack.')
+      return false
+    end
     @msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack')))
     @msgpackDataRunPeriod = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout_runperiod.msgpack')))
     msgpack_timeseries_path = File.join(output_dir, "eplusout_#{timeseries_frequency}.msgpack")
