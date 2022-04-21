@@ -84,7 +84,7 @@ class Airflow
     # Apply ducts
 
     duct_systems.each do |ducts, object|
-      apply_ducts(model, ducts, object)
+      apply_ducts(model, ducts, object, vent_fans_mech)
     end
 
     # Apply infiltration/ventilation
@@ -597,7 +597,7 @@ class Airflow
     end
   end
 
-  def self.apply_ducts(model, ducts, object)
+  def self.apply_ducts(model, ducts, object, vent_fans_mech)
     ducts.each do |duct|
       duct.rvalue = get_duct_insulation_rvalue(duct.rvalue, duct.side) # Convert from nominal to actual R-value
       if not duct.loc_schedule.nil?
@@ -1062,10 +1062,11 @@ class Airflow
 
       if @cfis_airloop.values.include? object
 
-        # Calculate CFIS duct losses
+        # Calculate additional CFIS duct losses during fan-only mode
         cfis_id = @cfis_airloop.key(object)
+        vent_mech = vent_fans_mech.select { |vfm| vfm.id == cfis_id }[0]
         duct_program.addLine("If #{@cfis_f_damper_extra_open_var[cfis_id].name} > 0")
-        duct_program.addLine("  Set cfis_m3s = (#{@fan_mfr_max_var[object].name} / 1.16097654)") # Density of 1.16097654 was back calculated using E+ results
+        duct_program.addLine("  Set cfis_m3s = (#{@fan_mfr_max_var[object].name} * #{vent_mech.cfis_vent_mode_airflow_fraction} / 1.16097654)") # Density of 1.16097654 was back calculated using E+ results
         duct_program.addLine("  Set #{@fan_rtf_var[object].name} = #{@cfis_f_damper_extra_open_var[cfis_id].name}") # Need to use global vars to sync duct_program and infiltration program of different calling points
         duct_program.addLine("  Set #{ah_vfr_var.name} = #{@fan_rtf_var[object].name}*cfis_m3s")
         duct_program.addLine("  Set rho_in = (@RhoAirFnPbTdbW #{@pbar_sensor.name} #{@tin_sensor.name} #{@win_sensor.name})")
