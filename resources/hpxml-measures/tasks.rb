@@ -332,6 +332,7 @@ def create_hpxmls
     'base-mechvent-balanced.xml' => 'base.xml',
     'base-mechvent-bath-kitchen-fans.xml' => 'base.xml',
     'base-mechvent-cfis.xml' => 'base.xml',
+    'base-mechvent-cfis-airflow-fraction-zero.xml' => 'base-mechvent-cfis.xml',
     'base-mechvent-cfis-dse.xml' => 'base-hvac-dse.xml',
     'base-mechvent-cfis-evap-cooler-only-ducted.xml' => 'base-hvac-evap-cooler-only-ducted.xml',
     'base-mechvent-erv.xml' => 'base.xml',
@@ -4303,6 +4304,8 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                                sensible_recovery_efficiency: 0.72,
                                fan_power: 7.5,
                                used_for_whole_building_ventilation: true)
+  elsif ['base-mechvent-cfis-airflow-fraction-zero.xml'].include? hpxml_file
+    hpxml.ventilation_fans[0].cfis_vent_mode_airflow_fraction = 0.0
   end
 
   # ---------------- #
