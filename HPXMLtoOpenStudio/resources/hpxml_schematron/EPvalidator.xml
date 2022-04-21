@@ -1303,6 +1303,9 @@
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Systems/h:MechanicalVentilation/h:VentilationFans/h:VentilationFan[h:UsedForWholeBuildingVentilation="true" and h:FanType="central fan integrated supply"]'>
       <sch:assert role='ERROR' test='count(h:AttachedToHVACDistributionSystem) = 1'>Expected 1 element(s) for xpath: AttachedToHVACDistributionSystem</sch:assert>
       <sch:assert role='ERROR' test='count(h:IsSharedSystem[text()="true"]) = 0'>Expected 0 element(s) for xpath: IsSharedSystem[text()="true"]</sch:assert>
+      <sch:assert role='ERROR' test='count(h:extension/h:VentilationOnlyModeAirflowFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/VentilationOnlyModeAirflowFraction</sch:assert>
+      <sch:assert role='ERROR' test='number(h:extension/h:VentilationOnlyModeAirflowFraction) &gt;= 0 or not(h:extension/h:VentilationOnlyModeAirflowFraction)'>Expected extension/VentilationOnlyModeAirflowFraction to be greater than or equal to 0</sch:assert>
+      <sch:assert role='ERROR' test='number(h:extension/h:VentilationOnlyModeAirflowFraction) &lt;= 1 or not(h:extension/h:VentilationOnlyModeAirflowFraction)'>Expected extension/VentilationOnlyModeAirflowFraction to be less than or equal to 1</sch:assert>
     </sch:rule>
   </sch:pattern>
 
