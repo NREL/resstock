@@ -13,6 +13,11 @@ sampler:
       - Vacancy Status|Occupied
       - Geometry Building Type RECS|Single-Family Detached
       - or:
+        - Heating Fuel|Electricity
+        - Heating Fuel|Natural Gas
+        - Heating Fuel|Propane
+        - Heating Fuel|Fuel Oil
+      - or:
         #APS
         - County|AZ, Gila County
         - County|AZ, La Paz County
@@ -197,105 +202,168 @@ baseline:
 upgrades:
   - upgrade_name: Package with Fuel Switching
     options:
+      #ASHP for all homes with ducts
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic: HVAC Has Ducts|Yes
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 15
+      #MSHP for all homes without ducts
+      - option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
+        apply_logic: HVAC Has Ducts|No 
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 15
+      #Duct sealing
+      - option: Ducts|10% Leakage, R-8
+        apply_logic: 
+          not: Ducts|10% Leakage, R-8
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 30
+      #HPWHs for all
+      - option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|1
+              - Bedrooms|2
+            - not:
+              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|3
+            - not:
+              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|4
+              - Bedrooms|5
+            - not:
+              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
       # Clothes washer Upgrade
-      - &clothes_washer_80pct
-        option: Clothes Washer|EnergyStar, 80% Usage
+      - option: Clothes Washer|EnergyStar, 80% Usage
         apply_logic: Clothes Washer|Standard, 80% Usage
         costs:
-          - value: 72
+          - value: 0
             multiplier: Fixed (1)
         lifetime: 14
-      - &clothes_washer_100pct
-        option: Clothes Washer|EnergyStar, 100% Usage
+      - option: Clothes Washer|EnergyStar, 100% Usage
         apply_logic: Clothes Washer|Standard, 100% Usage
         costs:
-          - value: 72
+          - value: 0
             multiplier: Fixed (1)
         lifetime: 14
-      - &clothes_washer_120pct
-        option: Clothes Washer|EnergyStar, 120% Usage
+      - option: Clothes Washer|EnergyStar, 120% Usage
         apply_logic: Clothes Washer|Standard, 120% Usage
         costs:
-          - value: 72
+          - value: 0
             multiplier: Fixed (1)
         lifetime: 14
-      
       # Dishwasher Upgrade
-      - &dishwasher_80pct
-        option: Dishwasher|199 Rated kWh, 80% Usage
+      - option: Dishwasher|199 Rated kWh, 80% Usage
         apply_logic:
           or: 
             - Dishwasher|290 Rated kWh, 80% Usage
             - Dishwasher|318 Rated kWh, 80% Usage
         costs:
-          - value: 1000
+          - value: 0
             multiplier: Fixed (1)
         lifetime: 11
-      - &dishwasher_100pct
-        option: Dishwasher|199 Rated kWh, 100% Usage
+      - option: Dishwasher|199 Rated kWh, 100% Usage
         apply_logic:
           or: 
             - Dishwasher|290 Rated kWh, 100% Usage
             - Dishwasher|318 Rated kWh, 100% Usage
         costs:
-          - value: 1000
+          - value: 0
             multiplier: Fixed (1)
         lifetime: 11
-      - &dishwasher_120pct
-        option: Dishwasher|199 Rated kWh, 120% Usage
+      - option: Dishwasher|199 Rated kWh, 120% Usage
         apply_logic:
           or: 
             - Dishwasher|290 Rated kWh, 120% Usage
             - Dishwasher|318 Rated kWh, 120% Usage
         costs:
-          - value: 1000
+          - value: 0
             multiplier: Fixed (1) 
         lifetime: 11
-      
       # Refrigerator Upgrade
-      - &refrigerator
-        option: Refrigerator|EF 21.9, 100% Usage
+      - option: Refrigerator|EF 21.9, 100% Usage
         apply_logic:
           not: Refrigerator|EF 21.9, 100% Usage
         costs:
-          - value: 670
+          - value: 0
             multiplier: Fixed (1)
         lifetime: 17.4
-      
       # Clothes Dryer Upgrade
-      - &clothes_dryer_80pct
-        option: Clothes Dryer|Electric, EnergyStar 80% Usage
+      - option: Clothes Dryer|Electric, EnergyStar 80% Usage
         apply_logic:
           or: 
             - Clothes Dryer|Electric, 80% Usage
             - Clothes Dryer|Gas, 80% Usage
             - Clothes Dryer|Propane, 80% Usage
         costs:
-          - value: 1200
+          - value: 0
             multiplier: Fixed (1)
         lifetime: 13
-      - &clothes_dryer_100pct
-        option: Clothes Dryer|Electric, EnergyStar 100% Usage
+      -         option: Clothes Dryer|Electric, EnergyStar 100% Usage
         apply_logic:
           or: 
             - Clothes Dryer|Electric, 100% Usage
             - Clothes Dryer|Gas, 100% Usage
             - Clothes Dryer|Propane, 100% Usage
         costs:
-          - value: 1200
+          - value: 0
             multiplier: Fixed (1)
         lifetime: 13
-      - &clothes_dryer_120pct
-        option: Clothes Dryer|Electric, EnergyStar 120% Usage
+      - option: Clothes Dryer|Electric, EnergyStar 120% Usage
         apply_logic:
           or: 
             - Clothes Dryer|Electric, 120% Usage
             - Clothes Dryer|Gas, 120% Usage
             - Clothes Dryer|Propane, 120% Usage
         costs:
-          - value: 1200
+          - value: 0
             multiplier: Fixed (1)
         lifetime: 13
+      -option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          not: Cooking Range|Electric, Induction, 100% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+
+
       #got to here
       # Lighting Upgrade
       - &lighting
@@ -308,7 +376,7 @@ upgrades:
             - Lighting|20% LED
             - Lighting|100% LED
         costs:
-          - value: 0.40
+          - value: 0
             multiplier: Floor Area, Lighting (ft^2)
         lifetime: 78.28
         
