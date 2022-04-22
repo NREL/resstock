@@ -12,7 +12,7 @@
         <Timestep>60</Timestep>
       </SimulationControl>
       <HVACSizingControl>
-        <UseMaxLoadForHeatPumps>false</UseMaxLoadForHeatPumps>
+        <HeatPumpSizingMethodology>HERS</HeatPumpSizingMethodology>
       </HVACSizingControl>
     </extension>
   </SoftwareInfo>
@@ -320,11 +320,9 @@
             </PrimarySystems>
             <HeatPump>
               <SystemIdentifier id='HeatPump1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <HeatPumpType>air-to-air</HeatPumpType>
+              <HeatPumpType>packaged terminal heat pump</HeatPumpType>
               <HeatPumpFuel>electricity</HeatPumpFuel>
-              <CompressorType>two stage</CompressorType>
-              <CoolingSensibleHeatFraction>0.73</CoolingSensibleHeatFraction>
+              <CoolingSensibleHeatFraction>0.65</CoolingSensibleHeatFraction>
               <BackupType>integrated</BackupType>
               <BackupSystemFuel>electricity</BackupSystemFuel>
               <BackupAnnualHeatingEfficiency>
@@ -334,12 +332,12 @@
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
-                <Units>SEER</Units>
-                <Value>18.0</Value>
+                <Units>EER</Units>
+                <Value>11.4</Value>
               </AnnualCoolingEfficiency>
               <AnnualHeatingEfficiency>
-                <Units>HSPF</Units>
-                <Value>9.3</Value>
+                <Units>COP</Units>
+                <Value>3.6</Value>
               </AnnualHeatingEfficiency>
             </HeatPump>
           </HVACPlant>
@@ -348,42 +346,6 @@
             <SetpointTempHeatingSeason>68.0</SetpointTempHeatingSeason>
             <SetpointTempCoolingSeason>78.0</SetpointTempCoolingSeason>
           </HVACControl>
-          <HVACDistribution>
-            <SystemIdentifier id='HVACDistribution1'/>
-            <DistributionSystemType>
-              <AirDistribution>
-                <AirDistributionType>regular velocity</AirDistributionType>
-                <DuctLeakageMeasurement>
-                  <DuctType>supply</DuctType>
-                  <DuctLeakage>
-                    <Units>CFM25</Units>
-                    <Value>75.0</Value>
-                    <TotalOrToOutside>to outside</TotalOrToOutside>
-                  </DuctLeakage>
-                </DuctLeakageMeasurement>
-                <DuctLeakageMeasurement>
-                  <DuctType>return</DuctType>
-                  <DuctLeakage>
-                    <Units>CFM25</Units>
-                    <Value>25.0</Value>
-                    <TotalOrToOutside>to outside</TotalOrToOutside>
-                  </DuctLeakage>
-                </DuctLeakageMeasurement>
-                <Ducts>
-                  <DuctType>supply</DuctType>
-                  <DuctInsulationRValue>4.0</DuctInsulationRValue>
-                  <DuctLocation>attic - unvented</DuctLocation>
-                  <DuctSurfaceArea>150.0</DuctSurfaceArea>
-                </Ducts>
-                <Ducts>
-                  <DuctType>return</DuctType>
-                  <DuctInsulationRValue>0.0</DuctInsulationRValue>
-                  <DuctLocation>attic - unvented</DuctLocation>
-                  <DuctSurfaceArea>50.0</DuctSurfaceArea>
-                </Ducts>
-              </AirDistribution>
-            </DistributionSystemType>
-          </HVACDistribution>
         </HVAC>
         <WaterHeating>
           <WaterHeatingSystem>
