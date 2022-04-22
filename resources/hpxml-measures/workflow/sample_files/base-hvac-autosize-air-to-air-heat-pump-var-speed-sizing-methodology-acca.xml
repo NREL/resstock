@@ -12,7 +12,7 @@
         <Timestep>60</Timestep>
       </SimulationControl>
       <HVACSizingControl>
-        <HeatPumpSizingMethodology>HERS</HeatPumpSizingMethodology>
+        <HeatPumpSizingMethodology>ACCA</HeatPumpSizingMethodology>
       </HVACSizingControl>
     </extension>
   </SoftwareInfo>
@@ -315,31 +315,37 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
+              <PrimaryHeatingSystem idref='HeatPump1'/>
               <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
             <HeatPump>
               <SystemIdentifier id='HeatPump1'/>
               <DistributionSystem idref='HVACDistribution1'/>
-              <HeatPumpType>ground-to-air</HeatPumpType>
+              <HeatPumpType>air-to-air</HeatPumpType>
               <HeatPumpFuel>electricity</HeatPumpFuel>
-              <CoolingSensibleHeatFraction>0.73</CoolingSensibleHeatFraction>
-              <FractionHeatLoadServed>0.0</FractionHeatLoadServed>
+              <CompressorType>variable speed</CompressorType>
+              <CoolingSensibleHeatFraction>0.78</CoolingSensibleHeatFraction>
+              <BackupType>integrated</BackupType>
+              <BackupSystemFuel>electricity</BackupSystemFuel>
+              <BackupAnnualHeatingEfficiency>
+                <Units>Percent</Units>
+                <Value>1.0</Value>
+              </BackupAnnualHeatingEfficiency>
+              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
-                <Units>EER</Units>
-                <Value>16.6</Value>
+                <Units>SEER</Units>
+                <Value>22.0</Value>
               </AnnualCoolingEfficiency>
               <AnnualHeatingEfficiency>
-                <Units>COP</Units>
-                <Value>3.6</Value>
+                <Units>HSPF</Units>
+                <Value>10.0</Value>
               </AnnualHeatingEfficiency>
-              <extension>
-                <PumpPowerWattsPerTon>30.0</PumpPowerWattsPerTon>
-              </extension>
             </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
+            <SetpointTempHeatingSeason>68.0</SetpointTempHeatingSeason>
             <SetpointTempCoolingSeason>78.0</SetpointTempCoolingSeason>
           </HVACControl>
           <HVACDistribution>
