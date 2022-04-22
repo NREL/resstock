@@ -1,5 +1,5 @@
 schema_version: '0.3'
-buildstock_directory: ../../resstock # Relative to this file or absolute
+buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 output_directory: national_upgrades
 weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
@@ -36,7 +36,7 @@ workflow_generator:
       retain_schedules_csv: false
 
 baseline:
-  n_buildings_represented: 110000000
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
   - upgrade_name: Windows
@@ -54,6 +54,7 @@ upgrades:
           - value: 2.21
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
+      - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
 
   - upgrade_name: Air Leakage
     options:
@@ -129,6 +130,7 @@ upgrades:
           - value: 2.21
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
+      - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
       - option: Infiltration|3 ACH50
         costs:
           - value: 3.55

@@ -1,5 +1,5 @@
 schema_version: '0.3'
-buildstock_directory: ../../resstock # Relative to this file or absolute
+buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_testing # Relative to buildstock_directory
 output_directory: testing_upgrades
 weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
@@ -32,8 +32,7 @@ workflow_generator:
       - measure_dir_name: QOIReport
 
     server_directory_cleanup:
-      retain_in_idf: false
-      retain_schedules_csv: false
+      debug: true
 
 baseline:
   n_buildings_represented: 110000000
@@ -54,6 +53,7 @@ upgrades:
           - value: 2.21
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
+      - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
 
   - upgrade_name: Air Leakage
     options:
@@ -112,12 +112,10 @@ upgrades:
   - upgrade_name: All Upgrades
     package_apply_logic:
       or:
-        - County|AZ, Maricopa County
         - County|CA, Los Angeles County
-        - County|GA, Fulton County
         - County|IL, Cook County
+        - County|NY, New York County
         - County|TX, Harris County
-        - County|WA, King County
     options:
       - option: Windows|Triple, Low-E, Non-metal, Air, L-Gain
         costs:
@@ -129,6 +127,7 @@ upgrades:
           - value: 2.21
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
+      - option: Geometry Wall Type And Exterior Finish|Wood Frame, Brick, Medium/Dark
       - option: Infiltration|3 ACH50
         costs:
           - value: 3.55

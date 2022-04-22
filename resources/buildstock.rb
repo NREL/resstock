@@ -437,14 +437,14 @@ class RunOSWs
     end
   end
 
-  def self.run_and_check(in_osw, parent_dir, measures_only = false)
+  def self.run_and_check(in_osw, parent_dir, cli_output, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
     command += ' -m' if measures_only
-    command += " -w #{in_osw}"
+    command += " -w \"#{in_osw}\""
 
-    system(command)
+    cli_output += `#{command}`
 
     result_characteristics = {}
     result_output = {}
@@ -455,7 +455,7 @@ class RunOSWs
 
     data_point_out = File.join(parent_dir, 'run/data_point_out.json')
 
-    return completed_status, result_characteristics, result_output if measures_only || !File.exist?(data_point_out)
+    return completed_status, result_characteristics, result_output, cli_output if measures_only || !File.exist?(data_point_out)
 
     rows = JSON.parse(File.read(File.expand_path(data_point_out)))
     if rows.keys.include? 'BuildExistingModel'
@@ -474,7 +474,7 @@ class RunOSWs
       result_output = get_qoi_report(result_output, rows)
     end
 
-    return completed_status, result_characteristics, result_output
+    return completed_status, result_characteristics, result_output, cli_output
   end
 
   def self.get_build_existing_model(result, rows)
@@ -545,6 +545,8 @@ class RunOSWs
       end
     end
     column_headers = column_headers.sort
+    column_headers.delete('job_id')
+    column_headers.insert(1, 'job_id')
 
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
@@ -557,7 +559,7 @@ class RunOSWs
       end
     end
 
-    puts "\nWrote: #{csv_out}\n"
+    puts "Wrote: #{csv_out}"
     return csv_out
   end
 
