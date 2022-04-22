@@ -756,6 +756,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         actual_wall_area = args['wall_area'].get - zonal_heat_pump_wall_area
 
         wall_continuous_exterior_r = (actual_wall_area / wall_area * wall_continuous_exterior_r) + (zonal_heat_pump_wall_area / wall_area * zonal_heat_pump_r)
+        args['wall_continuous_exterior_r'] = wall_continuous_exterior_r
       end
 
       args['wall_assembly_r'] += wall_continuous_exterior_r
@@ -797,7 +798,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rescue
       end
 
-      if args_to_delete.include? arg_name
+      if args_to_delete.include?(arg_name) && !Constants.includes.include?(arg_name)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 

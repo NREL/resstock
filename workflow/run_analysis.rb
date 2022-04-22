@@ -112,6 +112,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       workflow_args['build_existing_model']['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
     end
 
+    step_idx = 1
     if upgrade_idx > 0
       measure_d = cfg['upgrades'][upgrade_idx - 1]
       apply_upgrade_measure = { 'measure_dir_name' => 'ApplyUpgrade',
@@ -143,7 +144,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
         apply_upgrade_measure['arguments']['package_apply_logic'] = make_apply_logic_arg(measure_d['package_apply_logic'])
       end
 
-      steps.insert(-3, apply_upgrade_measure)
+      steps.insert(step_idx, apply_upgrade_measure)
+      step_idx += 1
     end
 
     workflow_args.each do |measure_dir_name, arguments|
@@ -154,16 +156,19 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
         if k.keys.include?('arguments')
           step['arguments'] = k['arguments']
         end
-        steps.insert(-3, step)
+        steps.insert(step_idx, step)
+        step_idx += 1
       end
     end
 
-    steps.insert(-2, { 'measure_dir_name' => 'ReportHPXMLOutput',
-                       'arguments' => {
-                         'output_format' => 'csv',
-                       } })
+    step_idx += 1 # for ReportSimulationOutput
+    steps.insert(step_idx, { 'measure_dir_name' => 'ReportHPXMLOutput',
+                             'arguments' => {
+                               'output_format' => 'csv',
+                             } })
+    step_idx += 1
 
-    steps.insert(-2, { 'measure_dir_name' => 'UpgradeCosts' })
+    steps.insert(step_idx, { 'measure_dir_name' => 'UpgradeCosts' })
 
     workflow_args.each do |measure_dir_name, arguments|
       next unless ['reporting_measures'].include?(measure_dir_name)
@@ -294,8 +299,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       failures << results['building_id'] if results['completed_status'] == 'Fail'
     end
   end
-  failures.uniq.sort!
-  puts "\nFailures detected for: #{failures.join(', ')}.\nSee #{File.join(results_dir, 'cli_output.log')}." if !failures.empty?
+  puts "\nFailures detected for: #{failures.uniq.sort.join(', ')}.\nSee #{File.join(results_dir, 'cli_output.log')}." if !failures.empty?
 
   File.open(File.join(results_dir, 'cli_output.log'), 'a') do |f|
     all_cli_output.each do |cli_output|

@@ -32,4 +32,9 @@ class Constants
             'output_csv_path',
             'hpxml_output_path']
   end
+
+  def self.includes
+    return ['wall_area',
+            'wall_continuous_exterior_r']
+  end
 end

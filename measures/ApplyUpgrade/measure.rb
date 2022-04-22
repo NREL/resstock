@@ -336,7 +336,9 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
 
-      if ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
+      if Constants.includes.include?(step_value.name)
+        register_value(runner, step_value.name, value)
+      elsif ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
         measures['BuildResidentialScheduleFile'][0][step_value.name] = value
       else
         measures['BuildResidentialHPXML'][0][step_value.name] = value
