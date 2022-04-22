@@ -1136,7 +1136,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     all_outputs.each do |o|
       o.each do |key, obj|
-        output_name = get_runner_output_name(obj)
+        output_name = OpenStudio::toUnderscoreCase(get_runner_output_name(obj))
         output_val = obj.annual_output.to_f.round(n_digits)
         runner.registerValue(output_name, output_val)
         runner.registerInfo("Registering #{output_val} for #{output_name}.")
@@ -1144,14 +1144,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         if obj.is_a?(Emission)
           # Include total and disaggregated by fuel
           obj.annual_output_by_fuel.each do |fuel, annual_output|
-            output_name = get_runner_output_name(obj).gsub(': Total', ': ' + fuel)
+            output_name = OpenStudio::toUnderscoreCase(get_runner_output_name(obj).gsub(': Total', ': ' + fuel))
             output_val = annual_output.to_f.round(n_digits)
             runner.registerValue(output_name, output_val)
             runner.registerInfo("Registering #{output_val} for #{output_name}.")
           end
         elsif key == FT::Elec && obj.is_a?(Fuel)
           # Also add Net Electricity
-          output_name = 'Fuel Use: Electricity: Net (MBtu)'
+          output_name = OpenStudio::toUnderscoreCase('Fuel Use: Electricity: Net (MBtu)')
           output_val = outputs[:elec_net_annual].round(n_digits)
           runner.registerValue(output_name, output_val)
           runner.registerInfo("Registering #{output_val} for #{output_name}.")
