@@ -43,7 +43,11 @@ class Constants
     return 'auto'
   end
 
-  def self.AutoMaxLoad
+  def self.AutoHERSForHP
+    return 'auto using HERS'
+  end
+
+  def self.AutoMaxLoadForHP
     return 'auto using max load'
   end
 

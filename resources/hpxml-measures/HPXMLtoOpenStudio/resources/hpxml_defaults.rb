@@ -185,9 +185,9 @@ class HPXMLDefaults
       hpxml.header.allow_increased_fixed_capacities = false
       hpxml.header.allow_increased_fixed_capacities_isdefaulted = true
     end
-    if hpxml.header.use_max_load_for_heat_pumps.nil?
-      hpxml.header.use_max_load_for_heat_pumps = true
-      hpxml.header.use_max_load_for_heat_pumps_isdefaulted = true
+    if hpxml.header.heat_pump_sizing_methodology.nil?
+      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
+      hpxml.header.heat_pump_sizing_methodology_isdefaulted = true
     end
 
     if (not epw_file.nil?) && hpxml.header.state_code.nil?
@@ -880,6 +880,23 @@ class HPXMLDefaults
   def self.apply_hvac(hpxml, weather, convert_shared_systems)
     if convert_shared_systems
       HVAC.apply_shared_systems(hpxml)
+    end
+
+    # Convert negative values (e.g., -1) to nil as appropriate
+    # This is needed to support autosizing in OS-ERI, where the capacities are required inputs
+    hpxml.hvac_systems.each do |hvac_system|
+      if hvac_system.respond_to?(:heating_capacity) && hvac_system.heating_capacity.to_f < 0
+        hvac_system.heating_capacity = nil
+      end
+      if hvac_system.respond_to?(:cooling_capacity) && hvac_system.cooling_capacity.to_f < 0
+        hvac_system.cooling_capacity = nil
+      end
+      if hvac_system.respond_to?(:heating_capacity_17F) && hvac_system.heating_capacity_17F.to_f < 0
+        hvac_system.heating_capacity_17F = nil
+      end
+      if hvac_system.respond_to?(:backup_heating_capacity) && hvac_system.backup_heating_capacity.to_f < 0
+        hvac_system.backup_heating_capacity = nil
+      end
     end
 
     # HVAC efficiencies (based on HEScore assumption)
@@ -2430,22 +2447,6 @@ class HPXMLDefaults
   end
 
   def self.apply_hvac_sizing(hpxml, weather, cfa, nbeds)
-    # Convert negative values (e.g., -1) to nil as appropriate
-    hpxml.hvac_systems.each do |hvac_system|
-      if hvac_system.respond_to?(:heating_capacity) && hvac_system.heating_capacity.to_f < 0
-        hvac_system.heating_capacity = nil
-      end
-      if hvac_system.respond_to?(:cooling_capacity) && hvac_system.cooling_capacity.to_f < 0
-        hvac_system.cooling_capacity = nil
-      end
-      if hvac_system.respond_to?(:heating_capacity_17F) && hvac_system.heating_capacity_17F.to_f < 0
-        hvac_system.heating_capacity_17F = nil
-      end
-      if hvac_system.respond_to?(:backup_heating_capacity) && hvac_system.backup_heating_capacity.to_f < 0
-        hvac_system.backup_heating_capacity = nil
-      end
-    end
-
     hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml)
 
     # Calculate building design loads and equipment capacities/airflows
