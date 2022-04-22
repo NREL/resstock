@@ -295,7 +295,7 @@ class OSModel
     # Output
 
     add_loads_output(runner, model, spaces, add_component_loads)
-    add_output_control_files(runner, model)
+    set_output_files(runner, model)
     # Uncomment to debug EMS
     # add_ems_debug_output(runner, model)
 
@@ -2586,7 +2586,12 @@ class OSModel
     program_calling_manager.addProgram(program)
   end
 
-  def self.add_output_control_files(runner, model)
+  def self.set_output_files(runner, model)
+    oj = model.getOutputJSON
+    oj.setOptionType('TimeSeriesAndTabular')
+    oj.setOutputJSON(false)
+    oj.setOutputMessagePack(true)
+
     return if @debug
 
     # Disable various output files
@@ -2600,7 +2605,9 @@ class OSModel
     ocf.setOutputMTR(false)
     ocf.setOutputRDD(false)
     ocf.setOutputSHD(false)
-    ocf.setOutputTabular(false)
+    ocf.setOutputSQLite(false)
+    # FIXME: Can't set to false because of https://github.com/NREL/EnergyPlus/issues/9393
+    # ocf.setOutputTabular(false)
   end
 
   def self.add_ems_debug_output(runner, model)
