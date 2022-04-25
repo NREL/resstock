@@ -362,7 +362,7 @@ def get_elapsed_time(t1, t0)
   return t
 end
 
-def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures_only, debug)
+def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
   scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
 
   scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
