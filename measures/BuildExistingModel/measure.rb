@@ -278,11 +278,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Set additional properties
-    additional_properties = []
-    ['ceiling_insulation_r'].each do |arg_name|
-      arg_value = measures['ResStockArguments'][0][arg_name]
-      additional_properties << "#{arg_name}=#{arg_value}"
-    end
     measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
     # Get software program used and version
