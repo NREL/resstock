@@ -31,7 +31,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     return OpenStudio::IdfObjectVector.new if runner.halted
 
     results = OpenStudio::IdfObjectVector.new
-    results << OpenStudio::IdfObject.load('Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;').get
+    results << OpenStudio::IdfObject.load('Output:Variable,*,Site Outdoor Air Drybulb Temperature,hourly;').get
     results << OpenStudio::IdfObject.load('Output:Meter,Electricity:Facility,hourly;').get
 
     return results
@@ -139,29 +139,16 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
     sqlFile = sqlFile.get
-    model.setSqlFile(sqlFile)
-
-    ann_env_pd = nil
-    sqlFile.availableEnvPeriods.each do |env_pd|
-      env_type = sqlFile.environmentType(env_pd)
-      next unless env_type.is_initialized
-
-      if env_type.get == OpenStudio::EnvironmentType.new('WeatherRunPeriod')
-        ann_env_pd = env_pd
-      end
-    end
-    if ann_env_pd == false
-      runner.registerError("Can't find a weather runperiod, make sure you ran an annual simulation, not just the design days.")
+    if not sqlFile.connectionOpen
+      runner.registerError('EnergyPlus simulation failed.')
       return false
     end
+    model.setSqlFile(sqlFile)
 
     # Initialize timeseries hash
     timeseries = { 'Temperature' => [] }
 
-    env_period_ix_query = "SELECT EnvironmentPeriodIndex FROM EnvironmentPeriods WHERE EnvironmentName='#{ann_env_pd}'"
-    env_period_ix = sqlFile.execAndReturnFirstInt(env_period_ix_query).get
-
-    temperature_query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName IN ('Site Outdoor Air Drybulb Temperature') AND ReportingFrequency='Hourly' AND VariableUnits='C') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    temperature_query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName IN ('Site Outdoor Air Drybulb Temperature') AND ReportingFrequency='Hourly' AND VariableUnits='C') GROUP BY TimeIndex ORDER BY TimeIndex"
     unless sqlFile.execAndReturnVectorOfDouble(temperature_query).get.empty?
       temperatures = sqlFile.execAndReturnVectorOfDouble(temperature_query).get
       temperatures.each do |val|
@@ -169,17 +156,12 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    query_str = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('Electricity:Facility') AND ReportingFrequency='Hourly' AND VariableUnits='J') AND TimeIndex IN (SELECT TimeIndex FROM Time WHERE EnvironmentPeriodIndex='#{env_period_ix}')"
+    query_str = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('Electricity:Facility') AND ReportingFrequency='Hourly' AND VariableUnits='J') GROUP BY TimeIndex ORDER BY TimeIndex"
     electricity_total_end_uses = sqlFile.execAndReturnVectorOfDouble(query_str).get
-
-    steps_per_hour = 6
-    if model.getSimulationControl.timestep.is_initialized
-      steps_per_hour = model.getSimulationControl.timestep.get.numberOfTimestepsPerHour
-    end
 
     # ELECTRICITY
 
-    timeseries['total_site_electricity_kw'] = electricity_total_end_uses.map { |x| x * 1000000000.0 / (1000.0 * (3600.0 / steps_per_hour)) }
+    timeseries['total_site_electricity_kw'] = electricity_total_end_uses.map { |x| x * 1000000000.0 / (1000.0 * 3600.0) }
 
     # Peak magnitude (1)
     report_sim_output(runner, 'qoi_peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
