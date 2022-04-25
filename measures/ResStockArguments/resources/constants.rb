@@ -34,7 +34,8 @@ class Constants
   end
 
   def self.includes
-    return ['wall_area',
+    return ['ceiling_insulation_r',
+            'wall_area',
             'wall_continuous_exterior_r']
   end
 end
