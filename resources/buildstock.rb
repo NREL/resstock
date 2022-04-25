@@ -429,7 +429,7 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.run_and_check(in_osw, parent_dir, cli_output, upgrade, measures_only = false)
+  def self.run_and_check(in_osw, parent_dir, cli_output, upgrade, measures, reporting_measures, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
@@ -461,9 +461,14 @@ class RunOSWs
 
     result_output = get_measure_results(rows, result_output, 'BuildExistingModel') if !upgrade
     result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
+    measures.each do |measure|
+      result_output = get_measure_results(rows, result_output, measure)
+    end
     result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
-    result_output = get_measure_results(rows, result_output, 'QOIReport')
+    reporting_measures.each do |reporting_measure|
+      result_output = get_measure_results(rows, result_output, reporting_measure)
+    end
 
     return completed_status, result_output, cli_output
   end
