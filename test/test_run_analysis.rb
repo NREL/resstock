@@ -18,6 +18,20 @@ class TestRunAnalysis < MiniTest::Test
     @national_upgrades = File.join(buildstock_directory, 'national_upgrades')
   end
 
+  def _test_measure_order(osw)
+    expected_order = ['BuildExistingModel',
+                      'ApplyUpgrade',
+                      'ReportSimulationOutput',
+                      'ReportHPXMLOutput',
+                      'UpgradeCosts',
+                      'QOIReport',
+                      'ServerDirectoryCleanup']
+    json = JSON.parse(File.read(osw), symbolize_names: true)
+    actual_order = json[:steps].collect { |k, v| k[:measure_dir_name] }
+    expected_order &= actual_order # subset expected_order to what's in actual_order
+    assert_equal(expected_order, actual_order)
+  end
+
   def test_version
     @command += ' -v'
 
@@ -97,6 +111,17 @@ class TestRunAnalysis < MiniTest::Test
     FileUtils.rm_rf(@testing_baseline)
   end
 
+  def test_errors_missing_key
+    yml = ' -y test/tests_yml_files/yml_missing_key/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+
+    assert(cli_output.include?("Both 'build_existing_model' and 'simulation_output_report' must be included in yml."))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
   def test_measures_only
     yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
     @command += yml
@@ -104,6 +129,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(!File.exist?(File.join(@testing_baseline, 'run1', 'eplusout.sql')))
 
@@ -117,6 +143,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(!File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'buildstock.csv')))
 
@@ -130,6 +157,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(!File.exist?(File.join(@testing_baseline, 'run2')))
 
@@ -144,6 +172,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'run2')))
 
@@ -157,6 +186,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'results-Baseline.csv')))
     results = CSV.read(File.join(@testing_baseline, 'results-Baseline.csv'), headers: true)
 
@@ -186,6 +216,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@national_baseline, 'national_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@national_baseline, 'results-Baseline.csv')))
     results = CSV.read(File.join(@national_baseline, 'results-Baseline.csv'), headers: true)
 
@@ -216,6 +247,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
     assert(File.exist?(File.join(@testing_upgrades, 'results-Baseline.csv')))
     results = CSV.read(File.join(@testing_upgrades, 'results-Baseline.csv'), headers: true)
 
@@ -226,6 +258,7 @@ class TestRunAnalysis < MiniTest::Test
 
     _test_contents(contents, false, true)
 
+    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Windows.osw'))
     assert(File.exist?(File.join(@testing_upgrades, 'results-Windows.csv')))
     results = CSV.read(File.join(@testing_upgrades, 'results-Windows.csv'), headers: true)
 
@@ -267,6 +300,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Baseline.osw'))
     assert(File.exist?(File.join(@national_upgrades, 'results-Baseline.csv')))
     results = CSV.read(File.join(@national_upgrades, 'results-Baseline.csv'), headers: true)
 
@@ -277,6 +311,7 @@ class TestRunAnalysis < MiniTest::Test
 
     _test_contents(contents, false, false)
 
+    _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Windows.osw'))
     assert(File.exist?(File.join(@national_upgrades, 'results-Windows.csv')))
     results = CSV.read(File.join(@national_upgrades, 'results-Windows.csv'), headers: true)
 
