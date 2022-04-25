@@ -16,8 +16,16 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
 
   cfg = YAML.load_file(yml)
 
+  if !cfg['workflow_generator']['args'].keys.include?('build_existing_model') || !cfg['workflow_generator']['args'].keys.include?('simulation_output_report')
+    fail "Both 'build_existing_model' and 'simulation_output_report' must be included in yml."
+  end
+
   if !['residential_quota', 'residential_quota_downselect', 'precomputed'].include?(cfg['sampler']['type'])
     fail "Sampler type '#{cfg['sampler']['type']}' is invalid or not supported."
+  end
+
+  if cfg['sampler']['type'] == 'residential_quota_downselect' && cfg['sampler']['args']['resample']
+    fail "Not supporting residential_quota_downselect's 'resample' at this time."
   end
 
   thisdir = File.dirname(__FILE__)
@@ -105,10 +113,6 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     workflow_args['simulation_output_report'].delete('output_variables')
 
     if cfg['sampler']['type'] == 'residential_quota_downselect'
-      if cfg['sampler']['args']['resample']
-        fail "Not supporting residential_quota_downselect's 'resample' at this time."
-      end
-
       workflow_args['build_existing_model']['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
     end
 
