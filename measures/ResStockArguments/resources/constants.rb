@@ -32,4 +32,8 @@ class Constants
             'output_csv_path',
             'hpxml_output_path']
   end
+
+  def self.includes
+    return ['ceiling_insulation_r']
+  end
 end

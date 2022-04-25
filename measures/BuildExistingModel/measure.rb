@@ -263,11 +263,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
     measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
 
+    additional_properties = []
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
 
-      if ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
+      if Constants.includes.include?(step_value.name)
+        additional_properties << "#{step_value.name}=#{value}"
+      elsif ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
         measures['BuildResidentialScheduleFile'][0][step_value.name] = value
       else
         measures['BuildResidentialHPXML'][0][step_value.name] = value

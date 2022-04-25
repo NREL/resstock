@@ -767,7 +767,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rescue
       end
 
-      if args_to_delete.include? arg_name
+      if args_to_delete.include?(arg_name) && !Constants.includes.include?(arg_name)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 
