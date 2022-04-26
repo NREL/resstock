@@ -1,56 +1,35 @@
 # frozen_string_literal: true
 
 require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
-require 'minitest/autorun'
-require 'openstudio'
 require_relative '../resources/buildstock'
+require_relative '../test/analysis'
+require 'openstudio'
 
 class TestRunAnalysis < MiniTest::Test
   def before_setup
     cli_path = OpenStudio.getOpenStudioCLI
     @command = "\"#{cli_path}\" workflow/run_analysis.rb"
 
-    workflow_dir = File.join(File.dirname(__FILE__), '../workflow')
-    @testing_baseline = File.join(workflow_dir, 'testing_baseline')
-    @national_baseline = File.join(workflow_dir, 'national_baseline')
-    @testing_upgrades = File.join(workflow_dir, 'testing_upgrades')
-    @national_upgrades = File.join(workflow_dir, 'national_upgrades')
+    buildstock_directory = File.join(File.dirname(__FILE__), '..')
 
-    # check that all results_output.csv contain these columns
-    @expected_baseline_columns = [
-      'building_id',
-      'job_id',
-      'completed_status',
-      'report_simulation_output.add_timeseries_dst_column',
-      'report_simulation_output.add_timeseries_utc_column',
-      'report_simulation_output.energy_use_total_m_btu',
-      'report_simulation_output.energy_use_net_m_btu',
-      'report_simulation_output.fuel_use_electricity_total_m_btu',
-      'report_simulation_output.end_use_natural_gas_heating_m_btu',
-      'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_total_lb',
-      'upgrade_costs.door_area_ft_2',
-      'qoi_report.qoi_average_maximum_daily_timing_cooling_hour'
-    ]
+    @testing_baseline = File.join(buildstock_directory, 'testing_baseline')
+    @national_baseline = File.join(buildstock_directory, 'national_baseline')
+    @testing_upgrades = File.join(buildstock_directory, 'testing_upgrades')
+    @national_upgrades = File.join(buildstock_directory, 'national_upgrades')
+  end
 
-    # check that only projects with upgrades contain these columns
-    @expected_upgrades_columns = @expected_baseline_columns + [
-      'apply_upgrade.option_01_cost_1_multiplier_to_apply'
-    ]
-
-    # check that select columns aren't completely empty
-    @expected_nonnull_columns = [
-      'report_simulation_output.energy_use_net_m_btu',
-      'apply_upgrade.upgrade_name',
-      'upgrade_costs.door_area_ft_2',
-      'upgrade_costs.option_01_name',
-      'upgrade_costs.option_01_cost_usd'
-    ]
-
-    # check that select columns aren't all zeros
-    @expected_nonzero_columns = [
-      'report_simulation_output.energy_use_total_m_btu',
-      'upgrade_costs.upgrade_cost_usd'
-    ]
+  def _test_measure_order(osw)
+    expected_order = ['BuildExistingModel',
+                      'ApplyUpgrade',
+                      'ReportSimulationOutput',
+                      'ReportHPXMLOutput',
+                      'UpgradeCosts',
+                      'QOIReport',
+                      'ServerDirectoryCleanup']
+    json = JSON.parse(File.read(osw), symbolize_names: true)
+    actual_order = json[:steps].collect { |k, v| k[:measure_dir_name] }
+    expected_order &= actual_order # subset expected_order to what's in actual_order
+    assert_equal(expected_order, actual_order)
   end
 
   def test_version
@@ -121,6 +100,28 @@ class TestRunAnalysis < MiniTest::Test
     FileUtils.rm_rf(@testing_baseline)
   end
 
+  def test_errors_downsampler
+    yml = ' -y test/tests_yml_files/yml_downsampler/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+
+    assert(cli_output.include?("Sampler type 'residential_quota_downsampler' is invalid or not supported."))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_errors_missing_key
+    yml = ' -y test/tests_yml_files/yml_missing_key/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+
+    assert(cli_output.include?("Both 'build_existing_model' and 'simulation_output_report' must be included in yml."))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
   def test_measures_only
     yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
     @command += yml
@@ -128,8 +129,23 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(!File.exist?(File.join(@testing_baseline, 'run1', 'eplusout.sql')))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_sampling_only
+    yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
+    @command += yml
+    @command += ' -s'
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(!File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'buildstock.csv')))
 
     FileUtils.rm_rf(@testing_baseline)
   end
@@ -141,6 +157,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(!File.exist?(File.join(@testing_baseline, 'run2')))
 
@@ -155,6 +172,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'run2')))
 
@@ -164,8 +182,23 @@ class TestRunAnalysis < MiniTest::Test
   def test_testing_baseline
     yml = ' -y project_testing/testing_baseline.yml'
     @command += yml
+    @command += ' -k'
 
     system(@command)
+
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_baseline, 'results-Baseline.csv')))
+    results = CSV.read(File.join(@testing_baseline, 'results-Baseline.csv'), headers: true)
+
+    _test_columns(results)
+
+    assert(File.exist?(File.join(@testing_baseline, 'run1', 'run')))
+    contents = Dir[File.join(@testing_baseline, 'run1', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, false, true)
+
+    timeseries = _get_timeseries_columns(Dir[File.join(@testing_baseline, 'run*/run/results_timeseries.csv')])
+    assert(_test_timeseries_columns(timeseries, true))
 
     assert(File.exist?(File.join(@testing_baseline, 'cli_output.log')))
     assert(!File.read(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
@@ -173,54 +206,35 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@testing_baseline, 'xml', 'Baseline', '1.xml')))
 
-    assert(File.exist?(File.join(@testing_baseline, 'results_characteristics.csv')))
-    assert(File.exist?(File.join(@testing_baseline, 'results_output.csv')))
-
-    results_output = CSV.read(File.join(@testing_baseline, 'results_output.csv'), headers: true)
-    assert((@expected_baseline_columns - results_output.headers).empty?)
-    assert(!(@expected_upgrades_columns - results_output.headers).empty?)
-    @expected_nonnull_columns.each do |col|
-      next if !results_output.headers.include?(col)
-
-      assert(!results_output[col].all? { |i| i.nil? })
-    end
-    @expected_nonzero_columns.each do |col|
-      next if !results_output.headers.include?(col)
-
-      assert(!results_output[col].all? { |i| i == 0 })
-    end
-
     FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_national_baseline
     yml = ' -y project_national/national_baseline.yml'
     @command += yml
+    @command += ' -k'
 
     system(@command)
+
+    _test_measure_order(File.join(@national_baseline, 'national_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@national_baseline, 'results-Baseline.csv')))
+    results = CSV.read(File.join(@national_baseline, 'results-Baseline.csv'), headers: true)
+
+    _test_columns(results)
+
+    assert(File.exist?(File.join(@national_baseline, 'run1', 'run')))
+    contents = Dir[File.join(@national_baseline, 'run1', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, false, false)
+
+    timeseries = _get_timeseries_columns(Dir[File.join(@national_baseline, 'run*/run/results_timeseries.csv')])
+    assert(_test_timeseries_columns(timeseries))
 
     assert(File.exist?(File.join(@national_baseline, 'cli_output.log')))
     assert(!File.read(File.join(@national_baseline, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
-
-    assert(File.exist?(File.join(@national_baseline, 'results_characteristics.csv')))
-    assert(File.exist?(File.join(@national_baseline, 'results_output.csv')))
-
-    results_output = CSV.read(File.join(@national_baseline, 'results_output.csv'), headers: true)
-    assert((@expected_baseline_columns - results_output.headers).empty?)
-    assert(!(@expected_upgrades_columns - results_output.headers).empty?)
-    @expected_nonnull_columns.each do |col|
-      next if !results_output.headers.include?(col)
-
-      assert(!results_output[col].all? { |i| i.nil? })
-    end
-    @expected_nonzero_columns.each do |col|
-      next if !results_output.headers.include?(col)
-
-      assert(!results_output[col].all? { |i| i == 0 })
-    end
 
     FileUtils.rm_rf(@national_baseline)
   end
@@ -229,8 +243,34 @@ class TestRunAnalysis < MiniTest::Test
     yml = ' -y project_testing/testing_upgrades.yml'
     @command += yml
     @command += ' -d'
+    @command += ' -k'
 
     system(@command)
+
+    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_upgrades, 'results-Baseline.csv')))
+    results = CSV.read(File.join(@testing_upgrades, 'results-Baseline.csv'), headers: true)
+
+    _test_columns(results)
+
+    assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run')))
+    contents = Dir[File.join(@testing_upgrades, 'run1', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, false, true)
+
+    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Windows.osw'))
+    assert(File.exist?(File.join(@testing_upgrades, 'results-Windows.csv')))
+    results = CSV.read(File.join(@testing_upgrades, 'results-Windows.csv'), headers: true)
+
+    _test_columns(results, true)
+
+    assert(File.exist?(File.join(@testing_upgrades, 'run6', 'run')))
+    contents = Dir[File.join(@testing_upgrades, 'run6', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, true, true)
+
+    timeseries = _get_timeseries_columns(Dir[File.join(@testing_upgrades, 'run*/run/results_timeseries.csv')])
+    assert(_test_timeseries_columns(timeseries, true))
 
     assert(File.exist?(File.join(@testing_upgrades, 'cli_output.log')))
     assert(!File.read(File.join(@testing_upgrades, 'cli_output.log')).include?('ERROR'))
@@ -249,22 +289,6 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-existing.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-upgraded.xml')))
 
-    assert(File.exist?(File.join(@testing_upgrades, 'results_characteristics.csv')))
-    assert(File.exist?(File.join(@testing_upgrades, 'results_output.csv')))
-
-    results_output = CSV.read(File.join(@testing_upgrades, 'results_output.csv'), headers: true)
-    assert((@expected_upgrades_columns - results_output.headers).empty?)
-    @expected_nonnull_columns.each do |col|
-      next if !results_output.headers.include?(col)
-
-      assert(!results_output[col].all? { |i| i.nil? })
-    end
-    @expected_nonzero_columns.each do |col|
-      next if !results_output.headers.include?(col)
-
-      assert(!results_output[col].all? { |i| i == 0 })
-    end
-
     FileUtils.rm_rf(@testing_upgrades)
   end
 
@@ -272,8 +296,34 @@ class TestRunAnalysis < MiniTest::Test
     yml = ' -y project_national/national_upgrades.yml'
     @command += yml
     @command += ' -d'
+    @command += ' -k'
 
     system(@command)
+
+    _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Baseline.osw'))
+    assert(File.exist?(File.join(@national_upgrades, 'results-Baseline.csv')))
+    results = CSV.read(File.join(@national_upgrades, 'results-Baseline.csv'), headers: true)
+
+    _test_columns(results)
+
+    assert(File.exist?(File.join(@national_upgrades, 'run1', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'run1', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, false, false)
+
+    _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Windows.osw'))
+    assert(File.exist?(File.join(@national_upgrades, 'results-Windows.csv')))
+    results = CSV.read(File.join(@national_upgrades, 'results-Windows.csv'), headers: true)
+
+    _test_columns(results, true)
+
+    assert(File.exist?(File.join(@national_upgrades, 'run6', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'run6', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, true, false)
+
+    timeseries = _get_timeseries_columns(Dir[File.join(@national_upgrades, 'run*/run/results_timeseries.csv')])
+    assert(_test_timeseries_columns(timeseries))
 
     assert(File.exist?(File.join(@national_upgrades, 'cli_output.log')))
     assert(!File.read(File.join(@national_upgrades, 'cli_output.log')).include?('ERROR'))
@@ -291,22 +341,6 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-upgraded-defaulted.xml')))
     assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-existing.xml')))
     assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-upgraded.xml')))
-
-    assert(File.exist?(File.join(@national_upgrades, 'results_characteristics.csv')))
-    assert(File.exist?(File.join(@national_upgrades, 'results_output.csv')))
-
-    results_output = CSV.read(File.join(@national_upgrades, 'results_output.csv'), headers: true)
-    assert((@expected_upgrades_columns - results_output.headers).empty?)
-    @expected_nonnull_columns.each do |col|
-      next if !results_output.headers.include?(col)
-
-      assert(!results_output[col].all? { |i| i.nil? })
-    end
-    @expected_nonzero_columns.each do |col|
-      next if !results_output.headers.include?(col)
-
-      assert(!results_output[col].all? { |i| i == 0 })
-    end
 
     FileUtils.rm_rf(@national_upgrades)
   end

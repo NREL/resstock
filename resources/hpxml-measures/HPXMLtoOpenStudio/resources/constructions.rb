@@ -2122,12 +2122,6 @@ class Construction
     name = material.name
     tolerance = 0.0001
     if material.is_a? GlazingMaterial
-      max_ufactor = UnitConversions.convert(7.0, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)') # Max value EnergyPlus allows
-      if material.ufactor > max_ufactor
-        runner.registerWarning("Glazing U-factor (#{material.ufactor}) for '#{material.name}' above maximum expected value. U-factor decreased to #{max_ufactor.round(2)}.")
-        material.ufactor = max_ufactor.round(2)
-      end
-
       # Material already exists?
       model.getSimpleGlazings.each do |mat|
         next if !mat.name.to_s.start_with?(material.name)

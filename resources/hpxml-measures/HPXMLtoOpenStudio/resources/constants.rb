@@ -43,7 +43,11 @@ class Constants
     return 'auto'
   end
 
-  def self.AutoMaxLoad
+  def self.AutoHERSForHP
+    return 'auto using HERS'
+  end
+
+  def self.AutoMaxLoadForHP
     return 'auto using max load'
   end
 
@@ -164,14 +168,6 @@ class Constants
 
   def self.ObjectNameClothesDryerExhaust
     return 'clothes dryer exhaust'
-  end
-
-  def self.ObjectNameCombiWaterHeatingEnergy(water_heater_name)
-    return "#{water_heater_name} dhw energy"
-  end
-
-  def self.ObjectNameCombiSpaceHeatingEnergy(water_heater_name)
-    return "#{water_heater_name} htg energy"
   end
 
   def self.ObjectNameComponentLoadsProgram
@@ -482,11 +478,57 @@ class Constants
     return 'Temperature'
   end
 
-  def self.StateCodes
-    return ['AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA',
-            'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME',
-            'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
-            'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX',
-            'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY']
+  def self.StateCodesMap
+    return { 'AK' => 'Alaska',
+             'AL' => 'Alabama',
+             'AR' => 'Arkansas',
+             'AZ' => 'Arizona',
+             'CA' => 'California',
+             'CO' => 'Colorado',
+             'CT' => 'Connecticut',
+             'DC' => 'District of Columbia',
+             'DE' => 'Delaware',
+             'FL' => 'Florida',
+             'GA' => 'Georgia',
+             'HI' => 'Hawaii',
+             'IA' => 'Iowa',
+             'ID' => 'Idaho',
+             'IL' => 'Illinois',
+             'IN' => 'Indiana',
+             'KS' => 'Kansas',
+             'KY' => 'Kentucky',
+             'LA' => 'Louisiana',
+             'MA' => 'Massachusetts',
+             'MD' => 'Maryland',
+             'ME' => 'Maine',
+             'MI' => 'Michigan',
+             'MN' => 'Minnesota',
+             'MO' => 'Missouri',
+             'MS' => 'Mississippi',
+             'MT' => 'Montana',
+             'NC' => 'North Carolina',
+             'ND' => 'North Dakota',
+             'NE' => 'Nebraska',
+             'NH' => 'New Hampshire',
+             'NJ' => 'New Jersey',
+             'NM' => 'New Mexico',
+             'NV' => 'Nevada',
+             'NY' => 'New York',
+             'OH' => 'Ohio',
+             'OK' => 'Oklahoma',
+             'OR' => 'Oregon',
+             'PA' => 'Pennsylvania',
+             'RI' => 'Rhode Island',
+             'SC' => 'South Carolina',
+             'SD' => 'South Dakota',
+             'TN' => 'Tennessee',
+             'TX' => 'Texas',
+             'UT' => 'Utah',
+             'VA' => 'Virginia',
+             'VT' => 'Vermont',
+             'WA' => 'Washington',
+             'WI' => 'Wisconsin',
+             'WV' => 'West Virginia',
+             'WY' => 'Wyoming' }
   end
 end

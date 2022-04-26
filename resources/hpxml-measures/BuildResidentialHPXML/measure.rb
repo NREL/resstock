@@ -135,7 +135,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     args << arg
 
     site_state_code_choices = OpenStudio::StringVector.new
-    Constants.StateCodes.each do |sc|
+    Constants.StateCodesMap.keys.each do |sc|
       site_state_code_choices << sc
     end
 
@@ -1147,7 +1147,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_heating_capacity', true)
     arg.setDisplayName('Heat Pump: Heating Capacity')
-    arg.setDescription("The output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter '#{Constants.AutoMaxLoad}' to size the capacity based on the maximum of heating/cooling design loads.")
+    arg.setDescription("The output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter '#{Constants.AutoMaxLoadForHP}' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating capacity retention at cold temperature. Enter '#{Constants.AutoHERSForHP}' to size the capacity equal to the maximum of heating/cooling design loads.")
     arg.setUnits('Btu/hr')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -4228,6 +4228,15 @@ class HPXMLFile
       end
     end
 
+    # Add attached roofs for cathedral ceiling
+    living_space = HPXML::LocationLivingSpace
+    surf_ids['roofs']['surfaces'].each do |surface|
+      next if (living_space != surface.interior_adjacent_to) &&
+              (living_space != surface.exterior_adjacent_to)
+
+      surf_ids['roofs']['ids'] << surface.id
+    end
+
     hpxml.attics.add(id: "Attic#{hpxml.attics.size + 1}",
                      attic_type: args[:geometry_attic_type],
                      attached_to_roof_idrefs: surf_ids['roofs']['ids'],
@@ -4390,10 +4399,12 @@ class HPXMLFile
 
     return if heat_pump_type == 'none'
 
-    if args[:heat_pump_heating_capacity] == Constants.AutoMaxLoad
-      hpxml.header.use_max_load_for_heat_pumps = true
-    elsif args[:heat_pump_heating_capacity] == Constants.Auto
-      hpxml.header.use_max_load_for_heat_pumps = false
+    if args[:heat_pump_heating_capacity] == Constants.Auto
+      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingACCA
+    elsif args[:heat_pump_heating_capacity] == Constants.AutoHERSForHP
+      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
+    elsif args[:heat_pump_heating_capacity] == Constants.AutoMaxLoadForHP
+      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingMaxLoad
     else
       heating_capacity = Float(args[:heat_pump_heating_capacity])
     end

@@ -4,15 +4,6 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
-if File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock on AWS
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../lib/resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources')) # Hack to run ResStock unit tests locally
-  resources_path = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources'))
-elsif File.exist? File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources') # Hack to run measures in the OS App since applied measures are copied off into a temporary directory
-  resources_path = File.join(OpenStudio::BCLMeasure::userMeasuresDir.to_s, 'HPXMLtoOpenStudio/resources')
-end
-require File.join(resources_path, 'meta_measure')
-
 require_relative 'resources/constants'
 
 # in addition to the above requires, this measure is expected to run in an
@@ -198,17 +189,18 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     hpxml_measures_dir = File.join(File.dirname(__FILE__), '../../resources/hpxml-measures')
     lookup_file = File.join(resources_dir, 'options_lookup.tsv')
 
-    # Check file/dir paths exist
-    check_file_exists(lookup_file, runner)
-
-    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
-
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
     # Check file/dir paths exist
     check_dir_exists(resources_dir, runner)
+    [measures_dir, hpxml_measures_dir].each do |dir|
+      check_dir_exists(dir, runner)
+    end
     check_dir_exists(characteristics_dir, runner)
+    check_file_exists(lookup_file, runner)
+
+    lookup_csv_data = CSV.open(lookup_file, col_sep: "\t").each.to_a
 
     # Retrieve values from BuildExistingModel
     values = get_values_from_runner_past_results(runner, 'build_existing_model')
@@ -316,7 +308,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         return false
       end
-
     end # apply_package_upgrade
 
     # Register the upgrade name
@@ -342,6 +333,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
     end
+
+    # Set additional properties
+    additional_properties = []
+    ['ceiling_insulation_r'].each do |arg_name|
+      arg_value = measures['ResStockArguments'][0][arg_name]
+      additional_properties << "#{arg_name}=#{arg_value}"
+    end
+    measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
     # Retain HVAC capacities
 

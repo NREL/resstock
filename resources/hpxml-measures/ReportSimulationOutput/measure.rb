@@ -3,10 +3,10 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
-require_relative 'resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/energyplus.rb'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml.rb'
+require_relative '../HPXMLtoOpenStudio/resources/output.rb'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions.rb'
 
 # start the measure
@@ -181,9 +181,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     model = runner.lastOpenStudioModel
     if model.empty?
-      runner.registerError('Cannot find OpenStudio model.')
-      return false
+      return result
     end
+
     @model = model.get
 
     # use the built-in error checking
@@ -389,11 +389,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       runner.registerError('Cannot find OpenStudio model.')
       return false
     end
-    model = model.get
-    @model = model
+    @model = model.get
 
     # use the built-in error checking
-    if !runner.validateUserArguments(arguments(model), user_arguments)
+    if !runner.validateUserArguments(arguments(@model), user_arguments)
       return false
     end
 
@@ -440,11 +439,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       runner.registerError('EnergyPlus simulation failed.')
       return false
     end
-    model.setSqlFile(@sqlFile)
+    @model.setSqlFile(@sqlFile)
 
-    hpxml_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
-    hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
-    building_id = model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
+    hpxml_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_path').get
+    hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
+    building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
     @hpxml = HPXML.new(hpxml_path: hpxml_defaults_path, building_id: building_id)
     HVAC.apply_shared_systems(@hpxml) # Needed for ERI shared HVAC systems
     @eri_design = @hpxml.header.eri_design
@@ -472,13 +471,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    @timestamps = get_timestamps(timeseries_frequency)
+    @timestamps = OutputMethods.get_timestamps(timeseries_frequency, @sqlFile, @hpxml)
     if timeseries_frequency != 'none'
       if add_timeseries_dst_column.is_initialized
-        timestamps_dst = get_timestamps(timeseries_frequency, 'DST') if add_timeseries_dst_column.get
+        timestamps_dst = OutputMethods.get_timestamps(timeseries_frequency, @sqlFile, @hpxml, 'DST') if add_timeseries_dst_column.get
       end
       if add_timeseries_utc_column.is_initialized
-        timestamps_utc = get_timestamps(timeseries_frequency, 'UTC') if add_timeseries_utc_column.get
+        timestamps_utc = OutputMethods.get_timestamps(timeseries_frequency, @sqlFile, @hpxml, 'UTC') if add_timeseries_utc_column.get
       end
     end
 
@@ -496,7 +495,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                           include_timeseries_weather)
 
     if not check_for_errors(runner, outputs)
-      teardown()
+      OutputMethods.teardown(@sqlFile)
       return false
     end
 
@@ -530,60 +529,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                                     timestamps_dst,
                                     timestamps_utc)
 
-    teardown()
+    OutputMethods.teardown(@sqlFile)
     return true
-  end
-
-  def teardown
-    @sqlFile.close()
-
-    # Ensure sql file is immediately freed; otherwise we can get
-    # errors on Windows when trying to delete this file.
-    GC.start()
-  end
-
-  def get_timestamps(timeseries_frequency, timestamps_local_time = nil)
-    if timeseries_frequency == 'hourly'
-      interval_type = 1
-    elsif timeseries_frequency == 'daily'
-      interval_type = 2
-    elsif timeseries_frequency == 'monthly'
-      interval_type = 3
-    elsif timeseries_frequency == 'timestep'
-      interval_type = -1
-    end
-
-    query = "SELECT Year || ' ' || Month || ' ' || Day || ' ' || Hour || ' ' || Minute As Timestamp FROM Time WHERE IntervalType='#{interval_type}'"
-    values = @sqlFile.execAndReturnVectorOfString(query)
-    fail "Query error: #{query}" unless values.is_initialized
-
-    if timestamps_local_time == 'DST'
-      dst_start_ts = Time.utc(@hpxml.header.sim_calendar_year, @hpxml.header.dst_begin_month, @hpxml.header.dst_begin_day, 2)
-      dst_end_ts = Time.utc(@hpxml.header.sim_calendar_year, @hpxml.header.dst_end_month, @hpxml.header.dst_end_day, 1)
-    elsif timestamps_local_time == 'UTC'
-      utc_offset = @hpxml.header.time_zone_utc_offset
-      utc_offset *= 3600 # seconds
-    end
-
-    timestamps = []
-    values.get.each do |value|
-      year, month, day, hour, minute = value.split(' ')
-      ts = Time.utc(year, month, day, hour, minute)
-
-      if timestamps_local_time == 'DST'
-        if (ts >= dst_start_ts) && (ts < dst_end_ts)
-          ts += 3600 # 1 hr shift forward
-        end
-      elsif timestamps_local_time == 'UTC'
-        ts -= utc_offset
-      end
-
-      ts_iso8601 = ts.iso8601
-      ts_iso8601 = ts_iso8601.delete('Z') if timestamps_local_time != 'UTC'
-      timestamps << ts_iso8601
-    end
-
-    return timestamps
   end
 
   def get_outputs(runner, timeseries_frequency,
@@ -723,7 +670,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
       dse = htg_system.distribution_system.annual_heating_dse
       @fuels.each do |fuel_type, fuel|
-        [EUT::Heating, EUT::HeatingFanPump].each do |end_use_type|
+        [EUT::Heating, EUT::HeatingHeatPumpBackup, EUT::HeatingFanPump].each do |end_use_type|
           end_use = @end_uses[[fuel_type, end_use_type]]
           next if end_use.nil?
 
@@ -1375,7 +1322,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         sys_id, key_name, var_name = vals
         if sys_id == heat_pump.id
           primary_load = get_report_variable_data_annual([key_name], [var_name])
-        elsif sys_id == dfhp_backup_id
+        elsif sys_id == heat_pump.id + '_DFHPBackup'
           backup_load = get_report_variable_data_annual([key_name], [var_name])
         end
       end
@@ -1402,6 +1349,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # Collect energy consumptions (EC) by system
     htg_ecs, clg_ecs, dhw_ecs, prehtg_ecs, preclg_ecs = {}, {}, {}, {}, {}
     eut_map = { EUT::Heating => htg_ecs,
+                EUT::HeatingHeatPumpBackup => htg_ecs,
                 EUT::HeatingFanPump => htg_ecs,
                 EUT::Cooling => clg_ecs,
                 EUT::CoolingFanPump => clg_ecs,
@@ -1593,7 +1541,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     # EnergyPlus output variables
     if !@output_variables.empty?
-      output_variables_data = @output_variables.values.select { |x| x.timeseries_output.sum(0.0) != 0 }.map { |x| [x.name, x.timeseries_units] + x.timeseries_output }
+      output_variables_data = @output_variables.values.map { |x| [x.name, x.timeseries_units] + x.timeseries_output }
     else
       output_variables_data = []
     end
@@ -1970,6 +1918,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     @end_uses = {}
     @end_uses[[FT::Elec, EUT::Heating]] = EndUse.new(variables: get_object_variables(EUT, [FT::Elec, EUT::Heating]))
+    @end_uses[[FT::Elec, EUT::HeatingHeatPumpBackup]] = EndUse.new(variables: get_object_variables(EUT, [FT::Elec, EUT::HeatingHeatPumpBackup]))
     @end_uses[[FT::Elec, EUT::HeatingFanPump]] = EndUse.new(variables: get_object_variables(EUT, [FT::Elec, EUT::HeatingFanPump]))
     @end_uses[[FT::Elec, EUT::Cooling]] = EndUse.new(variables: get_object_variables(EUT, [FT::Elec, EUT::Cooling]))
     @end_uses[[FT::Elec, EUT::CoolingFanPump]] = EndUse.new(variables: get_object_variables(EUT, [FT::Elec, EUT::CoolingFanPump]))
@@ -2004,6 +1953,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Elec, EUT::Generator]] = EndUse.new(variables: get_object_variables(EUT, [FT::Elec, EUT::Generator]),
                                                        is_negative: true)
     @end_uses[[FT::Gas, EUT::Heating]] = EndUse.new(variables: get_object_variables(EUT, [FT::Gas, EUT::Heating]))
+    @end_uses[[FT::Gas, EUT::HeatingHeatPumpBackup]] = EndUse.new(variables: get_object_variables(EUT, [FT::Gas, EUT::HeatingHeatPumpBackup]))
     @end_uses[[FT::Gas, EUT::HotWater]] = EndUse.new(variables: get_object_variables(EUT, [FT::Gas, EUT::HotWater]))
     @end_uses[[FT::Gas, EUT::ClothesDryer]] = EndUse.new(variables: get_object_variables(EUT, [FT::Gas, EUT::ClothesDryer]))
     @end_uses[[FT::Gas, EUT::RangeOven]] = EndUse.new(variables: get_object_variables(EUT, [FT::Gas, EUT::RangeOven]))
@@ -2015,6 +1965,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Gas, EUT::Fireplace]] = EndUse.new(variables: get_object_variables(EUT, [FT::Gas, EUT::Fireplace]))
     @end_uses[[FT::Gas, EUT::Generator]] = EndUse.new(variables: get_object_variables(EUT, [FT::Gas, EUT::Generator]))
     @end_uses[[FT::Oil, EUT::Heating]] = EndUse.new(variables: get_object_variables(EUT, [FT::Oil, EUT::Heating]))
+    @end_uses[[FT::Oil, EUT::HeatingHeatPumpBackup]] = EndUse.new(variables: get_object_variables(EUT, [FT::Oil, EUT::HeatingHeatPumpBackup]))
     @end_uses[[FT::Oil, EUT::HotWater]] = EndUse.new(variables: get_object_variables(EUT, [FT::Oil, EUT::HotWater]))
     @end_uses[[FT::Oil, EUT::ClothesDryer]] = EndUse.new(variables: get_object_variables(EUT, [FT::Oil, EUT::ClothesDryer]))
     @end_uses[[FT::Oil, EUT::RangeOven]] = EndUse.new(variables: get_object_variables(EUT, [FT::Oil, EUT::RangeOven]))
@@ -2024,6 +1975,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Oil, EUT::Fireplace]] = EndUse.new(variables: get_object_variables(EUT, [FT::Oil, EUT::Fireplace]))
     @end_uses[[FT::Oil, EUT::Generator]] = EndUse.new(variables: get_object_variables(EUT, [FT::Oil, EUT::Generator]))
     @end_uses[[FT::Propane, EUT::Heating]] = EndUse.new(variables: get_object_variables(EUT, [FT::Propane, EUT::Heating]))
+    @end_uses[[FT::Propane, EUT::HeatingHeatPumpBackup]] = EndUse.new(variables: get_object_variables(EUT, [FT::Propane, EUT::HeatingHeatPumpBackup]))
     @end_uses[[FT::Propane, EUT::HotWater]] = EndUse.new(variables: get_object_variables(EUT, [FT::Propane, EUT::HotWater]))
     @end_uses[[FT::Propane, EUT::ClothesDryer]] = EndUse.new(variables: get_object_variables(EUT, [FT::Propane, EUT::ClothesDryer]))
     @end_uses[[FT::Propane, EUT::RangeOven]] = EndUse.new(variables: get_object_variables(EUT, [FT::Propane, EUT::RangeOven]))
@@ -2033,6 +1985,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Propane, EUT::Fireplace]] = EndUse.new(variables: get_object_variables(EUT, [FT::Propane, EUT::Fireplace]))
     @end_uses[[FT::Propane, EUT::Generator]] = EndUse.new(variables: get_object_variables(EUT, [FT::Propane, EUT::Generator]))
     @end_uses[[FT::WoodCord, EUT::Heating]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodCord, EUT::Heating]))
+    @end_uses[[FT::WoodCord, EUT::HeatingHeatPumpBackup]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodCord, EUT::HeatingHeatPumpBackup]))
     @end_uses[[FT::WoodCord, EUT::HotWater]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodCord, EUT::HotWater]))
     @end_uses[[FT::WoodCord, EUT::ClothesDryer]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodCord, EUT::ClothesDryer]))
     @end_uses[[FT::WoodCord, EUT::RangeOven]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodCord, EUT::RangeOven]))
@@ -2042,6 +1995,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::WoodCord, EUT::Fireplace]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodCord, EUT::Fireplace]))
     @end_uses[[FT::WoodCord, EUT::Generator]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodCord, EUT::Generator]))
     @end_uses[[FT::WoodPellets, EUT::Heating]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodPellets, EUT::Heating]))
+    @end_uses[[FT::WoodPellets, EUT::HeatingHeatPumpBackup]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodPellets, EUT::HeatingHeatPumpBackup]))
     @end_uses[[FT::WoodPellets, EUT::HotWater]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodPellets, EUT::HotWater]))
     @end_uses[[FT::WoodPellets, EUT::ClothesDryer]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodPellets, EUT::ClothesDryer]))
     @end_uses[[FT::WoodPellets, EUT::RangeOven]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodPellets, EUT::RangeOven]))
@@ -2051,6 +2005,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::WoodPellets, EUT::Fireplace]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodPellets, EUT::Fireplace]))
     @end_uses[[FT::WoodPellets, EUT::Generator]] = EndUse.new(variables: get_object_variables(EUT, [FT::WoodPellets, EUT::Generator]))
     @end_uses[[FT::Coal, EUT::Heating]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::Heating]))
+    @end_uses[[FT::Coal, EUT::HeatingHeatPumpBackup]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::HeatingHeatPumpBackup]))
     @end_uses[[FT::Coal, EUT::HotWater]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::HotWater]))
     @end_uses[[FT::Coal, EUT::ClothesDryer]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::ClothesDryer]))
     @end_uses[[FT::Coal, EUT::RangeOven]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::RangeOven]))
@@ -2059,7 +2014,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @end_uses[[FT::Coal, EUT::Lighting]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::Lighting]))
     @end_uses[[FT::Coal, EUT::Fireplace]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::Fireplace]))
     @end_uses[[FT::Coal, EUT::Generator]] = EndUse.new(variables: get_object_variables(EUT, [FT::Coal, EUT::Generator]))
-
     @end_uses.each do |key, end_use|
       fuel_type, end_use_type = key
       end_use.name = "End Use: #{fuel_type}: #{end_use_type}"
@@ -2273,6 +2227,31 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     }
   end
 
+  def is_heat_pump_backup(sys_id)
+    return false if @hpxml.nil?
+
+    # Integrated backup?
+    @hpxml.heat_pumps.each do |heat_pump|
+      next if sys_id != heat_pump.id
+
+      return true
+    end
+
+    # Separate backup system?
+    @hpxml.heating_systems.each do |heating_system|
+      next if sys_id != heating_system.id
+      next unless heating_system.is_heat_pump_backup_system
+
+      return true
+    end
+
+    if sys_id.include? '_DFHPBackup'
+      return true
+    end
+
+    return false
+  end
+
   def get_object_output_variables_by_key(model, object, class_name)
     to_ft = { EPlus::FuelTypeElectricity => FT::Elec,
               EPlus::FuelTypeNaturalGas => FT::Gas,
@@ -2285,6 +2264,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     # For a given object, returns the output variables to be requested and associates
     # them with the appropriate keys (e.g., [FT::Elec, EUT::Heating]).
 
+    sys_id = object.additionalProperties.getFeatureAsString('HPXML_ID')
+    if sys_id.is_initialized
+      sys_id = sys_id.get
+    else
+      sys_id = nil
+    end
+
     if class_name == EUT
 
       # End uses
@@ -2293,17 +2279,29 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         return { [FT::Elec, EUT::Heating] => ["Heating Coil #{EPlus::FuelTypeElectricity} Energy", "Heating Coil Crankcase Heater #{EPlus::FuelTypeElectricity} Energy", "Heating Coil Defrost #{EPlus::FuelTypeElectricity} Energy"] }
 
       elsif object.to_CoilHeatingElectric.is_initialized
-        return { [FT::Elec, EUT::Heating] => ["Heating Coil #{EPlus::FuelTypeElectricity} Energy"] }
+        if not is_heat_pump_backup(sys_id)
+          return { [FT::Elec, EUT::Heating] => ["Heating Coil #{EPlus::FuelTypeElectricity} Energy"] }
+        else
+          return { [FT::Elec, EUT::HeatingHeatPumpBackup] => ["Heating Coil #{EPlus::FuelTypeElectricity} Energy"] }
+        end
 
       elsif object.to_CoilHeatingGas.is_initialized
         fuel = object.to_CoilHeatingGas.get.fuelType
-        return { [to_ft[fuel], EUT::Heating] => ["Heating Coil #{fuel} Energy"] }
+        if not is_heat_pump_backup(sys_id)
+          return { [to_ft[fuel], EUT::Heating] => ["Heating Coil #{fuel} Energy"] }
+        else
+          return { [to_ft[fuel], EUT::HeatingHeatPumpBackup] => ["Heating Coil #{fuel} Energy"] }
+        end
 
       elsif object.to_CoilHeatingWaterToAirHeatPumpEquationFit.is_initialized
         return { [FT::Elec, EUT::Heating] => ["Heating Coil #{EPlus::FuelTypeElectricity} Energy"] }
 
       elsif object.to_ZoneHVACBaseboardConvectiveElectric.is_initialized
-        return { [FT::Elec, EUT::Heating] => ["Baseboard #{EPlus::FuelTypeElectricity} Energy"] }
+        if not is_heat_pump_backup(sys_id)
+          return { [FT::Elec, EUT::Heating] => ["Baseboard #{EPlus::FuelTypeElectricity} Energy"] }
+        else
+          return { [FT::Elec, EUT::HeatingHeatPumpBackup] => ["Baseboard #{EPlus::FuelTypeElectricity} Energy"] }
+        end
 
       elsif object.to_BoilerHotWater.is_initialized
         is_combi_boiler = false
@@ -2312,7 +2310,14 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         end
         if not is_combi_boiler # Exclude combi boiler, whose heating & dhw energy is handled separately via EMS
           fuel = object.to_BoilerHotWater.get.fuelType
-          return { [to_ft[fuel], EUT::Heating] => ["Boiler #{fuel} Energy"] }
+          if not is_heat_pump_backup(sys_id)
+            return { [to_ft[fuel], EUT::Heating] => ["Boiler #{fuel} Energy"] }
+          else
+            return { [to_ft[fuel], EUT::HeatingHeatPumpBackup] => ["Boiler #{fuel} Energy"] }
+          end
+        else
+          fuel = object.to_BoilerHotWater.get.fuelType
+          return { [to_ft[fuel], EUT::HotWater] => ["Boiler #{fuel} Energy"] }
         end
 
       elsif object.to_CoilCoolingDXSingleSpeed.is_initialized || object.to_CoilCoolingDXMultiSpeed.is_initialized
@@ -2431,12 +2436,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         elsif object.name.to_s.include? Constants.ObjectNameWaterHeaterAdjustment(nil)
           fuel = object.additionalProperties.getFeatureAsString('FuelType').get
           return { [to_ft[fuel], EUT::HotWater] => [object.name.to_s] }
-        elsif object.name.to_s.include? Constants.ObjectNameCombiWaterHeatingEnergy(nil)
-          fuel = object.additionalProperties.getFeatureAsString('FuelType').get
-          return { [to_ft[fuel], EUT::HotWater] => [object.name.to_s] }
-        elsif object.name.to_s.include? Constants.ObjectNameCombiSpaceHeatingEnergy(nil)
-          fuel = object.additionalProperties.getFeatureAsString('FuelType').get
-          return { [to_ft[fuel], EUT::Heating] => [object.name.to_s] }
         else
           return { ems: [object.name.to_s] }
         end
