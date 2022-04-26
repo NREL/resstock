@@ -7,6 +7,7 @@ __New Features__
   - `ACCA`: nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
   - `HERS` (default): nominal capacity sized equal to the larger of heating/cooling design loads.
   - `MaxLoad`: nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's capacity retention at the design temperature.
+- Heat pumps with switchover temperatures are now autosized by taking into account the switchover temperature, if higher than the heating design temperature.
 - Allows specifying a `StormWindow` element for windows/skylights; U-factors and SHGCs are automatically adjusted.
 - Allows an optional `AirInfiltrationMeasurement/InfiltrationHeight` input.
 - Allows an optional `Battery/UsableCapacity` input; now defaults to 0.9 x NominalCapacity (previously 0.8).
