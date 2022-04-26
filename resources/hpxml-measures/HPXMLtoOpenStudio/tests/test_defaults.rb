@@ -43,13 +43,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.dst_begin_day = 3
     hpxml.header.dst_end_month = 10
     hpxml.header.dst_end_day = 10
-    hpxml.header.use_max_load_for_heat_pumps = false
+    hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingMaxLoad
     hpxml.header.allow_increased_fixed_capacities = true
     hpxml.header.state_code = 'CA'
     hpxml.header.time_zone_utc_offset = -8
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2009, false, 3, 3, 10, 10, false, true, 'CA', -8)
+    _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2009, false, 3, 3, 10, 10, HPXML::HeatPumpSizingMaxLoad, true, 'CA', -8)
 
     # Test defaults - DST not in weather file
     hpxml.header.timestep = nil
@@ -63,13 +63,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.dst_begin_day = nil
     hpxml.header.dst_end_month = nil
     hpxml.header.dst_end_day = nil
-    hpxml.header.use_max_load_for_heat_pumps = nil
+    hpxml.header.heat_pump_sizing_methodology = nil
     hpxml.header.allow_increased_fixed_capacities = nil
     hpxml.header.state_code = nil
     hpxml.header.time_zone_utc_offset = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, true, false, 'CO', -7)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, HPXML::HeatPumpSizingHERS, false, 'CO', -7)
 
     # Test defaults - DST in weather file
     hpxml = _create_hpxml('base-location-AMY-2012.xml')
@@ -84,19 +84,19 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.dst_begin_day = nil
     hpxml.header.dst_end_month = nil
     hpxml.header.dst_end_day = nil
-    hpxml.header.use_max_load_for_heat_pumps = nil
+    hpxml.header.heat_pump_sizing_methodology = nil
     hpxml.header.allow_increased_fixed_capacities = nil
     hpxml.header.state_code = nil
     hpxml.header.time_zone_utc_offset = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, true, false, 'CO', -7)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, HPXML::HeatPumpSizingHERS, false, 'CO', -7)
 
     # Test defaults - calendar year override by AMY year
     hpxml.header.sim_calendar_year = 2020
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, true, false, 'CO', -7)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, HPXML::HeatPumpSizingHERS, false, 'CO', -7)
 
     # Test defaults - invalid state code
     hpxml = _create_hpxml('base-location-capetown-zaf.xml')
@@ -111,13 +111,13 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.dst_begin_day = nil
     hpxml.header.dst_end_month = nil
     hpxml.header.dst_end_day = nil
-    hpxml.header.use_max_load_for_heat_pumps = nil
+    hpxml.header.heat_pump_sizing_methodology = nil
     hpxml.header.allow_increased_fixed_capacities = nil
     hpxml.header.state_code = nil
     hpxml.header.time_zone_utc_offset = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, true, false, nil, 2)
+    _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, HPXML::HeatPumpSizingHERS, false, nil, 2)
   end
 
   def test_emissions_factors
@@ -1788,17 +1788,19 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     vent_fan.is_shared_system = false
     vent_fan.hours_in_operation = 12.0
     vent_fan.fan_power = 12.5
+    vent_fan.cfis_vent_mode_airflow_fraction = 0.5
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mech_vent_values(hpxml_default, false, 12.0, 12.5, 330)
+    _test_default_mech_vent_values(hpxml_default, false, 12.0, 12.5, 330, 0.5)
 
     # Test defaults w/ CFIS
     vent_fan.is_shared_system = nil
     vent_fan.hours_in_operation = nil
     vent_fan.fan_power = nil
+    vent_fan.cfis_vent_mode_airflow_fraction = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_mech_vent_values(hpxml_default, false, 8.0, 165.0, 330)
+    _test_default_mech_vent_values(hpxml_default, false, 8.0, 165.0, 330, 1.0)
 
     # Test inputs not overridden by defaults w/ ERV
     hpxml = _create_hpxml('base-mechvent-erv.xml')
@@ -3078,8 +3080,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   end
 
   def _test_default_header_values(hpxml, tstep, sim_begin_month, sim_begin_day, sim_end_month, sim_end_day, sim_calendar_year,
-                                  dst_enabled, dst_begin_month, dst_begin_day, dst_end_month, dst_end_day,
-                                  use_max_load_for_heat_pumps, allow_increased_fixed_capacities, state_code, time_zone_utc_offset)
+                                  dst_enabled, dst_begin_month, dst_begin_day, dst_end_month, dst_end_day, heat_pump_sizing_methodology,
+                                  allow_increased_fixed_capacities, state_code, time_zone_utc_offset)
     assert_equal(tstep, hpxml.header.timestep)
     assert_equal(sim_begin_month, hpxml.header.sim_begin_month)
     assert_equal(sim_begin_day, hpxml.header.sim_begin_day)
@@ -3091,7 +3093,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(dst_begin_day, hpxml.header.dst_begin_day)
     assert_equal(dst_end_month, hpxml.header.dst_end_month)
     assert_equal(dst_end_day, hpxml.header.dst_end_day)
-    assert_equal(use_max_load_for_heat_pumps, hpxml.header.use_max_load_for_heat_pumps)
+    assert_equal(heat_pump_sizing_methodology, hpxml.header.heat_pump_sizing_methodology)
     assert_equal(allow_increased_fixed_capacities, hpxml.header.allow_increased_fixed_capacities)
     if state_code.nil?
       assert_nil(hpxml.header.state_code)
@@ -3649,13 +3651,19 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
-  def _test_default_mech_vent_values(hpxml, is_shared_system, hours_in_operation, fan_power, flow_rate)
+  def _test_default_mech_vent_values(hpxml, is_shared_system, hours_in_operation, fan_power, flow_rate,
+                                     cfis_vent_mode_airflow_fraction = nil)
     vent_fan = hpxml.ventilation_fans.select { |f| f.used_for_whole_building_ventilation }[0]
 
     assert_equal(is_shared_system, vent_fan.is_shared_system)
     assert_equal(hours_in_operation, vent_fan.hours_in_operation)
     assert_in_epsilon(fan_power, vent_fan.fan_power, 0.01)
     assert_in_epsilon(flow_rate, vent_fan.rated_flow_rate.to_f + vent_fan.calculated_flow_rate.to_f + vent_fan.tested_flow_rate.to_f + vent_fan.delivered_ventilation.to_f, 0.01)
+    if cfis_vent_mode_airflow_fraction.nil?
+      assert_nil(vent_fan.cfis_vent_mode_airflow_fraction)
+    else
+      assert_equal(cfis_vent_mode_airflow_fraction, vent_fan.cfis_vent_mode_airflow_fraction)
+    end
   end
 
   def _test_default_kitchen_fan_values(hpxml, quantity, flow_rate, hours_in_operation, fan_power, start_hour)
