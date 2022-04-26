@@ -158,6 +158,7 @@ They can be smooth schedules, or they can reflect real-world or stochastic occup
 Detailed schedule inputs are provided via CSV file(s) that should be referenced in the HPXML file as a ``/HPXML/SoftwareInfo/extension/SchedulesFilePath``.
 
 Occupancy related schedule columns must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
+Thermostat setpoint schedule columns do not have these constraints.
 The schedule columns in the schedule CSV are:
 
   ==============================  ========================================================  ===================
@@ -190,6 +191,8 @@ The schedule columns in the schedule CSV are:
   ``hot_water_dishwasher``        Dishwasher hot water use schedule.                        Yes
   ``hot_water_clothes_washer``    Clothes washer hot water use schedule.                    Yes
   ``hot_water_fixtures``          Fixtures (sinks, showers, baths) hot water use schedule.  Yes
+  ``heating_setpoint``            Thermostat heating setpoint schedule.                     No
+  ``cooling_setpoint``            Thermostat cooling setpoint schedule.                     No
   ``vacancy``                     1=Home is vacant. Automatically overrides other columns.  N/A
   ==============================  ========================================================  ===================
 

@@ -22,10 +22,6 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     FileUtils.rm_rf(@tmp_output_path)
   end
 
-  def sample_files_dir
-    return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
-  end
-
   def test_roofs
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
@@ -437,7 +433,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
   def test_windows
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Check window properties
@@ -516,7 +512,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
   def test_skylights
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-skylights.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-skylights.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Check skylight properties
