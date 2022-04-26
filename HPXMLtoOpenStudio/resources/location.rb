@@ -8,6 +8,44 @@ class Location
     apply_ground_temps(model, weather)
   end
 
+  def self.process_weather(hpxml, runner, model, hpxml_path)
+    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
+
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist?(epw_path)
+      fail "'#{epw_path}' could not be found."
+    end
+
+    cache_path = epw_path.gsub('.epw', '-cache.csv')
+    if not File.exist?(cache_path)
+      # Process weather file to create cache .csv
+      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
+      epw_file = OpenStudio::EpwFile.new(epw_path)
+      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+      weather = WeatherProcess.new(model, runner)
+      begin
+        File.open(cache_path, 'wb') do |file|
+          weather.dump_to_csv(file)
+        end
+      rescue SystemCallError
+        runner.registerWarning("#{cache_path} could not be written, skipping.")
+      end
+    end
+
+    return epw_path, cache_path
+  end
+
   def self.apply_weather_file(model, runner, weather_file_path, weather_cache_path)
     if File.exist?(weather_file_path) && weather_file_path.downcase.end_with?('.epw')
       epw_file = OpenStudio::EpwFile.new(weather_file_path)

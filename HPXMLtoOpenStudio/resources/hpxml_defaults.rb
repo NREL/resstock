@@ -185,7 +185,7 @@ class HPXMLDefaults
       hpxml.header.allow_increased_fixed_capacities = false
       hpxml.header.allow_increased_fixed_capacities_isdefaulted = true
     end
-    if hpxml.header.heat_pump_sizing_methodology.nil?
+    if hpxml.header.heat_pump_sizing_methodology.nil? && (hpxml.heat_pumps.size > 0)
       hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
       hpxml.header.heat_pump_sizing_methodology_isdefaulted = true
     end

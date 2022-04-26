@@ -10,9 +10,14 @@ require_relative 'resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/geometry'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
+require_relative '../HPXMLtoOpenStudio/resources/hpxml_defaults'
+require_relative '../HPXMLtoOpenStudio/resources/hvac'
+require_relative '../HPXMLtoOpenStudio/resources/location'
 require_relative '../HPXMLtoOpenStudio/resources/lighting'
 require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
+require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
+require_relative '../HPXMLtoOpenStudio/resources/weather'
 require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
 
 # start the measure
@@ -29,7 +34,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return "Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Schedules corresponding to 'smooth' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data."
+    return "Generates CSV schedule(s) at the specified file path(s), and inserts the CSV schedule file path(s) into the output HPXML file (or overwrites it if one already exists). Occupancy schedules corresponding to 'smooth' are average (e.g., Building America). Occupancy schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data."
   end
 
   # define the arguments that the user will input
@@ -46,30 +51,59 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     schedules_type_choices << 'stochastic'
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('schedules_type', schedules_type_choices, true)
-    arg.setDisplayName('Schedules: Type')
+    arg.setDisplayName('Occupancy Schedules: Type')
     arg.setDescription('The type of occupant-related schedules to use.')
     arg.setDefaultValue('smooth')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_vacancy_period', false)
-    arg.setDisplayName('Schedules: Vacancy Period')
+    arg.setDisplayName('Occupancy Schedules: Vacancy Period')
     arg.setDescription('Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeIntegerArgument('schedules_random_seed', false)
-    arg.setDisplayName('Schedules: Random Seed')
+    arg.setDisplayName('Occupancy Schedules: Random Seed')
     arg.setUnits('#')
     arg.setDescription("This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_csv_path', true)
-    arg.setDisplayName('Schedules: Output CSV Path')
+    arg.setDisplayName('Occupancy Schedules: Output CSV Path')
     arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('heating_setpoint_offset_nighttime', false)
+    arg.setDisplayName('Setpoint Schedules: Heating Setpoint Offset Nighttime')
+    arg.setDescription('The magnitude of the heating setpoint offset (setpoint is lowered) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('heating_setpoint_offset_daytime_unoccupied', false)
+    arg.setDisplayName('Setpoint Schedules: Heating Setpoint Offset Daytime Unoccupied')
+    arg.setDescription('The magnitude of the heating setpoint offset (setpoint is lowered) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('cooling_setpoint_offset_nighttime', false)
+    arg.setDisplayName('Setpoint Schedules: Cooling Setpoint Offset Nighttime')
+    arg.setDescription('The magnitude of the cooling setpoint offset (setpoint is raised) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('cooling_setpoint_offset_daytime_unoccupied', false)
+    arg.setDisplayName('Setpoint Schedules: Cooling Setpoint Offset Daytime Unoccupied')
+    arg.setDescription('The magnitude of the cooling setpoint offset (setpoint is raised) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('setpoint_output_csv_path', false)
+    arg.setDisplayName('Setpoint Schedules: Output CSV Path')
+    arg.setDescription('Absolute/relative path of the csv file containing setpoint schedules. Relative paths are relative to the HPXML output path.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_output_path', true)
     arg.setDisplayName('HPXML Output File Path')
-    arg.setDescription('Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path.')
+    arg.setDescription('Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path(s).')
     args << arg
 
     return args
@@ -88,6 +122,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args = get_argument_values(runner, arguments(model), user_arguments)
     args = Hash[args.collect { |k, v| [k.to_sym, v] }]
 
+    # init
     hpxml_path = args[:hpxml_path]
     unless (Pathname.new hpxml_path).absolute?
       hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
@@ -103,20 +138,11 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:hpxml_output_path] = hpxml_output_path
 
     hpxml = HPXML.new(hpxml_path: hpxml_path)
-
-    # create EpwFile object
-    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
-    if not File.exist? epw_path
-      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
-    end
-    if not File.exist? epw_path
-      runner.registerError("Could not find EPW file at '#{epw_path}'.")
-      return false
-    end
-    epw_file = OpenStudio::EpwFile.new(epw_path)
+    epw_path, cache_path = Location.process_weather(hpxml, runner, model, hpxml_path)
+    weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
 
     # create the schedules
-    success = create_schedules(runner, hpxml, epw_file, args)
+    success = create_schedules(runner, hpxml, weather, epw_file, args)
     return false if not success
 
     # modify the hpxml with the schedules path
@@ -127,8 +153,15 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       XMLHelper.add_element(extension, 'SchedulesFilePath', args[:output_csv_path], :string)
     end
 
+    if args[:setpoint_schedules]
+      if !schedules_filepaths.include?(args[:setpoint_output_csv_path].get)
+        XMLHelper.add_element(extension, 'SchedulesFilePath', args[:setpoint_output_csv_path].get, :string)
+        runner.registerInfo("Created #{args[:setpoint_output_csv_path].get}")
+      end
+    end
+
     # write out the modified hpxml
-    if (hpxml_path != hpxml_output_path) || !schedules_filepaths.include?(args[:output_csv_path])
+    if (hpxml_path != hpxml_output_path) || !schedules_filepaths.include?(args[:output_csv_path]) || (args[:setpoint_output_csv_path].is_initialized && !schedules_filepaths.include?(args[:setpoint_output_csv_path].get))
       XMLHelper.write_file(doc, hpxml_output_path)
       runner.registerInfo("Wrote file: #{hpxml_output_path}")
     end
@@ -136,11 +169,11 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def create_schedules(runner, hpxml, epw_file, args)
+  def create_schedules(runner, hpxml, weather, epw_file, args)
     info_msgs = []
 
     get_simulation_parameters(hpxml, epw_file, args)
-    get_generator_inputs(hpxml, epw_file, args)
+    get_generator_inputs(hpxml, weather, epw_file, args)
 
     args[:resources_path] = File.join(File.dirname(__FILE__), 'resources')
     schedule_generator = ScheduleGenerator.new(runner: runner, epw_file: epw_file, **args)
@@ -189,7 +222,8 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:total_days_in_year] = Constants.NumDaysInYear(calendar_year)
   end
 
-  def get_generator_inputs(hpxml, epw_file, args)
+  def get_generator_inputs(hpxml, weather, epw_file, args)
+    # Occupants
     args[:state] = 'CO'
     args[:state] = epw_file.stateProvinceRegion if Constants.StateCodesMap.keys.include?(epw_file.stateProvinceRegion)
     args[:state] = hpxml.header.state_code if !hpxml.header.state_code.nil?
@@ -208,6 +242,47 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:schedules_vacancy_begin_day] = begin_day
       args[:schedules_vacancy_end_month] = end_month
       args[:schedules_vacancy_end_day] = end_day
+    end
+
+    # Setpoints
+    args[:setpoint_schedules] = false
+    if args[:setpoint_output_csv_path].is_initialized
+      return if hpxml.hvac_controls.size == 0
+
+      args[:setpoint_schedules] = true
+      HPXMLDefaults.apply_hvac_control(hpxml)
+      hvac_control = hpxml.hvac_controls[0]
+
+      htg_start_month = hvac_control.seasons_heating_begin_month
+      htg_start_day = hvac_control.seasons_heating_begin_day
+      htg_end_month = hvac_control.seasons_heating_end_month
+      htg_end_day = hvac_control.seasons_heating_end_day
+      clg_start_month = hvac_control.seasons_cooling_begin_month
+      clg_start_day = hvac_control.seasons_cooling_begin_day
+      clg_end_month = hvac_control.seasons_cooling_end_month
+      clg_end_day = hvac_control.seasons_cooling_end_day
+
+      heating_days = Schedule.get_daily_season(args[:sim_year], htg_start_month, htg_start_day, htg_end_month, htg_end_day)
+      cooling_days = Schedule.get_daily_season(args[:sim_year], clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+      has_ceiling_fan = (hpxml.ceiling_fans.size > 0)
+
+      htg_weekday_setpoints, htg_weekend_setpoints = HVAC.get_heating_setpoints(hvac_control, args[:sim_year])
+      clg_weekday_setpoints, clg_weekend_setpoints = HVAC.get_cooling_setpoints(hvac_control, has_ceiling_fan, args[:sim_year], weather)
+      htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = HVAC.create_setpoint_schedules(heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, args[:sim_year])
+
+      args[:htg_weekday_setpoints] = htg_weekday_setpoints
+      args[:htg_weekend_setpoints] = htg_weekend_setpoints
+
+      args[:clg_weekday_setpoints] = clg_weekday_setpoints
+      args[:clg_weekend_setpoints] = clg_weekend_setpoints
+
+      args[:htg_offset_nighttime] = args[:heating_setpoint_offset_nighttime].get if args[:heating_setpoint_offset_nighttime].is_initialized
+      args[:clg_offset_nighttime] = args[:cooling_setpoint_offset_nighttime].get if args[:cooling_setpoint_offset_nighttime].is_initialized
+
+      args[:htg_offset_daytime_unocc] = args[:heating_setpoint_offset_daytime_unoccupied].get if args[:heating_setpoint_offset_daytime_unoccupied].is_initialized
+      args[:clg_offset_daytime_unocc] = args[:cooling_setpoint_offset_daytime_unoccupied].get if args[:cooling_setpoint_offset_daytime_unoccupied].is_initialized
+
+      args[:ceiling_fan_cooling_setpoint_temp_offset] = hvac_control.ceiling_fan_cooling_setpoint_temp_offset
     end
   end
 end
