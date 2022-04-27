@@ -1,0 +1,96 @@
+schema_version: '0.3'
+buildstock_directory: /projects/enduse/euss/repos/resstock  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /projects/enduse/euss/resstock_runs/test1
+# weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
+
+baseline:
+  n_buildings_represented: 133172057
+
+sampler: 
+  type: residential_quota
+  args: 
+    n_datapoints: 10000
+
+workflow_generator: 
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60 #CHECK: we probably want something else for it to be 15 min data
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2018
+
+eagle:
+  account: enduse
+  n_jobs: 20 #CHECK for full run, probably want hundreds
+  minutes_per_sim: 10
+  sampling:
+    time: 20 #CHECK for full run, probably want higher (e.g. 60)
+  postprocessing:
+    time: 800
+    n_workers: 2 #CHECK for full run, probably want like 32
+    # node_memory_mb: 751616
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: euss
+      prefix: tests/test1 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: euss-results #collection of Athena tables (post-crawling), can be constant for the entire analysis
+      max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
+
+upgrades:
+  - upgrade_name: Basic Enclosure
+    options:
+      #Attic floor insulation up to IECC 2021 levels for homes with vented attics and less than R-30 existing insulation
+      #General air sealing - 30% total reduction in ACH50 for homes with greater than 10 ACH50
+      #Duct sealing to 10% leakage, R-8 insulation for all ducts in unconditioned space
+      #Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
+  - upgrade_name: Enhanced Enclosure
+    options:
+      #Basic Enclosure Measures
+      #Add R-10 interior insulation to foundation walls and rim joists in conditioned basements and crawlspace; seal crawlspace vents
+      #insulate finished attics and cathedral ceilings to R-30
+  - upgrade_name: Minimum-efficiency heat pumps #also provides SEER 15 cooling measure profile
+    #(Question: for this and the next upgrade, do houses automatically get elec resistance backup?)
+    options:
+      #ASHP SEER 15, 9.0 HSPF for homes with ducts
+      #MSHP SEER 15, 9.0 HSPF for homes without ducts
+  - upgrade_name: High-efficiency heat pumps #also provides SEER 24-29 cooling measure profile
+    options:
+      #ASHP SEER 24, 13 HSPF, 50% capacity retention at -15*F for homes with ducts
+      #MSHP SEER 29.3, 14.0 HSPF for homes without ducts
+  - upgrade_name: Heat pump with other supplemental heating
+      #homes keep their exising heating system as backup, heat pump is sized for cooling
+      #assumes a control strategy where the electric heat pump is the primary heating source and the pre-existing heating system is only used as auxiliary below a pre-defined switchover temperature (41F)
+    options:
+      #ASHP SEER 15, 9.0 HSPF (30*F switchover temperature) for homes with ducts and existing central AC or HP
+      #MSHP SEER 15, 9.0 HSPF for homes without ducts (80% of load served by MSHP) and existing room AC (Question: what does the "80% of load served by MSHP" mean here?)
+  - upgrade_name: Universal HPWHs
+    options:
+      #All homes get either a 50 gal 3.45 UEF water heater, a 66 gal 3.35 UEF water heater, or a 80 gal 3.45 UEF water heater, depending on occupants or bedrooms
+  - upgrade_name: Minimum-efficiency all-electric homes
+      #No enclosure measures
+      #No upgrading of electric loads
+    options:
+      #Minimum-efficiency heat pump (from package 3) for homes with non-electric heating
+      #HPWH for those that currently have non-electric water heating
+      #electric resistance dryer (CEF = 2.7) for those that currently have non-electric dryers
+      #electric range (cooktop_eff = 0.74, oven_ef = 0.11) for homes that currently have non-electric
+  - upgrade_name: Highly-efficient all-electric homes
+      #No enclosure measures
+    options:
+      #High efficiency heat pump (from package 4) for all homes with non-electric heating or less-efficient electric heating
+      #HPWH for all homes with non-electric water heating or less-efficient electric water heating
+      #Ventless heat pump dryer (CEF=5.2) for all homes with non-electric dryers or less-efficient electric dryers
+      #Induction range (cooktop_ef = 0.84, oven_ef = 0.11) for all homes
+  - upgrade_name: Highly-efficient all-electric homes + basic enclosure package (packages 1 & 8)
+  - upgrade_name: Highly-efficient all-electric homes + enhanced enclosure package (packages 2 & 8)
