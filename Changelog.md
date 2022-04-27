@@ -19,6 +19,7 @@ __New Features__
 - Relaxes requirement for `ConditionedFloorAreaServed` for air distribution systems; now only needed if duct surface areas not provided.
 - **Breaking change**: Each `VentilationFan` must have one (and only one) `UsedFor...` element set to true.
 - Updates combi boiler model to be simpler, faster, and more robust by using separate space/water heating plant loops and boilers.
+- Switches from ScriptF to CarrollMRT radiant exchange algorithm.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Changes the zip code argument name to `site_zip_code`.
   - Adds support for ambient foundations for single-family attached and apartment units.
@@ -50,6 +51,7 @@ __Bugfixes__
 - Timeseries output fixes: some outputs off by 1 hour; possible negative combi boiler values.
 - Fixes range hood ventilation interaction with infiltration to take into account the location of the cooking range.
 - BuildResidentialHPXML measure: Fixes incorrect outside boundary condition for shared gable walls of cathedral ceilings, now set to adiabatic.
+- Fixes possible EMS error for ventilation systems with low (but non-zero) flow rates.
 
 ## OpenStudio-HPXML v1.3.0
 
