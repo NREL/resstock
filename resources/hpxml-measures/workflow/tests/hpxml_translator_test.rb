@@ -482,11 +482,13 @@ class HPXMLTest < MiniTest::Test
       total_clg_load = results['Load: Cooling: Delivered (MBtu)']
       abs_htg_load_delta = (total_htg_load - sum_component_htg_loads).abs
       abs_clg_load_delta = (total_clg_load - sum_component_clg_loads).abs
-      abs_htg_load_frac = abs_htg_load_delta / total_htg_load
-      abs_clg_load_frac = abs_clg_load_delta / total_clg_load
-      # Check that the difference is less than 0.5MBtu or less than 10%
-      assert((abs_htg_load_delta < 0.5) || (abs_htg_load_frac < 0.1))
-      assert((abs_clg_load_delta < 0.5) || (abs_clg_load_frac < 0.1))
+      avg_htg_load = ([total_htg_load, abs_htg_load_delta].sum / 2.0)
+      avg_clg_load = ([total_htg_load, abs_htg_load_delta].sum / 2.0)
+      abs_htg_load_frac = abs_htg_load_delta / avg_htg_load
+      abs_clg_load_frac = abs_clg_load_delta / avg_clg_load
+      # Check that the difference is less than 0.6MBtu or less than 10%
+      assert((abs_htg_load_delta < 0.6) || (abs_htg_load_frac < 0.1))
+      assert((abs_clg_load_delta < 0.6) || (abs_clg_load_frac < 0.1))
     end
 
     return results
@@ -714,6 +716,7 @@ class HPXMLTest < MiniTest::Test
       next if err_line.include?('setupIHGOutputs: Output variables=Space Other Equipment') && err_line.include?('are not available')
       next if err_line.include? 'Actual air mass flow rate is smaller than 25% of water-to-air heat pump coil rated air flow rate.' # FUTURE: Remove this when https://github.com/NREL/EnergyPlus/issues/9125 is resolved
       next if err_line.include? 'DetailedSkyDiffuseModeling is chosen but not needed as either the shading transmittance for shading devices does not change throughout the year'
+      next if err_line.include? 'View factors not complete'
 
       if err_line.include? 'Output:Meter: invalid Key Name'
         next if skip_utility_bill_warning(err_line)
