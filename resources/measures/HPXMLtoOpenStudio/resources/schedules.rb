@@ -978,7 +978,7 @@ class Schedule
         end
       end
 
-      if (day_sched_prev.values != day_sched.values) || (day_sched_prev.times != day_sched.times))
+      if (day_sched_prev.values != day_sched.values) || (day_sched_prev.times != day_sched.times)
         sdate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
         edate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
         day_rule.setStartDate(sdate)
