@@ -928,12 +928,15 @@ class Schedule
     assumed_year = year_description.assumedYear
     run_period = model.getRunPeriod
     run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
+    run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
     start_day = run_period_start.yday
-
+    
     hrly_sched = hrly_sched.timeSeries.values
     timesteps = hrly_sched.length
     ts_per_hr = model.getTimestep.numberOfTimestepsPerHour
-    hrs = timesteps / ts_per_hr
+    hrs = (run_period_end - run_period_start) / 3600
+    sim_timesteps = hrs*ts_per_hr
+
     days = hrs / 24
     time = []
 
@@ -958,19 +961,24 @@ class Schedule
       day_sched = day_rule.daySchedule
       day_sched.setName("#{sch_name} day schedule")
       day_ct = day - start_day + 1
-      previous_value = hrly_sched[(day_ct - 1) * ts_per_day]
 
+      previous_value = hrly_sched[((day_ct - 1) * 24)]
+
+      ts_yr = (day_ct - 1) * ts_per_day # ts of year
+      hrly_idx = ((ts_yr + 1)/ts_per_hr).to_i
+      
       for ts in 1..ts_per_day
-        ts_yr = (day_ct - 1) * ts_per_day + ts - 1  # ts of year
-        next if (ts != ts_per_day) && (hrly_sched[ts_yr + 1] == previous_value)
+        ts_yr += 1
+        hrly_idx = ((ts_yr + 1)/ts_per_hr).to_i
+        next if (ts != ts_per_day) && (hrly_sched[hrly_idx] == previous_value)
 
         day_sched.addValue(time[ts+1], previous_value)
-        if ts_yr != hrs - 1
-          previous_value = hrly_sched[ts_yr + 1]
+        if ts_yr != sim_timesteps - 1
+          previous_value = hrly_sched[hrly_idx]
         end
       end
 
-      if (day_sched_prev.values != day_sched.values) || (day_sched_prev.times != day_sched.times)
+      if (day_sched_prev.values != day_sched.values) || (day_sched_prev.times != day_sched.times))
         sdate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
         edate = OpenStudio::Date.fromDayOfYear(day, assumed_year)
         day_rule.setStartDate(sdate)
