@@ -67,7 +67,7 @@ upgrades:
             multiplier: 
         lifetime: 999
       - &attic_insulation_IECC_CZ2A-2B-3A-3B-3C
-        option: Insulation Ceiling|R-30
+        option: Insulation Ceiling|R-49
         apply_logic:
           - and:
             - or:
@@ -82,36 +82,172 @@ upgrades:
               - Insulation Ceiling|R-7
               - Insulation Ceiling|R-13
               - Insulation Ceiling|R-19
+              - Insulation Ceiling|R-30
+              - Insulation Ceiling|R-38
         costs:
           - value: #CHECK
             multiplier: 
         lifetime: 999
-      - &attic_insulation_IECC_CZ2A-2B-3A-3B-3C
-        option: Insulation Ceiling|R-30
+      - &attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+        option: Insulation Ceiling|R-60
         apply_logic:
           - and:
             - or:
-              - ASHRAE IECC Climate Zone 2004|2A
-              - ASHRAE IECC Climate Zone 2004|2B
-              - ASHRAE IECC Climate Zone 2004|3A
-              - ASHRAE IECC Climate Zone 2004|3B
-              - ASHRAE IECC Climate Zone 2004|3C
+              - ASHRAE IECC Climate Zone 2004|4A
+              - ASHRAE IECC Climate Zone 2004|4B
+              - ASHRAE IECC Climate Zone 2004|4C
+              - ASHRAE IECC Climate Zone 2004|5A
+              - ASHRAE IECC Climate Zone 2004|5B
+              - ASHRAE IECC Climate Zone 2004|6A
+              - ASHRAE IECC Climate Zone 2004|6B
+              - ASHRAE IECC Climate Zone 2004|7A
+              - ASHRAE IECC Climate Zone 2004|7B
             - Geometry Attic Type|Vented Attic
             - or:
               - Insulation Ceiling|Uninsulated
               - Insulation Ceiling|R-7
               - Insulation Ceiling|R-13
               - Insulation Ceiling|R-19
+              - Insulation Ceiling|R-30
+              - Insulation Ceiling|R-38
+              - Insulation Ceiling|R-49
         costs:
           - value: #CHECK
             multiplier: 
         lifetime: 999
       #General air sealing - 30% total reduction in ACH50 for homes with greater than 10 ACH50
+      #Note: ABC does not have costs or lifetimes for infiltration reductions
+      - &infiltration_30pct_reduction
+        option: Infiltration Reduction|30%
+        apply_logic:
+          - or:
+            - Infiltration|50 ACH50
+            - Infiltration|40 ACH50
+            - Infiltration|30 ACH50
+            - Infiltration|25 ACH50
+            - Infiltration|20 ACH50
+            - Infiltration|15 ACH50
+        costs:
+          - value:
+            multiplier:
+        lifetime:
       #Duct sealing to 10% leakage, R-8 insulation for all ducts in unconditioned space
+      - &ducts_category1 #improving leakage a lot, and insulation
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|85% Leakage, Uninsulated
+            - Ducts|53% Leakage, Uninsulated
+            - Ducts|34% Leakage, Uninsulated
+            - Ducts|30% Leakage, Uninsulated
+            - Ducts|85% Leakage, R-4
+            - Ducts|85% Leakage, R-6
+            - Ducts|53% Leakage, R-4
+            - Ducts|53% Leakage, R-6
+            - Ducts|34% Leakage, R-4
+            - Ducts|34% Leakage, R-6
+            - Ducts|30% Leakage, R-4
+            - Ducts|30% Leakage, R-6
+        costs:
+          - value: 2.84
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category2 #improving leakage a lot only
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|85% Leakage, R-8
+            - Ducts|53% Leakage, R-8
+            - Ducts|34% Leakage, R-8
+            - Ducts|30% Leakage, R-8
+        costs:
+          - value: 1.04
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category3 #improving leakage some, and insulation
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|24% Leakage, Uninsulated
+            - Ducts|24% Leakage, R-4
+            - Ducts|24% Leakage, R-6
+            - Ducts|20% Leakage, Uninsulated
+            - Ducts|20% Leakage, R-4
+            - Ducts|20% Leakage, R-6 
+        costs:
+          - value: 2.32
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category4 #improving leakage some only
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|24% Leakage, R-8
+            - Ducts|20% Leakage, R-8
+        costs:
+          - value: 0.52
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category5 #improving leakage a little, and insulation
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|15% Leakage, Uninsulated
+            - Ducts|15% Leakage, R-4
+            - Ducts|15% Leakage, R-6
+            - Ducts|14% Leakage, Uninsulated
+            - Ducts|14% Leakage, R-4
+            - Ducts|14% Leakage, R-6
+            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+        costs:
+          - value: 2.06
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category6 #improving leakage a little only
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|15% Leakage, R-8
+            - Ducts|14% Leakage, R-8
+        costs:
+          - value: 0.26
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category7 #improving insulation only
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|10% Leakage, Uninsulated
+            - Ducts|10% Leakage, R-4
+            - Ducts|10% Leakage, R-6
+        costs:
+          - value: 1.80
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
       #Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
+      - &Drill-and-fill
+        option: Insulation Wall|Wood Stud, R-13
+        apply_logic:
+          - Insulation Wall|Wood Stud, Uninsulated
+        costs:
+          - value:
+            multiplier:
+        lifetime:
   - upgrade_name: Enhanced Enclosure
     options:
       #Basic Enclosure Measures
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7
+      - *Drill-and-fill
       #Add R-10 interior insulation to foundation walls and rim joists in conditioned basements and crawlspace; seal crawlspace vents
       #insulate finished attics and cathedral ceilings to R-30
   - upgrade_name: Minimum-efficiency heat pumps #also provides SEER 15 cooling measure profile
@@ -148,4 +284,19 @@ upgrades:
       #Ventless heat pump dryer (CEF=5.2) for all homes with non-electric dryers or less-efficient electric dryers
       #Induction range (cooktop_ef = 0.84, oven_ef = 0.11) for all homes
   - upgrade_name: Highly-efficient all-electric homes + basic enclosure package (packages 1 & 8)
+    options:
+      #package 1
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7
+      - *Drill-and-fill
+      #package 8
   - upgrade_name: Highly-efficient all-electric homes + enhanced enclosure package (packages 2 & 8)
