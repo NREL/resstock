@@ -12,7 +12,7 @@ baseline:
 sampler: 
   type: residential_quota
   args: 
-    n_datapoints: 10000
+    n_datapoints: 100
 
 workflow_generator: 
   type: residential_hpxml
@@ -51,6 +51,61 @@ upgrades:
   - upgrade_name: Basic Enclosure
     options:
       #Attic floor insulation up to IECC 2021 levels for homes with vented attics and less than R-30 existing insulation
+      - &attic_insulation_IECC_CZ1A
+        option: Insulation Ceiling|R-30
+        apply_logic:
+          - and:
+            - ASHRAE IECC Climate Zone 2004|1A
+            - Geometry Attic Type|Vented Attic
+            - or:
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+        costs:
+          - value: #CHECK
+            multiplier: 
+        lifetime: 999
+      - &attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+        option: Insulation Ceiling|R-30
+        apply_logic:
+          - and:
+            - or:
+              - ASHRAE IECC Climate Zone 2004|2A
+              - ASHRAE IECC Climate Zone 2004|2B
+              - ASHRAE IECC Climate Zone 2004|3A
+              - ASHRAE IECC Climate Zone 2004|3B
+              - ASHRAE IECC Climate Zone 2004|3C
+            - Geometry Attic Type|Vented Attic
+            - or:
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+        costs:
+          - value: #CHECK
+            multiplier: 
+        lifetime: 999
+      - &attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+        option: Insulation Ceiling|R-30
+        apply_logic:
+          - and:
+            - or:
+              - ASHRAE IECC Climate Zone 2004|2A
+              - ASHRAE IECC Climate Zone 2004|2B
+              - ASHRAE IECC Climate Zone 2004|3A
+              - ASHRAE IECC Climate Zone 2004|3B
+              - ASHRAE IECC Climate Zone 2004|3C
+            - Geometry Attic Type|Vented Attic
+            - or:
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+        costs:
+          - value: #CHECK
+            multiplier: 
+        lifetime: 999
       #General air sealing - 30% total reduction in ACH50 for homes with greater than 10 ACH50
       #Duct sealing to 10% leakage, R-8 insulation for all ducts in unconditioned space
       #Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
