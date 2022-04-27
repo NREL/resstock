@@ -188,7 +188,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
        { assembly_r: 5.0, layer_names: ['vinyl siding', 'osb sheathing', 'rim joist stud and cavity'] },
        { assembly_r: 20.0, layer_names: ['vinyl siding', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
       # None
-      [{ assembly_r: 0.1, layer_names: ['rim joist stud and cavity', 'rim joist stud and cavity'] }, # Note: Below grade material doubled in update_solar_absorptances()
+      [{ assembly_r: 0.1, layer_names: ['rim joist stud and cavity'] },
        { assembly_r: 5.0, layer_names: ['osb sheathing', 'rim joist stud and cavity'] },
        { assembly_r: 20.0, layer_names: ['rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
     ]

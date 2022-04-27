@@ -2386,6 +2386,7 @@ class OSModel
     ocf.setOutputRDD(false)
     ocf.setOutputSHD(false)
     ocf.setOutputTabular(false)
+    ocf.setOutputPerfLog(false)
   end
 
   def self.add_ems_debug_output(runner, model)
