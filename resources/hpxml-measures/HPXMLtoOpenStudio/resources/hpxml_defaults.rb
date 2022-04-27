@@ -185,7 +185,7 @@ class HPXMLDefaults
       hpxml.header.allow_increased_fixed_capacities = false
       hpxml.header.allow_increased_fixed_capacities_isdefaulted = true
     end
-    if hpxml.header.heat_pump_sizing_methodology.nil?
+    if hpxml.header.heat_pump_sizing_methodology.nil? && (hpxml.heat_pumps.size > 0)
       hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
       hpxml.header.heat_pump_sizing_methodology_isdefaulted = true
     end
@@ -405,60 +405,36 @@ class HPXMLDefaults
   def self.apply_attics(hpxml)
     return unless hpxml.has_location(HPXML::LocationAtticVented)
 
-    vented_attics = []
-    default_sla = Airflow.get_default_vented_attic_sla()
-    default_ach = nil
-    hpxml.attics.each do |attic|
-      next unless attic.attic_type == HPXML::AtticTypeVented
-
-      # check existing sla and ach
-      default_sla = attic.vented_attic_sla unless attic.vented_attic_sla.nil?
-      default_ach = attic.vented_attic_ach unless attic.vented_attic_ach.nil?
-
-      vented_attics << attic
-    end
+    vented_attics = hpxml.attics.select { |a| a.attic_type == HPXML::AtticTypeVented }
     if vented_attics.empty?
       hpxml.attics.add(id: 'VentedAttic',
-                       attic_type: HPXML::AtticTypeVented,
-                       vented_attic_sla: default_sla)
-      hpxml.attics[-1].vented_attic_sla_isdefaulted = true
+                       attic_type: HPXML::AtticTypeVented)
+      vented_attics << hpxml.attics[-1]
     end
     vented_attics.each do |vented_attic|
       next unless (vented_attic.vented_attic_sla.nil? && vented_attic.vented_attic_ach.nil?)
 
-      if not default_ach.nil? # ACH specified
-        vented_attic.vented_attic_ach = default_ach
-      else # Use SLA
-        vented_attic.vented_attic_sla = default_sla
-      end
+      vented_attic.vented_attic_sla = Airflow.get_default_vented_attic_sla()
       vented_attic.vented_attic_sla_isdefaulted = true
+      break # EPvalidator.xml only allows a single ventilation rate
     end
   end
 
   def self.apply_foundations(hpxml)
     return unless hpxml.has_location(HPXML::LocationCrawlspaceVented)
 
-    vented_crawls = []
-    default_sla = Airflow.get_default_vented_crawl_sla()
-    hpxml.foundations.each do |foundation|
-      next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
-
-      # check existing sla
-      default_sla = foundation.vented_crawlspace_sla unless foundation.vented_crawlspace_sla.nil?
-
-      vented_crawls << foundation
-    end
+    vented_crawls = hpxml.foundations.select { |f| f.foundation_type == HPXML::FoundationTypeCrawlspaceVented }
     if vented_crawls.empty?
       hpxml.foundations.add(id: 'VentedCrawlspace',
-                            foundation_type: HPXML::FoundationTypeCrawlspaceVented,
-                            vented_crawlspace_sla: default_sla)
-      hpxml.foundations[-1].vented_crawlspace_sla_isdefaulted = true
+                            foundation_type: HPXML::FoundationTypeCrawlspaceVented)
+      vented_crawls << hpxml.foundations[-1]
     end
     vented_crawls.each do |vented_crawl|
       next unless vented_crawl.vented_crawlspace_sla.nil?
 
-      vented_crawl.vented_crawlspace_sla = default_sla
+      vented_crawl.vented_crawlspace_sla = Airflow.get_default_vented_crawl_sla()
       vented_crawl.vented_crawlspace_sla_isdefaulted = true
+      break # EPvalidator.xml only allows a single ventilation rate
     end
   end
 
