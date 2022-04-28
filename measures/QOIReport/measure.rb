@@ -146,7 +146,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Outdoor temperatures
-    msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout_hourly.msgpack')))
+    msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout_hourly.msgpack'), mode: 'rb'))
     hourly_cols = msgpackData['Cols']
     hourly_rows = msgpackData['Rows']
     index = hourly_cols.each_index.select { |i| hourly_cols[i]['Variable'] == 'Environment:Site Outdoor Air Drybulb Temperature' }[0]
@@ -155,7 +155,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
     end
 
     # Total electricity usages
-    msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack')))
+    msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack'), mode: 'rb'))
     meter_cols = msgpackData['MeterData']['Hourly']['Cols']
     meter_rows = msgpackData['MeterData']['Hourly']['Rows']
     index = meter_cols.each_index.select { |i| meter_cols[i]['Variable'] == 'Electricity:Facility' }[0]

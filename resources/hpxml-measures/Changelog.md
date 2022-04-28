@@ -19,6 +19,7 @@ __New Features__
 - Updates combi boiler model to be simpler, faster, and more robust by using separate space/water heating plant loops and boilers.
 - Switches from EnergyPlus SQL output to MessagePack output for faster performance and reduced file sizes when requesting timeseries outputs.
 - Allows MessagePack annual/timeseries output files to be generated instead of CSV/JSON.
+- Switches from ScriptF to CarrollMRT radiant exchange algorithm.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Changes the zip code argument name to `site_zip_code`.
   - Adds support for ambient foundations for single-family attached and apartment units.
@@ -48,6 +49,7 @@ __Bugfixes__
 - Timeseries output fixes: some outputs off by 1 hour; possible negative combi boiler values.
 - Fixes range hood ventilation interaction with infiltration to take into account the location of the cooking range.
 - BuildResidentialHPXML measure: Fixes incorrect outside boundary condition for shared gable walls of cathedral ceilings, now set to adiabatic.
+- Fixes possible EMS error for ventilation systems with low (but non-zero) flow rates.
 
 ## OpenStudio-HPXML v1.3.0
 

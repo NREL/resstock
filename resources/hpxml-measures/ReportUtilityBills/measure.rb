@@ -312,7 +312,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
       runner.registerError('Cannot find eplusout.msgpack.')
       return false
     end
-    @msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack')))
+    @msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack'), mode: 'rb'))
 
     hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
     building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get

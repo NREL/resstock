@@ -26,11 +26,14 @@ class HPXMLTest < MiniTest::Test
     File.delete(bills_out) if File.exist? bills_out
 
     xmls = []
-    sample_files_dir = File.absolute_path(File.join(@this_dir, '..', 'sample_files'))
-    Dir["#{sample_files_dir}/*.xml"].sort.each do |xml|
-      next if xml.include? 'base-multiple-buildings.xml' # This is tested in test_multiple_building_ids
+    sample_files_dirs = [File.absolute_path(File.join(@this_dir, '..', 'sample_files')),
+                         File.absolute_path(File.join(@this_dir, '..', 'real_homes'))]
+    sample_files_dirs.each do |sample_files_dir|
+      Dir["#{sample_files_dir}/*.xml"].sort.each do |xml|
+        next if xml.include? 'base-multiple-buildings.xml' # This is tested in test_multiple_building_ids
 
-      xmls << File.absolute_path(xml)
+        xmls << File.absolute_path(xml)
+      end
     end
 
     # Test simulations
@@ -443,10 +446,17 @@ class HPXMLTest < MiniTest::Test
     if not xml.include? 'ASHRAE_Standard_140'
       sum_component_htg_loads = results.select { |k, v| k.start_with? 'Component Load: Heating:' }.map { |k, v| v }.sum(0.0)
       sum_component_clg_loads = results.select { |k, v| k.start_with? 'Component Load: Cooling:' }.map { |k, v| v }.sum(0.0)
-      residual_htg_load = results['Load: Heating: Delivered (MBtu)'] - sum_component_htg_loads
-      residual_clg_load = results['Load: Cooling: Delivered (MBtu)'] - sum_component_clg_loads
-      assert_operator(residual_htg_load.abs, :<, 0.6)
-      assert_operator(residual_clg_load.abs, :<, 0.6)
+      total_htg_load = results['Load: Heating: Delivered (MBtu)']
+      total_clg_load = results['Load: Cooling: Delivered (MBtu)']
+      abs_htg_load_delta = (total_htg_load - sum_component_htg_loads).abs
+      abs_clg_load_delta = (total_clg_load - sum_component_clg_loads).abs
+      avg_htg_load = ([total_htg_load, abs_htg_load_delta].sum / 2.0)
+      avg_clg_load = ([total_htg_load, abs_htg_load_delta].sum / 2.0)
+      abs_htg_load_frac = abs_htg_load_delta / avg_htg_load
+      abs_clg_load_frac = abs_clg_load_delta / avg_clg_load
+      # Check that the difference is less than 0.6MBtu or less than 10%
+      assert((abs_htg_load_delta < 0.6) || (abs_htg_load_frac < 0.1))
+      assert((abs_clg_load_delta < 0.6) || (abs_clg_load_frac < 0.1))
     end
 
     return results
@@ -549,6 +559,8 @@ class HPXMLTest < MiniTest::Test
   def _verify_outputs(rundir, hpxml_path, results, hpxml)
     assert(File.exist? File.join(rundir, 'eplusout.msgpack'))
 
+    sqlFile = OpenStudio::SqlFile.new(File.join(rundir, 'eplusout.sql'), false)
+
     # Collapse windows further using same logic as measure.rb
     hpxml.windows.each do |window|
       window.fraction_operable = nil
@@ -641,8 +653,9 @@ class HPXMLTest < MiniTest::Test
       next if err_line.include? 'Schedule:Constant="ALWAYS ON CONTINUOUS", Blank Schedule Type Limits Name input'
       next if err_line.include? 'Schedule:Constant="ALWAYS OFF DISCRETE", Blank Schedule Type Limits Name input'
       next if err_line.include? 'Entered Zone Volumes differ from calculated zone volume'
+      next if err_line.include? 'PerformancePrecisionTradeoffs: Carroll MRT radiant exchange method is selected.'
       next if err_line.include?('CalculateZoneVolume') && err_line.include?('not fully enclosed')
-      next if err_line.include?('GetInputViewFactors') && err_line.include?('not enough values')
+      next if err_line.include? 'do not define an enclosure'
       next if err_line.include? 'Pump nominal power or motor efficiency is set to 0'
       next if err_line.include? 'volume flow rate per watt of rated total cooling capacity is out of range'
       next if err_line.include? 'volume flow rate per watt of rated total heating capacity is out of range'
@@ -663,13 +676,14 @@ class HPXMLTest < MiniTest::Test
       next if err_line.include? 'Full load outlet temperature indicates a possibility of frost/freeze error continues.'
       next if err_line.include? 'Air-cooled condenser inlet dry-bulb temperature below 0 C.'
       next if err_line.include? 'Low condenser dry-bulb temperature error continues.'
-      next if err_line.include? 'Coil control failed to converge for AirLoopHVAC:UnitarySystem'
-      next if err_line.include? 'Coil control failed for AirLoopHVAC:UnitarySystem'
+      next if err_line.include? 'Coil control failed'
       next if err_line.include? 'sensible part-load ratio out of range error continues'
       next if err_line.include? 'Iteration limit exceeded in calculating sensible part-load ratio error continues'
       next if err_line.include?('setupIHGOutputs: Output variables=Zone Other Equipment') && err_line.include?('are not available.')
       next if err_line.include?('setupIHGOutputs: Output variables=Space Other Equipment') && err_line.include?('are not available')
       next if err_line.include? 'Actual air mass flow rate is smaller than 25% of water-to-air heat pump coil rated air flow rate.' # FUTURE: Remove this when https://github.com/NREL/EnergyPlus/issues/9125 is resolved
+      next if err_line.include? 'DetailedSkyDiffuseModeling is chosen but not needed as either the shading transmittance for shading devices does not change throughout the year'
+      next if err_line.include? 'View factors not complete'
 
       if err_line.include? 'Output:Meter: invalid Key Name'
         next if skip_utility_bill_warning(err_line)
@@ -747,6 +761,77 @@ class HPXMLTest < MiniTest::Test
     assert_equal(0, num_invalid_output_meters)
     assert_equal(0, num_invalid_output_variables)
 
+    # Timestep
+    timestep = hpxml.header.timestep
+    if timestep.nil?
+      timestep = 60
+    end
+    query = 'SELECT NumTimestepsPerHour FROM Simulations'
+    sql_value = sqlFile.execAndReturnFirstDouble(query).get
+    assert_equal(60 / timestep, sql_value)
+
+    # Conditioned Floor Area
+    if (hpxml.total_fraction_cool_load_served > 0) || (hpxml.total_fraction_heat_load_served > 0) # EnergyPlus will only report conditioned floor area if there is an HVAC system
+      hpxml_value = hpxml.building_construction.conditioned_floor_area
+      if hpxml.has_location(HPXML::LocationCrawlspaceConditioned)
+        hpxml_value += hpxml.slabs.select { |s| s.interior_adjacent_to == HPXML::LocationCrawlspaceConditioned }.map { |s| s.area }.sum
+      end
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='InputVerificationandResultsSummary' AND ReportForString='Entire Facility' AND TableName='Zone Summary' AND RowName='Conditioned Total' AND ColumnName='Area' AND Units='m2'"
+      sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
+    end
+
+    # Enclosure Roofs
+    hpxml.roofs.each do |roof|
+      roof_id = roof.id.upcase
+
+      # R-value
+      hpxml_value = roof.insulation_assembly_r_value
+      if hpxml_path.include? 'ASHRAE_Standard_140'
+        # Compare R-value w/o film
+        hpxml_value -= Material.AirFilmRoofASHRAE140.rvalue
+        hpxml_value -= Material.AirFilmOutsideASHRAE140.rvalue
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
+      else
+        # Compare R-value w/ film
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
+      end
+      sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
+
+      # Net area
+      hpxml_value = roof.area
+      hpxml.skylights.each do |subsurface|
+        next if subsurface.roof_idref.upcase != roof_id
+
+        hpxml_value -= subsurface.area
+      end
+      query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='Net Area' AND Units='m2'"
+      sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
+      assert_operator(sql_value, :>, 0.01)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
+
+      # Solar absorptance
+      hpxml_value = roof.solar_absorptance
+      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='Reflectance'"
+      sql_value = 1.0 - sqlFile.execAndReturnFirstDouble(query).get
+      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+
+      # Tilt
+      hpxml_value = UnitConversions.convert(Math.atan(roof.pitch / 12.0), 'rad', 'deg')
+      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='Tilt' AND Units='deg'"
+      sql_value = sqlFile.execAndReturnFirstDouble(query).get
+      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+
+      # Azimuth
+      next unless (not roof.azimuth.nil?) && (Float(roof.pitch) > 0)
+
+      hpxml_value = roof.azimuth
+      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND (RowName='#{roof_id}' OR RowName LIKE '#{roof_id}:%') AND ColumnName='Azimuth' AND Units='deg'"
+      sql_value = sqlFile.execAndReturnFirstDouble(query).get
+      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+    end
+
     # Enclosure Foundations
     # Ensure Kiva instances have perimeter fraction of 1.0 as we explicitly define them to end up this way.
     num_kiva_instances = 0
@@ -760,6 +845,8 @@ class HPXMLTest < MiniTest::Test
     end
 
     if hpxml_path.include? 'ASHRAE_Standard_140'
+      # nop
+    elsif hpxml_path.include? 'real_homes'
       # nop
     elsif hpxml_path.include? 'base-bldgtype-multifamily'
       assert_equal(0, num_kiva_instances)                                                # no foundation, above dwelling unit
@@ -779,6 +866,312 @@ class HPXMLTest < MiniTest::Test
       else
         assert_equal(1, num_kiva_instances)
       end
+    end
+
+    # Enclosure Foundation Slabs
+    num_slabs = hpxml.slabs.size
+    if (num_slabs <= 1) && (num_kiva_instances <= 1) # The slab surfaces may be combined in these situations, so skip tests
+      hpxml.slabs.each do |slab|
+        slab_id = slab.id.upcase
+
+        # Exposed Area
+        hpxml_value = Float(slab.area)
+        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{slab_id}' AND ColumnName='Gross Area' AND Units='m2'"
+        sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
+        assert_operator(sql_value, :>, 0.01)
+        assert_in_epsilon(hpxml_value, sql_value, 0.1)
+
+        # Tilt
+        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='Opaque Exterior' AND RowName='#{slab_id}' AND ColumnName='Tilt' AND Units='deg'"
+        sql_value = sqlFile.execAndReturnFirstDouble(query).get
+        assert_in_epsilon(180.0, sql_value, 0.01)
+      end
+    end
+
+    # Enclosure Walls/RimJoists/FoundationWalls
+    (hpxml.walls + hpxml.rim_joists + hpxml.foundation_walls).each do |wall|
+      wall_id = wall.id.upcase
+
+      if wall.is_adiabatic
+        # Adiabatic surfaces have their "BaseSurfaceIndex" as their "ExtBoundCond" in "Surfaces" table in SQL simulation results
+        query_base_surf_idx = "SELECT BaseSurfaceIndex FROM Surfaces WHERE SurfaceName='#{wall_id}'"
+        query_ext_bound = "SELECT ExtBoundCond FROM Surfaces WHERE SurfaceName='#{wall_id}'"
+        sql_value_base_surf_idx = sqlFile.execAndReturnFirstDouble(query_base_surf_idx).get
+        sql_value_ext_bound_cond = sqlFile.execAndReturnFirstDouble(query_ext_bound).get
+        assert_equal(sql_value_base_surf_idx, sql_value_ext_bound_cond)
+      end
+
+      if wall.is_exterior
+        table_name = 'Opaque Exterior'
+      else
+        table_name = 'Opaque Interior'
+      end
+
+      # R-value
+      if (not wall.insulation_assembly_r_value.nil?) && (not wall.is_a? HPXML::FoundationWall) # FoundationWalls use Foundation:Kiva for insulation
+        hpxml_value = wall.insulation_assembly_r_value
+        if hpxml_path.include? 'ASHRAE_Standard_140'
+          # Compare R-value w/o film
+          hpxml_value -= Material.AirFilmVerticalASHRAE140.rvalue
+          if wall.is_exterior
+            hpxml_value -= Material.AirFilmOutsideASHRAE140.rvalue
+          else
+            hpxml_value -= Material.AirFilmVerticalASHRAE140.rvalue
+          end
+          query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
+        elsif wall.is_interior
+          # Compare R-value w/o film
+          hpxml_value -= Material.AirFilmVertical.rvalue
+          hpxml_value -= Material.AirFilmVertical.rvalue
+          query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
+        else
+          # Compare R-value w/ film
+          query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
+        end
+        sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
+        assert_in_epsilon(hpxml_value, sql_value, 0.1)
+      end
+
+      # Net area
+      hpxml_value = wall.area
+      (hpxml.windows + hpxml.doors).each do |subsurface|
+        next if subsurface.wall_idref.upcase != wall_id
+
+        hpxml_value -= subsurface.area
+      end
+      if wall.exterior_adjacent_to == HPXML::LocationGround
+        # Calculate total length of walls
+        wall_total_length = 0
+        hpxml.foundation_walls.each do |foundation_wall|
+          next unless foundation_wall.exterior_adjacent_to == HPXML::LocationGround
+          next unless wall.interior_adjacent_to == foundation_wall.interior_adjacent_to
+
+          wall_total_length += foundation_wall.area / foundation_wall.height
+        end
+
+        # Calculate total slab exposed perimeter
+        slab_exposed_length = 0
+        hpxml.slabs.each do |slab|
+          next unless wall.interior_adjacent_to == slab.interior_adjacent_to
+
+          slab_exposed_length += slab.exposed_perimeter
+        end
+
+        # Calculate exposed foundation wall area
+        if slab_exposed_length < wall_total_length
+          hpxml_value *= (slab_exposed_length / wall_total_length)
+        end
+      end
+      if (hpxml.foundation_walls.include? wall) && (not wall.is_exterior)
+        # interzonal foundation walls: only above-grade portion modeled
+        hpxml_value *= (wall.height - wall.depth_below_grade) / wall.height
+      end
+      if wall.is_exterior
+        query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%' OR RowName LIKE '#{wall_id} %') AND ColumnName='Net Area' AND Units='m2'"
+      else
+        query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Net Area' AND Units='m2'"
+      end
+      sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
+      assert_operator(sql_value, :>, 0.01)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
+
+      # Solar absorptance
+      if wall.respond_to?(:solar_absorptance) && (not wall.solar_absorptance.nil?)
+        hpxml_value = wall.solar_absorptance
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Reflectance'"
+        sql_value = 1.0 - sqlFile.execAndReturnFirstDouble(query).get
+        assert_in_epsilon(hpxml_value, sql_value, 0.01)
+      end
+
+      # Tilt
+      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Tilt' AND Units='deg'"
+      sql_value = sqlFile.execAndReturnFirstDouble(query).get
+      assert_in_epsilon(90.0, sql_value, 0.01)
+
+      # Azimuth
+      next if wall.azimuth.nil?
+
+      hpxml_value = wall.azimuth
+      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND (RowName='#{wall_id}' OR RowName LIKE '#{wall_id}:%') AND ColumnName='Azimuth' AND Units='deg'"
+      sql_value = sqlFile.execAndReturnFirstDouble(query).get
+      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+    end
+
+    # Enclosure FrameFloors
+    hpxml.frame_floors.each do |frame_floor|
+      frame_floor_id = frame_floor.id.upcase
+
+      if frame_floor.is_adiabatic
+        # Adiabatic surfaces have their "BaseSurfaceIndex" as their "ExtBoundCond" in "Surfaces" table in SQL simulation results
+        query_base_surf_idx = "SELECT BaseSurfaceIndex FROM Surfaces WHERE SurfaceName='#{frame_floor_id}'"
+        query_ext_bound = "SELECT ExtBoundCond FROM Surfaces WHERE SurfaceName='#{frame_floor_id}'"
+        sql_value_base_surf_idx = sqlFile.execAndReturnFirstDouble(query_base_surf_idx).get
+        sql_value_ext_bound_cond = sqlFile.execAndReturnFirstDouble(query_ext_bound).get
+        assert_equal(sql_value_base_surf_idx, sql_value_ext_bound_cond)
+      end
+
+      if frame_floor.is_exterior
+        table_name = 'Opaque Exterior'
+      else
+        table_name = 'Opaque Interior'
+      end
+
+      # R-value
+      hpxml_value = frame_floor.insulation_assembly_r_value
+      if hpxml_path.include? 'ASHRAE_Standard_140'
+        # Compare R-value w/o film
+        if frame_floor.is_exterior # Raised floor
+          hpxml_value -= Material.AirFilmFloorASHRAE140.rvalue
+          hpxml_value -= Material.AirFilmFloorZeroWindASHRAE140.rvalue
+        elsif frame_floor.is_ceiling # Attic floor
+          hpxml_value -= Material.AirFilmFloorASHRAE140.rvalue
+          hpxml_value -= Material.AirFilmFloorASHRAE140.rvalue
+        end
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
+      elsif frame_floor.is_interior
+        # Compare R-value w/o film
+        if frame_floor.is_ceiling
+          hpxml_value -= Material.AirFilmFloorAverage.rvalue
+          hpxml_value -= Material.AirFilmFloorAverage.rvalue
+        else
+          hpxml_value -= Material.AirFilmFloorReduced.rvalue
+          hpxml_value -= Material.AirFilmFloorReduced.rvalue
+        end
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='U-Factor no Film' AND Units='W/m2-K'"
+      else
+        # Compare R-value w/ film
+        query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='U-Factor with Film' AND Units='W/m2-K'"
+      end
+      sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
+
+      # Area
+      hpxml_value = frame_floor.area
+      query = "SELECT SUM(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='Net Area' AND Units='m2'"
+      sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
+      assert_operator(sql_value, :>, 0.01)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
+
+      # Tilt
+      if frame_floor.is_ceiling
+        hpxml_value = 0
+      else
+        hpxml_value = 180
+      end
+      query = "SELECT AVG(Value) FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{frame_floor_id}' AND ColumnName='Tilt' AND Units='deg'"
+      sql_value = sqlFile.execAndReturnFirstDouble(query).get
+      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+    end
+
+    # Enclosure Windows/Skylights
+    (hpxml.windows + hpxml.skylights).each do |subsurface|
+      subsurface_id = subsurface.id.upcase
+
+      if subsurface.is_exterior
+        table_name = 'Exterior Fenestration'
+      else
+        table_name = 'Interior Door'
+      end
+
+      # Area
+      if subsurface.is_exterior
+        col_name = 'Area of Multiplied Openings'
+      else
+        col_name = 'Gross Area'
+      end
+      hpxml_value = subsurface.area
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='#{col_name}' AND Units='m2'"
+      sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
+      assert_operator(sql_value, :>, 0.01)
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
+
+      # U-Factor
+      if subsurface.is_exterior
+        col_name = 'Glass U-Factor'
+      else
+        col_name = 'U-Factor no Film'
+      end
+      hpxml_value = Constructions.get_ufactor_shgc_adjusted_by_storms(subsurface.storm_type, subsurface.ufactor, subsurface.shgc)[0]
+      if subsurface.is_interior
+        hpxml_value = 1.0 / (1.0 / hpxml_value - Material.AirFilmVertical.rvalue)
+        hpxml_value = 1.0 / (1.0 / hpxml_value - Material.AirFilmVertical.rvalue)
+      end
+      if subsurface.is_a? HPXML::Skylight
+        hpxml_value /= 1.2 # converted to the 20-deg slope from the vertical position by multiplying the tested value at vertical
+      end
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='#{col_name}' AND Units='W/m2-K'"
+      sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
+      assert_in_epsilon(hpxml_value, sql_value, 0.02)
+
+      next unless subsurface.is_exterior
+
+      # SHGC
+      hpxml_value = Constructions.get_ufactor_shgc_adjusted_by_storms(subsurface.storm_type, subsurface.ufactor, subsurface.shgc)[1]
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Glass SHGC'"
+      sql_value = sqlFile.execAndReturnFirstDouble(query).get
+      assert_in_delta(hpxml_value, sql_value, 0.01)
+
+      # Azimuth
+      hpxml_value = subsurface.azimuth
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Azimuth' AND Units='deg'"
+      sql_value = sqlFile.execAndReturnFirstDouble(query).get
+      assert_in_epsilon(hpxml_value, sql_value, 0.01)
+
+      # Tilt
+      if subsurface.respond_to? :wall_idref
+        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Tilt' AND Units='deg'"
+        sql_value = sqlFile.execAndReturnFirstDouble(query).get
+        assert_in_epsilon(90.0, sql_value, 0.01)
+      elsif subsurface.respond_to? :roof_idref
+        hpxml_value = nil
+        hpxml.roofs.each do |roof|
+          next if roof.id != subsurface.roof_idref
+
+          hpxml_value = UnitConversions.convert(Math.atan(roof.pitch / 12.0), 'rad', 'deg')
+        end
+        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{subsurface_id}' AND ColumnName='Tilt' AND Units='deg'"
+        sql_value = sqlFile.execAndReturnFirstDouble(query).get
+        assert_in_epsilon(hpxml_value, sql_value, 0.01)
+      else
+        flunk "Subsurface '#{subsurface_id}' should have either AttachedToWall or AttachedToRoof element."
+      end
+    end
+
+    # Enclosure Doors
+    hpxml.doors.each do |door|
+      door_id = door.id.upcase
+
+      if door.wall.is_exterior
+        table_name = 'Exterior Door'
+      else
+        table_name = 'Interior Door'
+      end
+
+      # Area
+      if not door.area.nil?
+        hpxml_value = door.area
+        query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='Gross Area' AND Units='m2'"
+        sql_value = UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'm^2', 'ft^2')
+        assert_operator(sql_value, :>, 0.01)
+        assert_in_epsilon(hpxml_value, sql_value, 0.1)
+      end
+
+      # R-Value
+      next if door.r_value.nil?
+
+      if door.is_exterior
+        col_name = 'U-Factor with Film'
+      else
+        col_name = 'U-Factor no Film'
+      end
+      hpxml_value = door.r_value
+      if door.is_interior
+        hpxml_value -= Material.AirFilmVertical.rvalue
+        hpxml_value -= Material.AirFilmVertical.rvalue
+      end
+      query = "SELECT Value FROM TabularDataWithStrings WHERE ReportName='EnvelopeSummary' AND ReportForString='Entire Facility' AND TableName='#{table_name}' AND RowName='#{door_id}' AND ColumnName='#{col_name}' AND Units='W/m2-K'"
+      sql_value = 1.0 / UnitConversions.convert(sqlFile.execAndReturnFirstDouble(query).get, 'W/(m^2*K)', 'Btu/(hr*ft^2*F)')
+      assert_in_epsilon(hpxml_value, sql_value, 0.1)
     end
 
     # HVAC Load Fractions
@@ -828,6 +1221,26 @@ class HPXMLTest < MiniTest::Test
         # Maximum error that can be caused by rounding
         assert_in_delta(mv_energy, fan_gj, 0.006)
       end
+    end
+
+    tabular_map = { HPXML::ClothesWasher => Constants.ObjectNameClothesWasher,
+                    HPXML::ClothesDryer => Constants.ObjectNameClothesDryer,
+                    HPXML::Refrigerator => Constants.ObjectNameRefrigerator,
+                    HPXML::Dishwasher => Constants.ObjectNameDishwasher,
+                    HPXML::CookingRange => Constants.ObjectNameCookingRange }
+
+    (hpxml.clothes_washers + hpxml.clothes_dryers + hpxml.refrigerators + hpxml.dishwashers + hpxml.cooking_ranges).each do |appliance|
+      next unless hpxml.water_heating_systems.size > 0
+
+      # Location
+      hpxml_value = appliance.location
+      if hpxml_value.nil? || HPXML::conditioned_locations.include?(hpxml_value) || [HPXML::LocationOtherHeatedSpace, HPXML::LocationOtherMultifamilyBufferSpace, HPXML::LocationOtherNonFreezingSpace].include?(hpxml_value)
+        hpxml_value = HPXML::LocationLivingSpace
+      end
+      tabular_value = tabular_map[appliance.class]
+      query = "SELECT Value FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Zone Name' AND RowName=(SELECT RowName FROM TabularDataWithStrings WHERE TableName='ElectricEquipment Internal Gains Nominal' AND ColumnName='Name' AND Value='#{tabular_value.upcase}')"
+      sql_value = sqlFile.execAndReturnFirstString(query).get
+      assert_equal(hpxml_value.upcase, sql_value)
     end
 
     # Lighting
@@ -922,6 +1335,12 @@ class HPXMLTest < MiniTest::Test
       assert_operator(unmet_hours_htg, :<, 350)
       assert_operator(unmet_hours_clg, :<, 350)
     end
+
+    sqlFile.close
+
+    # Ensure sql file is immediately freed; otherwise we can get
+    # errors on Windows when trying to delete this file.
+    GC.start()
   end
 
   def _write_summary_results(results, csv_out)
