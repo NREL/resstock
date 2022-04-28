@@ -999,6 +999,18 @@ class Schedule
     return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
   end
 
+  def self.SleepWeekdayFractions
+    return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0'
+  end
+
+  def self.SleepWeekendFractions
+    return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0'
+  end
+
+  def self.SleepMonthlyMultipliers
+    return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  end
+
   def self.get_day_num_from_month_day(year, month, day)
     # Returns a value between 1 and 365 (or 366 for a leap year)
     # Returns e.g. 32 for month=2 and day=1 (Feb 1)
@@ -1135,6 +1147,9 @@ class SchedulesFile
   ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
   ColumnHotWaterFixtures = 'hot_water_fixtures'
   ColumnVacancy = 'vacancy'
+  ColumnSleep = 'sleep'
+  ColumnHeatingSetpoint = 'heating_setpoint'
+  ColumnCoolingSetpoint = 'cooling_setpoint'
 
   def initialize(runner: nil,
                  model: nil,
@@ -1393,7 +1408,7 @@ class SchedulesFile
   end
 
   def self.ColumnNames
-    return SchedulesFile.OccupancyColumnNames
+    return SchedulesFile.OccupancyColumnNames + SchedulesFile.SetpointColumnNames
   end
 
   def self.OccupancyColumnNames
@@ -1428,6 +1443,19 @@ class SchedulesFile
     ]
   end
 
+  def self.SetpointColumnNames
+    return [
+      ColumnHeatingSetpoint,
+      ColumnCoolingSetpoint
+    ]
+  end
+
+  def self.ExtraColumnNames
+    return [
+      ColumnSleep
+    ]
+  end
+
   def affected_by_vacancy
     affected_by_vacancy = {}
     column_names = SchedulesFile.ColumnNames
@@ -1439,7 +1467,9 @@ class SchedulesFile
                    ColumnPoolPump,
                    ColumnPoolHeater,
                    ColumnHotTubPump,
-                   ColumnHotTubHeater].include? column_name
+                   ColumnHotTubHeater,
+                   ColumnHeatingSetpoint,
+                   ColumnCoolingSetpoint].include? column_name
 
       affected_by_vacancy[column_name] = false
     end
@@ -1451,6 +1481,9 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       max_value_one[column_name] = true
+      if [ColumnHeatingSetpoint, ColumnCoolingSetpoint].include? column_name
+        max_value_one[column_name] = false
+      end
     end
     return max_value_one
   end
@@ -1460,6 +1493,9 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       min_value_zero[column_name] = true
+      if [ColumnHeatingSetpoint, ColumnCoolingSetpoint].include? column_name
+        min_value_zero[column_name] = false
+      end
     end
     return min_value_zero
   end

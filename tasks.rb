@@ -370,6 +370,9 @@ def create_hpxmls
     'base-pv-battery-lifetime-model.xml' => 'base-pv-battery.xml',
     'base-pv-battery-garage.xml' => 'base-enclosure-garage.xml',
     'base-schedules-simple.xml' => 'base.xml',
+    'base-schedules-detailed-setpoints-offsets.xml' => 'base.xml',
+    'base-schedules-detailed-setpoints-daily-schedules.xml' => 'base-hvac-setpoints-daily-schedules.xml',
+    'base-schedules-detailed-setpoints-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
     'base-schedules-detailed-smooth.xml' => 'base.xml',
     'base-schedules-detailed-stochastic.xml' => 'base.xml',
     'base-schedules-detailed-stochastic-vacancy.xml' => 'base.xml',
@@ -2457,6 +2460,28 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic-10-mins.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-setpoints-offsets.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'smooth'
+    sch_args['heating_setpoint_offset_nighttime'] = 1
+    sch_args['heating_setpoint_offset_daytime_unoccupied'] = 2
+    sch_args['cooling_setpoint_offset_nighttime'] = 3
+    sch_args['cooling_setpoint_offset_daytime_unoccupied'] = 4
+    sch_args['setpoint_output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-offsets.csv'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-setpoints-daily-schedules.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'smooth'
+    sch_args['setpoint_output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-daily-schedules.csv'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-setpoints-10-mins.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'smooth'
+    sch_args['setpoint_output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-10-mins.csv'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/smooth-10-mins.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   end
 end

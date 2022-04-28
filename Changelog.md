@@ -1,6 +1,8 @@
 ## OpenStudio-HPXML v1.4.0
 __New Features__
 - Updates to OpenStudio 3.4.0/EnergyPlus 22.1.
+- Expanded capabilities for scheduling:
+  - Allows modeling detailed HVAC setpoints via a schedule CSV file.
 - Allows calculating one or more emissions scenarios (e.g., high renewable penetration vs business as usual) for different emissions types (e.g., CO2e).
 - Allows a heat pump separate backup system to be a central system (e.g., central furnace w/ ducts). Previously only non-central system types were allowed.
 - **Breaking change**: Replaces the `UseMaxLoadForHeatPumps` sizing option with `HeatPumpSizingMethodology`, which has three choices:
@@ -27,6 +29,8 @@ __New Features__
   - Adds an optional argument to store additional custom properties in the HPXML file.
   - Adds an optional argument for whether the HPXML file is written with default values applied; defaults to false.
   - Adds an optional argument for whether the HPXML file is validated; defaults to false.
+- BuildResidentialScheduleFile:
+  - Adds optional arguments for offsetting heating/cooling setpoint schedules during nighttime and daytime unoccupied hours.
 - ReportSimulationOutput measure:
   - **Breaking change**: New "End Use: \<Fuel\>: Heating Heat Pump Backup" output, disaggregated from "End Use: \<Fuel\>: Heating".
   - Adds "Energy Use: Total" and "Energy Use: Net" columns to the annual results output file; allows timeseries outputs.

@@ -28,6 +28,7 @@ class ScheduleGenerator
     @total_days_in_year = total_days_in_year
     @sim_year = sim_year
     @sim_start_day = sim_start_day
+    @debug = false
   end
 
   def get_random_seed
@@ -44,11 +45,9 @@ class ScheduleGenerator
   def initialize_schedules
     @schedules = {}
 
-    SchedulesFile.OccupancyColumnNames.each do |col_name|
+    (SchedulesFile.OccupancyColumnNames + SchedulesFile.ExtraColumnNames).each do |col_name|
       @schedules[col_name] = Array.new(@total_days_in_year * @steps_in_day, 0.0)
     end
-
-    return @schedules
   end
 
   def schedules
@@ -66,10 +65,69 @@ class ScheduleGenerator
       return false if not success
     end
 
+    if args[:setpoint_schedules]
+      success = create_setpoint_schedules(args: args)
+      return false if not success
+    end
+
     success = set_vacancy(args: args)
     return false if not success
 
     return true
+  end
+
+  def create_setpoint_schedules(args:)
+    setpoint_schedules = {}
+
+    setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint] = []
+    setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint] = []
+
+    (0...@total_days_in_year).to_a.each_with_index do |day, i|
+      today = @sim_start_day + day
+      day_of_week = today.wday
+      if [0, 6].include?(day_of_week) # weekend
+        setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint] << args[:htg_weekend_setpoints][i].map { |x| UnitConversions.convert(x, 'C', 'F') }
+        setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint] << args[:clg_weekend_setpoints][i].map { |x| UnitConversions.convert(x, 'C', 'F') }
+      else # weekday
+        setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint] << args[:htg_weekday_setpoints][i].map { |x| UnitConversions.convert(x, 'C', 'F') }
+        setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint] << args[:clg_weekday_setpoints][i].map { |x| UnitConversions.convert(x, 'C', 'F') }
+      end
+    end
+
+    setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint] = create_timeseries_from_hours(schedule: setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint].flatten)
+    setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint] = create_timeseries_from_hours(schedule: setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint].flatten)
+
+    if !args[:htg_offset_nighttime].nil? || !args[:clg_offset_nighttime].nil? || !args[:htg_offset_daytime_unocc].nil? || !args[:clg_offset_daytime_unocc].nil?
+      @schedules[SchedulesFile::ColumnSleep].each_with_index do |sleep, i|
+        if sleep > 0 # nighttime
+          setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint][i] -= args[:htg_offset_nighttime] unless args[:htg_offset_nighttime].nil?
+          setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint][i] += args[:clg_offset_nighttime] unless args[:clg_offset_nighttime].nil?
+        else # daytime
+          if @schedules[SchedulesFile::ColumnOccupants][i] == 0 # unoccupied
+            setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint][i] -= args[:htg_offset_daytime_unocc] unless args[:htg_offset_daytime_unocc].nil?
+            setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint][i] += args[:clg_offset_daytime_unocc] unless args[:clg_offset_daytime_unocc].nil?
+          end
+        end
+      end
+    end
+
+    # back to C
+    setpoint_schedules.each do |schedule, values|
+      setpoint_schedules[schedule] = setpoint_schedules[schedule].map { |x| UnitConversions.convert(x, 'F', 'C') }
+    end
+
+    setpoint_output_csv_path = args[:setpoint_output_csv_path].get
+    unless (Pathname.new setpoint_output_csv_path).absolute?
+      setpoint_output_csv_path = File.expand_path(File.join(File.dirname(args[:hpxml_output_path]), setpoint_output_csv_path))
+    end
+
+    CSV.open(setpoint_output_csv_path, 'w') do |csv|
+      csv << setpoint_schedules.keys
+      rows = setpoint_schedules.values.transpose
+      rows.each do |row|
+        csv << row.map { |x| '%.3g' % x }
+      end
+    end
   end
 
   def create_average_schedules
@@ -98,6 +156,7 @@ class ScheduleGenerator
     create_average_pool_heater
     create_average_hot_tub_pump
     create_average_hot_tub_heater
+    create_average_sleep
   end
 
   def create_average_occupants
@@ -203,6 +262,10 @@ class ScheduleGenerator
     create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHotTubHeater, weekday_sch: Schedule.HotTubHeaterWeekdayFractions, weekend_sch: Schedule.HotTubHeaterWeekendFractions, monthly_sch: Schedule.HotTubHeaterMonthlyMultipliers)
   end
 
+  def create_average_sleep
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnSleep, weekday_sch: Schedule.SleepWeekdayFractions, weekend_sch: Schedule.SleepWeekendFractions, monthly_sch: Schedule.SleepMonthlyMultipliers)
+  end
+
   def create_timeseries_from_weekday_weekend_monthly(sch_name:,
                                                      weekday_sch:,
                                                      weekend_sch:,
@@ -261,6 +324,17 @@ class ScheduleGenerator
       end
     end
     @schedules[sch_name] = normalize(@schedules[sch_name])
+  end
+
+  def create_timeseries_from_hours(schedule:)
+    steps_per_hour = @steps_in_day / 24
+
+    timeseries = []
+    schedule.each do |value|
+      timeseries << [value] * steps_per_hour
+    end
+
+    return timeseries.flatten
   end
 
   def create_stochastic_schedules(args:)
@@ -358,6 +432,7 @@ class ScheduleGenerator
 
     holiday_lighting_schedule = get_holiday_lighting_sch(holiday_lighting_schedule)
 
+    sleep_schedule = []
     away_schedule = []
     idle_schedule = []
 
@@ -371,10 +446,10 @@ class ScheduleGenerator
       @steps_in_day.times do |step|
         minute = day * 1440 + step * @minutes_per_step
         index_15 = (minute / 15).to_i
-        sleep = sum_across_occupants(all_simulated_values, 0, index_15).to_f / args[:geometry_num_occupants]
+        sleep_schedule << sum_across_occupants(all_simulated_values, 0, index_15).to_f / args[:geometry_num_occupants]
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / args[:geometry_num_occupants]
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / args[:geometry_num_occupants]
-        active_occupancy_percentage = 1 - (away_schedule[-1] + sleep)
+        active_occupancy_percentage = 1 - (away_schedule[-1] + sleep_schedule[-1])
         @schedules[SchedulesFile::ColumnPlugLoadsOther][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::ColumnLightingInterior][day * @steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::ColumnLightingExterior][day * @steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
@@ -550,7 +625,7 @@ class ScheduleGenerator
     m = 0
     dw_flow_rate = gaussian_rand(prng, dw_flow_rate_mean, dw_flow_rate_std, 0)
 
-    # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
+    # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     # Fill in dw_water draw schedule
     step = 0
     while step < mkc_steps_in_a_year
@@ -589,7 +664,7 @@ class ScheduleGenerator
     cw_load_size_probability = schedule_config['hot_water_clothes_washer']['load_size_probability']
     m = 0
     cw_flow_rate = gaussian_rand(prng, cw_flow_rate_mean, cw_flow_rate_std, 0)
-    # States are: 'sleeping','shower','laundry','cooking', 'dishwashing', 'absent', 'nothingAtHome'
+    # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     step = 0
     # Fill in clothes washer water draw schedule based on markov-chain state 2 (laundry)
     while step < mkc_steps_in_a_year
@@ -772,6 +847,7 @@ class ScheduleGenerator
     @schedules[SchedulesFile::ColumnDishwasher] = dw_power_sch.map { |power| power / dw_peak_power }
 
     @schedules[SchedulesFile::ColumnOccupants] = away_schedule.map { |i| 1.0 - i }
+    @schedules[SchedulesFile::ColumnSleep] = sleep_schedule
 
     @schedules[SchedulesFile::ColumnHotWaterFixtures] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
     fixtures_peak_flow = @schedules[SchedulesFile::ColumnHotWaterFixtures].max
@@ -959,6 +1035,12 @@ class ScheduleGenerator
   end
 
   def export(schedules_path:)
+    if !@debug
+      SchedulesFile.ExtraColumnNames.each do |column_name|
+        @schedules.delete(column_name)
+      end
+    end
+
     CSV.open(schedules_path, 'w') do |csv|
       csv << @schedules.keys
       rows = @schedules.values.transpose

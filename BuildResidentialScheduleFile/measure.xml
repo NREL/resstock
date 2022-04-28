@@ -3,13 +3,13 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_schedule_file</name>
   <uid>f770b2db-1a9f-4e99-99a7-7f3161a594b1</uid>
-  <version_id>2e376082-e3c0-4514-a061-351a5af15752</version_id>
-  <version_modified>20220408T155837Z</version_modified>
+  <version_id>16f91c8a-b989-41ac-9c95-d8fb6bea3238</version_id>
+  <version_modified>20220418T211501Z</version_modified>
   <xml_checksum>03F02484</xml_checksum>
   <class_name>BuildResidentialScheduleFile</class_name>
   <display_name>Schedule File Builder</display_name>
   <description>Builds a residential schedule file.</description>
-  <modeler_description>Generates a CSV of schedules at the specified file path, and inserts the CSV schedule file path into the output HPXML file (or overwrites it if one already exists). Schedules corresponding to 'smooth' are average (e.g., Building America). Schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.</modeler_description>
+  <modeler_description>Generates CSV schedule(s) at the specified file path(s), and inserts the CSV schedule file path(s) into the output HPXML file (or overwrites it if one already exists). Occupancy schedules corresponding to 'smooth' are average (e.g., Building America). Occupancy schedules corresponding to 'stochastic' are generated using time-inhomogeneous Markov chains derived from American Time Use Survey data, and supplemented with sampling duration and power level from NEEA RBSA data as well as DHW draw duration and flow rate from Aquacraft/AWWA data.</modeler_description>
   <arguments>
     <argument>
       <name>hpxml_path</name>
@@ -21,7 +21,7 @@
     </argument>
     <argument>
       <name>schedules_type</name>
-      <display_name>Schedules: Type</display_name>
+      <display_name>Occupancy Schedules: Type</display_name>
       <description>The type of occupant-related schedules to use.</description>
       <type>Choice</type>
       <required>true</required>
@@ -40,7 +40,7 @@
     </argument>
     <argument>
       <name>schedules_vacancy_period</name>
-      <display_name>Schedules: Vacancy Period</display_name>
+      <display_name>Occupancy Schedules: Vacancy Period</display_name>
       <description>Specifies the vacancy period. Enter a date like "Dec 15 - Jan 15".</description>
       <type>String</type>
       <required>false</required>
@@ -48,7 +48,7 @@
     </argument>
     <argument>
       <name>schedules_random_seed</name>
-      <display_name>Schedules: Random Seed</display_name>
+      <display_name>Occupancy Schedules: Random Seed</display_name>
       <description>This numeric field is the seed for the random number generator. Only applies if the schedules type is 'stochastic'.</description>
       <type>Integer</type>
       <units>#</units>
@@ -57,16 +57,60 @@
     </argument>
     <argument>
       <name>output_csv_path</name>
-      <display_name>Schedules: Output CSV Path</display_name>
+      <display_name>Occupancy Schedules: Output CSV Path</display_name>
       <description>Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>heating_setpoint_offset_nighttime</name>
+      <display_name>Setpoint Schedules: Heating Setpoint Offset Nighttime</display_name>
+      <description>The magnitude of the heating setpoint offset (setpoint is lowered) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_setpoint_offset_daytime_unoccupied</name>
+      <display_name>Setpoint Schedules: Heating Setpoint Offset Daytime Unoccupied</display_name>
+      <description>The magnitude of the heating setpoint offset (setpoint is lowered) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_setpoint_offset_nighttime</name>
+      <display_name>Setpoint Schedules: Cooling Setpoint Offset Nighttime</display_name>
+      <description>The magnitude of the cooling setpoint offset (setpoint is raised) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_setpoint_offset_daytime_unoccupied</name>
+      <display_name>Setpoint Schedules: Cooling Setpoint Offset Daytime Unoccupied</display_name>
+      <description>The magnitude of the cooling setpoint offset (setpoint is raised) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>setpoint_output_csv_path</name>
+      <display_name>Setpoint Schedules: Output CSV Path</display_name>
+      <description>Absolute/relative path of the csv file containing setpoint schedules. Relative paths are relative to the HPXML output path.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
       <name>hpxml_output_path</name>
       <display_name>HPXML Output File Path</display_name>
-      <description>Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path.</description>
+      <description>Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path(s).</description>
       <type>String</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -875,13 +919,13 @@
       <filename>schedules.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>8C120082</checksum>
+      <checksum>881BEAE0</checksum>
     </file>
     <file>
       <filename>build_residential_schedule_file_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>C92DDF21</checksum>
+      <checksum>4DD8B8B2</checksum>
     </file>
     <file>
       <version>
@@ -892,7 +936,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>1CA7885B</checksum>
+      <checksum>FA5C419A</checksum>
     </file>
   </files>
 </measure>
