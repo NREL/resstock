@@ -294,7 +294,7 @@ class OSModel
     # Output
 
     add_loads_output(runner, model, spaces, add_component_loads)
-    add_output_control_files(runner, model)
+    set_output_files(runner, model)
     # Uncomment to debug EMS
     # add_ems_debug_output(runner, model)
 
@@ -2371,22 +2371,23 @@ class OSModel
     program_calling_manager.addProgram(program)
   end
 
-  def self.add_output_control_files(runner, model)
-    return if @debug
+  def self.set_output_files(runner, model)
+    oj = model.getOutputJSON
+    oj.setOptionType('TimeSeriesAndTabular')
+    oj.setOutputJSON(false)
+    oj.setOutputMessagePack(true)
 
-    # Disable various output files
     ocf = model.getOutputControlFiles
-    ocf.setOutputAUDIT(false)
-    ocf.setOutputBND(false)
-    ocf.setOutputEIO(false)
-    ocf.setOutputESO(false)
-    ocf.setOutputMDD(false)
-    ocf.setOutputMTD(false)
-    ocf.setOutputMTR(false)
-    ocf.setOutputRDD(false)
-    ocf.setOutputSHD(false)
-    ocf.setOutputTabular(false)
-    ocf.setOutputPerfLog(false)
+    ocf.setOutputAUDIT(@debug)
+    ocf.setOutputBND(@debug)
+    ocf.setOutputEIO(@debug)
+    ocf.setOutputESO(@debug)
+    ocf.setOutputMDD(@debug)
+    ocf.setOutputMTD(@debug)
+    ocf.setOutputMTR(@debug)
+    ocf.setOutputRDD(@debug)
+    ocf.setOutputSHD(@debug)
+    ocf.setOutputPerfLog(@debug)
   end
 
   def self.add_ems_debug_output(runner, model)

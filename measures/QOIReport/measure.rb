@@ -4,6 +4,7 @@
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
 require 'openstudio'
+require 'msgpack'
 require_relative 'resources/constants'
 
 # start the measure
@@ -133,35 +134,34 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
       return false
     end
 
-    sqlFile = runner.lastEnergyPlusSqlFile
-    if sqlFile.empty?
-      runner.registerError('Cannot find last sql file.')
-      return false
-    end
-    sqlFile = sqlFile.get
-    if not sqlFile.connectionOpen
-      runner.registerError('EnergyPlus simulation failed.')
-      return false
-    end
-    model.setSqlFile(sqlFile)
+    output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
 
     # Initialize timeseries hash
-    timeseries = { 'Temperature' => [] }
+    timeseries = { 'Temperature' => [],
+                   'total_site_electricity_kw' => [] }
 
-    temperature_query = "SELECT VariableValue FROM ReportVariableData WHERE ReportVariableDataDictionaryIndex IN (SELECT ReportVariableDataDictionaryIndex FROM ReportVariableDataDictionary WHERE VariableType='Avg' AND VariableName IN ('Site Outdoor Air Drybulb Temperature') AND ReportingFrequency='Hourly' AND VariableUnits='C') GROUP BY TimeIndex ORDER BY TimeIndex"
-    unless sqlFile.execAndReturnVectorOfDouble(temperature_query).get.empty?
-      temperatures = sqlFile.execAndReturnVectorOfDouble(temperature_query).get
-      temperatures.each do |val|
-        timeseries['Temperature'] << UnitConversions.convert(val, 'C', 'F')
-      end
+    if not File.exist? File.join(output_dir, 'eplusout.msgpack')
+      runner.registerError('Cannot find eplusout.msgpack.')
+      return false
     end
 
-    query_str = "SELECT VariableValue/1000000000 FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableType='Sum' AND VariableName IN ('Electricity:Facility') AND ReportingFrequency='Hourly' AND VariableUnits='J') GROUP BY TimeIndex ORDER BY TimeIndex"
-    electricity_total_end_uses = sqlFile.execAndReturnVectorOfDouble(query_str).get
+    # Outdoor temperatures
+    msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout_hourly.msgpack'), mode: 'rb'))
+    hourly_cols = msgpackData['Cols']
+    hourly_rows = msgpackData['Rows']
+    index = hourly_cols.each_index.select { |i| hourly_cols[i]['Variable'] == 'Environment:Site Outdoor Air Drybulb Temperature' }[0]
+    hourly_rows.each do |row|
+      timeseries['Temperature'] << UnitConversions.convert(row[row.keys[0]][index], 'C', 'F')
+    end
 
-    # ELECTRICITY
-
-    timeseries['total_site_electricity_kw'] = electricity_total_end_uses.map { |x| x * 1000000000.0 / (1000.0 * 3600.0) }
+    # Total electricity usages
+    msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack'), mode: 'rb'))
+    meter_cols = msgpackData['MeterData']['Hourly']['Cols']
+    meter_rows = msgpackData['MeterData']['Hourly']['Rows']
+    index = meter_cols.each_index.select { |i| meter_cols[i]['Variable'] == 'Electricity:Facility' }[0]
+    meter_rows.each do |row|
+      timeseries['total_site_electricity_kw'] << row[row.keys[0]][index] / (1000.0 * 3600.0)
+    end
 
     # Peak magnitude (1)
     report_sim_output(runner, 'qoi_peak_magnitude_use_kw', use(timeseries, [-1e9, 1e9], 'max'), '', '')
@@ -197,8 +197,6 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
       report_sim_output(runner, "qoi_average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour", average_daily_timing(timeseries, temperature_range, 'max', 10), '', '')
     end
-
-    sqlFile.close
 
     return true
   end
