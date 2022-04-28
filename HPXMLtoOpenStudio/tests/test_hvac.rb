@@ -25,7 +25,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
     clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
-    cop = 4.0 # Expected value
+    cop = 3.73 # Expected value
     assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
     assert_in_epsilon(capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01)
 
@@ -48,7 +48,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXMultiSpeeds.size)
     clg_coil = model.getCoilCoolingDXMultiSpeeds[0]
-    cops = [4.77, 4.42] # Expected values
+    cops = [4.95, 4.59] # Expected values
     cops.each_with_index do |cop, i|
       assert_in_epsilon(cop, clg_coil.stages[i].grossRatedCoolingCOP, 0.01)
     end
@@ -73,7 +73,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXMultiSpeeds.size)
     clg_coil = model.getCoilCoolingDXMultiSpeeds[0]
-    cops = [6.27, 6.50, 6.33, 5.86] # Expected values
+    cops = [6.57, 6.81, 6.63, 6.14] # Expected values
     cops.each_with_index do |cop, i|
       assert_in_epsilon(cop, clg_coil.stages[i].grossRatedCoolingCOP, 0.01)
     end
@@ -357,14 +357,14 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
     clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
-    cop = 4.0 # Expected value
+    cop = 3.73 # Expected value
     assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
     assert_in_epsilon(clg_capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01)
 
     # Check heating coil
     assert_equal(1, model.getCoilHeatingDXSingleSpeeds.size)
     htg_coil = model.getCoilHeatingDXSingleSpeeds[0]
-    cop = 3.37 # Expected value
+    cop = 3.28 # Expected value
     assert_in_epsilon(cop, htg_coil.ratedCOP, 0.01)
     assert_in_epsilon(htg_capacity, htg_coil.ratedTotalHeatingCapacity.get, 0.01)
 
@@ -396,7 +396,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXMultiSpeeds.size)
     clg_coil = model.getCoilCoolingDXMultiSpeeds[0]
-    cops = [4.77, 4.42] # Expected values
+    cops = [4.95, 4.59] # Expected values
     cops.each_with_index do |cop, i|
       assert_in_epsilon(cop, clg_coil.stages[i].grossRatedCoolingCOP, 0.01)
     end
@@ -405,7 +405,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check heating coil
     assert_equal(1, model.getCoilHeatingDXMultiSpeeds.size)
     htg_coil = model.getCoilHeatingDXMultiSpeeds[0]
-    cops = [4.46, 4.0] # Expected values
+    cops = [4.52, 4.08] # Expected values
     cops.each_with_index do |cop, i|
       assert_in_epsilon(cop, htg_coil.stages[i].grossRatedHeatingCOP, 0.01)
     end
@@ -439,7 +439,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXMultiSpeeds.size)
     clg_coil = model.getCoilCoolingDXMultiSpeeds[0]
-    cops = [5.68, 5.89, 5.73, 5.31] # Expected values
+    cops = [5.93, 6.15, 5.98, 5.54] # Expected values
     cops.each_with_index do |cop, i|
       assert_in_epsilon(cop, clg_coil.stages[i].grossRatedCoolingCOP, 0.01)
     end
@@ -448,7 +448,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check heating coil
     assert_equal(1, model.getCoilHeatingDXMultiSpeeds.size)
     htg_coil = model.getCoilHeatingDXMultiSpeeds[0]
-    cops = [5.54, 4.73, 4.00, 3.82] # Expected values
+    cops = [5.67, 4.84, 4.09, 3.91] # Expected values
     cops.each_with_index do |cop, i|
       assert_in_epsilon(cop, htg_coil.stages[i].grossRatedHeatingCOP, 0.01)
     end
@@ -583,7 +583,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
     clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
-    cop = 4.13 # Expected value
+    cop = 3.85 # Expected value
     assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
     refute_in_epsilon(capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01) # Uses autosized capacity
   end
@@ -600,7 +600,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
     clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
-    cop = 3.71 # Expected value
+    cop = 3.45 # Expected value
     assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
     refute_in_epsilon(capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01) # Uses autosized capacity
   end
@@ -617,7 +617,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
     clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
-    cop = 1.35 # Expected value
+    cop = 1.30 # Expected value
     assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
     refute_in_epsilon(capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01) # Uses autosized capacity
   end
@@ -634,7 +634,7 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Check cooling coil
     assert_equal(1, model.getCoilCoolingDXSingleSpeeds.size)
     clg_coil = model.getCoilCoolingDXSingleSpeeds[0]
-    cop = 3.98 # Expected value
+    cop = 3.68 # Expected value
     assert_in_epsilon(cop, clg_coil.ratedCOP.get, 0.01)
     refute_in_epsilon(capacity, clg_coil.ratedTotalCoolingCapacity.get, 0.01) # Uses autosized capacity
   end

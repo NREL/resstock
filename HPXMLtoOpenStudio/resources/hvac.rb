@@ -2984,13 +2984,16 @@ class HVAC
     if hvac_system.distribution_system.nil?
       # Ductless, installed and rated value should be equal
       hvac_ap.fan_power_rated = hvac_system.fan_watts_per_cfm # W/cfm
-    elsif (hvac_system.is_a?(HPXML::CoolingSystem) && (hvac_system.cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner)) ||
-          (hvac_system.is_a?(HPXML::HeatPump) && (hvac_system.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit))
-      hvac_ap.fan_power_rated = 0.18 # W/cfm
-    elsif hvac_system.cooling_efficiency_seer <= 15
-      hvac_ap.fan_power_rated = 0.365 # W/cfm
     else
-      hvac_ap.fan_power_rated = 0.14 # W/cfm
+      # Based on ASHRAE 1449-RP and recommended by Hugh Henderson
+      seer = hvac_system.cooling_efficiency_seer
+      if seer <= 14
+        hvac_ap.fan_power_rated = 0.25 # W/cfm
+      elsif seer >= 16
+        hvac_ap.fan_power_rated = 0.18 # W/cfm
+      else
+        hvac_ap.fan_power_rated = 0.25 + (0.18 - 0.25) * (seer - 14.0) / 2.0 # W/cfm
+      end
     end
   end
 

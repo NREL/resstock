@@ -20,6 +20,7 @@ __New Features__
 - Switches from EnergyPlus SQL output to MessagePack output for faster performance and reduced file sizes when requesting timeseries outputs.
 - Allows MessagePack annual/timeseries output files to be generated instead of CSV/JSON.
 - Switches from ScriptF to CarrollMRT radiant exchange algorithm.
+- Updates HVAC rated fan power assumption per ASHRAE 1449-RP.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Changes the zip code argument name to `site_zip_code`.
   - Adds support for ambient foundations for single-family attached and apartment units.
