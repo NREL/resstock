@@ -29,7 +29,7 @@ Basic Run
 | ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml``
 | This will create a "run" directory with all input/output files. By default it will be found at the same location as the input HPXML file.
 
-You can also request generation of timeseries output CSV/JSON files as part of the calculation by providing one or more timeseries flags (``--hourly``, ``--daily``, ``--monthly``, or ``--timestep``).
+You can also request generation of timeseries output CSV/JSON/MessagePack files as part of the calculation by providing one or more timeseries flags (``--hourly``, ``--daily``, ``--monthly``, or ``--timestep``).
 
 | For example, to request all possible hourly outputs in CSV format:
 | ``openstudio workflow/run_simulation.rb -x workflow/sample_files/base.xml --hourly ALL``
@@ -64,8 +64,8 @@ A template OSW that simply runs the HPXMLtoOpenStudio, ReportSimulationOutput, R
 Outputs
 ~~~~~~~
 
-A variety of high-level annual outputs are conveniently reported in the resulting ``run/results_annual.csv`` (or ``run/results_annual.json``) file.
+A variety of high-level annual outputs are conveniently reported in the resulting ``run/results_annual.csv`` (or ``run/results_annual.json`` or ``run/results_annual.msgpack``) file.
 
-When timeseries outputs are requested, they will be found in the ``run/results_timeseries.csv`` (or ``run/results_timeseries.json``) file.
+When timeseries outputs are requested, they will be found in the ``run/results_timeseries.csv`` (or ``run/results_timeseries.json`` or ``run/results_timeseries.msgpack``) file.
 
 See :ref:`workflow_outputs` for a description of all available outputs available.

@@ -145,7 +145,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
       end
       return false unless hpxml.errors.empty?
 
-      epw_path, cache_path = Location.process_weather(hpxml, runner, model, hpxml_path)
+      epw_path, cache_path = process_weather(hpxml, runner, model, hpxml_path)
 
       if debug
         epw_output_path = File.join(output_dir, 'in.epw')
@@ -160,6 +160,44 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     end
 
     return true
+  end
+
+  def process_weather(hpxml, runner, model, hpxml_path)
+    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
+
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist? epw_path
+      test_epw_path = File.join(File.dirname(__FILE__), '..', '..', 'weather', epw_path)
+      epw_path = test_epw_path if File.exist? test_epw_path
+    end
+    if not File.exist?(epw_path)
+      fail "'#{epw_path}' could not be found."
+    end
+
+    cache_path = epw_path.gsub('.epw', '-cache.csv')
+    if not File.exist?(cache_path)
+      # Process weather file to create cache .csv
+      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
+      epw_file = OpenStudio::EpwFile.new(epw_path)
+      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+      weather = WeatherProcess.new(model, runner)
+      begin
+        File.open(cache_path, 'wb') do |file|
+          weather.dump_to_csv(file)
+        end
+      rescue SystemCallError
+        runner.registerWarning("#{cache_path} could not be written, skipping.")
+      end
+    end
+
+    return epw_path, cache_path
   end
 end
 
@@ -256,7 +294,7 @@ class OSModel
     # Output
 
     add_loads_output(runner, model, spaces, add_component_loads)
-    add_output_control_files(runner, model)
+    set_output_files(runner, model)
     # Uncomment to debug EMS
     # add_ems_debug_output(runner, model)
 
@@ -1606,7 +1644,7 @@ class OSModel
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
     has_ceiling_fan = (@hpxml.ceiling_fans.size > 0)
 
-    HVAC.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, @heating_days, @cooling_days, @hpxml.header.sim_calendar_year, @schedules_file)
+    HVAC.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, @heating_days, @cooling_days, @hpxml.header.sim_calendar_year)
   end
 
   def self.add_ceiling_fans(runner, model, weather, spaces)
@@ -2333,22 +2371,23 @@ class OSModel
     program_calling_manager.addProgram(program)
   end
 
-  def self.add_output_control_files(runner, model)
-    return if @debug
+  def self.set_output_files(runner, model)
+    oj = model.getOutputJSON
+    oj.setOptionType('TimeSeriesAndTabular')
+    oj.setOutputJSON(false)
+    oj.setOutputMessagePack(true)
 
-    # Disable various output files
     ocf = model.getOutputControlFiles
-    ocf.setOutputAUDIT(false)
-    ocf.setOutputBND(false)
-    ocf.setOutputEIO(false)
-    ocf.setOutputESO(false)
-    ocf.setOutputMDD(false)
-    ocf.setOutputMTD(false)
-    ocf.setOutputMTR(false)
-    ocf.setOutputRDD(false)
-    ocf.setOutputSHD(false)
-    ocf.setOutputTabular(false)
-    ocf.setOutputPerfLog(false)
+    ocf.setOutputAUDIT(@debug)
+    ocf.setOutputBND(@debug)
+    ocf.setOutputEIO(@debug)
+    ocf.setOutputESO(@debug)
+    ocf.setOutputMDD(@debug)
+    ocf.setOutputMTD(@debug)
+    ocf.setOutputMTR(@debug)
+    ocf.setOutputRDD(@debug)
+    ocf.setOutputSHD(@debug)
+    ocf.setOutputPerfLog(@debug)
   end
 
   def self.add_ems_debug_output(runner, model)
