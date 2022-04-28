@@ -65,7 +65,7 @@ upgrades:
         costs:
           - value: #CHECK
             multiplier: 
-        lifetime: 999
+        lifetime: 999 #Note we are explicitly doing nothing to unvented attics, they are excluded everywhere
       - &attic_insulation_IECC_CZ2A-2B-3A-3B-3C
         option: Insulation Ceiling|R-49
         apply_logic:
@@ -248,17 +248,78 @@ upgrades:
       - *ducts_category6
       - *ducts_category7
       - *Drill-and-fill
-      #Add R-10 interior insulation to foundation walls and rim joists in conditioned basements and crawlspace; seal crawlspace vents
+      #Add R-10 interior insulation to foundation walls and rim joists in conditioned basements and crawlspace
+      - &foundation_wall_insulation #adding even if there is already exterior foundation wall insulation - is that what's wanted?
+        option: Insulation Foundation Wall|Wall R-10, Interior
+        apply_logic: #Is this right? I'm including vented crawlspaces since they will be sealed and become unvented crawlspaces in the same package. 
+          - or:
+            - Geometry Foundation Type|Unvented Crawlspace
+            - Geometry Foundation Type|Vented Crawlspace
+            - Geometry Foundation Type|Heated Basement
+        costs:
+          - value:
+            multiplier:
+        lifetime:
+      #seal crawlspace vents
+      - &seal_vented_crawlspaces #Is sealing vented crawlspaces controversial/does it cause moisture issues? Are there complimentary upgrades that would be needed to deal with the moisture issue?
+        option: Geometry Foundation Type|Unvented Crawlspace
+        apply_logic:
+          and:
+            - Geometry Foundation Type|Vented Crawlspace
+            - or: # Ensure that the dwelling unit being modeled is either (1) not in a multifamily building, or (2) on the bottom floor of a multifamily building and therefore above the crawlspace.
+                - Geometry Building Level MF|None
+                - Geometry Building Level MF|Bottom
+        costs:
+          - value: 0.84
+            multiplier: Floor Area, Foundation (ft^2)
+        lifetime: 999
       #insulate finished attics and cathedral ceilings to R-30
+      - &roof_insulation_to_R30
+        option: Insulation Roof|Finished, R-30
+        apply_logic: 
+          - or:
+            - Geometry Attic Type|Finished Attic or Cathedral Ceiling
+            - Geometry Building Level MF|Top
+        costs:
+          - value:
+            multiplier:
+        lifetime:
   - upgrade_name: Minimum-efficiency heat pumps #also provides SEER 15 cooling measure profile
-    #(Question: for this and the next upgrade, do houses automatically get elec resistance backup?)
     options:
       #ASHP SEER 15, 9.0 HSPF for homes with ducts
+        #these need to be sized for cooling and I'm not sure I did that right?
+      - &ASHP_SEER15_9HSPF
+        option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
+        apply_logic: 
+          - and:
+            - HVAC Has Ducts|Yes
+            - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        costs:
+          - value:
+            multiplier:
+        lifetime:
       #MSHP SEER 15, 9.0 HSPF for homes without ducts
+      - &MSHP_SEER15_9HSPF
+        option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
+        apply_logic: 
+          - and:
+            - HVAC Has Ducts|No
+            - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+        costs:
+          - value:
+            multiplier:
+        lifetime:
   - upgrade_name: High-efficiency heat pumps #also provides SEER 24-29 cooling measure profile
     options:
-      #ASHP SEER 24, 13 HSPF, 50% capacity retention at -15*F for homes with ducts
+      #ASHP SEER 24, 13 HSPF, 50% capacity retention at -15*F for homes with ducts # is the stuff after "HSPF" the ResStock default?
+      - option: HVAC Heating Efficiency|ASHP SEER 24, 13 HSPF
       #MSHP SEER 29.3, 14.0 HSPF for homes without ducts
+      - &MSHP_SEER29_14HSPF
+        option: HVAC Heating Efficiency|MSHP 29.3, 14 HSPF
+        costs:
+          - value:
+            multiplier:
+        lifetime:
   - upgrade_name: Heat pump with other supplemental heating
       #homes keep their exising heating system as backup, heat pump is sized for cooling
       #assumes a control strategy where the electric heat pump is the primary heating source and the pre-existing heating system is only used as auxiliary below a pre-defined switchover temperature (41F)
