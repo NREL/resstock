@@ -400,6 +400,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
     measures['BuildResidentialScheduleFile'][0]['setpoint_output_csv_path'] = File.expand_path('../setpoints.csv')
+    measures['BuildResidentialScheduleFile'][0]['debug'] = values['debug']
 
     # Get registered values and pass them to HPXMLtoOpenStudio
     measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
