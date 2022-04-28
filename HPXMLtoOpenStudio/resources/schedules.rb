@@ -1148,6 +1148,8 @@ class SchedulesFile
   ColumnHotWaterFixtures = 'hot_water_fixtures'
   ColumnVacancy = 'vacancy'
   ColumnSleep = 'sleep'
+  ColumnNighttime = 'nighttime'
+  ColumnDaytimeUnoccupied = 'daytime_unoccupied'
   ColumnHeatingSetpoint = 'heating_setpoint'
   ColumnCoolingSetpoint = 'cooling_setpoint'
 
@@ -1188,7 +1190,7 @@ class SchedulesFile
       columns.each do |col|
         col_name = col[0]
         unless col_names.include? col_name
-          fail "Schedule column name '#{col_name}' is invalid. [context: #{schedules_path}]" unless [SchedulesFile::ColumnVacancy].include?(col_name)
+          fail "Schedule column name '#{col_name}' is invalid. [context: #{schedules_path}]" if (![SchedulesFile::ColumnVacancy].include?(col_name) && !SchedulesFile.ExtraColumnNames.include?(col_name))
         end
 
         values = col[1..-1].reject { |v| v.nil? }
@@ -1452,7 +1454,9 @@ class SchedulesFile
 
   def self.ExtraColumnNames
     return [
-      ColumnSleep
+      ColumnSleep,
+      ColumnNighttime,
+      ColumnDaytimeUnoccupied
     ]
   end
 

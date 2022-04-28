@@ -16,6 +16,7 @@ class ScheduleGenerator
                  total_days_in_year:,
                  sim_year:,
                  sim_start_day:,
+                 debug:,
                  **remainder)
     @runner = runner
     @epw_file = epw_file
@@ -28,7 +29,7 @@ class ScheduleGenerator
     @total_days_in_year = total_days_in_year
     @sim_year = sim_year
     @sim_start_day = sim_start_day
-    @debug = false
+    @debug = debug
   end
 
   def get_random_seed
@@ -98,15 +99,16 @@ class ScheduleGenerator
     setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint] = create_timeseries_from_hours(schedule: setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint].flatten)
 
     if !args[:htg_offset_nighttime].nil? || !args[:clg_offset_nighttime].nil? || !args[:htg_offset_daytime_unocc].nil? || !args[:clg_offset_daytime_unocc].nil?
-      @schedules[SchedulesFile::ColumnSleep].each_with_index do |sleep, i|
-        if sleep > 0 # nighttime
+      @schedules[SchedulesFile::ColumnNighttime].each_with_index do |nighttime, i|
+        if nighttime
           setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint][i] -= args[:htg_offset_nighttime] unless args[:htg_offset_nighttime].nil?
           setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint][i] += args[:clg_offset_nighttime] unless args[:clg_offset_nighttime].nil?
-        else # daytime
-          if @schedules[SchedulesFile::ColumnOccupants][i] == 0 # unoccupied
-            setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint][i] -= args[:htg_offset_daytime_unocc] unless args[:htg_offset_daytime_unocc].nil?
-            setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint][i] += args[:clg_offset_daytime_unocc] unless args[:clg_offset_daytime_unocc].nil?
-          end
+        end
+      end
+      @schedules[SchedulesFile::ColumnDaytimeUnoccupied].each_with_index do |daytime_unoccupied, i|
+        if daytime_unoccupied
+          setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint][i] -= args[:htg_offset_daytime_unocc] unless args[:htg_offset_daytime_unocc].nil?
+          setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint][i] += args[:clg_offset_daytime_unocc] unless args[:clg_offset_daytime_unocc].nil?
         end
       end
     end
@@ -157,6 +159,8 @@ class ScheduleGenerator
     create_average_hot_tub_pump
     create_average_hot_tub_heater
     create_average_sleep
+    create_average_nighttime
+    create_average_daytime_unoccupied
   end
 
   def create_average_occupants
@@ -264,6 +268,18 @@ class ScheduleGenerator
 
   def create_average_sleep
     create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnSleep, weekday_sch: Schedule.SleepWeekdayFractions, weekend_sch: Schedule.SleepWeekendFractions, monthly_sch: Schedule.SleepMonthlyMultipliers)
+  end
+
+  def create_average_nighttime
+    @schedules[SchedulesFile::ColumnSleep].each_with_index do |sleep, i|
+      @schedules[SchedulesFile::ColumnNighttime][i] = 1.0 if sleep > 0
+    end
+  end
+
+  def create_average_daytime_unoccupied
+    @schedules[SchedulesFile::ColumnSleep].each_with_index do |sleep, i|
+      @schedules[SchedulesFile::ColumnDaytimeUnoccupied][i] = 1.0 if sleep == 0 && @schedules[SchedulesFile::ColumnOccupants][i] == 0
+    end
   end
 
   def create_timeseries_from_weekday_weekend_monthly(sch_name:,
@@ -848,6 +864,8 @@ class ScheduleGenerator
 
     @schedules[SchedulesFile::ColumnOccupants] = away_schedule.map { |i| 1.0 - i }
     @schedules[SchedulesFile::ColumnSleep] = sleep_schedule
+    create_average_nighttime
+    create_average_daytime_unoccupied
 
     @schedules[SchedulesFile::ColumnHotWaterFixtures] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
     fixtures_peak_flow = @schedules[SchedulesFile::ColumnHotWaterFixtures].max

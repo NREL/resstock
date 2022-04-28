@@ -106,6 +106,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path(s).')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
+    arg.setDisplayName('Debug Mode?')
+    arg.setDescription('If true: Write extra columns.')
+    arg.setDefaultValue(false)
+    args << arg
+
     return args
   end
 
@@ -284,6 +290,9 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
       args[:ceiling_fan_cooling_setpoint_temp_offset] = hvac_control.ceiling_fan_cooling_setpoint_temp_offset
     end
+
+    # Debug
+    args[:debug] = args[:debug].get if args[:debug].is_initialized
   end
 end
 
