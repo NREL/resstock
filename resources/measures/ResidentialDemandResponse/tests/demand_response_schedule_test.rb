@@ -71,7 +71,6 @@ class DemandResponseScheduleTest < MiniTest::Test
     args_hash['dr_directory'] = './tests'
     args_hash['dr_schedule_heat'] = 'DR_schedule_h.csv'
     args_hash['dr_schedule_cool'] = 'DR_schedule_c.csv'
-    args_hash['apply_offset'] = true
     expected_num_new_objects = { 'ScheduleRuleset' => 2, 'ScheduleRule' => 4 } # Cool/Heat rulesets 1x, Cool/Heat 2 schedule rule days each
     expected_num_del_objects = { 'ScheduleRuleset' => 2, 'ScheduleRule' => 24 } # Cool/Heat original rulesets 2x; Cool/Heat 12 original schedule rule days each
     expected_values = { 'heat_tsp_non_dr' => 70,
@@ -332,7 +331,7 @@ class DemandResponseScheduleTest < MiniTest::Test
     measure.run(model, runner, argument_map)
     result = runner.result
 
-    show_output(result)
+    # show_output(result)
 
     # assert that it ran correctly
     assert_equal('Success', result.value.valueName)
@@ -363,10 +362,10 @@ class DemandResponseScheduleTest < MiniTest::Test
     end
     if ((args_hash['dr_schedule_heat'] == 'DR_schedule_overlap.csv') ||
         (args_hash['dr_schedule_cool'] == 'DR_schedule_overlap.csv'))
-      ht_dr_plus = 1
-      ht_dr_minus = 2
-      cl_dr_plus = 1
-      cl_dr_minus = 2
+      ht_dr_plus = OpenStudio::Time.new(0, 1, 0, 0)
+      ht_dr_minus = OpenStudio::Time.new(0, 2, 0, 0)
+      cl_dr_plus = OpenStudio::Time.new(0, 1, 0, 0)
+      cl_dr_minus = OpenStudio::Time.new(0, 2, 0, 0)
     else
       ht_dr_plus = OpenStudio::Time.new(0, 1, 0, 0)
       ht_dr_minus = OpenStudio::Time.new(0, 2, 0, 0)
@@ -377,8 +376,8 @@ class DemandResponseScheduleTest < MiniTest::Test
       check_month = 1
       wkday = 1
       wknd_day = 6
-      offset_hour = 0
-      no_offset_hour = 1
+      offset_hour = OpenStudio::Time.new(0, 0, 0, 0)
+      no_offset_hour = OpenStudio::Time.new(0, 1, 0, 0)
     end
 
     all_new_objects.each do |obj_type, new_objects|
@@ -387,34 +386,21 @@ class DemandResponseScheduleTest < MiniTest::Test
         next if not new_object.respond_to?("to_#{obj_type}")
 
         new_object = new_object.public_send("to_#{obj_type}").get
-        
-        # actual_values = []
-        # step = 0
-        # idx1 = 0
-        # new_object.daySchedule.times.each_with_index do |t, i|
-        #   h = t.to_s.split(':')[0].to_i
-        #   m = t.to_s.split(':')[1].to_i/60
-
-        #   idx2 = (6*(h+m)).to_i
-        #   actual_values << [UnitConversions.convert(new_object.daySchedule.values[i], 'C', 'F')]*(idx2-idx1) # method to create `actual_value` array from the day schedule
-        #   idx1 = idx2
-        #   # (step...h).to_a.each do |j|
-        #   #   actual_values << UnitConversions.convert(new_object.daySchedule.values[i], 'C', 'F') # method to create `actual_value` array from the day schedule
-        #   # end
-        #   # step = h
-        # end
-
         if osm_file_or_model == 'SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm'
           if new_object.name.to_s.start_with? Constants.ObjectNameHeatingSetpoint
+            offset_val = UnitConversions.convert(new_object.daySchedule.getValue(offset_hour), 'C', 'F')
+            no_offset_val = UnitConversions.convert(new_object.daySchedule.getValue(no_offset_hour), 'C', 'F')
+
             # Offset
             if (new_object.startDate.get.monthOfYear.value == check_month) &&
                (new_object.startDate.get.dayOfMonth == wkday)
-              assert_in_epsilon(expected_values['wkday_offset_ht'], actual_values[offset_hour], 0.01)
-              assert_in_epsilon(expected_values['wkday_no_offset_ht'], actual_values[no_offset_hour], 0.01)
+              assert_in_epsilon(expected_values['wkday_offset_ht'], offset_val, 0.01)
+              assert_in_epsilon(expected_values['wkday_no_offset_ht'], no_offset_val, 0.01)
+
             # No offset
             elsif (new_object.startDate.get.monthOfYear.value == check_month) &&
                   (new_object.startDate.get.dayOfMonth == wknd_day)
-              assert_in_epsilon(expected_values['wknd_ht'], actual_values[no_offset_hour], 0.01)
+              assert_in_epsilon(expected_values['wkday_no_offset_ht'], no_offset_val, 0.01)
             end
           end
           next

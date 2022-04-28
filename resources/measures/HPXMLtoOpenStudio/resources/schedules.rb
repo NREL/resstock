@@ -963,17 +963,19 @@ class Schedule
       day_ct = day - start_day + 1
 
       previous_value = hrly_sched[((day_ct - 1) * 24)]
-
       ts_yr = (day_ct - 1) * ts_per_day # ts of year
-      hrly_idx = ((ts_yr + 1)/ts_per_hr).to_i
-      
       for ts in 1..ts_per_day
+        hrly_idx = ((ts_yr)/ts_per_hr).to_i
         ts_yr += 1
-        hrly_idx = ((ts_yr + 1)/ts_per_hr).to_i
         next if (ts != ts_per_day) && (hrly_sched[hrly_idx] == previous_value)
 
-        day_sched.addValue(time[ts+1], previous_value)
-        if ts_yr != sim_timesteps - 1
+        if ts == ts_per_day
+          day_sched.addValue(time[ts+1], previous_value)
+        else
+          day_sched.addValue(time[ts-1], previous_value)
+        end        
+
+        if ts_yr != sim_timesteps - 1 
           previous_value = hrly_sched[hrly_idx]
         end
       end
