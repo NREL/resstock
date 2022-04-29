@@ -22,10 +22,6 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     FileUtils.rm_rf(@tmp_output_path)
   end
 
-  def sample_files_dir
-    return File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'sample_files')
-  end
-
   def test_roofs
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
@@ -192,7 +188,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
        { assembly_r: 5.0, layer_names: ['vinyl siding', 'osb sheathing', 'rim joist stud and cavity'] },
        { assembly_r: 20.0, layer_names: ['vinyl siding', 'rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
       # None
-      [{ assembly_r: 0.1, layer_names: ['rim joist stud and cavity', 'rim joist stud and cavity'] }, # Note: Below grade material doubled in update_solar_absorptances()
+      [{ assembly_r: 0.1, layer_names: ['rim joist stud and cavity'] },
        { assembly_r: 5.0, layer_names: ['osb sheathing', 'rim joist stud and cavity'] },
        { assembly_r: 20.0, layer_names: ['rim joist rigid ins', 'osb sheathing', 'rim joist stud and cavity'] }],
     ]
@@ -437,7 +433,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
   def test_windows
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Check window properties
@@ -499,8 +495,13 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
           assert_nil(os_shading_surface) # No shading
         else
           refute_nil(os_shading_surface) # Shading
-          summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
-          winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
+          if sf_summer == sf_winter
+            summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleConstant.get.value
+            winter_transmittance = summer_transmittance
+          else
+            summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
+            winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
+          end
           assert_equal(sf_summer, summer_transmittance)
           assert_equal(sf_winter, winter_transmittance)
         end
@@ -516,7 +517,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
   def test_skylights
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-skylights.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(@sample_files_path, 'base-enclosure-skylights.xml'))
     model, hpxml = _test_measure(args_hash)
 
     # Check skylight properties
@@ -558,8 +559,13 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
           assert_nil(os_shading_surface) # No shading
         else
           refute_nil(os_shading_surface) # Shading
-          summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
-          winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
+          if sf_summer == sf_winter
+            summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleConstant.get.value
+            winter_transmittance = summer_transmittance
+          else
+            summer_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(summer_date, summer_date).map { |ds| ds.values.sum }.sum
+            winter_transmittance = os_shading_surface.transmittanceSchedule.get.to_ScheduleRuleset.get.getDaySchedules(winter_date, winter_date).map { |ds| ds.values.sum }.sum
+          end
           assert_equal(sf_summer, summer_transmittance)
           assert_equal(sf_winter, winter_transmittance)
         end

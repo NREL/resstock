@@ -10,6 +10,7 @@ Features
 - Enable rim joists for homes with basements/crawlspaces; assumes a height of 9.25 inches and calculates rim joist assembly R-value from new insulation arguments ([#831](https://github.com/NREL/resstock/pull/831))
 - Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 - Cities with more than 15,000 dwelling units are added as a geographic characteristic ([#874](https://github.com/NREL/resstock/pull/874))
+- Update tsvs with new sampling_probability calculation ([#905](https://github.com/NREL/resstock/pull/905))
 - Add Income and Tenure tsv, update PUMS tsvs from 2017 5-yrs to 2019 5-yrs, update dependencies and fix encoding error in Occupants.tsv ([#900](https://github.com/NREL/resstock/pull/900))
 
 Fixes

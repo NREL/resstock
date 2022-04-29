@@ -217,7 +217,9 @@ def create_hpxmls
     'base-hvac-autosize-central-ac-only-2-speed.xml' => 'base-hvac-central-ac-only-2-speed.xml',
     'base-hvac-autosize-central-ac-only-var-speed.xml' => 'base-hvac-central-ac-only-var-speed.xml',
     'base-hvac-autosize-central-ac-plus-air-to-air-heat-pump-heating.xml' => 'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.xml',
-    'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed-sizing-methodology-acca.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed-sizing-methodology-hers.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-dual-fuel-air-to-air-heat-pump-1-speed-sizing-methodology-maxload.xml' => 'base-hvac-dual-fuel-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-autosize-dual-fuel-mini-split-heat-pump-ducted.xml' => 'base-hvac-dual-fuel-mini-split-heat-pump-ducted.xml',
     'base-hvac-autosize-elec-resistance-only.xml' => 'base-hvac-elec-resistance-only.xml',
     'base-hvac-autosize-evap-cooler-furnace-gas.xml' => 'base-hvac-evap-cooler-furnace-gas.xml',
@@ -382,11 +384,12 @@ def create_hpxmls
   puts "Generating #{hpxmls_files.size} HPXML files..."
 
   hpxml_docs = {}
-  hpxmls_files.each_with_index do |(hpxml_file, parent), i|
+  hpxmls_files.each_with_index do |(hpxml_file, orig_parent), i|
     puts "[#{i + 1}/#{hpxmls_files.size}] Generating #{hpxml_file}..."
 
     begin
       all_hpxml_files = [hpxml_file]
+      parent = orig_parent
       unless parent.nil?
         all_hpxml_files.unshift(parent)
       end
@@ -402,7 +405,7 @@ def create_hpxmls
       args = {}
       sch_args = {}
       all_hpxml_files.each do |f|
-        set_measure_argument_values(f, args, sch_args)
+        set_measure_argument_values(f, args, sch_args, orig_parent)
       end
 
       measures = {}
@@ -492,7 +495,7 @@ def create_hpxmls
   return hpxml_docs
 end
 
-def set_measure_argument_values(hpxml_file, args, sch_args)
+def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   if hpxml_file.include? 'ASHRAE_Standard_140'
     args['hpxml_path'] = "../workflow/tests/#{hpxml_file}"
   else
@@ -2200,8 +2203,11 @@ def set_measure_argument_values(hpxml_file, args, sch_args)
   end
 
   # Misc
+  if not orig_parent.nil?
+    args['additional_properties'] = "ParentHPXMLFile=#{File.basename(orig_parent)}"
+  end
   if ['base-misc-additional-properties.xml'].include? hpxml_file
-    args['additional_properties'] = 'LowIncome=false|Remodeled|Description=2-story home in Denver|comma=,|special=<|special2=>|special3=/|special4=\\'
+    args['additional_properties'] += '|LowIncome=false|Remodeled|Description=2-story home in Denver|comma=,|special=<|special2=>|special3=/|special4=\\'
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     args.delete('simulation_control_timestep')
     args.delete('site_type')
