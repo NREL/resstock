@@ -312,10 +312,23 @@ upgrades:
   - upgrade_name: High-efficiency heat pumps #also provides SEER 24-29 cooling measure profile
     options:
       #ASHP SEER 24, 13 HSPF, 50% capacity retention at -15*F for homes with ducts # is the stuff after "HSPF" the ResStock default?
-      - option: HVAC Heating Efficiency|ASHP SEER 24, 13 HSPF
+      - &ASHP_SEER24_13HSPF
+        option: HVAC Heating Efficiency|ASHP SEER 24, 13 HSPF
+        apply_logic:
+        - and:
+            - HVAC Has Ducts|Yes
+            - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+          costs:
+          - value:
+            multiplier:
+        lifetime:
       #MSHP SEER 29.3, 14.0 HSPF for homes without ducts
       - &MSHP_SEER29_14HSPF
         option: HVAC Heating Efficiency|MSHP 29.3, 14 HSPF
+        apply_logic: 
+          - and:
+            - HVAC Has Ducts|No
+            - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
         costs:
           - value:
             multiplier:
@@ -323,6 +336,12 @@ upgrades:
   - upgrade_name: Heat pump with other supplemental heating
       #homes keep their exising heating system as backup, heat pump is sized for cooling
       #assumes a control strategy where the electric heat pump is the primary heating source and the pre-existing heating system is only used as auxiliary below a pre-defined switchover temperature (41F)
+      - &ASHP_SEER15_9HSPF_df_for_elec_baseboard #note that while elec baseboard heating is non-ducted, a home can have elec baseboard and a ducted cooling system, so this option is included
+      - &ASHP_SEER15_9HSPF_df_for_elec_boiler
+      - &ASHP_SEER15_9HSPF_df_for_elec_furnace
+      - &ASHP_SEER15_9HSPF_df_for_elec_baseboard
+      - &ASHP_SEER15_9HSPF_df_for_elec_baseboard
+      - &ASHP_SEER15_9HSPF_df_for_elec_baseboard
     options:
       #ASHP SEER 15, 9.0 HSPF (30*F switchover temperature) for homes with ducts and existing central AC or HP
       #MSHP SEER 15, 9.0 HSPF for homes without ducts (80% of load served by MSHP) and existing room AC (Question: what does the "80% of load served by MSHP" mean here?)
@@ -361,3 +380,6 @@ upgrades:
       - *Drill-and-fill
       #package 8
   - upgrade_name: Highly-efficient all-electric homes + enhanced enclosure package (packages 2 & 8)
+    options:
+      #package 2
+      #package 8
