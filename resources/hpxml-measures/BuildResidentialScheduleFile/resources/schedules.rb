@@ -100,13 +100,13 @@ class ScheduleGenerator
 
     if !args[:htg_offset_nighttime].nil? || !args[:clg_offset_nighttime].nil? || !args[:htg_offset_daytime_unocc].nil? || !args[:clg_offset_daytime_unocc].nil?
       @schedules[SchedulesFile::ColumnNighttime].each_with_index do |nighttime, i|
-        if nighttime
+        if nighttime == 1
           setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint][i] -= args[:htg_offset_nighttime] unless args[:htg_offset_nighttime].nil?
           setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint][i] += args[:clg_offset_nighttime] unless args[:clg_offset_nighttime].nil?
         end
       end
       @schedules[SchedulesFile::ColumnDaytimeUnoccupied].each_with_index do |daytime_unoccupied, i|
-        if daytime_unoccupied
+        if daytime_unoccupied == 1
           setpoint_schedules[SchedulesFile::ColumnHeatingSetpoint][i] -= args[:htg_offset_daytime_unocc] unless args[:htg_offset_daytime_unocc].nil?
           setpoint_schedules[SchedulesFile::ColumnCoolingSetpoint][i] += args[:clg_offset_daytime_unocc] unless args[:clg_offset_daytime_unocc].nil?
         end
@@ -272,13 +272,13 @@ class ScheduleGenerator
 
   def create_average_nighttime
     @schedules[SchedulesFile::ColumnSleep].each_with_index do |sleep, i|
-      @schedules[SchedulesFile::ColumnNighttime][i] = 1.0 if sleep > 0
+      @schedules[SchedulesFile::ColumnNighttime][i] = 1 if sleep > 0
     end
   end
 
   def create_average_daytime_unoccupied
     @schedules[SchedulesFile::ColumnSleep].each_with_index do |sleep, i|
-      @schedules[SchedulesFile::ColumnDaytimeUnoccupied][i] = 1.0 if sleep == 0 && @schedules[SchedulesFile::ColumnOccupants][i] == 0
+      @schedules[SchedulesFile::ColumnDaytimeUnoccupied][i] = 1 if sleep == 0 && @schedules[SchedulesFile::ColumnOccupants][i] == 0
     end
   end
 
