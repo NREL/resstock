@@ -34,13 +34,17 @@ def run_workflow(yml, n_threads, measures_only)
   upgrade_names = ['Baseline']
   if cfg.keys.include?('upgrades')
     cfg['upgrades'].each do |upgrade|
-      upgrade_names << upgrade['upgrade_name'].gsub(' ', '')
+      puts(upgrade['upgrade_name'])
+      upgrade_names << upgrade['upgrade_name'].gsub(' ', '').gsub(',','_').gsub('/','_').gsub('+','_')
     end
   end
 
   osw_paths = {}
   upgrade_names.each_with_index do |upgrade_name, upgrade_idx|
     scenario_dir = File.join(results_dir, 'osw', upgrade_name)
+    # puts(scenario_dir)
+    # scenario_dir = scenario_dir.gsub(',','_')
+    puts(scenario_dir)
     Dir.mkdir(scenario_dir)
 
     workflow_args = {
@@ -148,7 +152,7 @@ def run_workflow(yml, n_threads, measures_only)
   # Create lib folder
   lib_dir = File.join(thisdir, '../lib')
   resources_dir = File.join(thisdir, '../resources')
-  housing_characteristics_dir = File.join(File.dirname(yml), 'housing_characteristics')
+  housing_characteristics_dir = File.join(File.dirname(buildstock_directory), project_directory, 'housing_characteristics')
   create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
 
   # Create weather folder
