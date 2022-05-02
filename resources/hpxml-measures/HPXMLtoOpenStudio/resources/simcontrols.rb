@@ -46,5 +46,8 @@ class SimControls
     run_period.setBeginDayOfMonth(hpxml.header.sim_begin_day)
     run_period.setEndMonth(hpxml.header.sim_end_month)
     run_period.setEndDayOfMonth(hpxml.header.sim_end_day)
+
+    ppt = model.getPerformancePrecisionTradeoffs
+    ppt.setZoneRadiantExchangeAlgorithm('CarrollMRT')
   end
 end
