@@ -11,6 +11,7 @@ Features
 - Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
 - Cities with more than 15,000 dwelling units are added as a geographic characteristic ([#874](https://github.com/NREL/resstock/pull/874))
 - Update tsvs with new sampling_probability calculation ([#905](https://github.com/NREL/resstock/pull/905))
+- Improve distributions of heat pumps in the southeast U.S. by spliting IECC zone 2A into two zones: 2A (FL, GA, AL, MS) and 2A (TX, LA) ([#913](https://github.com/NREL/resstock/pull/913))
 
 Fixes
 - Clean up option names for natural ventilation and hot water distribution ([#828](https://github.com/NREL/resstock/pull/828))
