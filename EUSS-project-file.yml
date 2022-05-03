@@ -116,7 +116,7 @@ upgrades:
             multiplier: 
         lifetime: 999
       #General air sealing - 30% total reduction in ACH50 for homes with greater than 10 ACH50
-      #Note: ABC does not have costs or lifetimes for infiltration reductions
+      #30% is consistent with median reduction documented in https://doi.org/10.20357/B7FP4D 
       - &infiltration_30pct_reduction
         option: Infiltration Reduction|30%
         apply_logic:
@@ -128,10 +128,13 @@ upgrades:
             - Infiltration|20 ACH50
             - Infiltration|15 ACH50
         costs:
-          - value:
-            multiplier:
+          - value: 0.50 # $0.50/ft2 is from LBNL data for general air sealing (https://doi.org/10.20357/B7FP4D).
+                        # Interpolated between 20% and 40% reductions to get $0.44/ft2,
+                        # then used 1.14 multiplier to inflate from Jan 2019 to Mar 2022
+            multiplier: Floor Area, Conditioned (ft^2)
         lifetime:
       #Duct sealing to 10% leakage, R-8 insulation for all ducts in unconditioned space
+      # Costs are mid-values from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
       - &ducts_category1 #improving leakage a lot, and insulation
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -149,7 +152,7 @@ upgrades:
             - Ducts|30% Leakage, R-4
             - Ducts|30% Leakage, R-6
         costs:
-          - value: 2.84
+          - value: 2.84 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category2 #improving leakage a lot only
@@ -161,7 +164,7 @@ upgrades:
             - Ducts|34% Leakage, R-8
             - Ducts|30% Leakage, R-8
         costs:
-          - value: 1.04
+          - value: 1.04 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category3 #improving leakage some, and insulation
@@ -175,7 +178,7 @@ upgrades:
             - Ducts|20% Leakage, R-4
             - Ducts|20% Leakage, R-6 
         costs:
-          - value: 2.32
+          - value: 2.32 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category4 #improving leakage some only
@@ -185,7 +188,7 @@ upgrades:
             - Ducts|24% Leakage, R-8
             - Ducts|20% Leakage, R-8
         costs:
-          - value: 0.52
+          - value: 0.52 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category5 #improving leakage a little, and insulation
@@ -200,7 +203,7 @@ upgrades:
             - Ducts|14% Leakage, R-6
             - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
         costs:
-          - value: 2.06
+          - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category6 #improving leakage a little only
@@ -210,7 +213,7 @@ upgrades:
             - Ducts|15% Leakage, R-8
             - Ducts|14% Leakage, R-8
         costs:
-          - value: 0.26
+          - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       - &ducts_category7 #improving insulation only
@@ -221,7 +224,7 @@ upgrades:
             - Ducts|10% Leakage, R-4
             - Ducts|10% Leakage, R-6
         costs:
-          - value: 1.80
+          - value: 1.80 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 30
       #Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
