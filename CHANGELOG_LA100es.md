@@ -1,0 +1,71 @@
+## LA100 ES - ResStock v2.5.0 
+
+Updates: 
+- Copy over the sampling probability script from resstock-estimation to correct bugs in previous versions of the code ([#74](https://github.com/NREL/la100es-resstock/pull/74))
+- Bring in commit history from ResStock ([#73](https://github.com/NREL/la100es-resstock/pull/73))
+- Merged PR ([#72] (https://github.com/NREL/la100es-resstock/pull/72)) with develop to complete geographic downselect. 
+- Deleted the following redundant TSVs ([#72] (https://github.com/NREL/la100es-resstock/pull/72)):
+	- State.tsv 
+	- Census Division.tsv
+	- Census Division RECS.tsv
+	- Location Region.tsv
+	- AHS Region.tsv
+	- County.tsv
+	- ISO RTO Region.tsv
+- Merged the following PRs all of which remove the state dependency ([#63] (https://github.com/NREL/la100es-resstock/pull/63)): 
+	- Updated Census Division RECS.tsv by downselecting state dependency to CA ([#28] (https://github.com/NREL/la100es-resstock/pull/28))
+	- Updated Census Division.tsv by downselecting state dependency to CA ([#29] (https://github.com/NREL/la100es-resstock/pull/29))
+	- Updated Geometry Wall Exterior Finish.tsv by downselecting to the state CA ([#42] (https://github.com/NREL/la100es-resstock/pull/42))
+	- Updated the Geometry Wall Type.tsv by downselecting to the state CA ([#44] (https://github.com/NREL/la100es-resstock/pull/44))
+- Merged following PRs into PR #65 all of which had a dependency on AHS Region:
+	- Updated Geometry Floor Area.tsv by downselecting to AHS Region CBSA Los Angeles-Long Beach-Anaheim ([#40] (https://github.com/NREL/la100es-resstock/pull/40))
+	- Updated Clothes Washer Presence.tsv by downselecting AHS Region dependency to CBSA Los Angeles-Long Beach-Anaheim ([#32] https://github.com/NREL/la100es-resstock/pull/32) 
+	- Updated Clothes Dryer.tsv by downselecting AHS Region to CBSA Los Angeles-Long Beach-Anaheim ([#31] (https://github.com/NREL/la100es-resstock/pull/31))
+- Merged the following .tsv files all of which have a dependency on County ([#70] https://github.com/NREL/la100es-resstock/pull/70)). 
+	- Updated the Has PV.tsv by downselecting to the county CA, Los Angeles County ([#45] (https://github.com/NREL/la100es-resstock/pull/45))
+	- Updated Building America Climate Zone.tsv by downselecting to the county CA, Los Angeles County ([#43] (https://github.com/NREL/la100es-resstock/pull/43))
+	- Updated ISO RTO Region.tsv by downselecting to Los Angeles County, CA ([#19] (https://github.com/NREL/la100es-resstock/pull/19))
+- Merged the following .tsv  files in PR ([#69] https://github.com/NREL/la100es-resstock/pull/69) all of which have a dependency on ASHRAE IECC Climate Zone. 
+	- Updated HVAC Heating Type.tsv by downselecting to ASHRAE Climate Zone 3B ([#26] (https://github.com/NREL/la100es-resstock/pull/26))
+	- Updated Infiltration.tsv by downselecting to ASHRAE Climate Zone 3B ([#25] (https://github.com/NREL/la100es-resstock/pull/25))
+	- Updated Cooling Setpoint Has Offset.tsv by downselecting to ASHRAE Climate Zone 3B ([#34] https://github.com/NREL/la100es-resstock/pull/34)
+	- Updated Cooling Setpoint Offset Magnitude.tsv by downselecting to ASHRAE Climate Zone 3B ([#35] (https://github.com/NREL/la100es-resstock/pull/35))
+	- Updated Cooling Setpoint Offset Period.tsv by downselecting to ASHRAE Climate Zone 3B ([#36] (https://github.com/NREL/la100es-resstock/pull/36))
+	- Updated Cooling Setpoint.tsv by downselecting to ASHRAE Climate Zone 3B ([#37] (https://github.com/NREL/la100es-resstock/pull/37))
+	- Updated Geometry Foundation Type.tsv by downselecting to ASHRAE Climate Zone 3B ([#41] (https://github.com/NREL/la100es-resstock/pull/41))
+	- Updated the Heating Setpoint Has Offset.tsv by downselecting to the ASHRAE Climate Zone 3B ([#46] (https://github.com/NREL/la100es-resstock/pull/46))
+	- Updated the Heating Setpoint Offset Magnitude.tsv by downselecting to the ASHRAE Climate Zone 3B ([#47] (https://github.com/NREL/la100es-resstock/pull/47))
+	- Updated the Heating Setpoint Offset Period.tsv by downselecting to ASHRAE Climate Zone 3B ([#48] (https://github.com/NREL/la100es-resstock/pull/48))
+	- Updated the Heating Setpoint.tsv by downselecting to the ASHRAE Climate Zone 3B ([#49] (https://github.com/NREL/la100es-resstock/pull/49))
+	- Updated the HVAC Cooling Type.tsv by downselecting to the ASHRAE Climate Zone 3B ([#50] (https://github.com/NREL/la100es-resstock/pull/50))
+- Merged PR ([#30] (https://github.com/NREL/la100es-resstock/pull/30)) which downselected census division dependency to Pacific with PR ([#64] (https://github.com/NREL/la100es-resstock/pull/64)) and deleted the Census Division.tsv. 
+- Merged following PRs with PR ([#68] (https://github.com/NREL/la100es-resstock/pull/68)) all of which had a dependency on Census Division RECS:
+	- Updated Lighting.tsv by downselecting to the Pacific RECS Census Division ([#18] (https://github.com/NREL/la100es-resstock/pull/18))
+- Merged following PRs into PR ([#14] (https://github.com/NREL/la100es-resstock/pull/14))
+	-Updated Dishwasher.tsv by downselecting to Location Region CR11 ([#39] (https://github.com/NREL/la100es-resstock/pull/39))
+	- Updated Cooking Range.tsv by downselecting location region dependency to CR11 ([#33] (https://github.com/NREL/la100es-resstock/pull/33))
+	- Updated the Insulation Ceiling.tsv by downselecting to Location Region CR11 ([#24] (https://github.com/NREL/la100es-resstock/pull/24))
+	- Updated Insulation Floor.tsv by downselecting to Location Region CR11 ([#23] (https://github.com/NREL/la100es-resstock/pull/23))
+	- Updated Insulation Foundation Wall.tsv by downselecting to Location Region CR11 ([#22] (https://github.com/NREL/la100es-resstock/pull/22))
+	- Updated Insulation Slab.tsv by downselecting to Location Region CR11 ([#21] (https://github.com/NREL/la100es-resstock/pull/21))
+	- Updated Insulation Wall.tsv by downselecting to Location Region CR11 ([#20] (https://github.com/NREL/la100es-resstock/pull/20))
+	- Updated Misc Freezer.tsv by downselecting to Region Location CR11 ([#17] (https://github.com/NREL/la100es-resstock/pull/17))
+	- Updated Misc Hot Tub Spa.tsv by downselecting to Location Region CR 11 ([#15] (https://github.com/NREL/la100es-resstock/pull/15))
+- Updated Misc Pool Heater.tsv by downselecting to Location Region CR11 ([#14] (https://github.com/NREL/la100es-resstock/pull/14))
+- Merged the following .tsv files all of which have a dependency on County ([#70] https://github.com/NREL/la100es-resstock/pull/70)). 
+	- Updated the Has PV.tsv by downselecting to the county CA, Los Angeles County ([#45] (https://github.com/NREL/la100es-resstock/pull/45))
+	- Updated Building America Climate Zone.tsv by downselecting to the county CA, Los Angeles County ([#43] (https://github.com/NREL/la100es-resstock/pull/43))
+	- Updated ISO RTO Region.tsv by downselecting to Los Angeles County, CA ([#19] (https://github.com/NREL/la100es-resstock/pull/19))
+- Created Custom PUMA.tsv for Project LA by intersecting LA County and LA city PUMA shape files and also had to downselect County.tsv to Climate Zone 3B for Project LA ([#59](https://github.com/NREL/la100es-resstock/pull/59))
+- Updated Misc Pool.tsv by downselecting to Location Region CR11 ([#13] (https://github.com/NREL/la100es-resstock/pull/13))
+- Updated Plug Loads.tsv by downselecting to the Pacific RECS Census Division ([#12] (https://github.com/NREL/la100es-resstock/pull/12))
+- Updated PV System Size.tsv by downselecting to the state of California ([#10] (https://github.com/NREL/la100es-resstock/pull/10))
+- Updated REEDS Balancing Area.tsv by downselecting to Los Angeles County, CA ([#9] (https://github.com/NREL/la100es-resstock/pull/9))
+- Updated Roof Materials.tsv by downselecting for Location Region CR11 ([#8] (https://github.com/NREL/la100es-resstock/pull/8))
+- Updated Water Heater Efficiency.tsv by downselecting to Location Region CR11 ([#7] (https://github.com/NREL/la100es-resstock/pull/7))
+- Updated Water Heater Fuel.tsv by downselecting to Location Region CR11 ([#6] (https://github.com/NREL/la100es-resstock/pull/6))
+- Updated Location Region.tsv ([#4) (https://github.com/NREL/la100es-resstock/pull/4))
+- Update States.tsv by downselecting to Los Angeles County, CA ([#3] (https://github.com/NREL/la100es-resstock/pull/3))
+- Updated Water Heater in Unit.tsv  by downselecting to CR11 for Location Region ([#5] (https://github.com/NREL/la100es-resstock/pull/5))
+- Updated Windows.tsv by downselecting to ASHRAE Climate Zone 3B ([#2] (https://github.com/NREL/la100es-resstock/pull/2))
+- Delete contents of CHANGELOG.md
