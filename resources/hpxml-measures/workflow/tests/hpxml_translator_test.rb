@@ -174,26 +174,43 @@ class HPXMLTest < MiniTest::Test
   end
 
   def test_run_simulation_timeseries_outputs
-    # Check that the simulation produces timeseries with requested outputs
-    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
-    xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
-    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --hourly ALL --add-timeseries-time-column DST --add-timeseries-time-column UTC"
-    command += " --add-timeseries-output-variable 'Zone People Occupant Count' --add-timeseries-output-variable 'Zone People Total Heating Energy'"
-    system(command, err: File::NULL)
+    [true, false].each do |invalid_variable_only|
+      # Check that the simulation produces timeseries with requested outputs
+      rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+      xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
+      command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml}"
+      if not invalid_variable_only
+        command += ' --hourly ALL'
+        command += ' --add-timeseries-time-column DST'
+        command += ' --add-timeseries-time-column UTC'
+        command += " --add-timeseries-output-variable 'Zone People Occupant Count'"
+        command += " --add-timeseries-output-variable 'Zone People Total Heating Energy'"
+      end
+      command += " --add-timeseries-output-variable 'Foobar Variable'" # Test invalid output variable request
+      system(command, err: File::NULL)
 
-    # Check for output files
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+      # Check for output files
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
+      if not invalid_variable_only
+        assert(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+        # Check timeseries columns exist
+        timeseries_rows = CSV.read(File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+        assert_equal(1, timeseries_rows[0].select { |r| r == 'Time' }.size)
+        assert_equal(1, timeseries_rows[0].select { |r| r == 'TimeDST' }.size)
+        assert_equal(1, timeseries_rows[0].select { |r| r == 'TimeUTC' }.size)
+        assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Occupant Count: Living Space' }.size)
+        assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Total Heating Energy: Living Space' }.size)
+      else
+        refute(File.exist? File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
+      end
 
-    # Check TimeDST and TimeUTC exist
-    timeseries_rows = CSV.read(File.join(File.dirname(xml), 'run', 'results_timeseries.csv'))
-    assert_equal(1, timeseries_rows[0].select { |r| r == 'Time' }.size)
-    assert_equal(1, timeseries_rows[0].select { |r| r == 'TimeDST' }.size)
-    assert_equal(1, timeseries_rows[0].select { |r| r == 'TimeUTC' }.size)
-    assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Occupant Count: Living Space' }.size)
-    assert_equal(1, timeseries_rows[0].select { |r| r == 'Zone People Total Heating Energy: Living Space' }.size)
+      # Check run.log has warning about missing Foobar Variable
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'run.log'))
+      log_lines = File.readlines(File.join(File.dirname(xml), 'run', 'run.log')).map(&:strip)
+      assert(log_lines.include? "Warning: Request for output variable 'Foobar Variable' returned no key values.")
+    end
   end
 
   def test_template_osw
