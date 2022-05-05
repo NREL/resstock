@@ -3,6 +3,7 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
+require 'msgpack'
 require_relative 'resources/util.rb'
 require_relative '../HPXMLtoOpenStudio/resources/constants.rb'
 require_relative '../HPXMLtoOpenStudio/resources/location.rb'
@@ -34,6 +35,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     format_chs = OpenStudio::StringVector.new
     format_chs << 'csv'
     format_chs << 'json'
+    format_chs << 'msgpack'
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('output_format', format_chs, false)
     arg.setDisplayName('Output Format')
     arg.setDescription('The file format of the annual (and timeseries, if requested) outputs.')
@@ -304,17 +306,13 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     args[:electricity_bill_type] = 'Simple' # TODO: support Detailed
     output_format = args[:output_format].get
 
-    sqlFile = runner.lastEnergyPlusSqlFile
-    if sqlFile.empty?
-      runner.registerError('Cannot find EnergyPlus sql file.')
+    output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
+
+    if not File.exist? File.join(output_dir, 'eplusout.msgpack')
+      runner.registerError('Cannot find eplusout.msgpack.')
       return false
     end
-    @sqlFile = sqlFile.get
-    if not @sqlFile.connectionOpen
-      runner.registerError('EnergyPlus simulation failed.')
-      return false
-    end
-    @model.setSqlFile(@sqlFile)
+    @msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack'), mode: 'rb'))
 
     hpxml_defaults_path = @model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
     building_id = @model.getBuilding.additionalProperties.getFeatureAsString('building_id').get
@@ -322,19 +320,17 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     warnings = check_for_warnings(args, @hpxml.pv_systems)
     if register_warnings(runner, warnings)
-      OutputMethods.teardown(@sqlFile)
       return true
     end
 
     # Set paths
-    output_dir = File.dirname(@sqlFile.path.to_s)
     output_path = File.join(output_dir, "results_bills.#{output_format}")
 
     # Setup outputs
     fuels, utility_rates, utility_bills = setup_outputs()
 
     # Get timestamps
-    @timestamps = OutputMethods.get_timestamps(timeseries_frequency, @sqlFile, @hpxml)
+    @timestamps, _, _ = OutputMethods.get_timestamps(timeseries_frequency, @msgpackData, @hpxml)
 
     # Get outputs
     get_outputs(fuels)
@@ -345,7 +341,6 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     # Get utility rates
     warnings = get_utility_rates(fuels, utility_rates, args, @hpxml.header.state_code, @hpxml.pv_systems, runner)
     if register_warnings(runner, warnings)
-      OutputMethods.teardown(@sqlFile)
       return true
     end
 
@@ -394,8 +389,6 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     # Write results
     write_output(runner, utility_bills, output_format, output_path)
-
-    OutputMethods.teardown(@sqlFile)
 
     return true
   end
@@ -635,14 +628,20 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
   def get_report_meter_data_timeseries(meter_names, unit_conv, unit_adder)
     return [0.0] * @timestamps.size if meter_names.empty?
 
-    vars = "'" + meter_names.uniq.join("','") + "'"
-    query = "SELECT SUM(VariableValue*#{unit_conv}+#{unit_adder}) FROM ReportMeterData WHERE ReportMeterDataDictionaryIndex IN (SELECT ReportMeterDataDictionaryIndex FROM ReportMeterDataDictionary WHERE VariableName IN (#{vars}) AND ReportingFrequency='#{reporting_frequency_map[timeseries_frequency]}' AND VariableUnits='J') GROUP BY TimeIndex ORDER BY TimeIndex"
-    values = @sqlFile.execAndReturnVectorOfDouble(query)
-    fail "Query error: #{query}" unless values.is_initialized
-
-    values = values.get
-    values += [0.0] * @timestamps.size if values.size == 0
-    return values
+    msgpack_timeseries_name = OutputMethods.msgpack_frequency_map[timeseries_frequency]
+    cols = @msgpackData['MeterData'][msgpack_timeseries_name]['Cols']
+    rows = @msgpackData['MeterData'][msgpack_timeseries_name]['Rows']
+    indexes = cols.each_index.select { |i| meter_names.include? cols[i]['Variable'] }
+    vals = []
+    rows.each_with_index do |row, idx|
+      row = row[row.keys[0]]
+      val = 0.0
+      indexes.each do |i|
+        val += row[i] * unit_conv + unit_adder
+      end
+      vals << val
+    end
+    return vals
   end
 
   def average_rate_to_marginal_rate(average_rate, fixed_rate, household_consumption)
@@ -792,9 +791,9 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
       results_out << ["#{key}: Total ($)", bill.annual_total.round(2)]
     end
 
-    if output_format == 'csv'
+    if ['csv'].include? output_format
       CSV.open(output_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
-    elsif output_format == 'json'
+    elsif ['json', 'msgpack'].include? output_format
       h = {}
       results_out.each do |out|
         next if out == [line_break]
@@ -808,8 +807,12 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
         end
       end
 
-      require 'json'
-      File.open(output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
+      if output_format == 'json'
+        require 'json'
+        File.open(output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
+      elsif output_format == 'msgpack'
+        File.open(output_path, 'w') { |json| h.to_msgpack(json) }
+      end
     end
     runner.registerInfo("Wrote bills output to #{output_path}.")
   end

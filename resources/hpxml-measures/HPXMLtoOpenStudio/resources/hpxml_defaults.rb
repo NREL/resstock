@@ -185,9 +185,9 @@ class HPXMLDefaults
       hpxml.header.allow_increased_fixed_capacities = false
       hpxml.header.allow_increased_fixed_capacities_isdefaulted = true
     end
-    if hpxml.header.use_max_load_for_heat_pumps.nil?
-      hpxml.header.use_max_load_for_heat_pumps = true
-      hpxml.header.use_max_load_for_heat_pumps_isdefaulted = true
+    if hpxml.header.heat_pump_sizing_methodology.nil? && (hpxml.heat_pumps.size > 0)
+      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
+      hpxml.header.heat_pump_sizing_methodology_isdefaulted = true
     end
 
     if (not epw_file.nil?) && hpxml.header.state_code.nil?
@@ -405,60 +405,36 @@ class HPXMLDefaults
   def self.apply_attics(hpxml)
     return unless hpxml.has_location(HPXML::LocationAtticVented)
 
-    vented_attics = []
-    default_sla = Airflow.get_default_vented_attic_sla()
-    default_ach = nil
-    hpxml.attics.each do |attic|
-      next unless attic.attic_type == HPXML::AtticTypeVented
-
-      # check existing sla and ach
-      default_sla = attic.vented_attic_sla unless attic.vented_attic_sla.nil?
-      default_ach = attic.vented_attic_ach unless attic.vented_attic_ach.nil?
-
-      vented_attics << attic
-    end
+    vented_attics = hpxml.attics.select { |a| a.attic_type == HPXML::AtticTypeVented }
     if vented_attics.empty?
       hpxml.attics.add(id: 'VentedAttic',
-                       attic_type: HPXML::AtticTypeVented,
-                       vented_attic_sla: default_sla)
-      hpxml.attics[-1].vented_attic_sla_isdefaulted = true
+                       attic_type: HPXML::AtticTypeVented)
+      vented_attics << hpxml.attics[-1]
     end
     vented_attics.each do |vented_attic|
       next unless (vented_attic.vented_attic_sla.nil? && vented_attic.vented_attic_ach.nil?)
 
-      if not default_ach.nil? # ACH specified
-        vented_attic.vented_attic_ach = default_ach
-      else # Use SLA
-        vented_attic.vented_attic_sla = default_sla
-      end
+      vented_attic.vented_attic_sla = Airflow.get_default_vented_attic_sla()
       vented_attic.vented_attic_sla_isdefaulted = true
+      break # EPvalidator.xml only allows a single ventilation rate
     end
   end
 
   def self.apply_foundations(hpxml)
     return unless hpxml.has_location(HPXML::LocationCrawlspaceVented)
 
-    vented_crawls = []
-    default_sla = Airflow.get_default_vented_crawl_sla()
-    hpxml.foundations.each do |foundation|
-      next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
-
-      # check existing sla
-      default_sla = foundation.vented_crawlspace_sla unless foundation.vented_crawlspace_sla.nil?
-
-      vented_crawls << foundation
-    end
+    vented_crawls = hpxml.foundations.select { |f| f.foundation_type == HPXML::FoundationTypeCrawlspaceVented }
     if vented_crawls.empty?
       hpxml.foundations.add(id: 'VentedCrawlspace',
-                            foundation_type: HPXML::FoundationTypeCrawlspaceVented,
-                            vented_crawlspace_sla: default_sla)
-      hpxml.foundations[-1].vented_crawlspace_sla_isdefaulted = true
+                            foundation_type: HPXML::FoundationTypeCrawlspaceVented)
+      vented_crawls << hpxml.foundations[-1]
     end
     vented_crawls.each do |vented_crawl|
       next unless vented_crawl.vented_crawlspace_sla.nil?
 
-      vented_crawl.vented_crawlspace_sla = default_sla
+      vented_crawl.vented_crawlspace_sla = Airflow.get_default_vented_crawl_sla()
       vented_crawl.vented_crawlspace_sla_isdefaulted = true
+      break # EPvalidator.xml only allows a single ventilation rate
     end
   end
 
@@ -880,6 +856,23 @@ class HPXMLDefaults
   def self.apply_hvac(hpxml, weather, convert_shared_systems)
     if convert_shared_systems
       HVAC.apply_shared_systems(hpxml)
+    end
+
+    # Convert negative values (e.g., -1) to nil as appropriate
+    # This is needed to support autosizing in OS-ERI, where the capacities are required inputs
+    hpxml.hvac_systems.each do |hvac_system|
+      if hvac_system.respond_to?(:heating_capacity) && hvac_system.heating_capacity.to_f < 0
+        hvac_system.heating_capacity = nil
+      end
+      if hvac_system.respond_to?(:cooling_capacity) && hvac_system.cooling_capacity.to_f < 0
+        hvac_system.cooling_capacity = nil
+      end
+      if hvac_system.respond_to?(:heating_capacity_17F) && hvac_system.heating_capacity_17F.to_f < 0
+        hvac_system.heating_capacity_17F = nil
+      end
+      if hvac_system.respond_to?(:backup_heating_capacity) && hvac_system.backup_heating_capacity.to_f < 0
+        hvac_system.backup_heating_capacity = nil
+      end
     end
 
     # HVAC efficiencies (based on HEScore assumption)
@@ -1422,6 +1415,10 @@ class HPXMLDefaults
       if vent_fan.fan_power.nil?
         vent_fan.fan_power = (vent_fan.flow_rate * Airflow.get_default_mech_vent_fan_power(vent_fan)).round(1)
         vent_fan.fan_power_isdefaulted = true
+      end
+      if vent_fan.cfis_vent_mode_airflow_fraction.nil? && (vent_fan.fan_type == HPXML::MechVentTypeCFIS)
+        vent_fan.cfis_vent_mode_airflow_fraction = 1.0
+        vent_fan.cfis_vent_mode_airflow_fraction_isdefaulted = true
       end
     end
 
@@ -2426,22 +2423,6 @@ class HPXMLDefaults
   end
 
   def self.apply_hvac_sizing(hpxml, weather, cfa, nbeds)
-    # Convert negative values (e.g., -1) to nil as appropriate
-    hpxml.hvac_systems.each do |hvac_system|
-      if hvac_system.respond_to?(:heating_capacity) && hvac_system.heating_capacity.to_f < 0
-        hvac_system.heating_capacity = nil
-      end
-      if hvac_system.respond_to?(:cooling_capacity) && hvac_system.cooling_capacity.to_f < 0
-        hvac_system.cooling_capacity = nil
-      end
-      if hvac_system.respond_to?(:heating_capacity_17F) && hvac_system.heating_capacity_17F.to_f < 0
-        hvac_system.heating_capacity_17F = nil
-      end
-      if hvac_system.respond_to?(:backup_heating_capacity) && hvac_system.backup_heating_capacity.to_f < 0
-        hvac_system.backup_heating_capacity = nil
-      end
-    end
-
     hvac_systems = HVAC.get_hpxml_hvac_systems(hpxml)
 
     # Calculate building design loads and equipment capacities/airflows

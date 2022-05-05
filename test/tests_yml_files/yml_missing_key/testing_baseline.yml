@@ -1,0 +1,50 @@
+schema_version: '0.3'
+buildstock_directory: ../../../ # Relative to this file or absolute
+project_directory: project_testing # Relative to buildstock_directory
+output_directory: testing_baseline
+weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+# weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
+
+sampler:
+  type: residential_quota
+  args:
+    n_datapoints: 2
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2007
+
+    emissions:
+      - scenario_name: LRMER_MidCase_15
+        type: CO2
+        elec_folder: data/cambium/LRMER_MidCase_15
+        gas_value: 117.6
+        propane_value: 136.6
+        oil_value: 161.0
+        wood_value: 200.0
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      debug: true
+
+baseline:
+  n_buildings_represented: 110000000
+
+eagle:
+  n_jobs: 2
+  minutes_per_sim: 1
+  account: <account you are authorized to use>
+  sampling:
+    time: 10
+  postprocessing:
+    time: 10
+    n_workers: 1

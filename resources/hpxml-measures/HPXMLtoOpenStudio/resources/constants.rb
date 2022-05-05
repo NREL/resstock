@@ -43,7 +43,11 @@ class Constants
     return 'auto'
   end
 
-  def self.AutoMaxLoad
+  def self.AutoHERSForHP
+    return 'auto using HERS'
+  end
+
+  def self.AutoMaxLoadForHP
     return 'auto using max load'
   end
 
@@ -164,14 +168,6 @@ class Constants
 
   def self.ObjectNameClothesDryerExhaust
     return 'clothes dryer exhaust'
-  end
-
-  def self.ObjectNameCombiWaterHeatingEnergy(water_heater_name)
-    return "#{water_heater_name} dhw energy"
-  end
-
-  def self.ObjectNameCombiSpaceHeatingEnergy(water_heater_name)
-    return "#{water_heater_name} htg energy"
   end
 
   def self.ObjectNameComponentLoadsProgram
