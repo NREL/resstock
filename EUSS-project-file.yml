@@ -958,12 +958,131 @@ upgrades:
   - upgrade_name: Universal HPWHs
     options:
       #All homes get either a 50 gal 3.45 UEF water heater, a 66 gal 3.35 UEF water heater, or a 80 gal 3.45 UEF water heater, depending on occupants or bedrooms
+      - &HPWH_50gal_all
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF #Will this also change any necessary other things, like water heater fuel?
+        apply_logic: 
+          and:
+            - or:
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal
+              - Water Heater Efficiency|Electric Premium
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Tankless
+              - Water Heater Efficiency|FIXME Fuel Oil Indirect
+              - Water Heater Efficiency|Fuel Oil Premium
+              - Water Heater Efficiency|Fuel Oil Standard
+              - Water Heater Efficiency|Natural Gas Premium
+              - Water Heater Efficiency|Natural Gas Standard
+              - Water Heater Efficiency|Natural Gas Tankless
+              - Water Heater Efficiency|Other Fuel
+              - Water Heater Efficiency|Propane Premium
+              - Water Heater Efficiency|Propane Standard
+              - Water Heater Efficiency|Propane Tankless
+            - or:
+              - Bedrooms|1
+              - Bedrooms|2
+              - Bedrooms|3
+        costs:
+          - value: 
+            multiplier: Fixed (1)
+        lifetime:
+      - &HPWH_66gal_all
+        option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal
+              - Water Heater Efficiency|Electric Premium
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Tankless
+              - Water Heater Efficiency|FIXME Fuel Oil Indirect
+              - Water Heater Efficiency|Fuel Oil Premium
+              - Water Heater Efficiency|Fuel Oil Standard
+              - Water Heater Efficiency|Natural Gas Premium
+              - Water Heater Efficiency|Natural Gas Standard
+              - Water Heater Efficiency|Natural Gas Tankless
+              - Water Heater Efficiency|Other Fuel
+              - Water Heater Efficiency|Propane Premium
+              - Water Heater Efficiency|Propane Standard
+              - Water Heater Efficiency|Propane Tankless
+            - Bedrooms|4
+        costs:
+          - value: 
+            multiplier: Fixed (1)
+        lifetime: 
+      - &HPWH_80gal_all
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal
+              - Water Heater Efficiency|Electric Premium
+              - Water Heater Efficiency|Electric Standard
+              - Water Heater Efficiency|Electric Tankless
+              - Water Heater Efficiency|FIXME Fuel Oil Indirect
+              - Water Heater Efficiency|Fuel Oil Premium
+              - Water Heater Efficiency|Fuel Oil Standard
+              - Water Heater Efficiency|Natural Gas Premium
+              - Water Heater Efficiency|Natural Gas Standard
+              - Water Heater Efficiency|Natural Gas Tankless
+              - Water Heater Efficiency|Other Fuel
+              - Water Heater Efficiency|Propane Premium
+              - Water Heater Efficiency|Propane Standard
+              - Water Heater Efficiency|Propane Tankless
+            - Bedrooms|5
+        costs:
+          - value: 
+            multiplier: Fixed (1)
+        lifetime: 
   - upgrade_name: Minimum-efficiency all-electric homes
       #No enclosure measures
       #No upgrading of electric loads
     options:
       #Minimum-efficiency heat pump (from package 3) for homes with non-electric heating
       #HPWH for those that currently have non-electric water heating
+      - &HPWH_50gal_fuelswitch
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF #Will this also change any necessary other things, like water heater fuel?
+        apply_logic: 
+          and:
+            - or: &non-elec_WH
+              - Water Heater Efficiency|FIXME Fuel Oil Indirect
+              - Water Heater Efficiency|Fuel Oil Premium
+              - Water Heater Efficiency|Fuel Oil Standard
+              - Water Heater Efficiency|Natural Gas Premium
+              - Water Heater Efficiency|Natural Gas Standard
+              - Water Heater Efficiency|Natural Gas Tankless
+              - Water Heater Efficiency|Other Fuel
+              - Water Heater Efficiency|Propane Premium
+              - Water Heater Efficiency|Propane Standard
+              - Water Heater Efficiency|Propane Tankless
+            - or:
+              - Bedrooms|1
+              - Bedrooms|2
+              - Bedrooms|3
+        costs:
+          - value: 
+            multiplier: Fixed (1)
+        lifetime:
+      - &HPWH_66gal_fuelswitch
+        option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        apply_logic: 
+          and:
+            - or:
+              - *non-elec_WH
+            - Bedrooms|4
+        costs:
+          - value: 
+            multiplier: Fixed (1)
+        lifetime: 
+      - &HPWH_80gal_fuelswitch
+        option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or: non-elec_WH
+            - Bedrooms|5
+        costs:
+          - value: 
+            multiplier: Fixed (1)
+        lifetime: 
       #electric resistance dryer (CEF = 2.7) for those that currently have non-electric dryers
       - &clothes_dryer_electric_80pct
         option: Clothes Dryer|Electric, 80% Usage
@@ -1028,6 +1147,9 @@ upgrades:
     options:
       #High efficiency heat pump (from package 4) for all homes with non-electric heating or less-efficient electric heating
       #HPWH for all homes with non-electric water heating or less-efficient electric water heating
+      - *HPWH_50gal_all
+      - *HPWH_66gal_all
+      - *HPWH_80gal_all
       #Ventless heat pump dryer (CEF=5.2) for all homes with non-electric dryers or less-efficient electric dryers
       - &clothes_dryer_ductlesshp_80pct
         option: Clothes Dryer|Electric, Premium, Heat Pump, Ventless, 80% Usage
