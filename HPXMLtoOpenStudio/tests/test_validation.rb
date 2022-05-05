@@ -550,7 +550,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                         'Cooling setpoint should typically be less than or equal to 86 deg-F.'],
                               'hvac-setpoints-low' => ['Heating setpoint should typically be greater than or equal to 58 deg-F.',
                                                        'Cooling setpoint should typically be greater than or equal to 68 deg-F.'],
-                              'slab-zero-exposed-perimeter' => ['Slab has zero exposed perimeter, this may indicate an input error.'] }
+                              'slab-zero-exposed-perimeter' => ['Slab has zero exposed perimeter, this may indicate an input error.'],
+                              'wrong-units' => ['Thickness is greater than 12 inches; this may indicate incorrect units.',
+                                                'Thickness is less than 1 inch; this may indicate incorrect units.',
+                                                'Depth is greater than 72 feet; this may indicate incorrect units.',
+                                                'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units.',
+                                                'DistanceToBottomOfWindow is greater than 12 feet; this may indicate incorrect units.'] }
 
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
@@ -639,6 +644,13 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['slab-zero-exposed-perimeter'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.slabs[0].exposed_perimeter = 0
+      elsif ['wrong-units'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-overhangs.xml'))
+        hpxml.slabs[0].thickness = 0.5
+        hpxml.foundation_walls[0].thickness = 72.0
+        hpxml.windows[0].overhangs_depth = 120.0
+        hpxml.windows[0].overhangs_distance_to_top_of_window = 24.0
+        hpxml.windows[0].overhangs_distance_to_bottom_of_window = 48.0
       else
         fail "Unhandled case: #{warning_case}."
       end

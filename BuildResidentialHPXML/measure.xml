@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>352b46cf-4693-4ce2-95a9-af28a137724c</version_id>
-  <version_modified>20220422T175050Z</version_modified>
+  <version_id>0bff9176-bb23-4ff9-aa20-59831d78c033</version_id>
+  <version_modified>20220504T192342Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -598,7 +598,7 @@
       <display_name>Geometry: Unit Aspect Ratio</display_name>
       <description>The ratio of front/back wall length to left/right wall length for the unit, excluding any protruding garage wall area.</description>
       <type>Double</type>
-      <units>FB/LR</units>
+      <units>Frac</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>2</default_value>
@@ -687,7 +687,7 @@
       <display_name>Geometry: Garage Protrusion</display_name>
       <description>The fraction of the garage that is protruding from the living space. Only applies to single-family detached units.</description>
       <type>Double</type>
-      <units>frac</units>
+      <units>Frac</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1025,6 +1025,7 @@
       <display_name>Foundation Wall: Thickness</display_name>
       <description>The thickness of the foundation wall.</description>
       <type>String</type>
+      <units>in</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
@@ -1142,6 +1143,7 @@
       <display_name>Slab: Thickness</display_name>
       <description>The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab.</description>
       <type>String</type>
+      <units>in</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
@@ -1460,6 +1462,7 @@
       <display_name>Windows: Front Window-to-Wall Ratio</display_name>
       <description>The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.18</default_value>
@@ -1469,6 +1472,7 @@
       <display_name>Windows: Back Window-to-Wall Ratio</display_name>
       <description>The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.18</default_value>
@@ -1478,6 +1482,7 @@
       <display_name>Windows: Left Window-to-Wall Ratio</display_name>
       <description>The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.18</default_value>
@@ -1487,6 +1492,7 @@
       <display_name>Windows: Right Window-to-Wall Ratio</display_name>
       <description>The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.18</default_value>
@@ -1496,6 +1502,7 @@
       <display_name>Windows: Front Window Area</display_name>
       <description>The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.</description>
       <type>Double</type>
+      <units>ft^2</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1505,6 +1512,7 @@
       <display_name>Windows: Back Window Area</display_name>
       <description>The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.</description>
       <type>Double</type>
+      <units>ft^2</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1514,6 +1522,7 @@
       <display_name>Windows: Left Window Area</display_name>
       <description>The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.</description>
       <type>Double</type>
+      <units>ft^2</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1523,6 +1532,7 @@
       <display_name>Windows: Right Window Area</display_name>
       <description>The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.</description>
       <type>Double</type>
+      <units>ft^2</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1532,6 +1542,7 @@
       <display_name>Windows: Aspect Ratio</display_name>
       <description>Ratio of window height to width.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>1.333</default_value>
@@ -1541,6 +1552,7 @@
       <display_name>Windows: Fraction Operable</display_name>
       <description>Fraction of windows that are operable.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -1568,6 +1580,7 @@
       <display_name>Windows: Winter Interior Shading</display_name>
       <description>Interior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -1576,6 +1589,7 @@
       <display_name>Windows: Summer Interior Shading</display_name>
       <description>Interior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -1584,6 +1598,7 @@
       <display_name>Windows: Winter Exterior Shading</display_name>
       <description>Exterior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -1592,6 +1607,7 @@
       <display_name>Windows: Summer Exterior Shading</display_name>
       <description>Exterior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
       <type>Double</type>
+      <units>Frac</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -1618,6 +1634,7 @@
       <display_name>Overhangs: Front Depth</display_name>
       <description>The depth of overhangs for windows for the front facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1627,6 +1644,7 @@
       <display_name>Overhangs: Front Distance to Top of Window</display_name>
       <description>The overhangs distance to the top of window for the front facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1636,6 +1654,7 @@
       <display_name>Overhangs: Front Distance to Bottom of Window</display_name>
       <description>The overhangs distance to the bottom of window for the front facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>4</default_value>
@@ -1645,6 +1664,7 @@
       <display_name>Overhangs: Back Depth</display_name>
       <description>The depth of overhangs for windows for the back facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1654,6 +1674,7 @@
       <display_name>Overhangs: Back Distance to Top of Window</display_name>
       <description>The overhangs distance to the top of window for the back facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1663,6 +1684,7 @@
       <display_name>Overhangs: Back Distance to Bottom of Window</display_name>
       <description>The overhangs distance to the bottom of window for the back facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>4</default_value>
@@ -1672,6 +1694,7 @@
       <display_name>Overhangs: Left Depth</display_name>
       <description>The depth of overhangs for windows for the left facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1681,6 +1704,7 @@
       <display_name>Overhangs: Left Distance to Top of Window</display_name>
       <description>The overhangs distance to the top of window for the left facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1690,6 +1714,7 @@
       <display_name>Overhangs: Left Distance to Bottom of Window</display_name>
       <description>The overhangs distance to the bottom of window for the left facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>4</default_value>
@@ -1699,6 +1724,7 @@
       <display_name>Overhangs: Right Depth</display_name>
       <description>The depth of overhangs for windows for the right facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1708,6 +1734,7 @@
       <display_name>Overhangs: Right Distance to Top of Window</display_name>
       <description>The overhangs distance to the top of window for the right facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1717,6 +1744,7 @@
       <display_name>Overhangs: Right Distance to Bottom of Window</display_name>
       <description>The overhangs distance to the bottom of window for the right facade.</description>
       <type>Double</type>
+      <units>ft</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>4</default_value>
@@ -1726,6 +1754,7 @@
       <display_name>Skylights: Front Roof Area</display_name>
       <description>The amount of skylight area on the unit's front conditioned roof facade.</description>
       <type>Double</type>
+      <units>ft^2</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1735,6 +1764,7 @@
       <display_name>Skylights: Back Roof Area</display_name>
       <description>The amount of skylight area on the unit's back conditioned roof facade.</description>
       <type>Double</type>
+      <units>ft^2</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1744,6 +1774,7 @@
       <display_name>Skylights: Left Roof Area</display_name>
       <description>The amount of skylight area on the unit's left conditioned roof facade (when viewed from the front).</description>
       <type>Double</type>
+      <units>ft^2</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -1753,6 +1784,7 @@
       <display_name>Skylights: Right Roof Area</display_name>
       <description>The amount of skylight area on the unit's right conditioned roof facade (when viewed from the front).</description>
       <type>Double</type>
+      <units>ft^2</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0</default_value>
@@ -2101,7 +2133,7 @@
       <display_name>Cooling System: Cooling Capacity</display_name>
       <description>The output cooling capacity of the cooling system. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
       <type>String</type>
-      <units>tons</units>
+      <units>Btu/hr</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>auto</default_value>
@@ -6101,7 +6133,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>AF81AAAF</checksum>
+      <checksum>DF5C3E2B</checksum>
     </file>
   </files>
 </measure>
