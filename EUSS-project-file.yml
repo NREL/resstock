@@ -996,6 +996,33 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13
       #electric range (cooktop_eff = 0.74, oven_ef = 0.11) for homes that currently have non-electric
+      - &elec_range_80pct
+        option: Cooking Range|Electric, 80% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Propane, 80% Usage
+        costs:
+          - value:
+            multiplier: Fixed (1)
+      - &elec_range_100pct
+        option: Cooking Range|Electric, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Propane, 100% Usage
+        costs:
+          - value:
+            multiplier: Fixed (1)
+      - &elec_range_120pct
+        option: Cooking Range|Electric, 120% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Gas, 120% Usage
+            - Cooking Range|Propane, 120% Usage
+        costs:
+          - value:
+            multiplier: Fixed (1)
   - upgrade_name: Highly-efficient all-electric homes
       #No enclosure measures
     options:
@@ -1036,6 +1063,36 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13
       #Induction range (cooktop_ef = 0.84, oven_ef = 0.11) for all homes
+      - &elec_induction_range_80pct
+        option: Cooking Range|Electric, Induction, 80% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Electric, 80% Usage
+        costs:
+          - value:
+            multiplier: Fixed (1)
+      - &elec_induction_range_100pct
+        option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Electric, 100% Usage
+        costs:
+          - value:
+            multiplier: Fixed (1)
+      - &elec_range_120pct
+        option: Cooking Range|Electric, Induction, 120% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Gas, 120% Usage
+            - Cooking Range|Propane, 120% Usage
+            - Cooking Range|Electric, 120% Usage
+        costs:
+          - value:
+            multiplier: Fixed (1)
   - upgrade_name: Highly-efficient all-electric homes + basic enclosure package (packages 1 & 8)
     options:
       #package 1
