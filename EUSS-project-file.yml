@@ -49,6 +49,7 @@ postprocessing:
 
 upgrades:
   - upgrade_name: Basic Enclosure
+    #Up01
     options:
       #Attic floor insulation up to IECC 2021 levels for homes with vented attics and less than R-30 existing insulation
       - &attic_insulation_IECC_CZ1A
@@ -132,7 +133,7 @@ upgrades:
                         # Interpolated between 20% and 40% reductions to get $0.44/ft2,
                         # then used 1.14 multiplier to inflate from Jan 2019 to Mar 2022
             multiplier: Floor Area, Conditioned (ft^2)
-        lifetime:
+        lifetime: 30
       #Duct sealing to 10% leakage, R-8 insulation for all ducts in unconditioned space
       # Costs are mid-values from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
       - &ducts_category1 #improving leakage a lot, and insulation
@@ -238,6 +239,7 @@ upgrades:
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
   - upgrade_name: Enhanced Enclosure
+    #Up02
     options:
       #Basic Enclosure Measures
       - *attic_insulation_IECC_CZ1A
@@ -289,6 +291,7 @@ upgrades:
             multiplier:
         lifetime:
   - upgrade_name: Minimum-efficiency heat pumps #also provides SEER 15 cooling measure profile
+    #Up03
     options:
       #ASHP SEER 15, 9.0 HSPF for homes with ducts
         #these need to be sized for cooling and I'm not sure I did that right?
@@ -984,7 +987,7 @@ upgrades:
         costs:
           - value: 
             multiplier: Fixed (1)
-        lifetime:
+        lifetime: 12
       - &HPWH_66gal_all
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         apply_logic: 
@@ -1008,7 +1011,7 @@ upgrades:
         costs:
           - value: 
             multiplier: Fixed (1)
-        lifetime: 
+        lifetime: 12
       - &HPWH_80gal_all
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         apply_logic: 
@@ -1030,9 +1033,9 @@ upgrades:
               - Water Heater Efficiency|Propane Tankless
             - Bedrooms|5
         costs:
-          - value: 
+          - value: 3828
             multiplier: Fixed (1)
-        lifetime: 
+        lifetime: 12
   - upgrade_name: Minimum-efficiency all-electric homes
       #No enclosure measures
       #No upgrading of electric loads
@@ -1061,7 +1064,7 @@ upgrades:
         costs:
           - value: 
             multiplier: Fixed (1)
-        lifetime:
+        lifetime: 12
       - &HPWH_66gal_fuelswitch
         option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
         apply_logic: 
@@ -1072,7 +1075,7 @@ upgrades:
         costs:
           - value: 
             multiplier: Fixed (1)
-        lifetime: 
+        lifetime: 12
       - &HPWH_80gal_fuelswitch
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         apply_logic: 
@@ -1080,9 +1083,9 @@ upgrades:
             - or: non-elec_WH
             - Bedrooms|5
         costs:
-          - value: 
+          - value: 3828
             multiplier: Fixed (1)
-        lifetime: 
+        lifetime: 12
       #electric resistance dryer (CEF = 2.7) for those that currently have non-electric dryers
       - &clothes_dryer_electric_80pct
         option: Clothes Dryer|Electric, 80% Usage
@@ -1124,6 +1127,7 @@ upgrades:
         costs:
           - value:
             multiplier: Fixed (1)
+        lifetime: 
       - &elec_range_100pct
         option: Cooking Range|Electric, 100% Usage
         apply_logic:
@@ -1133,6 +1137,7 @@ upgrades:
         costs:
           - value:
             multiplier: Fixed (1)
+        lifetime: 
       - &elec_range_120pct
         option: Cooking Range|Electric, 120% Usage
         apply_logic:
@@ -1142,6 +1147,7 @@ upgrades:
         costs:
           - value:
             multiplier: Fixed (1)
+        lifetime: 
   - upgrade_name: Highly-efficient all-electric homes
       #No enclosure measures
     options:
@@ -1193,8 +1199,9 @@ upgrades:
             - Cooking Range|Propane, 80% Usage
             - Cooking Range|Electric, 80% Usage
         costs:
-          - value:
+          - value: 1420.26
             multiplier: Fixed (1)
+        lifetime: 999
       - &elec_induction_range_100pct
         option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
@@ -1203,8 +1210,9 @@ upgrades:
             - Cooking Range|Propane, 100% Usage
             - Cooking Range|Electric, 100% Usage
         costs:
-          - value:
+          - value: 1420.26
             multiplier: Fixed (1)
+        lifetime: 999
       - &elec_range_120pct
         option: Cooking Range|Electric, Induction, 120% Usage
         apply_logic:
@@ -1213,8 +1221,9 @@ upgrades:
             - Cooking Range|Propane, 120% Usage
             - Cooking Range|Electric, 120% Usage
         costs:
-          - value:
+          - value: 1420.26
             multiplier: Fixed (1)
+        lifetime: 999
   - upgrade_name: Highly-efficient all-electric homes + basic enclosure package (packages 1 & 8)
     options:
       #package 1
@@ -1234,4 +1243,19 @@ upgrades:
   - upgrade_name: Highly-efficient all-electric homes + enhanced enclosure package (packages 2 & 8)
     options:
       #package 2
+      - *attic_insulation_IECC_CZ1A
+      - *attic_insulation_IECC_CZ2A-2B-3A-3B-3C
+      - *attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
+      - *infiltration_30pct_reduction
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7
+      - *Drill-and-fill
+      - *foundation_wall_insulation
+      - *seal_vented_crawlspaces 
+      - *roof_insulation_to_R30
       #package 8
