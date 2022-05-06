@@ -5,13 +5,14 @@ __New Features__
 - **Breaking change**: New required `OccupancyCalculationType` input to specify operational vs asset calculation. If operational, `NumberofResidents` is required.
 - Expanded capabilities for scheduling:
   - Allows modeling detailed HVAC setpoints via a schedule CSV file.
+- New heat pump capabilities:
+  - **Breaking change**: Replaces the `UseMaxLoadForHeatPumps` sizing option with `HeatPumpSizingMethodology`, which has three choices:
+    - `ACCA`: nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
+    - `HERS` (default): nominal capacity sized equal to the larger of heating/cooling design loads.
+    - `MaxLoad`: nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's capacity retention at the design temperature.
+  - Allows the separate backup system to be a central system (e.g., central furnace w/ ducts). Previously only non-central system types were allowed.
+  - Heat pumps with switchover temperatures are now autosized by taking into account the switchover temperature, if higher than the heating design temperature.
 - Allows calculating one or more emissions scenarios (e.g., high renewable penetration vs business as usual) for different emissions types (e.g., CO2e).
-- Allows a heat pump separate backup system to be a central system (e.g., central furnace w/ ducts). Previously only non-central system types were allowed.
-- **Breaking change**: Replaces the `UseMaxLoadForHeatPumps` sizing option with `HeatPumpSizingMethodology`, which has three choices:
-  - `ACCA`: nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
-  - `HERS` (default): nominal capacity sized equal to the larger of heating/cooling design loads.
-  - `MaxLoad`: nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's capacity retention at the design temperature.
-- Heat pumps with switchover temperatures are now autosized by taking into account the switchover temperature, if higher than the heating design temperature.
 - Updates HVAC fans to use fan power law (cubic relationship between fan speed and power).
 - Allows specifying a `StormWindow` element for windows/skylights; U-factors and SHGCs are automatically adjusted.
 - Allows an optional `AirInfiltrationMeasurement/InfiltrationHeight` input.

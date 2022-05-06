@@ -76,7 +76,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('occupancy_calculation_type', occupancy_calculation_type_choices, true)
     arg.setDisplayName('Occupancy Calculation Type')
-    arg.setDescription("The type of occupancy calculation type. If '#{HPXML::OccupancyCalculationTypeAsset}' is chosen, usages of plug loads, appliances, hot water, etc. are based on number of bedrooms or conditioned floor area. If '#{HPXML::OccupancyCalculationTypeOperational}' is chosen, these usages are adjusted based on the number of occupants.")
+    arg.setDescription("The type of occupancy calculation type. If '#{HPXML::OccupancyCalculationTypeAsset}' is chosen, various end uses (e.g., clothes washer) are calculated using number of bedrooms and/or conditioned floor area. If '#{HPXML::OccupancyCalculationTypeOperational}' is chosen, end uses based on number of bedrooms are adjusted for the number of occupants.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_filepaths', false)

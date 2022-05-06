@@ -1451,9 +1451,23 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
       'base-calctype-operational-misc-loads-large-uncommon2.xml',
       'base-bldgtype-multifamily-calctype-operational.xml'].include? hpxml_file
     args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeOperational
+    args['geometry_unit_num_occupants'] = 1
+    args['misc_plug_loads_television_annual_kwh'] = Constants.Auto
+    args['misc_plug_loads_other_annual_kwh'] = Constants.Auto
+    args['pool_pump_annual_kwh'] = Constants.Auto
+    args['pool_heater_annual_therm'] = Constants.Auto
+    args['pool_heater_annual_kwh'] = Constants.Auto
+    args['hot_tub_pump_annual_kwh'] = Constants.Auto
+    args['hot_tub_heater_annual_therm'] = Constants.Auto
+    args['hot_tub_heater_annual_kwh'] = Constants.Auto
+    args['misc_plug_loads_well_pump_annual_kwh'] = Constants.Auto
+    args['misc_plug_loads_vehicle_annual_kwh'] = Constants.Auto
+    args['misc_fuel_loads_grill_annual_therm'] = Constants.Auto
+    args['misc_fuel_loads_lighting_annual_therm'] = Constants.Auto
+    args['misc_fuel_loads_fireplace_annual_therm'] = Constants.Auto
   elsif ['base-calctype-operational-misc-defaults.xml'].include? hpxml_file
     args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeOperational
-    args['geometry_unit_num_occupants'] = 3
+    args['geometry_unit_num_occupants'] = 5
   end
 
   # DHW
