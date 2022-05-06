@@ -649,7 +649,7 @@ Other walls (e.g., wood framed walls) that are connected to a below-grade space 
   ``Height``                                                      double             ft                > 0                  Yes                        Total height
   ``Area`` or ``Length``                                          double             ft2 or ft         > 0                  Yes                        Gross area (including doors/windows) or length
   ``Azimuth`` or ``Orientation``                                  integer or string  deg or direction  0 - 359 or See [#]_  No         See [#]_        Direction (clockwise from North)
-  ``Thickness``                                                   double             inches            > 0                  No         8.0             Thickness excluding interior framing
+  ``Thickness``                                                   double             in                > 0                  No         8.0             Thickness excluding interior framing
   ``DepthBelowGrade``                                             double             ft                0 - Height           Yes                        Depth below grade [#]_
   ``InteriorFinish/Type``                                         string                               See [#]_             No         See [#]_        Interior finish material
   ``InteriorFinish/Thickness``                                    double             in                >= 0                 No         0.5             Interior finish thickness
@@ -739,7 +739,7 @@ Each space type that borders the ground (i.e., basements, crawlspaces, garages, 
   ``SystemIdentifier``                                     id                                   Yes                  Unique identifier
   ``InteriorAdjacentTo``                                   string                  See [#]_     Yes                  Interior adjacent space type
   ``Area``                                                 double    ft2           > 0          Yes                  Gross area
-  ``Thickness``                                            double    inches        >= 0         No         See [#]_  Thickness [#]_
+  ``Thickness``                                            double    in            >= 0         No         See [#]_  Thickness [#]_
   ``ExposedPerimeter``                                     double    ft            >= 0         Yes                  Perimeter exposed to ambient conditions [#]_
   ``DepthBelowGrade``                                      double    ft            >= 0         See [#]_             Depth from the top of the slab surface to grade
   ``PerimeterInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
@@ -858,7 +858,7 @@ If overhangs are specified, additional information is entered in ``Overhangs``.
   ============================  ========  ======  ===========  ========  =======  ========================================================
   Element                       Type      Units   Constraints  Required  Default  Notes
   ============================  ========  ======  ===========  ========  =======  ========================================================
-  ``Depth``                     double    inches  >= 0         Yes                Depth of overhang
+  ``Depth``                     double    ft      >= 0         Yes                Depth of overhang
   ``DistanceToTopOfWindow``     double    ft      >= 0         Yes                Vertical distance from overhang to top of window
   ``DistanceToBottomOfWindow``  double    ft      See [#]_     Yes                Vertical distance from overhang to bottom of window [#]_
   ============================  ========  ======  ===========  ========  =======  ========================================================
