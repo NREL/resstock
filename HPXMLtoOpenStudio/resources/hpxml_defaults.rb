@@ -53,7 +53,7 @@ class HPXMLDefaults
     apply_partition_wall_mass(hpxml)
     apply_furniture_mass(hpxml)
     apply_hvac(hpxml, weather, convert_shared_systems)
-    apply_hvac_control(hpxml)
+    apply_hvac_control(hpxml, schedules_file)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds)
     apply_water_heaters(hpxml, nbeds, eri_version)
@@ -297,6 +297,10 @@ class HPXMLDefaults
   def self.apply_building_occupancy(hpxml, nbeds, schedules_file)
     if hpxml.building_occupancy.number_of_residents.nil?
       hpxml.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(nbeds)
+      hpxml.building_occupancy.number_of_residents_isdefaulted = true
+    end
+    if Schedule.year_round_vacancy(schedules_file)
+      hpxml.building_occupancy.number_of_residents = 0.0
       hpxml.building_occupancy.number_of_residents_isdefaulted = true
     end
     schedules_file_includes_occupants = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnOccupants)
@@ -1261,28 +1265,30 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_hvac_control(hpxml)
+  def self.apply_hvac_control(hpxml, schedules_file)
     hpxml.hvac_controls.each do |hvac_control|
-      if hvac_control.heating_setpoint_temp.nil? && hvac_control.weekday_heating_setpoints.nil?
+      schedules_file_includes_heating_setpoint_temp = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnHeatingSetpoint)
+      if hvac_control.heating_setpoint_temp.nil? && hvac_control.weekday_heating_setpoints.nil? && !schedules_file_includes_heating_setpoint_temp
         # No heating setpoints; set a default heating setpoint for, e.g., natural ventilation
         htg_sp, htg_setback_sp, htg_setback_hrs_per_week, htg_setback_start_hr = HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual)
         hvac_control.heating_setpoint_temp = htg_sp
         hvac_control.heating_setpoint_temp_isdefaulted = true
       end
 
-      if hvac_control.cooling_setpoint_temp.nil? && hvac_control.weekday_cooling_setpoints.nil?
+      schedules_file_includes_cooling_setpoint_temp = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnCoolingSetpoint)
+      if hvac_control.cooling_setpoint_temp.nil? && hvac_control.weekday_cooling_setpoints.nil? && !schedules_file_includes_cooling_setpoint_temp
         # No cooling setpoints; set a default cooling setpoint for, e.g., natural ventilation
         clg_sp, clg_setup_sp, clg_setup_hrs_per_week, clg_setup_start_hr = HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual)
         hvac_control.cooling_setpoint_temp = clg_sp
         hvac_control.cooling_setpoint_temp_isdefaulted = true
       end
 
-      if hvac_control.heating_setback_start_hour.nil? && (not hvac_control.heating_setback_temp.nil?)
+      if hvac_control.heating_setback_start_hour.nil? && (not hvac_control.heating_setback_temp.nil?) && !schedules_file_includes_heating_setpoint_temp
         hvac_control.heating_setback_start_hour = 23 # 11 pm
         hvac_control.heating_setback_start_hour_isdefaulted = true
       end
 
-      if hvac_control.cooling_setup_start_hour.nil? && (not hvac_control.cooling_setup_temp.nil?)
+      if hvac_control.cooling_setup_start_hour.nil? && (not hvac_control.cooling_setup_temp.nil?) && !schedules_file_includes_cooling_setpoint_temp
         hvac_control.cooling_setup_start_hour = 9 # 9 am
         hvac_control.cooling_setup_start_hour_isdefaulted = true
       end

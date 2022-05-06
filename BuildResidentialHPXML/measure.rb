@@ -60,6 +60,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the HPXML file.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_filepaths', false)
+    arg.setDisplayName('Schedules: CSV File Paths')
+    arg.setDescription('Absolute/relative paths of csv files containing user-specified schedules. If multiple files, use a comma-separated list.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('software_info_program_used', false)
     arg.setDisplayName('Software Info: Program Used')
     arg.setDescription('The name of the software program used.')
@@ -3418,6 +3423,10 @@ class HPXMLFile
     hpxml.header.xml_type = 'HPXML'
     hpxml.header.xml_generated_by = 'BuildResidentialHPXML'
     hpxml.header.transaction = 'create'
+
+    if args[:schedules_filepaths].is_initialized
+      hpxml.header.schedules_filepaths = args[:schedules_filepaths].get.split(',').map(&:strip)
+    end
 
     if args[:software_info_program_used].is_initialized
       hpxml.header.software_program_used = args[:software_info_program_used].get
