@@ -126,7 +126,7 @@ OptionParser.new do |opts|
     options[:add_comp_loads] = true
   end
 
-  opts.on('--add-detailed-schedule TYPE', ['smooth', 'stochastic'], 'Add detailed schedule of type (smooth, stochastic)') do |t|
+  opts.on('--add-detailed-schedule TYPE', ['smooth', 'stochastic'], 'Add detailed occupancy schedule of type (smooth, stochastic)') do |t|
     options[:detailed_schedules_type] = t
   end
 

@@ -253,7 +253,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
   def _test_measure(args_hash)
     # Run measure via OSW
     require 'json'
-    template_osw = File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'template.osw')
+    template_osw = File.join(File.dirname(__FILE__), '..', '..', 'workflow', 'template-run-hpxml.osw')
     workflow = OpenStudio::WorkflowJSON.new(template_osw)
     json = JSON.parse(workflow.to_s)
 
