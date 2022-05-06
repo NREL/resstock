@@ -1103,6 +1103,18 @@ class Schedule
     end
     return schedules_file_includes_col_name
   end
+
+  def self.year_round_vacancy(schedules_file)
+    year_round_vacancy = false
+    if not schedules_file.nil?
+      if schedules_file.schedules.keys.include?(SchedulesFile::ColumnVacancy)
+        if schedules_file.schedules[SchedulesFile::ColumnVacancy].all? { |i| i == 1 }
+          year_round_vacancy = true
+        end
+      end
+    end
+    return year_round_vacancy
+  end
 end
 
 class SchedulesFile
@@ -1135,6 +1147,8 @@ class SchedulesFile
   ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
   ColumnHotWaterFixtures = 'hot_water_fixtures'
   ColumnVacancy = 'vacancy'
+  ColumnHeatingSetpoint = 'heating_setpoint'
+  ColumnCoolingSetpoint = 'cooling_setpoint'
 
   def initialize(runner: nil,
                  model: nil,
@@ -1150,6 +1164,7 @@ class SchedulesFile
 
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy
+    convert_setpoints
 
     tmpfile = Tempfile.new(['schedules', '.csv'])
     @tmp_schedules_path = tmpfile.path.to_s
@@ -1392,8 +1407,22 @@ class SchedulesFile
     end
   end
 
+  def convert_setpoints
+    return if @tmp_schedules.keys.none? { |k| SchedulesFile.SetpointColumnNames.include?(k) }
+
+    col_names = @tmp_schedules.keys
+
+    @tmp_schedules[col_names[0]].each_with_index do |ts, i|
+      SchedulesFile.SetpointColumnNames.each do |setpoint_col_name|
+        next unless col_names.include?(setpoint_col_name)
+
+        @tmp_schedules[setpoint_col_name][i] = UnitConversions.convert(@tmp_schedules[setpoint_col_name][i], 'f', 'c')
+      end
+    end
+  end
+
   def self.ColumnNames
-    return SchedulesFile.OccupancyColumnNames
+    return SchedulesFile.OccupancyColumnNames + SchedulesFile.SetpointColumnNames
   end
 
   def self.OccupancyColumnNames
@@ -1428,18 +1457,25 @@ class SchedulesFile
     ]
   end
 
+  def self.SetpointColumnNames
+    return [
+      ColumnHeatingSetpoint,
+      ColumnCoolingSetpoint
+    ]
+  end
+
   def affected_by_vacancy
     affected_by_vacancy = {}
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       affected_by_vacancy[column_name] = true
-      next unless [ColumnRefrigerator,
-                   ColumnExtraRefrigerator,
-                   ColumnFreezer,
-                   ColumnPoolPump,
-                   ColumnPoolHeater,
-                   ColumnHotTubPump,
-                   ColumnHotTubHeater].include? column_name
+      next unless ([ColumnRefrigerator,
+                    ColumnExtraRefrigerator,
+                    ColumnFreezer,
+                    ColumnPoolPump,
+                    ColumnPoolHeater,
+                    ColumnHotTubPump,
+                    ColumnHotTubHeater] + SchedulesFile.SetpointColumnNames).include? column_name
 
       affected_by_vacancy[column_name] = false
     end
@@ -1451,6 +1487,9 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       max_value_one[column_name] = true
+      if SchedulesFile.SetpointColumnNames.include? column_name
+        max_value_one[column_name] = false
+      end
     end
     return max_value_one
   end
@@ -1460,6 +1499,9 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       min_value_zero[column_name] = true
+      if SchedulesFile.SetpointColumnNames.include? column_name
+        min_value_zero[column_name] = false
+      end
     end
     return min_value_zero
   end

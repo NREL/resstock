@@ -273,10 +273,12 @@ class HotWaterAndAppliances
         fx_gpd = get_fixtures_gpd(eri_version, nbeds, fixtures_all_low_flow, daily_mw_fractions, fixtures_usage_multiplier)
         w_gpd = get_dist_waste_gpd(eri_version, nbeds, has_uncond_bsmnt, cfa, ncfl, hot_water_distribution, fixtures_all_low_flow, fixtures_usage_multiplier)
 
+        fx_peak_flow = nil
         if not schedules_file.nil?
           fx_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: SchedulesFile::ColumnHotWaterFixtures, daily_water: fx_gpd)
           dist_water_peak_flow = schedules_file.calc_peak_flow_from_daily_gpm(col_name: SchedulesFile::ColumnHotWaterFixtures, daily_water: w_gpd)
-        else
+        end
+        if fx_peak_flow.nil?
           fx_peak_flow = fixtures_schedule_obj.calcPeakFlowFromDailygpm(fx_gpd)
           dist_water_peak_flow = fixtures_schedule_obj.calcPeakFlowFromDailygpm(w_gpd)
         end
@@ -352,11 +354,13 @@ class HotWaterAndAppliances
     if not hot_water_distribution.nil?
       # General water use internal gains
       # Floor mopping, shower evaporation, water films on showers, tubs & sinks surfaces, plant watering, etc.
+      water_design_level_sens = nil
       water_sens_btu, water_lat_btu = get_water_gains_sens_lat(nbeds, fixtures_usage_multiplier)
       if not schedules_file.nil?
         water_design_level_sens = schedules_file.calc_design_level_from_daily_kwh(col_name: SchedulesFile::ColumnHotWaterFixtures, daily_kwh: UnitConversions.convert(water_sens_btu, 'Btu', 'kWh') / 365.0)
         water_design_level_lat = schedules_file.calc_design_level_from_daily_kwh(col_name: SchedulesFile::ColumnHotWaterFixtures, daily_kwh: UnitConversions.convert(water_lat_btu, 'Btu', 'kWh') / 365.0)
-      else
+      end
+      if water_design_level_sens.nil?
         water_design_level_sens = fixtures_schedule_obj.calcDesignLevelFromDailykWh(UnitConversions.convert(water_sens_btu, 'Btu', 'kWh') / 365.0)
         water_design_level_lat = fixtures_schedule_obj.calcDesignLevelFromDailykWh(UnitConversions.convert(water_lat_btu, 'Btu', 'kWh') / 365.0)
       end

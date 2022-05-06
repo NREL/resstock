@@ -919,32 +919,32 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.water_heating_systems << hpxml.water_heating_systems[0].dup
         hpxml.water_heating_systems[1].id = "WaterHeatingSystem#{hpxml.water_heating_systems.size}"
       elsif ['schedule-detailed-bad-values-max-not-one'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         csv_data[1][1] = 1.1
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml.header.schedules_filepaths = [@tmp_csv_path]
       elsif ['schedule-detailed-bad-values-negative'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         csv_data[1][1] = -0.5
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml.header.schedules_filepaths = [@tmp_csv_path]
       elsif ['schedule-detailed-bad-values-non-numeric'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         csv_data[1][1] = 'NA'
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml.header.schedules_filepaths = [@tmp_csv_path]
       elsif ['schedule-detailed-duplicate-columns'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml.header.schedules_filepaths = []
         hpxml.header.schedules_filepaths << @tmp_csv_path
         hpxml.header.schedules_filepaths << @tmp_csv_path
       elsif ['schedule-detailed-wrong-columns'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         csv_data[0][1] = 'lighting'
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
@@ -953,7 +953,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.schedules_filepaths << 'invalid-wrong-filename.csv'
       elsif ['schedule-detailed-wrong-rows'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         File.write(@tmp_csv_path, csv_data[0..-2].map(&:to_csv).join)
         hpxml.header.schedules_filepaths = [@tmp_csv_path]
@@ -1088,7 +1088,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       # Create HPXML object
       if ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-simple.xml'))
-        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
+        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
       else
         fail "Unhandled case: #{warning_case}."
       end
