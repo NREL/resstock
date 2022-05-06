@@ -123,15 +123,18 @@ HPXML HVAC Sizing Control
 
 HVAC equipment sizing controls are entered in ``/HPXML/SoftwareInfo/extension/HVACSizingControl``.
 
-  =================================  ========  =====  ===========  ========  =======  ============================================
-  Element                            Type      Units  Constraints  Required  Default  Description
-  =================================  ========  =====  ===========  ========  =======  ============================================
-  ``AllowIncreasedFixedCapacities``  boolean                       No        false    Logic for fixed capacity HVAC equipment [#]_
-  ``UseMaxLoadForHeatPumps``         boolean                       No        true     Logic for autosized heat pumps [#]_
-  =================================  ========  =====  ===========  ========  =======  ============================================
+  =================================  ========  =====  ===========  ========  ========  ============================================
+  Element                            Type      Units  Constraints  Required  Default   Description
+  =================================  ========  =====  ===========  ========  ========  ============================================
+  ``AllowIncreasedFixedCapacities``  boolean                       No        false     Logic for fixed capacity HVAC equipment [#]_
+  ``HeatPumpSizingMethodology``      string           See [#]_     No        HERS      Logic for autosized heat pumps [#]_
+  =================================  ========  =====  ===========  ========  ========  ============================================
 
   .. [#] If AllowIncreasedFixedCapacities is true, the larger of user-specified fixed capacity and design load will be used (to reduce potential for unmet loads); otherwise user-specified fixed capacity is used.
-  .. [#] If UseMaxLoadForHeatPumps is true, autosized heat pumps are sized based on the maximum of heating/cooling design loads; otherwise sized per ACCA Manual J/S based on cooling design loads with some oversizing allowances for heating design loads.
+  .. [#] HeatPumpSizingMethodology choices are 'ACCA', 'HERS', or 'MaxLoad'.
+  .. [#] If HeatPumpSizingMethodology is 'ACCA', autosized heat pumps have their nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
+         If HeatPumpSizingMethodology is 'HERS', autosized heat pumps have their nominal capacity sized equal to the larger of heating/cooling design loads.
+         If HeatPumpSizingMethodology is 'MaxLoad', autosized heat pumps have their nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's capacity retention at the design temperature.
 
 HPXML Schedules
 ***************
@@ -646,7 +649,7 @@ Other walls (e.g., wood framed walls) that are connected to a below-grade space 
   ``Height``                                                      double             ft                > 0                  Yes                        Total height
   ``Area`` or ``Length``                                          double             ft2 or ft         > 0                  Yes                        Gross area (including doors/windows) or length
   ``Azimuth`` or ``Orientation``                                  integer or string  deg or direction  0 - 359 or See [#]_  No         See [#]_        Direction (clockwise from North)
-  ``Thickness``                                                   double             inches            > 0                  No         8.0             Thickness excluding interior framing
+  ``Thickness``                                                   double             in                > 0                  No         8.0             Thickness excluding interior framing
   ``DepthBelowGrade``                                             double             ft                0 - Height           Yes                        Depth below grade [#]_
   ``InteriorFinish/Type``                                         string                               See [#]_             No         See [#]_        Interior finish material
   ``InteriorFinish/Thickness``                                    double             in                >= 0                 No         0.5             Interior finish thickness
@@ -736,7 +739,7 @@ Each space type that borders the ground (i.e., basements, crawlspaces, garages, 
   ``SystemIdentifier``                                     id                                   Yes                  Unique identifier
   ``InteriorAdjacentTo``                                   string                  See [#]_     Yes                  Interior adjacent space type
   ``Area``                                                 double    ft2           > 0          Yes                  Gross area
-  ``Thickness``                                            double    inches        >= 0         No         See [#]_  Thickness [#]_
+  ``Thickness``                                            double    in            >= 0         No         See [#]_  Thickness [#]_
   ``ExposedPerimeter``                                     double    ft            >= 0         Yes                  Perimeter exposed to ambient conditions [#]_
   ``DepthBelowGrade``                                      double    ft            >= 0         See [#]_             Depth from the top of the slab surface to grade
   ``PerimeterInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
@@ -855,7 +858,7 @@ If overhangs are specified, additional information is entered in ``Overhangs``.
   ============================  ========  ======  ===========  ========  =======  ========================================================
   Element                       Type      Units   Constraints  Required  Default  Notes
   ============================  ========  ======  ===========  ========  =======  ========================================================
-  ``Depth``                     double    inches  >= 0         Yes                Depth of overhang
+  ``Depth``                     double    ft      >= 0         Yes                Depth of overhang
   ``DistanceToTopOfWindow``     double    ft      >= 0         Yes                Vertical distance from overhang to top of window
   ``DistanceToBottomOfWindow``  double    ft      See [#]_     Yes                Vertical distance from overhang to bottom of window [#]_
   ============================  ========  ======  ===========  ========  =======  ========================================================
@@ -1058,7 +1061,7 @@ If a furnace is specified, additional information is entered in ``HeatingSystem`
   ====================================================================  =================  =========  ===============  ========  ========  ================================================
   ``DistributionSystem``                                                idref              See [#]_                    Yes                 ID of attached distribution system
   ``AnnualHeatingEfficiency[Units="AFUE"]/Value`` or ``YearInstalled``  double or integer  frac or #  0 - 1 or > 1600  Yes       See [#]_  Rated efficiency or Year installed
-  ``extension/FanPowerWattsPerCFM``                                     double             W/cfm      >= 0             No        See [#]_  Fan efficiency at maximum airflow rate [#]_
+  ``extension/FanPowerWattsPerCFM``                                     double             W/cfm      >= 0             No        See [#]_  Blower fan efficiency at maximum fan speed [#]_
   ``extension/AirflowDefectRatio``                                      double             frac       -0.9 - 9         No        0.0       Deviation between design/installed airflows [#]_
   ====================================================================  =================  =========  ===============  ========  ========  ================================================
 
@@ -1210,7 +1213,7 @@ If a central air conditioner is specified, additional information is entered in 
   ``CoolingCapacity``                                                   double             Btu/hr       >= 0             No        autosized  Cooling output capacity
   ``SensibleHeatFraction``                                              double             frac         0 - 1            No                   Sensible heat fraction
   ``CompressorType``                                                    string                          See [#]_         No        See [#]_   Type of compressor
-  ``extension/FanPowerWattsPerCFM``                                     double             W/cfm        >= 0             No        See [#]_   Fan efficiency at maximum airflow rate [#]_
+  ``extension/FanPowerWattsPerCFM``                                     double             W/cfm        >= 0             No        See [#]_   Blower fan efficiency at maximum fan speed [#]_
   ``extension/AirflowDefectRatio``                                      double             frac         -0.9 - 9         No        0.0        Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                                       double             frac         -0.9 - 9         No        0.0        Deviation between design/installed charges [#]_
   ====================================================================  =================  ===========  ===============  ========  =========  ================================================
@@ -1281,7 +1284,7 @@ If a mini-split is specified, additional information is entered in ``CoolingSyst
   ``AnnualCoolingEfficiency[Units="SEER"]/Value``  double    Btu/Wh  > 0          Yes                  Rated cooling efficiency
   ``CoolingCapacity``                              double    Btu/hr  >= 0         No        autosized  Cooling output capacity
   ``SensibleHeatFraction``                         double    frac    0 - 1        No                   Sensible heat fraction
-  ``extension/FanPowerWattsPerCFM``                double    W/cfm   >= 0         No        See [#]_   Fan efficiency at maximum airflow rate
+  ``extension/FanPowerWattsPerCFM``                double    W/cfm   >= 0         No        See [#]_   Blower fan efficiency at maximum fan speed
   ``extension/AirflowDefectRatio``                 double    frac    -0.9 - 9     No        0.0        Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                  double    frac    -0.9 - 9     No        0.0        Deviation between design/installed charges [#]_
   ===============================================  ========  ======  ===========  ========  =========  ===============================================
@@ -1420,7 +1423,7 @@ If an air-to-air heat pump is specified, additional information is entered in ``
   ``FractionCoolLoadServed``                                            double             frac         0 - 1 [#]_                Yes                  Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="SEER"]/Value`` or ``YearInstalled``  double or integer  Btu/Wh or #  > 0 or > 1600             Yes       See [#]_   Rated cooling efficiency or Year installed
   ``AnnualHeatingEfficiency[Units="HSPF"]/Value`` or ``YearInstalled``  double or integer  Btu/Wh or #  > 0 or > 1600             Yes       See [#]_   Rated heating efficiency or Year installed
-  ``extension/FanPowerWattsPerCFM``                                     double             W/cfm        >= 0                      No        See [#]_   Fan efficiency at maximum airflow rate
+  ``extension/FanPowerWattsPerCFM``                                     double             W/cfm        >= 0                      No        See [#]_   Blower fan efficiency at maximum fan speed
   ``extension/AirflowDefectRatio``                                      double             frac         -0.9 - 9                  No        0.0        Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                                       double             frac         -0.9 - 9                  No        0.0        Deviation between design/installed charges [#]_
   ====================================================================  =================  ===========  ========================  ========  =========  =================================================
@@ -1456,7 +1459,7 @@ If a mini-split heat pump is specified, additional information is entered in ``H
   ``FractionCoolLoadServed``                       double    frac    0 - 1 [#]_                Yes                  Fraction of cooling load served
   ``AnnualCoolingEfficiency[Units="SEER"]/Value``  double    Btu/Wh  > 0                       Yes                  Rated cooling efficiency
   ``AnnualHeatingEfficiency[Units="HSPF"]/Value``  double    Btu/Wh  > 0                       Yes                  Rated heating efficiency
-  ``extension/FanPowerWattsPerCFM``                double    W/cfm   >= 0                      No        See [#]_   Fan efficiency at maximum airflow rate
+  ``extension/FanPowerWattsPerCFM``                double    W/cfm   >= 0                      No        See [#]_   Blower fan efficiency at maximum fan speed
   ``extension/AirflowDefectRatio``                 double    frac    -0.9 - 9                  No        0.0        Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                  double    frac    -0.9 - 9                  No        0.0        Deviation between design/installed charges [#]_
   ===============================================  ========  ======  ========================  ========  =========  ==============================================
@@ -1512,7 +1515,7 @@ If a ground-to-air heat pump is specified, additional information is entered in 
   ``NumberofUnitsServed``                          integer           > 0          See [#]_             Number of dwelling units served
   ``extension/PumpPowerWattsPerTon``               double    W/ton   >= 0         No        See [#]_   Pump power [#]_
   ``extension/SharedLoopWatts``                    double    W       >= 0         See [#]_             Shared pump power [#]_
-  ``extension/FanPowerWattsPerCFM``                double    W/cfm   >= 0         No        See [#]_   Fan efficiency at maximum airflow rate
+  ``extension/FanPowerWattsPerCFM``                double    W/cfm   >= 0         No        See [#]_   Blower fan efficiency at maximum fan speed
   ``extension/AirflowDefectRatio``                 double    frac    -0.9 - 9     No        0.0        Deviation between design/installed airflows [#]_
   ``extension/ChargeDefectRatio``                  double    frac    -0.9 - 9     No        0.0        Deviation between design/installed charges [#]_
   ===============================================  ========  ======  ===========  ========  =========  ==============================================
@@ -1854,13 +1857,18 @@ If an energy recovery ventilator system is specified, additional information is 
 
 If a central fan integrated supply system is specified, additional information is entered in ``VentilationFan``.
 
-  ====================================  ======  =====  ===========  ========  =======  ==================================
-  Element                               Type    Units  Constraints  Required  Default  Notes
-  ====================================  ======  =====  ===========  ========  =======  ==================================
-  ``AttachedToHVACDistributionSystem``  idref          See [#]_     Yes                ID of attached distribution system
-  ====================================  ======  =====  ===========  ========  =======  ==================================
+  ================================================  ======  =====  ===========  ========  =======  ==================================
+  Element                                           Type    Units  Constraints  Required  Default  Notes
+  ================================================  ======  =====  ===========  ========  =======  ==================================
+  ``AttachedToHVACDistributionSystem``              idref          See [#]_     Yes                ID of attached distribution system
+  ``extension/VentilationOnlyModeAirflowFraction``  double         0 - 1        No        1.0      Blower airflow rate fraction during ventilation only mode [#]_
+  ================================================  ======  =====  ===========  ========  =======  ==================================
 
   .. [#] HVACDistribution type cannot be HydronicDistribution.
+  .. [#] Blower airflow rate when operating in ventilation only mode (i.e., not heating or cooling mode), as a fraction of the maximum blower airflow rate.
+         This value will depend on whether the blower fan can operate at reduced airflow rates during ventilation only operation.
+         It is used to determine how much conditioned air is recirculated through ducts during ventilation only operation, resulting in additional duct losses.
+         A value of zero will result in no conditioned air recirculation, and thus no additional duct losses.
 
 **Shared System**
 

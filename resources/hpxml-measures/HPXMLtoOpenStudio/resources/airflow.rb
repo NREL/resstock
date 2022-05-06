@@ -84,7 +84,7 @@ class Airflow
     # Apply ducts
 
     duct_systems.each do |ducts, object|
-      apply_ducts(model, ducts, object)
+      apply_ducts(model, ducts, object, vent_fans_mech)
     end
 
     # Apply infiltration/ventilation
@@ -597,7 +597,7 @@ class Airflow
     end
   end
 
-  def self.apply_ducts(model, ducts, object)
+  def self.apply_ducts(model, ducts, object, vent_fans_mech)
     ducts.each do |duct|
       duct.rvalue = get_duct_insulation_rvalue(duct.rvalue, duct.side) # Convert from nominal to actual R-value
       if not duct.loc_schedule.nil?
@@ -1062,10 +1062,11 @@ class Airflow
 
       if @cfis_airloop.values.include? object
 
-        # Calculate CFIS duct losses
+        # Calculate additional CFIS duct losses during fan-only mode
         cfis_id = @cfis_airloop.key(object)
+        vent_mech = vent_fans_mech.select { |vfm| vfm.id == cfis_id }[0]
         duct_program.addLine("If #{@cfis_f_damper_extra_open_var[cfis_id].name} > 0")
-        duct_program.addLine("  Set cfis_m3s = (#{@fan_mfr_max_var[object].name} / 1.16097654)") # Density of 1.16097654 was back calculated using E+ results
+        duct_program.addLine("  Set cfis_m3s = (#{@fan_mfr_max_var[object].name} * #{vent_mech.cfis_vent_mode_airflow_fraction} / 1.16097654)") # Density of 1.16097654 was back calculated using E+ results
         duct_program.addLine("  Set #{@fan_rtf_var[object].name} = #{@cfis_f_damper_extra_open_var[cfis_id].name}") # Need to use global vars to sync duct_program and infiltration program of different calling points
         duct_program.addLine("  Set #{ah_vfr_var.name} = #{@fan_rtf_var[object].name}*cfis_m3s")
         duct_program.addLine("  Set rho_in = (@RhoAirFnPbTdbW #{@pbar_sensor.name} #{@tin_sensor.name} #{@win_sensor.name})")
@@ -1475,7 +1476,7 @@ class Airflow
       next unless @cooking_range_in_cond_space
 
       # Infiltration impact
-      infil_program.addLine("Set Qrange = Qrange + #{UnitConversions.convert(vent_kitchen.flow_rate * vent_kitchen.quantity, 'cfm', 'm^3/s').round(4)} * #{obj_sch_sensor.name}")
+      infil_program.addLine("Set Qrange = Qrange + #{UnitConversions.convert(vent_kitchen.flow_rate * vent_kitchen.quantity, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
 
     infil_program.addLine('Set Qbath = 0')
@@ -1483,7 +1484,7 @@ class Airflow
       # Electricity impact
       obj_sch_sensor = apply_local_ventilation(model, vent_bath, Constants.ObjectNameMechanicalVentilationBathFan, index)
       # Infiltration impact
-      infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.flow_rate * vent_bath.quantity, 'cfm', 'm^3/s').round(4)} * #{obj_sch_sensor.name}")
+      infil_program.addLine("Set Qbath = Qbath + #{UnitConversions.convert(vent_bath.flow_rate * vent_bath.quantity, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
 
     infil_program.addLine('Set Qdryer = 0')
@@ -1495,9 +1496,9 @@ class Airflow
       infil_program.addLine("Set Qdryer = Qdryer + #{UnitConversions.convert(vented_dryer.vented_flow_rate * cfm_mult, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
 
-    infil_program.addLine("Set QWHV_sup = #{UnitConversions.convert(sup_cfm_tot, 'cfm', 'm^3/s').round(4)}")
-    infil_program.addLine("Set QWHV_exh = #{UnitConversions.convert(exh_cfm_tot, 'cfm', 'm^3/s').round(4)}")
-    infil_program.addLine("Set QWHV_bal_erv_hrv = #{UnitConversions.convert(bal_cfm_tot + erv_hrv_cfm_tot, 'cfm', 'm^3/s').round(4)}")
+    infil_program.addLine("Set QWHV_sup = #{UnitConversions.convert(sup_cfm_tot, 'cfm', 'm^3/s').round(5)}")
+    infil_program.addLine("Set QWHV_exh = #{UnitConversions.convert(exh_cfm_tot, 'cfm', 'm^3/s').round(5)}")
+    infil_program.addLine("Set QWHV_bal_erv_hrv = #{UnitConversions.convert(bal_cfm_tot + erv_hrv_cfm_tot, 'cfm', 'm^3/s').round(5)}")
 
     infil_program.addLine('Set Qexhaust = Qrange + Qbath + Qdryer + QWHV_exh + QWHV_bal_erv_hrv')
     infil_program.addLine('Set Qsupply = QWHV_sup + QWHV_bal_erv_hrv + QWHV_cfis_oa')
@@ -1539,10 +1540,12 @@ class Airflow
       # ERV/HRV EMS load model
       # E+ ERV model is using standard density for MFR calculation, caused discrepancy with other system types.
       # Therefore ERV is modeled within EMS infiltration program
+      infil_program.addLine("If #{q_var} > 0")
       vent_mech_erv_hrv_tot.each do |vent_fan|
-        infil_program.addLine("Set Effectiveness_Sens = Effectiveness_Sens + #{UnitConversions.convert(vent_fan.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)} / #{q_var} * #{hrv_erv_effectiveness_map[vent_fan][:vent_mech_sens_eff]}")
-        infil_program.addLine("Set Effectiveness_Lat = Effectiveness_Lat + #{UnitConversions.convert(vent_fan.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)} / #{q_var} * #{hrv_erv_effectiveness_map[vent_fan][:vent_mech_lat_eff]}")
+        infil_program.addLine("  Set Effectiveness_Sens = Effectiveness_Sens + #{UnitConversions.convert(vent_fan.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)} / #{q_var} * #{hrv_erv_effectiveness_map[vent_fan][:vent_mech_sens_eff]}")
+        infil_program.addLine("  Set Effectiveness_Lat = Effectiveness_Lat + #{UnitConversions.convert(vent_fan.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)} / #{q_var} * #{hrv_erv_effectiveness_map[vent_fan][:vent_mech_lat_eff]}")
       end
+      infil_program.addLine('EndIf')
       infil_program.addLine('Set ERVCpMin = (@Min OASupCp ZoneCp)')
       infil_program.addLine('Set ERVSupOutTemp = OASupInTemp + ERVCpMin/OASupCp * Effectiveness_Sens * (ZoneTemp - OASupInTemp)')
       infil_program.addLine('Set ERVSupOutW = OASupInW + ERVCpMin/OASupCp * Effectiveness_Lat * (ZoneW - OASupInW)')

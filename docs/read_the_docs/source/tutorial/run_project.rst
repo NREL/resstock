@@ -50,6 +50,7 @@ Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arg
       -d, --debug                      Save both existing and upgraded xml/osw files
       -i, --building_id ID             Only run this building ID; can be called multiple times
       -k, --keep_run_folders           Preserve run folder for all datapoints
+      -s, --samplingonly               Run the sampling only
       -h, --help                       Display help
       -v, --version                    Display version
 

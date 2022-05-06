@@ -217,7 +217,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_unit_aspect_ratio', true)
     arg.setDisplayName('Geometry: Unit Aspect Ratio')
-    arg.setUnits('FB/LR')
+    arg.setUnits('Frac')
     arg.setDescription('The ratio of front/back wall length to left/right wall length for the unit, excluding any protruding garage wall area.')
     arg.setDefaultValue(2.0)
     args << arg
@@ -279,7 +279,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('geometry_garage_protrusion', true)
     arg.setDisplayName('Geometry: Garage Protrusion')
-    arg.setUnits('frac')
+    arg.setUnits('Frac')
     arg.setDescription("The fraction of the garage that is protruding from the living space. Only applies to #{HPXML::ResidentialTypeSFD} units.")
     arg.setDefaultValue(0.0)
     args << arg
@@ -475,6 +475,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('foundation_wall_thickness', true)
     arg.setDisplayName('Foundation Wall: Thickness')
+    arg.setUnits('in')
     arg.setDescription('The thickness of the foundation wall.')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -553,6 +554,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('slab_thickness', true)
     arg.setDisplayName('Slab: Thickness')
+    arg.setUnits('in')
     arg.setDescription('The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab.')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -683,60 +685,70 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_front_wwr', true)
     arg.setDisplayName('Windows: Front Window-to-Wall Ratio')
+    arg.setUnits('Frac')
     arg.setDescription("The ratio of window area to wall area for the unit's front facade. Enter 0 if specifying Front Window Area instead.")
     arg.setDefaultValue(0.18)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_back_wwr', true)
     arg.setDisplayName('Windows: Back Window-to-Wall Ratio')
+    arg.setUnits('Frac')
     arg.setDescription("The ratio of window area to wall area for the unit's back facade. Enter 0 if specifying Back Window Area instead.")
     arg.setDefaultValue(0.18)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_left_wwr', true)
     arg.setDisplayName('Windows: Left Window-to-Wall Ratio')
+    arg.setUnits('Frac')
     arg.setDescription("The ratio of window area to wall area for the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window Area instead.")
     arg.setDefaultValue(0.18)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_right_wwr', true)
     arg.setDisplayName('Windows: Right Window-to-Wall Ratio')
+    arg.setUnits('Frac')
     arg.setDescription("The ratio of window area to wall area for the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window Area instead.")
     arg.setDefaultValue(0.18)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_area_front', true)
     arg.setDisplayName('Windows: Front Window Area')
+    arg.setUnits('ft^2')
     arg.setDescription("The amount of window area on the unit's front facade. Enter 0 if specifying Front Window-to-Wall Ratio instead.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_area_back', true)
     arg.setDisplayName('Windows: Back Window Area')
+    arg.setUnits('ft^2')
     arg.setDescription("The amount of window area on the unit's back facade. Enter 0 if specifying Back Window-to-Wall Ratio instead.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_area_left', true)
     arg.setDisplayName('Windows: Left Window Area')
+    arg.setUnits('ft^2')
     arg.setDescription("The amount of window area on the unit's left facade (when viewed from the front). Enter 0 if specifying Left Window-to-Wall Ratio instead.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_area_right', true)
     arg.setDisplayName('Windows: Right Window Area')
+    arg.setUnits('ft^2')
     arg.setDescription("The amount of window area on the unit's right facade (when viewed from the front). Enter 0 if specifying Right Window-to-Wall Ratio instead.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_aspect_ratio', true)
     arg.setDisplayName('Windows: Aspect Ratio')
+    arg.setUnits('Frac')
     arg.setDescription('Ratio of window height to width.')
     arg.setDefaultValue(1.333)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_fraction_operable', false)
     arg.setDisplayName('Windows: Fraction Operable')
+    arg.setUnits('Frac')
     arg.setDescription('Fraction of windows that are operable.')
     args << arg
 
@@ -755,21 +767,25 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_interior_shading_winter', false)
     arg.setDisplayName('Windows: Winter Interior Shading')
+    arg.setUnits('Frac')
     arg.setDescription('Interior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_interior_shading_summer', false)
     arg.setDisplayName('Windows: Summer Interior Shading')
+    arg.setUnits('Frac')
     arg.setDescription('Interior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_exterior_shading_winter', false)
     arg.setDisplayName('Windows: Winter Exterior Shading')
+    arg.setUnits('Frac')
     arg.setDescription('Exterior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('window_exterior_shading_summer', false)
     arg.setDisplayName('Windows: Summer Exterior Shading')
+    arg.setUnits('Frac')
     arg.setDescription('Exterior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.')
     args << arg
 
@@ -784,96 +800,112 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_front_depth', true)
     arg.setDisplayName('Overhangs: Front Depth')
+    arg.setUnits('ft')
     arg.setDescription('The depth of overhangs for windows for the front facade.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_front_distance_to_top_of_window', true)
     arg.setDisplayName('Overhangs: Front Distance to Top of Window')
+    arg.setUnits('ft')
     arg.setDescription('The overhangs distance to the top of window for the front facade.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_front_distance_to_bottom_of_window', true)
     arg.setDisplayName('Overhangs: Front Distance to Bottom of Window')
+    arg.setUnits('ft')
     arg.setDescription('The overhangs distance to the bottom of window for the front facade.')
     arg.setDefaultValue(4)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_back_depth', true)
     arg.setDisplayName('Overhangs: Back Depth')
+    arg.setUnits('ft')
     arg.setDescription('The depth of overhangs for windows for the back facade.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_back_distance_to_top_of_window', true)
     arg.setDisplayName('Overhangs: Back Distance to Top of Window')
+    arg.setUnits('ft')
     arg.setDescription('The overhangs distance to the top of window for the back facade.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_back_distance_to_bottom_of_window', true)
     arg.setDisplayName('Overhangs: Back Distance to Bottom of Window')
+    arg.setUnits('ft')
     arg.setDescription('The overhangs distance to the bottom of window for the back facade.')
     arg.setDefaultValue(4)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_left_depth', true)
     arg.setDisplayName('Overhangs: Left Depth')
+    arg.setUnits('ft')
     arg.setDescription('The depth of overhangs for windows for the left facade.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_left_distance_to_top_of_window', true)
     arg.setDisplayName('Overhangs: Left Distance to Top of Window')
+    arg.setUnits('ft')
     arg.setDescription('The overhangs distance to the top of window for the left facade.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_left_distance_to_bottom_of_window', true)
     arg.setDisplayName('Overhangs: Left Distance to Bottom of Window')
+    arg.setUnits('ft')
     arg.setDescription('The overhangs distance to the bottom of window for the left facade.')
     arg.setDefaultValue(4)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_right_depth', true)
     arg.setDisplayName('Overhangs: Right Depth')
+    arg.setUnits('ft')
     arg.setDescription('The depth of overhangs for windows for the right facade.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_right_distance_to_top_of_window', true)
     arg.setDisplayName('Overhangs: Right Distance to Top of Window')
+    arg.setUnits('ft')
     arg.setDescription('The overhangs distance to the top of window for the right facade.')
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('overhangs_right_distance_to_bottom_of_window', true)
     arg.setDisplayName('Overhangs: Right Distance to Bottom of Window')
+    arg.setUnits('ft')
     arg.setDescription('The overhangs distance to the bottom of window for the right facade.')
     arg.setDefaultValue(4)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('skylight_area_front', true)
     arg.setDisplayName('Skylights: Front Roof Area')
+    arg.setUnits('ft^2')
     arg.setDescription("The amount of skylight area on the unit's front conditioned roof facade.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('skylight_area_back', true)
     arg.setDisplayName('Skylights: Back Roof Area')
+    arg.setUnits('ft^2')
     arg.setDescription("The amount of skylight area on the unit's back conditioned roof facade.")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('skylight_area_left', true)
     arg.setDisplayName('Skylights: Left Roof Area')
+    arg.setUnits('ft^2')
     arg.setDescription("The amount of skylight area on the unit's left conditioned roof facade (when viewed from the front).")
     arg.setDefaultValue(0)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('skylight_area_right', true)
     arg.setDisplayName('Skylights: Right Roof Area')
+    arg.setUnits('ft^2')
     arg.setDescription("The amount of skylight area on the unit's right conditioned roof facade (when viewed from the front).")
     arg.setDefaultValue(0)
     args << arg
@@ -1048,7 +1080,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('cooling_system_cooling_capacity', true)
     arg.setDisplayName('Cooling System: Cooling Capacity')
     arg.setDescription("The output cooling capacity of the cooling system. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S.")
-    arg.setUnits('tons')
+    arg.setUnits('Btu/hr')
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
@@ -1147,7 +1179,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_heating_capacity', true)
     arg.setDisplayName('Heat Pump: Heating Capacity')
-    arg.setDescription("The output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter '#{Constants.AutoMaxLoad}' to size the capacity based on the maximum of heating/cooling design loads.")
+    arg.setDescription("The output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter '#{Constants.AutoMaxLoadForHP}' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating capacity retention at cold temperature. Enter '#{Constants.AutoHERSForHP}' to size the capacity equal to the maximum of heating/cooling design loads.")
     arg.setUnits('Btu/hr')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -1226,6 +1258,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Heat Pump: Charge Defect Ratio')
     arg.setDescription('The refrigerant charge defect ratio, defined as (InstalledCharge - DesignCharge) / DesignCharge, of the heat pump per ANSI/RESNET/ACCA Standard 310. A value of zero means no refrigerant charge defect. Applies to all heat pump types.')
     arg.setUnits('Frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_capacity_retention_fraction', false)
+    arg.setDisplayName('Heat Pump: Capacity Retention Fraction')
+    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
+    arg.setUnits('Frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_capacity_retention_temp', false)
+    arg.setDisplayName('Heat Pump: Capacity Retention Temperature')
+    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
+    arg.setUnits('deg-F')
     args << arg
 
     heating_system_2_type_choices = OpenStudio::StringVector.new
@@ -4399,10 +4443,12 @@ class HPXMLFile
 
     return if heat_pump_type == 'none'
 
-    if args[:heat_pump_heating_capacity] == Constants.AutoMaxLoad
-      hpxml.header.use_max_load_for_heat_pumps = true
-    elsif args[:heat_pump_heating_capacity] == Constants.Auto
-      hpxml.header.use_max_load_for_heat_pumps = false
+    if args[:heat_pump_heating_capacity] == Constants.Auto
+      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingACCA
+    elsif args[:heat_pump_heating_capacity] == Constants.AutoHERSForHP
+      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingHERS
+    elsif args[:heat_pump_heating_capacity] == Constants.AutoMaxLoadForHP
+      hpxml.header.heat_pump_sizing_methodology = HPXML::HeatPumpSizingMaxLoad
     else
       heating_capacity = Float(args[:heat_pump_heating_capacity])
     end
@@ -4479,6 +4525,14 @@ class HPXMLFile
       charge_defect_ratio = args[:heat_pump_charge_defect_ratio].get
     end
 
+    if args[:heat_pump_capacity_retention_fraction].is_initialized
+      capacity_retention_fraction = args[:heat_pump_capacity_retention_fraction].get
+    end
+
+    if args[:heat_pump_capacity_retention_temp].is_initialized
+      capacity_retention_temp = args[:heat_pump_capacity_retention_temp].get
+    end
+
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
     fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
 
@@ -4513,6 +4567,8 @@ class HPXMLFile
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio,
+                         capacity_retention_fraction: capacity_retention_fraction,
+                         capacity_retention_temp: capacity_retention_temp,
                          primary_heating_system: primary_heating_system,
                          primary_cooling_system: primary_cooling_system)
   end
