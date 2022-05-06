@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>0bff9176-bb23-4ff9-aa20-59831d78c033</version_id>
-  <version_modified>20220504T192342Z</version_modified>
+  <version_id>1d41d349-77ab-4493-a02e-ded81a9d9946</version_id>
+  <version_modified>20220506T143201Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -31,6 +31,32 @@
       <name>software_info_program_version</name>
       <display_name>Software Info: Program Version</display_name>
       <description>The version of the software program used.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>occupancy_calculation_type</name>
+      <display_name>Occupancy Calculation Type</display_name>
+      <description>The type of occupancy calculation type. If 'asset' is chosen, usages of plug loads, appliances, hot water, etc. are based on number of bedrooms or conditioned floor area. If 'operational' is chosen, these usages are adjusted based on the number of occupants.</description>
+      <type>Choice</type>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>asset</value>
+          <display_name>asset</display_name>
+        </choice>
+        <choice>
+          <value>operational</value>
+          <display_name>operational</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
+      <name>schedules_filepaths</name>
+      <display_name>Schedules: CSV File Paths</display_name>
+      <description>Absolute/relative paths of csv files containing user-specified detailed schedules. If multiple files, use a comma-separated list.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -6113,16 +6139,16 @@
   </attributes>
   <files>
     <file>
-      <filename>build_residential_hpxml_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>43553C6E</checksum>
-    </file>
-    <file>
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
       <checksum>4E620D45</checksum>
+    </file>
+    <file>
+      <filename>build_residential_hpxml_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>1A3F5984</checksum>
     </file>
     <file>
       <version>
@@ -6133,7 +6159,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>DF5C3E2B</checksum>
+      <checksum>7A34259A</checksum>
     </file>
   </files>
 </measure>

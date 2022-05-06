@@ -100,7 +100,7 @@ EnergyPlus simulation controls are entered in ``/HPXML/SoftwareInfo/extension/Si
   ``EndMonth``                        integer            1 - 12         No        12 (December)                Run period end date
   ``EndDayOfMonth``                   integer            1 - 31         No        31                           Run period end date
   ``CalendarYear``                    integer            > 1600 [#]_    No        2007 (for TMY weather) [#]_  Calendar year (for start day of week)
-  ``DaylightSaving/Enabled``          boolean                           No        true                         Daylight savings enabled?
+  ``DaylightSaving/Enabled``          boolean                           No        true                         Daylight saving enabled?
   ==================================  ========  =======  =============  ========  ===========================  =====================================
 
   .. [#] BeginMonth/BeginDayOfMonth date must occur before EndMonth/EndDayOfMonth date (e.g., a run period from 10/1 to 3/31 is invalid).
@@ -116,7 +116,7 @@ If daylight saving is enabled, additional information is specified in ``Daylight
   ``EndMonth`` and ``EndDayOfMonth``      integer          1 - 12 and 1 - 31  No        EPW else 11/5 (November 5)     End date
   ======================================  ========  =====  =================  ========  =============================  ===========
 
-  .. [#] Daylight savings dates will be defined according to the EPW weather file header; if not available, fallback default values listed above will be used.
+  .. [#] Daylight saving dates will be defined according to the EPW weather file header; if not available, fallback default values listed above will be used.
 
 HPXML HVAC Sizing Control
 *************************
@@ -144,7 +144,7 @@ Schedules for a variety of building features can be 1) specified via simple inpu
 Simple Schedule Inputs
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Simple schedule inputs are available as weekday/weekend fractions and monthly multipliers.
+Simple schedule inputs are available as weekday/weekend fractions and monthly multipliers for a variety of building characteristics.
 For example, see the ``WeekdayScheduleFractions``, ``WeekendScheduleFractions``, and ``MonthlyScheduleMultipliers`` inputs for :ref:`buildingoccupancy`.
 
 .. _detailedschedules:
@@ -155,49 +155,55 @@ Detailed Schedule Inputs
 Detailed schedule inputs allow schedule values for every hour or timestep of the simulation.
 They can be smooth schedules, or they can reflect real-world or stochastic occupancy.
 
-Detailed schedule inputs are provided via CSV file(s) that should be referenced in the HPXML file as a ``/HPXML/SoftwareInfo/extension/SchedulesFilePath``.
+Detailed schedule inputs are provided via one or more CSV file that should be referenced in the HPXML file as ``/HPXML/SoftwareInfo/extension/SchedulesFilePath`` elements.
 
-Occupancy related schedule columns must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
-The schedule columns in the schedule CSV are:
+Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
+The schedule columns available in the schedule CSV files are:
 
-  ==============================  ========================================================  ===================
-  Column Name                     Description                                               Affected by Vacancy
-  ==============================  ========================================================  ===================
-  ``occupants``                   Occupant heat gain schedule.                              Yes
-  ``lighting_interior``           Interior lighting energy use schedule.                    Yes
-  ``lighting_exterior``           Exterior lighting energy use schedule.                    Yes
-  ``lighting_garage``             Garage lighting energy use schedule.                      Yes
-  ``lighting_exterior_holiday``   Exterior holiday lighting energy use schedule.            Yes
-  ``cooking_range``               Cooking range & oven energy use schedule.                 Yes
-  ``refrigerator``                Primary refrigerator energy use schedule.                 No
-  ``extra_refrigerator``          Non-primary refrigerator energy use schedule.             No
-  ``freezer``                     Freezer energy use schedule.                              No
-  ``dishwasher``                  Dishwasher energy use schedule.                           Yes
-  ``clothes_washer``              Clothes washer energy use schedule.                       Yes
-  ``clothes_dryer``               Clothes dryer energy use schedule.                        Yes
-  ``ceiling_fan``                 Ceiling fan energy use schedule.                          Yes
-  ``plug_loads_other``            Other plug load energy use schedule.                      Yes
-  ``plug_loads_tv``               Television plug load energy use schedule.                 Yes
-  ``plug_loads_vehicle``          Electric vehicle plug load energy use schedule.           Yes
-  ``plug_loads_well_pump``        Well pump plug load energy use schedule.                  Yes
-  ``fuel_loads_grill``            Grill fuel load energy use schedule.                      Yes
-  ``fuel_loads_lighting``         Lighting fuel load energy use schedule.                   Yes
-  ``fuel_loads_fireplace``        Fireplace fuel load energy use schedule.                  Yes
-  ``pool_pump``                   Pool pump energy use schedule.                            No
-  ``pool_heater``                 Pool heater energy use schedule.                          No
-  ``hot_tub_pump``                Hot tub pump energy use schedule.                         No
-  ``hot_tub_heater``              Hot tub heater energy use schedule.                       No
-  ``hot_water_dishwasher``        Dishwasher hot water use schedule.                        Yes
-  ``hot_water_clothes_washer``    Clothes washer hot water use schedule.                    Yes
-  ``hot_water_fixtures``          Fixtures (sinks, showers, baths) hot water use schedule.  Yes
-  ``vacancy``                     1=Home is vacant. Automatically overrides other columns.  N/A
-  ==============================  ========================================================  ===================
+  ==============================  =====  ========================================================  ===================
+  Column Name                     Units  Description                                               Affected by Vacancy
+  ==============================  =====  ========================================================  ===================
+  ``occupants``                   frac   Occupant heat gain schedule.                              Yes
+  ``lighting_interior``           frac   Interior lighting energy use schedule.                    Yes
+  ``lighting_exterior``           frac   Exterior lighting energy use schedule.                    Yes
+  ``lighting_garage``             frac   Garage lighting energy use schedule.                      Yes
+  ``lighting_exterior_holiday``   frac   Exterior holiday lighting energy use schedule.            Yes
+  ``cooking_range``               frac   Cooking range & oven energy use schedule.                 Yes
+  ``refrigerator``                frac   Primary refrigerator energy use schedule.                 No
+  ``extra_refrigerator``          frac   Non-primary refrigerator energy use schedule.             No
+  ``freezer``                     frac   Freezer energy use schedule.                              No
+  ``dishwasher``                  frac   Dishwasher energy use schedule.                           Yes
+  ``clothes_washer``              frac   Clothes washer energy use schedule.                       Yes
+  ``clothes_dryer``               frac   Clothes dryer energy use schedule.                        Yes
+  ``ceiling_fan``                 frac   Ceiling fan energy use schedule.                          Yes
+  ``plug_loads_other``            frac   Other plug load energy use schedule.                      Yes
+  ``plug_loads_tv``               frac   Television plug load energy use schedule.                 Yes
+  ``plug_loads_vehicle``          frac   Electric vehicle plug load energy use schedule.           Yes
+  ``plug_loads_well_pump``        frac   Well pump plug load energy use schedule.                  Yes
+  ``fuel_loads_grill``            frac   Grill fuel load energy use schedule.                      Yes
+  ``fuel_loads_lighting``         frac   Lighting fuel load energy use schedule.                   Yes
+  ``fuel_loads_fireplace``        frac   Fireplace fuel load energy use schedule.                  Yes
+  ``pool_pump``                   frac   Pool pump energy use schedule.                            No
+  ``pool_heater``                 frac   Pool heater energy use schedule.                          No
+  ``hot_tub_pump``                frac   Hot tub pump energy use schedule.                         No
+  ``hot_tub_heater``              frac   Hot tub heater energy use schedule.                       No
+  ``hot_water_dishwasher``        frac   Dishwasher hot water use schedule.                        Yes
+  ``hot_water_clothes_washer``    frac   Clothes washer hot water use schedule.                    Yes
+  ``hot_water_fixtures``          frac   Fixtures (sinks, showers, baths) hot water use schedule.  Yes
+  ``heating_setpoint``            F      Thermostat heating setpoint schedule.                     No
+  ``cooling_setpoint``            F      Thermostat cooling setpoint schedule.                     No
+  ``vacancy``                     0/1    1=Home is vacant. Automatically overrides other columns.  N/A
+  ==============================  =====  ========================================================  ===================
 
 Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
 
-A detailed stochastic or smooth schedule CSV file can also be automatically generated for you; see the :ref:`usage_instructions` for the commands.
-Generator inputs are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
+A detailed stochastic or smooth occupancy schedule CSV file can also be automatically generated for you; see the :ref:`usage_instructions` for the commands.
+Inputs for the schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
 See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
+
+.. warning::
+
+  For simulations with daylight saving enabled (which is the default), EnergyPlus will skip forward an hour in the CSV on the "spring forward" day and repeat an hour on the "fall back" day.
 
 Default Schedules
 ~~~~~~~~~~~~~~~~~
@@ -205,6 +211,43 @@ Default Schedules
 If neither simple nor detailed inputs are provided, then schedules are defaulted.
 Default schedules are typically smooth, averaged schedules.
 These default schedules are described elsewhere in the documentation (e.g., see :ref:`buildingoccupancy` for the default occupant heat gain schedule).
+
+HPXML Occupancy Calculation Type
+********************************
+
+Occupancy-based loads can be calculated through 1) an asset calculation or 2) an operational calculation.
+Calculation types are entered in ``/HPXML/SoftwareInfo/extension/OccupancyCalculationType``: either "asset" or "operational".
+
+Asset Calculation
+~~~~~~~~~~~~~~~~~
+
+Asset calculations are performed using NumberofBedrooms and ConditionedFloorArea.
+
+Operational Calculation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Operational calculations are performed using NumberofBedrooms, ConditionedFloorArea, and NumberofResidents.
+Adjustments are made to usage multipliers to account for the extra NumberofResidents term.
+TODO: list the adjustment factors here? down below in appliances and misc LULs?
+
+Hot Water and Appliances:
+
+    occ_to_nbr_ratio = noccs / nbeds
+    if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? unit_type
+      occ_factor = occ_to_nbr_ratio**0.51
+    elsif [HPXML::ResidentialTypeSFD].include? unit_type
+      occ_factor = occ_to_nbr_ratio**0.70
+    end
+
+Misc Loads:
+
+    if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? unit_type
+      c = [-0.68, 1.09]
+    elsif [HPXML::ResidentialTypeSFD].include? unit_type
+      c = [-1.47, 1.69]
+    end
+    adj_factor = (0.5 + 0.25 * (c[0] + c[1] * noccs) / 3.0 + 0.25 * cfa / 1920.0) /
+                 (0.5 + 0.25 * nbeds / 3.0 + 0.25 * cfa / 1920.0)
 
 HPXML Emissions Scenarios
 *************************

@@ -174,7 +174,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'missing-distribution-cfa-served' => ['Expected 1 element(s) for xpath: ../../../ConditionedFloorAreaServed [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctSurfaceArea)], id: "HVACDistribution1"]'],
                             'missing-duct-area' => ['Expected 1 or more element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctLocation], id: "HVACDistribution1"]'],
                             'missing-duct-location' => ['Expected 0 element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctLocation)], id: "HVACDistribution1"]'],
-                            'missing-elements' => ['Expected 1 element(s) for xpath: NumberofConditionedFloors [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]',
+                            'missing-elements' => ['Expected 1 element(s) for xpath: SoftwareInfo/extension/OccupancyCalculationType[text()="asset" or text()="operational"]',
+                                                   'Expected 1 element(s) for xpath: NumberofConditionedFloors [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]',
                                                    'Expected 1 element(s) for xpath: ConditionedFloorArea [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]'],
                             'multifamily-reference-appliance' => ['There are references to "other housing unit" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
                             'multifamily-reference-duct' => ['There are references to "other multifamily buffer space" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
@@ -443,6 +444,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.hvac_distributions[0].ducts[1].duct_location = nil
       elsif ['missing-elements'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.header.occupancy_calculation_type = nil
         hpxml.building_construction.number_of_conditioned_floors = nil
         hpxml.building_construction.conditioned_floor_area = nil
       elsif ['multifamily-reference-appliance'].include? error_case
@@ -919,32 +921,32 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.water_heating_systems << hpxml.water_heating_systems[0].dup
         hpxml.water_heating_systems[1].id = "WaterHeatingSystem#{hpxml.water_heating_systems.size}"
       elsif ['schedule-detailed-bad-values-max-not-one'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         csv_data[1][1] = 1.1
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml.header.schedules_filepaths = [@tmp_csv_path]
       elsif ['schedule-detailed-bad-values-negative'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         csv_data[1][1] = -0.5
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml.header.schedules_filepaths = [@tmp_csv_path]
       elsif ['schedule-detailed-bad-values-non-numeric'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         csv_data[1][1] = 'NA'
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml.header.schedules_filepaths = [@tmp_csv_path]
       elsif ['schedule-detailed-duplicate-columns'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml.header.schedules_filepaths = []
         hpxml.header.schedules_filepaths << @tmp_csv_path
         hpxml.header.schedules_filepaths << @tmp_csv_path
       elsif ['schedule-detailed-wrong-columns'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         csv_data[0][1] = 'lighting'
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
@@ -953,7 +955,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.schedules_filepaths << 'invalid-wrong-filename.csv'
       elsif ['schedule-detailed-wrong-rows'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-stochastic.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
         File.write(@tmp_csv_path, csv_data[0..-2].map(&:to_csv).join)
         hpxml.header.schedules_filepaths = [@tmp_csv_path]
@@ -1088,7 +1090,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       # Create HPXML object
       if ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-simple.xml'))
-        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
+        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
       else
         fail "Unhandled case: #{warning_case}."
       end

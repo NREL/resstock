@@ -331,6 +331,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
     # Base
     if ['base-sfd.xml'].include? hpxml_file
+      args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeAsset
       args['simulation_control_timestep'] = 60
       args['weather_station_epw_filepath'] = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
       args['site_type'] = HPXML::SiteTypeSuburban

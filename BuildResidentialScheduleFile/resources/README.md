@@ -42,4 +42,3 @@ The first row is the probability of a cluster size of 1 event, second row for pr
 
 This yaml file contains various miscellaneous configurations for the schedule generator, and their meanings and sources are defined within the file.
 
-The new methods for generating and reading stochastic schedules adds some extra I/O. We expect a 10%-15% increase in runtime due to this new capability.

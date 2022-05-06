@@ -8,12 +8,13 @@
   </XMLTransactionHeaderInformation>
   <SoftwareInfo>
     <extension>
+      <OccupancyCalculationType>asset</OccupancyCalculationType>
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/stochastic-vacancy.csv</SchedulesFilePath>
+      <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-heating-only.csv</SchedulesFilePath>
       <AdditionalProperties>
-        <ParentHPXMLFile>base.xml</ParentHPXMLFile>
+        <ParentHPXMLFile>base-hvac-furnace-gas-only.xml</ParentHPXMLFile>
       </AdditionalProperties>
     </extension>
   </SoftwareInfo>
@@ -317,7 +318,6 @@
           <HVACPlant>
             <PrimarySystems>
               <PrimaryHeatingSystem idref='HeatingSystem1'/>
-              <PrimaryCoolingSystem idref='CoolingSystem1'/>
             </PrimarySystems>
             <HeatingSystem>
               <SystemIdentifier id='HeatingSystem1'/>
@@ -333,25 +333,10 @@
               </AnnualHeatingEfficiency>
               <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
             </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
-              <CompressorType>single stage</CompressorType>
-              <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
-              <AnnualCoolingEfficiency>
-                <Units>SEER</Units>
-                <Value>13.0</Value>
-              </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>
             <SetpointTempHeatingSeason>68.0</SetpointTempHeatingSeason>
-            <SetpointTempCoolingSeason>78.0</SetpointTempCoolingSeason>
           </HVACControl>
           <HVACDistribution>
             <SystemIdentifier id='HVACDistribution1'/>

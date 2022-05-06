@@ -190,6 +190,189 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
     assert_in_epsilon(55, therm_yr, 0.1)
   end
 
+  def test_operational_defaults
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational-misc-defaults.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Check misc plug loads
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
+    assert_in_delta(2454, kwh_yr, 1.0)
+    assert_equal(0, therm_yr)
+
+    # Check television
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscTelevision)
+    assert_in_delta(661, kwh_yr, 1.0)
+    assert_equal(0, therm_yr)
+
+    # Check vehicle
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscElectricVehicleCharging)
+    assert_in_epsilon(0, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check well pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscWellPump)
+    assert_in_epsilon(0, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check pool pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPoolPump)
+    assert_in_epsilon(0, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check pool heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPoolHeater)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(0, therm_yr, 0.1)
+
+    # Check hot tub pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubPump)
+    assert_in_epsilon(0, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check hot tub heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubHeater)
+    assert_in_epsilon(0, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check grill
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscGrill)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(0, therm_yr, 0.1)
+
+    # Check lighting
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscLighting)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(0, therm_yr, 0.1)
+
+    # Check fireplace
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscFireplace)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(0, therm_yr, 0.1)
+  end
+
+  def test_operational_large_uncommon_loads
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational-misc-loads-large-uncommon.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Check misc plug loads
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
+    assert_in_delta(2454, kwh_yr, 1.0)
+    assert_equal(0, therm_yr)
+
+    # Check television
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscTelevision)
+    assert_in_delta(619, kwh_yr, 1.0)
+    assert_equal(0, therm_yr)
+
+    # Check vehicle
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscElectricVehicleCharging)
+    assert_in_epsilon(1500, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check well pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscWellPump)
+    assert_in_epsilon(475, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check pool pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPoolPump)
+    assert_in_epsilon(2700, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check pool heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPoolHeater)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(500, therm_yr, 0.1)
+
+    # Check hot tub pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubPump)
+    assert_in_epsilon(1000, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check hot tub heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubHeater)
+    assert_in_epsilon(1300, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check grill
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscGrill)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(25, therm_yr, 0.1)
+
+    # Check lighting
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscLighting)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(28, therm_yr, 0.1)
+
+    # Check fireplace
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscFireplace)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(55, therm_yr, 0.1)
+  end
+
+  def test_operational_large_uncommon_loads2
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational-misc-loads-large-uncommon2.xml'))
+    model, hpxml = _test_measure(args_hash)
+
+    # Check misc plug loads
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
+    assert_in_delta(2454, kwh_yr, 1.0)
+    assert_equal(0, therm_yr)
+
+    # Check television
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscTelevision)
+    assert_in_delta(619, kwh_yr, 1.0)
+    assert_equal(0, therm_yr)
+
+    # Check vehicle
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscElectricVehicleCharging)
+    assert_in_epsilon(1500, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check well pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscWellPump)
+    assert_in_epsilon(475, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check pool pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPoolPump)
+    assert_in_epsilon(2700, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check pool heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPoolHeater)
+    assert_equal(0, kwh_yr)
+    assert_equal(0, therm_yr)
+
+    # Check hot tub pump
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubPump)
+    assert_in_epsilon(1000, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check hot tub heater
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscHotTubHeater)
+    assert_in_epsilon(260, kwh_yr, 0.1)
+    assert_equal(0, therm_yr)
+
+    # Check grill
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscGrill)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(25, therm_yr, 0.1)
+
+    # Check lighting
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscLighting)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(28, therm_yr, 0.1)
+
+    # Check fireplace
+    kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscFireplace)
+    assert_equal(0, kwh_yr)
+    assert_in_epsilon(55, therm_yr, 0.1)
+  end
+
   def _test_measure(args_hash)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new

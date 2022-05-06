@@ -227,6 +227,8 @@ class HPXML < Object
   MechVentTypeExhaust = 'exhaust only'
   MechVentTypeHRV = 'heat recovery ventilator'
   MechVentTypeSupply = 'supply only'
+  OccupancyCalculationTypeAsset = 'asset'
+  OccupancyCalculationTypeOperational = 'operational'
   OrientationEast = 'east'
   OrientationNorth = 'north'
   OrientationNortheast = 'northeast'
@@ -873,7 +875,7 @@ class HPXML < Object
              :dst_enabled, :dst_begin_month, :dst_begin_day, :dst_end_month, :dst_end_day,
              :heat_pump_sizing_methodology, :allow_increased_fixed_capacities,
              :apply_ashrae140_assumptions, :energystar_calculation_version, :schedules_filepaths,
-             :extension_properties]
+             :occupancy_calculation_type, :extension_properties]
     attr_accessor(*ATTRS)
     attr_reader(:emissions_scenarios)
 
@@ -925,6 +927,10 @@ class HPXML < Object
       software_info = XMLHelper.add_element(hpxml, 'SoftwareInfo')
       XMLHelper.add_element(software_info, 'SoftwareProgramUsed', @software_program_used, :string) unless @software_program_used.nil?
       XMLHelper.add_element(software_info, 'SoftwareProgramVersion', @software_program_version, :string) unless @software_program_version.nil?
+      if not @occupancy_calculation_type.nil?
+        extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
+        XMLHelper.add_element(extension, 'OccupancyCalculationType', @occupancy_calculation_type, :string) unless @occupancy_calculation_type.nil?
+      end
       if not @apply_ashrae140_assumptions.nil?
         extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
         XMLHelper.add_element(extension, 'ApplyASHRAE140Assumptions', @apply_ashrae140_assumptions, :boolean) unless @apply_ashrae140_assumptions.nil?
@@ -1030,6 +1036,7 @@ class HPXML < Object
       @dst_begin_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/BeginDayOfMonth', :integer)
       @dst_end_month = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/EndMonth', :integer)
       @dst_end_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/EndDayOfMonth', :integer)
+      @occupancy_calculation_type = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/OccupancyCalculationType', :string)
       @apply_ashrae140_assumptions = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions', :boolean)
       @heat_pump_sizing_methodology = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/HeatPumpSizingMethodology', :string)
       @allow_increased_fixed_capacities = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/AllowIncreasedFixedCapacities', :boolean)

@@ -8,12 +8,12 @@
   </XMLTransactionHeaderInformation>
   <SoftwareInfo>
     <extension>
+      <OccupancyCalculationType>operational</OccupancyCalculationType>
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
-      <SchedulesFilePath>../../HPXMLtoOpenStudio/resources/schedule_files/stochastic.csv</SchedulesFilePath>
       <AdditionalProperties>
-        <ParentHPXMLFile>base.xml</ParentHPXMLFile>
+        <ParentHPXMLFile>base-misc-loads-large-uncommon.xml</ParentHPXMLFile>
       </AdditionalProperties>
     </extension>
   </SoftwareInfo>
@@ -461,6 +461,16 @@
           <RatedAnnualkWh>650.0</RatedAnnualkWh>
           <PrimaryIndicator>true</PrimaryIndicator>
         </Refrigerator>
+        <Refrigerator>
+          <SystemIdentifier id='Refrigerator2'/>
+          <RatedAnnualkWh>700.0</RatedAnnualkWh>
+          <PrimaryIndicator>false</PrimaryIndicator>
+        </Refrigerator>
+        <Freezer>
+          <SystemIdentifier id='Freezer1'/>
+          <Location>living space</Location>
+          <RatedAnnualkWh>300.0</RatedAnnualkWh>
+        </Freezer>
         <CookingRange>
           <SystemIdentifier id='CookingRange1'/>
           <Location>living space</Location>
@@ -546,6 +556,54 @@
           </LightingType>
         </LightingGroup>
       </Lighting>
+      <Pools>
+        <Pool>
+          <SystemIdentifier id='Pool1'/>
+          <Type>unknown</Type>
+          <PoolPumps>
+            <PoolPump>
+              <SystemIdentifier id='Pool1Pump'/>
+              <Type>unknown</Type>
+              <Load>
+                <Units>kWh/year</Units>
+                <Value>2700.0</Value>
+              </Load>
+            </PoolPump>
+          </PoolPumps>
+          <Heater>
+            <SystemIdentifier id='Pool1Heater'/>
+            <Type>gas fired</Type>
+            <Load>
+              <Units>therm/year</Units>
+              <Value>500.0</Value>
+            </Load>
+          </Heater>
+        </Pool>
+      </Pools>
+      <HotTubs>
+        <HotTub>
+          <SystemIdentifier id='HotTub1'/>
+          <Type>unknown</Type>
+          <HotTubPumps>
+            <HotTubPump>
+              <SystemIdentifier id='HotTub1Pump'/>
+              <Type>unknown</Type>
+              <Load>
+                <Units>kWh/year</Units>
+                <Value>1000.0</Value>
+              </Load>
+            </HotTubPump>
+          </HotTubPumps>
+          <Heater>
+            <SystemIdentifier id='HotTub1Heater'/>
+            <Type>electric resistance</Type>
+            <Load>
+              <Units>kWh/year</Units>
+              <Value>1300.0</Value>
+            </Load>
+          </Heater>
+        </HotTub>
+      </HotTubs>
       <MiscLoads>
         <PlugLoad>
           <SystemIdentifier id='PlugLoad1'/>
@@ -567,6 +625,53 @@
             <FracLatent>0.045</FracLatent>
           </extension>
         </PlugLoad>
+        <PlugLoad>
+          <SystemIdentifier id='PlugLoad3'/>
+          <PlugLoadType>electric vehicle charging</PlugLoadType>
+          <Load>
+            <Units>kWh/year</Units>
+            <Value>1500.0</Value>
+          </Load>
+        </PlugLoad>
+        <PlugLoad>
+          <SystemIdentifier id='PlugLoad4'/>
+          <PlugLoadType>well pump</PlugLoadType>
+          <Load>
+            <Units>kWh/year</Units>
+            <Value>475.0</Value>
+          </Load>
+        </PlugLoad>
+        <FuelLoad>
+          <SystemIdentifier id='FuelLoad1'/>
+          <FuelLoadType>grill</FuelLoadType>
+          <Load>
+            <Units>therm/year</Units>
+            <Value>25.0</Value>
+          </Load>
+          <FuelType>propane</FuelType>
+        </FuelLoad>
+        <FuelLoad>
+          <SystemIdentifier id='FuelLoad2'/>
+          <FuelLoadType>lighting</FuelLoadType>
+          <Load>
+            <Units>therm/year</Units>
+            <Value>28.0</Value>
+          </Load>
+          <FuelType>natural gas</FuelType>
+        </FuelLoad>
+        <FuelLoad>
+          <SystemIdentifier id='FuelLoad3'/>
+          <FuelLoadType>fireplace</FuelLoadType>
+          <Load>
+            <Units>therm/year</Units>
+            <Value>55.0</Value>
+          </Load>
+          <FuelType>wood</FuelType>
+          <extension>
+            <FracSensible>0.5</FracSensible>
+            <FracLatent>0.1</FracLatent>
+          </extension>
+        </FuelLoad>
       </MiscLoads>
     </BuildingDetails>
   </Building>
