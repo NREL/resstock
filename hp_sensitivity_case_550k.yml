@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /projects/enduse/abc_typology/repos/resstock  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/enduse/abc_typology/resstock_runs/hp_analysis_10k_05052022
+output_directory: /projects/enduse/abc_typology/resstock_runs/hp_analysis_550k_05052022
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
 # weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
@@ -11,7 +11,7 @@ baseline:
 sampler: 
   type: residential_quota
   args: 
-    n_datapoints: 10000
+    n_datapoints: 550000
 
 workflow_generator: 
   type: residential_default
@@ -31,14 +31,14 @@ workflow_generator:
 
 eagle:
   account: enduse
-  n_jobs: 8
+  n_jobs: 1000
   minutes_per_sim: 10
   sampling:
     time: 20
   postprocessing:
     time: 800
     n_workers: 2
-    # node_memory_mb: 751616
+    node_memory_mb: 751616
 
 upgrades:
   - upgrade_name: HP_case_high_efficiency
