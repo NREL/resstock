@@ -184,7 +184,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    _test_measure_order(File.join(@la100es_baseline, 'national_baseline-Baseline.osw'))
+    _test_measure_order(File.join(@la100es_baseline, 'la100es_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@la100es_baseline, 'results-Baseline.csv')))
     results = CSV.read(File.join(@la100es_baseline, 'results-Baseline.csv'), headers: true)
 
