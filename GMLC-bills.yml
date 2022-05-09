@@ -372,8 +372,32 @@ upgrades:
 
   - upgrade_name: Package without Fuel Switching
     options:
-      #better AC for homes with existing AC and non-electric heating
-      - option: 
+      #If home has AC but non-electric heat, upgrade CAC to SEER 18, and room AC to EER 12
+      - option: HVAC Cooling Efficiency|AC, SEER 18
+        apply_logic:
+          and:
+            - or:
+              - HVAC Cooling Efficiency|AC, SEER 8
+              - HVAC Cooling Efficiency|AC, SEER 10
+              - HVAC Cooling Efficiency|AC, SEER 13
+              - HVAC Cooling Efficiency|AC, SEER 18
+            - not: Heating Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: HVAC Cooling Efficiency|Room AC, EER 12.0
+        apply_logic:
+          and:
+            - or:
+              - HVAC Cooling Efficiency|Room AC, EER 8.5
+              - HVAC Cooling Efficiency|Room AC, EER 9.8
+              - HVAC Cooling Efficiency|Room AC, EER 10.7
+            - not: Heating Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999        
       #ASHP for all homes with ducts and electric heating
       - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
         apply_logic: 
@@ -472,6 +496,19 @@ upgrades:
       - *dishwasher_120pct
       - *cooking_range
 
+# 3. Envelope Package - ABC "Market Ready Envelope" package
+#     b. Attic insulation 
+#       i. R-values for 2021 IECC for homes with vented attics
+#         1) R-30 for zone 1A
+#         2) R-49 for zone 2-3
+#         3) R-60 for zone 4-7
+#       ii. Air leakage reduction for homes with insulation being added
+#     c. Wall insulation
+#       i. Add R-6.5 XPS (polyiso) to homes older than 1990 with <R-19 nominal wall insulation
+#       ii. Air leakage reduction for homes with insulation being added
+#     d. Windows 
+#       i. Add exterior low-E storms for single and double pane windows
+# Air leakage reduction for homes with low-e storms being added
 
       #got to here
   - upgrade_name: Lighting
@@ -500,149 +537,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 999
 
-      # Ducts sealing and insulation Upgrade to R-8, 10% leakage
-      - &ducts_category1
-        option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or: 
-            - Ducts|85% Leakage, Uninsulated
-            - Ducts|53% Leakage, Uninsulated
-            - Ducts|34% Leakage, Uninsulated
-            - Ducts|30% Leakage, Uninsulated
-            - Ducts|85% Leakage, R-4
-            - Ducts|85% Leakage, R-6
-            - Ducts|53% Leakage, R-4
-            - Ducts|53% Leakage, R-6
-            - Ducts|34% Leakage, R-4
-            - Ducts|34% Leakage, R-6
-            - Ducts|30% Leakage, R-4
-            - Ducts|30% Leakage, R-6            
-        costs:
-          - value: 2.2
-            multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
-      - &ducts_category2
-        option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or: 
-            - Ducts|85% Leakage, R-8
-            - Ducts|53% Leakage, R-8
-            - Ducts|34% Leakage, R-8
-            - Ducts|30% Leakage, R-8   
-        costs:
-          - value: 0.81
-            multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
-      - &ducts_category3
-        option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or: 
-            - Ducts|24% Leakage, Uninsulated
-            - Ducts|24% Leakage, R-4
-            - Ducts|24% Leakage, R-6
-            - Ducts|20% Leakage, Uninsulated
-            - Ducts|20% Leakage, R-4
-            - Ducts|20% Leakage, R-6 
-        costs:
-          - value: 0.4
-            multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
-      - &ducts_category4
-        option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or: 
-            - Ducts|24% Leakage, R-8
-            - Ducts|20% Leakage, R-8
-        costs:
-          - value: 0.4
-            multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
-      - &ducts_category5
-        option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or: 
-            - Ducts|15% Leakage, Uninsulated
-            - Ducts|15% Leakage, R-4
-            - Ducts|15% Leakage, R-6
-            - Ducts|14% Leakage, Uninsulated
-            - Ducts|14% Leakage, R-4
-            - Ducts|14% Leakage, R-6
-            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
-        costs:
-          - value: 1.6
-            multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
-      - &ducts_category6
-        option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or: 
-            - Ducts|15% Leakage, R-8
-            - Ducts|14% Leakage, R-8
-        costs:
-          - value: 0.2
-            multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
-      - &ducts_category7
-        option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or: 
-            - Ducts|10% Leakage, Uninsulated
-            - Ducts|10% Leakage, R-4
-            - Ducts|10% Leakage, R-6
-        costs:
-          - value: 1.4
-            multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
 
-      # Heat Pump Water Heater Upgrade
-      # - &water_heater_efficiency_50gal
-      #   option: Water Heater Efficiency|Electric Heat Pump, 50 gal
-      #   apply_logic:
-      #     - not: 
-      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal
-      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
-      #       - Water Heater Efficiency|Electric Heat Pump, 50 gal, In Confined Space
-      #       - Water Heater Efficiency|Electric Heat Pump, 80 gal
-      #     - Water Heater In Unit|Yes
-      #   costs:
-      #     - value: 1700
-      #       multiplier: Fixed (1)
-      #   lifetime: 12
-      - &water_heater_efficiency_80gal
-        option: Water Heater Efficiency|Electric Heat Pump, 80 gal
-        apply_logic:
-          - not: 
-            - Water Heater Efficiency|Electric Heat Pump, 50 gal
-            - Water Heater Efficiency|Electric Heat Pump, 50 gal, 140F
-            - Water Heater Efficiency|Electric Heat Pump, 80 gal
-        costs:
-          - value: 2000
-            multiplier: Fixed (1)
-        lifetime: 12
-      
-      # HVAC Upgrade
-      - &HVAC_efficiency_ASHP_duct
-        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
-        apply_logic:
-          - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, max load
-          - HVAC Has Ducts|Yes
-        costs:
-          - value: 4600
-            multiplier: Fixed (1)
-          - value: 42
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 15
-      - &HVAC_efficiency_MSHP_ductless
-        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
-        apply_logic:
-          - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
-          - HVAC Has Ducts|No
-        costs:
-          - value: 2510
-            multiplier: Fixed (1)
-          - value: 95
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 15
 #     a. HVAC: 
 #       i. Homes with ducts: ASHP, SEER 22, 10HSPF
 #       ii. Homes without ducts: MSHP, SEER 29.3, 14 HSPF
