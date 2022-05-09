@@ -6,6 +6,18 @@ library(dplyr)
 library(reshape2)
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/")
 
+# Last Update Peter Berrill April 30 2022
+
+# Purpose: Combine all of the succesful original simulations with all the files which had to be redone due to faulty HVAC/HP combinations (redone in HP_redo) and save in resstock results .RData files in Eagle_outputs/Complete_results. Also replace a few residual unexplained failed simulations with versions of the same building from subequent simulation years
+
+# Inputs: - All resstock (res*) files in Eagle_outputs/, excluding any debugging 'fails' file(s)
+#         - All the corresponding HP_redo files in Eagle_outputs/HP_redo/
+#         - THe bs HP_redo files in scen_bscsv_sim/HP_redo/
+
+
+# Outputs: 
+#         - The *_final.RData res files in Eagle_outputs/Complete_results, including all corrections and resolved/replaced failed simulations.
+
 filenames<-c("res_RR_2025","res_RR_2030","res_RR_2035","res_RR_2040",
             "res_RR_2045","res_RR_2050","res_RR_2055","res_RR_2060",
             "res_AR_2025","res_AR_2030","res_AR_2035","res_AR_2040",
@@ -96,8 +108,8 @@ for (k in 1:37) { print(k)
   
   any_fail[k,"val"]<-any(!rsn$completed_status=="Success")
  
-  # fn_save<-paste("Eagle_outputs/Complete_results/",filenames[k],"_final.RData",sep="")
-  # save(rsn,file=fn_save)
+  fn_save<-paste("Eagle_outputs/Complete_results/",filenames[k],"_final.RData",sep="")
+  save(rsn,file=fn_save)
 }
 all(identical_id$val==1)
 all(rite_size$val==1) # only AR 2060 has false.
@@ -123,7 +135,7 @@ AR55<-AR55[AR55$completed_status=="Success",]
 AR55<-rbind(AR55,f55)
 AR55<-AR55[order(AR55$building_id),]
 save(AR55,file="Eagle_outputs/Complete_results/res_AR_2055_final.RData")
-# replace the 2030 ER fails
+# replace the 2030 ER fails with the 2040 ER version of the same building
 rm(rsn)
 load("Eagle_outputs/Complete_results/res_ER_2030_final.RData")
 ER30<-rsn
@@ -141,7 +153,7 @@ rsn<-rsn[order(rsn$building_id),]
 all(rsn$completed_status=='Success') # this should be true
 save(rsn,file="Eagle_outputs/Complete_results/res_ER_2030_final.RData")
 
-# replace 2040 ER fails
+# replace 2040 ER fails with the 2055 ER versin of the same building
 f<-ER40[!ER40$completed_status=="Success",]
 ER40<-ER40[ER40$completed_status=="Success",]
 f40<-ER55[ER55$building_id==116166,]

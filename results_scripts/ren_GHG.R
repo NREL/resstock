@@ -1,211 +1,36 @@
-# new script to calculate floor area and GHG of envelope renovations every 5 years 2025 - 2060
-# script to visualize results
-# FINAL results plotting for final results paper. working on updated version
+# script to calculate floor area and GHG of envelope renovations every 5 years 2025 - 2060
 library(ggplot2)
 library(dplyr)
 library(reshape2)
-# Nov 22 2020
-# Updated with new results July 20 2021
+library(stringr)
+
+# Last Update Peter Berrill May 2 2022
+
+# Purpose: Calculate floor area and GHG of envelope renovations for each five years 2020-2060, by county and house type (3), and national totals
+
+# Inputs: - ExtData/Arch_intensities.RData, material and GHG intensities (in kg material/m2, kgCO2e/ m2 respectively) of 270 housing archetypes, defined in https://github.com/peterberr/US_county_HSM
+#         - scen_bscsv/bs2020_180k.csv, initial 2020 stock
+#         - RenStandard_EG.RData
+#         - RenAdvancedEG.RData
+#         - RenExtElec_EG.RData
+
+# Outputs: 
+#         - Final_results/renGHG.RData
+#         - Final_results/renGHG_cty_type.RData
+
+
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
-setwd("~/Yale Courses/Research/Final Paper/")
-load("~/Yale Courses/Research/Final Paper/HSM_github/Material_Intensities/Arch_intensities.RData")
-load("HSM_github/Resstock_outputs/bs2020_180k.RData")
+setwd("~/Yale Courses/Research/Final Paper/resstock_projections/")
+load("ExtData/Arch_intensities.RData")
+bs2020<-read.csv('scen_bscsv/bs2020_180k.csv')
 bs2020<-bs2020[,c("Building","Geometry.Building.Number.Units.HL","Geometry.Floor.Area.Bin")] # just get the columns excluded from the rs_ dataframes
-# old method based on results_all produced data, don't follow this anymore ##############
-# load("../Intermediate_results/rs_ren.RData")
-# 
-# rs_ren_RR$Floor.Area.m2<-0
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="0-499"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(328/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="0-499"&rs_ren_RR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(317/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="0-499"&rs_ren_RR$Type3=="MF",]$Floor.Area.m2<-round(333/10.765,1)
-# 
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="500-749"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(633/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="500-749"&rs_ren_RR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(617/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="500-749"&rs_ren_RR$Type3=="MF",]$Floor.Area.m2<-round(617/10.765,1)
-# 
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="750-999"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(885/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="750-999"&rs_ren_RR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(866/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="750-999"&rs_ren_RR$Type3=="MF",]$Floor.Area.m2<-round(853/10.765,1)
-# 
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="1000-1499"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1220/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="1000-1499"&rs_ren_RR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1202/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="1000-1499"&rs_ren_RR$Type3=="MF",]$Floor.Area.m2<-round(1138/10.765,1)
-# 
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="1500-1999"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1690/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="1500-1999"&rs_ren_RR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1675/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="1500-1999"&rs_ren_RR$Type3=="MF",]$Floor.Area.m2<-round(1623/10.765,1)
-# 
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="2000-2499"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2176/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="2000-2499"&rs_ren_RR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2152/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="2000-2499"&rs_ren_RR$Type3=="MF",]$Floor.Area.m2<-round(2115/10.765,1)
-# 
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="2500-2999"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2663/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="2500-2999"&rs_ren_RR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2631/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="2500-2999"&rs_ren_RR$Type3=="MF",]$Floor.Area.m2<-round(2590/10.765,1)
-# 
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="3000-3999"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(3301/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="3000-3999"&rs_ren_RR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(3241/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="3000-3999"&rs_ren_RR$Type3=="MF",]$Floor.Area.m2<-round(3138/10.765,1)
-# # 4000+. Using my own estimates here, consistent with my changes to options_lookup, but creating different value for MH
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="4000+"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Single-Family Detached"),]$Floor.Area.m2<-round(7500/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="4000+"&rs_ren_RR$Geometry.Building.Type.RECS %in% c("Mobile Home"),]$Floor.Area.m2<-round(4200/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="4000+"&rs_ren_RR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(7000/10.765,1)
-# rs_ren_RR[rs_ren_RR$Geometry.Floor.Area=="4000+"&rs_ren_RR$Type3=="MF",]$Floor.Area.m2<-round(7000/10.765,1)
-# # now for AR
-# rs_ren_AR$Floor.Area.m2<-0
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="0-499"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(328/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="0-499"&rs_ren_AR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(317/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="0-499"&rs_ren_AR$Type3=="MF",]$Floor.Area.m2<-round(333/10.765,1)
-# 
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="500-749"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(633/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="500-749"&rs_ren_AR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(617/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="500-749"&rs_ren_AR$Type3=="MF",]$Floor.Area.m2<-round(617/10.765,1)
-# 
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="750-999"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(885/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="750-999"&rs_ren_AR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(866/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="750-999"&rs_ren_AR$Type3=="MF",]$Floor.Area.m2<-round(853/10.765,1)
-# 
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="1000-1499"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1220/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="1000-1499"&rs_ren_AR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1202/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="1000-1499"&rs_ren_AR$Type3=="MF",]$Floor.Area.m2<-round(1138/10.765,1)
-# 
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="1500-1999"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1690/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="1500-1999"&rs_ren_AR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1675/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="1500-1999"&rs_ren_AR$Type3=="MF",]$Floor.Area.m2<-round(1623/10.765,1)
-# 
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="2000-2499"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2176/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="2000-2499"&rs_ren_AR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2152/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="2000-2499"&rs_ren_AR$Type3=="MF",]$Floor.Area.m2<-round(2115/10.765,1)
-# 
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="2500-2999"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2663/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="2500-2999"&rs_ren_AR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2631/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="2500-2999"&rs_ren_AR$Type3=="MF",]$Floor.Area.m2<-round(2590/10.765,1)
-# 
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="3000-3999"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(3301/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="3000-3999"&rs_ren_AR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(3241/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="3000-3999"&rs_ren_AR$Type3=="MF",]$Floor.Area.m2<-round(3138/10.765,1)
-# # 4000+. Using my own estimates here, consistent with my changes to options_lookup, but creating different value for MH
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="4000+"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Single-Family Detached"),]$Floor.Area.m2<-round(7500/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="4000+"&rs_ren_AR$Geometry.Building.Type.RECS %in% c("Mobile Home"),]$Floor.Area.m2<-round(4200/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="4000+"&rs_ren_AR$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(7000/10.765,1)
-# rs_ren_AR[rs_ren_AR$Geometry.Floor.Area=="4000+"&rs_ren_AR$Type3=="MF",]$Floor.Area.m2<-round(7000/10.765,1)
-# 
-# # now for ER
-# rs_ren_ER$Floor.Area.m2<-0
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="0-499"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(328/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="0-499"&rs_ren_ER$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(317/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="0-499"&rs_ren_ER$Type3=="MF",]$Floor.Area.m2<-round(333/10.765,1)
-# 
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="500-749"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(633/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="500-749"&rs_ren_ER$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(617/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="500-749"&rs_ren_ER$Type3=="MF",]$Floor.Area.m2<-round(617/10.765,1)
-# 
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="750-999"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(885/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="750-999"&rs_ren_ER$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(866/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="750-999"&rs_ren_ER$Type3=="MF",]$Floor.Area.m2<-round(853/10.765,1)
-# 
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="1000-1499"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1220/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="1000-1499"&rs_ren_ER$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1202/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="1000-1499"&rs_ren_ER$Type3=="MF",]$Floor.Area.m2<-round(1138/10.765,1)
-# 
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="1500-1999"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1690/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="1500-1999"&rs_ren_ER$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1675/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="1500-1999"&rs_ren_ER$Type3=="MF",]$Floor.Area.m2<-round(1623/10.765,1)
-# 
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="2000-2499"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2176/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="2000-2499"&rs_ren_ER$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2152/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="2000-2499"&rs_ren_ER$Type3=="MF",]$Floor.Area.m2<-round(2115/10.765,1)
-# 
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="2500-2999"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2663/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="2500-2999"&rs_ren_ER$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2631/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="2500-2999"&rs_ren_ER$Type3=="MF",]$Floor.Area.m2<-round(2590/10.765,1)
-# 
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="3000-3999"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(3301/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="3000-3999"&rs_ren_ER$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(3241/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="3000-3999"&rs_ren_ER$Type3=="MF",]$Floor.Area.m2<-round(3138/10.765,1)
-# # 4000+. Using my own estimates here, consistent with my changes to options_lookup, but creating different value for MH
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="4000+"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Single-Family Detached"),]$Floor.Area.m2<-round(7500/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="4000+"&rs_ren_ER$Geometry.Building.Type.RECS %in% c("Mobile Home"),]$Floor.Area.m2<-round(4200/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="4000+"&rs_ren_ER$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(7000/10.765,1)
-# rs_ren_ER[rs_ren_ER$Geometry.Floor.Area=="4000+"&rs_ren_ER$Type3=="MF",]$Floor.Area.m2<-round(7000/10.765,1)
-# 
-# # now calculate number of housing units and floor area, for the base stock scenario ###########
-# rs_ren_RR[,c("Housing Units 2020","Housing Units 2025","Housing Units 2030","Housing Units 2035","Housing Units 2040","Housing Units 2045","Housing Units 2050","Housing Units 2055","Housing Units 2060")]<-
-#   rs_ren_RR$base_weight*rs_ren_RR[,c("wbase_2020",  "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")]
-# 
-# rs_ren_AR[,c("Housing Units 2020","Housing Units 2025","Housing Units 2030","Housing Units 2035","Housing Units 2040","Housing Units 2045","Housing Units 2050","Housing Units 2055","Housing Units 2060")]<-
-#   rs_ren_AR$base_weight*rs_ren_AR[,c("wbase_2020",  "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")]
-# 
-# rs_ren_ER[,c("Housing Units 2020","Housing Units 2025","Housing Units 2030","Housing Units 2035","Housing Units 2040","Housing Units 2045","Housing Units 2050","Housing Units 2055","Housing Units 2060")]<-
-#   rs_ren_ER$base_weight*rs_ren_ER[,c("wbase_2020",  "wbase_2025", "wbase_2030", "wbase_2035", "wbase_2040", "wbase_2045", "wbase_2050", "wbase_2055", "wbase_2060")]
-# 
-# rs_ren_RR[,c("Floor Area 2020","Floor Area 2025","Floor Area 2030","Floor Area 2035","Floor Area 2040","Floor Area 2045","Floor Area 2050","Floor Area 2055","Floor Area 2060")]<-
-#   rs_ren_RR$Floor.Area.m2*rs_ren_RR[,c("Housing Units 2020",  "Housing Units 2025", "Housing Units 2030", "Housing Units 2035", "Housing Units 2040", "Housing Units 2045", "Housing Units 2050", "Housing Units 2055", "Housing Units 2060")]
-# 
-# rs_ren_AR[,c("Floor Area 2020","Floor Area 2025","Floor Area 2030","Floor Area 2035","Floor Area 2040","Floor Area 2045","Floor Area 2050","Floor Area 2055","Floor Area 2060")]<-
-#   rs_ren_AR$Floor.Area.m2*rs_ren_AR[,c("Housing Units 2020",  "Housing Units 2025", "Housing Units 2030", "Housing Units 2035", "Housing Units 2040", "Housing Units 2045", "Housing Units 2050", "Housing Units 2055", "Housing Units 2060")]
-# 
-# rs_ren_ER[,c("Floor Area 2020","Floor Area 2025","Floor Area 2030","Floor Area 2035","Floor Area 2040","Floor Area 2045","Floor Area 2050","Floor Area 2055","Floor Area 2060")]<-
-#   rs_ren_ER$Floor.Area.m2*rs_ren_ER[,c("Housing Units 2020",  "Housing Units 2025", "Housing Units 2030", "Housing Units 2035", "Housing Units 2040", "Housing Units 2045", "Housing Units 2050", "Housing Units 2055", "Housing Units 2060")]
-# 
-# # number of pre-2020 units with envelope renovations through the study period, RR
-# colSums(rs_ren_RR$OldCon*rs_ren_RR[,c("Housing Units 2020","Housing Units 2025","Housing Units 2030","Housing Units 2035","Housing Units 2040","Housing Units 2045","Housing Units 2050","Housing Units 2055","Housing Units 2060")])
-# # floor area of pre-2020 units with envelope renovations through the study period, RR
-# colSums(rs_ren_RR$OldCon*rs_ren_RR[,c("Floor Area 2020","Floor Area 2025","Floor Area 2030","Floor Area 2035","Floor Area 2040","Floor Area 2045","Floor Area 2050","Floor Area 2055","Floor Area 2060")])
-# 
-# # number of pre-2020 units with envelope renovations through the study period, AR
-# colSums(rs_ren_AR$OldCon*rs_ren_AR[,c("Housing Units 2020","Housing Units 2025","Housing Units 2030","Housing Units 2035","Housing Units 2040","Housing Units 2045","Housing Units 2050","Housing Units 2055","Housing Units 2060")])
-# # floor area of pre-2020 units with envelope renovations through the study period, AR
-# colSums(rs_ren_AR$OldCon*rs_ren_AR[,c("Floor Area 2020","Floor Area 2025","Floor Area 2030","Floor Area 2035","Floor Area 2040","Floor Area 2045","Floor Area 2050","Floor Area 2055","Floor Area 2060")])
-# 
-# # number of pre-2020 units with envelope renovations through the study period, ER
-# colSums(rs_ren_ER$OldCon*rs_ren_ER[,c("Housing Units 2020","Housing Units 2025","Housing Units 2030","Housing Units 2035","Housing Units 2040","Housing Units 2045","Housing Units 2050","Housing Units 2055","Housing Units 2060")])
-# # floor area of pre-2020 units with envelope renovations through the study period, ER
-# colSums(rs_ren_ER$OldCon*rs_ren_ER[,c("Floor Area 2020","Floor Area 2025","Floor Area 2030","Floor Area 2035","Floor Area 2040","Floor Area 2045","Floor Area 2050","Floor Area 2055","Floor Area 2060")])
-# 
-# # now calculate number of housing units and floor area, for the hiDR stock scenario ###########
-# rs_ren_RR[,c("hiDR Housing Units 2020","hiDR Housing Units 2025","hiDR Housing Units 2030","hiDR Housing Units 2035","hiDR Housing Units 2040","hiDR Housing Units 2045","hiDR Housing Units 2050","hiDR Housing Units 2055","hiDR Housing Units 2060")]<-
-#   rs_ren_RR$base_weight*rs_ren_RR[,c("wbase_2020",  "whiDR_2025", "whiDR_2030", "whiDR_2035", "whiDR_2040", "whiDR_2045", "whiDR_2050", "whiDR_2055", "whiDR_2060")]
-# 
-# rs_ren_AR[,c("hiDR Housing Units 2020","hiDR Housing Units 2025","hiDR Housing Units 2030","hiDR Housing Units 2035","hiDR Housing Units 2040","hiDR Housing Units 2045","hiDR Housing Units 2050","hiDR Housing Units 2055","hiDR Housing Units 2060")]<-
-#   rs_ren_AR$base_weight*rs_ren_AR[,c("wbase_2020",  "whiDR_2025", "whiDR_2030", "whiDR_2035", "whiDR_2040", "whiDR_2045", "whiDR_2050", "whiDR_2055", "whiDR_2060")]
-# 
-# rs_ren_ER[,c("hiDR Housing Units 2020","hiDR Housing Units 2025","hiDR Housing Units 2030","hiDR Housing Units 2035","hiDR Housing Units 2040","hiDR Housing Units 2045","hiDR Housing Units 2050","hiDR Housing Units 2055","hiDR Housing Units 2060")]<-
-#   rs_ren_ER$base_weight*rs_ren_ER[,c("wbase_2020",  "whiDR_2025", "whiDR_2030", "whiDR_2035", "whiDR_2040", "whiDR_2045", "whiDR_2050", "whiDR_2055", "whiDR_2060")]
-# 
-# rs_ren_RR[,c("hiDR Floor Area 2020","hiDR Floor Area 2025","hiDR Floor Area 2030","hiDR Floor Area 2035","hiDR Floor Area 2040","hiDR Floor Area 2045","hiDR Floor Area 2050","hiDR Floor Area 2055","hiDR Floor Area 2060")]<-
-#   rs_ren_RR$Floor.Area.m2*rs_ren_RR[,c("hiDR Housing Units 2020",  "hiDR Housing Units 2025", "hiDR Housing Units 2030", "hiDR Housing Units 2035", "hiDR Housing Units 2040", "hiDR Housing Units 2045", "hiDR Housing Units 2050", "hiDR Housing Units 2055", "hiDR Housing Units 2060")]
-# 
-# rs_ren_AR[,c("hiDR Floor Area 2020","hiDR Floor Area 2025","hiDR Floor Area 2030","hiDR Floor Area 2035","hiDR Floor Area 2040","hiDR Floor Area 2045","hiDR Floor Area 2050","hiDR Floor Area 2055","hiDR Floor Area 2060")]<-
-#   rs_ren_AR$Floor.Area.m2*rs_ren_AR[,c("hiDR Housing Units 2020",  "hiDR Housing Units 2025", "hiDR Housing Units 2030", "hiDR Housing Units 2035", "hiDR Housing Units 2040", "hiDR Housing Units 2045", "hiDR Housing Units 2050", "hiDR Housing Units 2055", "hiDR Housing Units 2060")]
-# 
-# rs_ren_ER[,c("hiDR Floor Area 2020","hiDR Floor Area 2025","hiDR Floor Area 2030","hiDR Floor Area 2035","hiDR Floor Area 2040","hiDR Floor Area 2045","hiDR Floor Area 2050","hiDR Floor Area 2055","hiDR Floor Area 2060")]<-
-#   rs_ren_ER$Floor.Area.m2*rs_ren_ER[,c("hiDR Housing Units 2020",  "hiDR Housing Units 2025", "hiDR Housing Units 2030", "hiDR Housing Units 2035", "hiDR Housing Units 2040", "hiDR Housing Units 2045", "hiDR Housing Units 2050", "hiDR Housing Units 2055", "hiDR Housing Units 2060")]
-# 
-# # number of pre-2020 units with envelope renovations through the study period, RR
-# colSums(rs_ren_RR$OldCon*rs_ren_RR[,c("hiDR Housing Units 2020","hiDR Housing Units 2025","hiDR Housing Units 2030","hiDR Housing Units 2035","hiDR Housing Units 2040","hiDR Housing Units 2045","hiDR Housing Units 2050","hiDR Housing Units 2055","hiDR Housing Units 2060")])
-# # floor area of pre-2020 units with envelope renovations through the study period, RR
-# colSums(rs_ren_RR$OldCon*rs_ren_RR[,c("hiDR Floor Area 2020","hiDR Floor Area 2025","hiDR Floor Area 2030","hiDR Floor Area 2035","hiDR Floor Area 2040","hiDR Floor Area 2045","hiDR Floor Area 2050","hiDR Floor Area 2055","hiDR Floor Area 2060")])
-# 
-# # number of pre-2020 units with envelope renovations through the study period, AR
-# colSums(rs_ren_AR$OldCon*rs_ren_AR[,c("hiDR Housing Units 2020","hiDR Housing Units 2025","hiDR Housing Units 2030","hiDR Housing Units 2035","hiDR Housing Units 2040","hiDR Housing Units 2045","hiDR Housing Units 2050","hiDR Housing Units 2055","hiDR Housing Units 2060")])
-# # floor area of pre-2020 units with envelope renovations through the study period, AR
-# colSums(rs_ren_AR$OldCon*rs_ren_AR[,c("hiDR Floor Area 2020","hiDR Floor Area 2025","hiDR Floor Area 2030","hiDR Floor Area 2035","hiDR Floor Area 2040","hiDR Floor Area 2045","hiDR Floor Area 2050","hiDR Floor Area 2055","hiDR Floor Area 2060")])
-# 
-# # number of pre-2020 units with envelope renovations through the study period, ER
-# colSums(rs_ren_ER$OldCon*rs_ren_ER[,c("hiDR Housing Units 2020","hiDR Housing Units 2025","hiDR Housing Units 2030","hiDR Housing Units 2035","hiDR Housing Units 2040","hiDR Housing Units 2045","hiDR Housing Units 2050","hiDR Housing Units 2055","hiDR Housing Units 2060")])
-# # floor area of pre-2020 units with envelope renovations through the study period, ER
-# colSums(rs_ren_ER$OldCon*rs_ren_ER[,c("hiDR Floor Area 2020","hiDR Floor Area 2025","hiDR Floor Area 2030","hiDR Floor Area 2035","hiDR Floor Area 2040","hiDR Floor Area 2045","hiDR Floor Area 2050","hiDR Floor Area 2055","hiDR Floor Area 2060")])
-
-
-# alt approach #############
 
 # reg renovation ############
-load("~/Yale Courses/Research/Final Paper/resstock_projections/Intermediate_results/RenStandard_EG.RData")
+load("Intermediate_results/RenStandard_EG.RData")
 rs_RR_ren<-rs_RRn[,c("Year","Building","Year_Building","Census.Division", "Geometry.Floor.Area","floor_area_lighting_ft_2","Geometry.Building.Type.RECS",
                      "Geometry.Foundation.Type","Geometry.Stories","Geometry.Garage", "insulation_slab","insulation_crawlspace","insulation_finished_basement",
-                    "insulation_unfinished_attic", "insulation_unfinished_basement","insulation_wall",  "ctyTC","base_weight","change_iren",
+                    "insulation_unfinished_attic", "insulation_unfinished_basement","insulation_wall", "County",  "ctyTC","base_weight","change_iren",
                      "wbase_2020","wbase_2025","wbase_2030","wbase_2035","wbase_2040","wbase_2045","wbase_2050","wbase_2055","wbase_2060",
                      "whiDR_2020","whiDR_2025","whiDR_2030","whiDR_2035","whiDR_2040","whiDR_2045","whiDR_2050","whiDR_2055","whiDR_2060",
                      "whiMF_2020","whiMF_2025","whiMF_2030","whiMF_2035","whiMF_2040","whiMF_2045","whiMF_2050","whiMF_2055","whiMF_2060")]
@@ -214,7 +39,11 @@ weights<-c("wbase_2020","wbase_2025","wbase_2030","wbase_2035","wbase_2040","wba
              "whiMF_2020","whiMF_2025","whiMF_2030","whiMF_2035","whiMF_2040","whiMF_2045","whiMF_2050","whiMF_2055","whiMF_2060")
 rs_RR_ren<-merge(rs_RR_ren,bs2020,by='Building')
 
-# make sure renovations are counted only once
+# make sure renovations are counted only once, this means that e.g. a 2027 renovation will only be counted in 2030, not in 2035 or after. 
+# this would not be the case if e.g. a house with an insulation renovation in 2027 then got a heating renovation in 2031 and a cooling renovation in 2038, which would mean they would be included in the ren df also in 2035 and 2040
+# but we are concerned only with envelope/insulation renovations.
+# there are some counties in which no home ever undergoes an insulation renovation, thus, this operation also removes those (36) counties completely
+
 rs_RR_ren<-rs_RR_ren[(rs_RR_ren$Year-rs_RR_ren$change_iren)<5,]
 # if year is 2025, only the decay factors for 2025 should be non-zero
 for (yr in seq(2025,2060,5)) {
@@ -235,12 +64,7 @@ rs_RR_ren[,c("hiDR HU 2020","hiDR HU 2025","hiDR HU 2030","hiDR HU 2035","hiDR H
 rs_RR_ren[,c("hiMF HU 2020","hiMF HU 2025","hiMF HU 2030","hiMF HU 2035","hiMF HU 2040","hiMF HU 2045","hiMF HU 2050","hiMF HU 2055","hiMF HU 2060")]<-
   rs_RR_ren$base_weight*rs_RR_ren[,c("whiMF_2020",  "whiMF_2025", "whiMF_2030", "whiMF_2035", "whiMF_2040", "whiMF_2045", "whiMF_2050", "whiMF_2055", "whiMF_2060")]
 
-# total housing units renovated
-colSums(as.numeric(rs_RR_ren$change_iren>0)*rs_RR_ren[,c("base HU 2020","base HU 2025","base HU 2030","base HU 2035","base HU 2040","base HU 2045","base HU 2050","base HU 2055","base HU 2060")])
-colSums(as.numeric(rs_RR_ren$change_iren>0)*rs_RR_ren[,c("hiDR HU 2020","hiDR HU 2025","hiDR HU 2030","hiDR HU 2035","hiDR HU 2040","hiDR HU 2045","hiDR HU 2050","hiDR HU 2055","hiDR HU 2060")])
-colSums(as.numeric(rs_RR_ren$change_iren>0)*rs_RR_ren[,c("hiMF HU 2020","hiMF HU 2025","hiMF HU 2030","hiMF HU 2035","hiMF HU 2040","hiMF HU 2045","hiMF HU 2050","hiMF HU 2055","hiMF HU 2060")])
-
-# calc pre unit FA the original way
+# calc per unit FA 
 rs_RR_ren$Type3<-"MF"
 rs_RR_ren[rs_RR_ren$Geometry.Building.Type.RECS=="Single-Family Attached" | rs_RR_ren$Geometry.Building.Type.RECS=="Single-Family Detached",]$Type3<-"SF"
 rs_RR_ren[rs_RR_ren$Geometry.Building.Type.RECS=="Mobile Home",]$Type3<-"MH"
@@ -297,22 +121,21 @@ rs_RR_ren[,c("hiMF FA 2020","hiMF FA 2025","hiMF FA 2030","hiMF FA 2035","hiMF F
 colSums(as.numeric(rs_RR_ren$change_iren>0)*rs_RR_ren[,c("hiMF FA 2020","hiMF FA 2025","hiMF FA 2030","hiMF FA 2035","hiMF FA 2040","hiMF FA 2045","hiMF FA 2050","hiMF FA 2055","hiMF FA 2060")])
 
 # advanced renovation ########
-load("~/Yale Courses/Research/Final Paper/resstock_projections/Intermediate_results/RenAdvanced_EG.RData")
+load("Intermediate_results/RenAdvanced_EG.RData")
 rs_AR_ren<-rs_ARn[,c("Year","Building","Year_Building","Census.Division", "Geometry.Floor.Area","floor_area_lighting_ft_2","Geometry.Building.Type.RECS",
                      "Geometry.Foundation.Type","Geometry.Stories","Geometry.Garage", "insulation_slab","insulation_crawlspace","insulation_finished_basement",
-                     "insulation_unfinished_attic", "insulation_unfinished_basement","insulation_wall",  "ctyTC","base_weight","change_iren",
+                     "insulation_unfinished_attic", "insulation_unfinished_basement","insulation_wall", "County",  "ctyTC","base_weight","change_iren",
                      "wbase_2020","wbase_2025","wbase_2030","wbase_2035","wbase_2040","wbase_2045","wbase_2050","wbase_2055","wbase_2060",
                      "whiDR_2020","whiDR_2025","whiDR_2030","whiDR_2035","whiDR_2040","whiDR_2045","whiDR_2050","whiDR_2055","whiDR_2060",
                      "whiMF_2020","whiMF_2025","whiMF_2030","whiMF_2035","whiMF_2040","whiMF_2045","whiMF_2050","whiMF_2055","whiMF_2060")]
 rs_AR_ren<-merge(rs_AR_ren,bs2020,by='Building')
-# make sure renovations are counted only once
+# make sure renovations are counted only once. in this case, only 5 counties which never undergo insulation renovations are removed
 rs_AR_ren<-rs_AR_ren[(rs_AR_ren$Year-rs_AR_ren$change_iren)<5,]
 # if year is 2025, only the decay factors for 2025 should be non-zero
 for (yr in seq(2025,2060,5)) {
   we<-weights[-c(ends_with(as.character(yr),vars = weights))]
   rs_AR_ren[rs_AR_ren$Year==yr ,we]<-0
 }
-
 
 # tot housing units, base stock evolution
 rs_AR_ren[,c("base HU 2020","base HU 2025","base HU 2030","base HU 2035","base HU 2040","base HU 2045","base HU 2050","base HU 2055","base HU 2060")]<-
@@ -325,11 +148,6 @@ rs_AR_ren[,c("hiDR HU 2020","hiDR HU 2025","hiDR HU 2030","hiDR HU 2035","hiDR H
 # tot housing units, hiMF stock evolution
 rs_AR_ren[,c("hiMF HU 2020","hiMF HU 2025","hiMF HU 2030","hiMF HU 2035","hiMF HU 2040","hiMF HU 2045","hiMF HU 2050","hiMF HU 2055","hiMF HU 2060")]<-
   rs_AR_ren$base_weight*rs_AR_ren[,c("whiMF_2020",  "whiMF_2025", "whiMF_2030", "whiMF_2035", "whiMF_2040", "whiMF_2045", "whiMF_2050", "whiMF_2055", "whiMF_2060")]
-
-# total housing units renovated
-colSums(as.numeric(rs_AR_ren$change_iren>0)*rs_AR_ren[,c("base HU 2020","base HU 2025","base HU 2030","base HU 2035","base HU 2040","base HU 2045","base HU 2050","base HU 2055","base HU 2060")])
-colSums(as.numeric(rs_AR_ren$change_iren>0)*rs_AR_ren[,c("hiDR HU 2020","hiDR HU 2025","hiDR HU 2030","hiDR HU 2035","hiDR HU 2040","hiDR HU 2045","hiDR HU 2050","hiDR HU 2055","hiDR HU 2060")])
-colSums(as.numeric(rs_AR_ren$change_iren>0)*rs_AR_ren[,c("hiMF HU 2020","hiMF HU 2025","hiMF HU 2030","hiMF HU 2035","hiMF HU 2040","hiMF HU 2045","hiMF HU 2050","hiMF HU 2055","hiMF HU 2060")])
 
 # calc pre unit FA the original way
 rs_AR_ren$Type3<-"MF"
@@ -388,18 +206,17 @@ rs_AR_ren[,c("hiMF FA 2020","hiMF FA 2025","hiMF FA 2030","hiMF FA 2035","hiMF F
   rs_AR_ren$Floor.Area.m2*rs_AR_ren[,c("hiMF HU 2020",  "hiMF HU 2025", "hiMF HU 2030", "hiMF HU 2035", "hiMF HU 2040", "hiMF HU 2045", "hiMF HU 2050", "hiMF HU 2055", "hiMF HU 2060")]
 colSums(as.numeric(rs_AR_ren$change_iren>0)*rs_AR_ren[,c("hiMF FA 2020","hiMF FA 2025","hiMF FA 2030","hiMF FA 2035","hiMF FA 2040","hiMF FA 2045","hiMF FA 2050","hiMF FA 2055","hiMF FA 2060")])
 
-
-# EXTENSIVE renovation ########
-load("~/Yale Courses/Research/Final Paper/resstock_projections/Intermediate_results/RenExtElec_EG.RData")
+# Extensive renovation ########
+load("Intermediate_results/RenExtElec_EG.RData")
 rs_ER_ren<-rs_ERn[,c("Year","Building","Year_Building","Census.Division", "Geometry.Floor.Area","floor_area_lighting_ft_2","Geometry.Building.Type.RECS",
                      "Geometry.Foundation.Type","Geometry.Stories","Geometry.Garage", "insulation_slab","insulation_crawlspace","insulation_finished_basement",
-                     "insulation_unfinished_attic", "insulation_unfinished_basement","insulation_wall",  "ctyTC","base_weight","change_iren",
+                     "insulation_unfinished_attic", "insulation_unfinished_basement","insulation_wall", "County", "ctyTC","base_weight","change_iren",
                      "wbase_2020","wbase_2025","wbase_2030","wbase_2035","wbase_2040","wbase_2045","wbase_2050","wbase_2055","wbase_2060",
                      "whiDR_2020","whiDR_2025","whiDR_2030","whiDR_2035","whiDR_2040","whiDR_2045","whiDR_2050","whiDR_2055","whiDR_2060",
                      "whiMF_2020","whiMF_2025","whiMF_2030","whiMF_2035","whiMF_2040","whiMF_2045","whiMF_2050","whiMF_2055","whiMF_2060")]
 
 rs_ER_ren<-merge(rs_ER_ren,bs2020,by='Building')
-# make sure renovations are counted only once
+# make sure renovations are counted only once. this time, 7 counties are removed which never undergo insulation renovations
 rs_ER_ren<-rs_ER_ren[(rs_ER_ren$Year-rs_ER_ren$change_iren)<5,]
 # if year is 2025, only the decay factors for 2025 should be non-zero
 for (yr in seq(2025,2060,5)) {
@@ -418,11 +235,6 @@ rs_ER_ren[,c("hiDR HU 2020","hiDR HU 2025","hiDR HU 2030","hiDR HU 2035","hiDR H
 # tot housing units, hiMF stock evolution
 rs_ER_ren[,c("hiMF HU 2020","hiMF HU 2025","hiMF HU 2030","hiMF HU 2035","hiMF HU 2040","hiMF HU 2045","hiMF HU 2050","hiMF HU 2055","hiMF HU 2060")]<-
   rs_ER_ren$base_weight*rs_ER_ren[,c("whiMF_2020",  "whiMF_2025", "whiMF_2030", "whiMF_2035", "whiMF_2040", "whiMF_2045", "whiMF_2050", "whiMF_2055", "whiMF_2060")]
-
-# total housing units renovated
-colSums(as.numeric(rs_ER_ren$change_iren>0)*rs_ER_ren[,c("base HU 2020","base HU 2025","base HU 2030","base HU 2035","base HU 2040","base HU 2045","base HU 2050","base HU 2055","base HU 2060")])
-colSums(as.numeric(rs_ER_ren$change_iren>0)*rs_ER_ren[,c("hiDR HU 2020","hiDR HU 2025","hiDR HU 2030","hiDR HU 2035","hiDR HU 2040","hiDR HU 2045","hiDR HU 2050","hiDR HU 2055","hiDR HU 2060")])
-colSums(as.numeric(rs_ER_ren$change_iren>0)*rs_ER_ren[,c("hiMF HU 2020","hiMF HU 2025","hiMF HU 2030","hiMF HU 2035","hiMF HU 2040","hiMF HU 2045","hiMF HU 2050","hiMF HU 2055","hiMF HU 2060")])
 
 # calc pre unit FA the original way
 rs_ER_ren$Type3<-"MF"
@@ -481,7 +293,7 @@ rs_ER_ren[,c("hiMF FA 2020","hiMF FA 2025","hiMF FA 2030","hiMF FA 2035","hiMF F
 colSums(as.numeric(rs_ER_ren$change_iren>0)*rs_ER_ren[,c("hiMF FA 2020","hiMF FA 2025","hiMF FA 2030","hiMF FA 2035","hiMF FA 2040","hiMF FA 2045","hiMF FA 2050","hiMF FA 2055","hiMF FA 2060")])
 
 # now get the GHG intensities per m2 to calculate the renovation GHGs #############
-mgi_ren<-mgi_all[,c(1:6,19,22:25,29:30,31,34:37,41:43)] # only get material GHG intensities for cement, glass, insulation, wood, gypsum and transport (maybe don't use transport)
+mgi_ren<-mgi_all[,c(1:6,19,22:25,29:30,31,34:37,41:43)] # only get material GHG intensities for cement, glass, insulation, wood, gypsum and transport (don't use transport)
 # the following materials assume 10% ghgi intensity for renovations
 mgi_ren[,c("gi20_Cement","gi20_Glass","gi20_Gypsum","gi20_Wood","gi60_Cement","gi60_Glass","gi60_Gypsum","gi60_Wood")]<-
   0.1*mgi_ren[,c("gi20_Cement","gi20_Glass","gi20_Gypsum","gi20_Wood","gi60_Cement","gi60_Glass","gi60_Gypsum","gi60_Wood")]
@@ -629,6 +441,7 @@ rs_RR_ren0[,c("hiMF_GHG_2020","hiMF_GHG_2025","hiMF_GHG_2030","hiMF_GHG_2035","h
   rs_RR_ren0[,c("hiMF FA 2020","hiMF FA 2025","hiMF FA 2030","hiMF FA 2035","hiMF FA 2040","hiMF FA 2045","hiMF FA 2050","hiMF FA 2055","hiMF FA 2060")]*
   rs_RR_ren0[,c("gi2020","gi2025","gi2030","gi2035","gi2040","gi2045","gi2050","gi2055","gi2060")]
 
+# calculate sum by year at national aggregate level
 renGHG<-data.frame(Year=2020:2060,Source="Renovation",Stock="Base",Renovation="Reg",MtCO2e=c(0,tapply(rs_RR_ren0$base_GHG_2025,rs_RR_ren0$change_iren,sum)*1e-9))
 renGHG$MtCO2e<-renGHG$MtCO2e+c(0,tapply(rs_RR_ren0$base_GHG_2030,rs_RR_ren0$change_iren,sum)*1e-9)
 renGHG$MtCO2e<-renGHG$MtCO2e+c(0,tapply(rs_RR_ren0$base_GHG_2035,rs_RR_ren0$change_iren,sum)*1e-9)
@@ -655,6 +468,51 @@ renGHG3$MtCO2e<-renGHG3$MtCO2e+c(0,tapply(rs_RR_ren0$hiMF_GHG_2045,rs_RR_ren0$ch
 renGHG3$MtCO2e<-renGHG3$MtCO2e+c(0,tapply(rs_RR_ren0$hiMF_GHG_2050,rs_RR_ren0$change_iren,sum)*1e-9)
 renGHG3$MtCO2e<-renGHG3$MtCO2e+c(0,tapply(rs_RR_ren0$hiMF_GHG_2055,rs_RR_ren0$change_iren,sum)*1e-9)
 renGHG3$MtCO2e<-renGHG3$MtCO2e+c(0,tapply(rs_RR_ren0$hiMF_GHG_2060,rs_RR_ren0$change_iren,sum)*1e-9)
+
+# calculate sum by county and type, base stock
+cty_type_base_RR<-as.data.frame(tapply(rs_RR_ren0$base_GHG_2025,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$base_GHG_2030,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) + 
+  as.data.frame(tapply(rs_RR_ren0$base_GHG_2035,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$base_GHG_2040,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$base_GHG_2045,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$base_GHG_2050,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$base_GHG_2055,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$base_GHG_2060,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9)
+
+cty_type_base_RR$Year<-rownames(cty_type_base_RR)
+cty_type_base_RR<-melt(cty_type_base_RR)
+cty_type_base_RR$Type<-str_sub(cty_type_base_RR$variable,-2)
+cty_type_base_RR$County<-str_sub(cty_type_base_RR$variable,1,-4)
+
+cty_type_base_RR[is.na(cty_type_base_RR)]<-0
+cty_type_base_RR_cum<-as.data.frame(tapply(cty_type_base_RR$value,list(cty_type_base_RR$County,cty_type_base_RR$Type),sum))
+
+cty_type_base_RR_cum$County<-rownames(cty_type_base_RR_cum)
+cty_type_base_RR_cum<-melt(cty_type_base_RR_cum)
+names(cty_type_base_RR_cum)[2:3]<-c('Type','renGHG_base_RR_Mt')
+# now hiDR
+cty_type_hiDR_RR<-as.data.frame(tapply(rs_RR_ren0$hiDR_GHG_2025,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$hiDR_GHG_2030,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) + 
+  as.data.frame(tapply(rs_RR_ren0$hiDR_GHG_2035,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$hiDR_GHG_2040,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$hiDR_GHG_2045,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$hiDR_GHG_2050,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$hiDR_GHG_2055,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_RR_ren0$hiDR_GHG_2060,list(rs_RR_ren0$change_iren,rs_RR_ren0$County,rs_RR_ren0$Type3),sum)*1e-9)
+
+cty_type_hiDR_RR$Year<-rownames(cty_type_hiDR_RR)
+cty_type_hiDR_RR<-melt(cty_type_hiDR_RR)
+cty_type_hiDR_RR$Type<-str_sub(cty_type_hiDR_RR$variable,-2)
+cty_type_hiDR_RR$County<-str_sub(cty_type_hiDR_RR$variable,1,-4)
+
+cty_type_hiDR_RR[is.na(cty_type_hiDR_RR)]<-0
+cty_type_hiDR_RR_cum<-as.data.frame(tapply(cty_type_hiDR_RR$value,list(cty_type_hiDR_RR$County,cty_type_hiDR_RR$Type),sum))
+
+cty_type_hiDR_RR_cum$County<-rownames(cty_type_hiDR_RR_cum)
+cty_type_hiDR_RR_cum<-melt(cty_type_hiDR_RR_cum)
+names(cty_type_hiDR_RR_cum)[2:3]<-c('Type','renGHG_hiDR_RR_Mt')
+
+cty_type_RR_cum<-merge(cty_type_base_RR_cum,cty_type_hiDR_RR_cum)
 
 # finalize emission calculations, AR #############
 # define all archetype groups
@@ -800,6 +658,51 @@ renGHG6$MtCO2e<-renGHG6$MtCO2e+c(0,tapply(rs_AR_ren0$hiMF_GHG_2045,rs_AR_ren0$ch
 renGHG6$MtCO2e<-renGHG6$MtCO2e+c(0,tapply(rs_AR_ren0$hiMF_GHG_2050,rs_AR_ren0$change_iren,sum)*1e-9)
 renGHG6$MtCO2e<-renGHG6$MtCO2e+c(0,tapply(rs_AR_ren0$hiMF_GHG_2055,rs_AR_ren0$change_iren,sum)*1e-9)
 renGHG6$MtCO2e<-renGHG6$MtCO2e+c(0,tapply(rs_AR_ren0$hiMF_GHG_2060,rs_AR_ren0$change_iren,sum)*1e-9)
+
+# calculate sum by county and type, AR, first base stock
+cty_type_base_AR<-as.data.frame(tapply(rs_AR_ren0$base_GHG_2025,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$base_GHG_2030,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) + 
+  as.data.frame(tapply(rs_AR_ren0$base_GHG_2035,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$base_GHG_2040,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$base_GHG_2045,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$base_GHG_2050,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$base_GHG_2055,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$base_GHG_2060,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9)
+
+cty_type_base_AR$Year<-rownames(cty_type_base_AR)
+cty_type_base_AR<-melt(cty_type_base_AR)
+cty_type_base_AR$Type<-str_sub(cty_type_base_AR$variable,-2)
+cty_type_base_AR$County<-str_sub(cty_type_base_AR$variable,1,-4)
+
+cty_type_base_AR[is.na(cty_type_base_AR)]<-0
+cty_type_base_AR_cum<-as.data.frame(tapply(cty_type_base_AR$value,list(cty_type_base_AR$County,cty_type_base_AR$Type),sum))
+
+cty_type_base_AR_cum$County<-rownames(cty_type_base_AR_cum)
+cty_type_base_AR_cum<-melt(cty_type_base_AR_cum)
+names(cty_type_base_AR_cum)[2:3]<-c('Type','renGHG_base_AR_Mt')
+# now hiDR
+cty_type_hiDR_AR<-as.data.frame(tapply(rs_AR_ren0$hiDR_GHG_2025,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$hiDR_GHG_2030,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) + 
+  as.data.frame(tapply(rs_AR_ren0$hiDR_GHG_2035,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$hiDR_GHG_2040,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$hiDR_GHG_2045,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$hiDR_GHG_2050,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$hiDR_GHG_2055,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_AR_ren0$hiDR_GHG_2060,list(rs_AR_ren0$change_iren,rs_AR_ren0$County,rs_AR_ren0$Type3),sum)*1e-9)
+
+cty_type_hiDR_AR$Year<-rownames(cty_type_hiDR_AR)
+cty_type_hiDR_AR<-melt(cty_type_hiDR_AR)
+cty_type_hiDR_AR$Type<-str_sub(cty_type_hiDR_AR$variable,-2)
+cty_type_hiDR_AR$County<-str_sub(cty_type_hiDR_AR$variable,1,-4)
+
+cty_type_hiDR_AR[is.na(cty_type_hiDR_AR)]<-0
+cty_type_hiDR_AR_cum<-as.data.frame(tapply(cty_type_hiDR_AR$value,list(cty_type_hiDR_AR$County,cty_type_hiDR_AR$Type),sum))
+
+cty_type_hiDR_AR_cum$County<-rownames(cty_type_hiDR_AR_cum)
+cty_type_hiDR_AR_cum<-melt(cty_type_hiDR_AR_cum)
+names(cty_type_hiDR_AR_cum)[2:3]<-c('Type','renGHG_hiDR_AR_Mt')
+
+cty_type_AR_cum<-merge(cty_type_base_AR_cum,cty_type_hiDR_AR_cum)
 
 # finalize emission calculations, ER #############
 # define all archetype groups
@@ -949,7 +852,57 @@ renGHG9$MtCO2e<-renGHG9$MtCO2e+c(0,tapply(rs_ER_ren0$hiMF_GHG_2060,rs_ER_ren0$ch
 renGHGall<-rbind(renGHG,renGHG2,renGHG3,renGHG4,renGHG5,renGHG6,renGHG7,renGHG8,renGHG9)
 renGHGall$Scen<-paste(renGHGall$Stock,renGHGall$Renovation,sep="_")
 rownames(renGHGall)<-1:nrow(renGHGall)
-save(renGHGall,file="resstock_projections/Final_results/renGHG.RData")
+save(renGHGall,file="Final_results/renGHG.RData")
+
+# calculate sum by county and type, ER, first base stock
+cty_type_base_ER<-as.data.frame(tapply(rs_ER_ren0$base_GHG_2025,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$base_GHG_2030,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) + 
+  as.data.frame(tapply(rs_ER_ren0$base_GHG_2035,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$base_GHG_2040,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$base_GHG_2045,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$base_GHG_2050,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$base_GHG_2055,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$base_GHG_2060,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9)
+
+cty_type_base_ER$Year<-rownames(cty_type_base_ER)
+cty_type_base_ER<-melt(cty_type_base_ER)
+cty_type_base_ER$Type<-str_sub(cty_type_base_ER$variable,-2)
+cty_type_base_ER$County<-str_sub(cty_type_base_ER$variable,1,-4)
+
+cty_type_base_ER[is.na(cty_type_base_ER)]<-0
+cty_type_base_ER_cum<-as.data.frame(tapply(cty_type_base_ER$value,list(cty_type_base_ER$County,cty_type_base_ER$Type),sum))
+
+cty_type_base_ER_cum$County<-rownames(cty_type_base_ER_cum)
+cty_type_base_ER_cum<-melt(cty_type_base_ER_cum)
+names(cty_type_base_ER_cum)[2:3]<-c('Type','renGHG_base_ER_Mt')
+# now hiDR
+cty_type_hiDR_ER<-as.data.frame(tapply(rs_ER_ren0$hiDR_GHG_2025,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$hiDR_GHG_2030,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) + 
+  as.data.frame(tapply(rs_ER_ren0$hiDR_GHG_2035,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$hiDR_GHG_2040,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$hiDR_GHG_2045,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$hiDR_GHG_2050,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$hiDR_GHG_2055,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9) +
+  as.data.frame(tapply(rs_ER_ren0$hiDR_GHG_2060,list(rs_ER_ren0$change_iren,rs_ER_ren0$County,rs_ER_ren0$Type3),sum)*1e-9)
+
+cty_type_hiDR_ER$Year<-rownames(cty_type_hiDR_ER)
+cty_type_hiDR_ER<-melt(cty_type_hiDR_ER)
+cty_type_hiDR_ER$Type<-str_sub(cty_type_hiDR_ER$variable,-2)
+cty_type_hiDR_ER$County<-str_sub(cty_type_hiDR_ER$variable,1,-4)
+
+cty_type_hiDR_ER[is.na(cty_type_hiDR_ER)]<-0
+cty_type_hiDR_ER_cum<-as.data.frame(tapply(cty_type_hiDR_ER$value,list(cty_type_hiDR_ER$County,cty_type_hiDR_ER$Type),sum))
+
+cty_type_hiDR_ER_cum$County<-rownames(cty_type_hiDR_ER_cum)
+cty_type_hiDR_ER_cum<-melt(cty_type_hiDR_ER_cum)
+names(cty_type_hiDR_ER_cum)[2:3]<-c('Type','renGHG_hiDR_ER_Mt')
+
+cty_type_ER_cum<-merge(cty_type_base_ER_cum,cty_type_hiDR_ER_cum)
+
+cty_type_cum<-merge(cty_type_RR_cum,cty_type_AR_cum,by=c('County','Type'),all = TRUE)
+cty_type_cum<-merge(cty_type_cum,cty_type_ER_cum,all=TRUE)
+
+save(cty_type_cum,file="resstock_projections/Final_results/renGHG_cty_type.RData")
 
 windows()
 ggplot(renGHGall,aes(x=Year,y=MtCO2e,color=Scen)) + geom_line()

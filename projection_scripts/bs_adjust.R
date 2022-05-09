@@ -1,9 +1,22 @@
-# update bs csvs in ways that was not possible when modifying the tsv housing characteristics files
+# update bs csvs in ways that was not possible when modifying the tsv housing characteristics files for new housing characteristics
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
+
+
+# Last Update Peter Berrill April 30 2022
+
+# Purpose: Define more efficient windows, infiltration, insulation, AC, in new homes built after 2020, depending on the state and projected adoption of energy efficiency codes/standards
+
+# Inputs: - All of the future construction files for each housing stock/new housing characteristics scenario in scen_bscsv (not bs2020_180k describing the housing stock in 2020)
+
+# Outputs:- All of the files in scen_bscsv_adj which include the adjustments made in this script
+#         - All of the bs files ready for simulation in scen_bs_csv_sim
+#         - Intermediate_results/agg_bscsv.RData, the combined bs files for the three stock evolution scenarios (base, hiDR, hiMF), including all new housing characteristics sub-scenarios
+#         - The bs dataframes (bs_base, bs_baseRFA, bs_hiDRRFA, bs_hiMFRFA) stored in */HSM_github/Resstock_outputs/ for use in the HSM paper
+
+
 library(dplyr)
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/projection_scripts")
-# library(readr)
 
 rm_dot2<-function(df) {
   cn<-names(df)
@@ -22,7 +35,6 @@ scenarios<-c("base","baseDE","baseRFA","baseDERFA",
 states<-c("TX","FL","NY","NE","DE","MD") # states which have faster adoption of IECC codes than their ResStock custom regions
 
 for (yr in seq(2025,2060,5)) { print(yr)
-  # for (yr in 2025) {
   
   for (scen in 1:12) { print(scenarios[scen])
     fn<-paste("../scen_bscsv/bs",yr,scenarios[scen],"_15k.csv",sep="")# update filename ending as appropriate
@@ -141,7 +153,6 @@ for (yr in seq(2025,2060,5)) { print(yr)
   }
 }
 
-
 ### now combine into less files and remove redundant rows ###########
 
 rm(list=ls()) # clear workspace i.e. remove saved variables
@@ -253,7 +264,6 @@ bs_hiMF_all<-rbind(bs_hiMF,bs_hiMFDE,bs_hiMFRFA,bs_hiMFDERFA)
 bs_hiMF_all$Building<-1:nrow(bs_hiMF_all)
 # bs_hiMF_unique<-distinct(bs_hiMF_all[,-c(1,114,115,116)]) # not currently worth the (row-tracking) effort of removing duplicates here, will see later if it will be necessary with a bigger sample
 
-
 # save csvs ready for simulation
 
 # first create the files
@@ -289,13 +299,14 @@ write.csv(bs_hiMFRFA_sim,file='../scen_bscsv_sim/bs_hiMFRFA.csv', row.names = FA
 write.csv(bs_hiMFDERFA_sim,file='../scen_bscsv_sim/bs_hiMFDERFA.csv', row.names = FALSE)
 
 # also save the full bs files and the identification of duplicate rows
-save(bs_base_all,bs_hiDR_all,bs_hiMF_all,file="../Intermediate_results/agg_bscsv.RData") # when do I use these? in a couple of results files, e.g. RS_results
+save(bs_base_all,bs_hiDR_all,bs_hiMF_all,file="../Intermediate_results/agg_bscsv.RData") # These are used in a couple of results files, e.g. RS_results
 
 # save the data frame needed for the HSM analysis
 save(bs_baseRFA,file="../../HSM_github/Resstock_outputs/bs_baseRFA.RData") # repo refers to this github repository https://github.com/peterberr/US_county_HSM
 save(bs_hiDRRFA,file="../../HSM_github/Resstock_outputs/bs_hiDRRFA.RData")
 save(bs_hiMFRFA,file="../../HSM_github/Resstock_outputs/bs_hiMFRFA.RData")
 save(bs_base,file="../../HSM_github/Resstock_outputs/bs_base.RData")
+
 # show the difference between bs_base_base and bs_baseRFA and bshiMF ############### 
 # these figures are used in the supporting information of the HSM manuscript
 bs_base<-bs_base_all[bs_base_all$scen=="base",]

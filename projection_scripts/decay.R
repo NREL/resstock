@@ -2,9 +2,21 @@
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/projection_scripts")
+
+# Last Update Peter Berrill April 30 2022
+
+# Purpose: Calculate projected decay of housing stock by county, vintage/cohort, and house type (3) for each five years 2020-2060
+
+# Inputs: - County_Scenario_SM_Results.RData, summary of housing stock model by county for each year 2020-2060, from Berrill & Hertwich https://doi.org/10.5334/bc.126, available at https://github.com/peterberr/US_county_HSM
+#         - ctycode.RData, county FIPS code and name
+# Outputs: 
+#         - Intermediate_results/decayFactors.RData
+#         - Intermediate_results/decayFactorsRen.RData, for use in describing decay of <2020 stock only in the renovation scenarios
+#         - Intermediate_results/decayFactorsProj.RData, for projecting the decay of housing stock including future cohorts built after 2020
+
 library(reshape2)
 library(dplyr)
-# load in county level results
+# load in county level results, quite a big file, can be found here https://github.com/peterberr/US_county_HSM
 load("~/Yale Courses/Research/Final Paper/HSM_github/HSM_results/County_Scenario_SM_Results.RData") 
 n<-names(smop_base[[3]][[1]])
 

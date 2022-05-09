@@ -1,7 +1,20 @@
-## modelling of efficiency and technology upgrade scenarios to existing pre-2020 units
-# Peter Berrill Jan 18 2020
+## modelling of efficiency and technology upgrade scenarios to existing pre-2020 units, under the Regular Renovation scenario
+
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
+
+# Last Update Peter Berrill April 30 2022
+
+# Purpose: This script takes the building characteristics of the housing stock existing in 2020 and applies equipment and insulation upgrades in line with the assumptions of the Regular Renovation scenario
+
+# Inputs: - RenovationStats_new.RData, probabilities of renovation characteristics by renovation type and Census Region and House Type (3), extracted from AHS surveys
+#         - rencombs.RData, probabilistic pre/post renovation technology/efficiency combinations       
+#         - bs2020_180k.csv, 180,000 size sample (buildstock.csv file) descrbining 2020 housing stock
+#         - decayFactorsRen.RData, stock decay factors showing decay of <2020 housing stock to 2060, by county, house type (3), and cohort (Vintage ACS)
+
+# Outputs:- Intermediate_results/RenStandard.RData, projection of the <2020 housing stock to 2060 including all characteristics changes due to renovations
+#         - Intermediate_results/RegRenSummary.RData, summary of changes in <2020 housing stock 2020-2060 by different equipment/efficiency characteristics and total stock numbers
+
 library(dplyr)
 library(ggplot2)
 library(RColorBrewer)
@@ -9,9 +22,9 @@ library(readr)
 library(reshape2)
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/projection_scripts")
 
-load("~/Yale Courses/Research/US Housing/AHS/RenovationStats_new.RData") # produced by script AHS_new_ren2.R
-load('../../StockModelCode/rencombs.RData') # produced by older version of this script. Combinations of heat fuel/efficiencies, water heat fuel/efficiencies, cooling efficiencies, insulation types
-rs<-read.csv("../scen_bscsv/bs2020_180k.csv") # load in most recent sample of 2020 housing stock
+load("../ExtData/RenovationStats_new.RData") # produced by script AHS_new_ren2.R
+load('../Intermediate_results/rencombs.RData') # Lists of possible heat fuel/efficiencies, water heat fuel/efficiencies, cooling efficiencies, insulation types
+rs<-read.csv("../scen_bscsv/bs2020_180k.csv") # load sample of 2020 housing stock
 nms<-names(rs) # see which columns can be removed, none until after the RS simulations have been done
 
 # create columns for indicating the year of the most recent renovation
@@ -39,9 +52,9 @@ write.csv(pfuel_all,"../SI_Tables/pfuel_RR.csv")
 pwins<-matrix(0,length(wins_types),length(wins_types))
 colnames(pwins)<-rownames(pwins)<-wins_types
 # probability matrices are organised by post renovation level (rows) and pre renovation level (cols)
-# For now I basically define that insulation switches 50:50 to levels 1:2 levels higher, unless on the second-to-top or top level, in which they can only go 1 or 0 levels higher
+# Define that insulation switches 50:50 to levels 1:2 levels higher, unless on the second-to-top or top level, in which they can only go 1 or 0 levels higher
 # brick and concrete walls
-pwins[1:4,1]<-c(0.5,0,0.25,0.25) # it's quite difficult to insulate a brick wall, so in 50% of cases no change will be made to this wall type
+pwins[1:4,1]<-c(0.5,0,0.25,0.25) # it's difficult to insulate a brick wall, so in 50% of cases no change will be made to this wall type
 pwins[3:4,2]<-0.5
 pwins[4:5,3]<-0.5
 pwins[5:6,4]<-0.5
@@ -57,10 +70,10 @@ pwins[12,11:12]<-1
 # crins types pre-loaded in rencombs
 pcrins<-matrix(0,length(crins_types),length(crins_types))
 colnames(pcrins)<-rownames(pcrins)<-crins_types
-# again define swithcing 50:50 up 1/2 levels where possible
+# again define switching 50:50 up 1/2 levels where possible
 pcrins[2:3,1]<-0.5
 pcrins[3,2:3]<-1
-pcrins[4,4]<-1 # None remains None
+pcrins[4,4]<-1 # None remains None (no crawlspace)
 pcrins[6:7,5]<-0.5
 pcrins[7,6:7]<-1
 
@@ -131,13 +144,13 @@ ce[10:11,10]<-c(0.25,0.75)
 # replace highest effient room AC (12), and shared cooling with itself
 ce[11,11]<-ce[12,12]<-1
 
-rs$base_weight<-122516868/nrow(rs) # total occupied units in 2020 excluding HI and AK (see InitStock20 dataframe), divided by sample size. Tot occ units in all states in 2020 is 123260336
+rs$base_weight<-122516868/nrow(rs) # total occupied units in 2020 excluding HI and AK (see InitStock20 dataframe), divided by sample size. Tot occ units in all states in 2020 is 123260336, in all states excl. AK & HI is 122516868
 rs_2020<-rs
 # define regions and types
 Regions<-c("Northeast","Midwest","South","West")
 RGs<-c("NE","MW","S","W")
 
-# define yr, this will later be in a loop
+# loop to implement renovations
 for (yr in 2021:2060) {
   print(yr)
   # yr<-2021
@@ -174,9 +187,9 @@ for (yr in 2021:2060) {
     # Renovations of electric HP heating systems
     # assign ASHPs to the equivalent 1 and 2 levels higher, in 50:50 ratio
     for (rc in 1:4) { # for row/column 1:4
-      phfe[rc+1:2,rc]<-pfuel_all["Electricity HP","Electricity HP",RGs[r]]*0.5 # multiply the chance of reamining with a heat pump by 0.5 as we split this into two efficiency levels
+      phfe[rc+1:2,rc]<-pfuel_all["Electricity HP","Electricity HP",RGs[r]]*0.5 # multiply the chance of remaining with a heat pump by 0.5 as we split this into two efficiency levels
     }
-    # assign the two most efficienct ASHPs to the most efficient ASHP
+    # assign the two most efficient ASHPs to the most efficient ASHP
     phfe[6,5:6]<-pfuel_all["Electricity HP","Electricity HP",RGs[r]]
     
     # assign MSHP to the higher version of themselves, apart from the highest efficiency, which is assigned to itself
@@ -318,11 +331,6 @@ for (yr in 2021:2060) {
     min(colSums(phfe))
     max(colSums(phfe))
     
-    # characteristics before 
-    # table(SF$Heating.Fuel)
-    # table(SF$HVAC.Heating.Efficiency)
-    # table(SFhrensam$Heating.Fuel)
-    # table(SFhrensam$HVAC.Heating.Efficiency)
     SFhrensam$Heating.Fuel_Efficiency_new<-"NA"
     for (i in 1:nrow(SFhrensam)) {
       SFhrensam$Heating.Fuel_Efficiency_new[i]<-sample(hfeff_types,1,p=phfe[,SFhrensam$Heating.Fuel_Efficiency[i]])
@@ -337,9 +345,6 @@ for (yr in 2021:2060) {
     SFhrensam$Heating.Fuel_Efficiency<-SFhrensam$Heating.Fuel_Efficiency_new
     SFhrensam<-SFhrensam[,!(names(SFhrensam) %in% c("Heating.Fuel_Efficiency_new"))]
     SF[ren_rows,]<-SFhrensam
-    # after
-    # table(SF$Heating.Fuel)
-    # table(SF$HVAC.Heating.Efficiency)
     
     # same for water heating fuel and efficiency
     wren<-pren[RGs[r],"SF","Water"] # the renovation rate for a given region, type, system combination
@@ -442,8 +447,6 @@ for (yr in 2021:2060) {
     min(colSums(whfe))
     max(colSums(whfe))
     
-    # table(SF$Water.Heater.Efficiency)
-    # table(SFwrensam$Water.Heater.Efficiency)
     SFwrensam$Water.Heater.Efficiency_new<-"NA"
     for (i in 1:nrow(SFwrensam)) {
       SFwrensam$Water.Heater.Efficiency_new[i]<-sample(wheff_types,1,p=whfe[,SFwrensam$Water.Heater.Efficiency[i]])
@@ -453,9 +456,6 @@ for (yr in 2021:2060) {
     SFwrensam$Water.Heater.Efficiency<-SFwrensam$Water.Heater.Efficiency_new
     SFwrensam<-SFwrensam[,!(names(SFwrensam) %in% c("Water.Heater.Efficiency_new"))]
     SF[ren_rows,]<-SFwrensam
-    # after
-    # table(SF$Water.Heater.Efficiency)
-    # table(SFwrensam$Water.Heater.Efficiency)
     
     # now insulation
     SF$pi<-0 # probability of getting an insulation system renovation
@@ -481,9 +481,6 @@ for (yr in 2021:2060) {
     SFirensam<-SF[ren_rows,] # housing units to renovate
     # indicate that these units get a renovation this year
     SFirensam$last_iren<-yr
-    # before
-    # table(SFirensam$Insulation.Wall,SFirensam$Geometry.Wall.Type)
-    # table(SF$Insulation.Wall,SF$Geometry.Wall.Type)
     
     for (i in 1:nrow(SFirensam)) {
       SFirensam$Insulation.Wall_New[i]<-sample(wins_types,1,p=pwins[,SFirensam$Insulation.Wall[i]])
@@ -532,10 +529,7 @@ for (yr in 2021:2060) {
     SFctnonerensam<-SF[ren_rows,] # housing units to change from no AC
     # indicate that these units get a renovation this year
     SFctnonerensam$last_ctren_none<-yr
-    # before
-    table(SFctnonerensam$HVAC.Cooling.Type)
-    table(SF$HVAC.Cooling.Type)
-    table(SF$HVAC.Cooling.Efficiency)
+    
     ctr2<-ctr
     ctr2[2,]<-0
     ctr2[,1]<-0
@@ -546,9 +540,7 @@ for (yr in 2021:2060) {
       SFctnonerensam$change_cren[i]<-yr # note that the cooling system has changed
     }
     SF[ren_rows,]<-SFctnonerensam
-    # after
-    table(SF$HVAC.Cooling.Type)
-    table(SF$HVAC.Cooling.Efficiency)
+    
     # now do the same for moving from room AC
     ctren_room<-ctr[1,3]
     numren<-round(nrow(SF[SF$HVAC.Cooling.Type=="Room AC",])*ctren_room)
@@ -573,9 +565,7 @@ for (yr in 2021:2060) {
     SFctroomrensam<-SF[ren_rows,] # housing units to renovate
     # indicate that these units get a renovation this year
     SFctroomrensam$last_ctren_room<-yr
-    # before
-    table(SF$HVAC.Cooling.Efficiency)
-    table(SF$HVAC.Cooling.Type)
+
     for (i in 1:nrow(SFctroomrensam)) {
       SFctroomrensam$HVAC.Cooling.Type[i]<-"Central AC"
       SFctroomrensam$HVAC.Cooling.Efficiency[i]<-"AC, SEER 13"
@@ -698,9 +688,6 @@ for (yr in 2021:2060) {
     # indicate that these units get a renovation this year
     MFwrensam$last_wren<-yr
     
-    # CONTINUE, before 
-    table(MF$Water.Heater.Efficiency)
-    table(MFwrensam$Water.Heater.Efficiency)
     MFwrensam$Water.Heater.Efficiency_new<-"NA"
     for (i in 1:nrow(MFwrensam)) {
       MFwrensam$Water.Heater.Efficiency_new[i]<-sample(wheff_types,1,p=whfe[,MFwrensam$Water.Heater.Efficiency[i]])
@@ -710,9 +697,6 @@ for (yr in 2021:2060) {
     MFwrensam$Water.Heater.Efficiency<-MFwrensam$Water.Heater.Efficiency_new
     MFwrensam<-MFwrensam[,!(names(MFwrensam) %in% c("Water.Heater.Efficiency_new"))]
     MF[ren_rows,]<-MFwrensam
-    # after
-    table(MF$Water.Heater.Efficiency)
-    table(MFwrensam$Water.Heater.Efficiency)
     
     # now insulation
     MF$pi<-0 # probability of getting a heating system renovation
@@ -738,9 +722,6 @@ for (yr in 2021:2060) {
     MFirensam<-MF[ren_rows,] # housing units to renovate
     # indicate that these units get a renovation this year
     MFirensam$last_iren<-yr
-    # before
-    # table(MFirensam$Insulation.Wall,MFirensam$Geometry.Wall.Type)
-    # table(MF$Insulation.Wall,MF$Geometry.Wall.Type)
     
     for (i in 1:nrow(MFirensam)) {
       MFirensam$Insulation.Wall_New[i]<-sample(wins_types,1,p=pwins[,MFirensam$Insulation.Wall[i]])
@@ -760,12 +741,9 @@ for (yr in 2021:2060) {
     
     MFirensam<-MFirensam[,!(names(MFirensam) %in% c("Insulation.Wall_New","Insulation.Crawlspace_New","Insulation.Unfinished.Basement_New","Infiltration_New"))]
     MF[ren_rows,]<-MFirensam
-    # after
-    # table(MFirensam$Insulation.Wall,MFirensam$Geometry.Wall.Type)
-    # table(MF$Insulation.Wall,MF$Geometry.Wall.Type)
     
     # and space cooling, first do changes of cooling type 
-    ctr<-pctype_all[,,RGs[r]] # rate of changing between no/room/central AC cooling type
+    ctr<-pctype_all[,,RGs[r]] # (cooling type rate) rate of changing between no/room/central AC cooling type
     ctren_none<-sum(ctr[c(1,3),2])
     # do units from none first
     numren<-round(nrow(MF[MF$HVAC.Cooling.Type=="None",])*ctren_none)
@@ -789,9 +767,7 @@ for (yr in 2021:2060) {
     MFctnonerensam<-MF[ren_rows,] # housing units to change from no AC
     # indicate that these units get a renovation this year
     MFctnonerensam$last_ctren_none<-yr
-    # before
-    # table(MFctnonerensam$HVAC.Cooling.Type)
-    # table(MF$HVAC.Cooling.Type)
+
     ctr2<-ctr
     ctr2[2,]<-0
     ctr2[,1]<-0
@@ -802,9 +778,7 @@ for (yr in 2021:2060) {
       MFctnonerensam$change_cren[i]<-yr # note that the cooling system has changed
     }
     MF[ren_rows,]<-MFctnonerensam
-    # after
-    # table(MFctnonerensam$HVAC.Cooling.Type)
-    # table(MFctnonerensam$HVAC.Cooling.Efficiency)
+
     # now do the same for moving from room AC
     ctren_room<-ctr[1,3]
     numren<-round(nrow(MF[MF$HVAC.Cooling.Type=="Room AC",])*ctren_room)
@@ -829,9 +803,7 @@ for (yr in 2021:2060) {
     MFctroomrensam<-MF[ren_rows,] # housing units to renovate
     # indicate that these units get a renovation this year
     MFctroomrensam$last_ctren_room<-yr
-    # before
-    table(MFctroomrensam$HVAC.Cooling.Type)
-    table(MF$HVAC.Cooling.Type)
+
     for (i in 1:nrow(MFctroomrensam)) {
       MFctroomrensam$HVAC.Cooling.Type[i]<-"Central AC"
       MFctroomrensam$HVAC.Cooling.Efficiency[i]<-"AC, SEER 13"
@@ -870,9 +842,6 @@ for (yr in 2021:2060) {
       MFcrensam<-MF[ren_rows,] # housing units to renovate
       # indicate that these units get a renovation this year
       MFcrensam$last_cren<-yr
-      # before
-      # table(MFcrensam$HVAC.Cooling.Efficiency)
-      # table(MF$HVAC.Cooling.Efficiency)
       
       for (i in 1:nrow(MFcrensam)) {
         MFcrensam$HVAC.Cooling.Efficiency_New[i]<-sample(ceff_types,1,p=ce[,MFcrensam$HVAC.Cooling.Efficiency[i]]) 
@@ -881,10 +850,8 @@ for (yr in 2021:2060) {
       MFcrensam$HVAC.Cooling.Efficiency<-MFcrensam$HVAC.Cooling.Efficiency_New
       MFcrensam<-MFcrensam[,!(names(MFcrensam) %in% c("HVAC.Cooling.Efficiency_New"))]
       MF[ren_rows,]<-MFcrensam
-      # after
-      # table(MFcrensam$HVAC.Cooling.Efficiency)
-      # table(MF$HVAC.Cooling.Efficiency)
     }  # close if statement to check if there are actually any renovations.
+    
     # # pick out MH units
     MH<-RG[substr(RG$Geometry.Building.Type.RECS,1,6)=="Mobile",]
     MH$pi<-MH$ph<-MH$pw<-MH$pc<-MH$pctnone<-MH$pctroom<-0
@@ -911,10 +878,6 @@ for (yr in 2021:2060) {
     # indicate that these units get a renovation this year
     MHhrensam$last_hren<-yr
     
-    # table(MH$Heating.Fuel)
-    # table(MH$HVAC.Heating.Efficiency)
-    # table(MHhrensam$Heating.Fuel)
-    # table(MHhrensam$HVAC.Heating.Efficiency)
     MHhrensam$Heating.Fuel_Efficiency_new<-"NA"
     for (i in 1:nrow(MHhrensam)) {
       MHhrensam$Heating.Fuel_Efficiency_new[i]<-sample(hfeff_types,1,p=phfe[,MHhrensam$Heating.Fuel_Efficiency[i]])
@@ -923,8 +886,7 @@ for (yr in 2021:2060) {
     }
     MHhrensam$Heating.Fuel<-sub("_.*","",MHhrensam$Heating.Fuel_Efficiency_new)
     MHhrensam$HVAC.Heating.Efficiency<-sub(".*_","",MHhrensam$Heating.Fuel_Efficiency_new)
-    # table(MHhrensam$Heating.Fuel)
-    # table(MHhrensam$HVAC.Heating.Efficiency)
+
     MHhrensam$Heating.Fuel_Efficiency<-MHhrensam$Heating.Fuel_Efficiency_new
     MHhrensam<-MHhrensam[,!(names(MHhrensam) %in% c("Heating.Fuel_Efficiency_new"))]
     MH[ren_rows,]<-MHhrensam
@@ -953,9 +915,6 @@ for (yr in 2021:2060) {
     # indicate that these units get a renovation this year
     MHwrensam$last_wren<-yr
     
-    # CONTINUE, before 
-    # table(MH$Water.Heater.Efficiency)
-    # table(MHwrensam$Water.Heater.Efficiency)
     MHwrensam$Water.Heater.Efficiency_new<-"NA"
     for (i in 1:nrow(MHwrensam)) {
       MHwrensam$Water.Heater.Efficiency_new[i]<-sample(wheff_types,1,p=whfe[,MHwrensam$Water.Heater.Efficiency[i]])
@@ -965,9 +924,6 @@ for (yr in 2021:2060) {
     MHwrensam$Water.Heater.Efficiency<-MHwrensam$Water.Heater.Efficiency_new
     MHwrensam<-MHwrensam[,!(names(MHwrensam) %in% c("Water.Heater.Efficiency_new"))]
     MH[ren_rows,]<-MHwrensam
-    # after
-    # table(MH$Water.Heater.Efficiency)
-    # table(MHwrensam$Water.Heater.Efficiency)
     
     # now insulation
     MH$pi<-0 # probability of getting a insulation system renovation
@@ -993,9 +949,6 @@ for (yr in 2021:2060) {
     MHirensam<-MH[ren_rows,] # housing units to renovate
     # indicate that these units get a renovation this year
     MHirensam$last_iren<-yr
-    # before
-    # table(MHirensam$Insulation.Wall,MHirensam$Geometry.Wall.Type)
-    # table(MH$Insulation.Wall,MH$Geometry.Wall.Type)
     
     for (i in 1:nrow(MHirensam)) {
       MHirensam$Insulation.Wall_New[i]<-sample(wins_types,1,p=pwins[,MHirensam$Insulation.Wall[i]])
@@ -1054,10 +1007,8 @@ for (yr in 2021:2060) {
         MHctnonerensam$change_cren[i]<-yr # note that the cooling system has changed
       }
       MH[ren_rows,]<-MHctnonerensam
-      # after
-      table(MHctnonerensam$HVAC.Cooling.Type)
-      table(MHctnonerensam$HVAC.Cooling.Efficiency)
     }
+    
     # now do the same for moving from room AC
     ctren_room<-ctr[1,3]
     numren<-round(nrow(MH[MH$HVAC.Cooling.Type=="Room AC",])*ctren_room)
@@ -1085,9 +1036,6 @@ for (yr in 2021:2060) {
       MHctroomrensam<-MH[ren_rows,] # housing units to renovate
       # indicate that these units get a renovation this year
       MHctroomrensam$last_ctren_room<-yr
-      # before
-      table(MHctroomrensam$HVAC.Cooling.Type)
-      table(MH$HVAC.Cooling.Type)
       for (i in 1:nrow(MHctroomrensam)) {
         MHctroomrensam$HVAC.Cooling.Type[i]<-"Central AC"
         MHctroomrensam$HVAC.Cooling.Efficiency[i]<-"AC, SEER 13"
@@ -1095,6 +1043,7 @@ for (yr in 2021:2060) {
       }
       MH[ren_rows,]<-MHctroomrensam
     }
+    
     # next implement efficiency changes in space cooling
     cren<-pren[RGs[r],"MH","Cool"] # chance of changing efficiency as defined in ce, only for those with room/central AC
     cLT<-round(1/cren) # average lifetime of equipment, or period for replacements
@@ -1151,7 +1100,7 @@ for (yr in 2021:2060) {
 # tabulate and visualize the fuels and efficiencies over the full period ##########
 
 rs_2020_2025<-bind_rows(rs_2020,rs_2025)
-# rs_2020_2025[,114:125]<-0 # remove differences in columns which don't affect actual changes. CHECK  the col numbers are correct
+# remove differences in columns which don't affect actual changes. CHECK  the col numbers are correct
 # These columns are: last_iren/wren/cren/hren/ctren_room,ctren_none,pctroom,pctnone,ph,pc,pw,pi.
 rs_2020_2025<-rs_2020_2025[,-c(115:126)]
 rs_2020_2025<-distinct(rs_2020_2025)
@@ -1247,7 +1196,7 @@ for (sts in 1:4) {
   cte<-cte2020
   ins<-ins2020
   for (yr in c(seq(2025,2060,5))) {
-    dd<-get(paste("rs",yr,sep = "_")) # i need to have all of these saved
+    dd<-get(paste("rs",yr,sep = "_")) # need to have all of these saved
     
     dd$TC<-"MF"
     dd[dd$Geometry.Building.Type.RECS=="Single-Family Attached" | dd$Geometry.Building.Type.RECS=="Single-Family Detached",]$TC<-"SF"
@@ -1313,9 +1262,10 @@ for (sts in 1:4) {
   assign(paste("cte_",stock_scen[sts],sep=""),cte)
   assign(paste("hfe_",stock_scen[sts],sep = ""),hfe)
 }
+
 # graph the changes
-scenario_names<-c("Baseline","High Turnover","High MF","High Turnover and High MF")
-sts=1 # vary from 1 to 4
+scenario_names<-c("Baseline","High Turnover","High MF")
+sts=1 # vary from 1 to 3
 df<-get(paste("df_",stock_scen[sts],sep=""))
 hfe<-get(paste("hfe_",stock_scen[sts],sep = ""))
 cte<-get(paste("cte_",stock_scen[sts],sep = ""))
@@ -1366,53 +1316,3 @@ ggplot(cte,aes(x=Year,y=1e-6*Count,fill=AC.Type))+geom_bar(position="stack", sta
   labs(title = "Pre-2020 housing units by AC Type, 2020-2060", y = "Million Housing Units",subtitle = paste(scenario_names[sts], ", Regular Renovation",sep=""))
 
 save(df_base,df_hiDR,hfe_base,hfe_hiDR,ins_base,ins_hiDR,cte_base,cte_hiDR,wfe_base,wfe_hiDR,file="../Intermediate_results/RegRenSummary.RData")
-# new section to estimate m2 of envelope renovations #########
-rm(rs_new)
-l<-ls(pattern = "rs_")
-rs_all<-rs_2020[,-c(115:126)]
-for (a in 2:length(l)) {
-  x<-get(l[a])
-  x<-x[,-c(115:126)]
-  rs_all<-rbind(rs_all,x)
-  rs_all<-distinct(rs_all)}
-rs_env<-rs_all[rs_all$change_iren>0,]
-
-
-# add floor area per each observation in m2
-rs_all$Floor.Area.m2<-0
-rs_all[rs_all$Geometry.Floor.Area=="0-499"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(328/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="0-499"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(317/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="0-499"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(333/10.765,1)
-
-rs_all[rs_all$Geometry.Floor.Area=="500-749"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(633/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="500-749"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(617/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="500-749"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(617/10.765,1)
-
-rs_all[rs_all$Geometry.Floor.Area=="750-999"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(885/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="750-999"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(866/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="750-999"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(853/10.765,1)
-
-rs_all[rs_all$Geometry.Floor.Area=="1000-1499"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1220/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="1000-1499"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1202/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="1000-1499"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(1138/10.765,1)
-
-rs_all[rs_all$Geometry.Floor.Area=="1500-1999"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(1690/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="1500-1999"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(1675/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="1500-1999"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(1623/10.765,1)
-
-rs_all[rs_all$Geometry.Floor.Area=="2000-2499"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2176/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="2000-2499"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2152/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="2000-2499"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(2115/10.765,1)
-
-rs_all[rs_all$Geometry.Floor.Area=="2500-2999"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(2663/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="2500-2999"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(2631/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="2500-2999"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(2590/10.765,1)
-
-rs_all[rs_all$Geometry.Floor.Area=="3000-3999"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached","Mobile Home"),]$Floor.Area.m2<-round(3301/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="3000-3999"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(3241/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="3000-3999"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(3138/10.765,1)
-# 4000+. Using my own estimates here, consistent with my changes to options_lookup, but creating different value for MH
-rs_all[rs_all$Geometry.Floor.Area=="4000+"&rs_all$Geometry.Building.Type.RECS %in% c("Single-Family Detached"),]$Floor.Area.m2<-round(7500/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="4000+"&rs_all$Geometry.Building.Type.RECS %in% c("Mobile Home"),]$Floor.Area.m2<-round(4200/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="4000+"&rs_all$Geometry.Building.Type.RECS == "Single-Family Attached",]$Floor.Area.m2<-round(7000/10.765,1)
-rs_all[rs_all$Geometry.Floor.Area=="4000+"&rs_all$Type3=="MF",]$Floor.Area.m2<-round(7000/10.765,1)

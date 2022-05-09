@@ -1,5 +1,16 @@
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
+
+# Last Update Peter Berrill April 30 2022
+
+# Purpose: Adjust renovation bs files which ended up with ASHP files with Heating Type != Ducted Heat Pump and MSHP with Heating Type != Non-Ducted Heat Pump. 
+# Make sure that the characteristics HVAC.Heating.Type, HVAC.Heating.Type.And.Fuel, HVAC.Cooling.Type, HVAC.Cooling.Efficiency, HVAC.Has.Shared.System, HVAC.Shared.Efficiencies, are internally consistent and compatible
+
+# Inputs: - all bscsv files in scen_bscsv_sim
+#         - all res* (resstock) files (excluding fails) in ../Eagle_outputs/
+
+# Outputs:- all bscsv files in scen_bscsv_sim\HP_redo (a small fraction of 2020 and RR files are affected, a larger share of AR and especially ER files are affected, these needed to be re-simulated)
+
 library(dplyr)
 library(reshape2)
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/scen_bscsv_sim")
@@ -20,9 +31,6 @@ bs<-read.csv('bs_AR_2055.csv')
 table(bs$HVAC.Heating.Type, bs$HVAC.Heating.Type.And.Fuel)
 # all Electricity ASHP should have Heating Type = Ducted Heat Pump
 # all Electricity MSHP should have Heating Type = Non-Ducted Heat Pump
-
-# bs_ok<-bs[bs$HVAC.Heating.Type %in% c("Ducted Heat Pump","Non-Ducted Heat Pump") & 
-#             bs$HVAC.Heating.Type.And.Fuel %in% c("Electricity ASHP","Electricity MSHP"),]
 
 bs_e1<-bs[bs$HVAC.Heating.Type %in% c("Ducted Heating","Non-Ducted Heating") & 
             bs$HVAC.Heating.Type.And.Fuel %in% c("Electricity ASHP","Electricity MSHP"),]
@@ -52,7 +60,6 @@ bseu$HVAC.Cooling.Efficiency<-"Heat Pump"
 
 bseu$HVAC.Has.Shared.System<-"None"
 bseu$HVAC.Shared.Efficiencies<-"None"
-
 
 # bseu[bseu$HVAC.Heating.Type %in% c("Ducted Heat Pump","Non-Ducted Heat Pump") & !bseu$HVAC.Cooling.Type=="Shared Cooling",]$HVAC.Cooling.Type<-"Heat Pump"
 # bseu[bseu$HVAC.Cooling.Type=="Heat Pump",]$HVAC.Cooling.Efficiency<-"Heat Pump"
@@ -187,7 +194,6 @@ for (k in 1:length(filenames)) { print(k)
 
 # run again for the failed jobs in AR 2060 ########
 
-
 fn<-"HP_redo/bs_AR_2060_redo.csv"
 rfn<-"../Eagle_outputs/HP_redo/res_AR_2060_redo.csv"
 bs<-read.csv(fn)
@@ -200,5 +206,3 @@ bseu<-rm_dot2(bseu)
 
 save_fn<-"HP_redo/bs_AR_2060_redo2.csv"
 write.csv(bseu,file=save_fn, row.names = FALSE)
-
-

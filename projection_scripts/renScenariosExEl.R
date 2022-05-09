@@ -1,8 +1,19 @@
 ## modelling of efficiency and technology upgrade scenarios to existing pre-2020 units
-# Peter Berrill June 3 2021
-# a more ambitious electrification focused renovation scenario
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
+
+# Last Update Peter Berrill April 30 2022
+
+# Purpose: This script takes the building characteristics of the housing stock existing in 2020 and applies equipment and insulation upgrades in line with the assumptions of the Extensive/Electrification Renovation scenario
+
+# Inputs: - RenovationStats_new.RData, probabilities of renovation characteristics by renovation type and Census Region and House Type (3), extracted from AHS surveys
+#         - rencombs.RData, probabilistic pre/post renovation technology/efficiency combinations       
+#         - bs2020_180k.csv, 180,000 size sample (buildstock.csv file) descrbining 2020 housing stock
+#         - decayFactorsRen.RData, stock decay factors showing decay of <2020 housing stock to 2060, by county, house type (3), and cohort (Vintage ACS)
+
+# Outputs:- Intermediate_results/RenExtElec.RData, projection of the <2020 housing stock to 2060 including all characteristics changes due to renovations
+#         - Intermediate_results/ExElRenSummary.RData, summary of changes in <2020 housing stock 2020-2060 by different equipment/efficiency characteristics and total stock numbers
+
 library(dplyr)
 library(ggplot2)
 library(RColorBrewer)
@@ -10,9 +21,9 @@ library(readr)
 library(reshape2)
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/projection_scripts")
 
-load("~/Yale Courses/Research/US Housing/AHS/RenovationStats_new.RData") # produced by script AHS_new_ren2.R
+load("../ExtData/RenovationStats_new.RData") # produced by script AHS_new_ren2.R
 # Load in names of equipment that will be affected by renovation. produced by older version of this script. Combinations of heat fuel/efficiencies, water heat fuel/efficiencies, cooling efficiencies, insulation types
-load('../../StockModelCode/rencombs.RData')
+load('../Intermediate_results/rencombs.RData') # Lists of possible heat fuel/efficiencies, water heat fuel/efficiencies, cooling efficiencies, insulation types
 rs<-read.csv("../scen_bscsv/bs2020_180k.csv") # load in most recent sample of 2020 housing stock
 nms<-names(rs) # see which columns can be removed, none until after the RS simulations have been done
 
@@ -85,21 +96,6 @@ pwfuel_2025[,"Oil",]<-matrix(rep(c(1,0,0,0,0),4),5,4)
 pwfuel_2025[,"Propane",]<-matrix(rep(c(1,0,0,0,0),4),5,4) 
 
 # load in heating type and fuel combinations
-# htf<-read_tsv('../resstock/project_national/housing_characteristics/HVAC Heating Type and Fuel.tsv',col_names = TRUE)
-# htf<-htf[1:132,]
-# htf[htf$`Dependency=HVAC Heating Efficiency`=="MSHP, SEER 29.3, 14 HSPF",]$`Dependency=HVAC Heating Efficiency`<-"MSHP, SEER 25, 12.7 HSPF" # replace the hi-eff MSHP with a more reasonably hi-eff option
-# htfe<-htf[1:5,]
-# htfe$`Dependency=Heating Fuel`<-c(rep("Electricity",4),"Natural Gas")
-# htfe$`Dependency=HVAC Heating Efficiency`<-c("ASHP, SEER 16, 9.0 HSPF","ASHP, SEER 18, 9.3 HSPF","ASHP, SEER 22, 10 HSPF",
-#                                              "MSHP, SEER 17, 9.5 HSPF","Fuel Boiler, 96% AFUE")
-# htfe[,3:29]<-0
-# htfe$`Option=Electricity ASHP`<-c(1,1,1,0,0)
-# htfe$`Option=Electricity MSHP`<-c(0,0,0,1,0)
-# htfe$`Option=Natural Gas Fuel Boiler`<-c(0,0,0,0,1)
-# htf<-rbind(htf,htfe)
-# htf<-htf[order(htf$`Dependency=Heating Fuel`,htf$`Dependency=HVAC Heating Efficiency`),]
-# htft<-t(htf)
-# this might be enough?
 htf<-as.data.frame(read_tsv('../project_national_2025_base/housing_characteristics/HVAC Heating Type and Fuel.tsv',col_names = TRUE))
 htft<-t(htf)
 
@@ -173,9 +169,6 @@ colnames(whfe)<-rownames(whfe)<-wheff_types # values will be defined within the 
 
 # now define probability matrices for switching AC. Four types (central, room, HP, none), dependent on heating type (ducted/non-ducted)
 # 11 efficiencies: four for central, one for HP, one for none, four for room, one for shared.
-# I will return to the renovation trends to see how often households change from no AC to some AC, and see if the equipment is noted. In fact the distinction between
-# central and room ac is only noted from 2015 (ACPRIMARY), so I would only have two recent years data to track changes in AC types. Actually not true. I can use AIRSYS to detect
-# use of central AC and AIR (or NUMAIR) to detect if room AC is used from 1995-2013. I would make a variable with three levels, 0 = none, 1 = central, 2 = room/windoe
 
 # two probabilities apply for cooling, probability of switching system, defined within the loop by pctype_all, 
 # and probability of an efficiency upgrades within types for central and room, which can be pre-defined
@@ -203,13 +196,13 @@ ce[10:11,10]<-c(0.05,0.95)
 ce[11,11]<-ce[12,12]<-1
 
 AdvSF<-1.5 # scaling factor to reflect higher rates of renovation in the advanced scenario
-rs$base_weight<-122516868/nrow(rs) # total occupied units in 2020 excluding HI and AK (see InitStock20 dataframe), divided by sample size. Tot occ units in all states in 2020 is 123260336
+rs$base_weight<-122516868/nrow(rs) # total occupied units in 2020 excluding HI and AK (see InitStock20 dataframe), divided by sample size. Tot occ units in all states in 2020 is 123260336, in all states excl. AK & HI is 122516868
 rs_2020<-rs
 # define regions and types
 Regions<-c("Northeast","Midwest","South","West")
 RGs<-c("NE","MW","S","W")
-# Types<-c("SF","MF","MH")
-# define yr, this will later be in a loop
+
+# loop to implement renovations
 for (yr in 2021:2060) {
   print(yr)
   # define here whether the ~optimistic 2020-2024 renovation, or very optimistic 2025+ renovation applies

@@ -1,6 +1,15 @@
 # script to alter incompatible Garage and Water Heater Fuel combinations in order to avoid failed resstock simulations.
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
+
+# Last Update Peter Berrill April 30 2022
+
+# Purpose: Fix some housing characteristics which are mutually incompatible and lead to failed simulations
+
+# Inputs: - All simulation bs files (Except 'fail' files for debugging) in scen_bscsv_sim
+
+# Outputs:- Same as inputs, overwrite. This file has to be run after the scen_bscsv_sim files are initially created by bs_adjust
+
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/projection_scripts")
 rm_dot2<-function(df) {
   cn<-names(df)
@@ -15,9 +24,9 @@ rm_dot2<-function(df) {
 
 filenames<-list.files("../scen_bscsv_sim")
 filenames<-filenames[-c(grep("fails",filenames))]
+filenames<-filenames[-c(grep("fail",filenames))]
 
-# for (k in 11:length(filenames)) { print(k)
-for (k in 13:20) { print(k) # all the ER files
+for (k in 1:length(filenames)) { print(k) 
 fn<-paste("../scen_bscsv_sim/",filenames[k],sep = "")
 bs<-read.csv(fn)
 
@@ -37,9 +46,7 @@ bs[bs$Geometry.Floor.Area.Bin=="1500-2499" & bs$Geometry.Garage=="3 Car",]$Geome
 # 4. 2500-3999 square foot units with heated basements: Cannot have a 3 stall garage
 bs[bs$Geometry.Floor.Area.Bin=="2500-3999" & bs$Geometry.Foundation.Type == "Heated Basement" & bs$Geometry.Garage=="3 Car",]$Geometry.Garage  <- "2 Car"
 
-# table(bs$Geometry.Garage,bs$Geometry.Floor.Area.Bin,bs$Geometry.Stories) 
-
-# Next amend the water heating fuel situation
+# Next amend the water heating fuel situation, to avoid failed simulations, if heating fuel is electricity, no shared HVAC, and water heater fuel is other, change water heater fuel to Electric
 
 bs[bs$Heating.Fuel=="Electricity" & !bs$HVAC.Has.Shared.System=="None" & bs$Water.Heater.Fuel=="Other Fuel",]$Water.Heater.Fuel<-"Electricity"
 bs[bs$Heating.Fuel=="Electricity" & !bs$HVAC.Has.Shared.System=="None" & bs$Water.Heater.Efficiency=="Other Fuel",]$Water.Heater.Efficiency<-"Electric Standard"

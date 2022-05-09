@@ -1,6 +1,12 @@
 # create csv files for simulation
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
+# Last Update April 30 2022 Peter Berrill
+# Purpose: This script takes the .RData files describing housing characteristics post-renovation, and generates .csv files which can be sent to ResStock for simulation
+
+# Inputs: 3 renovation .RData files; RenStandard, RenAdvanced, RenExtElec. 
+# Outputs: 24 (8 sim_years by 3 renovation scenarios) renovation buildstock csv type files: bs_RR_2025.csv, bs_RR_2030.csv, etc.
+
 
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/projection_scripts")
 rm_dot2<-function(df) {
@@ -84,34 +90,4 @@ write.csv(rs_ER_2060,file='../scen_bscsv_sim/bs_ER_2060.csv', row.names = FALSE)
 
 write.csv(rs_ER_sample,file='../scen_bscsv_sim/bs_ER_sample.csv', row.names = FALSE)
 
-# load("../Intermediate_results/agg_bscsv.RData")
-# 
-# bs_base_base<-rm_dot2(bs_base_all[bs_base_all$scen=="base",1:113])
-# bs_base_DE<-rm_dot2(bs_base_all[bs_base_all$scen=="baseDE",1:113])
-# bs_base_RFA<-rm_dot2(bs_base_all[bs_base_all$scen=="baseRFA",1:113])
-# bs_base_DERFA<-rm_dot2(bs_base_all[bs_base_all$scen=="baseDERFA",1:113])
-# 
-# bs_hiDR_base<-rm_dot2(bs_hiDR_all[bs_hiDR_all$scen=="hiDR",1:113])
-# bs_hiDR_DE<-rm_dot2(bs_hiDR_all[bs_hiDR_all$scen=="hiDRDE",1:113])
-# bs_hiDR_RFA<-rm_dot2(bs_hiDR_all[bs_hiDR_all$scen=="hiDRRFA",1:113])
-# bs_hiDR_DERFA<-rm_dot2(bs_hiDR_all[bs_hiDR_all$scen=="hiDRDERFA",1:113])
-# 
-# bs_hiMF_base<-rm_dot2(bs_hiMF_all[bs_hiMF_all$scen=="hiMF",1:113])
-# bs_hiMF_DE<-rm_dot2(bs_hiMF_all[bs_hiMF_all$scen=="hiMFDE",1:113])
-# bs_hiMF_RFA<-rm_dot2(bs_hiMF_all[bs_hiMF_all$scen=="hiMFRFA",1:113])
-# bs_hiMF_DERFA<-rm_dot2(bs_hiMF_all[bs_hiMF_all$scen=="hiMFDERFA",1:113])
-# 
-# write.csv(bs_base_base,file='../scen_bscsv_sim/bs_base_base.csv', row.names = FALSE)
-# write.csv(bs_base_DE,file='../scen_bscsv_sim/bs_base_DE.csv', row.names = FALSE)
-# write.csv(bs_base_RFA,file='../scen_bscsv_sim/bs_base_RFA.csv', row.names = FALSE)
-# write.csv(bs_base_DERFA,file='../scen_bscsv_sim/bs_base_DERFA.csv', row.names = FALSE)
-# 
-# write.csv(bs_hiDR_base,file='../scen_bscsv_sim/bs_hiDR_base.csv', row.names = FALSE)
-# write.csv(bs_hiDR_DE,file='../scen_bscsv_sim/bs_hiDR_DE.csv', row.names = FALSE)
-# write.csv(bs_hiDR_RFA,file='../scen_bscsv_sim/bs_hiDR_RFA.csv', row.names = FALSE)
-# write.csv(bs_hiDR_DERFA,file='../scen_bscsv_sim/bs_hiDR_DERFA.csv', row.names = FALSE)
-# 
-# write.csv(bs_hiMF_base,file='../scen_bscsv_sim/bs_hiMF_base.csv', row.names = FALSE)
-# write.csv(bs_hiMF_DE,file='../scen_bscsv_sim/bs_hiMF_DE.csv', row.names = FALSE)
-# write.csv(bs_hiMF_RFA,file='../scen_bscsv_sim/bs_hiMF_RFA.csv', row.names = FALSE)
-# write.csv(bs_hiMF_DERFA,file='../scen_bscsv_sim/bs_hiMF_DERFA.csv', row.names = FALSE)
+

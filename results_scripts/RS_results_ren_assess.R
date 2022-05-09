@@ -2,6 +2,19 @@
 # This script reads in the results csv and uses it to calculate energy consumption by fuel and end use
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
+
+# Last Update Peter Berrill May 2 2022
+
+# Purpose: Calculate % reductions in final energy consumption from different renovation families in each renovation scenario, for SI Tables S6 and S7. Calculate number of renovations by type in each ren scenario
+
+# Inputs: - Intermediate_results/RenStandard_EG.RData
+#         - Intermediate_results/RenAdvanced_EG.RData
+#         - Intermediate_results/RenExtElec_EG.RData
+
+# Outputs: 
+#         - SI_Tables/heat_age_reg_rr.csv, ... , etc for cool, dhw, env and rr, ar, er
+#         - SI_Tables/heat_typ_age_rr.csv, ... , etc for cool, dhw, env and rr, ar, er
+
 library(dplyr)
 library(reshape2)
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/")
@@ -245,28 +258,15 @@ rencount[rencount$Year==2050&rencount$Scen=="ER"&rencount$Ren=="water",]$count<-
 rencount[rencount$Year==2055&rencount$Scen=="ER"&rencount$Ren=="water",]$count<-tapply(rs_ERn$base_weight*rs_ERn$wbase_2055*rs_ERn$change_wren_true,rs_ERn$Year,sum)["2055"]/5e6
 rencount[rencount$Year==2060&rencount$Scen=="ER"&rencount$Ren=="water",]$count<-tapply(rs_ERn$base_weight*rs_ERn$wbase_2060*rs_ERn$change_wren_true,rs_ERn$Year,sum)["2060"]/5e6
 
-
-
 tapply(rencount$count,list(rencount$Scen,rencount$Ren),mean)
 tapply(rencount$count,list(rencount$Scen,rencount$Ren),median)
 
 rencount2<-rencount
 names(rencount2)<-c("Year","RenScen","RenType","count")
 
-# make ggplot ##########
+# make ggplot 
 library(ggplot2)
 windows()
 ggplot(rencount2,aes(Year,count)) + geom_point(aes(shape=RenType,colour=RenScen)) + theme_bw() + ylim(0,8.5) + geom_line(aes(linetype=RenType,color=RenScen)) + 
   labs(title="Renovations per year, by scenario and type",y = "Mill Housing Units") +
   theme(axis.text=element_text(size=11),axis.title=element_text(size=12,face = "bold"),plot.title = element_text(size = 12))
-
-windows()
-ggplot(rencount,aes(Year,count)) + geom_line(aes(linetype=Ren,colour=Scen)) + theme_bw() + ylim(0,8.5)
-
-# reduction in GHG intensity of new construction ######
-load("~/Yale Courses/Research/Final Paper/HSM_github/HSM_results/US_FA_GHG_summaries.RData")
-us_base_FA$GHGI_NC<-us_base_FA$GHG_NC/us_base_FA$Tot_NC_m2
-
-
-
-       

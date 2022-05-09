@@ -1,9 +1,25 @@
-# script to convert outputs of our stock model into data that can be combined with 
-# ResStock housing characteristics to generate projecion based housing characteristics
-# Nov 17 2020
-#Updated Jan 4 2021
+# script to convert outputs of housing stock model into data that can be combined with 
+# ResStock housing characteristics to generate projection based housing characteristics
 rm(list=ls()) # clear workspace i.e. remove saved variables
 cat("\014") # clear console
+# Last Update Peter Berrill April 30 2022
+
+# Purpose: Take inputs from housing stock model and base ResStock data describing housing stock by type, vintage, and geography and use it to generate similar data for each five years 2020-2060
+
+# Inputs: - InitStock20.RData, stats of the housing stock by county in 2020
+#         - ctycode.RData, county FIPS codes and names
+#         - PUMA.tsv, concordance of housing stock between counties and PUMA, from ResStock housing characteristics
+#         - Geometry Building Type ACS.tsv, housing types by PUMA, from ResStock housing characteristics
+#         - Vintage.tsv, housing stock by vintage and type by PUMA, from ResStock housing characteristics
+#         - ASHRAE IECC Climate Zone 2004.tsv, housing stock by IECC climate zone, from ResStock housing characteristics
+#         - County.tsv, housing stock by county and IECC climate zone, from ResStock housing characteristics
+
+# Outputs: (where 'yr' is every 5 years 2020-2060)
+#         - project_national_yr/housing_characteristics/Vintage.tsv
+#         - project_national_yr/housing_characteristics/Geometry Building Type ACS.tsv
+#         - project_national_yr/housing_characteristics/County.tsv
+#         - project_national_yr/housing_characteristics/ASHRAE IECC Climate Zone 2004.tsv
+
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/projection_scripts")
 library(readr)
 library(stringr)
@@ -18,20 +34,20 @@ rm_dot<-function(df) {
   names(df)<-cn
   df
 }
-# 2020 occupied stock
-load("~/Yale Courses/Research/Final Paper/HSM_github/Intermediate_results/InitStock20.RData")
-load("~/Yale Courses/Research/Final Paper/HSM_github/Intermediate_results/ctycode.RData")
+# 2020 occupied stock, files from HSM paper, see 'Intermediate Results' folder at https://github.com/peterberr/US_county_HSM
+load("../ExtData/InitStock20.RData")
+load("../ExtData/ctycode.RData")
 
 h20pc<-merge(h20pc,ctycode)
 h20pc<-h20pc[,c(1,2,76,3:75)] # bring RS_ID to the third colum
 
-puma<-read_tsv('~/Yale Courses/Research/Final Paper/resstock_projections/project_national/housing_characteristics/PUMA.tsv',col_names = TRUE)
+puma<-read_tsv('../project_national/housing_characteristics/PUMA.tsv',col_names = TRUE)
 puma<-puma[1:3108,] # remove comments at bottom
-type_acs<-read_tsv('~/Yale Courses/Research/Final Paper/resstock_projections/project_national/housing_characteristics/Geometry Building Type ACS.tsv',col_names = TRUE)
+type_acs<-read_tsv('../project_national/housing_characteristics/Geometry Building Type ACS.tsv',col_names = TRUE)
 type_acs<-type_acs[1:(dim(type_acs)[1]-2),] # remove comments at bottom
 type_new<-as.data.frame(type_acs)
 type_new[,2:12]<-0
-vintage<-read_tsv('~/Yale Courses/Research/Final Paper/resstock_projections/project_national/housing_characteristics/Vintage.tsv',col_names = TRUE)
+vintage<-read_tsv('../project_national/housing_characteristics/Vintage.tsv',col_names = TRUE)
 vintage<-vintage[1:(dim(vintage)[1]-2),] # remove comments at 
 vintage_new<-as.data.frame(vintage)
 vintage_new[,3:13]<-0
