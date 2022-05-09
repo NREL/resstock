@@ -120,6 +120,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     return false if not success
 
     # modify the hpxml with the schedules path
+    # modify the doc directly in case our HPXML class doesn't handle all elements
     doc = XMLHelper.parse_file(hpxml_path)
     extension = XMLHelper.create_elements_as_needed(XMLHelper.get_element(doc, '/HPXML'), ['SoftwareInfo', 'extension'])
     schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
@@ -208,6 +209,17 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:schedules_vacancy_begin_day] = begin_day
       args[:schedules_vacancy_end_month] = end_month
       args[:schedules_vacancy_end_day] = end_day
+    end
+
+    if args[:geometry_num_occupants] == 0
+      if args[:schedules_type] == 'stochastic'
+        args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml.building_construction.number_of_bedrooms)
+      end
+
+      args[:schedules_vacancy_begin_month] = 1
+      args[:schedules_vacancy_begin_day] = 1
+      args[:schedules_vacancy_end_month] = 12
+      args[:schedules_vacancy_end_day] = 31
     end
   end
 end

@@ -381,6 +381,8 @@ def create_hpxmls
     'base-schedules-detailed-occupancy-smooth.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic-zero-occupants.xml' => 'base.xml',
     'base-schedules-detailed-setpoints.xml' => 'base.xml',
     'base-schedules-detailed-setpoints-daily-schedules.xml' => 'base.xml',
     'base-schedules-detailed-setpoints-daily-setbacks.xml' => 'base.xml',
@@ -2489,6 +2491,18 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     sch_args['schedules_type'] = 'stochastic'
     sch_args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-vacancy.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-occupancy-stochastic-vacancy-year-round.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'stochastic'
+    sch_args['schedules_vacancy_period'] = 'Jan 1 - Dec 31'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-vacancy-year-round.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-occupancy-stochastic-zero-occupants.xml'].include? hpxml_file
+    args['geometry_unit_num_occupants'] = 0
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'stochastic'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-zero-occupants.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
   elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
