@@ -382,7 +382,7 @@ map_data<-right_join(counties_sf,vars,by = c("county_fips" ="geoid"))
 
 windows()
 ggplot() +
-  geom_sf(data = counties_sf, fill = 'red', color = "#ffffff", size = 0.25) +
+  geom_sf(data = counties_sf, fill = 'red', color = "#ffffff", size = 0.1) +
   geom_sf(map_data,mapping = aes(fill = GHG_int_20)) + coord_sf(datum = NA)  + 
   geom_sf(data = states_sf, fill = NA, color = "#ffffff", size = 0.25) +
   labs(fill = "gCO2/kWh") + scale_fill_viridis_c(option = "plasma") +
@@ -431,7 +431,7 @@ map_data<-right_join(counties_sf,vars,by = c("county_fips" ="geoid"))
 
 windows()
 ggplot() +
-  geom_sf(data = counties_sf, fill = 'red', color = "#ffffff", size = 0.25) +
+  geom_sf(data = counties_sf, fill = 'red', color = "#ffffff", size = 0.1) +
   geom_sf(map_data,mapping = aes(fill = GHG_int_50)) + coord_sf(datum = NA)  + 
   geom_sf(data = states_sf, fill = NA, color = "#ffffff", size = 0.25) +
   labs(fill = "gCO2/kWh") + scale_fill_viridis_c(option = "plasma") +
