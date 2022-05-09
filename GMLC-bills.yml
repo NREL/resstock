@@ -217,7 +217,8 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 15
       #Duct sealing
-      - option: Ducts|10% Leakage, R-8
+      - &duct_sealing
+        option: Ducts|10% Leakage, R-8
         apply_logic: 
           not: Ducts|10% Leakage, R-8
         costs:
@@ -231,10 +232,10 @@ upgrades:
             - or:
               - Bedrooms|1
               - Bedrooms|2
+              - Bedrooms|3
             - not:
               - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
               - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 80 gal
               - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         costs:
           - value: 0
@@ -244,11 +245,10 @@ upgrades:
         apply_logic: 
           and:
             - or:
-              - Bedrooms|3
+              - Bedrooms|4
             - not:
               - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
               - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 80 gal
               - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         costs:
           - value: 0
@@ -258,38 +258,40 @@ upgrades:
         apply_logic: 
           and:
             - or:
-              - Bedrooms|4
               - Bedrooms|5
             - not:
               - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
               - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 80 gal
               - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 12
       # Clothes washer Upgrade
-      - option: Clothes Washer|EnergyStar, 80% Usage
+      - &clothes_washer_80pct
+        option: Clothes Washer|EnergyStar, 80% Usage
         apply_logic: Clothes Washer|Standard, 80% Usage
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 14
-      - option: Clothes Washer|EnergyStar, 100% Usage
+      - &clothes_washer_100pct
+        option: Clothes Washer|EnergyStar, 100% Usage
         apply_logic: Clothes Washer|Standard, 100% Usage
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 14
-      - option: Clothes Washer|EnergyStar, 120% Usage
+      - &clothes_washer_120pct
+        option: Clothes Washer|EnergyStar, 120% Usage
         apply_logic: Clothes Washer|Standard, 120% Usage
         costs:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 14
       # Dishwasher Upgrade
-      - option: Dishwasher|199 Rated kWh, 80% Usage
+      - &dishwasher_80pct
+        option: Dishwasher|199 Rated kWh, 80% Usage
         apply_logic:
           or: 
             - Dishwasher|290 Rated kWh, 80% Usage
@@ -298,7 +300,8 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 11
-      - option: Dishwasher|199 Rated kWh, 100% Usage
+      - &dishwasher_100pct
+        option: Dishwasher|199 Rated kWh, 100% Usage
         apply_logic:
           or: 
             - Dishwasher|290 Rated kWh, 100% Usage
@@ -307,7 +310,8 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 11
-      - option: Dishwasher|199 Rated kWh, 120% Usage
+      - &dishwasher_120pct
+        option: Dishwasher|199 Rated kWh, 120% Usage
         apply_logic:
           or: 
             - Dishwasher|290 Rated kWh, 120% Usage
@@ -317,7 +321,8 @@ upgrades:
             multiplier: Fixed (1) 
         lifetime: 11
       # Refrigerator Upgrade
-      - option: Refrigerator|EF 21.9, 100% Usage
+      - &refrigerator
+        option: Refrigerator|EF 21.9, 100% Usage
         apply_logic:
           not: Refrigerator|EF 21.9, 100% Usage
         costs:
@@ -335,7 +340,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 13
-      -         option: Clothes Dryer|Electric, EnergyStar 100% Usage
+      - option: Clothes Dryer|Electric, EnergyStar 100% Usage
         apply_logic:
           or: 
             - Clothes Dryer|Electric, 100% Usage
@@ -355,7 +360,8 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 13
-      -option: Cooking Range|Electric, Induction, 100% Usage
+      - &cooking_range
+        option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
           not: Cooking Range|Electric, Induction, 100% Usage
         costs:
@@ -364,7 +370,111 @@ upgrades:
         lifetime: 999
 
 
+  - upgrade_name: Package without Fuel Switching
+    options:
+      #better AC for homes with existing AC and non-electric heating
+      - option: 
+      #ASHP for all homes with ducts and electric heating
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          and:
+          - HVAC Has Ducts|Yes
+          - Heating Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 15
+      #MSHP for all homes with electric heating and no ducts
+      - option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
+        apply_logic:
+          and:
+          - HVAC Has Ducts|No 
+          - Heating Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 15
+      - option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|1
+              - Bedrooms|2
+              - Bedrooms|3
+            - not:
+              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - Water Heater Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|4
+            - not:
+              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - Water Heater Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|5
+            - not:
+              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - Water Heater Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      - *refrigerator
+      - *clothes_washer_80pct
+      - *clothes_washer_100pct
+      - *clothes_washer_120pct
+      # Clothes Dryer Upgrade
+      - option: Clothes Dryer|Electric, EnergyStar 80% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 13
+      -         option: Clothes Dryer|Electric, EnergyStar 100% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 100% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Clothes Dryer|Electric, EnergyStar 120% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 13
+      - *dishwasher_80pct
+      - *dishwasher_100pct
+      - *dishwasher_120pct
+      - *cooking_range
+
+
       #got to here
+  - upgrade_name: Lighting
       # Lighting Upgrade
       - &lighting
         option: Lighting|100% LED
