@@ -48,6 +48,7 @@ __New Features__
   - Adds a new results_bills.csv output file to summarize calculated utility bills.
 
 __Bugfixes__
+- Allows using stochastic schedules when the number of occupants is zero.
 - Adds more stringent limits for `AirflowDefectRatio` and `ChargeDefectRatio` (now allows values from 1/10th to 10x the design value).
 - Catches case where leap year is specified but weather file does not contain 8784 hours.
 - Fixes possible HVAC sizing error if design temperature difference (TD) is negative.

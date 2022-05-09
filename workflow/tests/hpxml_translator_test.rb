@@ -1262,7 +1262,11 @@ class HPXMLTest < MiniTest::Test
 
     # Lighting
     ltg_energy = results.select { |k, v| k.include? 'End Use: Electricity: Lighting' }.map { |k, v| v }.sum(0.0)
-    assert_equal(hpxml.lighting_groups.size > 0, ltg_energy > 0)
+    if hpxml_path.include?('vacancy-year-round') || hpxml_path.include?('zero-occupants')
+      # nop
+    else
+      assert_equal(hpxml.lighting_groups.size > 0, ltg_energy > 0)
+    end
 
     # Get fuels
     htg_fuels = []

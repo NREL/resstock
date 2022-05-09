@@ -1103,6 +1103,18 @@ class Schedule
     end
     return schedules_file_includes_col_name
   end
+
+  def self.year_round_vacancy(schedules_file)
+    year_round_vacancy = false
+    if not schedules_file.nil?
+      if schedules_file.schedules.keys.include?(SchedulesFile::ColumnVacancy)
+        if schedules_file.schedules[SchedulesFile::ColumnVacancy].all? { |i| i == 1 }
+          year_round_vacancy = true
+        end
+      end
+    end
+    return year_round_vacancy
+  end
 end
 
 class SchedulesFile

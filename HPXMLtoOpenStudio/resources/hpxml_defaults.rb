@@ -300,6 +300,10 @@ class HPXMLDefaults
       hpxml.building_occupancy.number_of_residents = Geometry.get_occupancy_default_num(nbeds)
       hpxml.building_occupancy.number_of_residents_isdefaulted = true
     end
+    if Schedule.year_round_vacancy(schedules_file)
+      hpxml.building_occupancy.number_of_residents = 0.0
+      hpxml.building_occupancy.number_of_residents_isdefaulted = true
+    end
     schedules_file_includes_occupants = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnOccupants)
     if hpxml.building_occupancy.weekday_fractions.nil? && !schedules_file_includes_occupants
       hpxml.building_occupancy.weekday_fractions = Schedule.OccupantsWeekdayFractions
