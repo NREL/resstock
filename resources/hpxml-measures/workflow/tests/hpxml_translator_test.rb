@@ -151,7 +151,7 @@ class HPXMLTest < MiniTest::Test
     assert_equal(0, component_loads.size)
   end
 
-  def test_run_simulation_detailed_schedules
+  def test_run_simulation_detailed_occupancy_schedules
     # Check that the simulation produces stochastic schedules if requested
     sample_files_path = File.join(File.dirname(__FILE__), '..', 'sample_files')
     tmp_hpxml_path = File.join(sample_files_path, 'tmp.xml')
@@ -214,10 +214,10 @@ class HPXMLTest < MiniTest::Test
   end
 
   def test_template_osw
-    # Check that simulation works using template.osw
+    # Check that simulation works using template-run-hpxml.osw
     require 'json'
 
-    osw_path = File.join(File.dirname(__FILE__), '..', 'template.osw')
+    osw_path = File.join(File.dirname(__FILE__), '..', 'template-run-hpxml.osw')
 
     # Create derivative OSW for testing
     osw_path_test = osw_path.gsub('.osw', '_test.osw')
@@ -254,10 +254,10 @@ class HPXMLTest < MiniTest::Test
   end
 
   def test_template_osw_with_schedule
-    # Check that simulation works using template.osw
+    # Check that simulation works using template-run-hpxml-with-stochastic-occupancy.osw
     require 'json'
 
-    osw_path = File.join(File.dirname(__FILE__), '..', 'template-stochastic-schedules.osw')
+    osw_path = File.join(File.dirname(__FILE__), '..', 'template-run-hpxml-with-stochastic-occupancy.osw')
 
     # Create derivative OSW for testing
     osw_path_test = osw_path.gsub('.osw', '_test.osw')
@@ -296,10 +296,10 @@ class HPXMLTest < MiniTest::Test
   end
 
   def test_template_osw_with_build_hpxml_and_schedule
-    # Check that simulation works using template2.osw
+    # Check that simulation works using template-build-and-run-hpxml-with-stochastic-occupancy.osw
     require 'json'
 
-    osw_path = File.join(File.dirname(__FILE__), '..', 'template-build-hpxml-and-stochastic-schedules.osw')
+    osw_path = File.join(File.dirname(__FILE__), '..', 'template-build-and-run-hpxml-with-stochastic-occupancy.osw')
 
     # Create derivative OSW for testing
     osw_path_test = osw_path.gsub('.osw', '_test.osw')
