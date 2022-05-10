@@ -142,10 +142,10 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Area of the above-grade walls.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_continuous_exterior_r', false)
-    arg.setDisplayName('Heat Pump: Continuous Exterior Insulation Nominal R-value')
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_assembly_r', false)
+    arg.setDisplayName('Heat Pump: Assembly R-value')
     arg.setUnits('h-ft^2-R/Btu')
-    arg.setDescription('Nominal R-value for the heat pump continuous exterior insulation.')
+    arg.setDescription('Assembly R-value of the heat pump.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('ceiling_insulation_r', true)
@@ -713,22 +713,27 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['wall_assembly_r'] += args['exterior_finish_r']
 
     if args['wall_continuous_exterior_r'].is_initialized
+      wall_assembly_r = args['wall_assembly_r']
       wall_continuous_exterior_r = args['wall_continuous_exterior_r'].get
 
-      # Optionally derate the continuous exterior wall insulation
-      if args['wall_area'].is_initialized
+      # Optionally derate the exterior wall insulation
+      if args['wall_area'].is_initialized && args['heat_pump_assembly_r'].is_initialized
+        # get total exterior wall area, heat pump wall area, and the difference between the two
         wall_area = args['wall_area'].get
+        heat_pump_wall_area = 6.0 # ft^2
+        heat_pump_wall_area *= args['geometry_unit_num_bedrooms'] + 1
+        args['heat_pump_wall_area'] = heat_pump_wall_area
+        actual_wall_area = wall_area - heat_pump_wall_area
 
-        zonal_heat_pump_wall_area = 6.0 # ft^2
-        zonal_heat_pump_wall_area *= args['geometry_unit_num_bedrooms']
-        if args['heat_pump_continuous_exterior_r'].is_initialized
-          zonal_heat_pump_r = args['heat_pump_continuous_exterior_r'].get # h-ft^2-R/Btu
-        else
-          zonal_heat_pump_r = wall_continuous_exterior_r
-        end
-        actual_wall_area = args['wall_area'].get - zonal_heat_pump_wall_area
+        # area-weight the wall assembly r-value
+        heat_pump_assembly_r = args['heat_pump_assembly_r'].get # h-ft^2-R/Btu
+        args['old_wall_assembly_r'] = wall_assembly_r
+        args['new_wall_assembly_r'] = (actual_wall_area / wall_area * wall_assembly_r) + (heat_pump_wall_area / wall_area * heat_pump_assembly_r)
+        args['wall_assembly_r'] = args['new_wall_assembly_r']
 
-        wall_continuous_exterior_r = (actual_wall_area / wall_area * wall_continuous_exterior_r) + (zonal_heat_pump_wall_area / wall_area * zonal_heat_pump_r)
+        # area-weight the wall continuous exterior r-value
+        heat_pump_assembly_r = 0.0 # there is no continuous paneling over the heat pump area
+        wall_continuous_exterior_r = (actual_wall_area / wall_area * wall_continuous_exterior_r) + (heat_pump_wall_area / wall_area * heat_pump_assembly_r)
         args['wall_continuous_exterior_r'] = wall_continuous_exterior_r
       end
 
