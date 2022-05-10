@@ -305,6 +305,15 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         end
       end
 
+      # This supports the unique sort of upgrade we're interested in
+      wall_area = 0.0
+      hpxml.walls.each do |wall|
+        next unless wall.is_exterior
+
+        wall_area += wall.area
+      end
+      measures['ResStockArguments'][0]['wall_area'] = wall_area
+
       # Get the absolute paths relative to this meta measure in the run directory
       if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         return false
