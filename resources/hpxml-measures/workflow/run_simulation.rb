@@ -92,7 +92,7 @@ OptionParser.new do |opts|
     options[:output_dir] = t
   end
 
-  opts.on('--output-format TYPE', ['csv', 'json'], 'Output file format type (csv, json)') do |t|
+  opts.on('--output-format TYPE', ['csv', 'json', 'msgpack'], 'Output file format type (csv, json, msgpack)') do |t|
     options[:output_format] = t
   end
 
@@ -126,7 +126,7 @@ OptionParser.new do |opts|
     options[:add_comp_loads] = true
   end
 
-  opts.on('--add-detailed-schedule TYPE', ['smooth', 'stochastic'], 'Add detailed schedule of type (smooth, stochastic)') do |t|
+  opts.on('--add-detailed-schedule TYPE', ['smooth', 'stochastic'], 'Add detailed occupancy schedule of type (smooth, stochastic)') do |t|
     options[:detailed_schedules_type] = t
   end
 

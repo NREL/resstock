@@ -139,7 +139,9 @@ class WT
 end
 
 class OutputMethods
-  def self.get_timestamps(timeseries_frequency, sqlFile, hpxml, timestamps_local_time = nil)
+  def self.get_timestamps(timeseries_frequency, msgpackData, hpxml, add_dst_column = false, add_utc_column = false)
+    return if msgpackData.nil?
+
     if timeseries_frequency == 'hourly'
       interval_type = 1
     elsif timeseries_frequency == 'daily'
@@ -150,44 +152,59 @@ class OutputMethods
       interval_type = -1
     end
 
-    query = "SELECT Year || ' ' || Month || ' ' || Day || ' ' || Hour || ' ' || Minute As Timestamp FROM Time WHERE IntervalType='#{interval_type}'"
-    values = sqlFile.execAndReturnVectorOfString(query)
-    fail "Query error: #{query}" unless values.is_initialized
+    if msgpackData.keys.include? 'MeterData'
+      # Get data for ReportUtilityBills measure
+      ep_timestamps = msgpackData['MeterData']['Monthly']['Rows'].map { |r| r.keys[0] }
+    else
+      # Get data for other reporting measures
+      ep_timestamps = msgpackData['Rows'].map { |r| r.keys[0] }
+    end
 
-    if timestamps_local_time == 'DST'
+    if add_dst_column
       dst_start_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_begin_month, hpxml.header.dst_begin_day, 2)
       dst_end_ts = Time.utc(hpxml.header.sim_calendar_year, hpxml.header.dst_end_month, hpxml.header.dst_end_day, 1)
-    elsif timestamps_local_time == 'UTC'
+    end
+    if add_utc_column
       utc_offset = hpxml.header.time_zone_utc_offset
       utc_offset *= 3600 # seconds
     end
 
     timestamps = []
-    values.get.each do |value|
-      year, month, day, hour, minute = value.split(' ')
+    timestamps_dst = [] if add_dst_column
+    timestamps_utc = [] if add_utc_column
+    year = hpxml.header.sim_calendar_year.to_s
+    ep_timestamps.each do |ep_timestamp|
+      month_day, hour_minute = ep_timestamp.split(' ')
+      month, day = month_day.split('/')
+      hour, minute, _ = hour_minute.split(':')
       ts = Time.utc(year, month, day, hour, minute)
 
-      if timestamps_local_time == 'DST'
+      timestamps << ts.iso8601.delete('Z')
+
+      if add_dst_column
         if (ts >= dst_start_ts) && (ts < dst_end_ts)
-          ts += 3600 # 1 hr shift forward
+          ts_dst = ts + 3600 # 1 hr shift forward
+        else
+          ts_dst = ts
         end
-      elsif timestamps_local_time == 'UTC'
-        ts -= utc_offset
+        timestamps_dst << ts_dst.iso8601.delete('Z')
       end
 
-      ts_iso8601 = ts.iso8601
-      ts_iso8601 = ts_iso8601.delete('Z') if timestamps_local_time != 'UTC'
-      timestamps << ts_iso8601
+      if add_utc_column
+        ts_utc = ts - utc_offset
+        timestamps_utc << ts_utc.iso8601
+      end
     end
 
-    return timestamps
+    return timestamps, timestamps_dst, timestamps_utc
   end
 
-  def self.teardown(sqlFile)
-    sqlFile.close()
-
-    # Ensure sql file is immediately freed; otherwise we can get
-    # errors on Windows when trying to delete this file.
-    GC.start()
+  def self.msgpack_frequency_map
+    return {
+      'timestep' => 'TimeStep',
+      'hourly' => 'Hourly',
+      'daily' => 'Daily',
+      'monthly' => 'Monthly',
+    }
   end
 end
