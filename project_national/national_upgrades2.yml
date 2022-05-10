@@ -8,7 +8,7 @@ weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.z
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 100
+    n_datapoints: 20
     resample: false
     logic:
       and:
@@ -42,27 +42,33 @@ workflow_generator:
         elec_folder: data/cambium/LRMER_MidCase_15
 
     simulation_output_report:
-      timeseries_frequency: hourly
-      include_timeseries_total_consumptions: true
-      include_timeseries_fuel_consumptions: true
-      include_timeseries_end_use_consumptions: true
-      include_timeseries_emissions: true
-      include_timeseries_hot_water_uses: true
-      include_timeseries_total_loads: true
+      timeseries_frequency: none
+
+    reporting_measures:
+      - measure_dir_name: AdditionalProperties
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
 
 upgrades:
-  - upgrade_name: Sheathing Only
+  - upgrade_name: Envelope Only
     options:
       - option: Insulation Sheathing|R-30
         costs:
           - value: 2.01
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
+      - option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
+      - option: Insulation Ceiling|R-60
+        apply_logic: Geometry Attic Type|Vented Attic
+      - option: Insulation Roof|Finished, R-60
+        apply_logic: 
+          or:
+            - Geometry Attic Type|None
+            - Geometry Attic Type|Finished Attic or Cathedral Ceilings
+      - option: Infiltration|1.5 ACH50
 
-  - upgrade_name: Sheathing And MSHP, No Insulation Reduction
+  - upgrade_name: Envelope And MSHP, No Insulation Reduction
     options:
       - option: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
         costs:
@@ -76,9 +82,18 @@ upgrades:
           - value: 2.01
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-      - option: Insulation Sheathing Heat Pump|R-30
+      - option: Insulation Wall Heat Pump|R-30
+      - option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
+      - option: Insulation Ceiling|R-60
+        apply_logic: Geometry Attic Type|Vented Attic
+      - option: Insulation Roof|Finished, R-60
+        apply_logic: 
+          or:
+            - Geometry Attic Type|None
+            - Geometry Attic Type|Finished Attic or Cathedral Ceilings
+      - option: Infiltration|1.5 ACH50
 
-  - upgrade_name: Sheathing And MSHP, Minimal Insulation
+  - upgrade_name: Envelope And MSHP, Minimal Insulation
     options:
       - option: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
         costs:
@@ -92,9 +107,18 @@ upgrades:
           - value: 2.01
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-      - option: Insulation Sheathing Heat Pump|R-5
+      - option: Insulation Wall Heat Pump|R-5
+      - option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
+      - option: Insulation Ceiling|R-60
+        apply_logic: Geometry Attic Type|Vented Attic
+      - option: Insulation Roof|Finished, R-60
+        apply_logic: 
+          or:
+            - Geometry Attic Type|None
+            - Geometry Attic Type|Finished Attic or Cathedral Ceilings
+      - option: Infiltration|1.5 ACH50
 
-  - upgrade_name: Sheathing And MSHP, Medium Insulation
+  - upgrade_name: Envelope And MSHP, Medium Insulation
     options:
       - option: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
         costs:
@@ -108,7 +132,16 @@ upgrades:
           - value: 2.01
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 999
-      - option: Insulation Sheathing Heat Pump|R-15
+      - option: Insulation Wall Heat Pump|R-15
+      - option: Windows|Triple, Low-E, Insulated, Argon, H-Gain
+      - option: Insulation Ceiling|R-60
+        apply_logic: Geometry Attic Type|Vented Attic
+      - option: Insulation Roof|Finished, R-60
+        apply_logic: 
+          or:
+            - Geometry Attic Type|None
+            - Geometry Attic Type|Finished Attic or Cathedral Ceilings
+      - option: Infiltration|1.5 ACH50
 
 eagle:
   n_jobs: 3
