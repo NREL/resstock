@@ -475,7 +475,7 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 13
-      -         option: Clothes Dryer|Electric, EnergyStar 100% Usage
+      - option: Clothes Dryer|Electric, EnergyStar 100% Usage
         apply_logic:
           or: 
             - Clothes Dryer|Electric, 100% Usage
@@ -495,6 +495,203 @@ upgrades:
       - *dishwasher_100pct
       - *dishwasher_120pct
       - *cooking_range
+  - upgrade_name: Envelope Package
+    options:
+      #Attic insulation - R-values for 2021 IECC for homes with vented attics
+      - &R-30_attic_uninsulated
+        option: Insulation Ceiling|R-30
+        apply_logic:
+          - and:
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|1A
+            - or: 
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+              - Insulation Ceiling|R-30
+              - Insulation Ceiling|R-38
+              - Insulation Ceiling|R-49
+            - Geometry Attic Type|Vented Attic
+        costs:
+          - value: 1.79 
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &R-49_attic
+        option: Insulation Ceiling|R-49
+        apply_logic:
+          - and: 
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|2A
+              - ASHRAE IECC Climate Zone 2004|2B
+              - ASHRAE IECC Climate Zone 2004|3A
+              - ASHRAE IECC Climate Zone 2004|3B
+              - ASHRAE IECC Climate Zone 2004|3C
+            - or: 
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+              - Insulation Ceiling|R-30
+              - Insulation Ceiling|R-38
+              - Insulation Ceiling|R-49
+              - Geometry Attic Type|Vented Attic
+        costs:
+          - value: 2.82
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &R-60_attic
+        option: Insulation Ceiling|R-60
+        apply_logic: 
+          - or: 
+            - ASHRAE IECC Climate Zone 2004|4A
+            - ASHRAE IECC Climate Zone 2004|4B
+            - ASHRAE IECC Climate Zone 2004|4C
+            - ASHRAE IECC Climate Zone 2004|5A
+            - ASHRAE IECC Climate Zone 2004|5B
+            - ASHRAE IECC Climate Zone 2004|6A
+            - ASHRAE IECC Climate Zone 2004|6B
+            - ASHRAE IECC Climate Zone 2004|7A
+            - ASHRAE IECC Climate Zone 2004|7B
+          - or: 
+            - Insulation Ceiling|Uninsulated
+            - Insulation Ceiling|R-7
+            - Insulation Ceiling|R-13
+            - Insulation Ceiling|R-19
+            - Insulation Ceiling|R-30
+            - Insulation Ceiling|R-38
+            - Insulation Ceiling|R-49
+          - Geometry Attic Type|Vented Attic
+        costs:
+          - value: 0
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      #Add R-6 (polyiso) to homes older than 1990 with <R-19 nominal wall insulation
+      - &polyiso_1inch_on_uninsulated_wood
+        #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
+        option: Insulation Wall|Wood Stud, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, Uninsulated
+        costs: &polyiso_1inch_costs
+          - value: 0
+            multiplier: Wall Area, Above-Grade, Exterior (ft^2)
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_wood
+        option: Insulation Wall|Wood Stud, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_wood
+        option: Insulation Wall|Wood Stud, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-11
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-13_wood
+        option: Insulation Wall|Wood Stud, R-13, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-13
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_wood
+        option: Insulation Wall|Wood Stud, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-15
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+        costs: *polyiso_1inch_costs
+        lifetime: 30
+      #Add exterior low-E storms for single and double pane windows
+      - &low-e_storms_on_single_clear_metal
+        option: Windows|Single, Clear, Metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs: &low-e_storm_costs
+          - value: 14.7
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+      - &low-e_storms_on_single_clear_nonmetal
+        option: Windows|Single, Clear, Non-metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+        costs: *low-e_storm_costs
+        lifetime: 30
+      - &low-e_storms_on_double_clear_metal
+        option: Windows|Double, Clear, Metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - Windows|Double, Clear, Metal, Air
+        costs: *low-e_storm_costs
+        lifetime: 30
+      - &air_leakage_reduction_
+
+
 
 # 3. Envelope Package - ABC "Market Ready Envelope" package
 #     b. Attic insulation 
@@ -552,13 +749,7 @@ upgrades:
 #       iv. Clothes dryer: EnergyStar (Efficiency 3.93)
 #       v. Dishwasher: 199 Rated kWh
 # Cooking range: Electric for all? Electric induction for all? No change? 
-  - upgrade_name: Package without Fuel Switching
-    options:
-      - option: Insulation Wall|Wood Stud, R-13
-        costs:
-          - value: 2.21
-            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
-        lifetime: 999
+
 # Equipment Package (no fuel switching) 
 #     a. HVAC: 
 #       i. If home has AC but non-electric heat, upgrade CAC to SEER 18, and room AC to EER 12
