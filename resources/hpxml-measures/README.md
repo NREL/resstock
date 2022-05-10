@@ -25,9 +25,9 @@ This repository contains several OpenStudio measures:
 - `BuildResidentialHPXML`: A measure that generates an HPXML file from a set of building description inputs (including, e.g., simplified geometry inputs).
 - `BuildResidentialScheduleFile`: A measure that generates a CSV of detailed schedules (e.g., stochastic occupancy) for use in the simulation.
 - `HPXMLtoOpenStudio`: A measure that translates an HPXML file to an OpenStudio model.
-- `ReportSimulationOutput`: A reporting measure that generates a variety of simulation-based annual/timeseries outputs in CSV or JSON format.
-- `ReportHPXMLOutput`: A reporting measure that generates a variety of HPXML-based outputs (including defaults like autosized HVAC capacities) in CSV or JSON format.
-- `ReportUtilityBills`: A reporting measure that generates utility bill outputs in CSV or JSON format.
+- `ReportSimulationOutput`: A reporting measure that generates a variety of simulation-based annual/timeseries outputs in CSV/JSON/MessagePack format.
+- `ReportHPXMLOutput`: A reporting measure that generates a variety of HPXML-based outputs (including defaults like autosized HVAC capacities) in CSV/JSON/MessagePack format.
+- `ReportUtilityBills`: A reporting measure that generates utility bill outputs in CSV/JSON/MessagePack format.
 
 ## Projects
 

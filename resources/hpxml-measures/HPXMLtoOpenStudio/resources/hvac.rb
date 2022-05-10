@@ -791,76 +791,49 @@ class HVAC
     equip.setSchedule(ceiling_fan_sch)
   end
 
-  def self.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, heating_days, cooling_days, year)
-    num_days = Constants.NumDaysInYear(year)
-
-    if hvac_control.weekday_heating_setpoints.nil? || hvac_control.weekend_heating_setpoints.nil?
-      # Base heating setpoint
-      htg_setpoint = hvac_control.heating_setpoint_temp
-      htg_weekday_setpoints = [[htg_setpoint] * 24] * num_days
-
-      # Apply heating setback?
-      htg_setback = hvac_control.heating_setback_temp
-      if not htg_setback.nil?
-        htg_setback_hrs_per_week = hvac_control.heating_setback_hours_per_week
-        htg_setback_start_hr = hvac_control.heating_setback_start_hour
-        for d in 1..num_days
-          for hr in htg_setback_start_hr..htg_setback_start_hr + Integer(htg_setback_hrs_per_week / 7.0) - 1
-            htg_weekday_setpoints[d - 1][hr % 24] = htg_setback
-          end
-        end
-      end
-      htg_weekend_setpoints = htg_weekday_setpoints.dup
-    else
-      # 24-hr weekday/weekend heating setpoint schedules
-      htg_weekday_setpoints = hvac_control.weekday_heating_setpoints.split(',').map { |i| Float(i) }
-      htg_weekday_setpoints = [htg_weekday_setpoints] * num_days
-
-      htg_weekend_setpoints = hvac_control.weekend_heating_setpoints.split(',').map { |i| Float(i) }
-      htg_weekend_setpoints = [htg_weekend_setpoints] * num_days
+  def self.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, heating_days, cooling_days, year, schedules_file)
+    heating_sch = nil
+    cooling_sch = nil
+    if not schedules_file.nil?
+      heating_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnHeatingSetpoint)
+      cooling_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnCoolingSetpoint)
     end
 
-    if hvac_control.weekday_cooling_setpoints.nil? || hvac_control.weekend_cooling_setpoints.nil?
-      # Base cooling setpoint
-      clg_setpoint = hvac_control.cooling_setpoint_temp
-      clg_weekday_setpoints = [[clg_setpoint] * 24] * num_days
-
-      # Apply cooling setup?
-      clg_setup = hvac_control.cooling_setup_temp
-      if not clg_setup.nil?
-        clg_setup_hrs_per_week = hvac_control.cooling_setup_hours_per_week
-        clg_setup_start_hr = hvac_control.cooling_setup_start_hour
-        for d in 1..num_days
-          for hr in clg_setup_start_hr..clg_setup_start_hr + Integer(clg_setup_hrs_per_week / 7.0) - 1
-            clg_weekday_setpoints[d - 1][hr % 24] = clg_setup
-          end
-        end
-      end
-      clg_weekend_setpoints = clg_weekday_setpoints.dup
-    else
-      # 24-hr weekday/weekend cooling setpoint schedules
-      clg_weekday_setpoints = hvac_control.weekday_cooling_setpoints.split(',').map { |i| Float(i) }
-      clg_weekday_setpoints = [clg_weekday_setpoints] * num_days
-
-      clg_weekend_setpoints = hvac_control.weekend_cooling_setpoints.split(',').map { |i| Float(i) }
-      clg_weekend_setpoints = [clg_weekend_setpoints] * num_days
+    # permit mixing detailed schedules with simple schedules
+    if heating_sch.nil?
+      htg_weekday_setpoints, htg_weekend_setpoints = get_heating_setpoints(hvac_control, year)
     end
 
-    # Apply cooling setpoint offset due to ceiling fan?
-    if has_ceiling_fan
-      clg_ceiling_fan_offset = hvac_control.ceiling_fan_cooling_setpoint_temp_offset
-      if not clg_ceiling_fan_offset.nil?
-        months = get_default_ceiling_fan_months(weather)
-        Schedule.months_to_days(year, months).each_with_index do |operation, d|
-          next if operation != 1
-
-          clg_weekday_setpoints[d] = [clg_weekday_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
-          clg_weekend_setpoints[d] = [clg_weekend_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
-        end
-      end
+    if cooling_sch.nil?
+      clg_weekday_setpoints, clg_weekend_setpoints = get_cooling_setpoints(hvac_control, has_ceiling_fan, year, weather)
     end
 
+    # only deal with deadband issue if both schedules are simple
+    if heating_sch.nil? && cooling_sch.nil?
+      htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = create_setpoint_schedules(heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
+    end
+
+    if heating_sch.nil?
+      heating_setpoint = HourlyByDaySchedule.new(model, Constants.ObjectNameHeatingSetpoint, htg_weekday_setpoints, htg_weekend_setpoints, nil, false)
+      heating_sch = heating_setpoint.schedule
+    end
+
+    if cooling_sch.nil?
+      cooling_setpoint = HourlyByDaySchedule.new(model, Constants.ObjectNameCoolingSetpoint, clg_weekday_setpoints, clg_weekend_setpoints, nil, false)
+      cooling_sch = cooling_setpoint.schedule
+    end
+
+    # Set the setpoint schedules
+    thermostat_setpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
+    thermostat_setpoint.setName("#{living_zone.name} temperature setpoint")
+    thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_sch)
+    thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_sch)
+    living_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
+  end
+
+  def self.create_setpoint_schedules(heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
     # Create setpoint schedules
+    num_days = Constants.NumDaysInYear(year)
     (0..(num_days - 1)).to_a.each do |i|
       if (heating_days[i] == 1) && (cooling_days[i] == 1) # overlap seasons
         htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
@@ -885,19 +858,87 @@ class HVAC
       clg_weekday_setpoints[i] = clg_wkdy
       clg_weekend_setpoints[i] = clg_wked
     end
+
+    return htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints
+  end
+
+  def self.get_heating_setpoints(hvac_control, year)
+    num_days = Constants.NumDaysInYear(year)
+
+    if hvac_control.weekday_heating_setpoints.nil? || hvac_control.weekend_heating_setpoints.nil?
+      # Base heating setpoint
+      htg_setpoint = hvac_control.heating_setpoint_temp
+      htg_weekday_setpoints = [[htg_setpoint] * 24] * num_days
+      # Apply heating setback?
+      htg_setback = hvac_control.heating_setback_temp
+      if not htg_setback.nil?
+        htg_setback_hrs_per_week = hvac_control.heating_setback_hours_per_week
+        htg_setback_start_hr = hvac_control.heating_setback_start_hour
+        for d in 1..num_days
+          for hr in htg_setback_start_hr..htg_setback_start_hr + Integer(htg_setback_hrs_per_week / 7.0) - 1
+            htg_weekday_setpoints[d - 1][hr % 24] = htg_setback
+          end
+        end
+      end
+      htg_weekend_setpoints = htg_weekday_setpoints.dup
+    else
+      # 24-hr weekday/weekend heating setpoint schedules
+      htg_weekday_setpoints = hvac_control.weekday_heating_setpoints.split(',').map { |i| Float(i) }
+      htg_weekday_setpoints = [htg_weekday_setpoints] * num_days
+      htg_weekend_setpoints = hvac_control.weekend_heating_setpoints.split(',').map { |i| Float(i) }
+      htg_weekend_setpoints = [htg_weekend_setpoints] * num_days
+    end
+
     htg_weekday_setpoints = htg_weekday_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
     htg_weekend_setpoints = htg_weekend_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
+
+    return htg_weekday_setpoints, htg_weekend_setpoints
+  end
+
+  def self.get_cooling_setpoints(hvac_control, has_ceiling_fan, year, weather)
+    num_days = Constants.NumDaysInYear(year)
+
+    if hvac_control.weekday_cooling_setpoints.nil? || hvac_control.weekend_cooling_setpoints.nil?
+      # Base cooling setpoint
+      clg_setpoint = hvac_control.cooling_setpoint_temp
+      clg_weekday_setpoints = [[clg_setpoint] * 24] * num_days
+      # Apply cooling setup?
+      clg_setup = hvac_control.cooling_setup_temp
+      if not clg_setup.nil?
+        clg_setup_hrs_per_week = hvac_control.cooling_setup_hours_per_week
+        clg_setup_start_hr = hvac_control.cooling_setup_start_hour
+        for d in 1..num_days
+          for hr in clg_setup_start_hr..clg_setup_start_hr + Integer(clg_setup_hrs_per_week / 7.0) - 1
+            clg_weekday_setpoints[d - 1][hr % 24] = clg_setup
+          end
+        end
+      end
+      clg_weekend_setpoints = clg_weekday_setpoints.dup
+    else
+      # 24-hr weekday/weekend cooling setpoint schedules
+      clg_weekday_setpoints = hvac_control.weekday_cooling_setpoints.split(',').map { |i| Float(i) }
+      clg_weekday_setpoints = [clg_weekday_setpoints] * num_days
+      clg_weekend_setpoints = hvac_control.weekend_cooling_setpoints.split(',').map { |i| Float(i) }
+      clg_weekend_setpoints = [clg_weekend_setpoints] * num_days
+    end
+    # Apply cooling setpoint offset due to ceiling fan?
+    if has_ceiling_fan
+      clg_ceiling_fan_offset = hvac_control.ceiling_fan_cooling_setpoint_temp_offset
+      if not clg_ceiling_fan_offset.nil?
+        months = get_default_ceiling_fan_months(weather)
+        Schedule.months_to_days(year, months).each_with_index do |operation, d|
+          next if operation != 1
+
+          clg_weekday_setpoints[d] = [clg_weekday_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
+          clg_weekend_setpoints[d] = [clg_weekend_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
+        end
+      end
+    end
+
     clg_weekday_setpoints = clg_weekday_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
     clg_weekend_setpoints = clg_weekend_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
-    heating_setpoint = HourlyByDaySchedule.new(model, Constants.ObjectNameHeatingSetpoint, htg_weekday_setpoints, htg_weekend_setpoints, nil, false)
-    cooling_setpoint = HourlyByDaySchedule.new(model, Constants.ObjectNameCoolingSetpoint, clg_weekday_setpoints, clg_weekend_setpoints, nil, false)
 
-    # Set the setpoint schedules
-    thermostat_setpoint = OpenStudio::Model::ThermostatSetpointDualSetpoint.new(model)
-    thermostat_setpoint.setName("#{living_zone.name} temperature setpoint")
-    thermostat_setpoint.setHeatingSetpointTemperatureSchedule(heating_setpoint.schedule)
-    thermostat_setpoint.setCoolingSetpointTemperatureSchedule(cooling_setpoint.schedule)
-    living_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
+    return clg_weekday_setpoints, clg_weekend_setpoints
   end
 
   def self.get_default_heating_setpoint(control_type)
@@ -1087,8 +1128,8 @@ class HVAC
 
     # Derive coefficients from user input for capacity retention at outdoor drybulb temperature X [C].
     if heat_pump.heating_capacity_17F.nil? || ((heat_pump.heating_capacity_17F == 0) && (heat_pump.heating_capacity == 0))
-      cap_retention_frac = 0.25 # frac
-      cap_retention_temp = -5.0 # deg-F
+      cap_retention_frac = heat_pump.capacity_retention_fraction # frac
+      cap_retention_temp = heat_pump.capacity_retention_temp # deg-F
     else
       cap_retention_frac = heat_pump.heating_capacity_17F / heat_pump.heating_capacity
       cap_retention_temp = 17.0 # deg-F
@@ -1535,9 +1576,9 @@ class HVAC
     # Note: fan_cfms should include all unique airflow rates (both heating and cooling, at all speeds)
     fan = OpenStudio::Model::FanSystemModel.new(model)
     fan.setSpeedControlMethod('Discrete')
-    fan.setDesignPowerSizingMethod('PowerPerFlow')
-    fan.setElectricPowerPerUnitFlowRate([fan_watts_per_cfm / UnitConversions.convert(1.0, 'cfm', 'm^3/s'), 0.00001].max)
+    fan.setDesignPowerSizingMethod('TotalEfficiencyAndPressure')
     fan.setAvailabilitySchedule(model.alwaysOnDiscreteSchedule)
+    set_fan_power(fan, fan_watts_per_cfm)
     fan.setName(obj_name + ' supply fan')
     fan.setEndUseSubcategory('supply fan')
     fan.setMotorEfficiency(1.0)
@@ -1545,19 +1586,25 @@ class HVAC
     max_fan_cfm = Float(fan_cfms.max) # Convert to float to prevent integer division below
     fan.setDesignMaximumAirFlowRate(UnitConversions.convert(max_fan_cfm, 'cfm', 'm^3/s'))
 
-    # For each fan speed, we preserve the W/cfm instead of using the fan power law. This
-    # ensures that, e.g., a standalone furnace has the same fan power as a furnace attached
-    # to a central air conditioner. For multi-speed systems or systems with different
-    # heating and cooling airflow rates, this essentially means that the W/cfm is treated
-    # as an average value over the range of airflow rates, as opposed to the value at maximum
-    # airflow rate.
     fan_cfms.sort.each do |fan_cfm|
       fan_ratio = fan_cfm / max_fan_cfm
-      power_fraction = fan_ratio
+      power_fraction = fan_ratio**3 # fan power curve
       fan.addSpeed(fan_ratio.round(5), power_fraction.round(5))
     end
 
     return fan
+  end
+
+  def self.set_fan_power(fan, fan_watts_per_cfm)
+    if fan_watts_per_cfm > 0
+      fan_eff = 0.75 # Overall Efficiency of the Fan, Motor and Drive
+      pressure_rise = fan_eff * fan_watts_per_cfm / UnitConversions.convert(1.0, 'cfm', 'm^3/s') # Pa
+    else
+      fan_eff = 1
+      pressure_rise = 0.000001
+    end
+    fan.setFanTotalEfficiency(fan_eff)
+    fan.setDesignPressureRise(pressure_rise)
   end
 
   def self.create_air_loop_unitary_system(model, obj_name, fan, htg_coil, clg_coil, htg_supp_coil, htg_cfm, clg_cfm, supp_max_temp = nil)
@@ -2984,13 +3031,16 @@ class HVAC
     if hvac_system.distribution_system.nil?
       # Ductless, installed and rated value should be equal
       hvac_ap.fan_power_rated = hvac_system.fan_watts_per_cfm # W/cfm
-    elsif (hvac_system.is_a?(HPXML::CoolingSystem) && (hvac_system.cooling_system_type == HPXML::HVACTypeMiniSplitAirConditioner)) ||
-          (hvac_system.is_a?(HPXML::HeatPump) && (hvac_system.heat_pump_type == HPXML::HVACTypeHeatPumpMiniSplit))
-      hvac_ap.fan_power_rated = 0.18 # W/cfm
-    elsif hvac_system.cooling_efficiency_seer <= 15
-      hvac_ap.fan_power_rated = 0.365 # W/cfm
     else
-      hvac_ap.fan_power_rated = 0.14 # W/cfm
+      # Based on ASHRAE 1449-RP and recommended by Hugh Henderson
+      seer = hvac_system.cooling_efficiency_seer
+      if seer <= 14
+        hvac_ap.fan_power_rated = 0.25 # W/cfm
+      elsif seer >= 16
+        hvac_ap.fan_power_rated = 0.18 # W/cfm
+      else
+        hvac_ap.fan_power_rated = 0.25 + (0.18 - 0.25) * (seer - 14.0) / 2.0 # W/cfm
+      end
     end
   end
 
