@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>d70cdee6-117b-4b01-9fe5-3094e7ac2c26</version_id>
-  <version_modified>20220506T210134Z</version_modified>
+  <version_id>d46f0114-0c26-4f20-9f42-4c7fd5041445</version_id>
+  <version_modified>20220511T202710Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -2164,7 +2164,7 @@
     <argument>
       <name>heat_pump_heating_capacity</name>
       <display_name>Heat Pump: Heating Capacity</display_name>
-      <description>The output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter 'auto using max load' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating capacity retention at cold temperature. Enter 'auto using HERS' to size the capacity equal to the maximum of heating/cooling design loads.</description>
+      <description>The output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter 'auto using max load' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating reduced capacity at cold temperature. Enter 'auto using HERS' to size the capacity equal to the maximum of heating/cooling design loads.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>true</required>
@@ -2283,7 +2283,16 @@
     <argument>
       <name>heat_pump_backup_heating_switchover_temp</name>
       <display_name>Heat Pump: Backup Heating Switchover Temperature</display_name>
-      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either 'integrated' or 'separate'.</description>
+      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either 'integrated' or 'separate'. Both Switchover Temperature and Lockout Temperature cannot be specified.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_heating_lockout_temp</name>
+      <display_name>Heat Pump: Backup Heating Lockout Temperature</display_name>
+      <description>The temperature above which the backup system is disabled in order to prevent backup heating operation during, e.g., a thermostat heating setback recovery event. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Only applies if Backup Type is 'integrated'. Both Switchover Temperature and Lockout Temperature cannot be specified.</description>
       <type>Double</type>
       <units>deg-F</units>
       <required>false</required>
@@ -6133,64 +6142,6 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>hvac_control_heating_weekday_setpoint_temp</name>
-      <display_name>Heating Setpoint: Weekday Temperature</display_name>
-      <description>Specify the weekday heating setpoint temperature.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>71</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekend_setpoint_temp</name>
-      <display_name>Heating Setpoint: Weekend Temperature</display_name>
-      <description>Specify the weekend heating setpoint temperature.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>71</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekday_setpoint_offset_magnitude</name>
-      <display_name>Heating Setpoint: Weekday Offset Magnitude</display_name>
-      <description>Specify the weekday heating offset magnitude.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekend_setpoint_offset_magnitude</name>
-      <display_name>Heating Setpoint: Weekend Offset Magnitude</display_name>
-      <description>Specify the weekend heating offset magnitude.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekday_setpoint_schedule</name>
-      <display_name>Heating Setpoint: Weekday Schedule</display_name>
-      <description>Specify the 24-hour comma-separated weekday heating schedule of 0s and 1s.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_heating_weekend_setpoint_schedule</name>
-      <display_name>Heating Setpoint: Weekend Schedule</display_name>
-      <description>Specify the 24-hour comma-separated weekend heating schedule of 0s and 1s.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
-    </argument>
-    <argument>
       <name>use_auto_heating_season</name>
       <display_name>Use Auto Heating Season</display_name>
       <description>Specifies whether to automatically define the heating season based on the weather file.</description>
@@ -6210,64 +6161,6 @@
       </choices>
     </argument>
     <argument>
-      <name>hvac_control_cooling_weekday_setpoint_temp</name>
-      <display_name>Cooling Setpoint: Weekday Temperature</display_name>
-      <description>Specify the weekday cooling setpoint temperature.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>76</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekend_setpoint_temp</name>
-      <display_name>Cooling Setpoint: Weekend Temperature</display_name>
-      <description>Specify the weekend cooling setpoint temperature.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>76</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekday_setpoint_offset_magnitude</name>
-      <display_name>Cooling Setpoint: Weekday Offset Magnitude</display_name>
-      <description>Specify the weekday cooling offset magnitude.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekend_setpoint_offset_magnitude</name>
-      <display_name>Cooling Setpoint: Weekend Offset Magnitude</display_name>
-      <description>Specify the weekend cooling offset magnitude.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekday_setpoint_schedule</name>
-      <display_name>Cooling Setpoint: Weekday Schedule</display_name>
-      <description>Specify the 24-hour comma-separated weekday cooling schedule of 0s and 1s.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
-    </argument>
-    <argument>
-      <name>hvac_control_cooling_weekend_setpoint_schedule</name>
-      <display_name>Cooling Setpoint: Weekend Schedule</display_name>
-      <description>Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.</description>
-      <type>String</type>
-      <required>true</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</default_value>
-    </argument>
-    <argument>
       <name>use_auto_cooling_season</name>
       <display_name>Use Auto Cooling Season</display_name>
       <description>Specifies whether to automatically define the cooling season based on the weather file.</description>
@@ -6285,6 +6178,62 @@
           <display_name>false</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>heating_setpoint</name>
+      <display_name>Heating Setpoint: Weekday Temperature</display_name>
+      <description>Specify the weekday heating setpoint temperature.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>71</default_value>
+    </argument>
+    <argument>
+      <name>heating_setpoint_offset_nighttime</name>
+      <display_name>Setpoint Schedules: Heating Setpoint Offset Nighttime</display_name>
+      <description>The magnitude of the heating setpoint offset (setpoint is lowered) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_setpoint_offset_daytime_unoccupied</name>
+      <display_name>Setpoint Schedules: Heating Setpoint Offset Daytime Unoccupied</display_name>
+      <description>The magnitude of the heating setpoint offset (setpoint is lowered) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_setpoint</name>
+      <display_name>Cooling Setpoint: Weekday Temperature</display_name>
+      <description>Specify the weekday cooling setpoint temperature.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>76</default_value>
+    </argument>
+    <argument>
+      <name>cooling_setpoint_offset_nighttime</name>
+      <display_name>Setpoint Schedules: Cooling Setpoint Offset Nighttime</display_name>
+      <description>The magnitude of the cooling setpoint offset (setpoint is raised) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_setpoint_offset_daytime_unoccupied</name>
+      <display_name>Setpoint Schedules: Cooling Setpoint Offset Daytime Unoccupied</display_name>
+      <description>The magnitude of the cooling setpoint offset (setpoint is raised) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heating_system_has_flue_or_chimney</name>
@@ -6406,7 +6355,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FA673D58</checksum>
+      <checksum>0F0E1D53</checksum>
     </file>
   </files>
 </measure>
