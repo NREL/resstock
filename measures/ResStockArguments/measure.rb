@@ -416,9 +416,24 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Setpoints
+    args['hvac_control_heating_weekday_setpoint'] = '71' # FIXME: set to Constants.Auto
+    args['hvac_control_heating_weekend_setpoint'] = '71' # FIXME: set to Constants.Auto
+    args['hvac_control_cooling_weekday_setpoint'] = '76' # FIXME: set to Constants.Auto
+    args['hvac_control_cooling_weekend_setpoint'] = '76' # FIXME: set to Constants.Auto
+
     # TODO:
     # - write setpoints.csv
     # - pass into args['schedules_filepaths']
+
+    # FIXME: remove
+    CSV.open(File.expand_path('../setpoints.csv'), 'w') do |csv|
+      csv << ['heating_setpoint', 'cooling_setpoint']
+      (1..8760).to_a.each do |i|
+        csv << [args['heating_setpoint'], args['cooling_setpoint']]
+      end
+    end
+    ###
+
     args['schedules_filepaths'] = File.expand_path('../setpoints.csv')
 
     # Seasons
