@@ -17,7 +17,7 @@ class TestRunAnalysis < MiniTest::Test
     @testing_upgrades = File.join(buildstock_directory, 'testing_upgrades')
     @national_upgrades = File.join(buildstock_directory, 'national_upgrades')
     @la100es_baseline = File.join(buildstock_directory, 'la100es_baseline')
-end
+  end
 
   def _test_measure_order(osw)
     expected_order = ['BuildExistingModel',
