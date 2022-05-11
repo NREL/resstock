@@ -1154,11 +1154,14 @@ class SchedulesFile
     set_vacancy
     convert_setpoints
 
-    tmpfile = Tempfile.new(['schedules', '.csv'])
-    @tmp_schedules_path = tmpfile.path.to_s
-    export
+    tmpdir = Dir.tmpdir
+    tmpdir = ENV['LOCAL_SCRATCH'] if ENV.keys.include?('LOCAL_SCRATCH')
+    tmpfile = Tempfile.new(['schedules', '.csv'], tmpdir)
+    tmp_schedules_path = tmpfile.path.to_s
 
-    get_external_file
+    export(tmp_schedules_path)
+
+    get_external_file(tmp_schedules_path)
   end
 
   def nil?
@@ -1229,10 +1232,10 @@ class SchedulesFile
     end
   end
 
-  def export
-    return false if @tmp_schedules_path.nil?
+  def export(tmp_schedules_path)
+    return false if tmp_schedules_path.nil?
 
-    CSV.open(@tmp_schedules_path, 'wb') do |csv|
+    CSV.open(tmp_schedules_path, 'wb') do |csv|
       csv << @tmp_schedules.keys
       rows = @tmp_schedules.values.transpose
       rows.each do |row|
@@ -1371,11 +1374,16 @@ class SchedulesFile
     return peak_flow
   end
 
-  def get_external_file
-    if File.exist? @tmp_schedules_path
-      @external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @tmp_schedules_path)
+  def get_external_file(tmp_schedules_path)
+    if File.exist? tmp_schedules_path
+      @external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, tmp_schedules_path)
       if @external_file.is_initialized
         @external_file = @external_file.get
+        # ExternalFile creates a new file, so delete our temporary one immediately if we can
+        begin
+          File.delete(tmp_schedules_path)
+        rescue
+        end
       end
     end
   end

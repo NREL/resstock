@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>095c9fd5-294c-42e5-a741-a838ed479519</version_id>
-  <version_modified>20220506T164154Z</version_modified>
+  <version_id>e73136e8-b2ff-4ec5-9153-b36607ff9d05</version_id>
+  <version_modified>20220509T163201Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -2338,7 +2338,7 @@
     <argument>
       <name>heat_pump_heating_capacity</name>
       <display_name>Heat Pump: Heating Capacity</display_name>
-      <description>The output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter 'auto using max load' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating capacity retention at cold temperature. Enter 'auto using HERS' to size the capacity equal to the maximum of heating/cooling design loads.</description>
+      <description>The output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter 'auto using max load' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating reduced capacity at cold temperature. Enter 'auto using HERS' to size the capacity equal to the maximum of heating/cooling design loads.</description>
       <type>String</type>
       <units>Btu/hr</units>
       <required>true</required>
@@ -2457,7 +2457,16 @@
     <argument>
       <name>heat_pump_backup_heating_switchover_temp</name>
       <display_name>Heat Pump: Backup Heating Switchover Temperature</display_name>
-      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either 'integrated' or 'separate'.</description>
+      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either 'integrated' or 'separate'. Both Switchover Temperature and Lockout Temperature cannot be specified.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_heating_lockout_temp</name>
+      <display_name>Heat Pump: Backup Heating Lockout Temperature</display_name>
+      <description>The temperature above which the backup system is disabled in order to prevent backup heating operation during, e.g., a thermostat heating setback recovery event. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Only applies if Backup Type is 'integrated'. Both Switchover Temperature and Lockout Temperature cannot be specified.</description>
       <type>Double</type>
       <units>deg-F</units>
       <required>false</required>
@@ -6159,7 +6168,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>F35B8C60</checksum>
+      <checksum>F68F8FFD</checksum>
     </file>
   </files>
 </measure>
