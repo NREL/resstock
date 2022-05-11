@@ -16,8 +16,8 @@ class TestRunAnalysis < MiniTest::Test
     @national_baseline = File.join(buildstock_directory, 'national_baseline')
     @testing_upgrades = File.join(buildstock_directory, 'testing_upgrades')
     @national_upgrades = File.join(buildstock_directory, 'national_upgrades')
-    @la100es_baseline = File.join(buildstock_directory, 'la100es_baseline')      
-  end
+    @la100es_baseline = File.join(buildstock_directory, 'la100es_baseline')
+end
 
   def _test_measure_order(osw)
     expected_order = ['BuildExistingModel',
@@ -180,6 +180,176 @@ class TestRunAnalysis < MiniTest::Test
     FileUtils.rm_rf(@testing_baseline)
   end
 
+  def test_testing_baseline
+    skip
+    yml = ' -y project_testing/testing_baseline.yml'
+    @command += yml
+    @command += ' -k'
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_baseline, 'results-Baseline.csv')))
+    results = CSV.read(File.join(@testing_baseline, 'results-Baseline.csv'), headers: true)
+
+    _test_columns(results)
+
+    assert(File.exist?(File.join(@testing_baseline, 'run1', 'run')))
+    contents = Dir[File.join(@testing_baseline, 'run1', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, false, true)
+
+    timeseries = _get_timeseries_columns(Dir[File.join(@testing_baseline, 'run*/run/results_timeseries.csv')])
+    assert(_test_timeseries_columns(timeseries, true))
+
+    assert(File.exist?(File.join(@testing_baseline, 'cli_output.log')))
+    assert(!File.read(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
+
+    assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
+    assert(File.exist?(File.join(@testing_baseline, 'xml', 'Baseline', '1.xml')))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
+  def test_national_baseline
+    skip
+    yml = ' -y project_national/national_baseline.yml'
+    @command += yml
+    @command += ' -k'
+
+    system(@command)
+
+    _test_measure_order(File.join(@national_baseline, 'national_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@national_baseline, 'results-Baseline.csv')))
+    results = CSV.read(File.join(@national_baseline, 'results-Baseline.csv'), headers: true)
+
+    _test_columns(results)
+
+    assert(File.exist?(File.join(@national_baseline, 'run1', 'run')))
+    contents = Dir[File.join(@national_baseline, 'run1', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, false, false)
+
+    timeseries = _get_timeseries_columns(Dir[File.join(@national_baseline, 'run*/run/results_timeseries.csv')])
+    assert(_test_timeseries_columns(timeseries))
+
+    assert(File.exist?(File.join(@national_baseline, 'cli_output.log')))
+    assert(!File.read(File.join(@national_baseline, 'cli_output.log')).include?('ERROR'))
+
+    assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
+    assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
+
+    FileUtils.rm_rf(@national_baseline)
+  end
+
+  def test_testing_upgrades
+    skip
+    yml = ' -y project_testing/testing_upgrades.yml'
+    @command += yml
+    @command += ' -d'
+    @command += ' -k'
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_upgrades, 'results-Baseline.csv')))
+    results = CSV.read(File.join(@testing_upgrades, 'results-Baseline.csv'), headers: true)
+
+    _test_columns(results)
+
+    assert(File.exist?(File.join(@testing_upgrades, 'run1', 'run')))
+    contents = Dir[File.join(@testing_upgrades, 'run1', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, false, true)
+
+    _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Windows.osw'))
+    assert(File.exist?(File.join(@testing_upgrades, 'results-Windows.csv')))
+    results = CSV.read(File.join(@testing_upgrades, 'results-Windows.csv'), headers: true)
+
+    _test_columns(results, true)
+
+    assert(File.exist?(File.join(@testing_upgrades, 'run6', 'run')))
+    contents = Dir[File.join(@testing_upgrades, 'run6', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, true, true)
+
+    timeseries = _get_timeseries_columns(Dir[File.join(@testing_upgrades, 'run*/run/results_timeseries.csv')])
+    assert(_test_timeseries_columns(timeseries, true))
+
+    assert(File.exist?(File.join(@testing_upgrades, 'cli_output.log')))
+    assert(!File.read(File.join(@testing_upgrades, 'cli_output.log')).include?('ERROR'))
+
+    assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-existing.osw')))
+    assert(!File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
+    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing-defaulted.xml')))
+    assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
+    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing.xml')))
+    assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
+
+    assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Windows', '1-existing.osw')))
+    assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Windows', '1-upgraded.osw')))
+    assert(!File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-existing-defaulted.xml')))
+    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-upgraded-defaulted.xml')))
+    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-existing.xml')))
+    assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-upgraded.xml')))
+
+    FileUtils.rm_rf(@testing_upgrades)
+  end
+
+  def test_national_upgrades
+    skip
+    yml = ' -y project_national/national_upgrades.yml'
+    @command += yml
+    @command += ' -d'
+    @command += ' -k'
+
+    system(@command)
+
+    _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Baseline.osw'))
+    assert(File.exist?(File.join(@national_upgrades, 'results-Baseline.csv')))
+    results = CSV.read(File.join(@national_upgrades, 'results-Baseline.csv'), headers: true)
+
+    _test_columns(results)
+
+    assert(File.exist?(File.join(@national_upgrades, 'run1', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'run1', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, false, false)
+
+    _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Windows.osw'))
+    assert(File.exist?(File.join(@national_upgrades, 'results-Windows.csv')))
+    results = CSV.read(File.join(@national_upgrades, 'results-Windows.csv'), headers: true)
+
+    _test_columns(results, true)
+
+    assert(File.exist?(File.join(@national_upgrades, 'run6', 'run')))
+    contents = Dir[File.join(@national_upgrades, 'run6', 'run/*')].collect { |x| File.basename(x) }
+
+    _test_contents(contents, true, false)
+
+    timeseries = _get_timeseries_columns(Dir[File.join(@national_upgrades, 'run*/run/results_timeseries.csv')])
+    assert(_test_timeseries_columns(timeseries))
+
+    assert(File.exist?(File.join(@national_upgrades, 'cli_output.log')))
+    assert(!File.read(File.join(@national_upgrades, 'cli_output.log')).include?('ERROR'))
+
+    assert(File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
+    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing-defaulted.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-upgraded-defaulted.xml')))
+    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-existing.xml')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Baseline', '1-upgraded.xml')))
+
+    assert(File.exist?(File.join(@national_upgrades, 'osw', 'Windows', '1-existing.osw')))
+    assert(File.exist?(File.join(@national_upgrades, 'osw', 'Windows', '1-upgraded.osw')))
+    assert(!File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-existing-defaulted.xml')))
+    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-upgraded-defaulted.xml')))
+    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-existing.xml')))
+    assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-upgraded.xml')))
+
+    FileUtils.rm_rf(@national_upgrades)
+  end
+
   def test_la100es_baseline
     yml = ' -y project_la/la100es_baseline.yml'
     @command += yml
@@ -210,3 +380,4 @@ class TestRunAnalysis < MiniTest::Test
     FileUtils.rm_rf(@la100es_baseline)
   end
 end
+
