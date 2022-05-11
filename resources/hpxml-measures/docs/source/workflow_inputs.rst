@@ -100,7 +100,7 @@ EnergyPlus simulation controls are entered in ``/HPXML/SoftwareInfo/extension/Si
   ``EndMonth``                        integer            1 - 12         No        12 (December)                Run period end date
   ``EndDayOfMonth``                   integer            1 - 31         No        31                           Run period end date
   ``CalendarYear``                    integer            > 1600 [#]_    No        2007 (for TMY weather) [#]_  Calendar year (for start day of week)
-  ``DaylightSaving/Enabled``          boolean                           No        true                         Daylight savings enabled?
+  ``DaylightSaving/Enabled``          boolean                           No        true                         Daylight saving enabled?
   ==================================  ========  =======  =============  ========  ===========================  =====================================
 
   .. [#] BeginMonth/BeginDayOfMonth date must occur before EndMonth/EndDayOfMonth date (e.g., a run period from 10/1 to 3/31 is invalid).
@@ -116,7 +116,7 @@ If daylight saving is enabled, additional information is specified in ``Daylight
   ``EndMonth`` and ``EndDayOfMonth``      integer          1 - 12 and 1 - 31  No        EPW else 11/5 (November 5)     End date
   ======================================  ========  =====  =================  ========  =============================  ===========
 
-  .. [#] Daylight savings dates will be defined according to the EPW weather file header; if not available, fallback default values listed above will be used.
+  .. [#] Daylight saving dates will be defined according to the EPW weather file header; if not available, fallback default values listed above will be used.
 
 HPXML HVAC Sizing Control
 *************************
@@ -140,11 +140,12 @@ HPXML Schedules
 ***************
 
 Schedules for a variety of building features can be 1) specified via simple inputs, 2) specified via detailed inputs, or 3) defaulted.
+It is allowed to use simple, detailed, and defaulted values in the same HPXML run.
 
 Simple Schedule Inputs
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Simple schedule inputs are available as weekday/weekend fractions and monthly multipliers.
+Simple schedule inputs are available as weekday/weekend fractions and monthly multipliers for a variety of building characteristics.
 For example, see the ``WeekdayScheduleFractions``, ``WeekendScheduleFractions``, and ``MonthlyScheduleMultipliers`` inputs for :ref:`buildingoccupancy`.
 
 .. _detailedschedules:
@@ -155,49 +156,54 @@ Detailed Schedule Inputs
 Detailed schedule inputs allow schedule values for every hour or timestep of the simulation.
 They can be smooth schedules, or they can reflect real-world or stochastic occupancy.
 
-Detailed schedule inputs are provided via CSV file(s) that should be referenced in the HPXML file as a ``/HPXML/SoftwareInfo/extension/SchedulesFilePath``.
+Detailed schedule inputs are provided via one or more CSV file that should be referenced in the HPXML file as ``/HPXML/SoftwareInfo/extension/SchedulesFilePath`` elements.
+The column names available in the schedule CSV files are:
 
-Occupancy related schedule columns must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
-The schedule columns in the schedule CSV are:
+  ==============================  =====  ========================================================  ===================
+  Column Name                     Units  Description                                               Affected by Vacancy
+  ==============================  =====  ========================================================  ===================
+  ``occupants``                   frac   Occupant heat gain schedule.                              Yes
+  ``lighting_interior``           frac   Interior lighting energy use schedule.                    Yes
+  ``lighting_exterior``           frac   Exterior lighting energy use schedule.                    Yes
+  ``lighting_garage``             frac   Garage lighting energy use schedule.                      Yes
+  ``lighting_exterior_holiday``   frac   Exterior holiday lighting energy use schedule.            Yes
+  ``cooking_range``               frac   Cooking range & oven energy use schedule.                 Yes
+  ``refrigerator``                frac   Primary refrigerator energy use schedule.                 No
+  ``extra_refrigerator``          frac   Non-primary refrigerator energy use schedule.             No
+  ``freezer``                     frac   Freezer energy use schedule.                              No
+  ``dishwasher``                  frac   Dishwasher energy use schedule.                           Yes
+  ``clothes_washer``              frac   Clothes washer energy use schedule.                       Yes
+  ``clothes_dryer``               frac   Clothes dryer energy use schedule.                        Yes
+  ``ceiling_fan``                 frac   Ceiling fan energy use schedule.                          Yes
+  ``plug_loads_other``            frac   Other plug load energy use schedule.                      Yes
+  ``plug_loads_tv``               frac   Television plug load energy use schedule.                 Yes
+  ``plug_loads_vehicle``          frac   Electric vehicle plug load energy use schedule.           Yes
+  ``plug_loads_well_pump``        frac   Well pump plug load energy use schedule.                  Yes
+  ``fuel_loads_grill``            frac   Grill fuel load energy use schedule.                      Yes
+  ``fuel_loads_lighting``         frac   Lighting fuel load energy use schedule.                   Yes
+  ``fuel_loads_fireplace``        frac   Fireplace fuel load energy use schedule.                  Yes
+  ``pool_pump``                   frac   Pool pump energy use schedule.                            No
+  ``pool_heater``                 frac   Pool heater energy use schedule.                          No
+  ``hot_tub_pump``                frac   Hot tub pump energy use schedule.                         No
+  ``hot_tub_heater``              frac   Hot tub heater energy use schedule.                       No
+  ``hot_water_dishwasher``        frac   Dishwasher hot water use schedule.                        Yes
+  ``hot_water_clothes_washer``    frac   Clothes washer hot water use schedule.                    Yes
+  ``hot_water_fixtures``          frac   Fixtures (sinks, showers, baths) hot water use schedule.  Yes
+  ``heating_setpoint``            F      Thermostat heating setpoint schedule.                     No
+  ``cooling_setpoint``            F      Thermostat cooling setpoint schedule.                     No
+  ``vacancy``                     0/1    1=Home is vacant. Automatically overrides other columns.  N/A
+  ==============================  =====  ========================================================  ===================
 
-  ==============================  ========================================================  ===================
-  Column Name                     Description                                               Affected by Vacancy
-  ==============================  ========================================================  ===================
-  ``occupants``                   Occupant heat gain schedule.                              Yes
-  ``lighting_interior``           Interior lighting energy use schedule.                    Yes
-  ``lighting_exterior``           Exterior lighting energy use schedule.                    Yes
-  ``lighting_garage``             Garage lighting energy use schedule.                      Yes
-  ``lighting_exterior_holiday``   Exterior holiday lighting energy use schedule.            Yes
-  ``cooking_range``               Cooking range & oven energy use schedule.                 Yes
-  ``refrigerator``                Primary refrigerator energy use schedule.                 No
-  ``extra_refrigerator``          Non-primary refrigerator energy use schedule.             No
-  ``freezer``                     Freezer energy use schedule.                              No
-  ``dishwasher``                  Dishwasher energy use schedule.                           Yes
-  ``clothes_washer``              Clothes washer energy use schedule.                       Yes
-  ``clothes_dryer``               Clothes dryer energy use schedule.                        Yes
-  ``ceiling_fan``                 Ceiling fan energy use schedule.                          Yes
-  ``plug_loads_other``            Other plug load energy use schedule.                      Yes
-  ``plug_loads_tv``               Television plug load energy use schedule.                 Yes
-  ``plug_loads_vehicle``          Electric vehicle plug load energy use schedule.           Yes
-  ``plug_loads_well_pump``        Well pump plug load energy use schedule.                  Yes
-  ``fuel_loads_grill``            Grill fuel load energy use schedule.                      Yes
-  ``fuel_loads_lighting``         Lighting fuel load energy use schedule.                   Yes
-  ``fuel_loads_fireplace``        Fireplace fuel load energy use schedule.                  Yes
-  ``pool_pump``                   Pool pump energy use schedule.                            No
-  ``pool_heater``                 Pool heater energy use schedule.                          No
-  ``hot_tub_pump``                Hot tub pump energy use schedule.                         No
-  ``hot_tub_heater``              Hot tub heater energy use schedule.                       No
-  ``hot_water_dishwasher``        Dishwasher hot water use schedule.                        Yes
-  ``hot_water_clothes_washer``    Clothes washer hot water use schedule.                    Yes
-  ``hot_water_fixtures``          Fixtures (sinks, showers, baths) hot water use schedule.  Yes
-  ``vacancy``                     1=Home is vacant. Automatically overrides other columns.  N/A
-  ==============================  ========================================================  ===================
-
+Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
 Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
 
-A detailed stochastic or smooth schedule CSV file can also be automatically generated for you; see the :ref:`usage_instructions` for the commands.
-Generator inputs are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
+A detailed stochastic or smooth occupancy schedule CSV file can also be automatically generated for you; see the :ref:`usage_instructions` for the commands.
+Inputs for the schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
 See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
+
+.. warning::
+
+  For simulations with daylight saving enabled (which is the default), EnergyPlus will skip forward an hour in the CSV on the "spring forward" day and repeat an hour on the "fall back" day.
 
 Default Schedules
 ~~~~~~~~~~~~~~~~~
@@ -205,6 +211,18 @@ Default Schedules
 If neither simple nor detailed inputs are provided, then schedules are defaulted.
 Default schedules are typically smooth, averaged schedules.
 These default schedules are described elsewhere in the documentation (e.g., see :ref:`buildingoccupancy` for the default occupant heat gain schedule).
+
+HPXML Occupancy Calculation Type
+********************************
+
+The occupancy calculation type is entered in ``/HPXML/SoftwareInfo/extension/OccupancyCalculationType``: either "asset" or "operational".
+
+If OccupancyCalculationType is "asset", various end uses (e.g., clothes washer) are calculated using number of bedrooms and/or conditioned floor area.
+
+If OccupancyCalculationType is "operational", end uses based on number of bedrooms are adjusted for the number of occupants using the relationship from `RECS 2015 <https://www.eia.gov/consumption/residential/reports/2015/overview/>`_:
+
+- single-family detached or manufactured home: NumberofBedrooms = -1.47 + 1.69 * NumberofResidents
+- single-family attached or apartment unit: NumberofBedrooms = -0.68 + 1.09 * NumberofResidents
 
 HPXML Emissions Scenarios
 *************************
@@ -350,19 +368,17 @@ Building occupancy is entered in ``/HPXML/Building/BuildingDetails/BuildingSumma
   ========================================  ========  =====  ===========  ========  ====================  ========================
   Element                                   Type      Units  Constraints  Required  Default               Notes
   ========================================  ========  =====  ===========  ========  ====================  ========================
-  ``NumberofResidents``                     integer          >= 0         No        <number of bedrooms>  Number of occupants
+  ``NumberofResidents``                     integer          >= 0         See [#]_  <number of bedrooms>  Number of occupants [#]_
   ``extension/WeekdayScheduleFractions``    array                         No        See [#]_              24 comma-separated weekday fractions
   ``extension/WeekendScheduleFractions``    array                         No                              24 comma-separated weekend fractions
   ``extension/MonthlyScheduleMultipliers``  array                         No        See [#]_              12 comma-separated monthly multipliers
   ========================================  ========  =====  ===========  ========  ====================  ========================
 
+  .. [#] NumberofResidents is required if OccupancyCalculationType is "operational", .
+  .. [#] If OccupancyCalculationType is "asset", NumberofResidents is only used to define the heat gain from occupants; various end uses (e.g., clothes washer) are calculated using number of bedrooms and/or conditioned floor area.
+         If OccupancyCalculationType is "operational", end uses based on number of bedrooms are adjusted for the number of occupants.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figures 25 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.061, 0.061, 0.061, 0.061, 0.061, 0.061, 0.061, 0.053, 0.025, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.015, 0.018, 0.033, 0.054, 0.054, 0.054, 0.061, 0.061, 0.061".
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), default values are used: "1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0".
-
-.. note::
-
-  The above inputs are only used to define heat gain from occupants.
-  Usages of plug loads, appliances, hot water, etc. are driven by number of bedrooms, not number of occupants.
 
 HPXML Building Construction
 ***************************
@@ -649,7 +665,7 @@ Other walls (e.g., wood framed walls) that are connected to a below-grade space 
   ``Height``                                                      double             ft                > 0                  Yes                        Total height
   ``Area`` or ``Length``                                          double             ft2 or ft         > 0                  Yes                        Gross area (including doors/windows) or length
   ``Azimuth`` or ``Orientation``                                  integer or string  deg or direction  0 - 359 or See [#]_  No         See [#]_        Direction (clockwise from North)
-  ``Thickness``                                                   double             inches            > 0                  No         8.0             Thickness excluding interior framing
+  ``Thickness``                                                   double             in                > 0                  No         8.0             Thickness excluding interior framing
   ``DepthBelowGrade``                                             double             ft                0 - Height           Yes                        Depth below grade [#]_
   ``InteriorFinish/Type``                                         string                               See [#]_             No         See [#]_        Interior finish material
   ``InteriorFinish/Thickness``                                    double             in                >= 0                 No         0.5             Interior finish thickness
@@ -739,7 +755,7 @@ Each space type that borders the ground (i.e., basements, crawlspaces, garages, 
   ``SystemIdentifier``                                     id                                   Yes                  Unique identifier
   ``InteriorAdjacentTo``                                   string                  See [#]_     Yes                  Interior adjacent space type
   ``Area``                                                 double    ft2           > 0          Yes                  Gross area
-  ``Thickness``                                            double    inches        >= 0         No         See [#]_  Thickness [#]_
+  ``Thickness``                                            double    in            >= 0         No         See [#]_  Thickness [#]_
   ``ExposedPerimeter``                                     double    ft            >= 0         Yes                  Perimeter exposed to ambient conditions [#]_
   ``DepthBelowGrade``                                      double    ft            >= 0         See [#]_             Depth from the top of the slab surface to grade
   ``PerimeterInsulation/SystemIdentifier``                 id                                   Yes                  Unique identifier
@@ -858,7 +874,7 @@ If overhangs are specified, additional information is entered in ``Overhangs``.
   ============================  ========  ======  ===========  ========  =======  ========================================================
   Element                       Type      Units   Constraints  Required  Default  Notes
   ============================  ========  ======  ===========  ========  =======  ========================================================
-  ``Depth``                     double    inches  >= 0         Yes                Depth of overhang
+  ``Depth``                     double    ft      >= 0         Yes                Depth of overhang
   ``DistanceToTopOfWindow``     double    ft      >= 0         Yes                Vertical distance from overhang to top of window
   ``DistanceToBottomOfWindow``  double    ft      See [#]_     Yes                Vertical distance from overhang to bottom of window [#]_
   ============================  ========  ======  ===========  ========  =======  ========================================================
@@ -2798,6 +2814,7 @@ If not entered, the simulation will not include a pool heater.
   .. [#] Type choices are "single speed", "multi speed", "variable speed", "variable flow", "other", "unknown", or "none".
          If "none" is entered, the simulation will not include a pool pump.
   .. [#] If Value not provided, defaults based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_: 158.5 / 0.070 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920).
+         If OccupancyCalculationType is "operational", this value will be adjusted for the NumberofResidents.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figure 23 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003".
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), default values from Figure 24 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154".
 
@@ -2826,6 +2843,8 @@ If not entered, the simulation will not include a pool heater.
          - **gas fired**: 3.0 / 0.014 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)
          - **electric resistance**: 8.3 / 0.004 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)
          - **heat pump**: (electric resistance) / 5.0 (based on an average COP of 5 from `Energy Saver <https://www.energy.gov/energysaver/heat-pump-swimming-pool-heaters>`_)
+
+         If OccupancyCalculationType is "operational", this value will be adjusted for the NumberofResidents.
 
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figure 23 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.003, 0.003, 0.003, 0.004, 0.008, 0.015, 0.026, 0.044, 0.084, 0.121, 0.127, 0.121, 0.120, 0.090, 0.075, 0.061, 0.037, 0.023, 0.013, 0.008, 0.004, 0.003, 0.003, 0.003".
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), default values from Figure 24 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "1.154, 1.161, 1.013, 1.010, 1.013, 0.888, 0.883, 0.883, 0.888, 0.978, 0.974, 1.154".
@@ -2867,6 +2886,7 @@ If not entered, the simulation will not include a hot tub pump.
   .. [#] Type choices are "single speed", "multi speed", "variable speed", "variable flow", "other", "unknown", or "none".
          If "none" is entered, the simulation will not include a hot tub pump.
   .. [#] If Value not provided, defaults based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_: 59.5 / 0.059 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920).
+         If OccupancyCalculationType is "operational", this value will be adjusted for the NumberofResidents.
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figure 23 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024".
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), default values from Figure 24 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.921, 0.928, 0.921, 0.915, 0.921, 1.160, 1.158, 1.158, 1.160, 0.921, 0.915, 0.921".
 
@@ -2895,6 +2915,8 @@ If not entered, the simulation will not include a hot tub heater.
          - **gas fired [therm/year]**: 0.87 / 0.011 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)
          - **electric resistance [kWh/year]**: 49.0 / 0.048 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)
          - **heat pump [kWh/year]** = (electric resistance) / 5.0 (based on an average COP of 5 from `Energy Saver <https://www.energy.gov/energysaver/heat-pump-swimming-pool-heaters>`_)
+
+         If OccupancyCalculationType is "operational", this value will be adjusted for the NumberofResidents.
 
   .. [#] If WeekdayScheduleFractions or WeekendScheduleFractions not provided (and :ref:`detailedschedules` not used), default values from Figure 23 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.024, 0.029, 0.024, 0.029, 0.047, 0.067, 0.057, 0.024, 0.024, 0.019, 0.015, 0.014, 0.014, 0.014, 0.024, 0.058, 0.126, 0.122, 0.068, 0.061, 0.051, 0.043, 0.024, 0.024".
   .. [#] If MonthlyScheduleMultipliers not provided (and :ref:`detailedschedules` not used), default values from Figure 24 of the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_ are used: "0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837".
@@ -2935,6 +2957,8 @@ If not entered, the simulation will not include that type of plug load.
          - **TV other**: 413.0 + 69.0 * NumberofBedrooms (based on `ANSI/RESNET/ICC 301-2019 <https://codes.iccsafe.org/content/RESNETICC3012019>`_)
          - **well pump**: 50.8 / 0.127 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920) (based on the `2010 BAHSP <https://www1.eere.energy.gov/buildings/publications/pdfs/building_america/house_simulation.pdf>`_)
          - **electric vehicle charging**: 1666.67 (calculated using AnnualMiles * kWhPerMile / (ChargerEfficiency * BatteryEfficiency) where AnnualMiles=4500, kWhPerMile=0.3, ChargerEfficiency=0.9, and BatteryEfficiency=0.9)
+         
+         If OccupancyCalculationType is "operational", this value will be adjusted for the NumberofResidents.
          
   .. [#] If FracSensible not provided, defaults as:
   
@@ -3001,6 +3025,8 @@ If not entered, the simulation will not include that type of fuel load.
          - **grill**: 0.87 / 0.029 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920)
          - **fireplace**: 1.95 / 0.032 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920)
          - **lighting**: 0.22 / 0.012 * (0.5 + 0.25 * NumberofBedrooms / 3 + 0.25 * ConditionedFloorArea / 1920)
+         
+         If OccupancyCalculationType is "operational", this value will be adjusted for the NumberofResidents.
 
   .. [#] FuelType choices are "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "anthracite coal", "wood", or "wood pellets".
   .. [#] If FracSensible not provided, defaults to 0.5 for fireplace and 0.0 for all other types.
