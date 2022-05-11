@@ -421,20 +421,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['hvac_control_cooling_weekday_setpoint'] = '76' # FIXME: set to Constants.Auto
     args['hvac_control_cooling_weekend_setpoint'] = '76' # FIXME: set to Constants.Auto
 
-    # TODO:
-    # - write setpoints.csv
-    # - pass into args['schedules_filepaths']
-
-    # FIXME: remove
-    CSV.open(File.expand_path('../setpoints.csv'), 'w') do |csv|
-      csv << ['heating_setpoint', 'cooling_setpoint']
-      (1..8760).to_a.each do |i|
-        csv << [args['heating_setpoint'], args['cooling_setpoint']]
-      end
-    end
-    ###
-
-    args['schedules_filepaths'] = File.expand_path('../setpoints.csv')
+    setpoints_path = create_setpoint_schedules(args)
+    args['schedules_filepaths'] = setpoints_path
 
     # Seasons
     if args['use_auto_heating_season'] || args['use_auto_cooling_season']
@@ -753,6 +741,20 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     begin_day = 1
     end_day = get_num_days_per_month[end_month - 1]
     return begin_month, begin_day, end_month, end_day
+  end
+
+  def create_setpoint_schedules(args)
+    # FIXME
+    setpoints_path = File.expand_path('../setpoints.csv')
+
+    CSV.open(setpoints_path, 'w') do |csv|
+      csv << ['heating_setpoint', 'cooling_setpoint']
+      (1..8760).to_a.each do |i|
+        csv << [68, 78]
+      end
+    end
+
+    return setpoints_path
   end
 end
 
