@@ -70,6 +70,7 @@ class HVAC
       htg_cfm = heating_system.heating_airflow_cfm
       if is_heatpump
         supp_max_temp = htg_ap.supp_max_temp
+
         # Heating Coil
         htg_coil = create_dx_heating_coil(model, obj_name, heating_system)
 
@@ -1546,9 +1547,7 @@ class HVAC
     efficiency = heat_pump.backup_heating_efficiency_afue if efficiency.nil?
 
     if fuel.nil?
-      fuel = HPXML::FuelTypeElectricity
-      capacity = 0.0
-      efficiency = 1.0
+      return
     end
 
     if fuel == HPXML::FuelTypeElectricity
@@ -1638,7 +1637,9 @@ class HVAC
     else
       air_loop_unitary.setSupplementalHeatingCoil(htg_supp_coil)
       air_loop_unitary.setMaximumSupplyAirTemperature(UnitConversions.convert(200.0, 'F', 'C')) # higher temp for supplemental heat as to not severely limit its use, resulting in unmet hours.
-      air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(UnitConversions.convert(supp_max_temp, 'F', 'C'))
+      if not supp_max_temp.nil?
+        air_loop_unitary.setMaximumOutdoorDryBulbTemperatureforSupplementalHeaterOperation(UnitConversions.convert(supp_max_temp, 'F', 'C'))
+      end
     end
     air_loop_unitary.setSupplyAirFlowRateWhenNoCoolingorHeatingisRequired(0)
     return air_loop_unitary
@@ -3583,7 +3584,7 @@ class HVAC
       hp_ap.hp_min_temp = heat_pump.backup_heating_switchover_temp
       hp_ap.supp_max_temp = heat_pump.backup_heating_switchover_temp
     else
-      hp_ap.supp_max_temp = 40.0
+      hp_ap.supp_max_temp = heat_pump.backup_heating_lockout_temp
       hp_ap.hp_min_temp = -40.0
     end
   end
