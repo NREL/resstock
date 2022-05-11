@@ -1193,7 +1193,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_heating_capacity', true)
     arg.setDisplayName('Heat Pump: Heating Capacity')
-    arg.setDescription("The output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter '#{Constants.AutoMaxLoadForHP}' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating capacity retention at cold temperature. Enter '#{Constants.AutoHERSForHP}' to size the capacity equal to the maximum of heating/cooling design loads.")
+    arg.setDescription("The output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter '#{Constants.AutoMaxLoadForHP}' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating reduced capacity at cold temperature. Enter '#{Constants.AutoHERSForHP}' to size the capacity equal to the maximum of heating/cooling design loads.")
     arg.setUnits('Btu/hr')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -1253,7 +1253,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_switchover_temp', false)
     arg.setDisplayName('Heat Pump: Backup Heating Switchover Temperature')
-    arg.setDescription("The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either '#{HPXML::HeatPumpBackupTypeIntegrated}' or '#{HPXML::HeatPumpBackupTypeSeparate}'.")
+    arg.setDescription("The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit}. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either '#{HPXML::HeatPumpBackupTypeIntegrated}' or '#{HPXML::HeatPumpBackupTypeSeparate}'. Both Switchover Temperature and Lockout Temperature cannot be specified.")
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_lockout_temp', false)
+    arg.setDisplayName('Heat Pump: Backup Heating Lockout Temperature')
+    arg.setDescription("The temperature above which the backup system is disabled in order to prevent backup heating operation during, e.g., a thermostat heating setback recovery event. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Only applies if Backup Type is '#{HPXML::HeatPumpBackupTypeIntegrated}'. Both Switchover Temperature and Lockout Temperature cannot be specified.")
     arg.setUnits('deg-F')
     args << arg
 
@@ -4496,6 +4502,12 @@ class HPXMLFile
       end
     end
 
+    if args[:heat_pump_backup_type] == HPXML::HeatPumpBackupTypeIntegrated
+      if args[:heat_pump_backup_heating_lockout_temp].is_initialized
+        backup_heating_lockout_temp = args[:heat_pump_backup_heating_lockout_temp].get
+      end
+    end
+
     if args[:heat_pump_cooling_capacity] != Constants.Auto
       cooling_capacity = Float(args[:heat_pump_cooling_capacity])
     end
@@ -4560,6 +4572,7 @@ class HPXMLFile
                          backup_heating_efficiency_afue: backup_heating_efficiency_afue,
                          backup_heating_efficiency_percent: backup_heating_efficiency_percent,
                          backup_heating_switchover_temp: backup_heating_switchover_temp,
+                         backup_heating_lockout_temp: backup_heating_lockout_temp,
                          heating_efficiency_hspf: heating_efficiency_hspf,
                          cooling_efficiency_seer: cooling_efficiency_seer,
                          heating_efficiency_cop: heating_efficiency_cop,

@@ -560,8 +560,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                               'wrong-units' => ['Thickness is greater than 12 inches; this may indicate incorrect units.',
                                                 'Thickness is less than 1 inch; this may indicate incorrect units.',
                                                 'Depth is greater than 72 feet; this may indicate incorrect units.',
-                                                'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units.',
-                                                'DistanceToBottomOfWindow is greater than 12 feet; this may indicate incorrect units.'] }
+                                                'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units.'] }
 
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
