@@ -1,14 +1,14 @@
 schema_version: '0.3'
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: national_upgrades2
+output_directory: test001
 weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 20
+    n_datapoints: 100
     resample: false
     logic:
       and:
@@ -144,11 +144,22 @@ upgrades:
       - option: Infiltration|1.5 ACH50
 
 eagle:
-  n_jobs: 3
-  minutes_per_sim: 30
+  n_jobs: 5
+  minutes_per_sim: 10
   account: <account you are authorized to use>
   postprocessing:
     time: 20
     n_workers: 1
   sampling:
     time: 5
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: <bucket you are authorized to use>
+      prefix: bsb_results
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: zonalhp
+      max_crawling_time: 300 # time to wait for the crawler to complete before aborting it

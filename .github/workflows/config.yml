@@ -86,19 +86,16 @@ jobs:
           
           buildstock_docker project_national/national_upgrades.yml
           buildstock_docker project_testing/testing_upgrades.yml
-          
-          buildstock_docker project_national/national_upgrades2.yml
 
-      - name: Upload bsb results
-        uses: actions/upload-artifact@v2
-        with:
-          path: |
+      # - name: Upload bsb results
+        # uses: actions/upload-artifact@v2
+        # with:
+          # path: |
             # project_national/national_baseline
             # project_testing/testing_baseline
             # project_national/national_upgrades
             # project_testing/testing_upgrades
-            project_national/national_upgrades2
-          name: bsb_results
+          # name: bsb_results
 
       - name: Unzip results
         run: |
