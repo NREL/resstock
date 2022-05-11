@@ -961,6 +961,16 @@ class HPXMLDefaults
       heat_pump.compressor_type_isdefaulted = true
     end
 
+    # Default ASHP backup heating lockout capability
+    hpxml.heat_pumps.each do |heat_pump|
+      next if heat_pump.backup_type.nil?
+      next unless heat_pump.backup_heating_switchover_temp.nil?
+      next unless heat_pump.backup_heating_lockout_temp.nil?
+
+      heat_pump.backup_heating_lockout_temp = 40.0 # deg-F
+      heat_pump.backup_heating_lockout_temp_isdefaulted = true
+    end
+
     # Default boiler EAE
     hpxml.heating_systems.each do |heating_system|
       next unless heating_system.electric_auxiliary_energy.nil?
