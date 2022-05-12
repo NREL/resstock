@@ -134,7 +134,7 @@ HVAC equipment sizing controls are entered in ``/HPXML/SoftwareInfo/extension/HV
   .. [#] HeatPumpSizingMethodology choices are 'ACCA', 'HERS', or 'MaxLoad'.
   .. [#] If HeatPumpSizingMethodology is 'ACCA', autosized heat pumps have their nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
          If HeatPumpSizingMethodology is 'HERS', autosized heat pumps have their nominal capacity sized equal to the larger of heating/cooling design loads.
-         If HeatPumpSizingMethodology is 'MaxLoad', autosized heat pumps have their nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's capacity retention at the design temperature.
+         If HeatPumpSizingMethodology is 'MaxLoad', autosized heat pumps have their nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's reduced capacity at the design temperature.
 
 HPXML Schedules
 ***************
@@ -159,40 +159,42 @@ They can be smooth schedules, or they can reflect real-world or stochastic occup
 Detailed schedule inputs are provided via one or more CSV file that should be referenced in the HPXML file as ``/HPXML/SoftwareInfo/extension/SchedulesFilePath`` elements.
 The column names available in the schedule CSV files are:
 
-  ==============================  =====  ========================================================  ===================
-  Column Name                     Units  Description                                               Affected by Vacancy
-  ==============================  =====  ========================================================  ===================
-  ``occupants``                   frac   Occupant heat gain schedule.                              Yes
-  ``lighting_interior``           frac   Interior lighting energy use schedule.                    Yes
-  ``lighting_exterior``           frac   Exterior lighting energy use schedule.                    Yes
-  ``lighting_garage``             frac   Garage lighting energy use schedule.                      Yes
-  ``lighting_exterior_holiday``   frac   Exterior holiday lighting energy use schedule.            Yes
-  ``cooking_range``               frac   Cooking range & oven energy use schedule.                 Yes
-  ``refrigerator``                frac   Primary refrigerator energy use schedule.                 No
-  ``extra_refrigerator``          frac   Non-primary refrigerator energy use schedule.             No
-  ``freezer``                     frac   Freezer energy use schedule.                              No
-  ``dishwasher``                  frac   Dishwasher energy use schedule.                           Yes
-  ``clothes_washer``              frac   Clothes washer energy use schedule.                       Yes
-  ``clothes_dryer``               frac   Clothes dryer energy use schedule.                        Yes
-  ``ceiling_fan``                 frac   Ceiling fan energy use schedule.                          Yes
-  ``plug_loads_other``            frac   Other plug load energy use schedule.                      Yes
-  ``plug_loads_tv``               frac   Television plug load energy use schedule.                 Yes
-  ``plug_loads_vehicle``          frac   Electric vehicle plug load energy use schedule.           Yes
-  ``plug_loads_well_pump``        frac   Well pump plug load energy use schedule.                  Yes
-  ``fuel_loads_grill``            frac   Grill fuel load energy use schedule.                      Yes
-  ``fuel_loads_lighting``         frac   Lighting fuel load energy use schedule.                   Yes
-  ``fuel_loads_fireplace``        frac   Fireplace fuel load energy use schedule.                  Yes
-  ``pool_pump``                   frac   Pool pump energy use schedule.                            No
-  ``pool_heater``                 frac   Pool heater energy use schedule.                          No
-  ``hot_tub_pump``                frac   Hot tub pump energy use schedule.                         No
-  ``hot_tub_heater``              frac   Hot tub heater energy use schedule.                       No
-  ``hot_water_dishwasher``        frac   Dishwasher hot water use schedule.                        Yes
-  ``hot_water_clothes_washer``    frac   Clothes washer hot water use schedule.                    Yes
-  ``hot_water_fixtures``          frac   Fixtures (sinks, showers, baths) hot water use schedule.  Yes
-  ``heating_setpoint``            F      Thermostat heating setpoint schedule.                     No
-  ``cooling_setpoint``            F      Thermostat cooling setpoint schedule.                     No
-  ``vacancy``                     0/1    1=Home is vacant. Automatically overrides other columns.  N/A
-  ==============================  =====  ========================================================  ===================
+  ===============================  =====  ==============================================================================  ===================
+  Column Name                      Units  Description                                                                     Affected by Vacancy
+  ===============================  =====  ==============================================================================  ===================
+  ``occupants``                    frac   Occupant heat gain schedule.                                                    Yes
+  ``lighting_interior``            frac   Interior lighting energy use schedule.                                          Yes
+  ``lighting_exterior``            frac   Exterior lighting energy use schedule.                                          Yes
+  ``lighting_garage``              frac   Garage lighting energy use schedule.                                            Yes
+  ``lighting_exterior_holiday``    frac   Exterior holiday lighting energy use schedule.                                  Yes
+  ``cooking_range``                frac   Cooking range & oven energy use schedule.                                       Yes
+  ``refrigerator``                 frac   Primary refrigerator energy use schedule.                                       No
+  ``extra_refrigerator``           frac   Non-primary refrigerator energy use schedule.                                   No
+  ``freezer``                      frac   Freezer energy use schedule.                                                    No
+  ``dishwasher``                   frac   Dishwasher energy use schedule.                                                 Yes
+  ``clothes_washer``               frac   Clothes washer energy use schedule.                                             Yes
+  ``clothes_dryer``                frac   Clothes dryer energy use schedule.                                              Yes
+  ``ceiling_fan``                  frac   Ceiling fan energy use schedule.                                                Yes
+  ``plug_loads_other``             frac   Other plug load energy use schedule.                                            Yes
+  ``plug_loads_tv``                frac   Television plug load energy use schedule.                                       Yes
+  ``plug_loads_vehicle``           frac   Electric vehicle plug load energy use schedule.                                 Yes
+  ``plug_loads_well_pump``         frac   Well pump plug load energy use schedule.                                        Yes
+  ``fuel_loads_grill``             frac   Grill fuel load energy use schedule.                                            Yes
+  ``fuel_loads_lighting``          frac   Lighting fuel load energy use schedule.                                         Yes
+  ``fuel_loads_fireplace``         frac   Fireplace fuel load energy use schedule.                                        Yes
+  ``pool_pump``                    frac   Pool pump energy use schedule.                                                  No
+  ``pool_heater``                  frac   Pool heater energy use schedule.                                                No
+  ``hot_tub_pump``                 frac   Hot tub pump energy use schedule.                                               No
+  ``hot_tub_heater``               frac   Hot tub heater energy use schedule.                                             No
+  ``hot_water_dishwasher``         frac   Dishwasher hot water use schedule.                                              Yes
+  ``hot_water_clothes_washer``     frac   Clothes washer hot water use schedule.                                          Yes
+  ``hot_water_fixtures``           frac   Fixtures (sinks, showers, baths) hot water use schedule.                        Yes
+  ``heating_setpoint``             F      Thermostat heating setpoint schedule.                                           No
+  ``cooling_setpoint``             F      Thermostat cooling setpoint schedule.                                           No
+  ``water_heater_setpoint``        F      Water heater setpoint schedule.                                                 No
+  ``water_heater_operating_mode``  0/1    Heat pump water heater operating mode schedule. 0=standard, 1=heat pump only.   No
+  ``vacancy``                      0/1    Vacancy schedule. 0=occupied, 1=vacant. Automatically overrides other columns.  N/A
+  ===============================  =====  ==============================================================================  ===================
 
 Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
 Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
@@ -215,7 +217,7 @@ These default schedules are described elsewhere in the documentation (e.g., see 
 HPXML Occupancy Calculation Type
 ********************************
 
-The occupancy calculation type is entered in ``/HPXML/SoftwareInfo/extension/OccupancyCalculationType``: either "asset" or "operational".
+The occupancy calculation type is entered in ``/HPXML/SoftwareInfo/extension/OccupancyCalculationType``: either "asset" or "operational"; it defaults to "asset".
 
 If OccupancyCalculationType is "asset", various end uses (e.g., clothes washer) are calculated using number of bedrooms and/or conditioned floor area.
 
@@ -1388,30 +1390,32 @@ Each heat pump is entered as an ``/HPXML/Building/BuildingDetails/Systems/HVAC/H
 
 If a backup type of "integrated" is provided, additional information is entered in ``HeatPump``.
 
-  ========================================================================  ========  ======  ===========  ========  =========  ==========================================
-  Element                                                                   Type      Units   Constraints  Required  Default    Notes
-  ========================================================================  ========  ======  ===========  ========  =========  ==========================================
-  ``BackupSystemFuel``                                                      string            See [#]_     Yes                  Integrated backup heating fuel type
-  ``BackupAnnualHeatingEfficiency[Units="Percent" or Units="AFUE"]/Value``  double    frac    0 - 1        Yes                  Integrated backup heating efficiency
-  ``BackupHeatingCapacity``                                                 double    Btu/hr  >= 0         No        autosized  Integrated backup heating output capacity
-  ``BackupHeatingSwitchoverTemperature``                                    double    F                    No        <none>     Integrated backup heating switchover temperature [#]_
-  ========================================================================  ========  ======  ===========  ========  =========  ==========================================
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  Element                                                                        Type      Units   Constraints  Required  Default    Notes
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  ``BackupSystemFuel``                                                           string            See [#]_     Yes                  Integrated backup heating fuel type
+  ``BackupAnnualHeatingEfficiency[Units="Percent" or Units="AFUE"]/Value``       double    frac    0 - 1        Yes                  Integrated backup heating efficiency
+  ``BackupHeatingCapacity``                                                      double    Btu/hr  >= 0         No        autosized  Integrated backup heating output capacity
+  ``BackupHeatingSwitchoverTemperature`` or ``BackupHeatingLockoutTemperature``  double    F                    No        See [#]_   Integrated backup heating switchover/lockout temperature [#]_
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
 
   .. [#] BackupSystemFuel choices are "electricity", "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "wood", or "wood pellets".
-  .. [#] Provide BackupHeatingSwitchoverTemperature for a situation in which there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
-         If not provided, the backup heating system will operate as needed for hours when the heat pump has insufficient capacity.
+  .. [#] BackupHeatingLockoutTemperature defaults to 40 deg-F if neither BackupHeatingSwitchoverTemperature nor BackupHeatingLockoutTemperature are provided.
+  .. [#] Provide BackupHeatingSwitchoverTemperature for a situation where there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
+         Alternatively, provide BackupHeatingLockoutTemperature for a situation where the backup heating is disabled above a certain temperature in order to prevent backup heating operation during, e.g., a thermostat heating setback recovery event.
+         If neither provided, the backup heating system will operate as needed for hours when the heat pump has insufficient capacity.
 
 If a backup type of "separate" is provided, additional information is entered in ``HeatPump``.
 
-  ======================================  ========  ======  ===========  ========  =========  ==========================================
-  Element                                 Type      Units   Constraints  Required  Default    Notes
-  ======================================  ========  ======  ===========  ========  =========  ==========================================
-  ``BackupSystem``                        idref             See [#]_     Yes                  ID of separate backup heating system 
-  ``BackupHeatingSwitchoverTemperature``  double    F                    No        <none>     Separate backup heating system switchover temperature [#]_
-  ======================================  ========  ======  ===========  ========  =========  ==========================================
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  Element                                                                        Type      Units   Constraints  Required  Default    Notes
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
+  ``BackupSystem``                                                               idref             See [#]_     Yes                  ID of separate backup heating system 
+  ``BackupHeatingSwitchoverTemperature``                                         double    F                    No        <none>     Separate backup heating system switchover temperature [#]_
+  =============================================================================  ========  ======  ===========  ========  =========  ==========================================
   
   .. [#] BackupSystem must reference a ``HeatingSystem``.
-  .. [#] Provide BackupHeatingSwitchoverTemperature for a situation in which there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
+  .. [#] Provide BackupHeatingSwitchoverTemperature for a situation where there is a discrete outdoor temperature when the heat pump stops operating and the backup heating system starts operating.
          If not provided, the backup heating system will operate as needed for hours when the heat pump has insufficient capacity.
 
   .. note::
@@ -1612,7 +1616,8 @@ If a heating and/or cooling season is defined, additional information is entered
 
 Heating and cooling seasons, when combined, must span the entire year.
 
-Thermostat setpoints are additionally entered using either simple inputs or detailed inputs.
+Thermostat setpoints are additionally entered using either simple inputs or hourly inputs.
+Alternatively, setpoints can be defined using :ref:`detailedschedules`.
 
 Simple Inputs
 ~~~~~~~~~~~~~
@@ -1622,12 +1627,12 @@ To define simple thermostat setpoints, additional information is entered in ``HV
   =============================  ========  =======  ===========  ========  =========  ============================
   Element                        Type      Units    Constraints  Required  Default    Notes
   =============================  ========  =======  ===========  ========  =========  ============================
-  ``SetpointTempHeatingSeason``  double    F                     See [#]_             Heating setpoint temperature
-  ``SetpointTempCoolingSeason``  double    F                     See [#]_             Cooling setpoint temperature
+  ``SetpointTempHeatingSeason``  double    F                     No [#]_   68         Heating setpoint temperature
+  ``SetpointTempCoolingSeason``  double    F                     No [#]_   78         Cooling setpoint temperature
   =============================  ========  =======  ===========  ========  =========  ============================
 
-  .. [#] SetpointTempHeatingSeason only required if there is heating equipment (i.e., sum of all ``FractionHeatLoadServed`` is greater than 0).
-  .. [#] SetpointTempCoolingSeason only required if there is cooling equipment (i.e., sum of all ``FractionCoolLoadServed`` is greater than 0).
+  .. [#] SetpointTempHeatingSeason only used if there is heating equipment.
+  .. [#] SetpointTempCoolingSeason only used if there is cooling equipment.
 
 If there is a heating temperature setback, additional information is entered in ``HVACControl``.
 
@@ -1653,24 +1658,22 @@ If there is a cooling temperature setup, additional information is entered in ``
 
   .. [#] TotalSetupHoursperWeekCooling is converted to hrs/day and modeled as a temperature setup every day starting at SetupStartHourCooling.
 
-Detailed Inputs
+Hourly Inputs
 ~~~~~~~~~~~~~~~
 
-To define detailed thermostat setpoints, additional information is entered in ``HVACControl``.
+To define hourly thermostat setpoints, additional information is entered in ``HVACControl``.
 
   ===============================================  =====  =======  ===========  ========  =========  ============================================
   Element                                          Type   Units    Constraints  Required  Default    Notes
   ===============================================  =====  =======  ===========  ========  =========  ============================================
-  ``extension/WeekdaySetpointTempsHeatingSeason``  array  F                     See [#]_             24 comma-separated weekday heating setpoints
-  ``extension/WeekendSetpointTempsHeatingSeason``  array  F                     See [#]_             24 comma-separated weekend heating setpoints
-  ``extension/WeekdaySetpointTempsCoolingSeason``  array  F                     See [#]_             24 comma-separated weekday cooling setpoints
-  ``extension/WeekendSetpointTempsCoolingSeason``  array  F                     See [#]_             24 comma-separated weekend cooling setpoints
+  ``extension/WeekdaySetpointTempsHeatingSeason``  array  F                     No [#]_              24 comma-separated weekday heating setpoints
+  ``extension/WeekendSetpointTempsHeatingSeason``  array  F                     No                   24 comma-separated weekend heating setpoints
+  ``extension/WeekdaySetpointTempsCoolingSeason``  array  F                     No [#]_              24 comma-separated weekday cooling setpoints
+  ``extension/WeekendSetpointTempsCoolingSeason``  array  F                     No                   24 comma-separated weekend cooling setpoints
   ===============================================  =====  =======  ===========  ========  =========  ============================================
 
-  .. [#] WeekdaySetpointTempsHeatingSeason only required if there is heating equipment (i.e., sum of all ``FractionHeatLoadServed`` is greater than 0).
-  .. [#] WeekendSetpointTempsHeatingSeason only required if there is heating equipment (i.e., sum of all ``FractionHeatLoadServed`` is greater than 0).
-  .. [#] WeekdaySetpointTempsCoolingSeason only required if there is cooling equipment (i.e., sum of all ``FractionCoolLoadServed`` is greater than 0).
-  .. [#] WeekendSetpointTempsCoolingSeason only required if there is cooling equipment (i.e., sum of all ``FractionCoolLoadServed`` is greater than 0).
+  .. [#] WeekdaySetpointTempsHeatingSeason and WeekendSetpointTempsHeatingSeason only used if there is heating equipment.
+  .. [#] WeekdaySetpointTempsCoolingSeason and WeekendSetpointTempsCoolingSeason only used if there is cooling equipment.
 
 HPXML HVAC Distribution
 ***********************
@@ -1991,7 +1994,7 @@ If not entered, the simulation will not include water heating.
   ``WaterHeaterType``        string            See [#]_     Yes                 Type of water heater
   ``Location``               string            See [#]_     No        See [#]_  Water heater location
   ``FractionDHWLoadServed``  double   frac     0 - 1 [#]_   Yes                 Fraction of hot water load served [#]_
-  ``HotWaterTemperature``    double   F        > 0          No        125       Water heater setpoint
+  ``HotWaterTemperature``    double   F        > 0          No        125       Water heater setpoint [#]_
   ``UsesDesuperheater``      boolean                        No        false     Presence of desuperheater?
   ``NumberofUnitsServed``    integer           > 0          See [#]_            Number of dwelling units served directly or indirectly
   =========================  =======  =======  ===========  ========  ========  ================================================================
@@ -2007,6 +2010,7 @@ If not entered, the simulation will not include water heating.
   .. [#] The sum of all ``FractionDHWLoadServed`` (across all WaterHeatingSystems) must equal to 1.
   .. [#] FractionDHWLoadServed represents only the fraction of the hot water load associated with the hot water **fixtures**.
          Additional hot water load from clothes washers/dishwashers will be automatically assigned to the appropriate water heater(s).
+  .. [#] The water heater setpoint can alternatively be defined using :ref:`detailedschedules`.
   .. [#] NumberofUnitsServed only required if IsSharedSystem is true, in which case it must be > 1.
 
 Conventional Storage
@@ -2024,6 +2028,7 @@ If a conventional storage water heater is specified, additional information is e
   ``UsageBin`` or ``FirstHourRating``                               string or double   str or gal/hr  See [#]_ or > 0  No        See [#]_  EnergyGuide label usage bin/first hour rating
   ``RecoveryEfficiency``                                            double             frac           0 - 1 [#]_       No        See [#]_  Recovery efficiency
   ``WaterHeaterInsulation/Jacket/JacketRValue``                     double             F-ft2-hr/Btu   >= 0             No        0         R-value of additional tank insulation wrap
+  ``extension/TankModelType``                                       string                            See [#]_         No        mixed     Tank model type
   ================================================================  =================  =============  ===============  ========  ========  ====================================================
   
   .. [#] FuelType choices are "natural gas", "fuel oil", "fuel oil 1", "fuel oil 2", "fuel oil 4", "fuel oil 5/6", "diesel", "propane", "kerosene", "coal", "coke", "bituminous coal", "anthracite coal", "electricity", "wood", or "wood pellets".
@@ -2040,6 +2045,8 @@ If a conventional storage water heater is specified, additional information is e
          - **Electric**: 0.98
          - **Non-electric, EnergyFactor < 0.75**: 0.252 * EnergyFactor + 0.608
          - **Non-electric, EnergyFactor >= 0.75**: 0.561 * EnergyFactor + 0.439
+ 
+  .. [#] TankModelType choices are "mixed" or "stratified".
 
 Tankless
 ~~~~~~~~
@@ -2070,6 +2077,7 @@ If a heat pump water heater is specified, additional information is entered in `
   ``UniformEnergyFactor`` or ``EnergyFactor``    double            frac           > 1              Yes                 EnergyGuide label rated efficiency
   ``UsageBin`` or ``FirstHourRating``            string or double  str or gal/hr  See [#]_ or > 0  No        See [#]_  EnergyGuide label usage bin/first hour rating
   ``WaterHeaterInsulation/Jacket/JacketRValue``  double            F-ft2-hr/Btu   >= 0             No        0         R-value of additional tank insulation wrap
+  ``extension/OperatingMode``                    string                           See [#]_         No        standard  Operating mode [#]_
   =============================================  ================  =============  ===============  ========  ========  =============================================
 
   .. [#] FuelType only choice is "electricity".
@@ -2077,6 +2085,8 @@ If a heat pump water heater is specified, additional information is entered in `
   .. [#] UsageBin/FirstHourRating are only used for water heaters that use UniformEnergyFactor.
          If neither UsageBin nor FirstHourRating provided, UsageBin defaults to "medium".
          If FirstHourRating provided and UsageBin not provided, UsageBin is determined based on the FirstHourRating value.
+  .. [#] OperatingMode choices are "standard" or "heat pump only".
+  .. [#] The heat pump water heater operating mode can alternatively be defined using :ref:`detailedschedules`.
 
 Combi Boiler w/ Storage
 ~~~~~~~~~~~~~~~~~~~~~~~

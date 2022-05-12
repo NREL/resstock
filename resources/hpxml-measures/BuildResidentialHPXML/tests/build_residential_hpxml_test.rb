@@ -331,7 +331,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
 
     # Base
     if ['base-sfd.xml'].include? hpxml_file
-      args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeAsset
       args['simulation_control_timestep'] = 60
       args['weather_station_epw_filepath'] = 'USA_CO_Denver.Intl.AP.725650_TMY3.epw'
       args['site_type'] = HPXML::SiteTypeSuburban
@@ -553,7 +552,6 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['battery_location'] = 'none'
       args['battery_power'] = Constants.Auto
       args['battery_capacity'] = Constants.Auto
-      args['battery_usable_capacity'] = Constants.Auto
       args['lighting_interior_fraction_cfl'] = 0.4
       args['lighting_interior_fraction_lfl'] = 0.1
       args['lighting_interior_fraction_led'] = 0.25
