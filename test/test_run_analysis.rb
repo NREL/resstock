@@ -349,35 +349,5 @@ class TestRunAnalysis < MiniTest::Test
 
     FileUtils.rm_rf(@national_upgrades)
   end
-
-  def test_la100es_baseline
-    yml = ' -y project_la/la100es_baseline.yml'
-    @command += yml
-    @command += ' -k'
-
-    system(@command)
-
-    _test_measure_order(File.join(@la100es_baseline, 'la100es_baseline-Baseline.osw'))
-    assert(File.exist?(File.join(@la100es_baseline, 'results-Baseline.csv')))
-    results = CSV.read(File.join(@la100es_baseline, 'results-Baseline.csv'), headers: true)
-
-    _test_columns(results)
-
-    assert(File.exist?(File.join(@la100es_baseline, 'run1', 'run')))
-    contents = Dir[File.join(@la100es_baseline, 'run1', 'run/*')].collect { |x| File.basename(x) }
-
-    _test_contents(contents, false, false)
-
-    timeseries = _get_timeseries_columns(Dir[File.join(@la100es_baseline, 'run*/run/results_timeseries.csv')])
-    assert(_test_timeseries_columns(timeseries))
-
-    assert(File.exist?(File.join(@la100es_baseline, 'cli_output.log')))
-    assert(!File.read(File.join(@la100es_baseline, 'cli_output.log')).include?('ERROR'))
-
-    assert(File.exist?(File.join(@la100es_baseline, 'osw', 'Baseline', '1.osw')))
-    assert(File.exist?(File.join(@la100es_baseline, 'xml', 'Baseline', '1.xml')))
-
-    FileUtils.rm_rf(@la100es_baseline)
-  end
 end
 
