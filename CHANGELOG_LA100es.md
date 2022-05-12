@@ -1,6 +1,7 @@
 ## LA100 ES - ResStock v2.5.0 
 
 Updates: 
+- Add simulation yaml files and revive EULP visualization notebook for pre- and post-HPXML resstock comparison ([#82](https://github.com/NREL/la100es-resstock/pull/82))
 - Copy over the sampling probability script from resstock-estimation to correct bugs in previous versions of the code ([#74](https://github.com/NREL/la100es-resstock/pull/74))
 - Bring in commit history from ResStock ([#73](https://github.com/NREL/la100es-resstock/pull/73))
 - Merged PR ([#72] (https://github.com/NREL/la100es-resstock/pull/72)) with develop to complete geographic downselect. 
@@ -69,3 +70,5 @@ Updates:
 - Updated Water Heater in Unit.tsv  by downselecting to CR11 for Location Region ([#5] (https://github.com/NREL/la100es-resstock/pull/5))
 - Updated Windows.tsv by downselecting to ASHRAE Climate Zone 3B ([#2] (https://github.com/NREL/la100es-resstock/pull/2))
 - Delete contents of CHANGELOG.md
+
+Fixes
