@@ -61,6 +61,24 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     end
   end
 
+  measures = []
+  cfg['workflow_generator']['args'].each do |measure_dir_name, arguments|
+    next unless ['measures'].include?(measure_dir_name)
+
+    cfg['workflow_generator']['args']['measures'].each do |k|
+      measures << k['measure_dir_name']
+    end
+  end
+
+  reporting_measures = []
+  cfg['workflow_generator']['args'].each do |measure_dir_name, arguments|
+    next unless ['reporting_measures'].include?(measure_dir_name)
+
+    cfg['workflow_generator']['args']['reporting_measures'].each do |k|
+      reporting_measures << k['measure_dir_name']
+    end
+  end
+
   osw_paths = {}
   upgrade_names.each_with_index do |upgrade_name, upgrade_idx|
     scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
@@ -173,6 +191,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     step_idx += 1
 
     steps.insert(step_idx, { 'measure_dir_name' => 'UpgradeCosts' })
+    step_idx += 1
 
     workflow_args.each do |measure_dir_name, arguments|
       next unless ['reporting_measures'].include?(measure_dir_name)
@@ -182,7 +201,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
         if k.keys.include?('arguments')
           step['arguments'] = k['arguments']
         end
-        steps.insert(-2, step)
+        steps.insert(step_idx, step)
+        step_idx += 1
       end
     end
 
@@ -287,7 +307,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     end
 
     all_results_output[upgrade_name] = [] if !all_results_output.keys.include?(upgrade_name)
-    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures_only, debug)
+    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
 
     info = "[Parallel(n_jobs=#{n_threads})]: "
     max_size = "#{workflow_and_building_ids.size}".size
@@ -346,7 +366,7 @@ def get_elapsed_time(t1, t0)
   return t
 end
 
-def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures_only, debug)
+def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
   scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
 
   scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
@@ -364,7 +384,7 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
 
   cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{job_id}.\n"
   upgrade = upgrade_name != 'Baseline'
-  completed_status, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, cli_output, upgrade, measures_only)
+  completed_status, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, cli_output, upgrade, measures, reporting_measures, measures_only)
 
   osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
 
