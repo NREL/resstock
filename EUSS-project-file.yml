@@ -345,7 +345,7 @@ upgrades:
   - upgrade_name: Heat pump with other supplemental heating
       #homes keep their exising heating system as backup, heat pump is sized for cooling
       #assumes a control strategy where the electric heat pump is the primary heating source and the pre-existing heating system is only used as auxiliary below a pre-defined switchover temperature (41F)
-      options:
+    options:
       #ASHP SEER 15, 9.0 HSPF (30*F switchover temperature) for homes with ducts and existing central AC or HP
       - &ASHP_SEER15_9HSPF_df_for_elec_baseboard #note that while elec baseboard heating is non-ducted, a home can have elec baseboard and a ducted cooling system, so this option is included
         option:
@@ -375,7 +375,7 @@ upgrades:
             multiplier:
         lifetime:
       - &ASHP_SEER15_9HSPF_df_for_elec_wall_furnace
-              option:
+        option:
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
@@ -1212,7 +1212,7 @@ upgrades:
           - value: 1420.26
             multiplier: Fixed (1)
         lifetime: 999
-      - &elec_range_120pct
+      - &elec_induction_range_120pct
         option: Cooking Range|Electric, Induction, 120% Usage
         apply_logic:
           or:
