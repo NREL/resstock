@@ -1137,6 +1137,8 @@ class SchedulesFile
   ColumnVacancy = 'vacancy'
   ColumnHeatingSetpoint = 'heating_setpoint'
   ColumnCoolingSetpoint = 'cooling_setpoint'
+  ColumnWaterHeaterSetpoint = 'water_heater_setpoint'
+  ColumnWaterHeaterOperatingMode = 'water_heater_operating_mode'
 
   def initialize(runner: nil,
                  model: nil,
@@ -1220,6 +1222,12 @@ class SchedulesFile
         if min_value_zero[col_name]
           if values.min < 0
             fail "Schedule min value for column '#{col_name}' must be non-negative. [context: #{schedules_path}]"
+          end
+        end
+
+        if only_zeros_and_ones[col_name]
+          if values.any? { |v| v != 0 && v != 1 }
+            fail "Schedule value for column '#{col_name}' must be either 0 or 1. [context: #{schedules_path}]"
           end
         end
 
@@ -1360,7 +1368,8 @@ class SchedulesFile
   end
 
   # similar to calc_design_level_from_daily_kwh but for water usage
-  def calc_peak_flow_from_daily_gpm(col_name:, daily_water:)
+  def calc_peak_flow_from_daily_gpm(col_name:,
+                                    daily_water:)
     if @schedules[col_name].nil?
       return
     end
@@ -1418,7 +1427,7 @@ class SchedulesFile
   end
 
   def self.ColumnNames
-    return SchedulesFile.OccupancyColumnNames + SchedulesFile.SetpointColumnNames
+    return SchedulesFile.OccupancyColumnNames + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames
   end
 
   def self.OccupancyColumnNames
@@ -1453,10 +1462,31 @@ class SchedulesFile
     ]
   end
 
-  def self.SetpointColumnNames
+  def self.HVACSetpointColumnNames
     return [
       ColumnHeatingSetpoint,
       ColumnCoolingSetpoint
+    ]
+  end
+
+  def self.WaterHeaterColumnNames
+    return [
+      ColumnWaterHeaterSetpoint,
+      ColumnWaterHeaterOperatingMode
+    ]
+  end
+
+  def self.SetpointColumnNames
+    return [
+      ColumnHeatingSetpoint,
+      ColumnCoolingSetpoint,
+      ColumnWaterHeaterSetpoint
+    ]
+  end
+
+  def self.OperatingModeColumnNames
+    return [
+      ColumnWaterHeaterOperatingMode
     ]
   end
 
@@ -1471,7 +1501,7 @@ class SchedulesFile
                     ColumnPoolPump,
                     ColumnPoolHeater,
                     ColumnHotTubPump,
-                    ColumnHotTubHeater] + SchedulesFile.SetpointColumnNames).include? column_name
+                    ColumnHotTubHeater] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames).include? column_name
 
       affected_by_vacancy[column_name] = false
     end
@@ -1483,7 +1513,7 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       max_value_one[column_name] = true
-      if SchedulesFile.SetpointColumnNames.include? column_name
+      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name)
         max_value_one[column_name] = false
       end
     end
@@ -1495,10 +1525,22 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       min_value_zero[column_name] = true
-      if SchedulesFile.SetpointColumnNames.include? column_name
+      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name)
         min_value_zero[column_name] = false
       end
     end
     return min_value_zero
+  end
+
+  def only_zeros_and_ones
+    only_zeros_and_ones = { SchedulesFile::ColumnVacancy => true }
+    column_names = SchedulesFile.ColumnNames
+    column_names.each do |column_name|
+      only_zeros_and_ones[column_name] = false
+      if SchedulesFile.OperatingModeColumnNames.include?(column_name)
+        only_zeros_and_ones[column_name] = true
+      end
+    end
+    return only_zeros_and_ones
   end
 end
