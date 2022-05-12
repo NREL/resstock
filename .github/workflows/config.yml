@@ -170,18 +170,6 @@ jobs:
                     
           python test/compare.py -a timeseries -b base_results/baseline/timeseries -f results/baseline/timeseries -e test/base_results/comparisons/baseline/timeseries
           
-          mkdir test/base_results/comparisons/upgrades
-          
-          mkdir test/base_results/comparisons/upgrades/annual
-                    
-          python test/compare.py -a results -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
-          
-          python test/compare.py -a visualize -x results_output.html -b base_results/upgrades/annual -f results/upgrades/annual -e test/base_results/comparisons/upgrades/annual
-          
-          mkdir test/base_results/comparisons/upgrades/timeseries
-                    
-          python test/compare.py -a timeseries -b base_results/upgrades/timeseries -f results/upgrades/timeseries -e test/base_results/comparisons/upgrades/timeseries
-
       - name: Upload comparisons
         uses: actions/upload-artifact@v2
         with:
