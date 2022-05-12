@@ -815,7 +815,7 @@ class HVAC
 
     # only deal with deadband issue if both schedules are simple
     if heating_sch.nil? && cooling_sch.nil?
-      htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = create_setpoint_schedules(heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
+      htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = create_setpoint_schedules(runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
     end
 
     if heating_sch.nil?
@@ -836,9 +836,10 @@ class HVAC
     living_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
   end
 
-  def self.create_setpoint_schedules(heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
+  def self.create_setpoint_schedules(runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
     # Create setpoint schedules
     num_days = Constants.NumDaysInYear(year)
+    warning = false
     (0..(num_days - 1)).to_a.each do |i|
       if (heating_days[i] == 1) && (cooling_days[i] == 1) # overlap seasons
         htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
@@ -846,22 +847,29 @@ class HVAC
         clg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
         clg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
       elsif heating_days[i] == 1 # heating only seasons; cooling has minimum of heating
-        htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? h : h }
-        htg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? h : h }
+        htg_wkdy = htg_weekday_setpoints[i]
+        htg_wked = htg_weekend_setpoints[i]
         clg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? h : c }
         clg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? h : c }
       elsif cooling_days[i] == 1 # cooling only seasons; heating has maximum of cooling
         htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? c : h }
         htg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? c : h }
-        clg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? c : c }
-        clg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? c : c }
+        clg_wkdy = clg_weekday_setpoints[i]
+        clg_wked = clg_weekend_setpoints[i]
       else
         fail 'HeatingSeason and CoolingSeason, when combined, must span the entire year.'
+      end
+      if (htg_wkdy != htg_weekday_setpoints[i]) || (htg_wked != htg_weekend_setpoints[i]) || (clg_wkdy != clg_weekday_setpoints[i]) || (clg_wked != clg_weekend_setpoints[i])
+        warning = true
       end
       htg_weekday_setpoints[i] = htg_wkdy
       htg_weekend_setpoints[i] = htg_wked
       clg_weekday_setpoints[i] = clg_wkdy
       clg_weekend_setpoints[i] = clg_wked
+    end
+
+    if warning
+      runner.registerWarning('HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.')
     end
 
     return htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints

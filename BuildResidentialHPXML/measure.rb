@@ -2186,11 +2186,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('battery_usable_capacity', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('battery_usable_capacity', false)
     arg.setDisplayName('Battery: Usable Capacity')
     arg.setDescription('The usable capacity of the lithium ion battery.')
     arg.setUnits('kWh')
-    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('lighting_present', false)
@@ -5359,8 +5358,10 @@ class HPXMLFile
       nominal_capacity_kwh = Float(args[:battery_capacity])
     end
 
-    if args[:battery_usable_capacity] != Constants.Auto
-      usable_capacity_kwh = Float(args[:battery_usable_capacity])
+    if args[:battery_usable_capacity].is_initialized
+      if args[:battery_usable_capacity].get != Constants.Auto
+        usable_capacity_kwh = Float(args[:battery_usable_capacity].get)
+      end
     end
 
     hpxml.batteries.add(id: "Battery#{hpxml.batteries.size + 1}",
