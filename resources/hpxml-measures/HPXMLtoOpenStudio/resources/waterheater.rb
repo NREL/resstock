@@ -1011,11 +1011,12 @@ class Waterheater
     op_mode_schedule = nil
     if not schedules_file.nil?
       op_mode_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnWaterHeaterOperatingMode)
-      Schedule.set_schedule_type_limits(model, op_mode_schedule, Constants.ScheduleTypeLimitsFraction)
     end
 
     # Sensor on op_mode_schedule
     if not op_mode_schedule.nil?
+      Schedule.set_schedule_type_limits(model, op_mode_schedule, Constants.ScheduleTypeLimitsFraction)
+
       op_mode_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       op_mode_sensor.setName("#{obj_name_hpwh} op_mode")
       op_mode_sensor.setKeyName(op_mode_schedule.name.to_s)

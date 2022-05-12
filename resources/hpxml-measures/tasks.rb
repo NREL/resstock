@@ -141,6 +141,8 @@ def create_hpxmls
     'base-dhw-tank-heat-pump-with-solar.xml' => 'base-dhw-tank-heat-pump.xml',
     'base-dhw-tank-heat-pump-with-solar-fraction.xml' => 'base-dhw-tank-heat-pump.xml',
     'base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-heat-pump-detailed-setpoints.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-heat-pump-detailed-operating-modes.xml' => 'base-dhw-tank-heat-pump-uef.xml',
     'base-dhw-tank-heat-pump-detailed-schedules.xml' => 'base-dhw-tank-heat-pump-uef.xml',
     'base-dhw-tank-model-type-stratified.xml' => 'base.xml',
     'base-dhw-tank-detailed-setpoints.xml' => 'base.xml',
@@ -743,7 +745,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['battery_location'] = 'none'
     args['battery_power'] = Constants.Auto
     args['battery_capacity'] = Constants.Auto
-    args['battery_usable_capacity'] = Constants.Auto
     args['lighting_interior_fraction_cfl'] = 0.4
     args['lighting_interior_fraction_lfl'] = 0.1
     args['lighting_interior_fraction_led'] = 0.25
@@ -1067,7 +1068,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['battery_location'] = 'none'
     args['battery_power'] = Constants.Auto
     args['battery_capacity'] = Constants.Auto
-    args['battery_usable_capacity'] = Constants.Auto
     args['lighting_present'] = false
     args['lighting_interior_fraction_cfl'] = 0
     args['lighting_interior_fraction_lfl'] = 0
@@ -2550,7 +2550,13 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   end
 
   # Water Heater Schedules
-  if ['base-dhw-tank-heat-pump-detailed-schedules.xml'].include? hpxml_file
+  if ['base-dhw-tank-heat-pump-detailed-setpoints.xml'].include? hpxml_file
+    args['water_heater_setpoint_temperature'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv'
+  elsif ['base-dhw-tank-heat-pump-detailed-operating-modes.xml'].include? hpxml_file
+    args['water_heater_setpoint_temperature'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
+  elsif ['base-dhw-tank-heat-pump-detailed-schedules.xml'].include? hpxml_file
     args['water_heater_setpoint_temperature'] = Constants.Auto
     args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv, ../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
   elsif ['base-dhw-tank-detailed-setpoints.xml'].include? hpxml_file

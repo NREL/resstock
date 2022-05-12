@@ -1066,7 +1066,10 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
 
   def test_measure_warning_messages
     # Test case => Error message
-    all_expected_warnings = { 'schedule-file-and-weekday-weekend-multipliers' => ["Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.",
+    all_expected_warnings = { 'hvac-setpoint-adjustments' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
+                              'hvac-setpoint-adjustments-daily-setbacks' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
+                              'hvac-setpoint-adjustments-daily-schedules' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
+                              'schedule-file-and-weekday-weekend-multipliers' => ["Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'occupants' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'occupants' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'clothes_washer' schedule file and weekday fractions provided; the latter will be ignored.",
@@ -1107,7 +1110,18 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
       # Create HPXML object
-      if ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
+      if ['hvac-setpoint-adjustments'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.hvac_controls[0].heating_setpoint_temp = 76.0
+        hpxml.hvac_controls[0].cooling_setpoint_temp = 75.0
+      elsif ['hvac-setpoint-adjustments-daily-setbacks'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-setpoints-daily-setbacks.xml'))
+        hpxml.hvac_controls[0].heating_setback_temp = 76.0
+        hpxml.hvac_controls[0].cooling_setpoint_temp = 75.0
+      elsif ['hvac-setpoint-adjustments-daily-schedules'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-setpoints-daily-schedules.xml'))
+        hpxml.hvac_controls[0].weekday_heating_setpoints = '64, 64, 64, 64, 64, 64, 64, 76, 70, 66, 66, 66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 64, 64'
+      elsif ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-simple.xml'))
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
       elsif ['schedule-file-and-setpoints'].include? warning_case
