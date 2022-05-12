@@ -12,7 +12,6 @@ class HPXMLDefaults
     ncfl = hpxml.building_construction.number_of_conditioned_floors
     ncfl_ag = hpxml.building_construction.number_of_conditioned_floors_above_grade
     has_uncond_bsmnt = hpxml.has_location(HPXML::LocationBasementUnconditioned)
-    nbeds_adjusted = get_nbeds_adjusted_for_operational_calculation(hpxml)
 
     infil_volume = nil
     infil_height = nil
@@ -57,13 +56,14 @@ class HPXMLDefaults
     apply_hvac_control(hpxml, schedules_file)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds)
-    apply_water_heaters(hpxml, nbeds, eri_version)
+    apply_water_heaters(hpxml, nbeds, eri_version, schedules_file)
     apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
     apply_water_fixtures(hpxml, schedules_file)
     apply_solar_thermal_systems(hpxml)
     apply_appliances(hpxml, nbeds, eri_version, schedules_file)
     apply_lighting(hpxml, schedules_file)
     apply_ceiling_fans(hpxml, nbeds, weather, schedules_file)
+    nbeds_adjusted = get_nbeds_adjusted_for_operational_calculation(hpxml)
     apply_pools_and_hot_tubs(hpxml, cfa, nbeds_adjusted, schedules_file)
     apply_plug_loads(hpxml, cfa, nbeds_adjusted, schedules_file)
     apply_fuel_loads(hpxml, cfa, nbeds_adjusted, schedules_file)
@@ -114,6 +114,11 @@ class HPXMLDefaults
   private
 
   def self.apply_header(hpxml, epw_file)
+    if hpxml.header.occupancy_calculation_type.nil?
+      hpxml.header.occupancy_calculation_type = HPXML::OccupancyCalculationTypeAsset
+      hpxml.header.occupancy_calculation_type_isdefaulted = true
+    end
+
     if hpxml.header.timestep.nil?
       hpxml.header.timestep = 60
       hpxml.header.timestep_isdefaulted = true
@@ -1502,13 +1507,14 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_water_heaters(hpxml, nbeds, eri_version)
+  def self.apply_water_heaters(hpxml, nbeds, eri_version, schedules_file)
     hpxml.water_heating_systems.each do |water_heating_system|
       if water_heating_system.is_shared_system.nil?
         water_heating_system.is_shared_system = false
         water_heating_system.is_shared_system_isdefaulted = true
       end
-      if water_heating_system.temperature.nil?
+      schedules_file_includes_water_heater_setpoint_temp = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnWaterHeaterSetpoint)
+      if water_heating_system.temperature.nil? && !schedules_file_includes_water_heater_setpoint_temp
         water_heating_system.temperature = Waterheater.get_default_hot_water_temperature(eri_version)
         water_heating_system.temperature_isdefaulted = true
       end
@@ -1541,6 +1547,17 @@ class HPXMLDefaults
         if water_heating_system.recovery_efficiency.nil?
           water_heating_system.recovery_efficiency = Waterheater.get_default_recovery_efficiency(water_heating_system)
           water_heating_system.recovery_efficiency_isdefaulted = true
+        end
+        if water_heating_system.tank_model_type.nil?
+          water_heating_system.tank_model_type = HPXML::WaterHeaterTankModelTypeMixed
+          water_heating_system.tank_model_type_isdefaulted = true
+        end
+      end
+      if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump)
+        schedules_file_includes_water_heater_operating_mode = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnWaterHeaterOperatingMode)
+        if water_heating_system.operating_mode.nil? && !schedules_file_includes_water_heater_operating_mode
+          water_heating_system.operating_mode = HPXML::WaterHeaterOperatingModeStandard
+          water_heating_system.operating_mode_isdefaulted = true
         end
       end
       if water_heating_system.location.nil?
