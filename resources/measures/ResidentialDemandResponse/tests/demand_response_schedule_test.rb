@@ -351,7 +351,7 @@ class DemandResponseScheduleTest < MiniTest::Test
     check_num_objects(all_del_objects, expected_num_del_objects, 'deleted')
 
     dr_day = 1
-    no_dr = OpenStudio::Time.new(0, 0, 0, 0)
+    no_dr = OpenStudio::Time.new(0, 1, 0, 0)
     if ((args_hash['dr_schedule_heat'] == 'DR_schedule_h_feb.csv') ||
         (args_hash['dr_schedule_cool'] == 'DR_schedule_c_feb.csv') ||
         (args_hash['dr_schedule_heat'] == 'DR_schedule_h_feb_8760.csv') ||
@@ -362,22 +362,22 @@ class DemandResponseScheduleTest < MiniTest::Test
     end
     if ((args_hash['dr_schedule_heat'] == 'DR_schedule_overlap.csv') ||
         (args_hash['dr_schedule_cool'] == 'DR_schedule_overlap.csv'))
-      ht_dr_plus = OpenStudio::Time.new(0, 1, 0, 0)
-      ht_dr_minus = OpenStudio::Time.new(0, 2, 0, 0)
-      cl_dr_plus = OpenStudio::Time.new(0, 1, 0, 0)
-      cl_dr_minus = OpenStudio::Time.new(0, 2, 0, 0)
+      ht_dr_plus = OpenStudio::Time.new(0, 2, 0, 0)
+      ht_dr_minus = OpenStudio::Time.new(0, 3, 0, 0)
+      cl_dr_plus = OpenStudio::Time.new(0, 2, 0, 0)
+      cl_dr_minus = OpenStudio::Time.new(0, 3, 0, 0)
     else
-      ht_dr_plus = OpenStudio::Time.new(0, 1, 0, 0)
-      ht_dr_minus = OpenStudio::Time.new(0, 2, 0, 0)
-      cl_dr_plus = OpenStudio::Time.new(0, 3, 0, 0)
-      cl_dr_minus = OpenStudio::Time.new(0, 4, 0, 0)
+      ht_dr_plus = OpenStudio::Time.new(0, 2, 0, 0)
+      ht_dr_minus = OpenStudio::Time.new(0, 3, 0, 0)
+      cl_dr_plus = OpenStudio::Time.new(0, 4, 0, 0)
+      cl_dr_minus = OpenStudio::Time.new(0, 5, 0, 0)
     end
     if osm_file_or_model == 'SFD_70heat_75cool_2wkdy_offset_12mo_seasons.osm'
       check_month = 1
       wkday = 1
       wknd_day = 6
-      offset_hour = OpenStudio::Time.new(0, 0, 0, 0)
-      no_offset_hour = OpenStudio::Time.new(0, 1, 0, 0)
+      offset_hour = OpenStudio::Time.new(0, 1, 0, 0)
+      no_offset_hour = OpenStudio::Time.new(0, 2, 0, 0)
     end
 
     all_new_objects.each do |obj_type, new_objects|

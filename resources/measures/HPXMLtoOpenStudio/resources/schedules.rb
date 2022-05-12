@@ -922,7 +922,7 @@ class Schedule
     return annual_flh
   end
 
-  def self.fixedinterval_to_ruleset(model, hrly_sched, sch_name, winter_design_day_sch=nil, summer_design_day_sch=nil)
+  def self.fixedinterval_to_ruleset(model, int_sched, sch_name, winter_design_day_sch=nil, summer_design_day_sch=nil)
     # Returns schedule rules from a fixed interval object (60 min interval only)
     year_description = model.getYearDescription
     assumed_year = year_description.assumedYear
@@ -930,53 +930,54 @@ class Schedule
     run_period_start = Time.new(assumed_year, run_period.getBeginMonth, run_period.getBeginDayOfMonth)
     run_period_end = Time.new(assumed_year, run_period.getEndMonth, run_period.getEndDayOfMonth, 24)
     start_day = run_period_start.yday
-    
-    hrly_sched = hrly_sched.timeSeries.values
-    timesteps = hrly_sched.length
-    ts_per_hr = model.getTimestep.numberOfTimestepsPerHour
+    int_sched = int_sched.timeSeries.values
+
+    timesteps = int_sched.length
     hrs = (run_period_end - run_period_start) / 3600
+    ts_per_hr = (int_sched.length/hrs).to_i
     sim_timesteps = hrs*ts_per_hr
-
     days = hrs / 24
-    time = []
-
     ts_per_day = 24 * ts_per_hr
-    for ts in 1..(ts_per_day+1)
-      mins = ((ts-1) % ts_per_hr)*(60 / ts_per_hr)
-      h = ((ts-1)/ts_per_hr).to_i
+
+    # OS time array for one day
+    time = []
+    for ts in 0..(ts_per_day)
+      mins = ((ts) % ts_per_hr)*(60 / ts_per_hr)
+      h = ((ts)/ts_per_hr).to_i
       time[ts] = OpenStudio::Time.new(0, h, mins, 0)
     end
-  
+
     schedule = OpenStudio::Model::ScheduleRuleset.new(model)
     schedule.setName(sch_name + ' ruleset')
-    previous_value = hrly_sched[0]
     day_rule_prev = OpenStudio::Model::ScheduleRule.new(schedule)
     day_rule_prev.setName('DUMMY')
     day_sched_prev = day_rule_prev.daySchedule
     day_sched_prev.setName('DUMMY')
 
-    for day in start_day..start_day + days - 1
+    (start_day..start_day + days - 1).each_with_index do |day, day_ct|
       day_rule = OpenStudio::Model::ScheduleRule.new(schedule)
       day_rule.setName("#{sch_name} rule day #{day}")
       day_sched = day_rule.daySchedule
       day_sched.setName("#{sch_name} day schedule")
-      day_ct = day - start_day + 1
+      previous_value = int_sched[(day_ct * 24)]
+      ts_yr = day_ct * ts_per_day # ts of year
 
-      previous_value = hrly_sched[((day_ct - 1) * 24)]
-      ts_yr = (day_ct - 1) * ts_per_day # ts of year
       for ts in 1..ts_per_day
-        hrly_idx = ((ts_yr)/ts_per_hr).to_i
         ts_yr += 1
-        next if (ts != ts_per_day) && (hrly_sched[hrly_idx] == previous_value)
+        if ts_yr == int_sched.length
+          day_sched.addValue(time[ts], previous_value)
+          next
+        end
+        next if (ts != ts_per_day) && (int_sched[ts_yr] == previous_value)
 
         if ts == ts_per_day
-          day_sched.addValue(time[ts+1], previous_value)
+          day_sched.addValue(time[ts], previous_value)
         else
-          day_sched.addValue(time[ts-1], previous_value)
+          day_sched.addValue(time[ts], previous_value)
         end        
 
         if ts_yr != sim_timesteps - 1 
-          previous_value = hrly_sched[hrly_idx]
+          previous_value = int_sched[ts_yr]
         end
       end
 
@@ -986,7 +987,7 @@ class Schedule
         day_rule.setStartDate(sdate)
         day_rule.setEndDate(edate)
 
-        if day_ct == 1
+        if day_ct == 0
           day_sched_prev.remove
           day_rule_prev.remove
         end
