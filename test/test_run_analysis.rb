@@ -179,6 +179,19 @@ class TestRunAnalysis < MiniTest::Test
     FileUtils.rm_rf(@testing_baseline)
   end
 
+  def test_relative_weather_files_path
+    yml = ' -y test/tests_yml_files/yml_relative_weather_path/testing_baseline.yml'
+    @command += yml
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'run2')))
+
+    FileUtils.rm_rf(@testing_baseline)
+  end
+
   def test_testing_baseline
     yml = ' -y project_testing/testing_baseline.yml'
     @command += yml

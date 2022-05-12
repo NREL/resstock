@@ -227,7 +227,11 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     elsif cfg.keys.include?('weather_files_path')
       Dir.mkdir(weather_dir)
 
-      weather_files_path = File.join(thisdir, '..', File.dirname(yml), cfg['weather_files_path'])
+      weather_files_path = cfg['weather_files_path']
+
+      if !(Pathname.new weather_files_path).absolute?
+        weather_files_path = File.absolute_path(File.join(File.dirname(yml), weather_files_path))
+      end
     else
       fail "Must include 'weather_files_url' or 'weather_files_path' in yml."
     end
