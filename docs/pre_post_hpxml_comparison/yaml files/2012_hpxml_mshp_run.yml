@@ -1,0 +1,106 @@
+### resstock (post-HPXML) SHA: 5f3f50fce1f45bc69fd60ad0f2276c464d4ba717
+### BSB version: dev-epresent-hpxml (OS v3.3.0) <--- this version still has the wrong sample_weight calculation
+schema_version: '0.3'
+buildstock_directory: ../resstock # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /projects/la100/phase2_la100es/2012_hpxml_mshp_run # <---
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2012_FIPS.zip
+
+baseline:
+  n_buildings_represented: 1493108 # LA city: https://planning.lacity.org/resources/demographics
+
+sampler:
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 5000
+    resample: true
+    logic:
+      - or:
+        - PUMA|CA, 03705
+        - PUMA|CA, 03706
+        - PUMA|CA, 03707
+        - PUMA|CA, 03708
+        - PUMA|CA, 03720
+        - PUMA|CA, 03721 
+        - PUMA|CA, 03722
+        - PUMA|CA, 03723
+        - PUMA|CA, 03724
+        - PUMA|CA, 03725 
+        - PUMA|CA, 03726 
+        - PUMA|CA, 03727 
+        - PUMA|CA, 03728 
+        - PUMA|CA, 03729
+        - PUMA|CA, 03730 
+        - PUMA|CA, 03731 
+        - PUMA|CA, 03732 
+        - PUMA|CA, 03733 
+        - PUMA|CA, 03734
+        - PUMA|CA, 03735
+        - PUMA|CA, 03736  
+        - PUMA|CA, 03744 
+        - PUMA|CA, 03745 
+        - PUMA|CA, 03746 
+        - PUMA|CA, 03747 
+        - PUMA|CA, 03748
+        - PUMA|CA, 03750 
+        - PUMA|CA, 03751 
+        - PUMA|CA, 03758
+        - PUMA|CA, 03767  
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 15
+      simulation_control_run_period_calendar_year: 2012
+
+    simulation_output_report:
+      timeseries_frequency: timestep
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: false
+      include_timeseries_total_loads: true
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+eagle:
+  n_jobs: 4
+  minutes_per_sim: 2
+  account: la100
+  postprocessing:
+    time: 30
+    n_workers: 1
+  sampling:
+    time: 10
+
+postprocessing:
+  keep_individual_timeseries: true  # default false if omitted
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: la-100
+      prefix: pre_post_hpxml_comparison
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: la-100
+      max_crawling_time: 300 #time to wait for the crawler to complete before aborting it
+
+upgrades:
+  - upgrade_name: Window AC to Min-eff MSHP
+    options:
+      - option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+        apply_logic:
+          - or:
+            - HVAC Cooling Efficiency|Room AC, EER 8.5
+            - HVAC Cooling Efficiency|Room AC, EER 9.8
+            - HVAC Cooling Efficiency|Room AC, EER 10.7
+            - HVAC Cooling Efficiency|Room AC, EER 12.0
+
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 0
