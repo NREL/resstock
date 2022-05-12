@@ -48,7 +48,8 @@ class ScheduleGenerator
       @schedules[col_name] = Array.new(@total_days_in_year * @steps_in_day, 0.0)
     end
 
-    return @schedules
+    @schedules['nighttime'] = Array.new(@total_days_in_year * @steps_in_day, 0.0)
+    @schedules['daytime_unoccupied'] = Array.new(@total_days_in_year * @steps_in_day, 0.0)
   end
 
   def schedules
@@ -98,6 +99,8 @@ class ScheduleGenerator
     create_average_pool_heater
     create_average_hot_tub_pump
     create_average_hot_tub_heater
+    create_average_nighttime
+    create_average_daytime_unoccupied
   end
 
   def create_average_occupants
@@ -201,6 +204,16 @@ class ScheduleGenerator
 
   def create_average_hot_tub_heater
     create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHotTubHeater, weekday_sch: Schedule.HotTubHeaterWeekdayFractions, weekend_sch: Schedule.HotTubHeaterWeekendFractions, monthly_sch: Schedule.HotTubHeaterMonthlyMultipliers)
+  end
+
+  def create_average_nighttime
+    create_timeseries_from_weekday_weekend_monthly(sch_name: 'nighttime', weekday_sch: Schedule.SleepWeekdayFractions, weekend_sch: Schedule.SleepWeekendFractions, monthly_sch: Schedule.SleepMonthlyMultipliers)
+  end
+
+  def create_average_daytime_unoccupied
+    @schedules['nighttime'].each_with_index do |nighttime, i|
+      @schedules['daytime_unoccupied'][i] = 1 if nighttime == 0 && @schedules[SchedulesFile::ColumnOccupants][i] == 0
+    end
   end
 
   def create_timeseries_from_weekday_weekend_monthly(sch_name:,
@@ -358,6 +371,7 @@ class ScheduleGenerator
 
     holiday_lighting_schedule = get_holiday_lighting_sch(holiday_lighting_schedule)
 
+    sleep_schedule = []
     away_schedule = []
     idle_schedule = []
 
@@ -371,10 +385,10 @@ class ScheduleGenerator
       @steps_in_day.times do |step|
         minute = day * 1440 + step * @minutes_per_step
         index_15 = (minute / 15).to_i
-        sleep = sum_across_occupants(all_simulated_values, 0, index_15).to_f / args[:geometry_num_occupants]
+        sleep_schedule << sum_across_occupants(all_simulated_values, 0, index_15).to_f / args[:geometry_num_occupants]
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / args[:geometry_num_occupants]
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / args[:geometry_num_occupants]
-        active_occupancy_percentage = 1 - (away_schedule[-1] + sleep)
+        active_occupancy_percentage = 1 - (away_schedule[-1] + sleep_schedule[-1])
         @schedules[SchedulesFile::ColumnPlugLoadsOther][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::ColumnLightingInterior][day * @steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::ColumnLightingExterior][day * @steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
@@ -773,6 +787,18 @@ class ScheduleGenerator
 
     @schedules[SchedulesFile::ColumnOccupants] = away_schedule.map { |i| 1.0 - i }
 
+    sleep_schedule.each_with_index do |sleep, i|
+      @schedules['nighttime'][i] = 0
+      if sleep > 0 # FIXME: good assumption?
+        @schedules['nighttime'][i] = 1
+      end
+
+      @schedules['daytime_unoccupied'][i] = 0
+      if sleep == 0 && @schedules[SchedulesFile::ColumnOccupants][i] == 0
+        @schedules['daytime_unoccupied'][i] = 1
+      end
+    end
+
     @schedules[SchedulesFile::ColumnHotWaterFixtures] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
     fixtures_peak_flow = @schedules[SchedulesFile::ColumnHotWaterFixtures].max
     @schedules[SchedulesFile::ColumnHotWaterFixtures] = @schedules[SchedulesFile::ColumnHotWaterFixtures].map { |flow| flow / fixtures_peak_flow }
@@ -959,6 +985,9 @@ class ScheduleGenerator
   end
 
   def export(schedules_path:)
+    @schedules.delete('nighttime')
+    @schedules.delete('daytime_unoccupied')
+
     CSV.open(schedules_path, 'w') do |csv|
       csv << @schedules.keys
       rows = @schedules.values.transpose

@@ -421,7 +421,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['hvac_control_cooling_weekday_setpoint'] = '76' # FIXME: set to Constants.Auto
     args['hvac_control_cooling_weekend_setpoint'] = '76' # FIXME: set to Constants.Auto
 
-    setpoints_path = create_setpoint_schedules(args)
+    setpoints_path = create_setpoint_schedules(runner, args)
     args['schedules_filepaths'] = setpoints_path
 
     # Seasons
@@ -743,9 +743,48 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     return begin_month, begin_day, end_month, end_day
   end
 
-  def create_setpoint_schedules(args)
-    # FIXME
+  def create_setpoint_schedules(runner, args)
     setpoints_path = File.expand_path('../setpoints.csv')
+
+    # create EpwFile object
+    epw_path = 'G1801630.epw'
+    if not File.exist? epw_path
+      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '../..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
+    end
+    if not File.exist? epw_path
+      runner.registerError("Could not find EPW file at '#{epw_path}'.")
+      return false
+    end
+    epw_file = OpenStudio::EpwFile.new(epw_path)
+
+    # FIXME:
+    generator_args = {}
+    generator_args[:minutes_per_step] = 60
+    generator_args[:steps_in_day] = 24 * 60 / generator_args[:minutes_per_step]
+    generator_args[:mkc_ts_per_day] = 96
+    generator_args[:mkc_ts_per_hour] = generator_args[:mkc_ts_per_day] / 24
+    calendar_year = 2007
+    generator_args[:sim_year] = calendar_year
+    generator_args[:sim_start_day] = DateTime.new(generator_args[:sim_year], 1, 1)
+    generator_args[:total_days_in_year] = Constants.NumDaysInYear(calendar_year)
+    generator_args[:state] = 'CO'
+    generator_args[:random_seed] = 1
+    generator_args[:geometry_num_occupants] = 3
+    # TODO: vacancy
+    generator_args[:schedules_type] = 'smooth'
+    generator_args[:resources_path] = File.join(File.dirname(__FILE__), '../../resources/hpxml-measures/BuildResidentialScheduleFile/resources')
+
+    schedule_generator = ScheduleGenerator.new(runner: runner, epw_file: epw_file, **generator_args)
+
+    success = schedule_generator.create(args: generator_args)
+    return false if not success
+
+    puts schedule_generator.schedules['nighttime'].sum
+    puts schedule_generator.schedules['daytime_unoccupied'].sum
+
+    # success = schedule_generator.export(schedules_path: File.expand_path('test_output.csv'))
+    # return false if not success
+    ###
 
     CSV.open(setpoints_path, 'w') do |csv|
       csv << ['heating_setpoint', 'cooling_setpoint']
