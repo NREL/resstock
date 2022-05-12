@@ -11,7 +11,7 @@ This is a human readable name for the upgrade scenario. Something like, "Replace
 Option <#>
 ==========
 
-In this field we enter the parameter and option combination to be applied. In the upgrade scenario simulations, this option will replace the option for the corresponding parameter in the baseline run. These can be found and referenced in the ``resources/options_lookup.tsv`` file in your local git repository. (You can see the most updated version `on github here <https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv>`_, but it's recommended to use your local version as it will be synchronized with your project.) The file can be opened in a spreadsheet editor like Excel for viewing. 
+In this field we enter the parameter and option combination to be applied. In the upgrade scenario simulations, this option will replace the option for the corresponding parameter in the baseline run. These can be found and referenced in the ``resources/options_lookup.tsv`` file in your local git repository. You can see the most updated version `on github here <https://github.com/NREL/resstock/blob/develop/resources/options_lookup.tsv>`_, but it's recommended to use your local version as it will be synchronized with your project. The file can be opened in a spreadsheet editor like Excel for viewing. 
 
 The text to enter in the field will be the Parameter Name followed by the Option Name separated by a pipe character.
 
@@ -61,24 +61,26 @@ Option <#> Cost <#> Multiplier
 The cost above is multiplied by this value, which is a function of the building. Since there can be multiple costs (currently 2), this permits both fixed and variable costs for upgrades that depend on the properties of the baseline house.
 
    - Fixed (1)
-   - Above-Grade Conditioned Wall Area (ft^2)
-   - Above-Grade Exterior Wall Area (ft^2)
-   - Below-Grade Wall Area (ft^2)
-   - Conditioned Floor Area (ft^2)
-   - Attic Floor Area (ft^2)
-   - Lighting Floor Area (ft^2)
+   - Wall Area, Above-Grade, Conditioned (ft^2)
+   - Wall Area, Above-Grade, Exterior (ft^2)
+   - Wall Area, Below-Grade (ft^2)
+   - Floor Area, Conditioned (ft^2)
+   - Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)
+   - Floor Area, Lighting (ft^2)
+   - Floor Area, Attic (ft^2)
+   - Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
    - Roof Area (ft^2)
    - Window Area (ft^2)
    - Door Area (ft^2)
    - Duct Unconditioned Surface Area (ft^2)
-   - Above-Grade Exterior Rim Joist Area (ft^2)
-   - Exposed Conditioned Slab Perimeter (ft)
-   - Primary HVAC Heating Capacity (kBtuh)
-   - Secondary HVAC Heating Capacity (kBtuh)
-   - Primary HVAC Cooling Capacity (kBtuh)
-   - Primary HVAC Heat Pump Backup Capacity (kBtuh)
-   - Water Heater Tank Size (gal)
-   - Mechanical Ventilation Flow Rate (cfm)
+   - Rim Joist Area, Above-Grade, Exterior (ft^2)
+   - Slab Perimeter, Exposed, Conditioned (ft)
+   - Size, Heating System Primary (kBtu/h)
+   - Size, Heating System Secondary (kBtu/h)
+   - Size, Cooling System Primary (kBtu/h)
+   - Size, Heat Pump Backup Primary (kBtu/h)
+   - Size, Water Heater (gal)
+   - Flow Rate, Mechanical Ventilation (cfm)
 
 Package Apply Logic
 ===================

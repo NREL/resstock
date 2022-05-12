@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
-if ENV['CI']
+called_from_cli = true
+begin
+  OpenStudio.getOpenStudioCLI
+rescue
+  called_from_cli = false
+end
+
+if ENV['CI'] && !called_from_cli
   begin
     require 'simplecov'
     SimpleCov.coverage_dir(File.join(Dir.getwd, 'coverage'))

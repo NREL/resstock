@@ -121,7 +121,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_types', false)
     arg.setDisplayName('Emissions: Types')
-    arg.setDescription('Types of emissions (e.g., CO2, NOx, etc.). If multiple scenarios, use a comma-separated list.')
+    arg.setDescription('Types of emissions (e.g., CO2e, NOx, etc.). If multiple scenarios, use a comma-separated list.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('emissions_electricity_folders', false)
@@ -280,6 +280,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
         measures['BuildResidentialHPXML'][0][step_value.name] = value
       end
     end
+
+    # Set additional properties
+    additional_properties = []
+    ['ceiling_insulation_r'].each do |arg_name|
+      arg_value = measures['ResStockArguments'][0][arg_name]
+      additional_properties << "#{arg_name}=#{arg_value}"
+    end
+    measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
     # Get software program used and version
     measures['BuildResidentialHPXML'][0]['software_info_program_used'] = Version.software_program_used

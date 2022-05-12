@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative '../../HPXMLtoOpenStudio/resources/minitest_helper'
 require 'openstudio'
 require 'openstudio/ruleset/ShowRunnerOutput'
 require 'minitest/autorun'
@@ -551,6 +552,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['battery_location'] = 'none'
       args['battery_power'] = Constants.Auto
       args['battery_capacity'] = Constants.Auto
+      args['battery_usable_capacity'] = Constants.Auto
       args['lighting_interior_fraction_cfl'] = 0.4
       args['lighting_interior_fraction_lfl'] = 0.1
       args['lighting_interior_fraction_led'] = 0.25
@@ -840,7 +842,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['site_time_zone_utc_offset'] = '-6'
     elsif ['extra-emissions-fossil-fuel-factors.xml'].include? hpxml_file
       args['emissions_scenario_names'] = 'Scenario1, Scenario2'
-      args['emissions_types'] = 'CO2, SO2'
+      args['emissions_types'] = 'CO2e, SO2'
       args['emissions_electricity_units'] = "#{HPXML::EmissionsScenario::UnitsKgPerMWh}, #{HPXML::EmissionsScenario::UnitsLbPerMWh}"
       args['emissions_electricity_values_or_filepaths'] = '392.6, 0.384'
       args['emissions_fossil_fuel_units'] = "#{HPXML::EmissionsScenario::UnitsLbPerMBtu}, #{HPXML::EmissionsScenario::UnitsLbPerMBtu}"
@@ -1101,7 +1103,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['emissions_scenario_names'] = 'Scenario1'
     elsif ['error-emissions-args-not-all-same-size.xml'].include? hpxml_file
       args['emissions_scenario_names'] = 'Scenario1'
-      args['emissions_types'] = 'CO2,CO2'
+      args['emissions_types'] = 'CO2e,CO2e'
       args['emissions_electricity_units'] = HPXML::EmissionsScenario::UnitsLbPerMWh
       args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_MidCase.csv'
     elsif ['error-emissions-natural-gas-args-not-all-specified.xml'].include? hpxml_file

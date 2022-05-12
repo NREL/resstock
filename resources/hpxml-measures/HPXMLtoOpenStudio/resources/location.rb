@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class Location
-  def self.apply(model, runner, weather, epw_file, hpxml)
-    apply_year(model, hpxml)
+  def self.apply(model, weather, epw_file, hpxml)
+    apply_year(model, hpxml, epw_file)
     apply_site(model, epw_file)
     apply_dst(model, hpxml)
     apply_ground_temps(model, weather)
@@ -40,7 +40,12 @@ class Location
     site.setElevation(epw_file.elevation)
   end
 
-  def self.apply_year(model, hpxml)
+  def self.apply_year(model, hpxml, epw_file)
+    n_hours = epw_file.data.size
+    if n_hours != 8784 && Date.leap?(hpxml.header.sim_calendar_year)
+      fail "Specified a leap year (#{hpxml.header.sim_calendar_year}) but weather data has #{n_hours} hours."
+    end
+
     year_description = model.getYearDescription
     year_description.setCalendarYear(hpxml.header.sim_calendar_year)
   end
