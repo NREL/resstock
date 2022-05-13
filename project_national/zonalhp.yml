@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /scratch/jrobert1/test001
+output_directory: /scratch/jrobert1/final001
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
@@ -9,7 +9,7 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 100
+    n_datapoints: 550000
     resample: false
     logic:
       and:
@@ -145,14 +145,14 @@ upgrades:
       - option: Infiltration|2 ACH50
 
 eagle:
-  n_jobs: 5
-  minutes_per_sim: 10
+  n_jobs: 25
+  minutes_per_sim: 3
   account: enduse
   postprocessing:
-    time: 20
-    n_workers: 1
+    time: 240
+    n_workers: 10
   sampling:
-    time: 5
+    time: 60
 
 postprocessing:
   aws:
