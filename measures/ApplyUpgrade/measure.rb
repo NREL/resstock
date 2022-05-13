@@ -323,6 +323,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
     measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
+    measures['ResStockArgumentsPostHPXML'] = [{}]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -406,8 +407,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
 
-    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] },
-                               measures_dir => {} }
+    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] },
+                               measures_dir => { 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'] } }
 
     upgrade_measures = measures.keys - ['ResStockArgumentsPreHPXML', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'ResStockArgumentsPostHPXML', 'HPXMLtoOpenStudio']
     upgrade_measures.each do |upgrade_measure|

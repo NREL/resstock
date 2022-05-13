@@ -262,6 +262,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
     measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
+    measures['ResStockArgumentsPostHPXML'] = [{}]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -372,15 +373,23 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
 
+    # Get registered values and pass them to ResStockArgumentsPostHPXML
+    measures['ResStockArgumentsPostHPXML'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
+
     # Specify measures to run
     if run_hescore_workflow
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
     else
-      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
     end
 
     if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
+      register_logs(runner, new_runner)
+      return false
+    end
+
+    if not apply_measures(measures_dir, { 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
       register_logs(runner, new_runner)
       return false
     end

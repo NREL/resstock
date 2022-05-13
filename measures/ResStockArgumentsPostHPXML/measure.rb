@@ -25,6 +25,11 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_csv_path', true)
+    arg.setDisplayName('Schedules: Output CSV Path')
+    arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
+    args << arg
+
     return args
   end
 
@@ -37,8 +42,10 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    # assign the user inputs to variables
+    args = get_argument_values(runner, arguments(model), user_arguments)
+
     # TODO
-    puts 'HERE0'
 
     return true
   end
