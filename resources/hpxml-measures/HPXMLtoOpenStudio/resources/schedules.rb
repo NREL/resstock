@@ -1137,6 +1137,8 @@ class SchedulesFile
   ColumnVacancy = 'vacancy'
   ColumnHeatingSetpoint = 'heating_setpoint'
   ColumnCoolingSetpoint = 'cooling_setpoint'
+  ColumnWaterHeaterSetpoint = 'water_heater_setpoint'
+  ColumnWaterHeaterOperatingMode = 'water_heater_operating_mode'
 
   def initialize(runner: nil,
                  model: nil,
@@ -1154,11 +1156,14 @@ class SchedulesFile
     set_vacancy
     convert_setpoints
 
-    tmpfile = Tempfile.new(['schedules', '.csv'])
-    @tmp_schedules_path = tmpfile.path.to_s
-    export
+    tmpdir = Dir.tmpdir
+    tmpdir = ENV['LOCAL_SCRATCH'] if ENV.keys.include?('LOCAL_SCRATCH')
+    tmpfile = Tempfile.new(['schedules', '.csv'], tmpdir)
+    tmp_schedules_path = tmpfile.path.to_s
 
-    get_external_file
+    export(tmp_schedules_path)
+
+    get_external_file(tmp_schedules_path)
   end
 
   def nil?
@@ -1220,6 +1225,12 @@ class SchedulesFile
           end
         end
 
+        if only_zeros_and_ones[col_name]
+          if values.any? { |v| v != 0 && v != 1 }
+            fail "Schedule value for column '#{col_name}' must be either 0 or 1. [context: #{schedules_path}]"
+          end
+        end
+
         valid_minutes_per_item = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
         valid_num_rows = valid_minutes_per_item.map { |min_per_item| (60.0 * num_hrs_in_year / min_per_item).to_i }
         unless valid_num_rows.include? schedule_length
@@ -1229,10 +1240,10 @@ class SchedulesFile
     end
   end
 
-  def export
-    return false if @tmp_schedules_path.nil?
+  def export(tmp_schedules_path)
+    return false if tmp_schedules_path.nil?
 
-    CSV.open(@tmp_schedules_path, 'wb') do |csv|
+    CSV.open(tmp_schedules_path, 'wb') do |csv|
       csv << @tmp_schedules.keys
       rows = @tmp_schedules.values.transpose
       rows.each do |row|
@@ -1357,7 +1368,8 @@ class SchedulesFile
   end
 
   # similar to calc_design_level_from_daily_kwh but for water usage
-  def calc_peak_flow_from_daily_gpm(col_name:, daily_water:)
+  def calc_peak_flow_from_daily_gpm(col_name:,
+                                    daily_water:)
     if @schedules[col_name].nil?
       return
     end
@@ -1371,11 +1383,16 @@ class SchedulesFile
     return peak_flow
   end
 
-  def get_external_file
-    if File.exist? @tmp_schedules_path
-      @external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, @tmp_schedules_path)
+  def get_external_file(tmp_schedules_path)
+    if File.exist? tmp_schedules_path
+      @external_file = OpenStudio::Model::ExternalFile::getExternalFile(@model, tmp_schedules_path)
       if @external_file.is_initialized
         @external_file = @external_file.get
+        # ExternalFile creates a new file, so delete our temporary one immediately if we can
+        begin
+          File.delete(tmp_schedules_path)
+        rescue
+        end
       end
     end
   end
@@ -1410,7 +1427,7 @@ class SchedulesFile
   end
 
   def self.ColumnNames
-    return SchedulesFile.OccupancyColumnNames + SchedulesFile.SetpointColumnNames
+    return SchedulesFile.OccupancyColumnNames + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames
   end
 
   def self.OccupancyColumnNames
@@ -1445,10 +1462,31 @@ class SchedulesFile
     ]
   end
 
-  def self.SetpointColumnNames
+  def self.HVACSetpointColumnNames
     return [
       ColumnHeatingSetpoint,
       ColumnCoolingSetpoint
+    ]
+  end
+
+  def self.WaterHeaterColumnNames
+    return [
+      ColumnWaterHeaterSetpoint,
+      ColumnWaterHeaterOperatingMode
+    ]
+  end
+
+  def self.SetpointColumnNames
+    return [
+      ColumnHeatingSetpoint,
+      ColumnCoolingSetpoint,
+      ColumnWaterHeaterSetpoint
+    ]
+  end
+
+  def self.OperatingModeColumnNames
+    return [
+      ColumnWaterHeaterOperatingMode
     ]
   end
 
@@ -1463,7 +1501,7 @@ class SchedulesFile
                     ColumnPoolPump,
                     ColumnPoolHeater,
                     ColumnHotTubPump,
-                    ColumnHotTubHeater] + SchedulesFile.SetpointColumnNames).include? column_name
+                    ColumnHotTubHeater] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames).include? column_name
 
       affected_by_vacancy[column_name] = false
     end
@@ -1475,7 +1513,7 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       max_value_one[column_name] = true
-      if SchedulesFile.SetpointColumnNames.include? column_name
+      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name)
         max_value_one[column_name] = false
       end
     end
@@ -1487,10 +1525,22 @@ class SchedulesFile
     column_names = SchedulesFile.ColumnNames
     column_names.each do |column_name|
       min_value_zero[column_name] = true
-      if SchedulesFile.SetpointColumnNames.include? column_name
+      if SchedulesFile.SetpointColumnNames.include?(column_name) || SchedulesFile.OperatingModeColumnNames.include?(column_name)
         min_value_zero[column_name] = false
       end
     end
     return min_value_zero
+  end
+
+  def only_zeros_and_ones
+    only_zeros_and_ones = { SchedulesFile::ColumnVacancy => true }
+    column_names = SchedulesFile.ColumnNames
+    column_names.each do |column_name|
+      only_zeros_and_ones[column_name] = false
+      if SchedulesFile.OperatingModeColumnNames.include?(column_name)
+        only_zeros_and_ones[column_name] = true
+      end
+    end
+    return only_zeros_and_ones
   end
 end
