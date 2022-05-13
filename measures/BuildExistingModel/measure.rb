@@ -237,7 +237,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures_to_ignore = args['measures_to_ignore'].get
       # core ResStock measures are those specified below
       # those should not be ignored ...
-      core_measures = ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
+      core_measures = ['ResStockArgumentsPreHPXML', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
       measures_to_ignore.split('|').each do |measure_dir|
         if core_measures.include? measure_dir
           # fail if core ResStock measure is ignored
@@ -251,8 +251,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Get the absolute paths relative to this meta measure in the run directory
-    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
-    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArgumentsPreHPXML registered argument values
+    if not apply_measures(measures_dir, { 'ResStockArgumentsPreHPXML' => measures['ResStockArgumentsPreHPXML'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
       register_logs(runner, new_runner)
       return false
     end
@@ -277,7 +277,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Set additional properties
     additional_properties = []
     ['ceiling_insulation_r'].each do |arg_name|
-      arg_value = measures['ResStockArguments'][0][arg_name]
+      arg_value = measures['ResStockArgumentsPreHPXML'][0][arg_name]
       additional_properties << "#{arg_name}=#{arg_value}"
     end
     measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
