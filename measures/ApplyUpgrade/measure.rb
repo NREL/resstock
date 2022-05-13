@@ -226,7 +226,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     measures = {}
-    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArgumentsPreHPXML registered argument values
+    new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
     if apply_package_upgrade
       system_upgrades = []
 
@@ -281,7 +281,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         return false
       end
 
-      measures['ResStockArgumentsPreHPXML'] = [{}] if !measures.keys.include?('ResStockArgumentsPreHPXML') # upgrade is via another measure
+      measures['ResStockArguments'] = [{}] if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
 
       # Add measure arguments from existing building if needed
       parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
@@ -306,7 +306,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Get the absolute paths relative to this meta measure in the run directory
-      if not apply_measures(measures_dir, { 'ResStockArgumentsPreHPXML' => measures['ResStockArgumentsPreHPXML'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+      if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         return false
       end
     end # apply_package_upgrade
@@ -339,7 +339,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Set additional properties
     additional_properties = []
     ['ceiling_insulation_r'].each do |arg_name|
-      arg_value = measures['ResStockArgumentsPreHPXML'][0][arg_name]
+      arg_value = measures['ResStockArguments'][0][arg_name]
       additional_properties << "#{arg_name}=#{arg_value}"
     end
     measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
@@ -407,10 +407,13 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
 
+    # Get registered values and pass them to ResStockArgumentsPostHPXML
+    measures['ResStockArgumentsPostHPXML'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
+
     measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] },
                                measures_dir => { 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'] } }
 
-    upgrade_measures = measures.keys - ['ResStockArgumentsPreHPXML', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'ResStockArgumentsPostHPXML', 'HPXMLtoOpenStudio']
+    upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'ResStockArgumentsPostHPXML', 'HPXMLtoOpenStudio']
     upgrade_measures.each do |upgrade_measure|
       measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
     end

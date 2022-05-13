@@ -8,11 +8,11 @@ require_relative 'resources/constants'
 require_relative '../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/meta_measure'
 
 # start the measure
-class ResStockArgumentsPreHPXML < OpenStudio::Measure::ModelMeasure
+class ResStockArguments < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
     # Measure name should be the title case of the class name.
-    return 'ResStock Arguments Pre-HPXML'
+    return 'ResStock Arguments'
   end
 
   # human readable description
@@ -22,7 +22,7 @@ class ResStockArgumentsPreHPXML < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Passes in all ResStockArgumentsPreHPXML arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.'
+    return 'Passes in all ResStockArguments arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.'
   end
 
   # define the arguments that the user will input
@@ -413,7 +413,7 @@ class ResStockArgumentsPreHPXML < OpenStudio::Measure::ModelMeasure
                ['4000+', HPXML::ResidentialTypeApartment] => 12291 }
       cfa = cfas[[args['geometry_unit_cfa_bin'], args['geometry_unit_type']]]
       if cfa.nil?
-        runner.registerError("ResStockArgumentsPreHPXML: Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
+        runner.registerError("ResStockArguments: Could not look up conditioned floor area for '#{args['geometry_unit_cfa_bin']}' and 'args['geometry_unit_type']'.")
         return false
       end
       args['geometry_unit_cfa'] = Float(cfa)
@@ -552,7 +552,7 @@ class ResStockArgumentsPreHPXML < OpenStudio::Measure::ModelMeasure
       corridor_width = 0
     end
     if corridor_width < 0
-      runner.registerError('ResStockArgumentsPreHPXML: Invalid corridor width entered.')
+      runner.registerError('ResStockArguments: Invalid corridor width entered.')
       return false
     end
 
@@ -618,11 +618,11 @@ class ResStockArgumentsPreHPXML < OpenStudio::Measure::ModelMeasure
         horiz_location = 'None'
       end
       if (unit_width > 1) && (horiz_location == 'None')
-        runner.registerError('ResStockArgumentsPreHPXML: Specified incompatible horizontal location for the corridor and unit configuration.')
+        runner.registerError('ResStockArguments: Specified incompatible horizontal location for the corridor and unit configuration.')
         return false
       end
       if (unit_width <= 2) && (horiz_location == 'Middle')
-        runner.registerError('ResStockArgumentsPreHPXML: Invalid horizontal location entered, no middle location exists.')
+        runner.registerError('ResStockArguments: Invalid horizontal location entered, no middle location exists.')
         return false
       end
 
@@ -718,7 +718,7 @@ class ResStockArgumentsPreHPXML < OpenStudio::Measure::ModelMeasure
         assembly_interior_r = (args['rim_joist_continuous_interior_r'] + uninsulated_wall_assembly_r - drywall_assembly_r) / 2.0 # parallel to floor joists
         assembly_interior_r += (args['rim_joist_assembly_interior_r']) / 2.0 # derated
       elsif args['rim_joist_continuous_interior_r'] > 0 || args['rim_joist_assembly_interior_r'] > 0
-        runner.registerError('ResStockArgumentsPreHPXML: For rim joist interior insulation, must provide both continuous and assembly R-values.')
+        runner.registerError('ResStockArguments: For rim joist interior insulation, must provide both continuous and assembly R-values.')
         return false
       else # uninsulated interior
         # rim joist assembly = siding + continuous foundation insulation + uninsulated wall - drywall
@@ -813,4 +813,4 @@ class ResStockArgumentsPreHPXML < OpenStudio::Measure::ModelMeasure
 end
 
 # register the measure to be used by the application
-ResStockArgumentsPreHPXML.new.registerWithApplication
+ResStockArguments.new.registerWithApplication
