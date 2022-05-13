@@ -8,17 +8,17 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   # human readable name
   def name
     # Measure name should be the title case of the class name.
-    return 'ResStockArgumentsPostHPXML'
+    return 'ResStock Arguments Post-HPXML'
   end
 
   # human readable description
   def description
-    return 'TODO'
+    return 'Measure that post-processes the output of the BuildResidentialHPXML and BuildResidentialScheduleFile measures.'
   end
 
   # human readable description of modeling approach
   def modeler_description
-    return 'TODO'
+    return 'Passes in all ResStockArgumentsPostHPXML arguments from the options lookup, processes them, and then modifies output of other measures.'
   end
 
   # define the arguments that the user will input
