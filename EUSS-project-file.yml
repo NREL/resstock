@@ -1067,7 +1067,7 @@ upgrades:
       #Minimum-efficiency heat pump (from package 3) for homes with non-electric heating
       #HPWH for those that currently have non-electric water heating
       - &HPWH_50gal_fuelswitch
-        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF #Will this also change any necessary other things, like water heater fuel?
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic: 
           and:
             - or: &non-elec_WH
@@ -1086,7 +1086,7 @@ upgrades:
               - Bedrooms|2
               - Bedrooms|3
         costs:
-          - value: 
+          - value: 2242 # Median installed cost for 50 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
       - &HPWH_66gal_fuelswitch
@@ -1097,7 +1097,7 @@ upgrades:
               - *non-elec_WH
             - Bedrooms|4
         costs:
-          - value: 
+          - value: 3088  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
       - &HPWH_80gal_fuelswitch
@@ -1107,7 +1107,7 @@ upgrades:
             - or: non-elec_WH
             - Bedrooms|5
         costs:
-          - value: 3828
+          - value: 3828 # Median installed cost for 80 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
       #electric resistance dryer (CEF = 2.7) for those that currently have non-electric dryers
