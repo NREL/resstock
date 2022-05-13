@@ -2,7 +2,7 @@
 
 class Constants
   def self.build_residential_hpxml_excludes
-    # don't make these BuildResidentialHPXML arguments into ResStockArguments arguments
+    # don't make these BuildResidentialHPXML arguments into ResStockArgumentsPreHPXML arguments
     return ['hpxml_path',
             'software_info_program_used',
             'software_info_program_version',
@@ -28,7 +28,7 @@ class Constants
   end
 
   def self.build_residential_schedule_file_excludes
-    # don't make these BuildResidentialScheduleFile arguments into ResStockArguments arguments
+    # don't make these BuildResidentialScheduleFile arguments into ResStockArgumentsPreHPXML arguments
     return ['hpxml_path',
             'output_csv_path',
             'hpxml_output_path']
