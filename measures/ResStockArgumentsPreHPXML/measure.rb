@@ -22,7 +22,7 @@ class ResStockArgumentsPreHPXML < OpenStudio::Measure::ModelMeasure
 
   # human readable description of modeling approach
   def modeler_description
-    return 'Passes in all arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.'
+    return 'Passes in all ResStockArgumentsPreHPXML arguments from the options lookup, processes them, and then registers values to the runner to be used by other measures.'
   end
 
   # define the arguments that the user will input
