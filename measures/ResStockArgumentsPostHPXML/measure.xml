@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments_post_hpxml</name>
   <uid>db102ce5-ac96-4ef9-90d3-abbe53478716</uid>
-  <version_id>65deddf6-23b9-4b26-910f-c52cce269bd3</version_id>
-  <version_modified>20220513T174720Z</version_modified>
+  <version_id>395ce047-d8c0-488c-82fe-645e1d67934f</version_id>
+  <version_modified>20220513T220817Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArgumentsPostHPXML</class_name>
   <display_name>ResStock Arguments Post-HPXML</display_name>
@@ -17,6 +17,62 @@
       <description>Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.</description>
       <type>String</type>
       <required>true</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_setpoint</name>
+      <display_name>Heating Setpoint: Weekday Temperature</display_name>
+      <description>Specify the weekday heating setpoint temperature.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>71</default_value>
+    </argument>
+    <argument>
+      <name>heating_setpoint_offset_nighttime</name>
+      <display_name>Setpoint Schedules: Heating Setpoint Offset Nighttime</display_name>
+      <description>The magnitude of the heating setpoint offset (setpoint is lowered) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heating_setpoint_offset_daytime_unoccupied</name>
+      <display_name>Setpoint Schedules: Heating Setpoint Offset Daytime Unoccupied</display_name>
+      <description>The magnitude of the heating setpoint offset (setpoint is lowered) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_setpoint</name>
+      <display_name>Cooling Setpoint: Weekday Temperature</display_name>
+      <description>Specify the weekday cooling setpoint temperature.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>true</required>
+      <model_dependent>false</model_dependent>
+      <default_value>76</default_value>
+    </argument>
+    <argument>
+      <name>cooling_setpoint_offset_nighttime</name>
+      <display_name>Setpoint Schedules: Cooling Setpoint Offset Nighttime</display_name>
+      <description>The magnitude of the cooling setpoint offset (setpoint is raised) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooling_setpoint_offset_daytime_unoccupied</name>
+      <display_name>Setpoint Schedules: Cooling Setpoint Offset Daytime Unoccupied</display_name>
+      <description>The magnitude of the cooling setpoint offset (setpoint is raised) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.</description>
+      <type>Double</type>
+      <units>deg-F</units>
+      <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
   </arguments>
@@ -42,7 +98,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>108FB0F6</checksum>
+      <checksum>C0369FB9</checksum>
     </file>
   </files>
 </measure>

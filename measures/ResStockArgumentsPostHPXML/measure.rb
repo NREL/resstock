@@ -30,6 +30,44 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heating_setpoint', true)
+    arg.setDisplayName('Heating Setpoint: Weekday Temperature')
+    arg.setDescription('Specify the weekday heating setpoint temperature.')
+    arg.setUnits('deg-F')
+    arg.setDefaultValue(71)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('heating_setpoint_offset_nighttime', false)
+    arg.setDisplayName('Setpoint Schedules: Heating Setpoint Offset Nighttime')
+    arg.setDescription('The magnitude of the heating setpoint offset (setpoint is lowered) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('heating_setpoint_offset_daytime_unoccupied', false)
+    arg.setDisplayName('Setpoint Schedules: Heating Setpoint Offset Daytime Unoccupied')
+    arg.setDescription('The magnitude of the heating setpoint offset (setpoint is lowered) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_setpoint', true)
+    arg.setDisplayName('Cooling Setpoint: Weekday Temperature')
+    arg.setDescription('Specify the weekday cooling setpoint temperature.')
+    arg.setUnits('deg-F')
+    arg.setDefaultValue(76)
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('cooling_setpoint_offset_nighttime', false)
+    arg.setDisplayName('Setpoint Schedules: Cooling Setpoint Offset Nighttime')
+    arg.setDescription('The magnitude of the cooling setpoint offset (setpoint is raised) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.')
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('cooling_setpoint_offset_daytime_unoccupied', false)
+    arg.setDisplayName('Setpoint Schedules: Cooling Setpoint Offset Daytime Unoccupied')
+    arg.setDescription('The magnitude of the cooling setpoint offset (setpoint is raised) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.')
+    arg.setUnits('deg-F')
+    args << arg
+
     return args
   end
 
