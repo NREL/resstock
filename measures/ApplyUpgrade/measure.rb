@@ -406,10 +406,10 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
 
-    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] },
+    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] },
                                measures_dir => {} }
 
-    upgrade_measures = measures.keys - ['ResStockArgumentsPreHPXML', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
+    upgrade_measures = measures.keys - ['ResStockArgumentsPreHPXML', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'ResStockArgumentsPostHPXML', 'HPXMLtoOpenStudio']
     upgrade_measures.each do |upgrade_measure|
       measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
     end

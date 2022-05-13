@@ -37,6 +37,9 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    # TODO
+    puts 'HERE0'
+
     return true
   end
 end

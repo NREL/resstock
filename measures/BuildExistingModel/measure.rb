@@ -237,7 +237,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures_to_ignore = args['measures_to_ignore'].get
       # core ResStock measures are those specified below
       # those should not be ignored ...
-      core_measures = ['ResStockArgumentsPreHPXML', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
+      core_measures = ['ResStockArgumentsPreHPXML', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'ResStockArgumentsPostHPXML', 'HPXMLtoOpenStudio']
       measures_to_ignore.split('|').each do |measure_dir|
         if core_measures.include? measure_dir
           # fail if core ResStock measure is ignored
@@ -377,7 +377,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
     else
-      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
     end
 
     if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
