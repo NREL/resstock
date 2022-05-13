@@ -989,7 +989,7 @@ upgrades:
     options:
       #All homes get either a 50 gal 3.45 UEF water heater, a 66 gal 3.35 UEF water heater, or a 80 gal 3.45 UEF water heater, depending on occupants or bedrooms
       - &HPWH_50gal_all
-        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF #Will this also change any necessary other things, like water heater fuel?
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic: 
           and:
             - or:
@@ -1011,7 +1011,7 @@ upgrades:
               - Bedrooms|2
               - Bedrooms|3
         costs:
-          - value: 
+          - value: 2242 # Median installed cost for 50 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
       - &HPWH_66gal_all
@@ -1034,7 +1034,7 @@ upgrades:
               - Water Heater Efficiency|Propane Tankless
             - Bedrooms|4
         costs:
-          - value: 
+          - value: 3088  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
       - &HPWH_80gal_all
@@ -1057,7 +1057,7 @@ upgrades:
               - Water Heater Efficiency|Propane Tankless
             - Bedrooms|5
         costs:
-          - value: 3828
+          - value: 3828 # Median installed cost for 80 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
   - upgrade_name: Minimum-efficiency all-electric homes
