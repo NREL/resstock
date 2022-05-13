@@ -25,7 +25,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_csv_path', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_csv_path', false)
     arg.setDisplayName('Schedules: Output CSV Path')
     arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
     args << arg
@@ -95,8 +95,29 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
 
-    # TODO
-    puts args
+    schedules = {}
+
+    schedules_path = args['output_csv_path'].get
+    columns = CSV.read(schedules_path).transpose
+    columns.each do |col|
+      col_name = col[0]
+
+      values = col[1..-1].reject { |v| v.nil? }
+
+      begin
+        values = values.map { |v| Float(v) }
+      rescue ArgumentError
+        fail "Schedule value must be numeric for column '#{col_name}'. [context: #{schedules_path}]"
+      end
+
+      if schedules.keys.include? col_name
+        fail "Schedule column name '#{col_name}' is duplicated. [context: #{schedules_path}]"
+      end
+
+      schedules[col_name] = values
+    end
+
+    puts schedules.keys
 
     return true
   end
