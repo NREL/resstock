@@ -262,7 +262,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
     measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
-    measures['ResStockArgumentsPostHPXML'] = [{}]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
