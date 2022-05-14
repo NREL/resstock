@@ -282,6 +282,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       measures['ResStockArguments'] = [{}] if !measures.keys.include?('ResStockArguments') # upgrade is via another measure
+      measures['ResStockArgumentsPostHPXML'] = [{}] if !measures.keys.include?('ResStockArgumentsPostHPXML') # upgrade is via another measure
 
       # Add measure arguments from existing building if needed
       parameters = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
