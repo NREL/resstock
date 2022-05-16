@@ -167,7 +167,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
         cooling_setpoints << cooling_setpoint + cooling_setpoint_offset_nighttime
       elsif sleep == 0 && occupants == 0 # daytime unoccupied
         heating_setpoints << heating_setpoint - heating_setpoint_offset_daytime_unoccupied
-        cooling_setpoints << cooling_setpoint - cooling_setpoint_offset_daytime_unoccupied
+        cooling_setpoints << cooling_setpoint + cooling_setpoint_offset_daytime_unoccupied
       else # no offset
         heating_setpoints << heating_setpoint
         cooling_setpoints << cooling_setpoint
