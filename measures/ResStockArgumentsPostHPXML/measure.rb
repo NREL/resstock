@@ -25,7 +25,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_path', true)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_path', false)
     arg.setDisplayName('HPXML File Path')
     arg.setDescription('Absolute/relative path of the HPXML file.')
     args << arg
@@ -101,7 +101,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     args = get_argument_values(runner, arguments(model), user_arguments)
     args = Hash[args.collect { |k, v| [k.to_sym, v] }]
 
-    hpxml_path = args[:hpxml_path]
+    hpxml_path = args[:hpxml_path].get
     unless (Pathname.new hpxml_path).absolute?
       hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
     end

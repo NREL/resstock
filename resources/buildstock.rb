@@ -425,6 +425,19 @@ def get_data_for_sample(buildstock_csv_path, building_id, runner)
   fail msg
 end
 
+def register_logs(runner, new_runner)
+  new_runner.result.warnings.each do |warning|
+    runner.registerWarning(warning.logMessage)
+  end
+  new_runner.result.info.each do |info|
+    runner.registerInfo(info.logMessage)
+  end
+  new_runner.result.errors.each do |error|
+    runner.registerError(error.logMessage)
+  end
+  return
+end
+
 class RunOSWs
   require 'csv'
   require 'json'
