@@ -63,8 +63,8 @@ upgrades:
 # ASHP
     options:
       - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
-      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF, EUSS # <-- why is a new "EUSS" option needed? Looks identical to "ASHP, SEER 15, 9.0 HSPF".
-        apply_logic: # <-- possible to use ref tags and reuse logic below to make yml easier to read?
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF # same as base option
+        apply_logic:
           - or:
             - and:
               - HVAC Has Ducts|Yes
@@ -89,7 +89,7 @@ upgrades:
             multiplier: Size, Heating System (kBtu/h)
         lifetime: &lifetime_ashp_ducted_SEER_15_9_HSPF 15
 # MSHP
-      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, EUSS # <-- check if duplicate or not (change to Max Load)
+      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load # Changed to Max Load
         apply_logic:
           - not: HVAC Cooling Type|Central AC 
           - or: 
@@ -121,7 +121,7 @@ upgrades:
 # ASHP (using a ducted MSHP to achieve high efficiency)
     options:
       - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
-      - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, EUSS # <-- check if duplicate or not
+      - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF # Base version, might need a "ducted" version once that change to develop is merged
         apply_logic:
           - or:
             - and:
@@ -155,7 +155,7 @@ upgrades:
               - HVAC Cooling Type|Central AC  
           - or: *not_ASHP_greater_than_SEER_24_13_HSPF
 # MSHP
-      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, EUSS
+      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load # changed to Max Load
         apply_logic:
           - not: HVAC Cooling Type|Central AC 
           - or: 
