@@ -62,6 +62,7 @@ upgrades:
   - upgrade_name: min efficiency heat pumps
 # ASHP
     options:
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF, EUSS # <-- why is a new "EUSS" option needed? Looks identical to "ASHP, SEER 15, 9.0 HSPF".
         apply_logic: # <-- possible to use ref tags and reuse logic below to make yml easier to read?
           - or:
@@ -79,16 +80,16 @@ upgrades:
             - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
-      - option: HVAC Cooling Efficiency|Heat Pump
-        apply_logic:
-          - or:
-            - and:
-              - HVAC Has Ducts|Yes
-              - HVAC Has Shared System|None
-            - and:
-              - HVAC Has Shared System|Heating Only
-              - HVAC Cooling Type|Central AC  
-          *ASHP_greater_than_SEER_15_9_HSPF
+      # - option: HVAC Cooling Efficiency|Heat Pump # <-- shouldn't this move up a level because it is getting applied regardless? Or are there cases when it isn't?
+        # apply_logic:
+        #   - or:
+        #     - and:
+        #       - HVAC Has Ducts|Yes
+        #       - HVAC Has Shared System|None
+        #     - and:
+        #       - HVAC Has Shared System|Heating Only
+        #       - HVAC Cooling Type|Central AC  
+        #   *ASHP_greater_than_SEER_15_9_HSPF
 # MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, EUSS
         apply_logic:
