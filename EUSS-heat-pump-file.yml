@@ -71,26 +71,23 @@ upgrades:
               - HVAC Has Shared System|None
             - and:
               - HVAC Has Shared System|Heating Only
-              - HVAC Cooling Type|Central AC  
-          &not_ASHP_greater_than_SEER_15_9_HSPF
-          - or:
+              - HVAC Cooling Type|Central AC
+          - or: &not_ASHP_greater_than_SEER_15_9_HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 16, 9.0 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 18, 9.3 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
-        &costs_ashp_ducted_SEER_15_9_HSPF
+        costs: &costs_ashp_ducted_SEER_15_9_HSPF
         # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
         # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
-        costs:
           - value: 3907.01 # for HSPF 9
             multiplier: Fixed (1)
           - value: 155.17
             multiplier: Size, Heating System (kBtu/h)
-        &lifetime_ashp_ducted_SEER_15_9_HSPF
-        lifetime: 15
+        lifetime: &lifetime_ashp_ducted_SEER_15_9_HSPF 15
 # MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, EUSS # <-- check if duplicate or not (change to Max Load)
         apply_logic:
@@ -100,28 +97,25 @@ upgrades:
             - HVAC Has Shared System|Heating Only
             - HVAC Has Shared System|Cooling Only
             - HVAC Has Shared System|Heating and Cooling
-          &not_MSHP_greater_than_SEER_15_9_HSPF
-          - or:
+          - or: &not_MSHP_greater_than_SEER_15_9_HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned
             - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
-        &costs_mshp_ductless_SEER_15_9_HSPF
+        costs: &costs_mshp_ductless_SEER_15_9_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
         # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
         # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
         # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
         # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
-        costs:
           - value: 2472.60
             multiplier: Fixed (1)
           - value: 320.42
             multiplier: Size, Heating System (kBtu/h)
-        &lifetime_mshp_ductless_SEER_15_9_HSPF
-        lifetime: 15
+        lifetime: &lifetime_mshp_ductless_SEER_15_9_HSPF 15
 
   - upgrade_name: Heat pumps, high efficiency, electric backup
 # ASHP (using a ducted MSHP to achieve high efficiency)
@@ -135,23 +129,20 @@ upgrades:
               - HVAC Has Shared System|None
             - and:
               - HVAC Has Shared System|Heating Only
-              - HVAC Cooling Type|Central AC  
-          &not_ASHP_greater_than_SEER_24_13_HSPF
-          - or:
+              - HVAC Cooling Type|Central AC
+          - or: &not_ASHP_greater_than_SEER_24_13_HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
-        &costs_mshp_ducted_SEER_24_13_HSPF
+        costs: &costs_mshp_ducted_SEER_24_13_HSPF
         # Source: Using the ASHP regression because ducted MSHP costs are more similar to ASHP costs than ductless MSHP costs. 
         # Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
         # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
         # The regression only had 3 datapoints > 11 HSPF (all < $15k); extrapolating to 13 HSPF leads to very high costs and may not be appropriate.
-        costs:
           - value: 15030.40 # for HSPF 13. Value of $9,468.70 for HSPF 11 may be a better fixed value for all highly-performance cold climate variable-speed heat pumps with HSPF 11 or higher.
             multiplier: Fixed (1)
           - value: 155.17
             multiplier: Size, Heating System (kBtu/h)
-        &lifetime_mshp_ducted_SEER_24_13_HSPF
-        lifetime: 15
+        lifetime: &lifetime_mshp_ducted_SEER_24_13_HSPF 15
 
       - option: HVAC Heating Type|Ducted Heat Pump
         apply_logic:
@@ -162,7 +153,7 @@ upgrades:
             - and:
               - HVAC Has Shared System|Heating Only
               - HVAC Cooling Type|Central AC  
-          *not_ASHP_greater_than_SEER_24_13_HSPF
+          - or: *not_ASHP_greater_than_SEER_24_13_HSPF
 # MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, EUSS
         apply_logic:
@@ -172,23 +163,20 @@ upgrades:
             - HVAC Has Shared System|Heating Only
             - HVAC Has Shared System|Cooling Only
             - HVAC Has Shared System|Heating and Cooling
-          &not_MSHP_greater_than_SEER_29_14_HSPF
-          - or:
+          - or: &not_MSHP_greater_than_SEER_29_14_HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
-        &costs_mshp_ductless_SEER_29_14_HSPF
+        costs: &costs_mshp_ductless_SEER_29_14_HSPF
         # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
         # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
         # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
         # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
         # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
-        costs:
           - value: 2820.60
             multiplier: Fixed (1)
           - value: 367.22
             multiplier: Size, Heating System (kBtu/h)
-        &lifetime_mshp_ductless_SEER_29_14_HSPF
-        lifetime: 15
+        lifetime: &lifetime_mshp_ductless_SEER_29_14_HSPF 15
 
 
   - upgrade_name: Heat pumps, min efficiency, existing fuel backup
@@ -199,8 +187,8 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
         apply_logic:
           - HVAC Has Ducts|No
@@ -214,8 +202,8 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
         apply_logic:
           - HVAC Has Ducts|No
@@ -229,8 +217,8 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
         apply_logic:
           - HVAC Has Ducts|No
@@ -245,40 +233,40 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Has Shared System|None
           - HVAC Heating Fuel|Electricity # Apply to any system with existing non-shared electric heat, including furnaces, baseboards, boilers, heat pumps
-          *not_ASHP_greater_than_SEER_15_9_HSPF
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+          - or: *not_ASHP_greater_than_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       # Existing MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Type And Fuel|Electricity MSHP
-          *not_MSHP_greater_than_SEER_15_9_HSPF
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+          - or: *not_MSHP_greater_than_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
 # Dual-Fuel (use existing separate backup)
   # Set heat pump option
   # ASHP (has boiler and existing central AC with ducts)
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Separate Backup, 41F switchover # Should this use 80/20 instead?
         apply_logic:
           - HVAC Has Ducts|Yes
-          or:
+          - or:
             - Heating Fuel|Natural Gas
             - Heating Fuel|Propane
             - Heating Fuel|Fuel Oil                        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
 
   # MSHP (no ducts)
       - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Separate Backup, 41F switchover # Should this use 80/20 instead?
         apply_logic:
           - HVAC Has Ducts|No
-          or:
+          - or:
             - Heating Fuel|Natural Gas
             - Heating Fuel|Propane
             - Heating Fuel|Fuel Oil  
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
  
   # Boilers as secondary systems
   # Set secondary boiler fuel type
@@ -345,190 +333,190 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 68% AFUE NG 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 72% AFUE NG 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 76% AFUE NG 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 80% AFUE NG 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 85% AFUE NG 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 90% AFUE NG 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 92.5% AFUE NG 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 96% AFUE NG 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 60% AFUE Propane 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 68% AFUE Propane 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 72% AFUE Propane
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 76% AFUE Propane 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 80% AFUE Propane 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 85% AFUE Propane 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 90% AFUE Propane 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 92.5% AFUE Propane 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 96% AFUE Propane 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 60% AFUE Fuel Oil 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 68% AFUE Fuel Oil 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 72% AFUE Fuel Oil 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 76% AFUE Fuel Oil 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 80% AFUE Fuel Oil 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 85% AFUE Fuel Oil 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 90% AFUE Fuel Oil 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 92.5% AFUE Fuel Oil 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 96% AFUE Fuel Oil 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       
 #### shared heating ####
       - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Shared Heating
@@ -536,8 +524,8 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Natural Gas
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
         apply_logic:
           - HVAC Has Ducts|No
@@ -554,8 +542,8 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Propane
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
         apply_logic:
           - HVAC Has Ducts|No
@@ -572,8 +560,8 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Fuel Oil
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
         apply_logic:
           - HVAC Has Ducts|No
@@ -590,8 +578,8 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Electricity
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Electricity
         apply_logic:
           - HVAC Has Ducts|No
@@ -612,8 +600,8 @@ upgrades:
           - Heating Fuel|Natural Gas
           - HVAC Has Shared System|Heating Only
           - HVAC Cooling Type|Central AC
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -636,8 +624,8 @@ upgrades:
           - Heating Fuel|Propane
           - HVAC Has Shared System|Heating Only
           - HVAC Cooling Type|Central AC
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -660,8 +648,8 @@ upgrades:
           - Heating Fuel|Fuel Oil
           - HVAC Has Shared System|Heating Only
           - HVAC Cooling Type|Central AC
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -684,8 +672,8 @@ upgrades:
           - Heating Fuel|Electricity
           - HVAC Has Shared System|Heating Only
           - HVAC Cooling Type|Central AC
-        *costs_ashp_ducted_SEER_15_9_HSPF
-        *lifetime_ashp_ducted_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Electricity
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -709,8 +697,8 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Natural Gas
           - not: HVAC Cooling Type|Central AC
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -730,8 +718,8 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Propane
           - not: HVAC Cooling Type|Central AC
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -751,8 +739,8 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Fuel Oil
           - not: HVAC Cooling Type|Central AC
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -772,8 +760,8 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Electricity
           - not: HVAC Cooling Type|Central AC
-        *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Electricity
         apply_logic:
           - HVAC Has Ducts|Yes
