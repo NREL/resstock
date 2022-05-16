@@ -70,6 +70,20 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('The version of the software program used.')
     args << arg
 
+    occupancy_calculation_type_choices = OpenStudio::StringVector.new
+    occupancy_calculation_type_choices << HPXML::OccupancyCalculationTypeAsset
+    occupancy_calculation_type_choices << HPXML::OccupancyCalculationTypeOperational
+
+    arg = OpenStudio::Measure::OSArgument.makeChoiceArgument('occupancy_calculation_type', occupancy_calculation_type_choices, false)
+    arg.setDisplayName('Occupancy Calculation Type')
+    arg.setDescription("The type of occupancy calculation type. If '#{HPXML::OccupancyCalculationTypeAsset}' is chosen, various end uses (e.g., clothes washer) are calculated using number of bedrooms and/or conditioned floor area. If '#{HPXML::OccupancyCalculationTypeOperational}' is chosen, end uses based on number of bedrooms are adjusted for the number of occupants. Defaults to '#{HPXML::OccupancyCalculationTypeAsset}'.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_filepaths', false)
+    arg.setDisplayName('Schedules: CSV File Paths')
+    arg.setDescription('Absolute/relative paths of csv files containing user-specified detailed schedules. If multiple files, use a comma-separated list.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
     arg.setDisplayName('Simulation Control: Timestep')
     arg.setUnits('min')
@@ -1179,7 +1193,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('heat_pump_heating_capacity', true)
     arg.setDisplayName('Heat Pump: Heating Capacity')
-    arg.setDescription("The output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter '#{Constants.AutoMaxLoadForHP}' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating capacity retention at cold temperature. Enter '#{Constants.AutoHERSForHP}' to size the capacity equal to the maximum of heating/cooling design loads.")
+    arg.setDescription("The output heating capacity of the heat pump. Enter '#{Constants.Auto}' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter '#{Constants.AutoMaxLoadForHP}' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating reduced capacity at cold temperature. Enter '#{Constants.AutoHERSForHP}' to size the capacity equal to the maximum of heating/cooling design loads.")
     arg.setUnits('Btu/hr')
     arg.setDefaultValue(Constants.Auto)
     args << arg
@@ -1239,7 +1253,13 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_switchover_temp', false)
     arg.setDisplayName('Heat Pump: Backup Heating Switchover Temperature')
-    arg.setDescription("The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either '#{HPXML::HeatPumpBackupTypeIntegrated}' or '#{HPXML::HeatPumpBackupTypeSeparate}'.")
+    arg.setDescription("The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit}. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either '#{HPXML::HeatPumpBackupTypeIntegrated}' or '#{HPXML::HeatPumpBackupTypeSeparate}'. Both Switchover Temperature and Lockout Temperature cannot be specified.")
+    arg.setUnits('deg-F')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_backup_heating_lockout_temp', false)
+    arg.setDisplayName('Heat Pump: Backup Heating Lockout Temperature')
+    arg.setDescription("The temperature above which the backup system is disabled in order to prevent backup heating operation during, e.g., a thermostat heating setback recovery event. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Only applies if Backup Type is '#{HPXML::HeatPumpBackupTypeIntegrated}'. Both Switchover Temperature and Lockout Temperature cannot be specified.")
     arg.setUnits('deg-F')
     args << arg
 
@@ -1319,28 +1339,28 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('HVAC Control: Heating Weekday Setpoint Schedule')
     arg.setDescription('Specify the constant or 24-hour comma-separated weekday heating setpoint schedule.')
     arg.setUnits('deg-F')
-    arg.setDefaultValue('71')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_weekend_setpoint', true)
     arg.setDisplayName('HVAC Control: Heating Weekend Setpoint Schedule')
     arg.setDescription('Specify the constant or 24-hour comma-separated weekend heating setpoint schedule.')
     arg.setUnits('deg-F')
-    arg.setDefaultValue('71')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_cooling_weekday_setpoint', true)
     arg.setDisplayName('HVAC Control: Cooling Weekday Setpoint Schedule')
     arg.setDescription('Specify the constant or 24-hour comma-separated weekday cooling setpoint schedule.')
     arg.setUnits('deg-F')
-    arg.setDefaultValue('76')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_cooling_weekend_setpoint', true)
     arg.setDisplayName('HVAC Control: Cooling Weekend Setpoint Schedule')
     arg.setDescription('Specify the constant or 24-hour comma-separated weekend cooling setpoint schedule.')
     arg.setUnits('deg-F')
-    arg.setDefaultValue('76')
+    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_season_period', false)
@@ -1828,6 +1848,24 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription("Requires that the dwelling unit has a #{HPXML::HVACTypeHeatPumpAirToAir}, #{HPXML::HVACTypeHeatPumpMiniSplit}, or #{HPXML::HVACTypeHeatPumpGroundToAir} heat pump or a #{HPXML::HVACTypeCentralAirConditioner} or #{HPXML::HVACTypeMiniSplitAirConditioner} air conditioner.")
     args << arg
 
+    water_heater_tank_model_type_choices = OpenStudio::StringVector.new
+    water_heater_tank_model_type_choices << HPXML::WaterHeaterTankModelTypeMixed
+    water_heater_tank_model_type_choices << HPXML::WaterHeaterTankModelTypeStratified
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_tank_model_type', water_heater_tank_model_type_choices, false)
+    arg.setDisplayName('Water Heater: Tank Type')
+    arg.setDescription("Type of tank model to use. The '#{HPXML::WaterHeaterTankModelTypeStratified}' tank generally provide more accurate results, but may significantly increase run time. Applies only to #{HPXML::WaterHeaterTypeStorage}.")
+    args << arg
+
+    water_heater_operating_mode_choices = OpenStudio::StringVector.new
+    water_heater_operating_mode_choices << HPXML::WaterHeaterOperatingModeStandard
+    water_heater_operating_mode_choices << HPXML::WaterHeaterOperatingModeHeatPumpOnly
+
+    arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('water_heater_operating_mode', water_heater_operating_mode_choices, false)
+    arg.setDisplayName('Water Heater: Operating Mode')
+    arg.setDescription("The water heater operating mode. The '#{HPXML::WaterHeaterOperatingModeHeatPumpOnly}' option only uses the heat pump, while '#{HPXML::WaterHeaterOperatingModeStandard}' allows the backup electric resistance to come on in high demand situations. This is ignored if a scheduled operating mode type is selected. Applies only to #{HPXML::WaterHeaterTypeHeatPump}.")
+    args << arg
+
     hot_water_distribution_system_type_choices = OpenStudio::StringVector.new
     hot_water_distribution_system_type_choices << HPXML::DHWDistTypeStandard
     hot_water_distribution_system_type_choices << HPXML::DHWDistTypeRecirc
@@ -2160,11 +2198,10 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(Constants.Auto)
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('battery_usable_capacity', true)
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('battery_usable_capacity', false)
     arg.setDisplayName('Battery: Usable Capacity')
     arg.setDescription('The usable capacity of the lithium ion battery.')
     arg.setUnits('kWh')
-    arg.setDefaultValue(Constants.Auto)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('lighting_present', false)
@@ -3431,6 +3468,13 @@ class HPXMLFile
     hpxml.header.xml_generated_by = 'BuildResidentialHPXML'
     hpxml.header.transaction = 'create'
 
+    if args[:occupancy_calculation_type].is_initialized
+      hpxml.header.occupancy_calculation_type = args[:occupancy_calculation_type].get
+    end
+    if args[:schedules_filepaths].is_initialized
+      hpxml.header.schedules_filepaths = args[:schedules_filepaths].get.split(',').map(&:strip)
+    end
+
     if args[:software_info_program_used].is_initialized
       hpxml.header.software_program_used = args[:software_info_program_used].get
     end
@@ -4489,6 +4533,12 @@ class HPXMLFile
       end
     end
 
+    if args[:heat_pump_backup_type] == HPXML::HeatPumpBackupTypeIntegrated
+      if args[:heat_pump_backup_heating_lockout_temp].is_initialized
+        backup_heating_lockout_temp = args[:heat_pump_backup_heating_lockout_temp].get
+      end
+    end
+
     if args[:heat_pump_cooling_capacity] != Constants.Auto
       cooling_capacity = Float(args[:heat_pump_cooling_capacity])
     end
@@ -4561,6 +4611,7 @@ class HPXMLFile
                          backup_heating_efficiency_afue: backup_heating_efficiency_afue,
                          backup_heating_efficiency_percent: backup_heating_efficiency_percent,
                          backup_heating_switchover_temp: backup_heating_switchover_temp,
+                         backup_heating_lockout_temp: backup_heating_lockout_temp,
                          heating_efficiency_hspf: heating_efficiency_hspf,
                          cooling_efficiency_seer: cooling_efficiency_seer,
                          heating_efficiency_cop: heating_efficiency_cop,
@@ -4747,10 +4798,16 @@ class HPXMLFile
     if hpxml.total_fraction_heat_load_served > 0
 
       if args[:hvac_control_heating_weekday_setpoint] == args[:hvac_control_heating_weekend_setpoint] && !args[:hvac_control_heating_weekday_setpoint].include?(',')
-        heating_setpoint_temp = args[:hvac_control_heating_weekday_setpoint]
+        if args[:hvac_control_heating_weekday_setpoint] != Constants.Auto
+          heating_setpoint_temp = args[:hvac_control_heating_weekday_setpoint]
+        end
       else
-        weekday_heating_setpoints = args[:hvac_control_heating_weekday_setpoint]
-        weekend_heating_setpoints = args[:hvac_control_heating_weekend_setpoint]
+        if args[:hvac_control_heating_weekday_setpoint] != Constants.Auto
+          weekday_heating_setpoints = args[:hvac_control_heating_weekday_setpoint]
+        end
+        if args[:hvac_control_heating_weekend_setpoint] != Constants.Auto
+          weekend_heating_setpoints = args[:hvac_control_heating_weekend_setpoint]
+        end
       end
 
       if args[:hvac_control_heating_season_period].is_initialized
@@ -4767,10 +4824,16 @@ class HPXMLFile
     if hpxml.total_fraction_cool_load_served > 0
 
       if args[:hvac_control_cooling_weekday_setpoint] == args[:hvac_control_cooling_weekend_setpoint] && !args[:hvac_control_cooling_weekday_setpoint].include?(',')
-        cooling_setpoint_temp = args[:hvac_control_cooling_weekday_setpoint]
+        if args[:hvac_control_cooling_weekday_setpoint] != Constants.Auto
+          cooling_setpoint_temp = args[:hvac_control_cooling_weekday_setpoint]
+        end
       else
-        weekday_cooling_setpoints = args[:hvac_control_cooling_weekday_setpoint]
-        weekend_cooling_setpoints = args[:hvac_control_cooling_weekend_setpoint]
+        if args[:hvac_control_cooling_weekday_setpoint] != Constants.Auto
+          weekday_cooling_setpoints = args[:hvac_control_cooling_weekday_setpoint]
+        end
+        if args[:hvac_control_cooling_weekend_setpoint] != Constants.Auto
+          weekend_cooling_setpoints = args[:hvac_control_cooling_weekend_setpoint]
+        end
       end
 
       if args[:ceiling_fan_quantity] != Constants.Auto
@@ -5124,6 +5187,14 @@ class HPXMLFile
       if args[:water_heater_heating_capacity] != Constants.Auto
         heating_capacity = Float(args[:water_heater_heating_capacity])
       end
+
+      if args[:water_heater_tank_model_type].is_initialized
+        tank_model_type = args[:water_heater_tank_model_type].get
+      end
+    elsif [HPXML::WaterHeaterTypeHeatPump].include? water_heater_type
+      if args[:water_heater_operating_mode].is_initialized
+        operating_mode = args[:water_heater_operating_mode].get
+      end
     end
 
     hpxml.water_heating_systems.add(id: "WaterHeatingSystem#{hpxml.water_heating_systems.size + 1}",
@@ -5143,7 +5214,9 @@ class HPXMLFile
                                     temperature: temperature,
                                     heating_capacity: heating_capacity,
                                     is_shared_system: is_shared_system,
-                                    number_of_units_served: number_of_units_served)
+                                    number_of_units_served: number_of_units_served,
+                                    tank_model_type: tank_model_type,
+                                    operating_mode: operating_mode)
   end
 
   def self.set_hot_water_distribution(hpxml, runner, args)
@@ -5307,8 +5380,10 @@ class HPXMLFile
       nominal_capacity_kwh = Float(args[:battery_capacity])
     end
 
-    if args[:battery_usable_capacity] != Constants.Auto
-      usable_capacity_kwh = Float(args[:battery_usable_capacity])
+    if args[:battery_usable_capacity].is_initialized
+      if args[:battery_usable_capacity].get != Constants.Auto
+        usable_capacity_kwh = Float(args[:battery_usable_capacity].get)
+      end
     end
 
     hpxml.batteries.add(id: "Battery#{hpxml.batteries.size + 1}",
@@ -5678,9 +5753,8 @@ class HPXMLFile
       kWh_per_year = Float(args[:misc_plug_loads_television_annual_kwh])
     end
 
-    usage_multiplier = args[:misc_plug_loads_television_usage_multiplier]
-    if usage_multiplier == 1.0
-      usage_multiplier = nil
+    if args[:misc_plug_loads_television_usage_multiplier] != 1.0
+      usage_multiplier = args[:misc_plug_loads_television_usage_multiplier]
     end
 
     hpxml.plug_loads.add(id: "PlugLoad#{hpxml.plug_loads.size + 1}",
@@ -5702,9 +5776,8 @@ class HPXMLFile
       frac_latent = Float(args[:misc_plug_loads_other_frac_latent])
     end
 
-    usage_multiplier = args[:misc_plug_loads_other_usage_multiplier]
-    if usage_multiplier == 1.0
-      usage_multiplier = nil
+    if args[:misc_plug_loads_other_usage_multiplier] != 1.0
+      usage_multiplier = args[:misc_plug_loads_other_usage_multiplier]
     end
 
     hpxml.plug_loads.add(id: "PlugLoad#{hpxml.plug_loads.size + 1}",
@@ -5722,9 +5795,8 @@ class HPXMLFile
       kWh_per_year = Float(args[:misc_plug_loads_well_pump_annual_kwh])
     end
 
-    usage_multiplier = args[:misc_plug_loads_well_pump_usage_multiplier]
-    if usage_multiplier == 1.0
-      usage_multiplier = nil
+    if args[:misc_plug_loads_well_pump_usage_multiplier] != 1.0
+      usage_multiplier = args[:misc_plug_loads_well_pump_usage_multiplier]
     end
 
     hpxml.plug_loads.add(id: "PlugLoad#{hpxml.plug_loads.size + 1}",
@@ -5740,9 +5812,8 @@ class HPXMLFile
       kWh_per_year = Float(args[:misc_plug_loads_vehicle_annual_kwh])
     end
 
-    usage_multiplier = args[:misc_plug_loads_vehicle_usage_multiplier]
-    if usage_multiplier == 1.0
-      usage_multiplier = nil
+    if args[:misc_plug_loads_vehicle_usage_multiplier] != 1.0
+      usage_multiplier = args[:misc_plug_loads_vehicle_usage_multiplier]
     end
 
     hpxml.plug_loads.add(id: "PlugLoad#{hpxml.plug_loads.size + 1}",

@@ -65,6 +65,7 @@ def create_hpxmls
     'base-bldgtype-multifamily-adjacent-to-non-freezing-space.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-adjacent-to-other-heated-space.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-adjacent-to-other-housing-unit.xml' => 'base-bldgtype-multifamily.xml',
+    'base-bldgtype-multifamily-calctype-operational.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.xml' => 'base-bldgtype-multifamily.xml',
     'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil.xml' => 'base-bldgtype-multifamily-shared-boiler-chiller-baseboard.xml',
     'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil-ducted.xml' => 'base-bldgtype-multifamily-shared-boiler-chiller-fan-coil.xml',
@@ -92,6 +93,10 @@ def create_hpxmls
     'base-bldgtype-single-family-attached.xml' => 'base.xml',
     'base-bldgtype-single-family-attached-2stories.xml' => 'base-bldgtype-single-family-attached.xml',
     'base-bldgtype-single-family-attached-atticroof-cathedral.xml' => 'base-bldgtype-single-family-attached-2stories.xml',
+    'base-calctype-operational.xml' => 'base.xml',
+    'base-calctype-operational-misc-defaults.xml' => 'base-misc-defaults.xml',
+    'base-calctype-operational-misc-loads-large-uncommon.xml' => 'base-misc-loads-large-uncommon.xml',
+    'base-calctype-operational-misc-loads-large-uncommon2.xml' => 'base-misc-loads-large-uncommon2.xml',
     'base-dhw-combi-tankless.xml' => 'base-dhw-indirect.xml',
     'base-dhw-combi-tankless-outside.xml' => 'base-dhw-combi-tankless.xml',
     'base-dhw-desuperheater.xml' => 'base-hvac-central-ac-only-1-speed.xml',
@@ -135,6 +140,13 @@ def create_hpxmls
     'base-dhw-tank-heat-pump-uef.xml' => 'base-dhw-tank-heat-pump.xml',
     'base-dhw-tank-heat-pump-with-solar.xml' => 'base-dhw-tank-heat-pump.xml',
     'base-dhw-tank-heat-pump-with-solar-fraction.xml' => 'base-dhw-tank-heat-pump.xml',
+    'base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-heat-pump-detailed-setpoints.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-heat-pump-detailed-operating-modes.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-heat-pump-detailed-schedules.xml' => 'base-dhw-tank-heat-pump-uef.xml',
+    'base-dhw-tank-model-type-stratified.xml' => 'base.xml',
+    'base-dhw-tank-detailed-setpoints.xml' => 'base.xml',
+    'base-dhw-tank-model-type-stratified-detailed-occupancy-stochastic.xml' => 'base-dhw-tank-model-type-stratified.xml',
     'base-dhw-tank-oil.xml' => 'base-dhw-tank-gas.xml',
     'base-dhw-tank-wood.xml' => 'base-dhw-tank-gas.xml',
     'base-dhw-tankless-electric.xml' => 'base.xml',
@@ -145,6 +157,7 @@ def create_hpxmls
     'base-dhw-tankless-gas-with-solar.xml' => 'base-dhw-tankless-gas.xml',
     'base-dhw-tankless-gas-with-solar-fraction.xml' => 'base-dhw-tankless-gas.xml',
     'base-dhw-tankless-propane.xml' => 'base-dhw-tankless-gas.xml',
+    'base-dhw-tankless-detailed-setpoints.xml' => 'base-dhw-tankless-gas.xml',
     'base-enclosure-2stories.xml' => 'base.xml',
     'base-enclosure-2stories-garage.xml' => 'base-enclosure-2stories.xml',
     'base-enclosure-beds-1.xml' => 'base.xml',
@@ -191,6 +204,7 @@ def create_hpxmls
     'base-hvac-air-to-air-heat-pump-1-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-2-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
@@ -282,6 +296,7 @@ def create_hpxmls
     'base-hvac-furnace-gas-central-ac-2-speed.xml' => 'base.xml',
     'base-hvac-furnace-gas-central-ac-var-speed.xml' => 'base.xml',
     'base-hvac-furnace-gas-only.xml' => 'base.xml',
+    'base-hvac-furnace-gas-only-detailed-setpoints.xml' => 'base-hvac-furnace-gas-only.xml',
     'base-hvac-furnace-gas-room-ac.xml' => 'base.xml',
     'base-hvac-furnace-oil-only.xml' => 'base-hvac-furnace-gas-only.xml',
     'base-hvac-furnace-propane-only.xml' => 'base-hvac-furnace-gas-only.xml',
@@ -316,6 +331,7 @@ def create_hpxmls
     'base-hvac-room-ac-only.xml' => 'base.xml',
     'base-hvac-room-ac-only-33percent.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-room-ac-only-ceer.xml' => 'base-hvac-room-ac-only.xml',
+    'base-hvac-room-ac-only-detailed-setpoints.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-seasons.xml' => 'base.xml',
     'base-hvac-setpoints.xml' => 'base.xml',
     'base-hvac-setpoints-daily-schedules.xml' => 'base-hvac-setpoints-daily-setbacks.xml',
@@ -370,10 +386,13 @@ def create_hpxmls
     'base-pv-battery-lifetime-model.xml' => 'base-pv-battery.xml',
     'base-pv-battery-garage.xml' => 'base-enclosure-garage.xml',
     'base-schedules-simple.xml' => 'base.xml',
-    'base-schedules-detailed-smooth.xml' => 'base.xml',
-    'base-schedules-detailed-stochastic.xml' => 'base.xml',
-    'base-schedules-detailed-stochastic-vacancy.xml' => 'base.xml',
-    'base-schedules-detailed-stochastic-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
+    'base-schedules-detailed-all-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
+    'base-schedules-detailed-occupancy-smooth.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base.xml',
+    'base-schedules-detailed-setpoints.xml' => 'base.xml',
+    'base-schedules-detailed-setpoints-daily-schedules.xml' => 'base.xml',
+    'base-schedules-detailed-setpoints-daily-setbacks.xml' => 'base.xml',
     'base-simcontrol-calendar-year-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-disabled.xml' => 'base.xml',
@@ -726,7 +745,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['battery_location'] = 'none'
     args['battery_power'] = Constants.Auto
     args['battery_capacity'] = Constants.Auto
-    args['battery_usable_capacity'] = Constants.Auto
     args['lighting_interior_fraction_cfl'] = 0.4
     args['lighting_interior_fraction_lfl'] = 0.1
     args['lighting_interior_fraction_led'] = 0.25
@@ -1050,7 +1068,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['battery_location'] = 'none'
     args['battery_power'] = Constants.Auto
     args['battery_capacity'] = Constants.Auto
-    args['battery_usable_capacity'] = Constants.Auto
     args['lighting_present'] = false
     args['lighting_interior_fraction_cfl'] = 0
     args['lighting_interior_fraction_lfl'] = 0
@@ -1433,6 +1450,31 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['water_heater_heating_capacity'] = 40000
   end
 
+  # Occ Calc Type
+  if ['base-calctype-operational.xml',
+      'base-calctype-operational-misc-loads-large-uncommon.xml',
+      'base-calctype-operational-misc-loads-large-uncommon2.xml',
+      'base-bldgtype-multifamily-calctype-operational.xml'].include? hpxml_file
+    args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeOperational
+    args['geometry_unit_num_occupants'] = 1
+    args['misc_plug_loads_television_annual_kwh'] = Constants.Auto
+    args['misc_plug_loads_other_annual_kwh'] = Constants.Auto
+    args['pool_pump_annual_kwh'] = Constants.Auto
+    args['pool_heater_annual_therm'] = Constants.Auto
+    args['pool_heater_annual_kwh'] = Constants.Auto
+    args['hot_tub_pump_annual_kwh'] = Constants.Auto
+    args['hot_tub_heater_annual_therm'] = Constants.Auto
+    args['hot_tub_heater_annual_kwh'] = Constants.Auto
+    args['misc_plug_loads_well_pump_annual_kwh'] = Constants.Auto
+    args['misc_plug_loads_vehicle_annual_kwh'] = Constants.Auto
+    args['misc_fuel_loads_grill_annual_therm'] = Constants.Auto
+    args['misc_fuel_loads_lighting_annual_therm'] = Constants.Auto
+    args['misc_fuel_loads_fireplace_annual_therm'] = Constants.Auto
+  elsif ['base-calctype-operational-misc-defaults.xml'].include? hpxml_file
+    args['occupancy_calculation_type'] = HPXML::OccupancyCalculationTypeOperational
+    args['geometry_unit_num_occupants'] = 5
+  end
+
   # DHW
   if ['base-dhw-combi-tankless.xml'].include? hpxml_file
     args['water_heater_type'] = HPXML::WaterHeaterTypeCombiTankless
@@ -1569,6 +1611,10 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['water_heater_type'] = HPXML::WaterHeaterTypeTankless
     args['water_heater_tank_volume'] = Constants.Auto
     args['water_heater_efficiency'] = 0.99
+  elsif ['base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml'].include? hpxml_file
+    args['water_heater_operating_mode'] = HPXML::WaterHeaterOperatingModeHeatPumpOnly
+  elsif ['base-dhw-tank-model-type-stratified.xml'].include? hpxml_file
+    args['water_heater_tank_model_type'] = HPXML::WaterHeaterTankModelTypeStratified
   end
 
   # Enclosure
@@ -1767,6 +1813,10 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml'].include? hpxml_file
     args['heat_pump_cooling_capacity'] = 0.0
     args['heat_pump_fraction_cool_load_served'] = 0
+  elsif ['base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml'].include? hpxml_file
+    args['hvac_control_heating_weekday_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
+    args['hvac_control_heating_weekend_setpoint'] = '64, 64, 64, 64, 64, 64, 64, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 70, 64, 64'
+    args['heat_pump_backup_heating_lockout_temp'] = 35.0
   elsif ['base-hvac-air-to-air-heat-pump-2-speed.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
     args['cooling_system_type'] = 'none'
@@ -2284,6 +2334,10 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['whole_house_fan_present'] = true
     args['whole_house_fan_flow_rate'] = Constants.Auto
     args['whole_house_fan_power'] = Constants.Auto
+    args['hvac_control_heating_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_heating_weekend_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekend_setpoint'] = Constants.Auto
   elsif ['base-misc-emissions.xml'].include? hpxml_file
     args['emissions_scenario_names'] = 'Cambium Hourly MidCase LRMER RMPA, Cambium Hourly LowRECosts LRMER RMPA, Cambium Annual MidCase AER National, eGRID RMPA, eGRID RMPA'
     args['emissions_types'] = 'CO2e, CO2e, CO2e, SO2, NOx'
@@ -2436,28 +2490,89 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['simulation_control_timestep'] = 10
   end
 
-  # Schedules
-  if ['base-schedules-detailed-stochastic.xml'].include? hpxml_file
+  # Occupancy Schedules
+  if ['base-schedules-detailed-occupancy-smooth.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'smooth'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-occupancy-stochastic.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic.csv'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-stochastic-vacancy.xml'].include? hpxml_file
+  elsif ['base-schedules-detailed-occupancy-stochastic-vacancy.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
     sch_args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic-vacancy.csv'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-vacancy.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-smooth.xml'].include? hpxml_file
-    sch_args['hpxml_path'] = args['hpxml_path']
-    sch_args['schedules_type'] = 'smooth'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/smooth.csv'
-    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
-  elsif ['base-schedules-detailed-stochastic-10-mins.xml'].include? hpxml_file
+  elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
-    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/stochastic-10-mins.csv'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  end
+
+  # Setpoint Schedules
+  if ['base-schedules-detailed-setpoints.xml'].include? hpxml_file
+    args['hvac_control_heating_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_heating_weekend_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekend_setpoint'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints.csv'
+  elsif ['base-schedules-detailed-setpoints-daily-schedules.xml'].include? hpxml_file
+    args['hvac_control_heating_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_heating_weekend_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekend_setpoint'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-daily-schedules.csv'
+  elsif ['base-schedules-detailed-setpoints-daily-setbacks.xml'].include? hpxml_file
+    args['hvac_control_heating_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_heating_weekend_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekend_setpoint'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-daily-setbacks.csv'
+  elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
+    args['hvac_control_heating_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_heating_weekend_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekend_setpoint'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-10-mins.csv'
+  elsif ['base-hvac-furnace-gas-only-detailed-setpoints.xml'].include? hpxml_file
+    args['hvac_control_heating_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_heating_weekend_setpoint'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-heating-only.csv'
+  elsif ['base-hvac-room-ac-only-detailed-setpoints.xml'].include? hpxml_file
+    args['hvac_control_cooling_weekday_setpoint'] = Constants.Auto
+    args['hvac_control_cooling_weekend_setpoint'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/setpoints-cooling-only.csv'
+  end
+
+  # Water Heater Schedules
+  if ['base-dhw-tank-heat-pump-detailed-setpoints.xml'].include? hpxml_file
+    args['water_heater_setpoint_temperature'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv'
+  elsif ['base-dhw-tank-heat-pump-detailed-operating-modes.xml'].include? hpxml_file
+    args['water_heater_setpoint_temperature'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
+  elsif ['base-dhw-tank-heat-pump-detailed-schedules.xml'].include? hpxml_file
+    args['water_heater_setpoint_temperature'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv, ../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
+  elsif ['base-dhw-tank-detailed-setpoints.xml'].include? hpxml_file
+    args['water_heater_setpoint_temperature'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv'
+  elsif ['base-dhw-tankless-detailed-setpoints.xml'].include? hpxml_file
+    args['water_heater_setpoint_temperature'] = Constants.Auto
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv'
+  elsif ['base-dhw-tank-model-type-stratified-detailed-occupancy-stochastic.xml'].include? hpxml_file
+    sch_args['hpxml_path'] = args['hpxml_path']
+    sch_args['schedules_type'] = 'stochastic'
+    sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
+    sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
+    args['water_heater_setpoint_temperature'] = Constants.Auto
+    args['schedules_filepaths'] += ', ../../HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints-10-mins.csv'
   end
 end
 

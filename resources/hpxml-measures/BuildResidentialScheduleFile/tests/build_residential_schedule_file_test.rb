@@ -29,7 +29,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     hpxml = _create_hpxml('base.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
-    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth.csv'))
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-smooth.csv'))
     model, hpxml, result = _test_measure()
 
     info_msgs = result.info.map { |x| x.logMessage }
@@ -134,7 +134,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
     @args_hash['schedules_type'] = 'stochastic'
-    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'stochastic.csv'))
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-stochastic.csv'))
     model, hpxml, result = _test_measure()
 
     info_msgs = result.info.map { |x| x.logMessage }
@@ -186,7 +186,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     @args_hash['schedules_type'] = 'stochastic'
     @args_hash['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
-    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'stochastic-vacancy.csv'))
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-stochastic-vacancy.csv'))
     model, hpxml, result = _test_measure()
 
     info_msgs = result.info.map { |x| x.logMessage }
@@ -241,7 +241,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
 
     @args_hash['schedules_type'] = 'stochastic'
     @args_hash['schedules_random_seed'] = 1
-    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'stochastic.csv'))
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-stochastic.csv'))
     model, hpxml, result = _test_measure()
 
     info_msgs = result.info.map { |x| x.logMessage }
@@ -337,7 +337,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
     @args_hash['schedules_vacancy_period'] = 'Jan 1 - Dec 31'
-    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth.csv'))
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-smooth.csv'))
     model, hpxml, result = _test_measure()
 
     info_msgs = result.info.map { |x| x.logMessage }
@@ -389,7 +389,7 @@ class BuildResidentialScheduleFileTest < Minitest::Test
     hpxml = _create_hpxml('base-simcontrol-timestep-10-mins.xml')
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
 
-    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'smooth.csv'))
+    @args_hash['output_csv_path'] = File.absolute_path(File.join(@tmp_output_path, 'occupancy-smooth.csv'))
     model, hpxml, result = _test_measure()
 
     info_msgs = result.info.map { |x| x.logMessage }

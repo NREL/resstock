@@ -1398,14 +1398,14 @@ class OSModel
 
       sys_id = water_heating_system.id
       if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage
-        plantloop_map[sys_id] = Waterheater.apply_tank(model, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system)
+        plantloop_map[sys_id] = Waterheater.apply_tank(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
-        plantloop_map[sys_id] = Waterheater.apply_tankless(model, loc_space, loc_schedule, water_heating_system, ec_adj, @nbeds, solar_thermal_system)
+        plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, @nbeds, solar_thermal_system, @eri_version, @schedules_file)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
         living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
-        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, living_zone)
+        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, living_zone, @eri_version, @schedules_file)
       elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
-        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system)
+        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file)
       else
         fail "Unhandled water heater (#{water_heating_system.water_heater_type})."
       end
@@ -1644,7 +1644,7 @@ class OSModel
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
     has_ceiling_fan = (@hpxml.ceiling_fans.size > 0)
 
-    HVAC.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, @heating_days, @cooling_days, @hpxml.header.sim_calendar_year)
+    HVAC.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, @heating_days, @cooling_days, @hpxml.header.sim_calendar_year, @schedules_file)
   end
 
   def self.add_ceiling_fans(runner, model, weather, spaces)
