@@ -62,8 +62,8 @@ upgrades:
   - upgrade_name: min efficiency heat pumps
 # ASHP
     options:
-      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF, EUSS
-        apply_logic:
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF, EUSS # <-- why is a new "EUSS" option needed? Looks identical to "ASHP, SEER 15, 9.0 HSPF".
+        apply_logic: # <-- possible to use ref tags and reuse logic below to make yml easier to read?
           - or:
             - and:
               - HVAC Has Ducts|Yes
@@ -71,6 +71,7 @@ upgrades:
             - and:
               - HVAC Has Shared System|Heating Only
               - HVAC Cooling Type|Central AC  
+          &ASHP_greater_than_SEER_15_9_HSPF
           - or:
             - not: HVAC Heating Efficiency|ASHP, SEER 16, 9.0 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
@@ -87,13 +88,7 @@ upgrades:
             - and:
               - HVAC Has Shared System|Heating Only
               - HVAC Cooling Type|Central AC  
-          - or:
-            - not: HVAC Heating Efficiency|ASHP, SEER 16, 9.0 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 18, 9.3 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
+          *ASHP_greater_than_SEER_15_9_HSPF
 # MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, EUSS
         apply_logic:
