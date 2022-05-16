@@ -373,6 +373,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
 
     # Get registered values and pass them to ResStockArgumentsPostHPXML
+    measures['ResStockArgumentsPostHPXML'][0]['hpxml_path'] = hpxml_path
     measures['ResStockArgumentsPostHPXML'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # Specify measures to run
@@ -380,7 +381,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
     else
-      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
     end
 
     if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
@@ -410,8 +411,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       # HPXMLtoOpenStudio
-      measures_hash = { 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
-      if not apply_measures(hes_hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
+      if not apply_measures(hes_hpxml_measures_dir, { 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
+        register_logs(runner, new_runner)
+        return false
+      end
+    else
+      if not apply_measures(hpxml_measures_dir, { 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
         register_logs(runner, new_runner)
         return false
       end

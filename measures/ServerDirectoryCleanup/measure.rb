@@ -223,7 +223,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
       File.delete(f) unless stdout_expandobject
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
-    Dir.glob('./../schedules.csv').each do |f|
+    Dir.glob('./../schedules*.csv').each do |f|
       File.delete(f) unless schedules_csv
       runner.registerInfo("Deleted #{f} from the run directory.") if !File.exist?(f)
     end
