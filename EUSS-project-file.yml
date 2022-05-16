@@ -67,7 +67,7 @@ upgrades:
             multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
           - value: 0.1992 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004), with 1.289 inflation factor
             multiplier: Floor Area, Attic (ft^2)
-        lifetime: 60 
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf 
       - &attic_insulation_IECC_CZ2A-2B-3A-3B-3C
         option: Insulation Ceiling|R-49
         apply_logic:
@@ -90,7 +90,7 @@ upgrades:
             multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
           - value: 0.1992 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004), with 1.289 inflation factor
             multiplier: Floor Area, Attic (ft^2)
-        lifetime: 60
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &attic_insulation_IECC_CZ4A-4B-4C-5A-5B-6A-6B-7A-7B
         option: Insulation Ceiling|R-60
         apply_logic:
@@ -118,7 +118,7 @@ upgrades:
             multiplier: Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)
           - value: 0.1992 # $/(ft^2), from original REMDB xlsx for blown cellulose (0.1505+0.004), with 1.289 inflation factor
             multiplier: Floor Area, Attic (ft^2)
-        lifetime: 60
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       #General air sealing - 30% total reduction in ACH50 for homes with greater than 10 ACH50
       #30% is consistent with median reduction documented in https://doi.org/10.20357/B7FP4D 
       - &infiltration_30pct_reduction
@@ -136,7 +136,7 @@ upgrades:
                         # Interpolated between 20% and 40% reductions to get $0.44/ft2,
                         # then used 1.14 multiplier to inflate from Jan 2019 to Mar 2022
             multiplier: Floor Area, Conditioned (ft^2)
-        lifetime: 30
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       #Duct sealing to 10% leakage, R-8 insulation for all ducts in unconditioned space
       # Costs are mid-values from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
       - &ducts_category1 #improving leakage a lot, and insulation
@@ -158,7 +158,7 @@ upgrades:
         costs:
           - value: 2.84 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category2 #improving leakage a lot only
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -170,7 +170,7 @@ upgrades:
         costs:
           - value: 1.04 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category3 #improving leakage some, and insulation
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -184,7 +184,7 @@ upgrades:
         costs:
           - value: 2.32 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category4 #improving leakage some only
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -194,7 +194,7 @@ upgrades:
         costs:
           - value: 0.52 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category5 #improving leakage a little, and insulation
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -209,7 +209,7 @@ upgrades:
         costs:
           - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category6 #improving leakage a little only
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -219,7 +219,7 @@ upgrades:
         costs:
           - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category7 #improving insulation only
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -230,7 +230,7 @@ upgrades:
         costs:
           - value: 1.80 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 30
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       #Drill-and-fill insulation (R-13) for homes with no insulation and wood stud walls
       - &Drill-and-fill
         option: Insulation Wall|Wood Stud, R-13
@@ -240,7 +240,7 @@ upgrades:
           - value: 2.24 # from LBNL data (https://doi.org/10.20357/B7FP4D); consistent with NREL REMDB
                         # (https://remdb.nrel.gov/measures.php?gId=12&ctId=184&scId=2015&acId=2028)
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
-        lifetime: 60
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
   - upgrade_name: Enhanced Enclosure
     #Up02
     options:
@@ -269,7 +269,7 @@ upgrades:
         costs:
           - value: 4.00 # $/ft2 (3.1* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=14&ctId=378&scId=5929&acId=5932
             multiplier: Wall Area, Below-Grade (ft^2)
-        lifetime: 60
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &foundation_wall_insulation_finished_basement
         option: Insulation Foundation Wall|Wall R-10, Interior
         apply_logic: 
@@ -279,7 +279,7 @@ upgrades:
         costs:
           - value: 4.56 # $/ft2 (3.54* $/ft2 * 1.289 inflation) based on cost in BEopt
             multiplier: Wall Area, Below-Grade (ft^2)
-        lifetime: 60        
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf        
       - &rim_joist_insulation
         option: Insulation Rim Joist|R-10, Exterior
         apply_logic: 
@@ -292,7 +292,7 @@ upgrades:
         costs:
           - value: 2.32 # $/ft2 (1.8* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=14&ctId=378&scId=5929&acId=5932)
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
-        lifetime: 60
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       #seal crawlspace vents
       - &seal_vented_crawlspaces #Is sealing vented crawlspaces controversial/does it cause moisture issues? Are there complimentary upgrades that would be needed to deal with the moisture issue?
         option: Geometry Foundation Type|Unvented Crawlspace
@@ -305,7 +305,7 @@ upgrades:
         costs:
           - value: 1.083 # $/ft2 (0.84* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=14&ctId=334&scId=5169&acId=6565)
             multiplier: Floor Area, Foundation (ft^2)
-        lifetime: 60
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       #insulate finished attics and cathedral ceilings to R-30
       - &roof_insulation_to_R30
         option: Insulation Roof|Finished, R-30
@@ -316,7 +316,7 @@ upgrades:
         costs:
           - value: 5.54 # $/ft2 (4.3* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=13&ctId=395&scId=6283&acId=6822
             multiplier: Roof Area (ft^2)
-        lifetime: 60
+        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
   - upgrade_name: Minimum-efficiency heat pumps #also provides SEER 15 cooling measure profile
     #Up03
     options:
@@ -3033,7 +3033,7 @@ upgrades:
             - HVAC Has Shared System|Heating and Cooling
       #HPWH for those that currently have non-electric water heating
       - &HPWH_50gal_fuelswitch
-        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF #Will this also change any necessary other things, like water heater fuel?
+        option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic: 
           and:
             - or: &non-elec_WH
@@ -3052,7 +3052,7 @@ upgrades:
               - Bedrooms|2
               - Bedrooms|3
         costs:
-          - value: 
+          - value: 2242 # Median installed cost for 50 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
       - &HPWH_66gal_fuelswitch
@@ -3063,17 +3063,18 @@ upgrades:
               - *non-elec_WH
             - Bedrooms|4
         costs:
-          - value: 
+          - value: 3088  # Interpolated between 50 gal and 80 gal HPWH costs in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
       - &HPWH_80gal_fuelswitch
         option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         apply_logic: 
           and:
-            - or: non-elec_WH
+            - or: 
+              - *non-elec_WH
             - Bedrooms|5
         costs:
-          - value: 3828
+          - value: 3828 # Median installed cost for 80 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
       #electric resistance dryer (CEF = 2.7) for those that currently have non-electric dryers
