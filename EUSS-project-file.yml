@@ -321,7 +321,8 @@ upgrades:
     #Up03
     options:
       #ASHP
-      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF, EUSS
+      - &min-efficiency_ASHP_for_all_part1
+        option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF, EUSS
         apply_logic:
           - or:
             - and:
@@ -330,14 +331,8 @@ upgrades:
             - and:
               - HVAC Has Shared System|Heating Only
               - HVAC Cooling Type|Central AC  
-          - or:
-            - not: HVAC Heating Efficiency|ASHP, SEER 16, 9.0 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 18, 9.3 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
-      - option: HVAC Cooling Efficiency|None
+      - &min-efficiency_ASHP_for_all_part2
+        option: HVAC Cooling Efficiency|None
         apply_logic:
           - or:
             - and:
@@ -346,15 +341,9 @@ upgrades:
             - and:
               - HVAC Has Shared System|Heating Only
               - HVAC Cooling Type|Central AC  
-          - or:
-            - not: HVAC Heating Efficiency|ASHP, SEER 16, 9.0 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 18, 9.3 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
       # MSHP
-      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, EUSS
+      - &min_efficiency_MSHP_for_all_part1
+        option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, EUSS
         apply_logic:
           - not: HVAC Cooling Type|Central AC 
           - or: 
@@ -362,14 +351,8 @@ upgrades:
             - HVAC Has Shared System|Heating Only
             - HVAC Has Shared System|Cooling Only
             - HVAC Has Shared System|Heating and Cooling
-          - or:
-            - not: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned
-            - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
-      - option: HVAC Cooling Efficiency|None
+      - &min_efficiciency_MSHP_for_all_part2
+        option: HVAC Cooling Efficiency|None
         apply_logic:
           - not: HVAC Cooling Type|Central AC 
           - or: 
@@ -377,17 +360,11 @@ upgrades:
             - HVAC Has Shared System|Heating Only
             - HVAC Has Shared System|Cooling Only
             - HVAC Has Shared System|Heating and Cooling
-          - or:
-            - not: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned
-            - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
-  - upgrade_name: High efficiency heat pumps
+  - upgrade_name: High efficiency heat pumps #who are we including/excluding?
     # ASHP
     options:
-      - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, EUSS
+      - &high-efficiency_ASHP_part1 
+        option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, EUSS
         apply_logic:
           - or:
             - and:
@@ -403,7 +380,8 @@ upgrades:
             - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
-      - option: HVAC Cooling Efficiency|None
+      - &high-efficiency_ASHP_part2
+        option: HVAC Cooling Efficiency|None
         apply_logic:
           - or:
             - and:
@@ -419,7 +397,8 @@ upgrades:
             - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
-      - option: HVAC Heating Type|Ducted Heat Pump
+      - &high-efficiency_ASHP_part3
+        option: HVAC Heating Type|Ducted Heat Pump
         apply_logic:
           - or:
             - and:
@@ -436,7 +415,8 @@ upgrades:
             - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
       # MSHP
-      - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, EUSS
+      - &high-efficiency_MSHP_part1
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, EUSS
         apply_logic:
           - not: HVAC Cooling Type|Central AC 
           - or: 
@@ -451,7 +431,8 @@ upgrades:
             - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
-      - option: HVAC Cooling Efficiency|None
+      - &high-efficiency_MSHP_part2
+        option: HVAC Cooling Efficiency|None
         apply_logic:
           - not: HVAC Cooling Type|Central AC 
           - or: 
@@ -466,9 +447,10 @@ upgrades:
             - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
+
   - upgrade_name: Heat pump with other supplemental heating
-      #homes keep their exising heating system as backup, heat pump is sized for cooling
-      #assumes a control strategy where the electric heat pump is the primary heating source and the pre-existing heating system is only used as auxiliary below a pre-defined switchover temperature (41F)
+    #homes keep their exising heating system as backup, heat pump is sized for cooling
+    #assumes a control strategy where the electric heat pump is the primary heating source and the pre-existing heating system is only used as auxiliary below a pre-defined switchover temperature (41F)
   # - upgrade_name: Dual-System Electric Baseboard ASHP
     options:
       - option: HVAC Heating Efficiency|Dual-System ASHP, SEER 15, 9.0 HSPF, Electric Baseboard, 100% Efficiency
@@ -3005,6 +2987,50 @@ upgrades:
       #No upgrading of electric loads
     options:
       #Minimum-efficiency heat pump (from package 3) for homes with non-electric heating
+      #ASHP
+      - &min-efficiency_ASHP_for_nonelec_part1
+        option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF, EUSS
+        apply_logic:
+          - not: Heating Fuel|Electricity
+          - or:
+            - and:
+              - HVAC Has Ducts|Yes
+              - HVAC Has Shared System|None
+            - and:
+              - HVAC Has Shared System|Heating Only
+              - HVAC Cooling Type|Central AC
+      - &min-efficiency_ASHP_for_nonelec_part2
+        option: HVAC Cooling Efficiency|None
+        apply_logic:
+          - not: Heating Fuel|Electricity
+          - or:
+            - and:
+              - HVAC Has Ducts|Yes
+              - HVAC Has Shared System|None
+            - and:
+              - HVAC Has Shared System|Heating Only
+              - HVAC Cooling Type|Central AC  
+      # MSHP
+      - &min_efficiency_MSHP_for_nonelec_part1
+        option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, EUSS
+        apply_logic:
+          - not: Heating Fuel|Electricity
+          - not: HVAC Cooling Type|Central AC 
+          - or: 
+            - HVAC Has Ducts|No
+            - HVAC Has Shared System|Heating Only
+            - HVAC Has Shared System|Cooling Only
+            - HVAC Has Shared System|Heating and Cooling
+      - &min_efficiciency_MSHP_for_nonelec_part2
+        option: HVAC Cooling Efficiency|None
+        apply_logic:
+          - not: Heating Fuel|Electricity
+          - not: HVAC Cooling Type|Central AC 
+          - or: 
+            - HVAC Has Ducts|No
+            - HVAC Has Shared System|Heating Only
+            - HVAC Has Shared System|Cooling Only
+            - HVAC Has Shared System|Heating and Cooling
       #HPWH for those that currently have non-electric water heating
       - &HPWH_50gal_fuelswitch
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF #Will this also change any necessary other things, like water heater fuel?
@@ -3116,6 +3142,12 @@ upgrades:
       #No enclosure measures
     options:
       #High efficiency heat pump (from package 4) for all homes with non-electric heating or less-efficient electric heating
+      - *high-efficiency_ASHP_part1 
+      - *high-efficiency_ASHP_part2
+      - *high-efficiency_ASHP_part3
+      # MSHP
+      - *high-efficiency_MSHP_part1
+      - *high-efficiency_MSHP_part2
       #HPWH for all homes with non-electric water heating or less-efficient electric water heating
       - *HPWH_50gal_all
       - *HPWH_66gal_all
@@ -3204,6 +3236,20 @@ upgrades:
       - *ducts_category7
       - *Drill-and-fill
       #package 8
+      - *high-efficiency_ASHP_part1
+      - *high-efficiency_ASHP_part2
+      - *high-efficiency_ASHP_part3
+      - *high-efficiency_MSHP_part1
+      - *high-efficiency_MSHP_part2
+      - *HPWH_50gal_all
+      - *HPWH_66gal_all
+      - *HPWH_80gal_all
+      - *clothes_dryer_ductlesshp_80pct
+      - *clothes_dryer_ductlesshp_100pct
+      - *clothes_dryer_ductlesshp_120pct
+      - *elec_induction_range_80pct
+      - *elec_induction_range_100pct
+      - *elec_induction_range_120pct
   - upgrade_name: Highly-efficient all-electric homes + enhanced enclosure package (packages 2 & 8)
     options:
       #package 2
@@ -3223,546 +3269,17 @@ upgrades:
       - *seal_vented_crawlspaces 
       - *roof_insulation_to_R30
       #package 8
-
-  - upgrade_name: Reference case # Useful for incremental costs and incremental energy saving calculations
-    options:
-      # Clothes washer Reference case Upgrade
-      #Like to like replacement: default standard so only like to like for CW
-      - &clothes_washer_80pct_ref_standard
-        option: Clothes Washer|Standard, 80% Usage
-        apply_logic: Clothes Washer|Standard, 80% Usage
-        costs:
-          - value: 722
-            multiplier: Fixed (1)
-        lifetime: 14
-      - &clothes_washer_80pct_ref_energystar
-        option: Clothes Washer|EnergyStar, 80% Usage
-        apply_logic: Clothes Washer|EnergyStar, 80% Usage
-        costs:
-          - value: 1134
-            multiplier: Fixed (1)
-        lifetime: 14
-      - &clothes_washer_100pct_ref_standard
-        option: Clothes Washer|Standard, 100% Usage
-        apply_logic: Clothes Washer|Standard, 100% Usage
-        costs:
-          - value: 722
-            multiplier: Fixed (1)
-        lifetime: 14
-      - &clothes_washer_100pct_ref_energystar
-        option: Clothes Washer|EnergyStar, 100% Usage
-        apply_logic: Clothes Washer|EnergyStar, 100% Usage
-        costs:
-          - value: 1134
-            multiplier: Fixed (1)
-        lifetime: 14
-      - &clothes_washer_120pct_ref_standard
-        option: Clothes Washer|Standard, 120% Usage
-        apply_logic: Clothes Washer|Standard, 120% Usage
-        costs:
-          - value: 722
-            multiplier: Fixed (1)
-        lifetime: 14
-      - &clothes_washer_120pct_ref_energystar
-        option: Clothes Washer|EnergyStar, 120% Usage
-        apply_logic: Clothes Washer|EnergyStar, 120% Usage
-        costs:
-          - value: 1134
-            multiplier: Fixed (1)
-        lifetime: 14
-      # Dishwasher Reference case Upgrade
-      #Like to like replacement: default 318 Rated kwh so only like to like for CW
-      - &dishwasher_80pct_ref_318kwh
-        option: Dishwasher|318 Rated kWh, 80% Usage
-        apply_logic:
-          or: 
-            - Dishwasher|318 Rated kWh, 80% Usage
-        costs:
-          - value: 864
-            multiplier: Fixed (1)
-        lifetime: 11
-      - &dishwasher_80pct_ref_290kwh
-        option: Dishwasher|290 Rated kWh, 80% Usage
-        apply_logic:
-          or: 
-            - Dishwasher|290 Rated kWh, 80% Usage
-        costs:
-          - value: 864
-            multiplier: Fixed (1)
-        lifetime: 11
-      - &dishwasher_100pct_ref_318kwh
-        option: Dishwasher|318 Rated kWh, 100% Usage
-        apply_logic:
-          or: 
-            - Dishwasher|318 Rated kWh, 100% Usage
-        costs:
-          - value: 864
-            multiplier: Fixed (1)
-        lifetime: 11
-      - &dishwasher_100pct_ref_290kwh
-        option: Dishwasher|290 Rated kWh, 100% Usage
-        apply_logic:
-          or: 
-            - Dishwasher|290 Rated kWh, 100% Usage
-        costs:
-          - value: 864
-            multiplier: Fixed (1)
-        lifetime: 11
-      - &dishwasher_120pct_ref_318kwh
-        option: Dishwasher|318 Rated kWh, 120% Usage
-        apply_logic:
-          or: 
-            - Dishwasher|318 Rated kWh, 120% Usage
-        costs:
-          - value: 864
-            multiplier: Fixed (1) 
-        lifetime: 11
-      - &dishwasher_120pct_ref_290kwh
-        option: Dishwasher|290 Rated kWh, 120% Usage
-        apply_logic:
-          or: 
-            - Dishwasher|290 Rated kWh, 120% Usage
-        costs:
-          - value: 864
-            multiplier: Fixed (1) 
-        lifetime: 11
-      
-      # # Refrigerator Upgrade
-      # # Standard upgrade refrigerator (EF=17.6) so upgrading EF value <= 17.6 to 17.6 and like to like replacement for above
-      # - &refrigerator_ref_standard
-      #   option: Refrigerator|EF 17.6, 100% Usage
-      #   apply_logic:
-      #     - not:
-      #       - or: 
-      #         - Refrigerator|EF 19.9, 100% Usage
-      #         - Refrigerator|EF 21.9, 100% Usage
-      #   costs:
-      #     - value: 851
-      #       multiplier: Fixed (1)
-      #   lifetime: 17.4
-      # - &refrigerator_ref_energystar
-      #   option: Refrigerator|EF 19.9, 100% Usage
-      #   apply_logic:
-      #     - or: 
-      #       - Refrigerator|EF 19.9, 100% Usage
-      #       - Refrigerator|EF 21.9, 100% Usage
-      #   costs:
-      #     - value: 864
-      #       multiplier: Fixed (1)
-      #   lifetime: 17.4
-      # Clothes Dryer Upgrade
-      - &clothes_dryer_elec_80pct_ref
-        option: Clothes Dryer|Electric, Premium, 80% Usage
-        apply_logic:
-          or: 
-            - Clothes Dryer|Electric, 80% Usage
-        costs:
-          - value: 980
-            multiplier: Fixed (1)
-        lifetime: 13
-      - &clothes_dryer_gas_80pct_ref
-        option: Clothes Dryer|Gas, Premium, 80% Usage
-        apply_logic:
-          or: 
-            - Clothes Dryer|Gas, 80% Usage
-        costs:
-          - value: 1289
-            multiplier: Fixed (1)
-        lifetime: 13
-      - &clothes_dryer_propane_80pct_ref
-        option: Clothes Dryer|Propane, 80% Usage
-        apply_logic:
-          or: 
-            - Clothes Dryer|Propane, 80% Usage
-        costs:
-          - value: 1289
-            multiplier: Fixed (1)
-        lifetime: 13
-      - &clothes_dryer_elec_100pct_ref
-        option: Clothes Dryer|Electric, Premium, 100% Usage
-        apply_logic:
-          or: 
-            - Clothes Dryer|Electric, 100% Usage
-        costs:
-          - value: 980
-            multiplier: Fixed (1)
-        lifetime: 13
-      - &clothes_dryer_gas_100pct_ref
-        option: Clothes Dryer|Gas, Premium, 100% Usage
-        apply_logic:
-          or: 
-            - Clothes Dryer|Gas, 100% Usage
-        costs:
-          - value: 1289
-            multiplier: Fixed (1)
-        lifetime: 13
-      - &clothes_dryer_propane_100pct_ref
-        option: Clothes Dryer|Propane, 100% Usage
-        apply_logic:
-          or: 
-            - Clothes Dryer|Propane, 100% Usage
-        costs:
-          - value: 1289
-            multiplier: Fixed (1)
-        lifetime: 13
-      - &clothes_dryer_elec_120pct_ref
-        option: Clothes Dryer|Electric, Premium, 120% Usage
-        apply_logic:
-          or: 
-            - Clothes Dryer|Electric, 120% Usage
-        costs:
-          - value: 980
-            multiplier: Fixed (1)
-        lifetime: 13
-      - &clothes_dryer_gas_120pct_ref
-        option: Clothes Dryer|Gas, Premium, 120% Usage
-        apply_logic:
-          or: 
-            - Clothes Dryer|Gas, 120% Usage
-        costs:
-          - value: 1289
-            multiplier: Fixed (1)
-        lifetime: 13
-      - &clothes_dryer_propane_120pct_ref
-        option: Clothes Dryer|Propane, 120% Usage
-        apply_logic:
-          or: 
-            - Clothes Dryer|Propane, 120% Usage
-        costs:
-          - value: 1289
-            multiplier: Fixed (1)
-        lifetime: 13
-      # Lighting Upgrade (no lighting upgrade as mentioned in NREL report: https://www.nrel.gov/docs/fy18osti/68670.pdf)
-      # Cooking Upgrade (no cooking upgrade as it is not mentioned in NREL report)
-      # Ducts (Do nothing mentioned in Table 10 of NREL report)
-      
-      # Water heater upgrade
-      - option: Water Heater Efficiency|Natural Gas Premium
-        apply_logic: Water Heater Efficiency|Natural Gas Standard
-        costs:
-          - value: 1227.28
-            multiplier: Fixed (1)
-          - value: 14.18
-            multiplier: Size, Water Heater (gal)
-        lifetime: 13
-      - option: Water Heater Efficiency|Natural Gas Premium
-        apply_logic: Water Heater Efficiency|Natural Gas Premium
-        costs:
-          - value: 1293.84
-            multiplier: Fixed (1)
-          - value: 14.18
-            multiplier: Size, Water Heater (gal)
-        lifetime: 13
-      - option: Water Heater Efficiency|Natural Gas Tankless
-        apply_logic: Water Heater Efficiency|Natural Gas Tankless
-        costs:
-          - value: 3224
-            multiplier: Fixed (1)
-        lifetime: 13
-      - option: Water Heater Efficiency|Fuel Oil Premium
-        apply_logic: Water Heater Efficiency|Fuel Oil Standard
-        costs:
-          - value: 2062.40
-            multiplier: Fixed (1)
-          - value: 5.93
-            multiplier: Size, Water Heater (gal)
-        lifetime: 11
-      - option: Water Heater Efficiency|Fuel Oil Premium
-        apply_logic: Water Heater Efficiency|Fuel Oil Premium
-        costs:
-          - value: 2191
-            multiplier: Fixed (1)
-          - value: 9.54
-            multiplier: Size, Water Heater (gal)
-        lifetime: 11
-      - option: Water Heater Efficiency|FIXME Fuel Oil Indirect
-        apply_logic: Water Heater Efficiency|FIXME Fuel Oil Indirect
-        costs:
-          - value: 2916.46
-            multiplier: Fixed (1)
-          - value: 9.54
-            multiplier: Size, Water Heater (gal)
-        lifetime: 11
-      - option: Water Heater Efficiency|Propane Premium
-        apply_logic: Water Heater Efficiency|Propane Standard
-        costs:
-          - value: 1227.84
-            multiplier: Fixed (1)
-          - value: 14.18
-            multiplier: Size, Water Heater (gal)
-        lifetime: 13
-      - option: Water Heater Efficiency|Propane Premium
-        apply_logic: Water Heater Efficiency|Propane Premium
-        costs:
-          - value: 1293.84
-            multiplier: Fixed (1)
-          - value: 14.18
-            multiplier: Size, Water Heater (gal)
-        lifetime: 13
-      - option: Water Heater Efficiency|Propane Tankless
-        apply_logic: Water Heater Efficiency|Propane Tankless
-        costs:
-          - value: 3248
-            multiplier: Fixed (1)
-        lifetime: 13
-      - option: Water Heater Efficiency|Electric Premium
-        apply_logic: Water Heater Efficiency|Electric Standard
-        costs:
-          - value: 1537.55
-            multiplier: Fixed (1)
-          - value: 2.45
-            multiplier: Size, Water Heater (gal)
-        lifetime: 12
-      - option: Water Heater Efficiency|Electric Premium
-        apply_logic: Water Heater Efficiency|Electric Premium
-        costs:
-          - value: 1537.55
-            multiplier: Fixed (1)
-          - value: 4.51
-            multiplier: Size, Water Heater (gal)
-        lifetime: 12
-      - option: Water Heater Efficiency|Electric Tankless
-        apply_logic: Water Heater Efficiency|Electric Tankless
-        costs:
-          - value: 2449
-            multiplier: Fixed (1)
-        lifetime: 12
-      # Upgrading like for like for tankless WH for registering cost: Propane Tankless/Natural Gas Tankless already at 0.82 EF
-      
-      #HVAC upgrade
-      # Room AC upgrade below federal minimum standard (year 2023)
-      - option: HVAC Cooling Efficiency|Room AC, EER 11.0
-        apply_logic: 
-          or: 
-            - HVAC Cooling Efficiency|Room AC, EER 8.5
-            - HVAC Cooling Efficiency|FIXME Room AC, EER 8.5, 20% Conditioned
-            - HVAC Cooling Efficiency|Room AC, EER 9.8
-            - HVAC Cooling Efficiency|FIXME Room AC, EER 9.8, 10% Conditioned
-            - HVAC Cooling Efficiency|FIXME Room AC, EER 9.8, 20% Conditioned
-            - HVAC Cooling Efficiency|FIXME Room AC, EER 9.8, 30% Conditioned
-            - HVAC Cooling Efficiency|FIXME Room AC, EER 9.8, 50% Conditioned
-            - HVAC Cooling Efficiency|Room AC, EER 10.7
-            - HVAC Cooling Efficiency|FIXME Room AC, EER 10.7, 20% Conditioned
-        costs:
-          - value: 46.40
-            multiplier: Fixed (1)
-          - value: 58.01
-            multiplier: Size, Cooling System (kBtu/h)
-        lifetime: 12
-      # Room AC like to like switch above federal minimum standard
-      - option: HVAC Cooling Efficiency|Room AC, EER 12.0
-        apply_logic: HVAC Cooling Efficiency|Room AC, EER 12.0
-        costs:
-          - value: 46.40
-            multiplier: Fixed (1)
-          - value: 58.01
-            multiplier: Size, Cooling System (kBtu/h)
-        lifetime: 12
-
-      # Minimum efficiency level for central AC:https://www.eia.gov/todayinenergy/detail.php?id=40232
-      - option: HVAC Cooling Efficiency|AC, SEER 15
-        apply_logic: 
-          - or: 
-            - HVAC Cooling Efficiency|AC, SEER 8
-            - HVAC Cooling Efficiency|AC, SEER 10
-            - HVAC Cooling Efficiency|AC, SEER 13
-            - HVAC Cooling Efficiency|AC, SEER 14
-          - or: 
-            - Location Region|CR09
-            - Location Region|CR10
-            - Location Region|CR11
-            - and: 
-              - Location Region|CR08
-              - or: &CRO8_SEER15
-                - State|KY
-                - State|TN
-                - State|VA
-                - State|MD
-                - State|DE
-        costs:
-          - value: 4396.03
-            multiplier: Fixed (1)
-          - value: 54.14
-            multiplier: Size, Cooling System (kBtu/h)
-        lifetime: 16
-      
-      - option: HVAC Cooling Efficiency|AC, SEER 14
-        apply_logic: 
-          - or: 
-            - HVAC Cooling Efficiency|AC, SEER 8
-            - HVAC Cooling Efficiency|AC, SEER 10
-            - HVAC Cooling Efficiency|AC, SEER 13
-            - HVAC Cooling Efficiency|AC, SEER 14 # Like for like upgrade (but not included in housing distribution so may not be needed just including for completion)
-          - or: 
-            - Location Region|CR02
-            - Location Region|CR03
-            - Location Region|CR04
-            - Location Region|CR05
-            - Location Region|CR06
-            - Location Region|CR07
-            - and: 
-              - Location Region|CR08
-              - not: *CRO8_SEER15
-        costs:
-          - value: 4267.13
-            multiplier: Fixed (1)
-          - value: 54.14
-            multiplier: Size, Cooling System (kBtu/h)
-        lifetime: 16
-
-      # Central AC like to like switch above federal minimum standard
-      - option: HVAC Cooling Efficiency|AC, SEER 15
-        apply_logic: HVAC Cooling Efficiency|AC, SEER 15
-        costs:
-          - value: 4396.03
-            multiplier: Fixed (1)
-          - value: 54.14
-            multiplier: Size, Cooling System (kBtu/h)
-        lifetime: 16
-
-      # Minimum AFUE for fuel boiler=85%, gas/propane=82% NREL report Table 10
-      - option: HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - or: 
-            - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
-            - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
-        costs:
-          - value: 4077.62
-            multiplier: Fixed (1)
-          - value: 30.94
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 24
-      - option: HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - or: 
-            - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
-            - HVAC Heating Type And Fuel|Propane Fuel Boiler
-        costs:
-          - value: 3424.04
-            multiplier: Fixed (1)
-          - value: 30.94
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 24
-      # Like to like upgrade for boiler above federal minimum
-      - option: HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - or: 
-            - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
-            - HVAC Heating Type And Fuel|Other Fuel Fuel Boiler
-            - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
-            - HVAC Heating Type And Fuel|Propane Fuel Boiler
-        costs:
-          - value: 5869.72
-            multiplier: Fixed (1)
-          - value: 41.25
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 24
-      # Minimum AFUE for furnace: 78% https://starheatcool.com/what-is-afue-rating/ and 80% NREL report
-      - option: HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
-            - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
-            - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
-            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
-            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
-        costs:
-          - value: 4203.60
-            multiplier: Fixed (1)
-          - value: 3.48
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 15
-      # Like to like upgrade for furnace above federal minimum
-      - option: HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
-        apply_logic: HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
-        costs:
-          - value: 5876.60
-            multiplier: Fixed (1)
-          - value: 5.03
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 15
-      # Like to like upgrade for fuel wall/floor furnace
-      - option: HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic: HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-        costs:
-          - value: 51.56
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 20
-      - option: HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic: HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-        costs:
-          - value: 51.56
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 20
-
-      # ASHP upgrade to SEER 15, 9.0 HSPF (8.8 HSPF is minimum)
-      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
-        costs:
-          - value: 3907.01
-            multiplier: Fixed (1)
-          - value: 155.17
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 15
-      # MSHP upgrade
-      - option: HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
-        costs:
-          - value: 2472.60
-            multiplier: Fixed (1)
-          - value: 320.42
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 15
-
-      # Like to Like switch for Electric baseboard, boiler, furnace
-      - option: HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-        costs:
-          - value: 59.29
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 20
-      - option: HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-        costs:
-          - value: 3996
-            multiplier: Fixed (1)
-        lifetime: 24
-      - option: HVAC Heating Efficiency|Electric Furnace, 100% AFUE
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
-        costs:
-          - value: 2062
-            multiplier: Fixed (1)
-          - value: 64.45
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 24
-      - option: HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        apply_logic: 
-          - or: 
-            - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        costs: # Same cost as Electric Baseboard costs
-          - value: 59.29
-            multiplier: Size, Heating System (kBtu/h)
-        lifetime: 24
+      - *high-efficiency_ASHP_part1
+      - *high-efficiency_ASHP_part2
+      - *high-efficiency_ASHP_part3
+      - *high-efficiency_MSHP_part1
+      - *high-efficiency_MSHP_part2
+      - *HPWH_50gal_all
+      - *HPWH_66gal_all
+      - *HPWH_80gal_all
+      - *clothes_dryer_ductlesshp_80pct
+      - *clothes_dryer_ductlesshp_100pct
+      - *clothes_dryer_ductlesshp_120pct
+      - *elec_induction_range_80pct
+      - *elec_induction_range_100pct
+      - *elec_induction_range_120pct
