@@ -1139,6 +1139,7 @@ class SchedulesFile
   ColumnCoolingSetpoint = 'cooling_setpoint'
   ColumnWaterHeaterSetpoint = 'water_heater_setpoint'
   ColumnWaterHeaterOperatingMode = 'water_heater_operating_mode'
+  ColumnSleep = 'sleep'
 
   def initialize(runner: nil,
                  model: nil,
@@ -1458,7 +1459,8 @@ class SchedulesFile
       ColumnHotTubHeater,
       ColumnHotWaterDishwasher,
       ColumnHotWaterClothesWasher,
-      ColumnHotWaterFixtures
+      ColumnHotWaterFixtures,
+      ColumnSleep
     ]
   end
 

@@ -358,6 +358,7 @@ class ScheduleGenerator
 
     holiday_lighting_schedule = get_holiday_lighting_sch(holiday_lighting_schedule)
 
+    sleep_schedule = []
     away_schedule = []
     idle_schedule = []
 
@@ -371,10 +372,10 @@ class ScheduleGenerator
       @steps_in_day.times do |step|
         minute = day * 1440 + step * @minutes_per_step
         index_15 = (minute / 15).to_i
-        sleep = sum_across_occupants(all_simulated_values, 0, index_15).to_f / args[:geometry_num_occupants]
+        sleep_schedule << sum_across_occupants(all_simulated_values, 0, index_15).to_f / args[:geometry_num_occupants]
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / args[:geometry_num_occupants]
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / args[:geometry_num_occupants]
-        active_occupancy_percentage = 1 - (away_schedule[-1] + sleep)
+        active_occupancy_percentage = 1 - (away_schedule[-1] + sleep_schedule[-1])
         @schedules[SchedulesFile::ColumnPlugLoadsOther][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::ColumnLightingInterior][day * @steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::ColumnLightingExterior][day * @steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
@@ -772,6 +773,7 @@ class ScheduleGenerator
     @schedules[SchedulesFile::ColumnDishwasher] = dw_power_sch.map { |power| power / dw_peak_power }
 
     @schedules[SchedulesFile::ColumnOccupants] = away_schedule.map { |i| 1.0 - i }
+    @schedules[SchedulesFile::ColumnSleep] = sleep_schedule
 
     @schedules[SchedulesFile::ColumnHotWaterFixtures] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
     fixtures_peak_flow = @schedules[SchedulesFile::ColumnHotWaterFixtures].max
