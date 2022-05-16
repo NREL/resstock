@@ -16,7 +16,7 @@ if not os.path.exists('baseline'):
   os.makedirs('baseline')
 
 df_national = pd.read_csv('project_la/la100es_baseline/results_csvs/results_up00.csv')
-df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_la-{}.osw'.format('%04d' % x))
+df_national['building_id'] = df_national['building_id'].apply(lambda x: 'project_national-{}.osw'.format('%04d' % x))
 df_national.insert(1, 'color_index', 1)
 
 frames = [df_national]
@@ -98,7 +98,7 @@ for dp in dps:
 # results_output.csv
 
 df_national = reduce(lambda x, y: x.add(y, fill_value=0), df_nationals)
-df_national['PROJECT'] = 'project_la'
+df_national['PROJECT'] = 'project_national'
 
 results_output = pd.concat([df_national]).fillna(0)
 results_output = results_output.set_index('PROJECT')
