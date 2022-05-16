@@ -80,16 +80,6 @@ upgrades:
             - not: HVAC Heating Efficiency|ASHP, SEER 18, 9.3 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
-      # - option: HVAC Cooling Efficiency|Heat Pump # <-- shouldn't this move up a level because it is getting applied regardless? Or are there cases when it isn't?
-        # apply_logic:
-        #   - or:
-        #     - and:
-        #       - HVAC Has Ducts|Yes
-        #       - HVAC Has Shared System|None
-        #     - and:
-        #       - HVAC Has Shared System|Heating Only
-        #       - HVAC Cooling Type|Central AC  
-        #   *ASHP_greater_than_SEER_15_9_HSPF
 # MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, EUSS # <-- check if duplicate or not
         apply_logic:
@@ -111,7 +101,7 @@ upgrades:
 
 
   - upgrade_name: Heat pumps, high efficiency, electric backup
-# ASHP
+# ASHP (using a ducted MSHP to achieve high efficiency)
     options:
       - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
       - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF, EUSS # <-- check if duplicate or not
@@ -135,13 +125,7 @@ upgrades:
             - and:
               - HVAC Has Shared System|Heating Only
               - HVAC Cooling Type|Central AC  
-          - or:
-            - not: HVAC Heating Efficiency|ASHP, SEER 16, 9.0 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 17, 8.7 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 18, 9.3 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
-            - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
+          *not_ASHP_greater_than_SEER_24_13_HSPF
 # MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, EUSS
         apply_logic:
@@ -151,12 +135,8 @@ upgrades:
             - HVAC Has Shared System|Heating Only
             - HVAC Has Shared System|Cooling Only
             - HVAC Has Shared System|Heating and Cooling
+          &not_MSHP_greater_than_SEER_29_14_HSPF
           - or:
-            - not: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 18.0, 9.6 HSPF, 60% Conditioned
-            - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
-            - not: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
 
 
@@ -165,9 +145,9 @@ upgrades:
 
 
   - upgrade_name: Heat pumps, min efficiency, existing fuel backup
-  # - upgrade_name: Dual-System Electric Baseboard ASHP # <--change to integrated electric resistance backup, per docx comments
     options:
       - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+  # - upgrade_name: Dual-System Electric Baseboard ASHP # <--change to integrated electric resistance backup, per docx comments
       - option: HVAC Heating Efficiency|Dual-System ASHP, SEER 15, 9.0 HSPF, Electric Baseboard, 100% Efficiency 
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -270,18 +250,20 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
   # - upgrade_name: Existing Electric Furnace MSHP
-      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
+      # - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load
+      #   apply_logic:
+      #     - HVAC Has Ducts|No # <-- impossible combination
+      #     - HVAC Heating Efficiency|Electric Furnace, 100% AFUE # <-- impossible combination
+      #   costs: 
+      #     - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
+      #       multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
+      #   lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
         apply_logic:
           - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
+          - HVAC Has Shared System|None
+          - HVAC Heating Fuel|Electricity # Apply to any system with existing non-shared electric heat, including furnaces, baseboards, boilers
+          *not_ASHP_greater_than_SEER_15_9_HSPF
         costs: 
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
@@ -295,6 +277,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
+  # - upgrade_name: Dual-Fuel Natural Gas Boiler 72% AFUE ASHP
       - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE, Dual-Fuel
         apply_logic:
           - HVAC Has Ducts|Yes
