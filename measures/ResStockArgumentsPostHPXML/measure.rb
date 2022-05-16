@@ -25,6 +25,11 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_path', true)
+    arg.setDisplayName('HPXML File Path')
+    arg.setDescription('Absolute/relative path of the HPXML file.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_csv_path', false)
     arg.setDisplayName('Schedules: Output CSV Path')
     arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
@@ -94,10 +99,91 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
+    args = Hash[args.collect { |k, v| [k.to_sym, v] }]
 
+    hpxml_path = args[:hpxml_path]
+    unless (Pathname.new hpxml_path).absolute?
+      hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
+    end
+    unless File.exist?(hpxml_path) && hpxml_path.downcase.end_with?('.xml')
+      fail "'#{hpxml_path}' does not exist or is not an .xml file."
+    end
+
+    # get occupancy schedules
+    schedules = get_occupancy_schedules(args)
+
+    # init
+    new_schedules = {}
+
+    # create HVAC setpoints
+    success = create_hvac_setpoints(schedules, new_schedules, args)
+    return false if not success
+
+    # write schedules
+    schedules_filepath = File.join(File.dirname(args[:output_csv_path].get), 'schedules2.csv')
+    success = write_new_schedules(new_schedules, schedules_filepath)
+    return false if not success
+
+    # modify the hpxml with the schedules path
+    doc = XMLHelper.parse_file(hpxml_path)
+    extension = XMLHelper.create_elements_as_needed(XMLHelper.get_element(doc, '/HPXML'), ['SoftwareInfo', 'extension'])
+    schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
+    if !schedules_filepaths.include?(schedules_filepath)
+      XMLHelper.add_element(extension, 'SchedulesFilePath', schedules_filepath, :string)
+    end
+
+    # write out the modified hpxml
+    XMLHelper.write_file(doc, hpxml_path)
+    runner.registerInfo("Wrote file: #{hpxml_path}")
+
+    return true
+  end
+
+  def write_new_schedules(schedules, schedules_filepath)
+    CSV.open(schedules_filepath, 'w') do |csv|
+      csv << schedules.keys
+      rows = schedules.values.transpose
+      rows.each do |row|
+        csv << row.map { |x| '%.3g' % x }
+      end
+    end
+    return true
+  end
+
+  def create_hvac_setpoints(schedules, new_schedules, args)
+    heating_setpoints = []
+    cooling_setpoints = []
+
+    heating_setpoint = args[:heating_setpoint]
+    heating_setpoint_offset_nighttime = args[:heating_setpoint_offset_nighttime]
+    heating_setpoint_offset_daytime_unoccupied = args[:heating_setpoint_offset_daytime_unoccupied]
+    cooling_setpoint = args[:cooling_setpoint]
+    cooling_setpoint_offset_nighttime = args[:cooling_setpoint_offset_nighttime]
+    cooling_setpoint_offset_daytime_unoccupied = args[:cooling_setpoint_offset_daytime_unoccupied]
+
+    schedules[SchedulesFile::ColumnOccupants].zip(schedules[SchedulesFile::ColumnSleep]).each do |occupants, sleep|
+      if sleep == 1 # nighttime
+        heating_setpoints << heating_setpoint - heating_setpoint_offset_nighttime
+        cooling_setpoints << cooling_setpoint + cooling_setpoint_offset_nighttime
+      elsif sleep == 0 && occupants == 0 # daytime unoccupied
+        heating_setpoints << heating_setpoint - heating_setpoint_offset_daytime_unoccupied
+        cooling_setpoints << cooling_setpoint - cooling_setpoint_offset_daytime_unoccupied
+      else # no offset
+        heating_setpoints << heating_setpoint
+        cooling_setpoints << cooling_setpoint
+      end
+    end
+
+    new_schedules[SchedulesFile::ColumnHeatingSetpoint] = heating_setpoints
+    new_schedules[SchedulesFile::ColumnCoolingSetpoint] = cooling_setpoints
+
+    return true
+  end
+
+  def get_occupancy_schedules(args)
     schedules = {}
 
-    schedules_path = args['output_csv_path'].get
+    schedules_path = args[:output_csv_path].get
     columns = CSV.read(schedules_path).transpose
     columns.each do |col|
       col_name = col[0]
@@ -110,16 +196,10 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
         fail "Schedule value must be numeric for column '#{col_name}'. [context: #{schedules_path}]"
       end
 
-      if schedules.keys.include? col_name
-        fail "Schedule column name '#{col_name}' is duplicated. [context: #{schedules_path}]"
-      end
-
       schedules[col_name] = values
     end
 
-    puts schedules.keys
-
-    return true
+    return schedules
   end
 end
 
