@@ -1,6 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
+# output_directory: national_upgrades
 output_directory: /scratch/jrobert1/final001
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 # weather_files_path: c:/OpenStudio/BuildStock_TMY3_FIPS.zip
@@ -25,6 +26,10 @@ sampler:
           - ASHRAE IECC Climate Zone 2004|5B
           - ASHRAE IECC Climate Zone 2004|6A
           - ASHRAE IECC Climate Zone 2004|6B
+        - or:
+          - Geometry Stories Low Rise|1
+          - Geometry Stories Low Rise|2
+          - Geometry Stories Low Rise|3
 
 workflow_generator:
   type: residential_hpxml
