@@ -85,7 +85,7 @@ upgrades:
         # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
         # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
         costs:
-          - value: 3907.01
+          - value: 3907.01 # for HSPF 9
             multiplier: Fixed (1)
           - value: 155.17
             multiplier: Size, Heating System (kBtu/h)
@@ -200,7 +200,8 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
         *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF     - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
+        *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
@@ -214,7 +215,8 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
         *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF      - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
+        *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
@@ -228,7 +230,8 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
         *costs_mshp_ductless_SEER_15_9_HSPF
-        *lifetime_mshp_ductless_SEER_15_9_HSPF      - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
