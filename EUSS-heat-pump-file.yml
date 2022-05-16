@@ -78,7 +78,7 @@ upgrades:
             - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - or:
             - and:
@@ -110,7 +110,7 @@ upgrades:
             - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - not: HVAC Cooling Type|Central AC 
           - or: 
@@ -146,7 +146,7 @@ upgrades:
             - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF
             - not: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - or:
             - and:
@@ -194,7 +194,7 @@ upgrades:
             - not: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
             - not: HVAC Heating Efficiency|MSHP, SEER 33, 13.3 HSPF
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - not: HVAC Cooling Type|Central AC 
           - or: 
@@ -215,13 +215,13 @@ upgrades:
 
 
   - upgrade_name: heat pump backup
-  # - upgrade_name: Dual-System Electric Baseboard ASHP
+  # - upgrade_name: Dual-System Electric Baseboard ASHP # <--change to integrated electric resistance backup, per docx comments
     options:
-      - option: HVAC Heating Efficiency|Dual-System ASHP, SEER 15, 9.0 HSPF, Electric Baseboard, 100% Efficiency
+      - option: HVAC Heating Efficiency|Dual-System ASHP, SEER 15, 9.0 HSPF, Electric Baseboard, 100% Efficiency 
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-        costs: 
+        costs: # <--costs for wrong HSPF and missing variable component
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
@@ -229,7 +229,7 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
@@ -237,7 +237,7 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-  #  - upgrade_name: Dual-System Electric Boiler ASHP
+  #  - upgrade_name: Dual-System Electric Boiler ASHP # <--change to integrated electric resistance backup, per docx comments
       - option: HVAC Heating Efficiency|Dual-System ASHP, SEER 15, 9.0 HSPF, Electric Boiler, 100% Efficiency
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -250,7 +250,7 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
@@ -258,7 +258,7 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-  # - upgrade_name: Dual-System Electric Wall Furnace ASHP
+  # - upgrade_name: Dual-System Electric Wall Furnace ASHP # <--change to integrated electric resistance backup, per docx comments
       - option: HVAC Heating Efficiency|Dual-System ASHP, SEER 15, 9.0 HSPF, Electric Wall Furnace, 100% AFUE
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -271,7 +271,7 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
@@ -292,7 +292,7 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
@@ -313,7 +313,7 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
@@ -334,7 +334,7 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
@@ -351,7 +351,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
@@ -364,7 +364,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
@@ -385,7 +385,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
@@ -410,7 +410,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
@@ -435,7 +435,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
@@ -460,7 +460,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
@@ -485,7 +485,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
@@ -510,7 +510,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
@@ -535,7 +535,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
@@ -560,7 +560,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
@@ -585,7 +585,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
@@ -610,7 +610,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
@@ -635,7 +635,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
@@ -660,7 +660,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
@@ -685,7 +685,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
@@ -710,7 +710,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
@@ -735,7 +735,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
@@ -760,7 +760,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
@@ -786,7 +786,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
@@ -811,7 +811,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
@@ -836,7 +836,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
@@ -861,7 +861,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
@@ -886,7 +886,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
@@ -911,7 +911,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
@@ -936,7 +936,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
@@ -961,7 +961,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
@@ -986,7 +986,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
@@ -1011,7 +1011,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
@@ -1036,7 +1036,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
@@ -1061,7 +1061,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
@@ -1086,7 +1086,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
@@ -1111,7 +1111,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
@@ -1136,7 +1136,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
@@ -1161,7 +1161,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
@@ -1187,7 +1187,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
@@ -1212,7 +1212,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
@@ -1237,7 +1237,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
@@ -1262,7 +1262,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
@@ -1287,7 +1287,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
@@ -1312,7 +1312,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
@@ -1337,7 +1337,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
@@ -1362,7 +1362,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
@@ -1387,7 +1387,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
@@ -1412,7 +1412,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
@@ -1437,7 +1437,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
@@ -1462,7 +1462,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
@@ -1487,7 +1487,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
@@ -1512,7 +1512,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
@@ -1537,7 +1537,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
@@ -1562,7 +1562,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE, OAT Reset
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE, OAT Reset
@@ -1589,7 +1589,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
@@ -1614,7 +1614,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
@@ -1640,7 +1640,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
@@ -1665,7 +1665,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
@@ -1691,7 +1691,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
@@ -1716,7 +1716,7 @@ upgrades:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
@@ -1742,7 +1742,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
@@ -1767,7 +1767,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
@@ -1793,7 +1793,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
@@ -1818,7 +1818,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
@@ -1844,7 +1844,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
@@ -1869,7 +1869,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
@@ -1891,7 +1891,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
@@ -1906,7 +1906,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
@@ -1921,7 +1921,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
@@ -1936,7 +1936,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
@@ -1951,7 +1951,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
@@ -1966,7 +1966,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
@@ -1981,7 +1981,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
@@ -1996,7 +1996,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
@@ -2011,7 +2011,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
@@ -2027,7 +2027,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
@@ -2042,7 +2042,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
@@ -2057,7 +2057,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
@@ -2072,7 +2072,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
@@ -2087,7 +2087,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
@@ -2102,7 +2102,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
@@ -2117,7 +2117,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
@@ -2132,7 +2132,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
@@ -2147,7 +2147,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
@@ -2164,7 +2164,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
@@ -2179,7 +2179,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
@@ -2194,7 +2194,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
@@ -2209,7 +2209,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
@@ -2224,7 +2224,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
@@ -2239,7 +2239,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
@@ -2254,7 +2254,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
@@ -2269,7 +2269,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
@@ -2284,7 +2284,7 @@ upgrades:
           - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
             multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
         lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
@@ -2306,7 +2306,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
@@ -2331,7 +2331,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
@@ -2356,7 +2356,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
@@ -2381,7 +2381,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Electricity
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Shared Heating
@@ -2412,7 +2412,7 @@ upgrades:
           - Heating Fuel|Natural Gas
           - HVAC Has Shared System|Heating Only
           - HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Shared Heating
@@ -2445,7 +2445,7 @@ upgrades:
           - Heating Fuel|Propane
           - HVAC Has Shared System|Heating Only
           - HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Shared Heating
@@ -2478,7 +2478,7 @@ upgrades:
           - Heating Fuel|Fuel Oil
           - HVAC Has Shared System|Heating Only
           - HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Shared Heating
@@ -2511,7 +2511,7 @@ upgrades:
           - Heating Fuel|Electricity
           - HVAC Has Shared System|Heating Only
           - HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Shared Heating
@@ -2544,7 +2544,7 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Natural Gas
           - not: HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Shared Heating
@@ -2573,7 +2573,7 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Propane
           - not: HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Shared Heating
@@ -2602,7 +2602,7 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Fuel Oil
           - not: HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Shared Heating
@@ -2631,7 +2631,7 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Electricity
           - not: HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
+      - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Shared Heating
