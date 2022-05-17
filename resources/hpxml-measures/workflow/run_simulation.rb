@@ -59,6 +59,8 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
   args['user_output_variables'] = timeseries_output_variables.join(', ') unless timeseries_output_variables.empty?
   update_args_hash(measures, measure_subdir, args)
 
+  output_format = 'csv' if output_format == 'csv_dview'
+
   # Add hpxml output measure to workflow
   measure_subdir = 'ReportHPXMLOutput'
   args = {}
@@ -92,7 +94,7 @@ OptionParser.new do |opts|
     options[:output_dir] = t
   end
 
-  opts.on('--output-format TYPE', ['csv', 'json', 'msgpack'], 'Output file format type (csv, json, msgpack)') do |t|
+  opts.on('--output-format TYPE', ['csv', 'json', 'msgpack', 'csv_dview'], 'Output file format type (csv, json, msgpack, csv_dview)') do |t|
     options[:output_format] = t
   end
 
@@ -172,6 +174,8 @@ end.parse!
 
 if options[:version]
   puts "OpenStudio-HPXML v#{Version::OS_HPXML_Version}"
+  puts "OpenStudio v#{OpenStudio.openStudioLongVersion}"
+  puts "EnergyPlus v#{OpenStudio.energyPlusVersion}.#{OpenStudio.energyPlusBuildSHA}"
   exit!
 end
 
@@ -238,8 +242,8 @@ rundir = File.join(options[:output_dir], 'run')
 puts "HPXML: #{options[:hpxml]}"
 success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
                        options[:skip_validation], options[:add_comp_loads], options[:add_utility_bills], options[:output_format], options[:building_id],
-                       options[:ep_input_format], options[:detailed_schedules_type],
-                       options[:timeseries_time_column_types], options[:timeseries_output_variables])
+                       options[:ep_input_format], options[:detailed_schedules_type], options[:timeseries_time_column_types],
+                       options[:timeseries_output_variables])
 
 if not success
   exit! 1

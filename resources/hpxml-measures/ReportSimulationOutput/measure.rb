@@ -36,9 +36,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     format_chs << 'csv'
     format_chs << 'json'
     format_chs << 'msgpack'
+    format_chs << 'csv_dview'
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('output_format', format_chs, false)
     arg.setDisplayName('Output Format')
-    arg.setDescription('The file format of the annual (and timeseries, if requested) outputs.')
+    arg.setDescription("The file format of the annual (and timeseries, if requested) outputs. If 'csv_dview' is selected, the timeseries CSV file will include header rows that facilitate opening the file in the DView application.")
     arg.setDefaultValue('csv')
     args << arg
 
@@ -400,6 +401,10 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     output_format = runner.getStringArgumentValue('output_format', user_arguments)
+    if output_format == 'csv_dview'
+      output_format = 'csv'
+      use_dview_format = true
+    end
     timeseries_frequency = runner.getOptionalStringArgumentValue('timeseries_frequency', user_arguments)
     timeseries_frequency = timeseries_frequency.is_initialized ? timeseries_frequency.get : 'none'
     if timeseries_frequency != 'none'
@@ -528,7 +533,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                                     include_timeseries_airflows,
                                     include_timeseries_weather,
                                     timestamps_dst,
-                                    timestamps_utc)
+                                    timestamps_utc,
+                                    use_dview_format)
 
     return true
   end
@@ -1431,8 +1437,13 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
                                       include_timeseries_airflows,
                                       include_timeseries_weather,
                                       timestamps_dst,
-                                      timestamps_utc)
+                                      timestamps_utc,
+                                      use_dview_format)
     return if @timestamps.nil?
+
+    if not ['timestep', 'hourly', 'daily', 'monthly'].include? timeseries_frequency
+      fail "Unexpected timeseries_frequency: #{timeseries_frequency}."
+    end
 
     # Set rounding precision for timeseries (e.g., hourly) outputs.
     # Note: Make sure to round outputs with sufficient resolution for the worst case -- i.e., 1 minute date instead of hourly data.
@@ -1445,16 +1456,11 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
     end
 
-    # Time column(s)
-    if ['timestep', 'hourly', 'daily', 'monthly'].include? timeseries_frequency
-      data = ['Time', nil]
-    else
-      fail "Unexpected timeseries_frequency: #{timeseries_frequency}."
-    end
+    # Initial output data w/ Time column(s)
+    data = ['Time', nil]
     @timestamps.each do |timestamp|
       data << timestamp
     end
-
     if timestamps_dst
       timestamps2 = [['TimeDST', nil]]
       timestamps_dst.each do |timestamp|
@@ -1463,7 +1469,6 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     else
       timestamps2 = []
     end
-
     if timestamps_utc
       timestamps3 = [['TimeUTC', nil]]
       timestamps_utc.each do |timestamp|
@@ -1569,6 +1574,25 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       end
       if n_elements.uniq.size > 1
         fail "Inconsistent number of array elements: #{n_elements.uniq}."
+      end
+
+      if use_dview_format
+        # Remove Time column(s)
+        while data[0][0].include? 'Time'
+          data = data.map { |a| a[1..-1] }
+        end
+
+        # Add header per DataFileTemplate.pdf; see https://github.com/NREL/wex/wiki/DView
+        start_day = Schedule.get_day_num_from_month_day(@hpxml.header.sim_calendar_year, @hpxml.header.sim_begin_month, @hpxml.header.sim_begin_day)
+        start_hr = (start_day - 1) * 24
+        header_data = [['wxDVFileHeaderVer.1'],
+                       data[0].map { |d| d.sub(':', '|') }, # Series name (series can be organized into groups by entering Group Name|Series Name)
+                       data[0].map { |d| start_hr + 0.5 }, # Start time of the first data point; 0.5 implies average over the first hour
+                       data[0].map { |d| @hpxml.header.timestep / 60.0 }, # Time interval in hours
+                       data[1]] # Units
+        data.delete_at(1) # Remove units, added to header data above
+        data.delete_at(0) # Remove series name, added to header data above
+        data.insert(0, *header_data) # Add header data to beginning
       end
 
       # Write file
