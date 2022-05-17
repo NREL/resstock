@@ -169,7 +169,9 @@ class TestRunAnalysis < MiniTest::Test
     @command += yml
     @command += ' -k'
 
-    system(@command)
+    # system(@command)
+    cli_output = `#{@command}`
+    puts cli_output
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'results-Baseline.csv')))
