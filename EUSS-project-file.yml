@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /projects/enduse/euss/repos/resstock  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/enduse/euss/resstock_runs/test1
+output_directory: /projects/enduse/euss/resstock_runs/test_01_2018_close
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
@@ -41,7 +41,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: euss
-      prefix: tests/test1 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: tests/test_01_2018_close #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: euss-results #collection of Athena tables (post-crawling), can be constant for the entire analysis
@@ -313,6 +313,10 @@ upgrades:
           - or:
             - Geometry Attic Type|Finished Attic or Cathedral Ceiling
             - Geometry Building Level MF|Top
+          - or:
+            - Insulation Roof|Finished, Uninsulated
+            - Insulation Roof|Finished, R-7
+            - Insulation Roof|Finished, R-13
         costs:
           - value: 5.54 # $/ft2 (4.3* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=13&ctId=395&scId=6283&acId=6822
             multiplier: Roof Area (ft^2)
