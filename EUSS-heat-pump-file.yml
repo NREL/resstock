@@ -183,7 +183,7 @@ upgrades:
     options:
       - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
   # - upgrade_name: Dual-System Electric Baseboard MSHP
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Electric Baseboard, 100% Efficiency
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
@@ -198,7 +198,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
   # - upgrade_name: Dual-System Electric Boiler MSHP
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Electric Boiler, 100% Efficiency
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
@@ -213,7 +213,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
   # - upgrade_name: Dual-System Electric Wall Furnace MSHP
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Electric Wall Furnace, 100% AFUE
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
@@ -227,7 +227,7 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-    
+    # ducted existing electric backup
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
         apply_logic:
           - HVAC Has Ducts|Yes
@@ -236,8 +236,8 @@ upgrades:
           - or: *not_ASHP_greater_than_SEER_15_9_HSPF
         costs: *costs_ashp_ducted_SEER_15_9_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
-      # Existing MSHP
-      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
+    # Existing MSHP upgraded
+      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Type And Fuel|Electricity MSHP
