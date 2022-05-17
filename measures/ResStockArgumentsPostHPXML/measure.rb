@@ -111,6 +111,9 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
 
     hpxml = HPXML.new(hpxml_path: hpxml_path)
 
+    # skip measure
+    return true if skip_measure(hpxml)
+
     # get occupancy schedules
     schedules = get_occupancy_schedules(args)
 
@@ -142,6 +145,12 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     return true
   end
 
+  def skip_measure(hpxml)
+    return true if hpxml.hvac_controls.size == 0
+
+    return false
+  end
+
   def write_new_schedules(schedules, schedules_filepath)
     CSV.open(schedules_filepath, 'w') do |csv|
       csv << schedules.keys
@@ -153,8 +162,6 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   def create_hvac_setpoints(runner, hpxml, schedules, new_schedules, args)
-    return if hpxml.hvac_controls.size == 0
-
     heating_setpoints = []
     cooling_setpoints = []
 
