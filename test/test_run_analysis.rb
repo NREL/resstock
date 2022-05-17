@@ -16,6 +16,11 @@ class TestRunAnalysis < MiniTest::Test
     @national_baseline = File.join(buildstock_directory, 'national_baseline')
     @testing_upgrades = File.join(buildstock_directory, 'testing_upgrades')
     @national_upgrades = File.join(buildstock_directory, 'national_upgrades')
+
+    FileUtils.rm_rf(@testing_baseline)
+    FileUtils.rm_rf(@national_baseline)
+    FileUtils.rm_rf(@testing_upgrades)
+    FileUtils.rm_rf(@national_upgrades)
   end
 
   def _test_measure_order(osw)
@@ -60,8 +65,6 @@ class TestRunAnalysis < MiniTest::Test
     cli_output_log = File.read(File.join(@testing_baseline, 'cli_output.log'))
     assert(cli_output_log.include?('ERROR'))
     assert(cli_output_log.include?('Run Period End Day of Month (32) must be one of'))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_errors_already_exists
@@ -72,8 +75,6 @@ class TestRunAnalysis < MiniTest::Test
     cli_output = `#{@command}`
 
     assert(cli_output.include?("Output directory 'testing_baseline' already exists."))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_errors_downselect_resample
@@ -83,8 +84,6 @@ class TestRunAnalysis < MiniTest::Test
     cli_output = `#{@command}`
 
     assert(cli_output.include?("Not supporting residential_quota_downselect's 'resample' at this time."))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_errors_weather_files
@@ -96,8 +95,6 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(cli_output.include?("Must include 'weather_files_url' or 'weather_files_path' in yml."))
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_errors_downsampler
@@ -107,8 +104,6 @@ class TestRunAnalysis < MiniTest::Test
     cli_output = `#{@command}`
 
     assert(cli_output.include?("Sampler type 'residential_quota_downsampler' is invalid or not supported."))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_errors_missing_key
@@ -118,8 +113,6 @@ class TestRunAnalysis < MiniTest::Test
     cli_output = `#{@command}`
 
     assert(cli_output.include?("Both 'build_existing_model' and 'simulation_output_report' must be included in yml."))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_measures_only
@@ -132,8 +125,6 @@ class TestRunAnalysis < MiniTest::Test
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(!File.exist?(File.join(@testing_baseline, 'run1', 'eplusout.sql')))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_sampling_only
@@ -146,8 +137,6 @@ class TestRunAnalysis < MiniTest::Test
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(!File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'buildstock.csv')))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_building_id
@@ -160,8 +149,6 @@ class TestRunAnalysis < MiniTest::Test
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(!File.exist?(File.join(@testing_baseline, 'run2')))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_threads_and_keep_run_folders
@@ -175,8 +162,6 @@ class TestRunAnalysis < MiniTest::Test
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'run2')))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_testing_baseline
@@ -205,8 +190,6 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@testing_baseline, 'xml', 'Baseline', '1.xml')))
-
-    FileUtils.rm_rf(@testing_baseline)
   end
 
   def test_national_baseline
@@ -235,8 +218,6 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
-
-    FileUtils.rm_rf(@national_baseline)
   end
 
   def test_testing_upgrades
@@ -288,8 +269,6 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-upgraded-defaulted.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-existing.xml')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Windows', '1-upgraded.xml')))
-
-    FileUtils.rm_rf(@testing_upgrades)
   end
 
   def test_national_upgrades
@@ -341,7 +320,5 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-upgraded-defaulted.xml')))
     assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-existing.xml')))
     assert(File.exist?(File.join(@national_upgrades, 'xml', 'Windows', '1-upgraded.xml')))
-
-    FileUtils.rm_rf(@national_upgrades)
   end
 end

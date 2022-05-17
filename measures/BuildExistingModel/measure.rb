@@ -368,6 +368,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # ResStockArgumentsPostHPXML
+    measures['ResStockArgumentsPostHPXML'] = [{}] if !measures.keys.include?('ResStockArgumentsPostHPXML') # FIXME: remove when ResStockArgumentsPostHPXML is introduced into options_lookup.tsv
     measures['ResStockArgumentsPostHPXML'][0]['hpxml_path'] = hpxml_path
     measures['ResStockArgumentsPostHPXML'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
