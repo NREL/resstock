@@ -247,7 +247,7 @@ upgrades:
 # Dual-Fuel (use existing separate backup)
   # Set heat pump option
   # ASHP (has boiler and existing central AC with ducts)
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Separate Backup, 41F switchover
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Separate Backup
         apply_logic:
           - HVAC Has Ducts|Yes
           - or:
@@ -263,7 +263,7 @@ upgrades:
         lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
 
   # MSHP (no ducts)
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup, 41F switchover
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
         apply_logic:
           - HVAC Has Ducts|No
           - or:
@@ -562,7 +562,7 @@ upgrades:
       
 #### shared heating ####
   # ASHP separate backup, max load for fossil fuel and electric shared heating system fully replaced by max load MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF # Should this use 80/20 instead?
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF
         apply_logic:
           - HVAC Has Ducts|Yes
           - Heating Fuel|Electricity
