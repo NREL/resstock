@@ -118,13 +118,14 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     new_schedules = {}
 
     # create HVAC setpoints
-    success = create_hvac_setpoints(runner, hpxml, schedules, new_schedules, args)
-    return false if not success
+    create_hvac_setpoints(runner, hpxml, schedules, new_schedules, args)
+
+    # return if not writing schedules
+    return true if new_schedules.empty?
 
     # write schedules
     schedules_filepath = File.join(File.dirname(args[:output_csv_path].get), 'schedules2.csv')
-    success = write_new_schedules(new_schedules, schedules_filepath)
-    return false if not success
+    write_new_schedules(new_schedules, schedules_filepath)
 
     # modify the hpxml with the schedules path
     doc = XMLHelper.parse_file(hpxml_path)
@@ -132,11 +133,11 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     schedules_filepaths = XMLHelper.get_values(extension, 'SchedulesFilePath', :string)
     if !schedules_filepaths.include?(schedules_filepath)
       XMLHelper.add_element(extension, 'SchedulesFilePath', schedules_filepath, :string)
-    end
 
-    # write out the modified hpxml
-    XMLHelper.write_file(doc, hpxml_path)
-    runner.registerInfo("Wrote file: #{hpxml_path}")
+      # write out the modified hpxml
+      XMLHelper.write_file(doc, hpxml_path)
+      runner.registerInfo("Wrote file: #{hpxml_path}")
+    end
 
     return true
   end
@@ -149,10 +150,11 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
         csv << row.map { |x| '%.3g' % x }
       end
     end
-    return true
   end
 
   def create_hvac_setpoints(runner, hpxml, schedules, new_schedules, args)
+    return if hpxml.hvac_controls.size == 0
+
     heating_setpoints = []
     cooling_setpoints = []
 
@@ -203,8 +205,6 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
 
     new_schedules[SchedulesFile::ColumnHeatingSetpoint] = by_day_heating_setpoints.flatten
     new_schedules[SchedulesFile::ColumnCoolingSetpoint] = by_day_cooling_setpoints.flatten
-
-    return true
   end
 
   def create_by_day_setpoints(setpoints, steps_in_day)
