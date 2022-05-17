@@ -109,6 +109,8 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
       fail "'#{hpxml_path}' does not exist or is not an .xml file."
     end
 
+    hpxml = HPXML.new(hpxml_path: hpxml_path)
+
     # get occupancy schedules
     schedules = get_occupancy_schedules(args)
 
@@ -116,7 +118,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     new_schedules = {}
 
     # create HVAC setpoints
-    success = create_hvac_setpoints(schedules, new_schedules, args)
+    success = create_hvac_setpoints(runner, hpxml, schedules, new_schedules, args)
     return false if not success
 
     # write schedules
@@ -150,7 +152,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     return true
   end
 
-  def create_hvac_setpoints(schedules, new_schedules, args)
+  def create_hvac_setpoints(runner, hpxml, schedules, new_schedules, args)
     heating_setpoints = []
     cooling_setpoints = []
 
@@ -174,10 +176,71 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    new_schedules[SchedulesFile::ColumnHeatingSetpoint] = heating_setpoints
-    new_schedules[SchedulesFile::ColumnCoolingSetpoint] = cooling_setpoints
+    calendar_year = get_calendar_year(hpxml)
+
+    HPXMLDefaults.apply_hvac_control(hpxml, nil)
+    hvac_control = hpxml.hvac_controls[0]
+
+    htg_start_month = hvac_control.seasons_heating_begin_month
+    htg_start_day = hvac_control.seasons_heating_begin_day
+    htg_end_month = hvac_control.seasons_heating_end_month
+    htg_end_day = hvac_control.seasons_heating_end_day
+    clg_start_month = hvac_control.seasons_cooling_begin_month
+    clg_start_day = hvac_control.seasons_cooling_begin_day
+    clg_end_month = hvac_control.seasons_cooling_end_month
+    clg_end_day = hvac_control.seasons_cooling_end_day
+
+    heating_days = Schedule.get_daily_season(calendar_year, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
+    cooling_days = Schedule.get_daily_season(calendar_year, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+
+    steps_in_day = steps_in_day(hpxml)
+    by_day_heating_setpoints = create_by_day_setpoints(heating_setpoints, steps_in_day)
+    htg_weekday_setpoints = htg_weekend_setpoints = by_day_heating_setpoints
+    by_day_cooling_setpoints = create_by_day_setpoints(cooling_setpoints, steps_in_day)
+    clg_weekday_setpoints = clg_weekend_setpoints = by_day_cooling_setpoints
+
+    by_day_htg_setpoints, _, by_day_clg_setpoints, _ = HVAC.create_setpoint_schedules(runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, calendar_year)
+
+    new_schedules[SchedulesFile::ColumnHeatingSetpoint] = by_day_heating_setpoints.flatten
+    new_schedules[SchedulesFile::ColumnCoolingSetpoint] = by_day_cooling_setpoints.flatten
 
     return true
+  end
+
+  def create_by_day_setpoints(setpoints, steps_in_day)
+    by_day_setpoints = []
+    setpoints.each_slice(steps_in_day) do |day|
+      by_day_setpoints << day
+    end
+    return by_day_setpoints
+  end
+
+  def steps_in_day(hpxml)
+    minutes_per_step = 60
+    if !hpxml.header.timestep.nil?
+      minutes_per_step = hpxml.header.timestep
+    end
+    return 24 * 60 / minutes_per_step
+  end
+
+  def get_calendar_year(hpxml)
+    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
+    if not File.exist? epw_path
+      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
+    end
+    if not File.exist? epw_path
+      runner.registerError("Could not find EPW file at '#{epw_path}'.")
+      return false
+    end
+    epw_file = OpenStudio::EpwFile.new(epw_path)
+    calendar_year = 2007 # default to TMY
+    if !hpxml.header.sim_calendar_year.nil?
+      calendar_year = hpxml.header.sim_calendar_year
+    end
+    if epw_file.startDateActualYear.is_initialized # AMY
+      calendar_year = epw_file.startDateActualYear.get
+    end
+    return calendar_year
   end
 
   def get_occupancy_schedules(args)
