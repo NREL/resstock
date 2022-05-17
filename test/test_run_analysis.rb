@@ -199,7 +199,9 @@ class TestRunAnalysis < MiniTest::Test
     @command += yml
     @command += ' -k'
 
-    system(@command)
+    # system(@command)
+    cli_output = `#{@command}`
+    puts cli_output
 
     _test_measure_order(File.join(@national_baseline, 'national_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@national_baseline, 'results-Baseline.csv')))
@@ -228,7 +230,9 @@ class TestRunAnalysis < MiniTest::Test
     @command += ' -d'
     @command += ' -k'
 
-    system(@command)
+    # system(@command)
+    cli_output = `#{@command}`
+    puts cli_output
 
     _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
     assert(File.exist?(File.join(@testing_upgrades, 'results-Baseline.csv')))
@@ -279,7 +283,9 @@ class TestRunAnalysis < MiniTest::Test
     @command += ' -d'
     @command += ' -k'
 
-    system(@command)
+    # system(@command)
+    cli_output = `#{@command}`
+    puts cli_output
 
     _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Baseline.osw'))
     assert(File.exist?(File.join(@national_upgrades, 'results-Baseline.csv')))

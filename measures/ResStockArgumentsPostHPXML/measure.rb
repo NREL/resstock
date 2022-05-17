@@ -231,15 +231,20 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   def get_calendar_year(hpxml)
+    # Create EpwFile object
     epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
+puts "HERE0 #{epw_path}"
     if not File.exist? epw_path
+puts "HERE1 #{epw_path}"
       epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
     end
+puts "HERE2 #{File.expand_path(epw_path)}"
     if not File.exist? epw_path
       runner.registerError("Could not find EPW file at '#{epw_path}'.")
       return false
     end
     epw_file = OpenStudio::EpwFile.new(epw_path)
+
     calendar_year = 2007 # default to TMY
     if !hpxml.header.sim_calendar_year.nil?
       calendar_year = hpxml.header.sim_calendar_year
