@@ -75,11 +75,13 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_output_formats
     # Check that the simulation produces outputs in the appropriate format
-    ['csv', 'json', 'msgpack'].each do |output_format|
+    ['csv', 'json', 'msgpack', 'csv_dview'].each do |output_format|
       rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
       xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
       command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --debug --hourly ALL --add-utility-bills --output-format #{output_format}"
       system(command, err: File::NULL)
+
+      output_format = 'csv' if output_format == 'csv_dview'
 
       # Check for output files
       assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))

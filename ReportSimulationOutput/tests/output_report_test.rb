@@ -1004,6 +1004,18 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
   end
 
+  def test_timeseries_for_dview
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+                  'output_format' => 'csv_dview',
+                  'timeseries_frequency' => 'timestep',
+                  'include_timeseries_fuel_consumptions' => true,
+                  'add_timeseries_dst_column' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    assert_equal('wxDVFileHeaderVer.1', CSV.readlines(timeseries_csv)[0][0].strip)
+  end
+
   def test_timeseries_local_time_dst
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
                   'timeseries_frequency' => 'timestep',
@@ -1152,6 +1164,8 @@ class ReportSimulationOutputTest < MiniTest::Test
     steps = OpenStudio::WorkflowStepVector.new
     found_args = []
     json['steps'].each do |json_step|
+      next unless ['HPXMLtoOpenStudio', 'ReportSimulationOutput'].include? json_step['measure_dir_name']
+
       step = OpenStudio::MeasureStep.new(json_step['measure_dir_name'])
       json_step['arguments'].each do |json_arg_name, json_arg_val|
         if args_hash.keys.include? json_arg_name
