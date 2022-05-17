@@ -1,29 +1,38 @@
 ## OpenStudio-HPXML v1.4.0
+
 __New Features__
 - Updates to OpenStudio 3.4.0/EnergyPlus 22.1.
+- High-level optional `OccupancyCalculationType` input to specify operational vs asset calculation. Defaults to asset. If operational, `NumberofResidents` is required.
 - Allows calculating one or more emissions scenarios (e.g., high renewable penetration vs business as usual) for different emissions types (e.g., CO2e).
-- Allows a heat pump separate backup system to be a central system (e.g., central furnace w/ ducts). Previously only non-central system types were allowed.
-- **Breaking change**: Replaces the `UseMaxLoadForHeatPumps` sizing option with `HeatPumpSizingMethodology`, which has three choices:
-  - `ACCA`: nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
-  - `HERS` (default): nominal capacity sized equal to the larger of heating/cooling design loads.
-  - `MaxLoad`: nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's capacity retention at the design temperature.
-- Heat pumps with switchover temperatures are now autosized by taking into account the switchover temperature, if higher than the heating design temperature.
-- Updates HVAC fans to use fan power law (cubic relationship between fan speed and power).
+- New ReportUtilityBills reporting measure: adds a new results_bills.csv output file to summarize calculated utility bills.
+- Switches from EnergyPlus SQL output to MessagePack output for faster performance and reduced file sizes when requesting timeseries outputs.
+- New heat pump capabilities:
+  - **Breaking change**: Replaces the `UseMaxLoadForHeatPumps` sizing option with `HeatPumpSizingMethodology`, which has three choices:
+    - `ACCA`: nominal capacity sized per ACCA Manual J/S based on cooling design loads, with some oversizing allowances for larger heating design loads.
+    - `HERS` (default): nominal capacity sized equal to the larger of heating/cooling design loads.
+    - `MaxLoad`: nominal capacity sized based on the larger of heating/cooling design loads, while taking into account the heat pump's capacity retention at the design temperature.
+  - Allows the separate backup system to be a central system (e.g., central furnace w/ ducts). Previously only non-central system types were allowed.
+  - Heat pumps with switchover temperatures are now autosized by taking into account the switchover temperature, if higher than the heating design temperature.
+  - Allows `BackupHeatingLockoutTemperature` as an optional input to control integrated backup heating availability during, e.g., a thermostat heating setback recovery event; defaults to 40F.
+- New water heating capabilities:
+  - Allows conventional storage tank water heaters to use a stratified (rather than mixed) tank model via `extension/TankModelType`; higher precision but runtime penalty. Defaults to mixed.
+  - Allows operating mode (standard vs heat pump only) for heat pump water heaters (HPWHs) via `extension/OperatingMode`. Defaults to standard.
+  - Updates combi boiler model to be simpler, faster, and more robust by using separate space/water heating plant loops and boilers.
+- New capabilities for hourly/sub-hourly scheduling via schedule CSV files:
+  - Detailed HVAC and water heater setpoints.
+  - Detailed heat pump water heater operating modes.
+- EnergyPlus modeling changes:
+  - Switches from ScriptF to CarrollMRT radiant exchange algorithm.
+  - Updates HVAC fans to use fan power law (cubic relationship between fan speed and power).
+  - Updates HVAC rated fan power assumption per ASHRAE 1449-RP.
 - Allows specifying a `StormWindow` element for windows/skylights; U-factors and SHGCs are automatically adjusted.
 - Allows an optional `AirInfiltrationMeasurement/InfiltrationHeight` input.
 - Allows an optional `Battery/UsableCapacity` input; now defaults to 0.9 x NominalCapacity (previously 0.8).
 - For CFIS systems, allows an optional `extension/VentilationOnlyModeAirflowFraction` input to address duct losses during ventilation only mode.
-- Adds support for shared hot water recirculation systems controlled by temperature.
-- The `WaterFixturesUsageMultiplier` input now also applies to general water use internal gains and recirculation pump energy (for some control types).
-- Relaxes requirement for `ConditionedFloorAreaServed` for air distribution systems; now only needed if duct surface areas not provided.
 - **Breaking change**: Each `VentilationFan` must have one (and only one) `UsedFor...` element set to true.
-- Updates combi boiler model to be simpler, faster, and more robust by using separate space/water heating plant loops and boilers.
-- Switches from EnergyPlus SQL output to MessagePack output for faster performance and reduced file sizes when requesting timeseries outputs.
-- Allows MessagePack annual/timeseries output files to be generated instead of CSV/JSON.
-- Switches from ScriptF to CarrollMRT radiant exchange algorithm.
-- Updates HVAC rated fan power assumption per ASHRAE 1449-RP.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Changes the zip code argument name to `site_zip_code`.
+  - Adds optional arguments for schedule CSV files, HPWH operating mode, water heater tank model, storm windows, heat pump lockout temperature, battery usable capacity, and emissions scenarios.
   - Adds support for ambient foundations for single-family attached and apartment units.
   - Adds support for unconditioned attics for apartment units.
   - Adds an optional argument to store additional custom properties in the HPXML file.
@@ -39,8 +48,9 @@ __New Features__
   - Allows user-specified annual/timeseries output file names.
 - ReportHPXMLOutput measure:
   - Adds "Enclosure: Floor Area Foundation" output row in results_hpxml.csv.
-- New ReportUtilityBills measure:
-  - Adds a new results_bills.csv output file to summarize calculated utility bills.
+- Adds support for shared hot water recirculation systems controlled by temperature.
+- Relaxes requirement for `ConditionedFloorAreaServed` for air distribution systems; now only needed if duct surface areas not provided.
+- Allows MessagePack annual/timeseries output files to be generated instead of CSV/JSON.
 
 __Bugfixes__
 - Adds more stringent limits for `AirflowDefectRatio` and `ChargeDefectRatio` (now allows values from 1/10th to 10x the design value).
@@ -50,8 +60,12 @@ __Bugfixes__
 - Adds more decimal places in output files as needed for simulations with shorter timesteps and/or abbreviated run periods.
 - Timeseries output fixes: some outputs off by 1 hour; possible negative combi boiler values.
 - Fixes range hood ventilation interaction with infiltration to take into account the location of the cooking range.
-- BuildResidentialHPXML measure: Fixes incorrect outside boundary condition for shared gable walls of cathedral ceilings, now set to adiabatic.
 - Fixes possible EMS error for ventilation systems with low (but non-zero) flow rates.
+- Fixes documentation for `Overhangs/Depth` inputs; units should be ft and not inches.
+- The `WaterFixturesUsageMultiplier` input now also applies to general water use internal gains and recirculation pump energy (for some control types).
+- BuildResidentialHPXML measure:
+  - Fixes units for "Cooling System: Cooling Capacity" argument (Btu/hr, not tons).
+  - Fixes incorrect outside boundary condition for shared gable walls of cathedral ceilings, now set to adiabatic.
 
 ## OpenStudio-HPXML v1.3.0
 
