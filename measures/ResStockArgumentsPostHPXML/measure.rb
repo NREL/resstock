@@ -25,7 +25,12 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   def arguments(model)
     args = OpenStudio::Measure::OSArgumentVector.new
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_csv_path', true)
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_path', false)
+    arg.setDisplayName('HPXML File Path')
+    arg.setDescription('Absolute/relative path of the HPXML file.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('output_csv_path', false)
     arg.setDisplayName('Schedules: Output CSV Path')
     arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
     args << arg
@@ -44,6 +49,15 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
 
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
+    args = Hash[args.collect { |k, v| [k.to_sym, v] }]
+
+    hpxml_path = args[:hpxml_path].get
+    unless (Pathname.new hpxml_path).absolute?
+      hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
+    end
+    unless File.exist?(hpxml_path) && hpxml_path.downcase.end_with?('.xml')
+      fail "'#{hpxml_path}' does not exist or is not an .xml file."
+    end
 
     # TODO
 

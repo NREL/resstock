@@ -252,7 +252,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Get the absolute paths relative to this meta measure in the run directory
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
-    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+    if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
       register_logs(runner, new_runner)
       return false
     end
@@ -262,7 +262,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
     measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
-    measures['ResStockArgumentsPostHPXML'] = [{}]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -287,7 +286,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['software_info_program_used'] = Version.software_program_used
     measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version.software_program_version
 
-    # Get registered values and pass them to BuildResidentialHPXML
+    # Simulation control
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args['simulation_control_timestep'].get if args['simulation_control_timestep'].is_initialized
     if args['simulation_control_run_period_begin_month'].is_initialized && args['simulation_control_run_period_begin_day_of_month'].is_initialized && args['simulation_control_run_period_end_month'].is_initialized && args['simulation_control_run_period_end_day_of_month'].is_initialized
       begin_month = "#{Date::ABBR_MONTHNAMES[args['simulation_control_run_period_begin_month'].get]}"
@@ -364,24 +363,25 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Get registered values and pass them to BuildResidentialScheduleFile
+    # BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
-    # Get registered values and pass them to HPXMLtoOpenStudio
+    # ResStockArgumentsPostHPXML
+    measures['ResStockArgumentsPostHPXML'][0]['hpxml_path'] = hpxml_path
+    measures['ResStockArgumentsPostHPXML'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
+
+    # HPXMLtoOpenStudio
     measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
     measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
     measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
-
-    # Get registered values and pass them to ResStockArgumentsPostHPXML
-    measures['ResStockArgumentsPostHPXML'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # Specify measures to run
     if run_hescore_workflow
       measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
     else
-      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
     end
 
     if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
@@ -389,13 +389,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    if not apply_measures(measures_dir, { 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
+    if not apply_measures(measures_dir, { 'ResStockArgumentsPostHPXML' => measures['ResStockArgumentsPostHPXML'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
       register_logs(runner, new_runner)
       return false
     end
 
-    # Run HEScore Measures
-    if run_hescore_workflow
+    if run_hescore_workflow # Run HEScore Measures
       hes_json_path = File.expand_path('../hes.json')
       hes_hpxml_path = File.expand_path('../hes.xml')
       measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => hpxml_path, 'output_path' => hes_json_path }]
@@ -411,8 +410,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
 
       # HPXMLtoOpenStudio
-      measures_hash = { 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
-      if not apply_measures(hes_hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
+      if not apply_measures(hes_hpxml_measures_dir, { 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
+        register_logs(runner, new_runner)
+        return false
+      end
+    else
+      if not apply_measures(hpxml_measures_dir, { 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
         register_logs(runner, new_runner)
         return false
       end
@@ -449,19 +452,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     return true
-  end
-
-  def register_logs(runner, new_runner)
-    new_runner.result.warnings.each do |warning|
-      runner.registerWarning(warning.logMessage)
-    end
-    new_runner.result.info.each do |info|
-      runner.registerInfo(info.logMessage)
-    end
-    new_runner.result.errors.each do |error|
-      runner.registerError(error.logMessage)
-    end
-    return
   end
 end
 
