@@ -146,9 +146,10 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   def skip_measure(hpxml)
-    return true if hpxml.hvac_controls.size == 0
+    skip = true
+    skip &&= (hpxml.hvac_controls.size == 0)
 
-    return false
+    return skip
   end
 
   def write_new_schedules(schedules, schedules_filepath)
@@ -172,7 +173,13 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     cooling_setpoint_offset_nighttime = args[:cooling_setpoint_offset_nighttime]
     cooling_setpoint_offset_daytime_unoccupied = args[:cooling_setpoint_offset_daytime_unoccupied]
 
-    schedules[SchedulesFile::ColumnOccupants].zip(schedules[SchedulesFile::ColumnSleeping]).each do |occupants, sleeping|
+    schedules[schedules.keys[0]].each_with_index do |_, i|
+      occupants = nil
+      occupants = schedules[SchedulesFile::ColumnOccupants][i] if schedules.keys.include?(SchedulesFile::ColumnOccupants)
+
+      sleeping = nil
+      sleeping = schedules[SchedulesFile::ColumnSleeping][i] if schedules.keys.include?(SchedulesFile::ColumnSleeping)
+
       if sleeping == 1 # nighttime
         heating_setpoints << heating_setpoint - heating_setpoint_offset_nighttime
         cooling_setpoints << cooling_setpoint + cooling_setpoint_offset_nighttime
