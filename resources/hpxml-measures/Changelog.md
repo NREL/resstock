@@ -1,6 +1,8 @@
 ## OpenStudio-HPXML v1.5.0
 
 __New Features__
+- Allows heating/cooling seasons that don't span the entire year.
+- Allows generating timeseries unmet hours for heating and cooling.
 - Allows CSV timeseries output to be formatted for use with the DView application.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Replaces all string arguments that use 'auto' for defaulted inputs with optional arguments of the appropriate data type.
@@ -9,6 +11,7 @@ __New Features__
   - **Breaking change**: Replaces all string arguments that use 'auto' for defaulted inputs with optional arguments of the appropriate data type.
 
 __Bugfixes__
+- Fixes heating (or cooling) setpoints from affecting the conditioned space temperature outside the heating (or cooling) season.
 
 ## OpenStudio-HPXML v1.4.0
 

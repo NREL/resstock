@@ -1875,8 +1875,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heat_pump_cooling_capacity'] = 0.0
     args['heat_pump_fraction_cool_load_served'] = 0
   elsif ['base-hvac-seasons.xml'].include? hpxml_file
-    args['hvac_control_heating_season_period'] = 'Nov 1 - Jun 30'
-    args['hvac_control_cooling_season_period'] = 'Jun 1 - Oct 31'
+    args['hvac_control_heating_season_period'] = 'Nov 1 - May 1'
+    args['hvac_control_cooling_season_period'] = 'Jun 1 - Oct 1'
   elsif ['base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml',
          'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml',
          'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml',

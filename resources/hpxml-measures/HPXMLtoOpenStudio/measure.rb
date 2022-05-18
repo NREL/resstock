@@ -293,6 +293,7 @@ class OSModel
 
     # Output
 
+    add_unmet_hours_output(runner, model, spaces)
     add_loads_output(runner, model, spaces, add_component_loads)
     set_output_files(runner, model)
     # Uncomment to debug EMS
@@ -1587,8 +1588,7 @@ class OSModel
   def self.add_ideal_system(runner, model, spaces, epw_path)
     # Adds an ideal air system as needed to meet the load under certain circumstances:
     # 1. the sum of fractions load served is less than 1, or
-    # 2. there are non-year-round HVAC seasons, or
-    # 3. we're using an ideal air system for e.g. ASHRAE 140 loads calculation.
+    # 2. we're using an ideal air system for e.g. ASHRAE 140 loads calculation.
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
     obj_name = Constants.ObjectNameIdealAirSystem
 
@@ -1623,16 +1623,8 @@ class OSModel
       sequential_cool_load_frac = 0.0
     end
 
-    return if @heating_days.nil?
-
-    # For periods of the year outside the HVAC season, operate this ideal air system to meet
-    # 100% of the load; for all other periods, operate to meet the fraction of the load not
-    # met by the HVAC system(s).
-    sequential_heat_load_fracs = @heating_days.map { |d| d == 0 ? 1.0 : sequential_heat_load_frac }
-    sequential_cool_load_fracs = @cooling_days.map { |d| d == 0 ? 1.0 : sequential_cool_load_frac }
-
-    if (sequential_heat_load_fracs.sum > 0.0) || (sequential_cool_load_fracs.sum > 0.0)
-      HVAC.apply_ideal_air_loads(model, runner, obj_name, sequential_cool_load_fracs, sequential_heat_load_fracs,
+    if (sequential_heat_load_frac > 0.0) || (sequential_cool_load_frac > 0.0)
+      HVAC.apply_ideal_air_loads(model, runner, obj_name, [sequential_cool_load_frac], [sequential_heat_load_frac],
                                  living_zone)
     end
   end
@@ -1902,16 +1894,60 @@ class OSModel
     additionalProperties.setFeature('emissions_scenario_types', emissions_scenario_types)
   end
 
-  def self.map_to_string(map)
-    map_str = {}
-    map.each do |sys_id, objects|
-      object_name_list = []
-      objects.uniq.each do |object|
-        object_name_list << object.name.to_s
-      end
-      map_str[sys_id] = object_name_list if object_name_list.size > 0
+  def self.add_unmet_hours_output(runner, model, spaces)
+    # We do our own unmet hours calculation via EMS so that we can incorporate,
+    # e.g., heating/cooling seasons into the logic.
+    hvac_control = @hpxml.hvac_controls[0]
+    if not hvac_control.nil?
+      sim_year = @hpxml.header.sim_calendar_year
+      htg_start_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_begin_month, hvac_control.seasons_heating_begin_day)
+      htg_end_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_end_month, hvac_control.seasons_heating_end_day)
+      clg_start_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_begin_month, hvac_control.seasons_cooling_begin_day)
+      clg_end_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_end_month, hvac_control.seasons_cooling_end_day)
     end
-    return map_str.to_s
+
+    living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
+
+    # EMS sensors
+    htg_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Heating Setpoint Not Met Time')
+    htg_sensor.setName('zone htg unmet s')
+    htg_sensor.setKeyName(living_zone.name.to_s)
+
+    clg_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Cooling Setpoint Not Met Time')
+    clg_sensor.setName('zone clg unmet s')
+    clg_sensor.setKeyName(living_zone.name.to_s)
+
+    # EMS program
+    clg_hrs = 'clg_unmet_hours'
+    htg_hrs = 'htg_unmet_hours'
+    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    program.setName(Constants.ObjectNameUnmetHoursProgram)
+    program.addLine("Set #{htg_hrs} = 0")
+    program.addLine("Set #{clg_hrs} = 0")
+    if @hpxml.total_fraction_heat_load_served > 0
+      if htg_end_day >= htg_start_day
+        program.addLine("If (DayOfYear >= #{htg_start_day}) && (DayOfYear <= #{htg_end_day})")
+      else
+        program.addLine("If (DayOfYear >= #{htg_start_day}) || (DayOfYear <= #{htg_end_day})")
+      end
+      program.addLine("  Set #{htg_hrs} = #{htg_hrs} + #{htg_sensor.name}")
+      program.addLine('EndIf')
+    end
+    if @hpxml.total_fraction_cool_load_served > 0
+      if clg_end_day >= clg_start_day
+        program.addLine("If (DayOfYear >= #{clg_start_day}) && (DayOfYear <= #{clg_end_day})")
+      else
+        program.addLine("If (DayOfYear >= #{clg_start_day}) || (DayOfYear <= #{clg_end_day})")
+      end
+      program.addLine("  Set #{clg_hrs} = #{clg_hrs} + #{clg_sensor.name}")
+      program.addLine('EndIf')
+    end
+
+    # EMS calling manager
+    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_calling_manager.setName("#{program.name} calling manager")
+    program_calling_manager.setCallingPoint('EndOfZoneTimestepBeforeZoneReporting')
+    program_calling_manager.addProgram(program)
   end
 
   def self.add_loads_output(runner, model, spaces, add_component_loads)

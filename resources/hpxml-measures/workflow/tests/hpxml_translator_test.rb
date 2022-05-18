@@ -1355,8 +1355,16 @@ class HPXMLTest < MiniTest::Test
       assert_operator(unmet_hours_htg, :>, 1000)
       assert_operator(unmet_hours_clg, :>, 1000)
     else
-      assert_operator(unmet_hours_htg, :<, 350)
-      assert_operator(unmet_hours_clg, :<, 350)
+      if hpxml.total_fraction_heat_load_served == 0
+        assert_equal(0, unmet_hours_htg)
+      else
+        assert_operator(unmet_hours_htg, :<, 350)
+      end
+      if hpxml.total_fraction_cool_load_served == 0
+        assert_equal(0, unmet_hours_clg)
+      else
+        assert_operator(unmet_hours_clg, :<, 350)
+      end
     end
 
     sqlFile.close
