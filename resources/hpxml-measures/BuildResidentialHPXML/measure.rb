@@ -4479,8 +4479,6 @@ class HPXMLFile
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio,
-                         capacity_retention_fraction: capacity_retention_fraction,
-                         capacity_retention_temp: capacity_retention_temp,
                          primary_heating_system: primary_heating_system,
                          primary_cooling_system: primary_cooling_system)
   end
