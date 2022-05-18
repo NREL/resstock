@@ -366,6 +366,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
+    measures['BuildResidentialScheduleFile'][0]['debug'] = true
 
     # ResStockArgumentsPostHPXML
     measures['ResStockArgumentsPostHPXML'][0]['hpxml_path'] = hpxml_path

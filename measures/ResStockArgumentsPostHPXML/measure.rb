@@ -172,11 +172,11 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     cooling_setpoint_offset_nighttime = args[:cooling_setpoint_offset_nighttime]
     cooling_setpoint_offset_daytime_unoccupied = args[:cooling_setpoint_offset_daytime_unoccupied]
 
-    schedules[SchedulesFile::ColumnOccupants].zip(schedules[SchedulesFile::ColumnSleep]).each do |occupants, sleep|
-      if sleep == 1 # nighttime
+    schedules[SchedulesFile::ColumnOccupants].zip(schedules[SchedulesFile::ColumnSleeping]).each do |occupants, sleeping|
+      if sleeping == 1 # nighttime
         heating_setpoints << heating_setpoint - heating_setpoint_offset_nighttime
         cooling_setpoints << cooling_setpoint + cooling_setpoint_offset_nighttime
-      elsif sleep == 0 && occupants == 0 # daytime unoccupied
+      elsif sleeping == 0 && occupants == 0 # daytime unoccupied
         heating_setpoints << heating_setpoint - heating_setpoint_offset_daytime_unoccupied
         cooling_setpoints << cooling_setpoint + cooling_setpoint_offset_daytime_unoccupied
       else # no offset

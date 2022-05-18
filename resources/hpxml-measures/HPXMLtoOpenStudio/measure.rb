@@ -210,8 +210,7 @@ class OSModel
 
     check_file_references(hpxml_path)
     @schedules_file = SchedulesFile.new(runner: runner, model: model,
-                                        schedules_paths: @hpxml.header.schedules_filepaths,
-                                        col_names: SchedulesFile.ColumnNames)
+                                        schedules_paths: @hpxml.header.schedules_filepaths)
 
     weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
     set_defaults_and_globals(runner, output_dir, epw_file, weather, @schedules_file)

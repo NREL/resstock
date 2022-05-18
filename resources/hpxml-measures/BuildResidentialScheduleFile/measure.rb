@@ -11,6 +11,7 @@ require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/geometry'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../HPXMLtoOpenStudio/resources/lighting'
+require_relative '../HPXMLtoOpenStudio/resources/location'
 require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
@@ -70,6 +71,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_output_path', true)
     arg.setDisplayName('HPXML Output File Path')
     arg.setDescription('Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
+    arg.setDisplayName('Debug Mode?')
+    arg.setDescription('Applicable when schedules type is stochastic. If true: Write extra state column(s).')
+    arg.setDefaultValue(false)
     args << arg
 
     return args
@@ -202,6 +209,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:schedules_vacancy_end_month] = end_month
       args[:schedules_vacancy_end_day] = end_day
     end
+
+    debug = false
+    if args[:schedules_type] == 'stochastic' && args[:debug].is_initialized
+      debug = args[:debug].get
+    end
+    args[:debug] = debug
   end
 end
 
