@@ -1,16 +1,16 @@
 schema_version: '0.3'
 buildstock_directory: C:/Users/pwhite2/Documents/GitHub/resstock # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: C:/Users/pwhite2/Documents/heat_pump_euss_v2
+output_directory: C:/Users/pwhite2/Documents/heat_pump_euss_v4
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: C:/Users/pwhite2/Documents/weather/BuildStock_2018_FIPS.zip
 
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 50
+    n_datapoints: 200
 
-# sampler:6
+# sampler:
 #   type: precomputed
 #   args:
 #     sample_file: ../sampling_new/buildstock.csv
@@ -567,7 +567,7 @@ upgrades:
       
 #### shared heating ####
   # ASHP separate backup, max load for fossil fuel and electric shared heating system fully replaced by max load MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
         apply_logic:
           - HVAC Has Ducts|Yes
           - Heating Fuel|Electricity
@@ -606,7 +606,7 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating              
         costs: *costs_mshp_ductless_SEER_15_9_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Max Load
+      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load
         apply_logic:
           - HVAC Has Ducts|No
           - Heating Fuel|Electricity
