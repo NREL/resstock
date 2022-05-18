@@ -182,7 +182,7 @@ upgrades:
     options:
       - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
   # - upgrade_name: Dual-System Electric Baseboard MSHP
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
@@ -197,7 +197,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
   # - upgrade_name: Dual-System Electric Boiler MSHP
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
@@ -212,7 +212,7 @@ upgrades:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
   # - upgrade_name: Dual-System Electric Wall Furnace MSHP
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Separate Backup, Max Load
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
         apply_logic:
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
@@ -231,7 +231,13 @@ upgrades:
         apply_logic:
           - HVAC Has Ducts|Yes
           - HVAC Has Shared System|None
-          - HVAC Heating Fuel|Electricity # Apply to any system with existing non-shared electric heat, including furnaces, baseboards, boilers, heat pumps
+          - or:
+            - HVAC Heating Type And Fuel|Electricity ASHP
+            - HVAC Heating Type And Fuel|Electricity Electric Boiler
+            - HVAC Heating Type And Fuel|Electricity Electric Furnace
+            - HVAC Heating Type And Fuel|Electricity Electric Wall Furnace
+            - HVAC Heating Type And Fuel|Electricity Other
+            - HVAC Heating Type And Fuel|Electricity Baseboard # Apply to any system with existing non-shared electric heat, including furnaces, baseboards, boilers, heat pumps
           - or: *not_ASHP_greater_than_SEER_15_9_HSPF
         costs: *costs_ashp_ducted_SEER_15_9_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
