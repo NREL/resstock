@@ -434,7 +434,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['misc_plug_loads_well_pump_usage_multiplier'] = Float(args['misc_plug_loads_well_pump_usage_multiplier'].to_s) * args['misc_plug_loads_well_pump_2_usage_multiplier']
     args['misc_plug_loads_vehicle_usage_multiplier'] = Float(args['misc_plug_loads_vehicle_usage_multiplier'].to_s) * args['misc_plug_loads_vehicle_2_usage_multiplier']
 
-    if args['misc_plug_loads_other_annual_kwh'] == Constants.Auto
+    if args['misc_plug_loads_other_annual_kwh'].to_s == Constants.Auto
       if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
         args['misc_plug_loads_other_annual_kwh'] = 1146.95 + 296.94 * args['geometry_unit_num_occupants'] + 0.3 * args['geometry_unit_cfa'] # RECS 2015
       elsif [HPXML::ResidentialTypeSFA].include?(args['geometry_unit_type'])
