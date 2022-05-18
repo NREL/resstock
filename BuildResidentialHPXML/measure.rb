@@ -5546,6 +5546,7 @@ class HPXMLFile
 
   def self.set_ceiling_fans(hpxml, runner, args)
     return unless args[:ceiling_fan_present]
+    return unless args[:lighting_present]
 
     if args[:ceiling_fan_efficiency].is_initialized
       efficiency = args[:ceiling_fan_efficiency].get
