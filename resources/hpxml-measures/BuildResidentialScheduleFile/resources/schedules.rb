@@ -16,6 +16,7 @@ class ScheduleGenerator
                  total_days_in_year:,
                  sim_year:,
                  sim_start_day:,
+                 debug:,
                  **remainder)
     @runner = runner
     @epw_file = epw_file
@@ -28,6 +29,7 @@ class ScheduleGenerator
     @total_days_in_year = total_days_in_year
     @sim_year = sim_year
     @sim_start_day = sim_start_day
+    @debug = debug
   end
 
   def get_random_seed
@@ -773,7 +775,10 @@ class ScheduleGenerator
     @schedules[SchedulesFile::ColumnDishwasher] = dw_power_sch.map { |power| power / dw_peak_power }
 
     @schedules[SchedulesFile::ColumnOccupants] = away_schedule.map { |i| 1.0 - i }
-    @schedules[SchedulesFile::ColumnSleep] = sleep_schedule
+
+    if @debug
+      @schedules[SchedulesFile::ColumnSleeping] = sleep_schedule
+    end
 
     @schedules[SchedulesFile::ColumnHotWaterFixtures] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
     fixtures_peak_flow = @schedules[SchedulesFile::ColumnHotWaterFixtures].max
