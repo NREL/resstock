@@ -5235,7 +5235,7 @@ class HPXMLFile
   end
 
   def self.set_lighting(hpxml, runner, args)
-    return unless args[:lighting_present]
+    return unless args[:lighting_present] || args[:ceiling_fan_present] # If ceiling fans present but not lighting present, need to continue and use lighting multipliers = 0 instead
 
     hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
                               location: HPXML::LocationInterior,
@@ -5274,16 +5274,22 @@ class HPXMLFile
                               fraction_of_units_in_location: args[:lighting_garage_fraction_led],
                               lighting_type: HPXML::LightingTypeLED)
 
-    if args[:lighting_interior_usage_multiplier].is_initialized
-      hpxml.lighting.interior_usage_multiplier = args[:lighting_interior_usage_multiplier].get
-    end
+    if args[:lighting_present]
+      if args[:lighting_interior_usage_multiplier].is_initialized
+        hpxml.lighting.interior_usage_multiplier = args[:lighting_interior_usage_multiplier].get
+      end
 
-    if args[:lighting_exterior_usage_multiplier].is_initialized
-      hpxml.lighting.exterior_usage_multiplier = args[:lighting_exterior_usage_multiplier].get
-    end
+      if args[:lighting_exterior_usage_multiplier].is_initialized
+        hpxml.lighting.exterior_usage_multiplier = args[:lighting_exterior_usage_multiplier].get
+      end
 
-    if args[:lighting_garage_usage_multiplier].is_initialized
-      hpxml.lighting.garage_usage_multiplier = args[:lighting_garage_usage_multiplier].get
+      if args[:lighting_garage_usage_multiplier].is_initialized
+        hpxml.lighting.garage_usage_multiplier = args[:lighting_garage_usage_multiplier].get
+      end
+    elsif args[:ceiling_fan_present]
+      hpxml.lighting.interior_usage_multiplier = 0.0
+      hpxml.lighting.exterior_usage_multiplier = 0.0
+      hpxml.lighting.garage_usage_multiplier = 0.0
     end
 
     return unless args[:holiday_lighting_present]
@@ -5568,7 +5574,6 @@ class HPXMLFile
 
   def self.set_ceiling_fans(hpxml, runner, args)
     return unless args[:ceiling_fan_present]
-    return unless args[:lighting_present]
 
     if args[:ceiling_fan_efficiency].is_initialized
       efficiency = args[:ceiling_fan_efficiency].get
