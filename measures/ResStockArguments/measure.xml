@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments</name>
   <uid>c984bb9e-4ac4-4930-a399-9d23f8f6936a</uid>
-  <version_id>d70cdee6-117b-4b01-9fe5-3094e7ac2c26</version_id>
-  <version_modified>20220506T210134Z</version_modified>
+  <version_id>e4cfd41d-81e6-4bdd-8eed-2dd953889506</version_id>
+  <version_modified>20220518T004123Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArguments</class_name>
   <display_name>ResStock Arguments</display_name>
@@ -13,431 +13,85 @@
   <arguments>
     <argument>
       <name>schedules_filepaths</name>
-      <display_name>Schedules: CSV File Paths</display_name>
-      <description>Absolute/relative paths of csv files containing user-specified detailed schedules. If multiple files, use a comma-separated list.</description>
+      <display_name>schedules_filepaths</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>simulation_control_timestep</name>
-      <display_name>Simulation Control: Timestep</display_name>
-      <description>Value must be a divisor of 60.</description>
-      <type>Integer</type>
-      <units>min</units>
+      <display_name>simulation_control_timestep</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>simulation_control_run_period</name>
-      <display_name>Simulation Control: Run Period</display_name>
-      <description>Enter a date like "Jan 1 - Dec 31".</description>
+      <display_name>simulation_control_run_period</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>simulation_control_run_period_calendar_year</name>
-      <display_name>Simulation Control: Run Period Calendar Year</display_name>
-      <description>This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.</description>
-      <type>Integer</type>
-      <units>year</units>
+      <display_name>simulation_control_run_period_calendar_year</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>simulation_control_daylight_saving_enabled</name>
-      <display_name>Simulation Control: Daylight Saving Enabled</display_name>
-      <description>Whether to use daylight saving.</description>
-      <type>Boolean</type>
+      <display_name>simulation_control_daylight_saving_enabled</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>simulation_control_daylight_saving_period</name>
-      <display_name>Simulation Control: Daylight Saving Period</display_name>
-      <description>Enter a date like "Mar 15 - Dec 15".</description>
+      <display_name>simulation_control_daylight_saving_period</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>site_type</name>
-      <display_name>Site: Type</display_name>
-      <description>The type of site.</description>
-      <type>Choice</type>
+      <display_name>site_type</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>suburban</value>
-          <display_name>suburban</display_name>
-        </choice>
-        <choice>
-          <value>urban</value>
-          <display_name>urban</display_name>
-        </choice>
-        <choice>
-          <value>rural</value>
-          <display_name>rural</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>site_shielding_of_home</name>
-      <display_name>Site: Shielding of Home</display_name>
-      <description>Presence of nearby buildings, trees, obstructions for infiltration model.  A value of 'auto' will use 'normal'.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>site_shielding_of_home</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>exposed</value>
-          <display_name>exposed</display_name>
-        </choice>
-        <choice>
-          <value>normal</value>
-          <display_name>normal</display_name>
-        </choice>
-        <choice>
-          <value>well-shielded</value>
-          <display_name>well-shielded</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>site_zip_code</name>
-      <display_name>Site: Zip Code</display_name>
-      <description>Zip code of the home address.</description>
+      <display_name>site_zip_code</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>site_iecc_zone</name>
-      <display_name>Site: IECC Zone</display_name>
-      <description>IECC zone of the home address.</description>
-      <type>Choice</type>
+      <display_name>site_iecc_zone</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>1A</value>
-          <display_name>1A</display_name>
-        </choice>
-        <choice>
-          <value>1B</value>
-          <display_name>1B</display_name>
-        </choice>
-        <choice>
-          <value>1C</value>
-          <display_name>1C</display_name>
-        </choice>
-        <choice>
-          <value>2A</value>
-          <display_name>2A</display_name>
-        </choice>
-        <choice>
-          <value>2B</value>
-          <display_name>2B</display_name>
-        </choice>
-        <choice>
-          <value>2C</value>
-          <display_name>2C</display_name>
-        </choice>
-        <choice>
-          <value>3A</value>
-          <display_name>3A</display_name>
-        </choice>
-        <choice>
-          <value>3B</value>
-          <display_name>3B</display_name>
-        </choice>
-        <choice>
-          <value>3C</value>
-          <display_name>3C</display_name>
-        </choice>
-        <choice>
-          <value>4A</value>
-          <display_name>4A</display_name>
-        </choice>
-        <choice>
-          <value>4B</value>
-          <display_name>4B</display_name>
-        </choice>
-        <choice>
-          <value>4C</value>
-          <display_name>4C</display_name>
-        </choice>
-        <choice>
-          <value>5A</value>
-          <display_name>5A</display_name>
-        </choice>
-        <choice>
-          <value>5B</value>
-          <display_name>5B</display_name>
-        </choice>
-        <choice>
-          <value>5C</value>
-          <display_name>5C</display_name>
-        </choice>
-        <choice>
-          <value>6A</value>
-          <display_name>6A</display_name>
-        </choice>
-        <choice>
-          <value>6B</value>
-          <display_name>6B</display_name>
-        </choice>
-        <choice>
-          <value>6C</value>
-          <display_name>6C</display_name>
-        </choice>
-        <choice>
-          <value>7</value>
-          <display_name>7</display_name>
-        </choice>
-        <choice>
-          <value>8</value>
-          <display_name>8</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>site_state_code</name>
-      <display_name>Site: State Code</display_name>
-      <description>State code of the home address.</description>
-      <type>Choice</type>
+      <display_name>site_state_code</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>AK</value>
-          <display_name>AK</display_name>
-        </choice>
-        <choice>
-          <value>AL</value>
-          <display_name>AL</display_name>
-        </choice>
-        <choice>
-          <value>AR</value>
-          <display_name>AR</display_name>
-        </choice>
-        <choice>
-          <value>AZ</value>
-          <display_name>AZ</display_name>
-        </choice>
-        <choice>
-          <value>CA</value>
-          <display_name>CA</display_name>
-        </choice>
-        <choice>
-          <value>CO</value>
-          <display_name>CO</display_name>
-        </choice>
-        <choice>
-          <value>CT</value>
-          <display_name>CT</display_name>
-        </choice>
-        <choice>
-          <value>DC</value>
-          <display_name>DC</display_name>
-        </choice>
-        <choice>
-          <value>DE</value>
-          <display_name>DE</display_name>
-        </choice>
-        <choice>
-          <value>FL</value>
-          <display_name>FL</display_name>
-        </choice>
-        <choice>
-          <value>GA</value>
-          <display_name>GA</display_name>
-        </choice>
-        <choice>
-          <value>HI</value>
-          <display_name>HI</display_name>
-        </choice>
-        <choice>
-          <value>IA</value>
-          <display_name>IA</display_name>
-        </choice>
-        <choice>
-          <value>ID</value>
-          <display_name>ID</display_name>
-        </choice>
-        <choice>
-          <value>IL</value>
-          <display_name>IL</display_name>
-        </choice>
-        <choice>
-          <value>IN</value>
-          <display_name>IN</display_name>
-        </choice>
-        <choice>
-          <value>KS</value>
-          <display_name>KS</display_name>
-        </choice>
-        <choice>
-          <value>KY</value>
-          <display_name>KY</display_name>
-        </choice>
-        <choice>
-          <value>LA</value>
-          <display_name>LA</display_name>
-        </choice>
-        <choice>
-          <value>MA</value>
-          <display_name>MA</display_name>
-        </choice>
-        <choice>
-          <value>MD</value>
-          <display_name>MD</display_name>
-        </choice>
-        <choice>
-          <value>ME</value>
-          <display_name>ME</display_name>
-        </choice>
-        <choice>
-          <value>MI</value>
-          <display_name>MI</display_name>
-        </choice>
-        <choice>
-          <value>MN</value>
-          <display_name>MN</display_name>
-        </choice>
-        <choice>
-          <value>MO</value>
-          <display_name>MO</display_name>
-        </choice>
-        <choice>
-          <value>MS</value>
-          <display_name>MS</display_name>
-        </choice>
-        <choice>
-          <value>MT</value>
-          <display_name>MT</display_name>
-        </choice>
-        <choice>
-          <value>NC</value>
-          <display_name>NC</display_name>
-        </choice>
-        <choice>
-          <value>ND</value>
-          <display_name>ND</display_name>
-        </choice>
-        <choice>
-          <value>NE</value>
-          <display_name>NE</display_name>
-        </choice>
-        <choice>
-          <value>NH</value>
-          <display_name>NH</display_name>
-        </choice>
-        <choice>
-          <value>NJ</value>
-          <display_name>NJ</display_name>
-        </choice>
-        <choice>
-          <value>NM</value>
-          <display_name>NM</display_name>
-        </choice>
-        <choice>
-          <value>NV</value>
-          <display_name>NV</display_name>
-        </choice>
-        <choice>
-          <value>NY</value>
-          <display_name>NY</display_name>
-        </choice>
-        <choice>
-          <value>OH</value>
-          <display_name>OH</display_name>
-        </choice>
-        <choice>
-          <value>OK</value>
-          <display_name>OK</display_name>
-        </choice>
-        <choice>
-          <value>OR</value>
-          <display_name>OR</display_name>
-        </choice>
-        <choice>
-          <value>PA</value>
-          <display_name>PA</display_name>
-        </choice>
-        <choice>
-          <value>RI</value>
-          <display_name>RI</display_name>
-        </choice>
-        <choice>
-          <value>SC</value>
-          <display_name>SC</display_name>
-        </choice>
-        <choice>
-          <value>SD</value>
-          <display_name>SD</display_name>
-        </choice>
-        <choice>
-          <value>TN</value>
-          <display_name>TN</display_name>
-        </choice>
-        <choice>
-          <value>TX</value>
-          <display_name>TX</display_name>
-        </choice>
-        <choice>
-          <value>UT</value>
-          <display_name>UT</display_name>
-        </choice>
-        <choice>
-          <value>VA</value>
-          <display_name>VA</display_name>
-        </choice>
-        <choice>
-          <value>VT</value>
-          <display_name>VT</display_name>
-        </choice>
-        <choice>
-          <value>WA</value>
-          <display_name>WA</display_name>
-        </choice>
-        <choice>
-          <value>WI</value>
-          <display_name>WI</display_name>
-        </choice>
-        <choice>
-          <value>WV</value>
-          <display_name>WV</display_name>
-        </choice>
-        <choice>
-          <value>WY</value>
-          <display_name>WY</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>site_time_zone_utc_offset</name>
-      <display_name>Site: Time Zone UTC Offset</display_name>
-      <description>Time zone UTC offset of the home address. Must be between -12 and 14.</description>
-      <type>Double</type>
-      <units>hr</units>
+      <display_name>site_time_zone_utc_offset</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -452,9 +106,8 @@
     </argument>
     <argument>
       <name>year_built</name>
-      <display_name>Building Construction: Year Built</display_name>
-      <description>The year the building was built</description>
-      <type>Integer</type>
+      <display_name>year_built</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -513,30 +166,22 @@
     </argument>
     <argument>
       <name>geometry_unit_num_bathrooms</name>
-      <display_name>Geometry: Unit Number of Bathrooms</display_name>
-      <description>The number of bathrooms in the unit.  A value of 'auto' will default the value based on the number of bedrooms.</description>
+      <display_name>geometry_unit_num_bathrooms</display_name>
       <type>String</type>
-      <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>geometry_unit_num_occupants</name>
-      <display_name>Geometry: Unit Number of Occupants</display_name>
-      <description>The number of occupants in the unit. A value of 'auto' will default the value based on the number of bedrooms. Used to specify the internal gains from people only.</description>
+      <display_name>geometry_unit_num_occupants</display_name>
       <type>String</type>
-      <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>geometry_building_num_units</name>
-      <display_name>Geometry: Building Number of Units</display_name>
-      <description>The number of units in the building. This is required for single-family attached and apartment units.</description>
-      <type>Integer</type>
-      <units>#</units>
+      <display_name>geometry_building_num_units</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -664,10 +309,8 @@
     </argument>
     <argument>
       <name>geometry_rim_joist_height</name>
-      <display_name>Geometry: Rim Joist Height</display_name>
-      <description>The height of the rim joists. Only applies to basements/crawlspaces.</description>
-      <type>Double</type>
-      <units>in</units>
+      <display_name>geometry_rim_joist_height</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -832,43 +475,31 @@
     </argument>
     <argument>
       <name>neighbor_front_height</name>
-      <display_name>Neighbor: Front Height</display_name>
-      <description>The height of the neighboring building to the front. A value of 'auto' will use the same height as this building.</description>
+      <display_name>neighbor_front_height</display_name>
       <type>String</type>
-      <units>ft</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>neighbor_back_height</name>
-      <display_name>Neighbor: Back Height</display_name>
-      <description>The height of the neighboring building to the back. A value of 'auto' will use the same height as this building.</description>
+      <display_name>neighbor_back_height</display_name>
       <type>String</type>
-      <units>ft</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>neighbor_left_height</name>
-      <display_name>Neighbor: Left Height</display_name>
-      <description>The height of the neighboring building to the left. A value of 'auto' will use the same height as this building.</description>
+      <display_name>neighbor_left_height</display_name>
       <type>String</type>
-      <units>ft</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>neighbor_right_height</name>
-      <display_name>Neighbor: Right Height</display_name>
-      <description>The height of the neighboring building to the right. A value of 'auto' will use the same height as this building.</description>
+      <display_name>neighbor_right_height</display_name>
       <type>String</type>
-      <units>ft</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>floor_over_foundation_assembly_r</name>
@@ -892,22 +523,17 @@
     </argument>
     <argument>
       <name>foundation_wall_type</name>
-      <display_name>Foundation Wall: Type</display_name>
-      <description>The material type of the foundation wall.</description>
+      <display_name>foundation_wall_type</display_name>
       <type>String</type>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>foundation_wall_thickness</name>
-      <display_name>Foundation Wall: Thickness</display_name>
-      <description>The thickness of the foundation wall.</description>
+      <display_name>foundation_wall_thickness</display_name>
       <type>String</type>
-      <units>in</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>foundation_wall_insulation_r</name>
@@ -921,59 +547,36 @@
     </argument>
     <argument>
       <name>foundation_wall_insulation_location</name>
-      <display_name>Foundation Wall: Insulation Location</display_name>
-      <description>Whether the insulation is on the interior or exterior of the foundation wall. Only applies to basements/crawlspaces.</description>
-      <type>Choice</type>
-      <units>ft</units>
+      <display_name>foundation_wall_insulation_location</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>exterior</default_value>
-      <choices>
-        <choice>
-          <value>interior</value>
-          <display_name>interior</display_name>
-        </choice>
-        <choice>
-          <value>exterior</value>
-          <display_name>exterior</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>foundation_wall_insulation_distance_to_top</name>
-      <display_name>Foundation Wall: Insulation Distance To Top</display_name>
-      <description>The distance from the top of the foundation wall to the top of the foundation wall insulation. Only applies to basements/crawlspaces. A value of 'auto' will use zero.</description>
+      <display_name>foundation_wall_insulation_distance_to_top</display_name>
       <type>String</type>
-      <units>ft</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>foundation_wall_insulation_distance_to_bottom</name>
-      <display_name>Foundation Wall: Insulation Distance To Bottom</display_name>
-      <description>The distance from the top of the foundation wall to the bottom of the foundation wall insulation. Only applies to basements/crawlspaces. A value of 'auto' will use the height of the foundation wall.</description>
+      <display_name>foundation_wall_insulation_distance_to_bottom</display_name>
       <type>String</type>
-      <units>ft</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>foundation_wall_assembly_r</name>
-      <display_name>Foundation Wall: Assembly R-value</display_name>
-      <description>Assembly R-value for the foundation walls. Only applies to basements/crawlspaces. If provided, overrides the previous foundation wall insulation inputs.</description>
-      <type>Double</type>
-      <units>h-ft^2-R/Btu</units>
+      <display_name>foundation_wall_assembly_r</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>rim_joist_assembly_r</name>
-      <display_name>Rim Joist: Assembly R-value</display_name>
-      <description>Assembly R-value for the rim joists. Only applies to basements/crawlspaces.</description>
-      <type>Double</type>
-      <units>h-ft^2-R/Btu</units>
+      <display_name>rim_joist_assembly_r</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -1019,33 +622,24 @@
     </argument>
     <argument>
       <name>slab_thickness</name>
-      <display_name>Slab: Thickness</display_name>
-      <description>The thickness of the slab. Zero can be entered if there is a dirt floor instead of a slab.</description>
+      <display_name>slab_thickness</display_name>
       <type>String</type>
-      <units>in</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>slab_carpet_fraction</name>
-      <display_name>Slab: Carpet Fraction</display_name>
-      <description>Fraction of the slab floor area that is carpeted.</description>
+      <display_name>slab_carpet_fraction</display_name>
       <type>String</type>
-      <units>Frac</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>slab_carpet_r</name>
-      <display_name>Slab: Carpet R-value</display_name>
-      <description>R-value of the slab carpet.</description>
+      <display_name>slab_carpet_r</display_name>
       <type>String</type>
-      <units>h-ft^2-R/Btu</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>ceiling_assembly_r</name>
@@ -1059,80 +653,17 @@
     </argument>
     <argument>
       <name>roof_material_type</name>
-      <display_name>Roof: Material Type</display_name>
-      <description>The material type of the roof.</description>
-      <type>Choice</type>
+      <display_name>roof_material_type</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>asphalt or fiberglass shingles</value>
-          <display_name>asphalt or fiberglass shingles</display_name>
-        </choice>
-        <choice>
-          <value>concrete</value>
-          <display_name>concrete</display_name>
-        </choice>
-        <choice>
-          <value>cool roof</value>
-          <display_name>cool roof</display_name>
-        </choice>
-        <choice>
-          <value>slate or tile shingles</value>
-          <display_name>slate or tile shingles</display_name>
-        </choice>
-        <choice>
-          <value>expanded polystyrene sheathing</value>
-          <display_name>expanded polystyrene sheathing</display_name>
-        </choice>
-        <choice>
-          <value>metal surfacing</value>
-          <display_name>metal surfacing</display_name>
-        </choice>
-        <choice>
-          <value>plastic/rubber/synthetic sheeting</value>
-          <display_name>plastic/rubber/synthetic sheeting</display_name>
-        </choice>
-        <choice>
-          <value>shingles</value>
-          <display_name>shingles</display_name>
-        </choice>
-        <choice>
-          <value>wood shingles or shakes</value>
-          <display_name>wood shingles or shakes</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>roof_color</name>
-      <display_name>Roof: Color</display_name>
-      <description>The color of the roof.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>roof_color</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>medium</default_value>
-      <choices>
-        <choice>
-          <value>dark</value>
-          <display_name>dark</display_name>
-        </choice>
-        <choice>
-          <value>light</value>
-          <display_name>light</display_name>
-        </choice>
-        <choice>
-          <value>medium</value>
-          <display_name>medium</display_name>
-        </choice>
-        <choice>
-          <value>medium dark</value>
-          <display_name>medium dark</display_name>
-        </choice>
-        <choice>
-          <value>reflective</value>
-          <display_name>reflective</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>roof_assembly_r</name>
@@ -1243,88 +774,17 @@
     </argument>
     <argument>
       <name>wall_siding_type</name>
-      <display_name>Wall: Siding Type</display_name>
-      <description>The siding type of the walls. Also applies to rim joists.</description>
-      <type>Choice</type>
+      <display_name>wall_siding_type</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>aluminum siding</value>
-          <display_name>aluminum siding</display_name>
-        </choice>
-        <choice>
-          <value>asbestos siding</value>
-          <display_name>asbestos siding</display_name>
-        </choice>
-        <choice>
-          <value>brick veneer</value>
-          <display_name>brick veneer</display_name>
-        </choice>
-        <choice>
-          <value>composite shingle siding</value>
-          <display_name>composite shingle siding</display_name>
-        </choice>
-        <choice>
-          <value>fiber cement siding</value>
-          <display_name>fiber cement siding</display_name>
-        </choice>
-        <choice>
-          <value>masonite siding</value>
-          <display_name>masonite siding</display_name>
-        </choice>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>stucco</value>
-          <display_name>stucco</display_name>
-        </choice>
-        <choice>
-          <value>synthetic stucco</value>
-          <display_name>synthetic stucco</display_name>
-        </choice>
-        <choice>
-          <value>vinyl siding</value>
-          <display_name>vinyl siding</display_name>
-        </choice>
-        <choice>
-          <value>wood siding</value>
-          <display_name>wood siding</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>wall_color</name>
-      <display_name>Wall: Color</display_name>
-      <description>The color of the walls. Also applies to rim joists.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>wall_color</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>medium</default_value>
-      <choices>
-        <choice>
-          <value>dark</value>
-          <display_name>dark</display_name>
-        </choice>
-        <choice>
-          <value>light</value>
-          <display_name>light</display_name>
-        </choice>
-        <choice>
-          <value>medium</value>
-          <display_name>medium</display_name>
-        </choice>
-        <choice>
-          <value>medium dark</value>
-          <display_name>medium dark</display_name>
-        </choice>
-        <choice>
-          <value>reflective</value>
-          <display_name>reflective</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>wall_assembly_r</name>
@@ -1428,10 +888,8 @@
     </argument>
     <argument>
       <name>window_fraction_operable</name>
-      <display_name>Windows: Fraction Operable</display_name>
-      <description>Fraction of windows that are operable.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>window_fraction_operable</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -1456,57 +914,38 @@
     </argument>
     <argument>
       <name>window_interior_shading_winter</name>
-      <display_name>Windows: Winter Interior Shading</display_name>
-      <description>Interior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>window_interior_shading_winter</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>window_interior_shading_summer</name>
-      <display_name>Windows: Summer Interior Shading</display_name>
-      <description>Interior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>window_interior_shading_summer</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>window_exterior_shading_winter</name>
-      <display_name>Windows: Winter Exterior Shading</display_name>
-      <description>Exterior shading multiplier for the heating season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>window_exterior_shading_winter</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>window_exterior_shading_summer</name>
-      <display_name>Windows: Summer Exterior Shading</display_name>
-      <description>Exterior shading multiplier for the cooling season. 1.0 indicates no reduction in solar gain, 0.85 indicates 15% reduction, etc.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>window_exterior_shading_summer</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>window_storm_type</name>
-      <display_name>Windows: Storm Type</display_name>
-      <description>The type of storm, if present.</description>
-      <type>Choice</type>
+      <display_name>window_storm_type</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>clear</value>
-          <display_name>clear</display_name>
-        </choice>
-        <choice>
-          <value>low-e</value>
-          <display_name>low-e</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>overhangs_front_depth</name>
@@ -1689,21 +1128,10 @@
     </argument>
     <argument>
       <name>skylight_storm_type</name>
-      <display_name>Skylights: Storm Type</display_name>
-      <description>The type of storm, if present.</description>
-      <type>Choice</type>
+      <display_name>skylight_storm_type</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>clear</value>
-          <display_name>clear</display_name>
-        </choice>
-        <choice>
-          <value>low-e</value>
-          <display_name>low-e</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>door_area</name>
@@ -1881,13 +1309,10 @@
     </argument>
     <argument>
       <name>heating_system_heating_capacity</name>
-      <display_name>Heating System: Heating Capacity</display_name>
-      <description>The output heating capacity of the heating system. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
+      <display_name>heating_system_heating_capacity</display_name>
       <type>String</type>
-      <units>Btu/hr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>heating_system_fraction_heat_load_served</name>
@@ -1969,44 +1394,24 @@
     </argument>
     <argument>
       <name>cooling_system_cooling_compressor_type</name>
-      <display_name>Cooling System: Cooling Compressor Type</display_name>
-      <description>The compressor type of the cooling system. Only applies to central air conditioner.</description>
-      <type>Choice</type>
+      <display_name>cooling_system_cooling_compressor_type</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>single stage</value>
-          <display_name>single stage</display_name>
-        </choice>
-        <choice>
-          <value>two stage</value>
-          <display_name>two stage</display_name>
-        </choice>
-        <choice>
-          <value>variable speed</value>
-          <display_name>variable speed</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>cooling_system_cooling_sensible_heat_fraction</name>
-      <display_name>Cooling System: Cooling Sensible Heat Fraction</display_name>
-      <description>The sensible heat fraction of the cooling system. Ignored for evaporative cooler.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>cooling_system_cooling_sensible_heat_fraction</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>cooling_system_cooling_capacity</name>
-      <display_name>Cooling System: Cooling Capacity</display_name>
-      <description>The output cooling capacity of the cooling system. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
+      <display_name>cooling_system_cooling_capacity</display_name>
       <type>String</type>
-      <units>Btu/hr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>cooling_system_fraction_cool_load_served</name>
@@ -2132,64 +1537,38 @@
     </argument>
     <argument>
       <name>heat_pump_cooling_compressor_type</name>
-      <display_name>Heat Pump: Cooling Compressor Type</display_name>
-      <description>The compressor type of the heat pump. Only applies to air-to-air.</description>
-      <type>Choice</type>
+      <display_name>heat_pump_cooling_compressor_type</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>single stage</value>
-          <display_name>single stage</display_name>
-        </choice>
-        <choice>
-          <value>two stage</value>
-          <display_name>two stage</display_name>
-        </choice>
-        <choice>
-          <value>variable speed</value>
-          <display_name>variable speed</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>heat_pump_cooling_sensible_heat_fraction</name>
-      <display_name>Heat Pump: Cooling Sensible Heat Fraction</display_name>
-      <description>The sensible heat fraction of the heat pump.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>heat_pump_cooling_sensible_heat_fraction</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heat_pump_heating_capacity</name>
-      <display_name>Heat Pump: Heating Capacity</display_name>
-      <description>The output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S (i.e., based on cooling design loads with some oversizing allowances for heating design loads). Enter 'auto using max load' to size the capacity based on the maximum of heating/cooling design loads, taking into account the heat pump's heating capacity retention at cold temperature. Enter 'auto using HERS' to size the capacity equal to the maximum of heating/cooling design loads.</description>
+      <display_name>heat_pump_heating_capacity</display_name>
       <type>String</type>
-      <units>Btu/hr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>heat_pump_heating_capacity_17_f</name>
-      <display_name>Heat Pump: Heating Capacity 17F</display_name>
-      <description>The output heating capacity of the heat pump at 17F. Only applies to air-to-air and mini-split.</description>
+      <display_name>heat_pump_heating_capacity_17_f</display_name>
       <type>String</type>
-      <units>Btu/hr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>heat_pump_cooling_capacity</name>
-      <display_name>Heat Pump: Cooling Capacity</display_name>
-      <description>The output cooling capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
+      <display_name>heat_pump_cooling_capacity</display_name>
       <type>String</type>
-      <units>Btu/hr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>heat_pump_fraction_heat_load_served</name>
@@ -2272,56 +1651,50 @@
     </argument>
     <argument>
       <name>heat_pump_backup_heating_capacity</name>
-      <display_name>Heat Pump: Backup Heating Capacity</display_name>
-      <description>The backup output heating capacity of the heat pump. Enter 'auto' to size the capacity based on ACCA Manual J/S. Only applies if Backup Type is 'integrated'.</description>
+      <display_name>heat_pump_backup_heating_capacity</display_name>
       <type>String</type>
-      <units>Btu/hr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>heat_pump_backup_heating_switchover_temp</name>
-      <display_name>Heat Pump: Backup Heating Switchover Temperature</display_name>
-      <description>The temperature at which the heat pump stops operating and the backup heating system starts running. Only applies to air-to-air and mini-split. If not provided, backup heating will operate as needed when heat pump capacity is insufficient. Applies if Backup Type is either 'integrated' or 'separate'.</description>
-      <type>Double</type>
-      <units>deg-F</units>
+      <display_name>heat_pump_backup_heating_switchover_temp</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_backup_heating_lockout_temp</name>
+      <display_name>heat_pump_backup_heating_lockout_temp</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>heat_pump_sizing_methodology</name>
+      <display_name>heat_pump_sizing_methodology</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heat_pump_is_ducted</name>
-      <display_name>Heat Pump: Is Ducted</display_name>
-      <description>Whether the heat pump is ducted or not. Only used for mini-split. It's assumed that air-to-air and ground-to-air are ducted.</description>
-      <type>Boolean</type>
+      <display_name>heat_pump_is_ducted</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>heat_pump_capacity_retention_fraction</name>
-      <display_name>Heat Pump: Capacity Retention Fraction</display_name>
-      <description>Only used for mini-split.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>heat_pump_capacity_retention_fraction</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>heat_pump_capacity_retention_temp</name>
-      <display_name>Heat Pump: Capacity Retention Temperature</display_name>
-      <description>Only used for mini-split.</description>
-      <type>Double</type>
-      <units>deg-F</units>
+      <display_name>heat_pump_capacity_retention_temp</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -2419,13 +1792,10 @@
     </argument>
     <argument>
       <name>heating_system_2_heating_capacity</name>
-      <display_name>Heating System 2: Heating Capacity</display_name>
-      <description>The output heating capacity of the second heating system. Enter 'auto' to size the capacity based on ACCA Manual J/S.</description>
+      <display_name>heating_system_2_heating_capacity</display_name>
       <type>String</type>
-      <units>Btu/hr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>heating_system_2_fraction_heat_load_served</name>
@@ -2439,16 +1809,14 @@
     </argument>
     <argument>
       <name>hvac_control_heating_season_period</name>
-      <display_name>HVAC Control: Heating Season Period</display_name>
-      <description>Enter a date like "Nov 1 - Jun 30".</description>
+      <display_name>hvac_control_heating_season_period</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>hvac_control_cooling_season_period</name>
-      <display_name>HVAC Control: Cooling Season Period</display_name>
-      <description>Enter a date like "Jun 1 - Oct 31".</description>
+      <display_name>hvac_control_cooling_season_period</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2496,86 +1864,10 @@
     </argument>
     <argument>
       <name>ducts_supply_location</name>
-      <display_name>Ducts: Supply Location</display_name>
-      <description>The location of the supply ducts.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>ducts_supply_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - vented</value>
-          <display_name>crawlspace - vented</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - unvented</value>
-          <display_name>crawlspace - unvented</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - conditioned</value>
-          <display_name>crawlspace - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>attic - vented</value>
-          <display_name>attic - vented</display_name>
-        </choice>
-        <choice>
-          <value>attic - unvented</value>
-          <display_name>attic - unvented</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>exterior wall</value>
-          <display_name>exterior wall</display_name>
-        </choice>
-        <choice>
-          <value>under slab</value>
-          <display_name>under slab</display_name>
-        </choice>
-        <choice>
-          <value>roof deck</value>
-          <display_name>roof deck</display_name>
-        </choice>
-        <choice>
-          <value>outside</value>
-          <display_name>outside</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>ducts_supply_insulation_r</name>
@@ -2589,96 +1881,17 @@
     </argument>
     <argument>
       <name>ducts_supply_surface_area</name>
-      <display_name>Ducts: Supply Surface Area</display_name>
-      <description>The surface area of the supply ducts.</description>
+      <display_name>ducts_supply_surface_area</display_name>
       <type>String</type>
-      <units>ft^2</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>ducts_return_location</name>
-      <display_name>Ducts: Return Location</display_name>
-      <description>The location of the return ducts.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>ducts_return_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - vented</value>
-          <display_name>crawlspace - vented</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - unvented</value>
-          <display_name>crawlspace - unvented</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - conditioned</value>
-          <display_name>crawlspace - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>attic - vented</value>
-          <display_name>attic - vented</display_name>
-        </choice>
-        <choice>
-          <value>attic - unvented</value>
-          <display_name>attic - unvented</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>exterior wall</value>
-          <display_name>exterior wall</display_name>
-        </choice>
-        <choice>
-          <value>under slab</value>
-          <display_name>under slab</display_name>
-        </choice>
-        <choice>
-          <value>roof deck</value>
-          <display_name>roof deck</display_name>
-        </choice>
-        <choice>
-          <value>outside</value>
-          <display_name>outside</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>ducts_return_insulation_r</name>
@@ -2692,23 +1905,17 @@
     </argument>
     <argument>
       <name>ducts_return_surface_area</name>
-      <display_name>Ducts: Return Surface Area</display_name>
-      <description>The surface area of the return ducts.</description>
+      <display_name>ducts_return_surface_area</display_name>
       <type>String</type>
-      <units>ft^2</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>ducts_number_of_return_registers</name>
-      <display_name>Ducts: Number of Return Registers</display_name>
-      <description>The number of return registers of the ducts. Only used if duct surface areas are set to auto.</description>
+      <display_name>ducts_number_of_return_registers</display_name>
       <type>String</type>
-      <units>#</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>mech_vent_fan_type</name>
@@ -2751,23 +1958,17 @@
     </argument>
     <argument>
       <name>mech_vent_flow_rate</name>
-      <display_name>Mechanical Ventilation: Flow Rate</display_name>
-      <description>The flow rate of the mechanical ventilation.</description>
+      <display_name>mech_vent_flow_rate</display_name>
       <type>String</type>
-      <units>CFM</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>mech_vent_hours_in_operation</name>
-      <display_name>Mechanical Ventilation: Hours In Operation</display_name>
-      <description>The hours in operation of the mechanical ventilation.</description>
+      <display_name>mech_vent_hours_in_operation</display_name>
       <type>String</type>
-      <units>hrs/day</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>mech_vent_recovery_efficiency_type</name>
@@ -2810,13 +2011,10 @@
     </argument>
     <argument>
       <name>mech_vent_fan_power</name>
-      <display_name>Mechanical Ventilation: Fan Power</display_name>
-      <description>The fan power of the mechanical ventilation.</description>
+      <display_name>mech_vent_fan_power</display_name>
       <type>String</type>
-      <units>W</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>mech_vent_num_units_served</name>
@@ -2830,98 +2028,50 @@
     </argument>
     <argument>
       <name>mech_vent_shared_frac_recirculation</name>
-      <display_name>Shared Mechanical Ventilation: Fraction Recirculation</display_name>
-      <description>Fraction of the total supply air that is recirculated, with the remainder assumed to be outdoor air. The value must be 0 for exhaust only systems. This is required for a shared mechanical ventilation system.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>mech_vent_shared_frac_recirculation</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>mech_vent_shared_preheating_fuel</name>
-      <display_name>Shared Mechanical Ventilation: Preheating Fuel</display_name>
-      <description>Fuel type of the preconditioning heating equipment. Only used for a shared mechanical ventilation system.</description>
-      <type>Choice</type>
+      <display_name>mech_vent_shared_preheating_fuel</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>electricity</value>
-          <display_name>electricity</display_name>
-        </choice>
-        <choice>
-          <value>natural gas</value>
-          <display_name>natural gas</display_name>
-        </choice>
-        <choice>
-          <value>fuel oil</value>
-          <display_name>fuel oil</display_name>
-        </choice>
-        <choice>
-          <value>propane</value>
-          <display_name>propane</display_name>
-        </choice>
-        <choice>
-          <value>wood</value>
-          <display_name>wood</display_name>
-        </choice>
-        <choice>
-          <value>wood pellets</value>
-          <display_name>wood pellets</display_name>
-        </choice>
-        <choice>
-          <value>coal</value>
-          <display_name>coal</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>mech_vent_shared_preheating_efficiency</name>
-      <display_name>Shared Mechanical Ventilation: Preheating Efficiency</display_name>
-      <description>Efficiency of the preconditioning heating equipment. Only used for a shared mechanical ventilation system.</description>
-      <type>Double</type>
-      <units>COP</units>
+      <display_name>mech_vent_shared_preheating_efficiency</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>mech_vent_shared_preheating_fraction_heat_load_served</name>
-      <display_name>Shared Mechanical Ventilation: Preheating Fraction Ventilation Heat Load Served</display_name>
-      <description>Fraction of heating load introduced by the shared ventilation system that is met by the preconditioning heating equipment.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>mech_vent_shared_preheating_fraction_heat_load_served</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>mech_vent_shared_precooling_fuel</name>
-      <display_name>Shared Mechanical Ventilation: Precooling Fuel</display_name>
-      <description>Fuel type of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system.</description>
-      <type>Choice</type>
+      <display_name>mech_vent_shared_precooling_fuel</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>electricity</value>
-          <display_name>electricity</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>mech_vent_shared_precooling_efficiency</name>
-      <display_name>Shared Mechanical Ventilation: Precooling Efficiency</display_name>
-      <description>Efficiency of the preconditioning cooling equipment. Only used for a shared mechanical ventilation system.</description>
-      <type>Double</type>
-      <units>COP</units>
+      <display_name>mech_vent_shared_precooling_efficiency</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>mech_vent_shared_precooling_fraction_cool_load_served</name>
-      <display_name>Shared Mechanical Ventilation: Precooling Fraction Ventilation Cool Load Served</display_name>
-      <description>Fraction of cooling load introduced by the shared ventilation system that is met by the preconditioning cooling equipment.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>mech_vent_shared_precooling_fraction_cool_load_served</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
@@ -3031,103 +2181,73 @@
     </argument>
     <argument>
       <name>kitchen_fans_quantity</name>
-      <display_name>Kitchen Fans: Quantity</display_name>
-      <description>The quantity of the kitchen fans.</description>
+      <display_name>kitchen_fans_quantity</display_name>
       <type>String</type>
-      <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>kitchen_fans_flow_rate</name>
-      <display_name>Kitchen Fans: Flow Rate</display_name>
-      <description>The flow rate of the kitchen fan.</description>
+      <display_name>kitchen_fans_flow_rate</display_name>
       <type>String</type>
-      <units>CFM</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>kitchen_fans_hours_in_operation</name>
-      <display_name>Kitchen Fans: Hours In Operation</display_name>
-      <description>The hours in operation of the kitchen fan.</description>
+      <display_name>kitchen_fans_hours_in_operation</display_name>
       <type>String</type>
-      <units>hrs/day</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>kitchen_fans_power</name>
-      <display_name>Kitchen Fans: Fan Power</display_name>
-      <description>The fan power of the kitchen fan.</description>
+      <display_name>kitchen_fans_power</display_name>
       <type>String</type>
-      <units>W</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>kitchen_fans_start_hour</name>
-      <display_name>Kitchen Fans: Start Hour</display_name>
-      <description>The start hour of the kitchen fan.</description>
+      <display_name>kitchen_fans_start_hour</display_name>
       <type>String</type>
-      <units>hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_quantity</name>
-      <display_name>Bathroom Fans: Quantity</display_name>
-      <description>The quantity of the bathroom fans.</description>
+      <display_name>bathroom_fans_quantity</display_name>
       <type>String</type>
-      <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_flow_rate</name>
-      <display_name>Bathroom Fans: Flow Rate</display_name>
-      <description>The flow rate of the bathroom fans.</description>
+      <display_name>bathroom_fans_flow_rate</display_name>
       <type>String</type>
-      <units>CFM</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_hours_in_operation</name>
-      <display_name>Bathroom Fans: Hours In Operation</display_name>
-      <description>The hours in operation of the bathroom fans.</description>
+      <display_name>bathroom_fans_hours_in_operation</display_name>
       <type>String</type>
-      <units>hrs/day</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_power</name>
-      <display_name>Bathroom Fans: Fan Power</display_name>
-      <description>The fan power of the bathroom fans.</description>
+      <display_name>bathroom_fans_power</display_name>
       <type>String</type>
-      <units>W</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>bathroom_fans_start_hour</name>
-      <display_name>Bathroom Fans: Start Hour</display_name>
-      <description>The start hour of the bathroom fans.</description>
+      <display_name>bathroom_fans_start_hour</display_name>
       <type>String</type>
-      <units>hr</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>whole_house_fan_present</name>
@@ -3150,23 +2270,17 @@
     </argument>
     <argument>
       <name>whole_house_fan_flow_rate</name>
-      <display_name>Whole House Fan: Flow Rate</display_name>
-      <description>The flow rate of the whole house fan.</description>
+      <display_name>whole_house_fan_flow_rate</display_name>
       <type>String</type>
-      <units>CFM</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>whole_house_fan_power</name>
-      <display_name>Whole House Fan: Fan Power</display_name>
-      <description>The fan power of the whole house fan.</description>
+      <display_name>whole_house_fan_power</display_name>
       <type>String</type>
-      <units>W</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>water_heater_type</name>
@@ -3240,84 +2354,17 @@
     </argument>
     <argument>
       <name>water_heater_location</name>
-      <display_name>Water Heater: Location</display_name>
-      <description>The location of water heater.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>water_heater_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>attic - vented</value>
-          <display_name>attic - vented</display_name>
-        </choice>
-        <choice>
-          <value>attic - unvented</value>
-          <display_name>attic - unvented</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - vented</value>
-          <display_name>crawlspace - vented</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - unvented</value>
-          <display_name>crawlspace - unvented</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - conditioned</value>
-          <display_name>crawlspace - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>other exterior</value>
-          <display_name>other exterior</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>water_heater_tank_volume</name>
-      <display_name>Water Heater: Tank Volume</display_name>
-      <description>Nominal volume of water heater tank. Set to 'auto' to have volume autosized. Only applies to storage water heater, heat pump water heater, and space-heating boiler with storage tank.</description>
+      <display_name>water_heater_tank_volume</display_name>
       <type>String</type>
-      <units>gal</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>water_heater_efficiency_type</name>
@@ -3349,77 +2396,45 @@
     </argument>
     <argument>
       <name>water_heater_usage_bin</name>
-      <display_name>Water Heater: Usage Bin</display_name>
-      <description>The usage of the water heater. Required if Efficiency Type is UniformEnergyFactor and Type is not instantaneous water heater. Does not apply to space-heating boilers.</description>
-      <type>Choice</type>
+      <display_name>water_heater_usage_bin</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>very small</value>
-          <display_name>very small</display_name>
-        </choice>
-        <choice>
-          <value>low</value>
-          <display_name>low</display_name>
-        </choice>
-        <choice>
-          <value>medium</value>
-          <display_name>medium</display_name>
-        </choice>
-        <choice>
-          <value>high</value>
-          <display_name>high</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>water_heater_recovery_efficiency</name>
-      <display_name>Water Heater: Recovery Efficiency</display_name>
-      <description>Ratio of energy delivered to water heater to the energy content of the fuel consumed by the water heater. Only used for non-electric storage water heaters.</description>
+      <display_name>water_heater_recovery_efficiency</display_name>
       <type>String</type>
-      <units>Frac</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>water_heater_heating_capacity</name>
-      <display_name>Water Heater: Heating Capacity</display_name>
-      <description>Heating capacity. Set to 'auto' to have heating capacity defaulted. Only applies to storage water heater.</description>
+      <display_name>water_heater_heating_capacity</display_name>
       <type>String</type>
-      <units>Btu/hr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>water_heater_standby_loss</name>
-      <display_name>Water Heater: Standby Loss</display_name>
-      <description>The standby loss of water heater. Only applies to space-heating boilers.</description>
-      <type>Double</type>
-      <units>deg-F/hr</units>
+      <display_name>water_heater_standby_loss</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>water_heater_jacket_rvalue</name>
-      <display_name>Water Heater: Jacket R-value</display_name>
-      <description>The jacket R-value of water heater. Doesn't apply to instantaneous water heater or space-heating boiler with tankless coil.</description>
-      <type>Double</type>
-      <units>h-ft^2-R/Btu</units>
+      <display_name>water_heater_jacket_rvalue</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>water_heater_setpoint_temperature</name>
-      <display_name>Water Heater: Setpoint Temperature</display_name>
-      <description>The setpoint temperature of water heater.</description>
+      <display_name>water_heater_setpoint_temperature</display_name>
       <type>String</type>
-      <units>deg-F</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>water_heater_num_units_served</name>
@@ -3433,21 +2448,24 @@
     </argument>
     <argument>
       <name>water_heater_uses_desuperheater</name>
-      <display_name>Water Heater: Uses Desuperheater</display_name>
-      <description>Requires that the dwelling unit has a air-to-air, mini-split, or ground-to-air heat pump or a central air conditioner or mini-split air conditioner.</description>
-      <type>Boolean</type>
+      <display_name>water_heater_uses_desuperheater</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
+    </argument>
+    <argument>
+      <name>water_heater_tank_model_type</name>
+      <display_name>water_heater_tank_model_type</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>water_heater_operating_mode</name>
+      <display_name>water_heater_operating_mode</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>hot_water_distribution_system_type</name>
@@ -3470,13 +2488,10 @@
     </argument>
     <argument>
       <name>hot_water_distribution_standard_piping_length</name>
-      <display_name>Hot Water Distribution: Standard Piping Length</display_name>
-      <description>If the distribution system is Standard, the length of the piping. A value of 'auto' will use a default.</description>
+      <display_name>hot_water_distribution_standard_piping_length</display_name>
       <type>String</type>
-      <units>ft</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>hot_water_distribution_recirc_control_type</name>
@@ -3511,43 +2526,31 @@
     </argument>
     <argument>
       <name>hot_water_distribution_recirc_piping_length</name>
-      <display_name>Hot Water Distribution: Recirculation Piping Length</display_name>
-      <description>If the distribution system is Recirculation, the length of the recirculation piping.</description>
+      <display_name>hot_water_distribution_recirc_piping_length</display_name>
       <type>String</type>
-      <units>ft</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>hot_water_distribution_recirc_branch_piping_length</name>
-      <display_name>Hot Water Distribution: Recirculation Branch Piping Length</display_name>
-      <description>If the distribution system is Recirculation, the length of the recirculation branch piping.</description>
+      <display_name>hot_water_distribution_recirc_branch_piping_length</display_name>
       <type>String</type>
-      <units>ft</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>hot_water_distribution_recirc_pump_power</name>
-      <display_name>Hot Water Distribution: Recirculation Pump Power</display_name>
-      <description>If the distribution system is Recirculation, the recirculation pump power.</description>
+      <display_name>hot_water_distribution_recirc_pump_power</display_name>
       <type>String</type>
-      <units>W</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>hot_water_distribution_pipe_r</name>
-      <display_name>Hot Water Distribution: Pipe Insulation Nominal R-Value</display_name>
-      <description>Nominal R-value of the pipe insulation.</description>
+      <display_name>hot_water_distribution_pipe_r</display_name>
       <type>String</type>
-      <units>h-ft^2-R/Btu</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>dwhr_facilities_connected</name>
@@ -3641,12 +2644,10 @@
     </argument>
     <argument>
       <name>water_fixtures_usage_multiplier</name>
-      <display_name>Hot Water Fixtures: Usage Multiplier</display_name>
-      <description>Multiplier on the hot water usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>water_fixtures_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>solar_thermal_system_type</name>
@@ -3762,20 +2763,17 @@
       <display_name>Solar Thermal: Collector Rated Thermal Losses</display_name>
       <description>The collector rated thermal losses of the solar thermal system.</description>
       <type>Double</type>
-      <units>Frac</units>
+      <units>Btu/hr-ft^2-R</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>0.2799</default_value>
     </argument>
     <argument>
       <name>solar_thermal_storage_volume</name>
-      <display_name>Solar Thermal: Storage Volume</display_name>
-      <description>The storage volume of the solar thermal system.</description>
+      <display_name>solar_thermal_storage_volume</display_name>
       <type>String</type>
-      <units>Frac</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>solar_thermal_solar_fraction</name>
@@ -3788,89 +2786,44 @@
       <default_value>0</default_value>
     </argument>
     <argument>
-      <name>pv_system_module_type</name>
-      <display_name>PV System: Module Type</display_name>
-      <description>Module type of the PV system. Use 'none' if there is no PV system.</description>
-      <type>Choice</type>
+      <name>pv_system_present</name>
+      <display_name>PV System: Present</display_name>
+      <description>Whether there is a PV system present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>none</default_value>
+      <default_value>false</default_value>
       <choices>
         <choice>
-          <value>none</value>
-          <display_name>none</display_name>
+          <value>true</value>
+          <display_name>true</display_name>
         </choice>
         <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>standard</value>
-          <display_name>standard</display_name>
-        </choice>
-        <choice>
-          <value>premium</value>
-          <display_name>premium</display_name>
-        </choice>
-        <choice>
-          <value>thin film</value>
-          <display_name>thin film</display_name>
+          <value>false</value>
+          <display_name>false</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>pv_system_module_type</name>
+      <display_name>pv_system_module_type</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>pv_system_location</name>
-      <display_name>PV System: Location</display_name>
-      <description>Location of the PV system.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>pv_system_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>roof</value>
-          <display_name>roof</display_name>
-        </choice>
-        <choice>
-          <value>ground</value>
-          <display_name>ground</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>pv_system_tracking</name>
-      <display_name>PV System: Tracking</display_name>
-      <description>Tracking of the PV system.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>pv_system_tracking</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>fixed</value>
-          <display_name>fixed</display_name>
-        </choice>
-        <choice>
-          <value>1-axis</value>
-          <display_name>1-axis</display_name>
-        </choice>
-        <choice>
-          <value>1-axis backtracked</value>
-          <display_name>1-axis backtracked</display_name>
-        </choice>
-        <choice>
-          <value>2-axis</value>
-          <display_name>2-axis</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>pv_system_array_azimuth</name>
@@ -3904,106 +2857,57 @@
     </argument>
     <argument>
       <name>pv_system_inverter_efficiency</name>
-      <display_name>PV System: Inverter Efficiency</display_name>
-      <description>Inverter efficiency of the PV system. If there are two PV systems, this will apply to both.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>pv_system_inverter_efficiency</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>pv_system_system_losses_fraction</name>
-      <display_name>PV System: System Losses Fraction</display_name>
-      <description>System losses fraction of the PV system. If there are two PV systems, this will apply to both.</description>
-      <type>Double</type>
-      <units>Frac</units>
+      <display_name>pv_system_system_losses_fraction</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
-      <name>pv_system_2_module_type</name>
-      <display_name>PV System 2: Module Type</display_name>
-      <description>Module type of the second PV system. Use 'none' if there is no PV system 2.</description>
-      <type>Choice</type>
+      <name>pv_system_2_present</name>
+      <display_name>PV System 2: Present</display_name>
+      <description>Whether there is a second PV system present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>none</default_value>
+      <default_value>false</default_value>
       <choices>
         <choice>
-          <value>none</value>
-          <display_name>none</display_name>
+          <value>true</value>
+          <display_name>true</display_name>
         </choice>
         <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>standard</value>
-          <display_name>standard</display_name>
-        </choice>
-        <choice>
-          <value>premium</value>
-          <display_name>premium</display_name>
-        </choice>
-        <choice>
-          <value>thin film</value>
-          <display_name>thin film</display_name>
+          <value>false</value>
+          <display_name>false</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>pv_system_2_module_type</name>
+      <display_name>pv_system_2_module_type</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>pv_system_2_location</name>
-      <display_name>PV System 2: Location</display_name>
-      <description>Location of the second PV system.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>pv_system_2_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>roof</value>
-          <display_name>roof</display_name>
-        </choice>
-        <choice>
-          <value>ground</value>
-          <display_name>ground</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>pv_system_2_tracking</name>
-      <display_name>PV System 2: Tracking</display_name>
-      <description>Tracking of the second PV system.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>pv_system_2_tracking</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>fixed</value>
-          <display_name>fixed</display_name>
-        </choice>
-        <choice>
-          <value>1-axis</value>
-          <display_name>1-axis</display_name>
-        </choice>
-        <choice>
-          <value>1-axis backtracked</value>
-          <display_name>1-axis backtracked</display_name>
-        </choice>
-        <choice>
-          <value>2-axis</value>
-          <display_name>2-axis</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>pv_system_2_array_azimuth</name>
@@ -4036,100 +2940,58 @@
       <default_value>4000</default_value>
     </argument>
     <argument>
-      <name>battery_location</name>
-      <display_name>Battery: Location</display_name>
-      <description>The space type for the lithium ion battery location.</description>
-      <type>Choice</type>
+      <name>battery_present</name>
+      <display_name>Battery: Present</display_name>
+      <description>Whether there is a lithium ion battery present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>none</default_value>
+      <default_value>false</default_value>
       <choices>
         <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
+          <value>true</value>
+          <display_name>true</display_name>
         </choice>
         <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - vented</value>
-          <display_name>crawlspace - vented</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - unvented</value>
-          <display_name>crawlspace - unvented</display_name>
-        </choice>
-        <choice>
-          <value>crawlspace - conditioned</value>
-          <display_name>crawlspace - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>attic - vented</value>
-          <display_name>attic - vented</display_name>
-        </choice>
-        <choice>
-          <value>attic - unvented</value>
-          <display_name>attic - unvented</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>outside</value>
-          <display_name>outside</display_name>
+          <value>false</value>
+          <display_name>false</display_name>
         </choice>
       </choices>
     </argument>
     <argument>
-      <name>battery_power</name>
-      <display_name>Battery: Rated Power Output</display_name>
-      <description>The rated power output of the lithium ion battery.</description>
+      <name>battery_location</name>
+      <display_name>battery_location</display_name>
       <type>String</type>
-      <units>W</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+    </argument>
+    <argument>
+      <name>battery_power</name>
+      <display_name>battery_power</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>battery_capacity</name>
-      <display_name>Battery: Nominal Capacity</display_name>
-      <description>The nominal capacity of the lithium ion battery.</description>
+      <display_name>battery_capacity</display_name>
       <type>String</type>
-      <units>kWh</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>battery_usable_capacity</name>
-      <display_name>Battery: Usable Capacity</display_name>
-      <description>The usable capacity of the lithium ion battery.</description>
+      <display_name>battery_usable_capacity</display_name>
       <type>String</type>
-      <units>kWh</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>lighting_present</name>
       <display_name>Lighting: Present</display_name>
       <description>Whether there is lighting energy use.</description>
       <type>Boolean</type>
-      <required>false</required>
+      <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>true</default_value>
       <choices>
@@ -4172,12 +3034,10 @@
     </argument>
     <argument>
       <name>lighting_interior_usage_multiplier</name>
-      <display_name>Lighting: Interior Usage Multiplier</display_name>
-      <description>Multiplier on the lighting energy usage (interior) that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>lighting_interior_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>lighting_exterior_fraction_cfl</name>
@@ -4208,12 +3068,10 @@
     </argument>
     <argument>
       <name>lighting_exterior_usage_multiplier</name>
-      <display_name>Lighting: Exterior Usage Multiplier</display_name>
-      <description>Multiplier on the lighting energy usage (exterior) that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>lighting_exterior_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>lighting_garage_fraction_cfl</name>
@@ -4244,12 +3102,10 @@
     </argument>
     <argument>
       <name>lighting_garage_usage_multiplier</name>
-      <display_name>Lighting: Garage Usage Multiplier</display_name>
-      <description>Multiplier on the lighting energy usage (garage) that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>lighting_garage_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>holiday_lighting_present</name>
@@ -4272,18 +3128,14 @@
     </argument>
     <argument>
       <name>holiday_lighting_daily_kwh</name>
-      <display_name>Holiday Lighting: Daily Consumption</display_name>
-      <description>The daily energy consumption for holiday lighting (exterior).</description>
+      <display_name>holiday_lighting_daily_kwh</display_name>
       <type>String</type>
-      <units>kWh/day</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>holiday_lighting_period</name>
-      <display_name>Holiday Lighting: Period</display_name>
-      <description>Enter a date like "Nov 25 - Jan 5".</description>
+      <display_name>holiday_lighting_period</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -4371,55 +3223,30 @@
       <default_value>1</default_value>
     </argument>
     <argument>
-      <name>clothes_washer_location</name>
-      <display_name>Clothes Washer: Location</display_name>
-      <description>The space type for the clothes washer location.</description>
-      <type>Choice</type>
+      <name>clothes_washer_present</name>
+      <display_name>Clothes Washer: Present</display_name>
+      <description>Whether there is a clothes washer present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
+      <default_value>true</default_value>
       <choices>
         <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
+          <value>true</value>
+          <display_name>true</display_name>
         </choice>
         <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
+          <value>false</value>
+          <display_name>false</display_name>
         </choice>
       </choices>
+    </argument>
+    <argument>
+      <name>clothes_washer_location</name>
+      <display_name>clothes_washer_location</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>clothes_washer_efficiency_type</name>
@@ -4442,133 +3269,85 @@
     </argument>
     <argument>
       <name>clothes_washer_efficiency</name>
-      <display_name>Clothes Washer: Efficiency</display_name>
-      <description>The efficiency of the clothes washer.</description>
+      <display_name>clothes_washer_efficiency</display_name>
       <type>String</type>
-      <units>ft^3/kWh-cyc</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>clothes_washer_rated_annual_kwh</name>
-      <display_name>Clothes Washer: Rated Annual Consumption</display_name>
-      <description>The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.</description>
+      <display_name>clothes_washer_rated_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>clothes_washer_label_electric_rate</name>
-      <display_name>Clothes Washer: Label Electric Rate</display_name>
-      <description>The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.</description>
+      <display_name>clothes_washer_label_electric_rate</display_name>
       <type>String</type>
-      <units>$/kWh</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>clothes_washer_label_gas_rate</name>
-      <display_name>Clothes Washer: Label Gas Rate</display_name>
-      <description>The annual energy consumed by the clothes washer, as rated, obtained from the EnergyGuide label. This includes both the appliance electricity consumption and the energy required for water heating.</description>
+      <display_name>clothes_washer_label_gas_rate</display_name>
       <type>String</type>
-      <units>$/therm</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>clothes_washer_label_annual_gas_cost</name>
-      <display_name>Clothes Washer: Label Annual Cost with Gas DHW</display_name>
-      <description>The annual cost of using the system under test conditions. Input is obtained from the EnergyGuide label.</description>
+      <display_name>clothes_washer_label_annual_gas_cost</display_name>
       <type>String</type>
-      <units>$</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>clothes_washer_label_usage</name>
-      <display_name>Clothes Washer: Label Usage</display_name>
-      <description>The clothes washer loads per week.</description>
+      <display_name>clothes_washer_label_usage</display_name>
       <type>String</type>
-      <units>cyc/wk</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>clothes_washer_capacity</name>
-      <display_name>Clothes Washer: Drum Volume</display_name>
-      <description>Volume of the washer drum. Obtained from the EnergyStar website or the manufacturer's literature.</description>
+      <display_name>clothes_washer_capacity</display_name>
       <type>String</type>
-      <units>ft^3</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>clothes_washer_usage_multiplier</name>
-      <display_name>Clothes Washer: Usage Multiplier</display_name>
-      <description>Multiplier on the clothes washer energy and hot water usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
+      <display_name>clothes_washer_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>clothes_dryer_present</name>
+      <display_name>Clothes Dryer: Present</display_name>
+      <description>Whether there is a clothes dryer present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>clothes_dryer_location</name>
-      <display_name>Clothes Dryer: Location</display_name>
-      <description>The space type for the clothes dryer location.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>clothes_dryer_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>clothes_dryer_fuel_type</name>
@@ -4626,83 +3405,50 @@
     </argument>
     <argument>
       <name>clothes_dryer_efficiency</name>
-      <display_name>Clothes Dryer: Efficiency</display_name>
-      <description>The efficiency of the clothes dryer.</description>
+      <display_name>clothes_dryer_efficiency</display_name>
       <type>String</type>
-      <units>lb/kWh</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>clothes_dryer_vented_flow_rate</name>
-      <display_name>Clothes Dryer: Vented Flow Rate</display_name>
-      <description>The exhaust flow rate of the vented clothes dryer.</description>
+      <display_name>clothes_dryer_vented_flow_rate</display_name>
       <type>String</type>
-      <units>CFM</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>clothes_dryer_usage_multiplier</name>
-      <display_name>Clothes Dryer: Usage Multiplier</display_name>
-      <description>Multiplier on the clothes dryer energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
+      <display_name>clothes_dryer_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>dishwasher_present</name>
+      <display_name>Dishwasher: Present</display_name>
+      <description>Whether there is a dishwasher present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>dishwasher_location</name>
-      <display_name>Dishwasher: Location</display_name>
-      <description>The space type for the dishwasher location.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>dishwasher_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>dishwasher_efficiency_type</name>
@@ -4725,333 +3471,198 @@
     </argument>
     <argument>
       <name>dishwasher_efficiency</name>
-      <display_name>Dishwasher: Efficiency</display_name>
-      <description>The efficiency of the dishwasher.</description>
+      <display_name>dishwasher_efficiency</display_name>
       <type>String</type>
-      <units>RatedAnnualkWh or EnergyFactor</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>dishwasher_label_electric_rate</name>
-      <display_name>Dishwasher: Label Electric Rate</display_name>
-      <description>The label electric rate of the dishwasher.</description>
+      <display_name>dishwasher_label_electric_rate</display_name>
       <type>String</type>
-      <units>$/kWh</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>dishwasher_label_gas_rate</name>
-      <display_name>Dishwasher: Label Gas Rate</display_name>
-      <description>The label gas rate of the dishwasher.</description>
+      <display_name>dishwasher_label_gas_rate</display_name>
       <type>String</type>
-      <units>$/therm</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>dishwasher_label_annual_gas_cost</name>
-      <display_name>Dishwasher: Label Annual Gas Cost</display_name>
-      <description>The label annual gas cost of the dishwasher.</description>
+      <display_name>dishwasher_label_annual_gas_cost</display_name>
       <type>String</type>
-      <units>$</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>dishwasher_label_usage</name>
-      <display_name>Dishwasher: Label Usage</display_name>
-      <description>The dishwasher loads per week.</description>
+      <display_name>dishwasher_label_usage</display_name>
       <type>String</type>
-      <units>cyc/wk</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>dishwasher_place_setting_capacity</name>
-      <display_name>Dishwasher: Number of Place Settings</display_name>
-      <description>The number of place settings for the unit. Data obtained from manufacturer's literature.</description>
+      <display_name>dishwasher_place_setting_capacity</display_name>
       <type>String</type>
-      <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>dishwasher_usage_multiplier</name>
-      <display_name>Dishwasher: Usage Multiplier</display_name>
-      <description>Multiplier on the dishwasher energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
+      <display_name>dishwasher_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>refrigerator_present</name>
+      <display_name>Refrigerator: Present</display_name>
+      <description>Whether there is a refrigerator present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>refrigerator_location</name>
-      <display_name>Refrigerator: Location</display_name>
-      <description>The space type for the refrigerator location.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>refrigerator_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>refrigerator_rated_annual_kwh</name>
-      <display_name>Refrigerator: Rated Annual Consumption</display_name>
-      <description>The EnergyGuide rated annual energy consumption for a refrigerator.</description>
+      <display_name>refrigerator_rated_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>refrigerator_usage_multiplier</name>
-      <display_name>Refrigerator: Usage Multiplier</display_name>
-      <description>Multiplier on the refrigerator energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
+      <display_name>refrigerator_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>extra_refrigerator_present</name>
+      <display_name>Extra Refrigerator: Present</display_name>
+      <description>Whether there is an extra refrigerator present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>extra_refrigerator_location</name>
-      <display_name>Extra Refrigerator: Location</display_name>
-      <description>The space type for the extra refrigerator location.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>extra_refrigerator_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>none</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>extra_refrigerator_rated_annual_kwh</name>
-      <display_name>Extra Refrigerator: Rated Annual Consumption</display_name>
-      <description>The EnergyGuide rated annual energy consumption for an extra rrefrigerator.</description>
+      <display_name>extra_refrigerator_rated_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>extra_refrigerator_usage_multiplier</name>
-      <display_name>Extra Refrigerator: Usage Multiplier</display_name>
-      <description>Multiplier on the extra refrigerator energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
+      <display_name>extra_refrigerator_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>freezer_present</name>
+      <display_name>Freezer: Present</display_name>
+      <description>Whether there is a freezer present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>false</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>freezer_location</name>
-      <display_name>Freezer: Location</display_name>
-      <description>The space type for the freezer location.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>freezer_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>none</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>freezer_rated_annual_kwh</name>
-      <display_name>Freezer: Rated Annual Consumption</display_name>
-      <description>The EnergyGuide rated annual energy consumption for a freezer.</description>
+      <display_name>freezer_rated_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>freezer_usage_multiplier</name>
-      <display_name>Freezer: Usage Multiplier</display_name>
-      <description>Multiplier on the freezer energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
+      <display_name>freezer_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>cooking_range_oven_present</name>
+      <display_name>Cooking Range/Oven: Present</display_name>
+      <description>Whether there is a cooking range/oven present.</description>
+      <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
+      <default_value>true</default_value>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>cooking_range_oven_location</name>
-      <display_name>Cooking Range/Oven: Location</display_name>
-      <description>The space type for the cooking range/oven location.</description>
-      <type>Choice</type>
-      <required>true</required>
+      <display_name>cooking_range_oven_location</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
-      <choices>
-        <choice>
-          <value>auto</value>
-          <display_name>auto</display_name>
-        </choice>
-        <choice>
-          <value>none</value>
-          <display_name>none</display_name>
-        </choice>
-        <choice>
-          <value>living space</value>
-          <display_name>living space</display_name>
-        </choice>
-        <choice>
-          <value>basement - conditioned</value>
-          <display_name>basement - conditioned</display_name>
-        </choice>
-        <choice>
-          <value>basement - unconditioned</value>
-          <display_name>basement - unconditioned</display_name>
-        </choice>
-        <choice>
-          <value>garage</value>
-          <display_name>garage</display_name>
-        </choice>
-        <choice>
-          <value>other housing unit</value>
-          <display_name>other housing unit</display_name>
-        </choice>
-        <choice>
-          <value>other heated space</value>
-          <display_name>other heated space</display_name>
-        </choice>
-        <choice>
-          <value>other multifamily buffer space</value>
-          <display_name>other multifamily buffer space</display_name>
-        </choice>
-        <choice>
-          <value>other non-freezing space</value>
-          <display_name>other non-freezing space</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>cooking_range_oven_fuel_type</name>
@@ -5090,53 +3701,29 @@
     </argument>
     <argument>
       <name>cooking_range_oven_is_induction</name>
-      <display_name>Cooking Range/Oven: Is Induction</display_name>
-      <description>Whether the cooking range is induction.</description>
-      <type>Boolean</type>
+      <display_name>cooking_range_oven_is_induction</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>cooking_range_oven_is_convection</name>
-      <display_name>Cooking Range/Oven: Is Convection</display_name>
-      <description>Whether the oven is convection.</description>
-      <type>Boolean</type>
+      <display_name>cooking_range_oven_is_convection</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>cooking_range_oven_usage_multiplier</name>
-      <display_name>Cooking Range/Oven: Usage Multiplier</display_name>
-      <description>Multiplier on the cooking range/oven energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>cooking_range_oven_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>ceiling_fan_present</name>
       <display_name>Ceiling Fan: Present</display_name>
-      <description>Whether there is are any ceiling fans.</description>
+      <description>Whether there are any ceiling fans.</description>
       <type>Boolean</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -5154,33 +3741,24 @@
     </argument>
     <argument>
       <name>ceiling_fan_efficiency</name>
-      <display_name>Ceiling Fan: Efficiency</display_name>
-      <description>The efficiency rating of the ceiling fan(s) at medium speed.</description>
+      <display_name>ceiling_fan_efficiency</display_name>
       <type>String</type>
-      <units>CFM/W</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>ceiling_fan_quantity</name>
-      <display_name>Ceiling Fan: Quantity</display_name>
-      <description>Total number of ceiling fans.</description>
+      <display_name>ceiling_fan_quantity</display_name>
       <type>String</type>
-      <units>#</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>ceiling_fan_cooling_setpoint_temp_offset</name>
-      <display_name>Ceiling Fan: Cooling Setpoint Temperature Offset</display_name>
-      <description>The setpoint temperature offset during cooling season for the ceiling fan(s). Only applies if ceiling fan quantity is greater than zero.</description>
-      <type>Double</type>
-      <units>deg-F</units>
-      <required>true</required>
+      <display_name>ceiling_fan_cooling_setpoint_temp_offset</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_television_present</name>
@@ -5203,42 +3781,31 @@
     </argument>
     <argument>
       <name>misc_plug_loads_other_annual_kwh</name>
-      <display_name>Misc Plug Loads: Other Annual kWh</display_name>
-      <description>The annual energy consumption of the other residual plug loads.</description>
+      <display_name>misc_plug_loads_other_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_other_frac_sensible</name>
-      <display_name>Misc Plug Loads: Other Sensible Fraction</display_name>
-      <description>Fraction of other residual plug loads' internal gains that are sensible.</description>
+      <display_name>misc_plug_loads_other_frac_sensible</display_name>
       <type>String</type>
-      <units>Frac</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_other_frac_latent</name>
-      <display_name>Misc Plug Loads: Other Latent Fraction</display_name>
-      <description>Fraction of other residual plug loads' internal gains that are latent.</description>
+      <display_name>misc_plug_loads_other_frac_latent</display_name>
       <type>String</type>
-      <units>Frac</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_other_usage_multiplier</name>
-      <display_name>Misc Plug Loads: Other Usage Multiplier</display_name>
-      <description>Multiplier on the other energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>misc_plug_loads_other_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_well_pump_present</name>
@@ -5261,22 +3828,17 @@
     </argument>
     <argument>
       <name>misc_plug_loads_well_pump_annual_kwh</name>
-      <display_name>Misc Plug Loads: Well Pump Annual kWh</display_name>
-      <description>The annual energy consumption of the well pump plug loads.</description>
+      <display_name>misc_plug_loads_well_pump_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_well_pump_usage_multiplier</name>
-      <display_name>Misc Plug Loads: Well Pump Usage Multiplier</display_name>
-      <description>Multiplier on the well pump energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>misc_plug_loads_well_pump_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_vehicle_present</name>
@@ -5299,22 +3861,17 @@
     </argument>
     <argument>
       <name>misc_plug_loads_vehicle_annual_kwh</name>
-      <display_name>Misc Plug Loads: Vehicle Annual kWh</display_name>
-      <description>The annual energy consumption of the electric vehicle plug loads.</description>
+      <display_name>misc_plug_loads_vehicle_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_plug_loads_vehicle_usage_multiplier</name>
-      <display_name>Misc Plug Loads: Vehicle Usage Multiplier</display_name>
-      <description>Multiplier on the electric vehicle energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>misc_plug_loads_vehicle_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>misc_fuel_loads_grill_present</name>
@@ -5368,22 +3925,17 @@
     </argument>
     <argument>
       <name>misc_fuel_loads_grill_annual_therm</name>
-      <display_name>Misc Fuel Loads: Grill Annual therm</display_name>
-      <description>The annual energy consumption of the fuel loads grill.</description>
+      <display_name>misc_fuel_loads_grill_annual_therm</display_name>
       <type>String</type>
-      <units>therm/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_fuel_loads_grill_usage_multiplier</name>
-      <display_name>Misc Fuel Loads: Grill Usage Multiplier</display_name>
-      <description>Multiplier on the fuel loads grill energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>misc_fuel_loads_grill_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
     </argument>
     <argument>
       <name>misc_fuel_loads_lighting_present</name>
@@ -5437,22 +3989,17 @@
     </argument>
     <argument>
       <name>misc_fuel_loads_lighting_annual_therm</name>
-      <display_name>Misc Fuel Loads: Lighting Annual therm</display_name>
-      <description>The annual energy consumption of the fuel loads lighting.</description>
+      <display_name>misc_fuel_loads_lighting_annual_therm</display_name>
       <type>String</type>
-      <units>therm/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_fuel_loads_lighting_usage_multiplier</name>
-      <display_name>Misc Fuel Loads: Lighting Usage Multiplier</display_name>
-      <description>Multiplier on the fuel loads lighting energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>misc_fuel_loads_lighting_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
     </argument>
     <argument>
       <name>misc_fuel_loads_fireplace_present</name>
@@ -5506,42 +4053,31 @@
     </argument>
     <argument>
       <name>misc_fuel_loads_fireplace_annual_therm</name>
-      <display_name>Misc Fuel Loads: Fireplace Annual therm</display_name>
-      <description>The annual energy consumption of the fuel loads fireplace.</description>
+      <display_name>misc_fuel_loads_fireplace_annual_therm</display_name>
       <type>String</type>
-      <units>therm/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_fuel_loads_fireplace_frac_sensible</name>
-      <display_name>Misc Fuel Loads: Fireplace Sensible Fraction</display_name>
-      <description>Fraction of fireplace residual fuel loads' internal gains that are sensible.</description>
+      <display_name>misc_fuel_loads_fireplace_frac_sensible</display_name>
       <type>String</type>
-      <units>Frac</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_fuel_loads_fireplace_frac_latent</name>
-      <display_name>Misc Fuel Loads: Fireplace Latent Fraction</display_name>
-      <description>Fraction of fireplace residual fuel loads' internal gains that are latent.</description>
+      <display_name>misc_fuel_loads_fireplace_frac_latent</display_name>
       <type>String</type>
-      <units>Frac</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>misc_fuel_loads_fireplace_usage_multiplier</name>
-      <display_name>Misc Fuel Loads: Fireplace Usage Multiplier</display_name>
-      <description>Multiplier on the fuel loads fireplace energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>misc_fuel_loads_fireplace_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
     </argument>
     <argument>
       <name>pool_present</name>
@@ -5564,22 +4100,17 @@
     </argument>
     <argument>
       <name>pool_pump_annual_kwh</name>
-      <display_name>Pool: Pump Annual kWh</display_name>
-      <description>The annual energy consumption of the pool pump.</description>
+      <display_name>pool_pump_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>pool_pump_usage_multiplier</name>
-      <display_name>Pool: Pump Usage Multiplier</display_name>
-      <description>Multiplier on the pool pump energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>pool_pump_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>pool_heater_type</name>
@@ -5610,32 +4141,24 @@
     </argument>
     <argument>
       <name>pool_heater_annual_kwh</name>
-      <display_name>Pool: Heater Annual kWh</display_name>
-      <description>The annual energy consumption of the electric resistance pool heater.</description>
+      <display_name>pool_heater_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>pool_heater_annual_therm</name>
-      <display_name>Pool: Heater Annual therm</display_name>
-      <description>The annual energy consumption of the gas fired pool heater.</description>
+      <display_name>pool_heater_annual_therm</display_name>
       <type>String</type>
-      <units>therm/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>pool_heater_usage_multiplier</name>
-      <display_name>Pool: Heater Usage Multiplier</display_name>
-      <description>Multiplier on the pool heater energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>pool_heater_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>hot_tub_present</name>
@@ -5658,22 +4181,17 @@
     </argument>
     <argument>
       <name>hot_tub_pump_annual_kwh</name>
-      <display_name>Hot Tub: Pump Annual kWh</display_name>
-      <description>The annual energy consumption of the hot tub pump.</description>
+      <display_name>hot_tub_pump_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>hot_tub_pump_usage_multiplier</name>
-      <display_name>Hot Tub: Pump Usage Multiplier</display_name>
-      <description>Multiplier on the hot tub pump energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>hot_tub_pump_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>hot_tub_heater_type</name>
@@ -5704,182 +4222,136 @@
     </argument>
     <argument>
       <name>hot_tub_heater_annual_kwh</name>
-      <display_name>Hot Tub: Heater Annual kWh</display_name>
-      <description>The annual energy consumption of the electric resistance hot tub heater.</description>
+      <display_name>hot_tub_heater_annual_kwh</display_name>
       <type>String</type>
-      <units>kWh/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>hot_tub_heater_annual_therm</name>
-      <display_name>Hot Tub: Heater Annual therm</display_name>
-      <description>The annual energy consumption of the gas fired hot tub heater.</description>
+      <display_name>hot_tub_heater_annual_therm</display_name>
       <type>String</type>
-      <units>therm/yr</units>
-      <required>true</required>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>hot_tub_heater_usage_multiplier</name>
-      <display_name>Hot Tub: Heater Usage Multiplier</display_name>
-      <description>Multiplier on the hot tub heater energy usage that can reflect, e.g., high/low usage occupants.</description>
-      <type>Double</type>
-      <required>true</required>
+      <display_name>hot_tub_heater_usage_multiplier</display_name>
+      <type>String</type>
+      <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>1</default_value>
     </argument>
     <argument>
       <name>emissions_scenario_names</name>
-      <display_name>Emissions: Scenario Names</display_name>
-      <description>Names of emissions scenarios. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_scenario_names</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_types</name>
-      <display_name>Emissions: Types</display_name>
-      <description>Types of emissions (e.g., CO2e, NOx, etc.). If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_types</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_electricity_units</name>
-      <display_name>Emissions: Electricity Units</display_name>
-      <description>Electricity emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MWh and kg/MWh are allowed.</description>
+      <display_name>emissions_electricity_units</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_electricity_values_or_filepaths</name>
-      <display_name>Emissions: Electricity Values or File Paths</display_name>
-      <description>Electricity emissions factors values, specified as either an annual factor or an absolute/relative path to a file with hourly factors. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_electricity_values_or_filepaths</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_electricity_number_of_header_rows</name>
-      <display_name>Emissions: Electricity Files Number of Header Rows</display_name>
-      <description>The number of header rows in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_electricity_number_of_header_rows</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_electricity_column_numbers</name>
-      <display_name>Emissions: Electricity Files Column Numbers</display_name>
-      <description>The column number in the electricity emissions factor file. Only applies when an electricity filepath is used. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_electricity_column_numbers</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_fossil_fuel_units</name>
-      <display_name>Emissions: Fossil Fuel Units</display_name>
-      <description>Fossil fuel emissions factors units. If multiple scenarios, use a comma-separated list. Only lb/MBtu and kg/MBtu are allowed.</description>
+      <display_name>emissions_fossil_fuel_units</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_natural_gas_values</name>
-      <display_name>Emissions: Natural Gas Values</display_name>
-      <description>Natural gas emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_natural_gas_values</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_propane_values</name>
-      <display_name>Emissions: Propane Values</display_name>
-      <description>Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_propane_values</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_fuel_oil_values</name>
-      <display_name>Emissions: Fuel Oil Values</display_name>
-      <description>Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_fuel_oil_values</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_coal_values</name>
-      <display_name>Emissions: Coal Values</display_name>
-      <description>Coal emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_coal_values</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_wood_values</name>
-      <display_name>Emissions: Wood Values</display_name>
-      <description>Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_wood_values</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>emissions_wood_pellets_values</name>
-      <display_name>Emissions: Wood Pellets Values</display_name>
-      <description>Wood pellets emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.</description>
+      <display_name>emissions_wood_pellets_values</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>additional_properties</name>
-      <display_name>Additional Properties</display_name>
-      <description>Additional properties specified as key-value pairs (i.e., key=value). If multiple additional properties, use a |-separated list. For example, 'LowIncome=false|Remodeled|Description=2-story home in Denver'. These properties will be stored in the HPXML file under /HPXML/SoftwareInfo/extension/AdditionalProperties.</description>
+      <display_name>additional_properties</display_name>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
       <name>apply_defaults</name>
-      <display_name>Apply Default Values?</display_name>
-      <description>If true, applies OS-HPXML default values to the HPXML output file.</description>
-      <type>Boolean</type>
+      <display_name>apply_defaults</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>apply_validation</name>
-      <display_name>Apply Validation?</display_name>
-      <description>If true, validates the HPXML output file. Set to false for faster performance. Note that validation is not needed if the HPXML file will be validated downstream (e.g., via the HPXMLtoOpenStudio measure).</description>
-      <type>Boolean</type>
+      <display_name>apply_validation</display_name>
+      <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>false</default_value>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>schedules_type</name>
@@ -6395,7 +4867,7 @@
       <filename>constants.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>110F7CE0</checksum>
+      <checksum>CA192B9B</checksum>
     </file>
     <file>
       <version>
@@ -6406,7 +4878,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>FA673D58</checksum>
+      <checksum>E00ADC0B</checksum>
     </file>
   </files>
 </measure>

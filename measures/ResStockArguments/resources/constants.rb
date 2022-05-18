@@ -33,4 +33,8 @@ class Constants
             'output_csv_path',
             'hpxml_output_path']
   end
+
+  def self.Auto
+    return 'auto'
+  end
 end
