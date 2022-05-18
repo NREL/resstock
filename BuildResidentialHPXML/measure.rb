@@ -1265,6 +1265,18 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('Frac')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_capacity_retention_fraction', false)
+    arg.setDisplayName('Heat Pump: Capacity Retention Fraction')
+    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
+    arg.setUnits('Frac')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_capacity_retention_temp', false)
+    arg.setDisplayName('Heat Pump: Capacity Retention Temperature')
+    arg.setDescription("Only used for #{HPXML::HVACTypeHeatPumpMiniSplit}.")
+    arg.setUnits('deg-F')
+    args << arg
+
     heating_system_2_type_choices = OpenStudio::StringVector.new
     heating_system_2_type_choices << 'none'
     heating_system_2_type_choices << HPXML::HVACTypeWallFurnace
@@ -4440,6 +4452,14 @@ class HPXMLFile
       charge_defect_ratio = args[:heat_pump_charge_defect_ratio].get
     end
 
+    if args[:heat_pump_capacity_retention_fraction].is_initialized
+      capacity_retention_fraction = args[:heat_pump_capacity_retention_fraction].get
+    end
+
+    if args[:heat_pump_capacity_retention_temp].is_initialized
+      capacity_retention_temp = args[:heat_pump_capacity_retention_temp].get
+    end
+
     fraction_heat_load_served = args[:heat_pump_fraction_heat_load_served]
     fraction_cool_load_served = args[:heat_pump_fraction_cool_load_served]
 
@@ -4479,6 +4499,8 @@ class HPXMLFile
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
                          charge_defect_ratio: charge_defect_ratio,
+                         capacity_retention_fraction: capacity_retention_fraction,
+                         capacity_retention_temp: capacity_retention_temp,
                          primary_heating_system: primary_heating_system,
                          primary_cooling_system: primary_cooling_system)
   end
@@ -5213,7 +5235,7 @@ class HPXMLFile
   end
 
   def self.set_lighting(hpxml, runner, args)
-    return unless args[:lighting_present]
+    return unless args[:lighting_present] || args[:ceiling_fan_present] # If ceiling fans present but not lighting present, need to continue and use lighting multipliers = 0 instead
 
     hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
                               location: HPXML::LocationInterior,
@@ -5252,16 +5274,22 @@ class HPXMLFile
                               fraction_of_units_in_location: args[:lighting_garage_fraction_led],
                               lighting_type: HPXML::LightingTypeLED)
 
-    if args[:lighting_interior_usage_multiplier].is_initialized
-      hpxml.lighting.interior_usage_multiplier = args[:lighting_interior_usage_multiplier].get
-    end
+    if args[:lighting_present]
+      if args[:lighting_interior_usage_multiplier].is_initialized
+        hpxml.lighting.interior_usage_multiplier = args[:lighting_interior_usage_multiplier].get
+      end
 
-    if args[:lighting_exterior_usage_multiplier].is_initialized
-      hpxml.lighting.exterior_usage_multiplier = args[:lighting_exterior_usage_multiplier].get
-    end
+      if args[:lighting_exterior_usage_multiplier].is_initialized
+        hpxml.lighting.exterior_usage_multiplier = args[:lighting_exterior_usage_multiplier].get
+      end
 
-    if args[:lighting_garage_usage_multiplier].is_initialized
-      hpxml.lighting.garage_usage_multiplier = args[:lighting_garage_usage_multiplier].get
+      if args[:lighting_garage_usage_multiplier].is_initialized
+        hpxml.lighting.garage_usage_multiplier = args[:lighting_garage_usage_multiplier].get
+      end
+    elsif args[:ceiling_fan_present]
+      hpxml.lighting.interior_usage_multiplier = 0.0
+      hpxml.lighting.exterior_usage_multiplier = 0.0
+      hpxml.lighting.garage_usage_multiplier = 0.0
     end
 
     return unless args[:holiday_lighting_present]
@@ -5546,7 +5574,6 @@ class HPXMLFile
 
   def self.set_ceiling_fans(hpxml, runner, args)
     return unless args[:ceiling_fan_present]
-    return unless args[:lighting_present]
 
     if args[:ceiling_fan_efficiency].is_initialized
       efficiency = args[:ceiling_fan_efficiency].get
