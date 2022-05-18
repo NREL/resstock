@@ -681,7 +681,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'hvac-dse-multiple-attached-heating' => ["Multiple heating systems found attached to distribution system 'HVACDistribution1'."],
                             'hvac-inconsistent-fan-powers' => ["Fan powers for heating system 'HeatingSystem1' and cooling system 'CoolingSystem1' are attached to a single distribution system and therefore must be the same."],
                             'hvac-invalid-distribution-system-type' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
-                            'hvac-seasons-less-than-a-year' => ['HeatingSeason and CoolingSeason, when combined, must span the entire year.'],
                             'hvac-shared-boiler-multiple' => ['More than one shared heating system found.'],
                             'hvac-shared-chiller-multiple' => ['More than one shared cooling system found.'],
                             'hvac-shared-chiller-negative-seer-eq' => ["Negative SEER equivalent calculated for cooling system 'CoolingSystem1', double check inputs."],
@@ -800,16 +799,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.cooling_systems[0].fan_watts_per_cfm = 0.55
         hpxml.heating_systems[0].fan_watts_per_cfm = 0.45
-      elsif ['hvac-seasons-less-than-a-year'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.hvac_controls[0].seasons_heating_begin_month = 10
-        hpxml.hvac_controls[0].seasons_heating_begin_day = 1
-        hpxml.hvac_controls[0].seasons_heating_end_month = 5
-        hpxml.hvac_controls[0].seasons_heating_end_day = 31
-        hpxml.hvac_controls[0].seasons_cooling_begin_month = 7
-        hpxml.hvac_controls[0].seasons_cooling_begin_day = 1
-        hpxml.hvac_controls[0].seasons_cooling_end_month = 9
-        hpxml.hvac_controls[0].seasons_cooling_end_day = 30
       elsif ['hvac-shared-boiler-multiple'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-boiler-only-baseboard.xml'))
         hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
