@@ -556,11 +556,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['geometry_unit_back_wall_is_adiabatic'] = false
 
     # Map corridor arguments to adiabatic walls and shading
-    n_floors = Float(args['geometry_num_floors_above_grade'])
+    n_floors = Float(args['geometry_num_floors_above_grade'].to_s)
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
-      n_units = Float(args['geometry_building_num_units'])
+      n_units = Float(args['geometry_building_num_units'].to_s)
       horiz_location = args['geometry_unit_horizontal_location'].to_s
-      aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
+      aspect_ratio = Float(args['geometry_unit_aspect_ratio'].to_s)
 
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
