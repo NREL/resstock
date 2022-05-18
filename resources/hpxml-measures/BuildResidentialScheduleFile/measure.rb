@@ -105,14 +105,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     hpxml = HPXML.new(hpxml_path: hpxml_path)
 
     # create EpwFile object
-    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
-    if not File.exist? epw_path
-      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
-    end
-    if not File.exist? epw_path
-      runner.registerError("Could not find EPW file at '#{epw_path}'.")
-      return false
-    end
+    epw_path = Location.get_epw_path(hpxml, hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
 
     # create the schedules

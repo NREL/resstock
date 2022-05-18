@@ -121,7 +121,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     new_schedules = {}
 
     # create HVAC setpoints
-    create_hvac_setpoints(runner, hpxml, schedules, new_schedules, args)
+    create_hvac_setpoints(runner, hpxml, hpxml_path, schedules, new_schedules, args)
 
     # return if not writing schedules
     return true if new_schedules.empty?
@@ -161,7 +161,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     end
   end
 
-  def create_hvac_setpoints(runner, hpxml, schedules, new_schedules, args)
+  def create_hvac_setpoints(runner, hpxml, hpxml_path, schedules, new_schedules, args)
     heating_setpoints = []
     cooling_setpoints = []
 
@@ -185,7 +185,7 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    calendar_year = get_calendar_year(hpxml)
+    calendar_year = get_calendar_year(hpxml, hpxml_path)
 
     HPXMLDefaults.apply_hvac_control(hpxml, nil)
     hvac_control = hpxml.hvac_controls[0]
@@ -230,19 +230,9 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     return 24 * 60 / minutes_per_step
   end
 
-  def get_calendar_year(hpxml)
-    # Create EpwFile object
-    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
-puts "HERE0 #{epw_path}"
-    if not File.exist? epw_path
-puts "HERE1 #{epw_path}"
-      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
-    end
-puts "HERE2 #{File.expand_path(epw_path)}"
-    if not File.exist? epw_path
-      runner.registerError("Could not find EPW file at '#{epw_path}'.")
-      return false
-    end
+  def get_calendar_year(hpxml, hpxml_path)
+    # create EpwFile object
+    epw_path = Location.get_epw_path(hpxml, hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
 
     calendar_year = 2007 # default to TMY
@@ -252,6 +242,7 @@ puts "HERE2 #{File.expand_path(epw_path)}"
     if epw_file.startDateActualYear.is_initialized # AMY
       calendar_year = epw_file.startDateActualYear.get
     end
+
     return calendar_year
   end
 
