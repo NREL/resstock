@@ -233,6 +233,11 @@ class ReportSimulationOutputTest < MiniTest::Test
     'Component Load: Heating: Windows',
   ]
 
+  BaseHPXMLTimeseriesColsUnmetHours = [
+    'Unmet Hours: Heating',
+    'Unmet Hours: Cooling',
+  ]
+
   BaseHPXMLTimeseriesColsZoneTemps = [
     'Temperature: Attic - Unvented',
     'Temperature: Living Space',
@@ -440,6 +445,7 @@ class ReportSimulationOutputTest < MiniTest::Test
             BaseHPXMLTimeseriesColsEndUses +
             BaseHPXMLTimeseriesColsWaterUses +
             BaseHPXMLTimeseriesColsTotalLoads +
+            BaseHPXMLTimeseriesColsUnmetHours +
             BaseHPXMLTimeseriesColsZoneTemps +
             BaseHPXMLTimeseriesColsAirflows +
             BaseHPXMLTimeseriesColsWeather)
@@ -473,6 +479,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
+                  'include_timeseries_unmet_hours' => false,
                   'include_timeseries_component_loads' => false,
                   'include_timeseries_zone_temperatures' => false,
                   'include_timeseries_airflows' => false,
@@ -495,6 +502,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_emissions' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
+                  'include_timeseries_unmet_hours' => true,
                   'include_timeseries_component_loads' => true,
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
@@ -663,6 +671,24 @@ class ReportSimulationOutputTest < MiniTest::Test
     _check_for_nonzero_timeseries_value(timeseries_csv, ['Component Load: Heating: Internal Gains', 'Component Load: Cooling: Internal Gains'])
   end
 
+  def test_timeseries_hourly_unmet_hours
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-hvac-undersized.xml',
+                  'add_component_loads' => true,
+                  'timeseries_frequency' => 'hourly',
+                  'include_timeseries_unmet_hours' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    expected_timeseries_cols = ['Time'] + BaseHPXMLTimeseriesColsUnmetHours
+    actual_timeseries_cols = File.readlines(timeseries_csv)[0].strip.split(',')
+    assert_equal(expected_timeseries_cols.sort, actual_timeseries_cols.sort)
+    timeseries_rows = CSV.read(timeseries_csv)
+    assert_equal(8760, timeseries_rows.size - 2)
+    timeseries_cols = timeseries_rows.transpose
+    assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
+    _check_for_nonzero_timeseries_value(timeseries_csv, ['Unmet Hours: Heating', 'Unmet Hours: Cooling'])
+  end
+
   def test_timeseries_hourly_zone_temperatures
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
                   'timeseries_frequency' => 'hourly',
@@ -817,6 +843,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_emissions' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
+                  'include_timeseries_unmet_hours' => true,
                   'include_timeseries_component_loads' => true,
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
@@ -845,6 +872,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_emissions' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
+                  'include_timeseries_unmet_hours' => true,
                   'include_timeseries_component_loads' => true,
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
@@ -873,6 +901,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_emissions' => true,
                   'include_timeseries_hot_water_uses' => true,
                   'include_timeseries_total_loads' => true,
+                  'include_timeseries_unmet_hours' => true,
                   'include_timeseries_component_loads' => true,
                   'include_timeseries_zone_temperatures' => true,
                   'include_timeseries_airflows' => true,
@@ -911,6 +940,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_emissions' => true,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
+                  'include_timeseries_unmet_hours' => false,
                   'include_timeseries_component_loads' => false,
                   'include_timeseries_zone_temperatures' => false,
                   'include_timeseries_airflows' => false,
@@ -1004,6 +1034,18 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert_equal(1, _check_for_constant_timeseries_step(timeseries_cols[0]))
   end
 
+  def test_timeseries_for_dview
+    args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
+                  'output_format' => 'csv_dview',
+                  'timeseries_frequency' => 'timestep',
+                  'include_timeseries_fuel_consumptions' => true,
+                  'add_timeseries_dst_column' => true }
+    annual_csv, timeseries_csv = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv))
+    assert_equal('wxDVFileHeaderVer.1', CSV.readlines(timeseries_csv)[0][0].strip)
+  end
+
   def test_timeseries_local_time_dst
     args_hash = { 'hpxml_path' => '../workflow/sample_files/base.xml',
                   'timeseries_frequency' => 'timestep',
@@ -1066,6 +1108,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
+                  'include_timeseries_unmet_hours' => false,
                   'include_timeseries_component_loads' => false,
                   'include_timeseries_zone_temperatures' => false,
                   'include_timeseries_airflows' => false,
@@ -1094,6 +1137,7 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'include_timeseries_emissions' => false,
                   'include_timeseries_hot_water_uses' => false,
                   'include_timeseries_total_loads' => false,
+                  'include_timeseries_unmet_hours' => false,
                   'include_timeseries_component_loads' => false,
                   'include_timeseries_zone_temperatures' => false,
                   'include_timeseries_airflows' => false,
@@ -1152,6 +1196,8 @@ class ReportSimulationOutputTest < MiniTest::Test
     steps = OpenStudio::WorkflowStepVector.new
     found_args = []
     json['steps'].each do |json_step|
+      next unless ['HPXMLtoOpenStudio', 'ReportSimulationOutput'].include? json_step['measure_dir_name']
+
       step = OpenStudio::MeasureStep.new(json_step['measure_dir_name'])
       json_step['arguments'].each do |json_arg_name, json_arg_val|
         if args_hash.keys.include? json_arg_name

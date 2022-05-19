@@ -98,12 +98,14 @@ class Airflow
       next unless attic.attic_type == HPXML::AtticTypeVented
 
       vented_attic = attic
+      break
     end
     vented_crawl = nil
     hpxml.foundations.each do |foundation|
       next unless foundation.foundation_type == HPXML::FoundationTypeCrawlspaceVented
 
       vented_crawl = foundation
+      break
     end
 
     apply_natural_ventilation_and_whole_house_fan(model, weather, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor)

@@ -2013,8 +2013,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heat_pump_cooling_capacity'] = 0.0
     args['heat_pump_fraction_cool_load_served'] = 0
   elsif ['base-hvac-seasons.xml'].include? hpxml_file
-    args['hvac_control_heating_season_period'] = 'Nov 1 - Jun 30'
-    args['hvac_control_cooling_season_period'] = 'Jun 1 - Oct 31'
+    args['hvac_control_heating_season_period'] = 'Nov 1 - May 1'
+    args['hvac_control_cooling_season_period'] = 'Jun 1 - Oct 1'
   elsif ['base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml',
          'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml',
          'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml',
@@ -5137,16 +5137,19 @@ if ARGV[0].to_sym == :create_release_zips
            'BuildResidentialScheduleFile/resources/**/*.*',
            'HPXMLtoOpenStudio/measure.*',
            'HPXMLtoOpenStudio/resources/**/*.*',
-           'ReportSimulationOutput/measure.*',
-           'ReportSimulationOutput/resources/**/*.*',
            'ReportHPXMLOutput/measure.*',
            'ReportHPXMLOutput/resources/**/*.*',
+           'ReportSimulationOutput/measure.*',
+           'ReportSimulationOutput/resources/**/*.*',
+           'ReportUtilityBills/measure.*',
+           'ReportUtilityBills/resources/**/*.*',
            'weather/*.*',
            'workflow/*.*',
+           'workflow/real_homes/*.xml',
            'workflow/sample_files/*.xml',
            'workflow/tests/*test*.rb',
-           'workflow/tests/ASHRAE_Standard_140/*.xml',
-           'workflow/tests/base_results/*.csv',
+           'workflow/tests/**/*.xml',
+           'workflow/tests/**/*.csv',
            'documentation/index.html',
            'documentation/_static/**/*.*']
 
@@ -5164,7 +5167,11 @@ if ARGV[0].to_sym == :create_release_zips
       puts "Command failed: '#{command}'. Perhaps sphinx needs to be installed?"
       exit!
     end
-    FileUtils.rm_r(File.join(File.dirname(__FILE__), 'documentation', '_static', 'fonts'))
+
+    fonts_dir = File.join(File.dirname(__FILE__), 'documentation', '_static', 'fonts')
+    if Dir.exist? fonts_dir
+      FileUtils.rm_r(fonts_dir)
+    end
 
     # Check if we need to download weather files for the full release zip
     num_epws_expected = 1011
