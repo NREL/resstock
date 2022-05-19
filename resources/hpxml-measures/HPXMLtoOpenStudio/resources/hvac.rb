@@ -838,10 +838,17 @@ class HVAC
 
   def self.create_setpoint_schedules(runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
     # Create setpoint schedules
+    # This method ensures that we don't construct a setpoint schedule where the cooling setpoint
+    # is less than the heating setpoint, which would result in an E+ error.
+
+    # Note: It's tempting to adjust the setpoints, e.g., outside of the heating/cooling seasons,
+    # to prevent unmet hours being reported. This is a dangerous idea. These setpoints are used
+    # by natural ventilation, Kiva initialization, and probably other things.
+
     num_days = Constants.NumDaysInYear(year)
     warning = false
     (0..(num_days - 1)).to_a.each do |i|
-      if (heating_days[i] == 1) && (cooling_days[i] == 1) # overlap seasons
+      if (heating_days[i] == cooling_days[i]) # both (or neither) heating/cooling seasons
         htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
         htg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
         clg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
@@ -852,8 +859,8 @@ class HVAC
         clg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? h : c }
         clg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? h : c }
       elsif cooling_days[i] == 1 # cooling only seasons; heating has maximum of cooling
-        htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? c : h }
-        htg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? c : h }
+        htg_wkdy = clg_weekday_setpoints[i].zip(htg_weekday_setpoints[i]).map { |c, h| c < h ? c : h }
+        htg_wked = clg_weekend_setpoints[i].zip(htg_weekend_setpoints[i]).map { |c, h| c < h ? c : h }
         clg_wkdy = clg_weekday_setpoints[i]
         clg_wked = clg_weekend_setpoints[i]
       else
