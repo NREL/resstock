@@ -34,4 +34,8 @@ class Constants
             'hpxml_output_path',
             'debug']
   end
+
+  def self.Auto
+    return 'auto'
+  end
 end

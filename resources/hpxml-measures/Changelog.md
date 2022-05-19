@@ -4,6 +4,10 @@ __New Features__
 - Allows heating/cooling seasons that don't span the entire year.
 - Allows generating timeseries unmet hours for heating and cooling.
 - Allows CSV timeseries output to be formatted for use with the DView application.
+- BuildResidentialHPXML measure:
+  - **Breaking change**: Replaces arguments using 'auto' for defaults with optional arguments of the appropriate data type. New `heat_pump_sizing_methodology` argument and new boolean `foo_present` arguments for lighting, appliances, etc.
+- ReportUtilityBills measure:
+  - **Breaking change**: Replaces arguments using 'auto' for defaults with optional arguments of the appropriate data type.
 
 __Bugfixes__
 - Fixes heating (or cooling) setpoints from affecting the conditioned space temperature outside the heating (or cooling) season.

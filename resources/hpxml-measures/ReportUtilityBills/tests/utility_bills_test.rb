@@ -24,7 +24,7 @@ class ReportUtilityBillsTest < MiniTest::Test
   # - Water Heater: Oil Standard
   # - PV System: None, 1.0 kW, 10.0 kW
   # - Timestep: 10 min
-  # - User-Specified rates (calculated using Constants.Auto):
+  # - User-Specified rates (calculated using default value):
   #   - Electricity: 0.1195179675994109 $/kWh
   #   - Natural Gas: 0.7468734851091381 $/therm
   #   - Fuel Oil: 3.495346153846154 $/gal
@@ -35,11 +35,7 @@ class ReportUtilityBillsTest < MiniTest::Test
   def setup
     @args_hash = {}
     @args_hash['electricity_fixed_charge'] = 8.0
-    @args_hash['electricity_marginal_rate'] = Constants.Auto
     @args_hash['natural_gas_fixed_charge'] = 8.0
-    @args_hash['natural_gas_marginal_rate'] = Constants.Auto
-    @args_hash['fuel_oil_marginal_rate'] = Constants.Auto
-    @args_hash['propane_marginal_rate'] = Constants.Auto
     @args_hash['wood_cord_marginal_rate'] = 0.015
     @args_hash['wood_pellets_marginal_rate'] = 0.015
     @args_hash['coal_marginal_rate'] = 0.015
