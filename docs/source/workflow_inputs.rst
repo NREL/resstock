@@ -1614,8 +1614,6 @@ If a heating and/or cooling season is defined, additional information is entered
   ``EndDayOfMonth``    integer          1 - 31       Yes                End day
   ===================  ========  =====  ===========  ========  =======  ===========
 
-Heating and cooling seasons, when combined, must span the entire year.
-
 Thermostat setpoints are additionally entered using either simple inputs or hourly inputs.
 Alternatively, setpoints can be defined using :ref:`detailedschedules`.
 
