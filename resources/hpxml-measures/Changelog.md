@@ -5,10 +5,9 @@ __New Features__
 - Allows generating timeseries unmet hours for heating and cooling.
 - Allows CSV timeseries output to be formatted for use with the DView application.
 - BuildResidentialHPXML measure:
-  - **Breaking change**: Replaces all string arguments that use 'auto' for defaulted inputs with optional arguments of the appropriate data type.
-  - **Breaking change**: New `heat_pump_sizing_methodology` argument and new boolean "present" arguments for lighting, appliances, PV, batteries (e.g., `dishwasher_present`).
+  - **Breaking change**: Replaces arguments using 'auto' for defaults with optional arguments of the appropriate data type. New `heat_pump_sizing_methodology` argument and new boolean `foo_present` arguments for lighting, appliances, etc.
 - ReportUtilityBills measure:
-  - **Breaking change**: Replaces all string arguments that use 'auto' for defaulted inputs with optional arguments of the appropriate data type.
+  - **Breaking change**: Replaces arguments using 'auto' for defaults with optional arguments of the appropriate data type.
 
 __Bugfixes__
 - Fixes heating (or cooling) setpoints from affecting the conditioned space temperature outside the heating (or cooling) season.
