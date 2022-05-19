@@ -75,11 +75,13 @@ class HPXMLTest < MiniTest::Test
 
   def test_run_simulation_output_formats
     # Check that the simulation produces outputs in the appropriate format
-    ['csv', 'json', 'msgpack'].each do |output_format|
+    ['csv', 'json', 'msgpack', 'csv_dview'].each do |output_format|
       rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
       xml = File.join(File.dirname(__FILE__), '..', 'sample_files', 'base.xml')
       command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --debug --hourly ALL --add-utility-bills --output-format #{output_format}"
       system(command, err: File::NULL)
+
+      output_format = 'csv' if output_format == 'csv_dview'
 
       # Check for output files
       assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
@@ -152,25 +154,36 @@ class HPXMLTest < MiniTest::Test
   end
 
   def test_run_simulation_detailed_occupancy_schedules
-    # Check that the simulation produces stochastic schedules if requested
-    sample_files_path = File.join(File.dirname(__FILE__), '..', 'sample_files')
-    tmp_hpxml_path = File.join(sample_files_path, 'tmp.xml')
-    hpxml = HPXML.new(hpxml_path: File.join(sample_files_path, 'base.xml'))
-    XMLHelper.write_file(hpxml.to_oga, tmp_hpxml_path)
+    [false, true].each do |debug|
+      # Check that the simulation produces stochastic schedules if requested
+      sample_files_path = File.join(File.dirname(__FILE__), '..', 'sample_files')
+      tmp_hpxml_path = File.join(sample_files_path, 'tmp.xml')
+      hpxml = HPXML.new(hpxml_path: File.join(sample_files_path, 'base.xml'))
+      XMLHelper.write_file(hpxml.to_oga, tmp_hpxml_path)
 
-    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
-    xml = File.absolute_path(tmp_hpxml_path)
-    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --add-detailed-schedule stochastic"
-    system(command, err: File::NULL)
+      rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+      xml = File.absolute_path(tmp_hpxml_path)
+      command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --add-detailed-schedule stochastic"
+      command += ' -d' if debug
+      system(command, err: File::NULL)
 
-    # Check for output files
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'stochastic.csv'))
+      # Check for output files
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'stochastic.csv'))
 
-    # Cleanup
-    File.delete(tmp_hpxml_path) if File.exist? tmp_hpxml_path
+      # Check stochastic.csv headers
+      schedules = CSV.read(File.join(File.dirname(xml), 'run', 'stochastic.csv'), headers: true)
+      if debug
+        assert(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+      else
+        refute(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+      end
+
+      # Cleanup
+      File.delete(tmp_hpxml_path) if File.exist? tmp_hpxml_path
+    end
   end
 
   def test_run_simulation_timeseries_outputs
@@ -1353,8 +1366,16 @@ class HPXMLTest < MiniTest::Test
       assert_operator(unmet_hours_htg, :>, 1000)
       assert_operator(unmet_hours_clg, :>, 1000)
     else
-      assert_operator(unmet_hours_htg, :<, 350)
-      assert_operator(unmet_hours_clg, :<, 350)
+      if hpxml.total_fraction_heat_load_served == 0
+        assert_equal(0, unmet_hours_htg)
+      else
+        assert_operator(unmet_hours_htg, :<, 350)
+      end
+      if hpxml.total_fraction_cool_load_served == 0
+        assert_equal(0, unmet_hours_clg)
+      else
+        assert_operator(unmet_hours_clg, :<, 350)
+      end
     end
 
     sqlFile.close

@@ -10,7 +10,7 @@
         "air_leakage_units": "ACH",
         "air_leakage_value": 3,
         "ceiling_assembly_r": 39.3,
-        "cooling_system_cooling_capacity": "24000.0",
+        "cooling_system_cooling_capacity": 24000.0,
         "cooling_system_cooling_compressor_type": "single stage",
         "cooling_system_cooling_efficiency": 13.0,
         "cooling_system_cooling_efficiency_type": "SEER",
@@ -21,11 +21,11 @@
         "ducts_return_insulation_r": 0.0,
         "ducts_return_leakage_to_outside_value": 25.0,
         "ducts_return_location": "attic - unvented",
-        "ducts_return_surface_area": "50.0",
+        "ducts_return_surface_area": 50.0,
         "ducts_supply_insulation_r": 4.0,
         "ducts_supply_leakage_to_outside_value": 75.0,
         "ducts_supply_location": "attic - unvented",
-        "ducts_supply_surface_area": "150.0",
+        "ducts_supply_surface_area": 150.0,
         "floor_over_foundation_assembly_r": 0,
         "floor_over_garage_assembly_r": 0,
         "foundation_wall_insulation_r": 8.9,
@@ -49,7 +49,7 @@
         "geometry_unit_right_wall_is_adiabatic": false,
         "geometry_unit_back_wall_is_adiabatic": false,
         "heating_system_fuel": "natural gas",
-        "heating_system_heating_capacity": "36000.0",
+        "heating_system_heating_capacity": 36000.0,
         "heating_system_heating_efficiency": 0.92,
         "heating_system_type": "Furnace",
         "hpxml_path": "../workflow/built.xml",
@@ -64,7 +64,7 @@
         "water_heater_efficiency": 0.95,
         "water_heater_efficiency_type": "EnergyFactor",
         "water_heater_fuel_type": "electricity",
-        "water_heater_tank_volume": "40",
+        "water_heater_tank_volume": 40,
         "water_heater_type": "storage water heater",
         "weather_station_epw_filepath": "USA_CO_Denver.Intl.AP.725650_TMY3.epw",
         "window_area_back": 108.0,
@@ -111,6 +111,7 @@
         "include_timeseries_hot_water_uses": false,
         "include_timeseries_total_loads": false,
         "include_timeseries_component_loads": false,
+        "include_timeseries_unmet_hours": false,
         "include_timeseries_zone_temperatures": false,
         "include_timeseries_airflows": false,
         "include_timeseries_weather": false,
@@ -125,6 +126,23 @@
         "output_format": "csv"
       },
       "measure_dir_name": "ReportHPXMLOutput"
+    },
+    {
+      "arguments": {
+        "output_format": "csv",
+        "electricity_fixed_charge": 12.0,
+        "natural_gas_fixed_charge": 12.0,
+        "wood_cord_marginal_rate": 0.015,
+        "wood_pellets_marginal_rate": 0.015,
+        "coal_marginal_rate": 0.015,
+        "pv_compensation_type": "Net Metering",
+        "pv_annual_excess_sellback_rate_type": "User-Specified",
+        "pv_net_metering_annual_excess_sellback_rate": 0.03,
+        "pv_feed_in_tariff_rate": 0.12,
+        "pv_grid_connection_fee_units": "$/kW",
+        "pv_monthly_grid_connection_fee": 0.0
+      },
+      "measure_dir_name": "ReportUtilityBills"
     }
   ],
   "run_options": {

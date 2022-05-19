@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>report_utility_bills</name>
   <uid>ca88a425-e59a-4bc4-af51-c7e7d1e960fe</uid>
-  <version_id>7cef2bf2-549f-46d4-8fa5-2eeb1341a89f</version_id>
-  <version_modified>20220505T171357Z</version_modified>
+  <version_id>3749b314-ee92-49d7-a49a-965de9160874</version_id>
+  <version_modified>20220519T161449Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>ReportUtilityBills</class_name>
   <display_name>Utility Bills Report</display_name>
@@ -47,12 +47,11 @@
     <argument>
       <name>electricity_marginal_rate</name>
       <display_name>Electricity: Marginal Rate</display_name>
-      <description>Price per kilowatt-hour for electricity. Use 'auto' to obtain a state-average value from EIA.</description>
-      <type>String</type>
+      <description>Price per kilowatt-hour for electricity. If not provided, uses a state-average value from EIA.</description>
+      <type>Double</type>
       <units>$/kWh</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>natural_gas_fixed_charge</name>
@@ -67,32 +66,29 @@
     <argument>
       <name>natural_gas_marginal_rate</name>
       <display_name>Natural Gas: Marginal Rate</display_name>
-      <description>Price per therm for natural gas. Use 'auto' to obtain a state-average value from EIA.</description>
-      <type>String</type>
+      <description>Price per therm for natural gas. If not provided, uses a state-average value from EIA.</description>
+      <type>Double</type>
       <units>$/therm</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>fuel_oil_marginal_rate</name>
       <display_name>Fuel Oil: Marginal Rate</display_name>
-      <description>Price per gallon for fuel oil. Use 'auto' to obtain a state-average value from EIA.</description>
-      <type>String</type>
+      <description>Price per gallon for fuel oil. If not provided, uses a state-average value from EIA.</description>
+      <type>Double</type>
       <units>$/gal</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>propane_marginal_rate</name>
       <display_name>Propane: Marginal Rate</display_name>
-      <description>Price per gallon for propane. Use 'auto' to obtain a state-average value from EIA.</description>
-      <type>String</type>
+      <description>Price per gallon for propane. If not provided, uses a state-average value from EIA.</description>
+      <type>Double</type>
       <units>$/gal</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-      <default_value>auto</default_value>
     </argument>
     <argument>
       <name>wood_cord_marginal_rate</name>
@@ -294,13 +290,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>E4C6A31B</checksum>
+      <checksum>4B8F8EC1</checksum>
     </file>
     <file>
       <filename>utility_bills_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>E3796204</checksum>
+      <checksum>1ACE88AD</checksum>
+    </file>
+    <file>
+      <filename>results_bills.csv</filename>
+      <filetype>csv</filetype>
+      <usage_type>test</usage_type>
+      <checksum>CD34E831</checksum>
     </file>
   </files>
 </measure>

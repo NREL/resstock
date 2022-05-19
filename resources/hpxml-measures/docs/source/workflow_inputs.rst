@@ -370,7 +370,7 @@ Building occupancy is entered in ``/HPXML/Building/BuildingDetails/BuildingSumma
   ========================================  ========  =====  ===========  ========  ====================  ========================
   Element                                   Type      Units  Constraints  Required  Default               Notes
   ========================================  ========  =====  ===========  ========  ====================  ========================
-  ``NumberofResidents``                     integer          >= 0         See [#]_  <number of bedrooms>  Number of occupants [#]_
+  ``NumberofResidents``                     double           >= 0         See [#]_  <number of bedrooms>  Number of occupants [#]_
   ``extension/WeekdayScheduleFractions``    array                         No        See [#]_              24 comma-separated weekday fractions
   ``extension/WeekendScheduleFractions``    array                         No                              24 comma-separated weekend fractions
   ``extension/MonthlyScheduleMultipliers``  array                         No        See [#]_              12 comma-separated monthly multipliers
@@ -1614,8 +1614,6 @@ If a heating and/or cooling season is defined, additional information is entered
   ``EndDayOfMonth``    integer          1 - 31       Yes                End day
   ===================  ========  =====  ===========  ========  =======  ===========
 
-Heating and cooling seasons, when combined, must span the entire year.
-
 Thermostat setpoints are additionally entered using either simple inputs or hourly inputs.
 Alternatively, setpoints can be defined using :ref:`detailedschedules`.
 
@@ -1773,7 +1771,7 @@ To define a hydronic distribution system, additional information is entered in `
   ``HydronicDistributionType``  string            See [#]_     Yes                  Type of hydronic distribution system
   ============================  =======  =======  ===========  ========  =========  ====================================
 
-  .. [#] HydronicDistributionType choices are "radiator", "baseboard", "radiant floor", or "radiant ceiling".
+  .. [#] HydronicDistributionType choices are "radiator", "baseboard", "radiant floor", "radiant ceiling", or "water loop".
 
 Distribution System Efficiency (DSE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

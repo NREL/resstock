@@ -266,7 +266,7 @@ Annual unmet hours are listed below.
    Unmet Hours: Cooling (hr)  Number of hours where the cooling setpoint is not maintained.
    =========================  =====
 
-These numbers reflect the number of hours of the year when the conditioned space temperature is more than 0.2 deg-C (0.36 deg-F) from the setpoint during heating/cooling.
+These numbers reflect the number of hours during the heating/cooling season when the conditioned space temperature deviates more than 0.2 deg-C (0.36 deg-F) from the heating/cooling setpoint.
 
 Peak Building Electricity
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -361,6 +361,7 @@ Depending on the outputs requested, the file may include:
    Hot Water Uses                       Water use for each end use type (in gallons).
    Total Loads                          Heating, cooling, and hot water loads (in kBtu) for the building.
    Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
+   Unmet Hours                          Heating and cooling unmet hours.
    Zone Temperatures                    Average temperatures (in deg-F) for each space modeled (e.g., living space, attic, garage, basement, crawlspace, etc.).
    Airflows                             Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
    Weather                              Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
