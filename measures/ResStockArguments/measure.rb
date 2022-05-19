@@ -41,7 +41,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       # Following are arguments with the same name but different options
       next if arg.name == 'geometry_unit_cfa'
 
-      args << arg
+      # Convert optional arguments to string arguments that allow Constants.Auto for defaulting
+      if !arg.required
+        args << OpenStudio::Measure::OSArgument.makeStringArgument(arg.name, false)
+      else
+        args << arg
+      end
     end
 
     # BuildResidentialScheduleFile
@@ -354,27 +359,16 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     measures_dir = File.absolute_path(File.join(File.dirname(__FILE__), '../../resources/hpxml-measures'))
     arg_names = []
+    { 'BuildResidentialHPXML' => Constants.build_residential_hpxml_excludes,
+      'BuildResidentialScheduleFile' => Constants.build_residential_schedule_file_excludes }.each do |measure_name, measure_excludes|
+      full_measure_path = File.join(measures_dir, measure_name, 'measure.rb')
+      measure = get_measure_instance(full_measure_path)
 
-    # BuildResidentialHPXML
+      measure.arguments(model).each do |arg|
+        next if measure_excludes.include? arg.name
 
-    full_measure_path = File.join(measures_dir, 'BuildResidentialHPXML', 'measure.rb')
-    measure = get_measure_instance(full_measure_path)
-
-    measure.arguments(model).each do |arg|
-      next if Constants.build_residential_hpxml_excludes.include? arg.name
-
-      arg_names << arg.name
-    end
-
-    # BuildResidentialScheduleFile
-
-    full_measure_path = File.join(measures_dir, 'BuildResidentialScheduleFile', 'measure.rb')
-    measure = get_measure_instance(full_measure_path)
-
-    measure.arguments(model).each do |arg|
-      next if Constants.build_residential_schedule_file_excludes.include? arg.name
-
-      arg_names << arg.name
+        arg_names << arg.name
+      end
     end
 
     args_to_delete = args.keys - arg_names # these are the extra ones added in the arguments section
@@ -427,20 +421,20 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Num Occupants
-    if args['geometry_unit_num_occupants'] == Constants.Auto
+    if args['geometry_unit_num_occupants'].to_s == Constants.Auto
       args['geometry_unit_num_occupants'] = Geometry.get_occupancy_default_num(args['geometry_unit_num_bedrooms'])
     else
-      args['geometry_unit_num_occupants'] = Integer(args['geometry_unit_num_occupants'])
+      args['geometry_unit_num_occupants'] = Integer(args['geometry_unit_num_occupants'].to_s)
     end
 
     # Plug Loads
     args['misc_plug_loads_television_annual_kwh'] = 0.0 # "other" now accounts for television
     args['misc_plug_loads_television_usage_multiplier'] = 0.0 # "other" now accounts for television
-    args['misc_plug_loads_other_usage_multiplier'] *= args['misc_plug_loads_other_2_usage_multiplier']
-    args['misc_plug_loads_well_pump_usage_multiplier'] *= args['misc_plug_loads_well_pump_2_usage_multiplier']
-    args['misc_plug_loads_vehicle_usage_multiplier'] *= args['misc_plug_loads_vehicle_2_usage_multiplier']
+    args['misc_plug_loads_other_usage_multiplier'] = Float(args['misc_plug_loads_other_usage_multiplier'].to_s) * args['misc_plug_loads_other_2_usage_multiplier']
+    args['misc_plug_loads_well_pump_usage_multiplier'] = Float(args['misc_plug_loads_well_pump_usage_multiplier'].to_s) * args['misc_plug_loads_well_pump_2_usage_multiplier']
+    args['misc_plug_loads_vehicle_usage_multiplier'] = Float(args['misc_plug_loads_vehicle_usage_multiplier'].to_s) * args['misc_plug_loads_vehicle_2_usage_multiplier']
 
-    if args['misc_plug_loads_other_annual_kwh'] == Constants.Auto
+    if args['misc_plug_loads_other_annual_kwh'].to_s == Constants.Auto
       if [HPXML::ResidentialTypeSFD].include?(args['geometry_unit_type'])
         args['misc_plug_loads_other_annual_kwh'] = 1146.95 + 296.94 * args['geometry_unit_num_occupants'] + 0.3 * args['geometry_unit_cfa'] # RECS 2015
       elsif [HPXML::ResidentialTypeSFA].include?(args['geometry_unit_type'])
@@ -509,15 +503,14 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     end
 
     # Flue or Chimney
-    args['geometry_has_flue_or_chimney'] = Constants.Auto
     if (args['heating_system_has_flue_or_chimney'] == 'false') &&
        (args['heating_system_2_has_flue_or_chimney'] == 'false') &&
        (args['water_heater_has_flue_or_chimney'] == 'false')
-      args['geometry_has_flue_or_chimney'] = 'false'
+      args['geometry_has_flue_or_chimney'] = false
     elsif (args['heating_system_type'] != 'none' && args['heating_system_has_flue_or_chimney'] == 'true') ||
           (args['heating_system_2_type'] != 'none' && args['heating_system_2_has_flue_or_chimney'] == 'true') ||
           (args['water_heater_type'] != 'none' && args['water_heater_has_flue_or_chimney'] == 'true')
-      args['geometry_has_flue_or_chimney'] = 'true'
+      args['geometry_has_flue_or_chimney'] = true
     end
 
     # HVAC Faults
@@ -563,11 +556,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     args['geometry_unit_back_wall_is_adiabatic'] = false
 
     # Map corridor arguments to adiabatic walls and shading
-    n_floors = Float(args['geometry_num_floors_above_grade'])
+    n_floors = Float(args['geometry_num_floors_above_grade'].to_s)
     if [HPXML::ResidentialTypeApartment, HPXML::ResidentialTypeSFA].include? args['geometry_unit_type']
-      n_units = Float(args['geometry_building_num_units'])
+      n_units = Float(args['geometry_building_num_units'].to_s)
       horiz_location = args['geometry_unit_horizontal_location'].to_s
-      aspect_ratio = Float(args['geometry_unit_aspect_ratio'])
+      aspect_ratio = Float(args['geometry_unit_aspect_ratio'].to_s)
 
       if args['geometry_unit_type'] == HPXML::ResidentialTypeApartment
         n_units_per_floor = n_units / n_floors
@@ -706,7 +699,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Rim Joist Assembly R-Value
     rim_joist_assembly_r = 0
-    if args['geometry_rim_joist_height'].get > 0
+    if Float(args['geometry_rim_joist_height'].to_s) > 0
       drywall_assembly_r = 0.9
       uninsulated_wall_assembly_r = 3.4
 
@@ -722,7 +715,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         return false
       else # uninsulated interior
         # rim joist assembly = siding + continuous foundation insulation + uninsulated wall - drywall
-        # (uninsulated wall is nominal cavity + 1/2 in sheating + 1/2 in drywall)
+        # (uninsulated wall is nominal cavity + 1/2 in sheathing + 1/2 in drywall)
         assembly_interior_r = uninsulated_wall_assembly_r - drywall_assembly_r
       end
 
@@ -740,7 +733,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       rescue
       end
 
-      if args_to_delete.include? arg_name
+      if args_to_delete.include?(arg_name) || (arg_value == Constants.Auto)
         arg_value = '' # don't assign these to BuildResidentialHPXML or BuildResidentialScheduleFile
       end
 
