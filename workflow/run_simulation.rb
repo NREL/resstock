@@ -25,6 +25,7 @@ def run_workflow(basedir, rundir, hpxml, debug, timeseries_output_freq, timeseri
     args['hpxml_output_path'] = hpxml
     args['schedules_type'] = detailed_schedules_type
     args['output_csv_path'] = File.join(rundir, "#{detailed_schedules_type}.csv")
+    args['debug'] = debug
     update_args_hash(measures, measure_subdir, args)
   end
 

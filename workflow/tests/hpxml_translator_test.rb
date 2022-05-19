@@ -154,25 +154,36 @@ class HPXMLTest < MiniTest::Test
   end
 
   def test_run_simulation_detailed_occupancy_schedules
-    # Check that the simulation produces stochastic schedules if requested
-    sample_files_path = File.join(File.dirname(__FILE__), '..', 'sample_files')
-    tmp_hpxml_path = File.join(sample_files_path, 'tmp.xml')
-    hpxml = HPXML.new(hpxml_path: File.join(sample_files_path, 'base.xml'))
-    XMLHelper.write_file(hpxml.to_oga, tmp_hpxml_path)
+    [false, true].each do |debug|
+      # Check that the simulation produces stochastic schedules if requested
+      sample_files_path = File.join(File.dirname(__FILE__), '..', 'sample_files')
+      tmp_hpxml_path = File.join(sample_files_path, 'tmp.xml')
+      hpxml = HPXML.new(hpxml_path: File.join(sample_files_path, 'base.xml'))
+      XMLHelper.write_file(hpxml.to_oga, tmp_hpxml_path)
 
-    rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
-    xml = File.absolute_path(tmp_hpxml_path)
-    command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --add-detailed-schedule stochastic"
-    system(command, err: File::NULL)
+      rb_path = File.join(File.dirname(__FILE__), '..', 'run_simulation.rb')
+      xml = File.absolute_path(tmp_hpxml_path)
+      command = "#{OpenStudio.getOpenStudioCLI} #{rb_path} -x #{xml} --add-detailed-schedule stochastic"
+      command += ' -d' if debug
+      system(command, err: File::NULL)
 
-    # Check for output files
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
-    assert(File.exist? File.join(File.dirname(xml), 'run', 'stochastic.csv'))
+      # Check for output files
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'eplusout.msgpack'))
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'results_annual.csv'))
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'results_hpxml.csv'))
+      assert(File.exist? File.join(File.dirname(xml), 'run', 'stochastic.csv'))
 
-    # Cleanup
-    File.delete(tmp_hpxml_path) if File.exist? tmp_hpxml_path
+      # Check stochastic.csv headers
+      schedules = CSV.read(File.join(File.dirname(xml), 'run', 'stochastic.csv'), headers: true)
+      if debug
+        assert(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+      else
+        refute(schedules.headers.include?(SchedulesFile::ColumnSleeping))
+      end
+
+      # Cleanup
+      File.delete(tmp_hpxml_path) if File.exist? tmp_hpxml_path
+    end
   end
 
   def test_run_simulation_timeseries_outputs

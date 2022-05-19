@@ -1139,18 +1139,18 @@ class SchedulesFile
   ColumnCoolingSetpoint = 'cooling_setpoint'
   ColumnWaterHeaterSetpoint = 'water_heater_setpoint'
   ColumnWaterHeaterOperatingMode = 'water_heater_operating_mode'
+  ColumnSleeping = 'sleeping'
 
   def initialize(runner: nil,
                  model: nil,
-                 schedules_paths:,
-                 col_names:)
+                 schedules_paths:)
     return if schedules_paths.empty?
 
     @runner = runner
     @model = model
     @schedules_paths = schedules_paths
 
-    import(col_names: col_names)
+    import()
 
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy
@@ -1174,15 +1174,12 @@ class SchedulesFile
     return false
   end
 
-  def import(col_names:)
+  def import()
     @schedules = {}
     @schedules_paths.each do |schedules_path|
       columns = CSV.read(schedules_path).transpose
       columns.each do |col|
         col_name = col[0]
-        unless col_names.include? col_name
-          fail "Schedule column name '#{col_name}' is invalid. [context: #{schedules_path}]" unless [SchedulesFile::ColumnVacancy].include?(col_name)
-        end
 
         values = col[1..-1].reject { |v| v.nil? }
 
@@ -1501,7 +1498,8 @@ class SchedulesFile
                     ColumnPoolPump,
                     ColumnPoolHeater,
                     ColumnHotTubPump,
-                    ColumnHotTubHeater] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames).include? column_name
+                    ColumnHotTubHeater,
+                    ColumnSleeping] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames).include? column_name
 
       affected_by_vacancy[column_name] = false
     end
