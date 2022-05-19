@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: /projects/enduse/euss/repos/resstock  # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/enduse/euss/resstock_runs/test1
+output_directory: /projects/enduse/euss/resstock_runs/res_test_02_2018_20220519
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
@@ -25,6 +25,50 @@ workflow_generator:
       simulation_control_run_period_end_day_of_month: 31
       simulation_control_run_period_calendar_year: 2018
 
+    emissions: #double check syntax
+      - scenario_name: LRMER_MidCase_15
+        type: CO2e
+        elec_folder: data/cambium/LRMER_MidCase_15
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+      - scenario_name: LRMER_MidCase_30
+        type: CO2e
+        elec_folder: data/cambium/LRMER_MidCase_30
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+      - scenario_name: LRMER_LowRECost_15
+        type: CO2e
+        elec_folder: data/cambium/LRMER_LowRECost_15
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+      - scenario_name: LRMER_LowRECost_30
+        type: CO2e
+        elec_folder: data/cambium/LRMER_LowRECost_30
+        gas_value: 147.3
+        propane_value: 177.8
+        oil_value: 195.9
+        wood_value: 200.0
+
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_total_consumptions: true
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: true
+
+    reporting_measures: #do we want this?
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup: #check
+      debug: true
+
 eagle:
   account: enduse
   n_jobs: 20 #CHECK for full run, probably want hundreds
@@ -41,7 +85,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: euss
-      prefix: tests/test1 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: tests/res_test_02_2018_20220519 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: euss-results #collection of Athena tables (post-crawling), can be constant for the entire analysis
@@ -143,16 +187,6 @@ upgrades:
         option: Ducts|10% Leakage, R-8
         apply_logic:
           or: 
-            - Ducts|85% Leakage, Uninsulated
-            - Ducts|53% Leakage, Uninsulated
-            - Ducts|34% Leakage, Uninsulated
-            - Ducts|30% Leakage, Uninsulated
-            - Ducts|85% Leakage, R-4
-            - Ducts|85% Leakage, R-6
-            - Ducts|53% Leakage, R-4
-            - Ducts|53% Leakage, R-6
-            - Ducts|34% Leakage, R-4
-            - Ducts|34% Leakage, R-6
             - Ducts|30% Leakage, R-4
             - Ducts|30% Leakage, R-6
         costs:
@@ -163,9 +197,6 @@ upgrades:
         option: Ducts|10% Leakage, R-8
         apply_logic:
           or: 
-            - Ducts|85% Leakage, R-8
-            - Ducts|53% Leakage, R-8
-            - Ducts|34% Leakage, R-8
             - Ducts|30% Leakage, R-8
         costs:
           - value: 1.04 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
@@ -175,9 +206,6 @@ upgrades:
         option: Ducts|10% Leakage, R-8
         apply_logic:
           or: 
-            - Ducts|24% Leakage, Uninsulated
-            - Ducts|24% Leakage, R-4
-            - Ducts|24% Leakage, R-6
             - Ducts|20% Leakage, Uninsulated
             - Ducts|20% Leakage, R-4
             - Ducts|20% Leakage, R-6 
@@ -189,37 +217,36 @@ upgrades:
         option: Ducts|10% Leakage, R-8
         apply_logic:
           or: 
-            - Ducts|24% Leakage, R-8
             - Ducts|20% Leakage, R-8
         costs:
           - value: 0.52 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
             multiplier: Duct Unconditioned Surface Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-      - &ducts_category5 #improving leakage a little, and insulation
-        option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or: 
-            - Ducts|15% Leakage, Uninsulated
-            - Ducts|15% Leakage, R-4
-            - Ducts|15% Leakage, R-6
-            - Ducts|14% Leakage, Uninsulated
-            - Ducts|14% Leakage, R-4
-            - Ducts|14% Leakage, R-6
-            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
-        costs:
-          - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
-            multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-      - &ducts_category6 #improving leakage a little only
-        option: Ducts|10% Leakage, R-8
-        apply_logic:
-          or: 
-            - Ducts|15% Leakage, R-8
-            - Ducts|14% Leakage, R-8
-        costs:
-          - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
-            multiplier: Duct Unconditioned Surface Area (ft^2)
-        lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+      #ducts categories 5 & 6 from ABC work do not apply to any duct configurations in the current ResStock baseline
+        # - &ducts_category5 #improving leakage a little, and insulation
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, Uninsulated
+        #       - Ducts|15% Leakage, R-4
+        #       - Ducts|15% Leakage, R-6
+        #       - Ducts|14% Leakage, Uninsulated
+        #       - Ducts|14% Leakage, R-4
+        #       - Ducts|14% Leakage, R-6
+        #   costs:
+        #     - value: 2.06 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
+        # - &ducts_category6 #improving leakage a little only
+        #   option: Ducts|10% Leakage, R-8
+        #   apply_logic:
+        #     or: 
+        #       - Ducts|15% Leakage, R-8
+        #       - Ducts|14% Leakage, R-8
+        #   costs:
+        #     - value: 0.26 # Mid-value from REMDB, inflated from 2010 to 2022 dollars using 1.289 factor
+        #       multiplier: Duct Unconditioned Surface Area (ft^2)
+        #   lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       - &ducts_category7 #improving insulation only
         option: Ducts|10% Leakage, R-8
         apply_logic:
@@ -294,7 +321,7 @@ upgrades:
             multiplier: Rim Joist Area, Above-Grade, Exterior (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
       #seal crawlspace vents
-      - &seal_vented_crawlspaces #Is sealing vented crawlspaces controversial/does it cause moisture issues? Are there complimentary upgrades that would be needed to deal with the moisture issue?
+      - &seal_vented_crawlspaces
         option: Geometry Foundation Type|Unvented Crawlspace
         apply_logic:
           and:
@@ -310,9 +337,14 @@ upgrades:
       - &roof_insulation_to_R30
         option: Insulation Roof|Finished, R-30
         apply_logic: 
-          - or:
-            - Geometry Attic Type|Finished Attic or Cathedral Ceiling
-            - Geometry Building Level MF|Top
+          - and:
+            - or:
+              - Geometry Attic Type|Finished Attic or Cathedral Ceiling
+              - Geometry Building Level MF|Top
+            - or:
+              - Insulation Roof|Finished, Uninsulated
+              - Insulation Roof|Finished, R-7
+              - Insulation Roof|Finished, R-13
         costs:
           - value: 5.54 # $/ft2 (4.3* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=13&ctId=395&scId=6283&acId=6822
             multiplier: Roof Area (ft^2)
