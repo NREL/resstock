@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: ../ # Relative to this file or absolute
 project_directory: project_seto # Relative to buildstock_directory
-output_directory: /projects/enduse/seto_resilience/testing/Pamlico_SFD_2018_v1
+output_directory: /projects/enduse/seto_resilience/testing/New_Hanover_SFD_2018_v1
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
@@ -51,6 +51,14 @@ workflow_generator:
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resstock-resilience
+      prefix: seto/florence/New_Hanover_SFD
+
 
 eagle:
   n_jobs: 10
