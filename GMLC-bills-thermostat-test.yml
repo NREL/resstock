@@ -1,0 +1,230 @@
+schema_version: '0.3'
+buildstock_directory: /home/epresent/resstock # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /projects/enduse/gmlc-bills/thermostat-test1-aps
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2019_FIPS.zip
+
+sampler: 
+  type: residential_quota_downselect
+  args:
+    n_datapoints: 200
+    logic:
+      - Vacancy Status|Occupied
+      - Geometry Building Type RECS|Single-Family Detached
+      - or:
+        - Heating Fuel|Electricity
+        - Heating Fuel|Natural Gas
+        - Heating Fuel|Propane
+        - Heating Fuel|Fuel Oil
+      - or:
+        #APS
+        - County|AZ, Gila County
+        - County|AZ, La Paz County
+        - County|AZ, Navajo County
+        - County|AZ, Coconino County
+        - County|AZ, Yavapai County
+        - County|AZ, Maricopa County
+        - County|AZ, Yuma County
+        # #Ameren
+        # - County|IL, Christian County
+        # - County|IL, Shelby County
+        # - County|IL, Crawford County
+        # - County|IL, Clark County
+        # - County|IL, Jasper County
+        # - County|IL, Iroquois County
+        # - County|IL, Effingham County
+        # - County|IL, Richland County
+        # - County|IL, Cumberland County
+        # - County|IL, Greene County
+        # - County|IL, Montgomery County
+        # - County|IL, Lawrence County
+        # - County|IL, Fayette County
+        # - County|IL, Macoupin County
+        # - County|IL, Kankakee County
+        # - County|IL, Scott County
+        # - County|IL, Putnam County
+        # - County|IL, Coles County
+        # - County|IL, Hardin County
+        # - County|IL, Vermilion County
+        # - County|IL, Knox County
+        # - County|IL, Edwards County
+        # - County|IL, LaSalle County
+        # - County|IL, Schuyler County
+        # - County|IL, Livingston County
+        # - County|IL, Cass County
+        # - County|IL, Randolph County
+        # - County|IL, Clay County
+        # - County|IL, White County
+        # - County|IL, Ford County
+        # - County|IL, Bond County
+        # - County|IL, Marshall County
+        # - County|IL, McDonough County
+        # - County|IL, Gallatin County
+        # - County|IL, Morgan County
+        # - County|IL, Stark County
+        # - County|IL, Wabash County
+        # - County|IL, Calhoun County
+        # - County|IL, Mason County
+        # - County|IL, Bureau County
+        # - County|IL, Pike County
+        # - County|IL, Washington County
+        # - County|IL, Pope County
+        # - County|IL, Saline County
+        # - County|IL, Logan County
+        # - County|IL, Warren County
+        # - County|IL, Edgar County
+        # - County|IL, Fulton County
+        # - County|IL, Wayne County
+        # - County|IL, Brown County
+        # - County|IL, Hamilton County
+        # - County|IL, Pulaski County
+        # - County|IL, Jersey County
+        # - County|IL, Henry County
+        # - County|IL, Woodford County
+        # - County|IL, Union County
+        # - County|IL, Douglas County
+        # - County|IL, De Witt County
+        # - County|IL, Clinton County
+        # - County|IL, Johnson County
+        # - County|IL, Perry County
+        # - County|IL, Marion County
+        # - County|IL, Mercer County
+        # - County|IL, Moultrie County
+        # - County|IL, Madison County
+        # - County|IL, Alexander County
+        # - County|IL, Franklin County
+        # - County|IL, Monroe County
+        # - County|IL, Hancock County
+        # - County|IL, Menard County
+        # - County|IL, Piatt County
+        # - County|IL, Henderson County
+        # - County|IL, Massac County
+        # - County|IL, Tazewell County
+        # - County|IL, Champaign County
+        # - County|IL, St. Clair County
+        # - County|IL, Adams County
+        # - County|IL, Sangamon County
+        # - County|IL, Peoria County
+        # - County|IL, Macon County
+        # - County|IL, Williamson County
+        # - County|IL, McLean County
+        # - County|IL, Jefferson County
+        # - County|IL, Jackson County
+        # #GMP
+        # - County|VT, Bennington County
+        # - County|VT, Caledonia County
+        # - County|VT, Addison County
+        # - County|VT, Grand Isle County
+        # - County|VT, Windham County
+        # - County|VT, Orange County
+        # - County|VT, Windsor County
+        # - County|VT, Rutland County
+        # - County|VT, Washington County
+        # - County|VT, Chittenden County
+        # #OGE
+        # - County|OK, Carter County
+        # - County|OK, Marshall County
+        # - County|OK, Johnston County
+        # - County|OK, Murray County
+        # - County|OK, Love County
+        # - County|OK, Bryan County
+        # - County|OK, Woods County
+        # - County|OK, Pontotoc County
+        # - County|OK, Dewey County
+        # - County|OK, Garvin County
+        # - County|OK, Seminole County
+        # - County|OK, Muskogee County
+        # - County|OK, Blaine County
+        # - County|OK, Okmulgee County
+        # - County|OK, Coal County
+        # - County|OK, Lincoln County
+        # - County|OK, McIntosh County
+        # - County|OK, Alfalfa County
+        # - County|OK, Kingfisher County
+        # - County|OK, Major County
+        # - County|OK, Creek County
+        # - County|OK, Pottawatomie County
+        # - County|OK, Le Flore County
+        # - County|OK, Logan County
+        # - County|OK, Woodward County
+        # - County|OK, Sequoyah County
+        # - County|OK, McClain County
+        # - County|OK, Wagoner County
+        # - County|OK, Grant County
+        # - County|OK, Cleveland County
+        # - County|OK, Oklahoma County
+        # - County|OK, Canadian County
+        # - County|OK, Tulsa County
+        # - County|OK, Payne County
+        # - County|OK, Garfield County
+        # - County|OK, Ellis County
+    resample: true
+
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2018
+
+    emissions:
+      - scenario_name: LRMER_LowRECost_15
+        type: CO2
+        elec_folder: data/cambium/LRMER_LowRECost_15
+        gas_value: 117.6
+        propane_value: 136.6
+        oil_value: 161.0
+        wood_value: 200.0
+
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: true
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+
+upgrades:
+  - upgrade_name: Thermostat setbacks for all
+    options: 
+      - option: Cooling Setpoint Has Offset|Yes
+        apply_logic: Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Has Offset|Yes
+        apply_logic: Heating Setpoint Has Offset|No
+
+
+eagle:
+  n_jobs: 50
+  minutes_per_sim: 30
+  account: enduse
+  postprocessing:
+    time: 480
+    n_workers: 32
+  sampling:
+    time: 60
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resstock-gmlc-bills-lbnl #change this to an NREL bucket if needed for testing
+      prefix: thermostat-test1-aps #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: resstock-gmlc #collection of Athena tables (post-crawling), can be constant for the entire analysis
+      max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
