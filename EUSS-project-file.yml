@@ -398,7 +398,7 @@ upgrades:
             - *ductless_mineff_HP_all_fuel_apply_logic
 
   - upgrade_name: High-efficiency heat pumps with electric backup
-    options:
+    options: &higheff_HP_all_fuel
       #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
       - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
         apply_logic: &ducted_higheff_HP_all_fuel_apply_logic
@@ -991,49 +991,51 @@ upgrades:
     options:
       #Minimum-efficiency heat pump (from package 3) for homes with non-electric heating
       #ASHP
-      - &min-efficiency_ASHP_for_nonelec_part1
-        option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF, EUSS
-        apply_logic:
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF # same as base option
+        apply_logic: &ducted_mineff_HP_fuel_switch_apply_logic
+          - HVAC Has Ducts|Yes
           - not: Heating Fuel|Electricity
-          - or:
-            - and:
-              - HVAC Has Ducts|Yes
-              - HVAC Has Shared System|None
-            - and:
-              - HVAC Has Shared System|Heating Only
-              - HVAC Cooling Type|Central AC
-      - &min-efficiency_ASHP_for_nonelec_part2
-        option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - not: Heating Fuel|Electricity
-          - or:
-            - and:
-              - HVAC Has Ducts|Yes
-              - HVAC Has Shared System|None
-            - and:
-              - HVAC Has Shared System|Heating Only
-              - HVAC Cooling Type|Central AC  
+          - or: &not_ASHP_greater_than_SEER_15_9_HSPF
+            - not: HVAC Cooling Efficiency|Heat Pump
+            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
+            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
+        costs: &costs_ashp_ducted_SEER_15_9_HSPF
+        # Source: Custom regression by Brennan Less. Ducted heat pump project costs were regressed on nameplate tons and HSPF,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ducted ASHP regression n=317. Implicitly includes electrical upgrades and electric backup.
+          - value: 3907.01 # for HSPF 9
+            multiplier: Fixed (1)
+          - value: 155.17
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_ashp_ducted_SEER_15_9_HSPF 15
       # MSHP
-      - &min_efficiency_MSHP_for_nonelec_part1
-        option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, EUSS
-        apply_logic:
-          - not: Heating Fuel|Electricity
-          - not: HVAC Cooling Type|Central AC 
-          - or: 
+      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load # Changed to Max Load
+        apply_logic: &ductless_mineff_HP_fuel_switch_apply_logic
+          - and:
             - HVAC Has Ducts|No
-            - HVAC Has Shared System|Heating Only
-            - HVAC Has Shared System|Cooling Only
-            - HVAC Has Shared System|Heating and Cooling
-      - &min_efficiciency_MSHP_for_nonelec_part2
-        option: HVAC Cooling Efficiency|None
+            - not: Heating Fuel|Electricity
+            - or: &not_MSHP_greater_than_SEER_15_9_HSPF
+              - not: HVAC Cooling Efficiency|Heat Pump
+              - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
+        costs: &costs_mshp_ductless_SEER_15_9_HSPF
+        # Source: Custom regression by Brennan Less. Ductless heat pump project costs were regressed on nameplate tons,
+        # from data described in in Less et al. https://doi.org/10.20357/B7FP4D. 2019$ inflated to 2022$ using 1.12 factor.
+        # Ductless MSHP n=173, HSPF median 11, range 9.3–14.2. Implicitly includes multiple zones and electrical upgrades.
+        # Regression results in costs that are 15–30% higher than costs from The Heat Pump Store as documented in https://redwoodenergy.net/wp-content/uploads/2021/02/Pocket-Guide-to-All-Electric-Retrofits-of-Single-Family-Homes.pdf 
+        # LBNL data were not sufficient to include a relationship between SEER or HSPF and cost, so cost deltas for higher 
+        # and lower HSPF were added using the relationship between HSPF and cost for ductless MSHPs in REMDB (https://remdb.nrel.gov/).
+          - value: 2472.60
+            multiplier: Fixed (1)
+          - value: 320.42
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: &lifetime_mshp_ductless_SEER_15_9_HSPF 15
+      #global
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
         apply_logic:
-          - not: Heating Fuel|Electricity
-          - not: HVAC Cooling Type|Central AC 
-          - or: 
-            - HVAC Has Ducts|No
-            - HVAC Has Shared System|Heating Only
-            - HVAC Has Shared System|Cooling Only
-            - HVAC Has Shared System|Heating and Cooling
+          or:
+            - *ducted_mineff_HP_fuel_switch_apply_logic
+            - *ductless_mineff_HP_fuel_switch_apply_logic
       #HPWH for those that currently have non-electric water heating
       - &HPWH_50gal_fuelswitch
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
@@ -1146,12 +1148,7 @@ upgrades:
       #No enclosure measures
     options:
       #High efficiency heat pump (from package 4) for all homes with non-electric heating or less-efficient electric heating
-      - *high-efficiency_ASHP_part1 
-      - *high-efficiency_ASHP_part2
-      - *high-efficiency_ASHP_part3
-      # MSHP
-      - *high-efficiency_MSHP_part1
-      - *high-efficiency_MSHP_part2
+      - *higheff_HP_all_fuel
       #HPWH for all homes with non-electric water heating or less-efficient electric water heating
       - *HPWH_50gal_all
       - *HPWH_66gal_all
@@ -1240,11 +1237,7 @@ upgrades:
       - *ducts_category7
       - *Drill-and-fill
       #package 8
-      - *high-efficiency_ASHP_part1
-      - *high-efficiency_ASHP_part2
-      - *high-efficiency_ASHP_part3
-      - *high-efficiency_MSHP_part1
-      - *high-efficiency_MSHP_part2
+      - *higheff_HP_all_fuel
       - *HPWH_50gal_all
       - *HPWH_66gal_all
       - *HPWH_80gal_all
@@ -1273,11 +1266,7 @@ upgrades:
       - *seal_vented_crawlspaces 
       - *roof_insulation_to_R30
       #package 8
-      - *high-efficiency_ASHP_part1
-      - *high-efficiency_ASHP_part2
-      - *high-efficiency_ASHP_part3
-      - *high-efficiency_MSHP_part1
-      - *high-efficiency_MSHP_part2
+      - *higheff_HP_all_fuel
       - *HPWH_50gal_all
       - *HPWH_66gal_all
       - *HPWH_80gal_all
