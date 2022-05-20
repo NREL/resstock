@@ -355,13 +355,7 @@ upgrades:
       #ASHP
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF # same as base option
         apply_logic: &ducted_mineff_HP_all_fuel_apply_logic
-          - or: 
-            - and: &ducted_nonshared_HVAC
-              - HVAC Has Ducts|Yes
-              - HVAC Has Shared System|None
-            - and: &shared_heating_individual_centralAC
-              - HVAC Has Shared System|Heating Only
-              - HVAC Cooling Type|Central AC
+          - HVAC Has Ducts|Yes
           - or: &not_ASHP_greater_than_SEER_15_9_HSPF
             - not: HVAC Cooling Efficiency|Heat Pump
             - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
@@ -380,12 +374,7 @@ upgrades:
       - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load # Changed to Max Load
         apply_logic: &ductless_mineff_HP_all_fuel_apply_logic
           - and:
-            - not: HVAC Cooling Type|Central AC 
-            - or: &unducted_or_shared_HVAC
-              - HVAC Has Ducts|No
-              - HVAC Has Shared System|Heating Only
-              - HVAC Has Shared System|Cooling Only
-              - HVAC Has Shared System|Heating and Cooling
+            - HVAC Has Ducts|No
             - or: &not_MSHP_greater_than_SEER_15_9_HSPF
               - not: HVAC Cooling Efficiency|Heat Pump
               - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
@@ -413,9 +402,7 @@ upgrades:
       #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
       - option: HVAC Heating Efficiency|MSHP, SEER 24, 13 HSPF # Base version, might need a "ducted" version once that change to develop is merged, behavior will not be different
         apply_logic: &ducted_higheff_HP_all_fuel_apply_logic
-          - or: 
-            - and: *ducted_nonshared_HVAC
-            - and: *shared_heating_individual_centralAC
+          - HVAC Has Ducts|Yes
           - or: *not_ASHP_greater_than_SEER_15_9_HSPF #note there are currently no baseline options above SEER 15 9 HSPF so this option does not change for high efficiency ducted heat pumps
         costs: &costs_mshp_ducted_SEER_24_13_HSPF
         # Source: Using the ASHP regression because ducted MSHP costs are more similar to ASHP costs than ductless MSHP costs. 
@@ -433,8 +420,7 @@ upgrades:
       # MSHP
       - option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, Max Load # changed to Max Load
         apply_logic: &nonducted_higheff_HP_all_fuel_apply_logic
-          - not: HVAC Cooling Type|Central AC 
-          - or: *unducted_or_shared_HVAC
+          - HVAC Has Ducts|No
           - or: &not_MSHP_greater_than_SEER_29_14_HSPF
             - not: HVAC Cooling Efficiency|Heat Pump
             - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
@@ -451,2469 +437,477 @@ upgrades:
           - value: 367.22
             multiplier: Size, Heating System Primary (kBtu/h)
         lifetime: &lifetime_mshp_ductless_SEER_29_14_HSPF 15
+      #global
       - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
         apply_logic:
           or:
             - *ducted_higheff_HP_all_fuel_apply_logic
             - *nonducted_higheff_HP_all_fuel_apply_logic
 
-  - upgrade_name: Heat pump with other supplemental heating
-    #homes keep their exising heating system as backup, heat pump is sized for cooling
-    #assumes a control strategy where the electric heat pump is the primary heating source and the pre-existing heating system is only used as auxiliary below a pre-defined switchover temperature (41F)
-  # - upgrade_name: Dual-System Electric Baseboard ASHP
+  - upgrade_name: Heat pump, min efficiency, with existing heating as backup
     options:
-      - option: HVAC Heating Efficiency|Dual-System ASHP, SEER 15, 9.0 HSPF, Electric Baseboard, 100% Efficiency
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-      - option: HVAC Secondary Heating Type And Fuel|Electricity Baseboard
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-  #  - upgrade_name: Dual-System Electric Boiler ASHP
-      - option: HVAC Heating Efficiency|Dual-System ASHP, SEER 15, 9.0 HSPF, Electric Boiler, 100% Efficiency
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-  # - upgrade_name: Dual-System Electric Wall Furnace ASHP
-      - option: HVAC Heating Efficiency|Dual-System ASHP, SEER 15, 9.0 HSPF, Electric Wall Furnace, 100% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-      - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Wall Furnace
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
+    #all electric from the start
   # - upgrade_name: Dual-System Electric Baseboard MSHP
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Electric Baseboard, 100% Efficiency
-        apply_logic:
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
+        apply_logic: &dual-system_elec_baseboard_apply_logic
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Electric Baseboard, 100% Efficiency
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
+        apply_logic: *dual-system_elec_baseboard_apply_logic
       - option: HVAC Secondary Heating Type And Fuel|Electricity Baseboard
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Baseboard, 100% Efficiency
+        apply_logic: *dual-system_elec_baseboard_apply_logic
   # - upgrade_name: Dual-System Electric Boiler MSHP
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Electric Boiler, 100% Efficiency
-        apply_logic:
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
+        apply_logic: &dual-system_elec_boiler_apply_logic
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Electric Boiler, 100% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
+        apply_logic: *dual-system_elec_boiler_apply_logic
       - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Boiler, 100% AFUE
+        apply_logic: *dual-system_elec_boiler_apply_logic
   # - upgrade_name: Dual-System Electric Wall Furnace MSHP
-      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Electric Wall Furnace, 100% AFUE
-        apply_logic:
+      - option: HVAC Heating Efficiency|Dual-System MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
+        apply_logic: &dual-system_elec_wall_furnace_apply_logic
           - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
       - option: HVAC Secondary Heating Efficiency|Electric Wall Furnace, 100% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
       - option: HVAC Secondary Heating Type And Fuel|Electricity Electric Wall Furnace
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Wall Furnace, 100% AFUE
-  # - upgrade_name: Existing Electric Furnace MSHP
+        apply_logic: *dual-system_elec_wall_furnace_apply_logic
+    # ducted existing electric backup
+      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
+        apply_logic: &dual-system_ducted_elec_apply_logic
+          - HVAC Has Ducts|Yes
+          - HVAC Has Shared System|None
+          - or:
+            - HVAC Heating Type And Fuel|Electricity ASHP
+            - HVAC Heating Type And Fuel|Electricity Electric Boiler
+            - HVAC Heating Type And Fuel|Electricity Electric Furnace
+            - HVAC Heating Type And Fuel|Electricity Electric Wall Furnace
+            - HVAC Heating Type And Fuel|Electricity Other
+            - HVAC Heating Type And Fuel|Electricity Baseboard # Apply to any system with existing non-shared electric heat, including furnaces, baseboards, boilers, heat pumps
+          - or: *not_ASHP_greater_than_SEER_15_9_HSPF
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+    # Existing MSHP upgraded
       - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load
-        apply_logic:
+        apply_logic: &MSHP_upgrade_apply_logic
           - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
-  # - upgrade_name: Existing Electric Furnace ASHP
-      - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
-        apply_logic:
+          - HVAC Heating Type And Fuel|Electricity MSHP
+          - or: *not_MSHP_greater_than_SEER_15_9_HSPF
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+# Dual-Fuel (use existing separate backup)
+  # Set heat pump option
+  # ASHP (has boiler and existing central AC with ducts)
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Separate Backup
+        apply_logic: &dual-fuel_ASHP_no_ducted_furnace_apply_logic
           - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Electric Furnace, 100% AFUE
-#### fossil fuel ####
-#### boiler ####
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 72% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 76% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 80% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 82% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 85% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 90% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 95% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 96% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 72% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 76% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 80% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 82% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 85% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 90% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 95% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Boiler 96% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Natural Gas
+          - or:
+            - Heating Fuel|Natural Gas
+            - Heating Fuel|Propane
+            - Heating Fuel|Fuel Oil
+          - not:
+            - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+            - HVAC Heating Type And Fuel|Propane Fuel Furnace
+            - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+            - HVAC Heating Efficiency|Shared Heating
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
 
-  # - upgrade_name: Dual-Fuel Propane Boiler 72% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 76% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 80% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 82% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 85% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 90% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 95% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 96% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 72% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 76% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 80% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 82% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 85% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 90% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 95% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Boiler 96% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Propane
-
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 72% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 76% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 80% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 82% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 85% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 90% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 95% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 96% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 72% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 76% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 80% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 82% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 85% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 90% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 95% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Boiler 96% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE, OAT Reset
-          - Heating Fuel|Fuel Oil
+  # MSHP (no ducts)
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
+        apply_logic: &dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+          - HVAC Has Ducts|No
+          - or:
+            - Heating Fuel|Natural Gas
+            - Heating Fuel|Propane
+            - Heating Fuel|Fuel Oil
+          - not:
+            - HVAC Heating Efficiency|Shared Heating              
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
  
-#### wall/floor furnace ####
-  # - upgrade_name: Dual-Fuel Propane Wall/Floor Furnace 60% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 60% AFUE
+  # Boilers as secondary systems
+  # Set secondary boiler fuel type
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Boiler
         apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Boiler
         apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+          - HVAC Heating Type And Fuel|Propane Fuel Boiler
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Boiler
         apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Boiler
+  # Set secondary fuel boiler efficiency levels
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 72% AFUE
         apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Wall/Floor Furnace 68% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 68% AFUE
+          - HVAC Heating Efficiency|Fuel Boiler, 72% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 76% AFUE
         apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
+          - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 80% AFUE
         apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
+          - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 82% AFUE
         apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
+          - HVAC Heating Efficiency|Fuel Boiler, 82% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 85% AFUE
         apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Propane
+          - HVAC Heating Efficiency|Fuel Boiler, 85% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 90% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Boiler, 95% AFUE, OAT Reset
+      - option: HVAC Secondary Heating Efficiency|Fuel Boiler, 96% AFUE
+        apply_logic:
+          - HVAC Heating Efficiency|Fuel Boiler, 96% AFUE
 
-  # - upgrade_name: Dual-Fuel Fuel Oil Wall/Floor Furnace 60% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Wall/Floor Furnace 68% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Fuel Oil
-
-  # - upgrade_name: Dual-Fuel Natural Gas Wall/Floor Furnace 60% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Natural Gas
+  # Wall/Floor Furnace as secondary systems
+  # Set secondary Wall/Floor Furnace fuel type
       - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
         apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Wall/Floor Furnace 68% AFUE ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Natural Gas
-
-  # - upgrade_name: Dual-Fuel Propane Wall/Floor Furnace 60% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Propane
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
       - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
         apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Propane Wall/Floor Furnace 68% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Propane
-
-  # - upgrade_name: Dual-Fuel Fuel Oil Wall/Floor Furnace 60% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Fuel Oil
+          - HVAC Heating Type And Fuel|Propane Fuel Wall/Floor Furnace
       - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
         apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Fuel Oil Wall/Floor Furnace 68% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Fuel Oil
-
-  # - upgrade_name: Dual-Fuel Natural Gas Wall/Floor Furnace 60% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 60% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
+          - HVAC Heating Type And Fuel|Fuel Oil Fuel Wall/Floor Furnace
+  # Set secondary fuel Wall/Floor Furnace efficiency levels
       - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
         apply_logic:
-          - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 60% AFUE
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Natural Gas Wall/Floor Furnace 68% AFUE MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Fuel Wall/Floor Furnace, 68% AFUE
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
       - option: HVAC Secondary Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
         apply_logic:
-          - HVAC Has Ducts|No
           - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Fuel Wall/Floor Furnace
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Fuel Wall/Floor Furnace, 68% AFUE
-          - Heating Fuel|Natural Gas
 
-#### furnace ####
+#### ducted furnace ####
   # - upgrade_name: Dual-Fuel Natural Gas Furnace 60% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 60% AFUE NG 
-        apply_logic:
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 60% AFUE NG, 41F switchover
+        apply_logic: &dual-fuel_60pctAFUE_NG_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-  # - upgrade_name: Dual-Fuel Natural Gas Furnace 68% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 68% AFUE NG 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 68% AFUE NG, 41F switchover 
+        apply_logic: &dual-fuel_68pctAFUE_NG_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-  # - upgrade_name: Dual-Fuel Natural Gas Furnace 72% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 72% AFUE NG 
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 72% AFUE NG, 41F switchover 
+        apply_logic: &dual-fuel_72pctAFUE_NG_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-  # - upgrade_name: Dual-Fuel Natural Gas Furnace 76% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 76% AFUE NG 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 76% AFUE NG, 41F switchover 
+        apply_logic: &dual-fuel_76pctAFUE_NG_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-  # - upgrade_name: Dual-Fuel Natural Gas Furnace 80% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 80% AFUE NG 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 80% AFUE NG, 41F switchover 
+        apply_logic: &dual-fuel_80pctAFUE_NG_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-  # - upgrade_name: Dual-Fuel Natural Gas Furnace 85% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 85% AFUE NG 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 85% AFUE NG, 41F switchover 
+        apply_logic: &dual-fuel_85pctAFUE_NG_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-  # - upgrade_name: Dual-Fuel Natural Gas Furnace 90% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 90% AFUE NG 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 90% AFUE NG, 41F switchover 
+        apply_logic: &dual-fuel_90pctAFUE_NG_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-  # - upgrade_name: Dual-Fuel Natural Gas Furnace 92.5% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 92.5% AFUE NG 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 92.5% AFUE NG, 41F switchover 
+        apply_logic: &dual-fuel_92.5pctAFUE_NG_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-  # - upgrade_name: Dual-Fuel Natural Gas Furnace 96% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 96% AFUE NG 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 96% AFUE NG, 41F switchover 
+        apply_logic: &dual-fuel_96pctAFUE_NG_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
           - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
-          - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-
-  # - upgrade_name: Dual-Fuel Propane Furnace 60% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 60% AFUE Propane 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 60% AFUE Propane, 41F switchover 
+        apply_logic: &dual-fuel_60pctAFUE_LP_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-  # - upgrade_name: Dual-Fuel Propane Furnace 68% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 68% AFUE Propane 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 68% AFUE Propane, 41F switchover 
+        apply_logic: &dual-fuel_68pctAFUE_LP_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-  # - upgrade_name: Dual-Fuel Propane Furnace 72% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 72% AFUE Propane
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 72% AFUE Propane, 41F switchover
+        apply_logic: &dual-fuel_72pctAFUE_LP_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-  # - upgrade_name: Dual-Fuel Propane Furnace 76% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 76% AFUE Propane 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 76% AFUE Propane, 41F switchover 
+        apply_logic: &dual-fuel_76pctAFUE_LP_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-  # - upgrade_name: Dual-Fuel Propane Furnace 80% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 80% AFUE Propane 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 80% AFUE Propane, 41F switchover 
+        apply_logic: &dual-fuel_80pctAFUE_LP_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-  # - upgrade_name: Dual-Fuel Propane Furnace 85% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 85% AFUE Propane 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 85% AFUE Propane, 41F switchover 
+        apply_logic: &dual-fuel_85pctAFUE_LP_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-  # - upgrade_name: Dual-Fuel Propane Furnace 90% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 90% AFUE Propane 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 90% AFUE Propane, 41F switchover 
+        apply_logic: &dual-fuel_90pctAFUE_LP_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-  # - upgrade_name: Dual-Fuel Propane Furnace 92.5% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 92.5% AFUE Propane 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 92.5% AFUE Propane, 41F switchover 
+        apply_logic: &dual-fuel_92.5pctAFUE_LP_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-  # - upgrade_name: Dual-Fuel Propane Furnace 96% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 96% AFUE Propane 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 96% AFUE Propane, 41F switchover 
+        apply_logic: &dual-fuel_96pctAFUE_LP_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
           - HVAC Heating Type And Fuel|Propane Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
-          - HVAC Heating Type And Fuel|Propane Fuel Furnace
-
-
-  # - upgrade_name: Dual-Fuel Fuel Oil Furnace 60% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 60% AFUE Fuel Oil 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 60% AFUE Fuel Oil, 41F switchover 
+        apply_logic: &dual-fuel_60pctAFUE_FO_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-  # - upgrade_name: Dual-Fuel Fuel Oil Furnace 68% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 68% AFUE Fuel Oil 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 68% AFUE Fuel Oil, 41F switchover 
+        apply_logic: &dual-fuel_68pctAFUE_FO_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 68% AFUE
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-  # - upgrade_name: Dual-Fuel Fuel Oil Furnace 72% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 72% AFUE Fuel Oil 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 72% AFUE Fuel Oil, 41F switchover 
+        apply_logic: &dual-fuel_72pctAFUE_FO_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 72% AFUE
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-  # - upgrade_name: Dual-Fuel Fuel Oil Furnace 76% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 76% AFUE Fuel Oil 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 76% AFUE Fuel Oil, 41F switchover 
+        apply_logic: &dual-fuel_76pctAFUE_FO_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-  # - upgrade_name: Dual-Fuel Fuel Oil Furnace 80% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 80% AFUE Fuel Oil 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 80% AFUE Fuel Oil, 41F switchover 
+        apply_logic: &dual-fuel_80pctAFUE_FO_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-  # - upgrade_name: Dual-Fuel Fuel Oil Furnace 85% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 85% AFUE Fuel Oil 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 85% AFUE Fuel Oil, 41F switchover 
+        apply_logic: &dual-fuel_85pctAFUE_FO_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 85% AFUE
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-  # - upgrade_name: Dual-Fuel Fuel Oil Furnace 90% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 90% AFUE Fuel Oil 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 90% AFUE Fuel Oil, 41F switchover 
+        apply_logic: &dual-fuel_90pctAFUE_FO_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 90% AFUE
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-  # - upgrade_name: Dual-Fuel Fuel Oil Furnace 92.5% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 92.5% AFUE Fuel Oil 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 92.5% AFUE Fuel Oil, 41F switchover 
+        apply_logic: &dual-fuel_92.5pctAFUE_FO_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-  # - upgrade_name: Dual-Fuel Fuel Oil Furnace 96% AFUE
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, 96% AFUE Fuel Oil 
-        apply_logic:
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 96% AFUE Fuel Oil, 41F switchover 
+        apply_logic: &dual-fuel_96pctAFUE_FO_furnace_apply_logic
           - HVAC Has Ducts|Yes
           - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
           - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace        
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Fuel Furnace, 96% AFUE
-          - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-
-#### shared heating with no ducts ####
-  # - upgrade_name: Dual-Fuel Natural Gas Shared Heating MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-  # - upgrade_name: Dual-Fuel Propane Shared Heating MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-  # - upgrade_name: Dual-Fuel Fuel Oil Shared Heating MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-  # - upgrade_name: Dual-Fuel Electricity Shared Heating MSHP
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Electricity
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-      - option: HVAC Secondary Heating Type And Fuel|Electricity Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|No
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-
-#### shared heating with Central AC ####
-  # - upgrade_name: Dual-Fuel Natural Gas Shared Heating ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-  # - upgrade_name: Dual-Fuel Propane Shared Heating ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-  # - upgrade_name: Dual-Fuel Fuel Oil Shared Heating ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-  # - upgrade_name: Dual-Fuel Electricity Shared Heating ASHP
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Electricity
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-      - option: HVAC Secondary Heating Type And Fuel|Electricity Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-          - HVAC Has Shared System|Heating Only
-          - HVAC Cooling Type|Central AC
-
-#### shared heating with ducts and not central AC ####
-  # - upgrade_name: Dual-Fuel Natural Gas Shared Heating MSHP w/ no Central AC
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-          - not: HVAC Cooling Type|Central AC
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-          - not: HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-          - not: HVAC Cooling Type|Central AC
-      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-          - not: HVAC Cooling Type|Central AC
-  # - upgrade_name: Dual-Fuel Propane Shared Heating MSHP w/ no Central AC
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-          - not: HVAC Cooling Type|Central AC
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-          - not: HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-          - not: HVAC Cooling Type|Central AC
-      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Propane
-          - not: HVAC Cooling Type|Central AC
-  # - upgrade_name: Dual-Fuel Fuel Oil Shared Heating MSHP w/ no Central AC
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-          - not: HVAC Cooling Type|Central AC
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-          - not: HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-          - not: HVAC Cooling Type|Central AC
-      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Fuel Oil
-          - not: HVAC Cooling Type|Central AC
-  # - upgrade_name: Dual-Fuel Electricity Shared Heating MSHP w/ no Central AC
-      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-          - not: HVAC Cooling Type|Central AC
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Electricity
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-          - not: HVAC Cooling Type|Central AC
-      - option: HVAC Cooling Efficiency|None
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-          - not: HVAC Cooling Type|Central AC
-      - option: HVAC Secondary Heating Type And Fuel|Electricity Shared Heating
-        apply_logic:
-          - HVAC Has Ducts|Yes
-          - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Electricity
-          - not: HVAC Cooling Type|Central AC
-
-#### Heat Pumps ####
-#### ASHP ####
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      
+#### shared heating ####
+  # ASHP separate backup for fossil fuels, full replacement for electric
       - option: HVAC Heating Efficiency|ASHP, SEER 15, 9.0 HSPF
+        apply_logic: &dual-system_electric_ducted_shared_apply_logic
+          - HVAC Has Ducts|Yes
+          - Heating Fuel|Electricity
+          - HVAC Heating Efficiency|Shared Heating                      
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 78% Propane Boiler
+        apply_logic: &dual-fuel_propane_ducted_shared_apply_logic
+          #modeling as integrated backup but reflecting two-system staging
+          - HVAC Has Ducts|Yes
+          - Heating Fuel|Propane
+          - HVAC Heating Efficiency|Shared Heating                      
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 78% Natural Gas Boiler
+        apply_logic: &dual-fuel_ng_ducted_shared_apply_logic
+          #modeling as integrated backup but reflecting two-system staging
+          - HVAC Has Ducts|Yes
+          - Heating Fuel|Natural Gas
+          - HVAC Heating Efficiency|Shared Heating                      
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 78% Fuel Oil Boiler
+        apply_logic: &dual-fuel_fo_ducted_shared_apply_logic
+          #modeling as integrated backup but reflecting two-system staging
+          - HVAC Has Ducts|Yes
+          - Heating Fuel|Fuel Oil
+          - HVAC Heating Efficiency|Shared Heating                      
+        costs: *costs_ashp_ducted_SEER_15_9_HSPF
+        lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+  # MSHP Max Load separate backup for fossil fuels, full replacement for electric
+      - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
+        apply_logic: &dual-fuel_ductless_shared_apply_logic
+          - HVAC Has Ducts|No
+          - or:
+            - Heating Fuel|Natural Gas
+            - Heating Fuel|Propane
+            - Heating Fuel|Fuel Oil
+          - HVAC Heating Efficiency|Shared Heating              
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF, Max Load
+        apply_logic: &dual-system_ductless_shared_apply_logic
+          - HVAC Has Ducts|No
+          - Heating Fuel|Electricity
+          - HVAC Heating Efficiency|Shared Heating              
+        costs: *costs_mshp_ductless_SEER_15_9_HSPF
+        lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
+
+  # Shared Heating as secondary systems for dwellings with no ducts
+  # Set secondary shared system fuel type with no ducts
+      - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
         apply_logic:
-          or: 
-            - HVAC Heating Efficiency|ASHP, SEER 15, 8.5 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 14.3, 8.5 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 14, 8.2 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 13, 8.0 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 13, 7.7 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 11.5, 7.5 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 10.3, 7.0 HSPF
-            - HVAC Heating Efficiency|ASHP, SEER 10, 6.2 HSPF
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-#### MSHP ####
-      - option: HVAC Heating Efficiency|MSHP, SEER 15, 9.0 HSPF
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|No            
+      - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
         apply_logic:
-          - HVAC Heating Efficiency|MSHP, SEER 14.5, 8.2 HSPF
-        costs: 
-          - value: 15030.40 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-            multiplier: Fixed (1) # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
-        lifetime: 15 # place holder from https://github.com/NREL/resstock/blob/ba04885d098eb6917b8f8565154e897ea942831a/hp_sensitivity_case.yml#L44-L71
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Propane
+          - HVAC Has Ducts|No    
+      - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
+        apply_logic:
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Fuel Oil
+          - HVAC Has Ducts|No
+
+  # Set secondary shared system efficiency levels for dwellings with no ducts
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
+        apply_logic:
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|No  
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
+        apply_logic:
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Propane
+          - HVAC Has Ducts|No  
+      - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
+        apply_logic:
+          - HVAC Heating Efficiency|Shared Heating
+          - Heating Fuel|Fuel Oil
+          - HVAC Has Ducts|No  
+#global
+      - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
+        apply_logic:
+          or:
+            - *dual-system_elec_baseboard_apply_logic
+            - *dual-system_elec_boiler_apply_logic
+            - *dual-system_elec_wall_furnace_apply_logic
+            - *dual-system_ducted_elec_apply_logic
+            - *MSHP_upgrade_apply_logic
+            - *dual-fuel_ASHP_no_ducted_furnace_apply_logic
+            - *dual-fuel_ductlessMSHP_nonshared_heating_apply_logic
+            - *dual-fuel_60pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_68pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_72pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_76pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_80pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_85pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_90pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_92.5pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_96pctAFUE_NG_furnace_apply_logic
+            - *dual-fuel_60pctAFUE_LP_furnace_apply_logic
+            - *dual-fuel_68pctAFUE_LP_furnace_apply_logic
+            - *dual-fuel_72pctAFUE_LP_furnace_apply_logic
+            - *dual-fuel_76pctAFUE_LP_furnace_apply_logic
+            - *dual-fuel_80pctAFUE_LP_furnace_apply_logic
+            - *dual-fuel_85pctAFUE_LP_furnace_apply_logic
+            - *dual-fuel_90pctAFUE_LP_furnace_apply_logic
+            - *dual-fuel_92.5pctAFUE_LP_furnace_apply_logic
+            - *dual-fuel_96pctAFUE_LP_furnace_apply_logic
+            - *dual-fuel_60pctAFUE_FO_furnace_apply_logic
+            - *dual-fuel_68pctAFUE_FO_furnace_apply_logic
+            - *dual-fuel_72pctAFUE_FO_furnace_apply_logic
+            - *dual-fuel_76pctAFUE_FO_furnace_apply_logic
+            - *dual-fuel_80pctAFUE_FO_furnace_apply_logic
+            - *dual-fuel_80pctAFUE_FO_furnace_apply_logic
+            - *dual-fuel_85pctAFUE_FO_furnace_apply_logic
+            - *dual-fuel_90pctAFUE_FO_furnace_apply_logic
+            - *dual-fuel_92.5pctAFUE_FO_furnace_apply_logic
+            - *dual-fuel_96pctAFUE_FO_furnace_apply_logic
+
 
 
   - upgrade_name: Universal HPWHs
