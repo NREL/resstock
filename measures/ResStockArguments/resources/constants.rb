@@ -23,13 +23,19 @@ class Constants
             'heat_pump_charge_defect_ratio',
             'misc_plug_loads_television_annual_kwh',
             'misc_plug_loads_television_usage_multiplier',
-            'pv_system_num_bedrooms_served']
+            'pv_system_num_bedrooms_served',
+            'occupancy_calculation_type']
   end
 
   def self.build_residential_schedule_file_excludes
     # don't make these BuildResidentialScheduleFile arguments into ResStockArguments arguments
     return ['hpxml_path',
             'output_csv_path',
-            'hpxml_output_path']
+            'hpxml_output_path',
+            'debug']
+  end
+
+  def self.Auto
+    return 'auto'
   end
 end

@@ -163,23 +163,7 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
   end
 
   def process_weather(hpxml, runner, model, hpxml_path)
-    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
-
-    if not File.exist? epw_path
-      test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
-      epw_path = test_epw_path if File.exist? test_epw_path
-    end
-    if not File.exist? epw_path
-      test_epw_path = File.join(File.dirname(__FILE__), '..', 'weather', epw_path)
-      epw_path = test_epw_path if File.exist? test_epw_path
-    end
-    if not File.exist? epw_path
-      test_epw_path = File.join(File.dirname(__FILE__), '..', '..', 'weather', epw_path)
-      epw_path = test_epw_path if File.exist? test_epw_path
-    end
-    if not File.exist?(epw_path)
-      fail "'#{epw_path}' could not be found."
-    end
+    epw_path = Location.get_epw_path(hpxml, hpxml_path)
 
     cache_path = epw_path.gsub('.epw', '-cache.csv')
     if not File.exist?(cache_path)
@@ -226,8 +210,7 @@ class OSModel
 
     check_file_references(hpxml_path)
     @schedules_file = SchedulesFile.new(runner: runner, model: model,
-                                        schedules_paths: @hpxml.header.schedules_filepaths,
-                                        col_names: SchedulesFile.ColumnNames)
+                                        schedules_paths: @hpxml.header.schedules_filepaths)
 
     weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
     set_defaults_and_globals(runner, output_dir, epw_file, weather, @schedules_file)
@@ -256,7 +239,6 @@ class OSModel
     add_skylights(runner, model, spaces, weather)
     add_conditioned_floor_area(runner, model, spaces)
     add_thermal_mass(runner, model, spaces)
-    update_conditioned_below_grade_spaces(runner, model, spaces)
     Geometry.set_zone_volumes(runner, model, spaces, @hpxml, @apply_ashrae140_assumptions)
     Geometry.explode_surfaces(runner, model, @hpxml, @walls_top)
     add_num_occupants(model, runner, spaces)
@@ -294,8 +276,9 @@ class OSModel
 
     # Output
 
+    add_unmet_hours_output(runner, model, spaces)
     add_loads_output(runner, model, spaces, add_component_loads)
-    add_output_control_files(runner, model)
+    set_output_files(runner, model)
     # Uncomment to debug EMS
     # add_ems_debug_output(runner, model)
 
@@ -349,7 +332,6 @@ class OSModel
     # Initialize
     @remaining_heat_load_frac = 1.0
     @remaining_cool_load_frac = 1.0
-    @cond_below_grade_surfaces = [] # list of surfaces in conditioned basement, used for modification of some surface properties, eg. solar absorptance, view factor, etc.
 
     # Set globals
     @cfa = @hpxml.building_construction.conditioned_floor_area
@@ -376,214 +358,6 @@ class OSModel
 
   def self.add_simulation_params(model)
     SimControls.apply(model, @hpxml)
-  end
-
-  def self.update_conditioned_below_grade_spaces(runner, model, spaces)
-    return if @cond_below_grade_surfaces.empty?
-
-    # Update @cond_below_grade_surfaces to include subsurfaces
-    new_cond_below_grade_surfaces = @cond_below_grade_surfaces.dup
-    @cond_below_grade_surfaces.each do |cond_bsmnt_surface|
-      next if cond_bsmnt_surface.is_a? OpenStudio::Model::InternalMassDefinition
-      next if cond_bsmnt_surface.subSurfaces.empty?
-
-      cond_bsmnt_surface.subSurfaces.each do |ss|
-        new_cond_below_grade_surfaces << ss
-      end
-    end
-    @cond_below_grade_surfaces = new_cond_below_grade_surfaces.dup
-
-    update_solar_absorptances(runner, model)
-    assign_view_factors(runner, model, spaces)
-  end
-
-  def self.update_solar_absorptances(runner, model)
-    # modify conditioned basement surface properties
-    # zero out interior solar absorptance in conditioned basement
-
-    @cond_below_grade_surfaces.each do |cond_bsmnt_surface|
-      # skip windows because windows don't have such property to change.
-      next if cond_bsmnt_surface.is_a?(OpenStudio::Model::SubSurface) && (cond_bsmnt_surface.subSurfaceType.downcase == 'fixedwindow')
-
-      adj_surface = nil
-      if not cond_bsmnt_surface.is_a? OpenStudio::Model::InternalMassDefinition
-        if not cond_bsmnt_surface.is_a? OpenStudio::Model::SubSurface
-          adj_surface = cond_bsmnt_surface.adjacentSurface.get if cond_bsmnt_surface.adjacentSurface.is_initialized
-        else
-          adj_surface = cond_bsmnt_surface.adjacentSubSurface.get if cond_bsmnt_surface.adjacentSubSurface.is_initialized
-        end
-      end
-      const = cond_bsmnt_surface.construction.get
-      layered_const = const.to_LayeredConstruction.get
-      innermost_material = layered_const.layers[layered_const.numLayers() - 1].to_StandardOpaqueMaterial.get
-      # check if target surface is sharing its interior material/construction object with other surfaces
-      # if so, need to clone the material/construction and make changes there, then reassign it to target surface
-      mat_share = (innermost_material.directUseCount != 1)
-      const_share = (const.directUseCount != 1)
-      if const_share
-        # create new construction + new material for these surfaces
-        new_const = const.clone.to_Construction.get
-        cond_bsmnt_surface.setConstruction(new_const)
-        new_material = innermost_material.clone.to_StandardOpaqueMaterial.get
-        layered_const = new_const.to_LayeredConstruction.get
-        layered_const.setLayer(layered_const.numLayers() - 1, new_material)
-      elsif mat_share
-        # create new material for existing unique construction
-        new_material = innermost_material.clone.to_StandardOpaqueMaterial.get
-        layered_const.setLayer(layered_const.numLayers() - 1, new_material)
-      end
-      if layered_const.numLayers() == 1
-        # split single layer into two to only change its inside facing property
-        layer_mat = layered_const.layers[0].to_StandardOpaqueMaterial.get
-        layer_mat.setThickness(layer_mat.thickness / 2)
-        layered_const.insertLayer(1, layer_mat.clone.to_StandardOpaqueMaterial.get)
-      end
-      # Re-read innermost material and assign properties after adjustment
-      innermost_material = layered_const.layers[layered_const.numLayers() - 1].to_StandardOpaqueMaterial.get
-      innermost_material.setSolarAbsorptance(0.0)
-      innermost_material.setVisibleAbsorptance(0.0)
-      next if adj_surface.nil?
-
-      # Create new construction in case of shared construction.
-      layered_const_adj = OpenStudio::Model::Construction.new(model)
-      layered_const_adj.setName(cond_bsmnt_surface.construction.get.name.get + ' Reversed Bsmnt')
-      layered_const_adj.setLayers(cond_bsmnt_surface.construction.get.to_LayeredConstruction.get.layers.reverse())
-      adj_surface.construction.get.remove if adj_surface.construction.get.directUseCount == 1
-      adj_surface.setConstruction(layered_const_adj)
-    end
-  end
-
-  def self.assign_view_factors(runner, model, spaces)
-    # zero out view factors between conditioned basement surfaces and living zone surfaces
-    all_surfaces = [] # all surfaces in single conditioned space
-    lv_surfaces = []  # surfaces in living
-    cond_base_surfaces = [] # surfaces in conditioned basement
-
-    spaces[HPXML::LocationLivingSpace].surfaces.each do |surface|
-      surface.subSurfaces.each do |sub_surface|
-        all_surfaces << sub_surface
-      end
-      all_surfaces << surface
-    end
-    spaces[HPXML::LocationLivingSpace].internalMass.each do |im|
-      all_surfaces << im
-    end
-
-    all_surfaces.each do |surface|
-      if @cond_below_grade_surfaces.include?(surface) ||
-         ((@cond_below_grade_surfaces.include? surface.internalMassDefinition) if surface.is_a? OpenStudio::Model::InternalMass)
-        cond_base_surfaces << surface
-      else
-        lv_surfaces << surface
-      end
-    end
-
-    all_surfaces.sort!
-
-    # calculate view factors separately for living and conditioned basement
-    vf_map_lv = calc_approximate_view_factor(runner, model, lv_surfaces)
-    vf_map_cb = calc_approximate_view_factor(runner, model, cond_base_surfaces)
-
-    zone_prop = spaces[HPXML::LocationLivingSpace].thermalZone.get.getZonePropertyUserViewFactorsBySurfaceName
-
-    all_surfaces.each do |from_surface|
-      all_surfaces.each do |to_surface|
-        next if (vf_map_lv[from_surface].nil? || vf_map_lv[from_surface][to_surface].nil?) &&
-                (vf_map_cb[from_surface].nil? || vf_map_cb[from_surface][to_surface].nil?)
-
-        if lv_surfaces.include? from_surface
-          vf = vf_map_lv[from_surface][to_surface]
-        else
-          vf = vf_map_cb[from_surface][to_surface]
-        end
-        next if vf < 0.05 # Skip small view factors to reduce runtime
-
-        os_vf = OpenStudio::Model::ViewFactor.new(from_surface, to_surface, vf.round(10))
-        zone_prop.addViewFactor(os_vf)
-      end
-    end
-  end
-
-  def self.calc_approximate_view_factor(runner, model, all_surfaces)
-    # calculate approximate view factor using E+ approach
-    # used for recalculating single thermal zone view factor matrix
-    return {} if all_surfaces.size == 0
-    if all_surfaces.size <= 3
-      fail 'less than three surfaces in conditioned space. Please double check.'
-    end
-
-    s_azimuths = {}
-    s_tilts = {}
-    s_types = {}
-    all_surfaces.each do |surface|
-      if surface.is_a? OpenStudio::Model::InternalMass
-        # Assumed values consistent with EnergyPlus source code
-        s_azimuths[surface] = 0.0
-        s_tilts[surface] = 90.0
-      else
-        s_azimuths[surface] = UnitConversions.convert(surface.azimuth, 'rad', 'deg')
-        s_tilts[surface] = UnitConversions.convert(surface.tilt, 'rad', 'deg')
-        if surface.is_a? OpenStudio::Model::SubSurface
-          s_types[surface] = surface.surface.get.surfaceType.downcase
-        else
-          s_types[surface] = surface.surfaceType.downcase
-        end
-      end
-    end
-
-    same_ang_limit = 10.0
-    vf_map = {}
-    all_surfaces.each do |surface| # surface, subsurface, and internal mass
-      surface_vf_map = {}
-
-      # sum all the surface area that could be seen by surface1 up
-      zone_seen_area = 0.0
-      seen_surface = {}
-      all_surfaces.each do |surface2|
-        next if surface2 == surface
-        next if surface2.is_a? OpenStudio::Model::SubSurface
-
-        seen_surface[surface2] = false
-        if surface2.is_a? OpenStudio::Model::InternalMass
-          # all surfaces see internal mass
-          zone_seen_area += surface2.surfaceArea.get
-          seen_surface[surface2] = true
-        else
-          if (s_types[surface2] == 'floor') ||
-             ((s_types[surface] == 'floor') && (s_types[surface2] == 'roofceiling')) ||
-             ((s_azimuths[surface] - s_azimuths[surface2]).abs > same_ang_limit) ||
-             ((s_tilts[surface] - s_tilts[surface2]).abs > same_ang_limit)
-            zone_seen_area += surface2.grossArea # include subsurface area
-            seen_surface[surface2] = true
-          end
-        end
-      end
-
-      all_surfaces.each do |surface2|
-        next if surface2 == surface
-        next if surface2.is_a? OpenStudio::Model::SubSurface # handled together with its parent surface
-        next unless seen_surface[surface2]
-
-        if surface2.is_a? OpenStudio::Model::InternalMass
-          surface_vf_map[surface2] = surface2.surfaceArea.get / zone_seen_area
-        else # surfaces
-          if surface2.subSurfaces.size > 0
-            # calculate surface and its sub surfaces view factors
-            if surface2.netArea > 0.1 # base surface of a sub surface: window/door etc.
-              fail "Unexpected net area for surface '#{surface2.name}'."
-            end
-
-            surface2.subSurfaces.each do |sub_surface|
-              surface_vf_map[sub_surface] = sub_surface.grossArea / zone_seen_area
-            end
-          else # no subsurface
-            surface_vf_map[surface2] = surface2.grossArea / zone_seen_area
-          end
-        end
-      end
-      vf_map[surface] = surface_vf_map
-    end
-    return vf_map
   end
 
   def self.add_num_occupants(model, runner, spaces)
@@ -1315,11 +1089,6 @@ class OSModel
     ceiling_surface.additionalProperties.setFeature('SurfaceType', 'InferredCeiling')
     ceiling_surface.additionalProperties.setFeature('Tilt', 0.0)
 
-    if not @cond_below_grade_surfaces.empty?
-      # assuming added ceiling is in conditioned basement
-      @cond_below_grade_surfaces << ceiling_surface
-    end
-
     # Apply Construction
     apply_adiabatic_construction(runner, model, [floor_surface, ceiling_surface], 'floor')
   end
@@ -1332,15 +1101,15 @@ class OSModel
       mat_int_finish = Material.InteriorFinishMaterial(HPXML::InteriorFinishGypsumBoard, 0.5)
       partition_wall_area = 1024.0 * 2 # Exposed partition wall area (both sides)
       Constructions.apply_partition_walls(runner, model, 'PartitionWallConstruction', mat_int_finish, partition_wall_area,
-                                          basement_frac_of_cfa, @cond_below_grade_surfaces, spaces[HPXML::LocationLivingSpace])
+                                          basement_frac_of_cfa, spaces[HPXML::LocationLivingSpace])
     else
       mat_int_finish = Material.InteriorFinishMaterial(@hpxml.partition_wall_mass.interior_finish_type, @hpxml.partition_wall_mass.interior_finish_thickness)
       partition_wall_area = @hpxml.partition_wall_mass.area_fraction * @cfa # Exposed partition wall area (both sides)
       Constructions.apply_partition_walls(runner, model, 'PartitionWallConstruction', mat_int_finish, partition_wall_area,
-                                          basement_frac_of_cfa, @cond_below_grade_surfaces, spaces[HPXML::LocationLivingSpace])
+                                          basement_frac_of_cfa, spaces[HPXML::LocationLivingSpace])
 
       Constructions.apply_furniture(runner, model, @hpxml.furniture_mass, @cfa, @ubfa, @gfa,
-                                    basement_frac_of_cfa, @cond_below_grade_surfaces, spaces[HPXML::LocationLivingSpace])
+                                    basement_frac_of_cfa, spaces[HPXML::LocationLivingSpace])
     end
   end
 
@@ -1613,14 +1382,14 @@ class OSModel
 
       sys_id = water_heating_system.id
       if water_heating_system.water_heater_type == HPXML::WaterHeaterTypeStorage
-        plantloop_map[sys_id] = Waterheater.apply_tank(model, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system)
+        plantloop_map[sys_id] = Waterheater.apply_tank(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeTankless
-        plantloop_map[sys_id] = Waterheater.apply_tankless(model, loc_space, loc_schedule, water_heating_system, ec_adj, @nbeds, solar_thermal_system)
+        plantloop_map[sys_id] = Waterheater.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, @nbeds, solar_thermal_system, @eri_version, @schedules_file)
       elsif water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump
         living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
-        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, living_zone)
+        plantloop_map[sys_id] = Waterheater.apply_heatpump(model, runner, loc_space, loc_schedule, weather, water_heating_system, ec_adj, solar_thermal_system, living_zone, @eri_version, @schedules_file)
       elsif [HPXML::WaterHeaterTypeCombiStorage, HPXML::WaterHeaterTypeCombiTankless].include? water_heating_system.water_heater_type
-        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system)
+        plantloop_map[sys_id] = Waterheater.apply_combi(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, @eri_version, @schedules_file)
       else
         fail "Unhandled water heater (#{water_heating_system.water_heater_type})."
       end
@@ -1802,8 +1571,7 @@ class OSModel
   def self.add_ideal_system(runner, model, spaces, epw_path)
     # Adds an ideal air system as needed to meet the load under certain circumstances:
     # 1. the sum of fractions load served is less than 1, or
-    # 2. there are non-year-round HVAC seasons, or
-    # 3. we're using an ideal air system for e.g. ASHRAE 140 loads calculation.
+    # 2. we're using an ideal air system for e.g. ASHRAE 140 loads calculation.
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
     obj_name = Constants.ObjectNameIdealAirSystem
 
@@ -1838,16 +1606,8 @@ class OSModel
       sequential_cool_load_frac = 0.0
     end
 
-    return if @heating_days.nil?
-
-    # For periods of the year outside the HVAC season, operate this ideal air system to meet
-    # 100% of the load; for all other periods, operate to meet the fraction of the load not
-    # met by the HVAC system(s).
-    sequential_heat_load_fracs = @heating_days.map { |d| d == 0 ? 1.0 : sequential_heat_load_frac }
-    sequential_cool_load_fracs = @cooling_days.map { |d| d == 0 ? 1.0 : sequential_cool_load_frac }
-
-    if (sequential_heat_load_fracs.sum > 0.0) || (sequential_cool_load_fracs.sum > 0.0)
-      HVAC.apply_ideal_air_loads(model, runner, obj_name, sequential_cool_load_fracs, sequential_heat_load_fracs,
+    if (sequential_heat_load_frac > 0.0) || (sequential_cool_load_frac > 0.0)
+      HVAC.apply_ideal_air_loads(model, runner, obj_name, [sequential_cool_load_frac], [sequential_heat_load_frac],
                                  living_zone)
     end
   end
@@ -1859,7 +1619,7 @@ class OSModel
     living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
     has_ceiling_fan = (@hpxml.ceiling_fans.size > 0)
 
-    HVAC.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, @heating_days, @cooling_days, @hpxml.header.sim_calendar_year)
+    HVAC.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, @heating_days, @cooling_days, @hpxml.header.sim_calendar_year, @schedules_file)
   end
 
   def self.add_ceiling_fans(runner, model, weather, spaces)
@@ -2117,16 +1877,60 @@ class OSModel
     additionalProperties.setFeature('emissions_scenario_types', emissions_scenario_types)
   end
 
-  def self.map_to_string(map)
-    map_str = {}
-    map.each do |sys_id, objects|
-      object_name_list = []
-      objects.uniq.each do |object|
-        object_name_list << object.name.to_s
-      end
-      map_str[sys_id] = object_name_list if object_name_list.size > 0
+  def self.add_unmet_hours_output(runner, model, spaces)
+    # We do our own unmet hours calculation via EMS so that we can incorporate,
+    # e.g., heating/cooling seasons into the logic.
+    hvac_control = @hpxml.hvac_controls[0]
+    if not hvac_control.nil?
+      sim_year = @hpxml.header.sim_calendar_year
+      htg_start_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_begin_month, hvac_control.seasons_heating_begin_day)
+      htg_end_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_heating_end_month, hvac_control.seasons_heating_end_day)
+      clg_start_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_begin_month, hvac_control.seasons_cooling_begin_day)
+      clg_end_day = Schedule.get_day_num_from_month_day(sim_year, hvac_control.seasons_cooling_end_month, hvac_control.seasons_cooling_end_day)
     end
-    return map_str.to_s
+
+    living_zone = spaces[HPXML::LocationLivingSpace].thermalZone.get
+
+    # EMS sensors
+    htg_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Heating Setpoint Not Met Time')
+    htg_sensor.setName('zone htg unmet s')
+    htg_sensor.setKeyName(living_zone.name.to_s)
+
+    clg_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Zone Cooling Setpoint Not Met Time')
+    clg_sensor.setName('zone clg unmet s')
+    clg_sensor.setKeyName(living_zone.name.to_s)
+
+    # EMS program
+    clg_hrs = 'clg_unmet_hours'
+    htg_hrs = 'htg_unmet_hours'
+    program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    program.setName(Constants.ObjectNameUnmetHoursProgram)
+    program.addLine("Set #{htg_hrs} = 0")
+    program.addLine("Set #{clg_hrs} = 0")
+    if @hpxml.total_fraction_heat_load_served > 0
+      if htg_end_day >= htg_start_day
+        program.addLine("If (DayOfYear >= #{htg_start_day}) && (DayOfYear <= #{htg_end_day})")
+      else
+        program.addLine("If (DayOfYear >= #{htg_start_day}) || (DayOfYear <= #{htg_end_day})")
+      end
+      program.addLine("  Set #{htg_hrs} = #{htg_hrs} + #{htg_sensor.name}")
+      program.addLine('EndIf')
+    end
+    if @hpxml.total_fraction_cool_load_served > 0
+      if clg_end_day >= clg_start_day
+        program.addLine("If (DayOfYear >= #{clg_start_day}) && (DayOfYear <= #{clg_end_day})")
+      else
+        program.addLine("If (DayOfYear >= #{clg_start_day}) || (DayOfYear <= #{clg_end_day})")
+      end
+      program.addLine("  Set #{clg_hrs} = #{clg_hrs} + #{clg_sensor.name}")
+      program.addLine('EndIf')
+    end
+
+    # EMS calling manager
+    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_calling_manager.setName("#{program.name} calling manager")
+    program_calling_manager.setCallingPoint('EndOfZoneTimestepBeforeZoneReporting')
+    program_calling_manager.addProgram(program)
   end
 
   def self.add_loads_output(runner, model, spaces, add_component_loads)
@@ -2586,21 +2390,23 @@ class OSModel
     program_calling_manager.addProgram(program)
   end
 
-  def self.add_output_control_files(runner, model)
-    return if @debug
+  def self.set_output_files(runner, model)
+    oj = model.getOutputJSON
+    oj.setOptionType('TimeSeriesAndTabular')
+    oj.setOutputJSON(false)
+    oj.setOutputMessagePack(true)
 
-    # Disable various output files
     ocf = model.getOutputControlFiles
-    ocf.setOutputAUDIT(false)
-    ocf.setOutputBND(false)
-    ocf.setOutputEIO(false)
-    ocf.setOutputESO(false)
-    ocf.setOutputMDD(false)
-    ocf.setOutputMTD(false)
-    ocf.setOutputMTR(false)
-    ocf.setOutputRDD(false)
-    ocf.setOutputSHD(false)
-    ocf.setOutputTabular(false)
+    ocf.setOutputAUDIT(@debug)
+    ocf.setOutputBND(@debug)
+    ocf.setOutputEIO(@debug)
+    ocf.setOutputESO(@debug)
+    ocf.setOutputMDD(@debug)
+    ocf.setOutputMTD(@debug)
+    ocf.setOutputMTR(@debug)
+    ocf.setOutputRDD(@debug)
+    ocf.setOutputSHD(@debug)
+    ocf.setOutputPerfLog(@debug)
   end
 
   def self.add_ems_debug_output(runner, model)
@@ -2614,7 +2420,6 @@ class OSModel
     interior_adjacent_to = hpxml_surface.interior_adjacent_to
     if HPXML::conditioned_below_grade_locations.include? interior_adjacent_to
       surface.setSpace(create_or_get_space(model, spaces, HPXML::LocationLivingSpace))
-      @cond_below_grade_surfaces << surface
     else
       surface.setSpace(create_or_get_space(model, spaces, interior_adjacent_to))
     end
@@ -2635,7 +2440,6 @@ class OSModel
       set_surface_otherside_coefficients(surface, exterior_adjacent_to, model, spaces)
     elsif HPXML::conditioned_below_grade_locations.include? exterior_adjacent_to
       surface.createAdjacentSurface(create_or_get_space(model, spaces, HPXML::LocationLivingSpace))
-      @cond_below_grade_surfaces << surface.adjacentSurface.get
     else
       surface.createAdjacentSurface(create_or_get_space(model, spaces, exterior_adjacent_to))
     end
