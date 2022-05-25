@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: ./ # Relative to this file or absolute
-project_directory: /project_national  # Relative to buildstock_directory
-output_directory: /lustre/eaglefs/projects/scout/geb-potential/v2.5_runs/test_1.8k
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /lustre/eaglefs/projects/scout/geb-potential/v2.5_runs/test_2.5k
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 
 # To run with ResStock v2.5.0 (last release before HPXML)
@@ -9,7 +9,7 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
 sampler:
   type: residential_quota
   args:
-    n_datapoints: 1800 #180000
+    n_datapoints: 2500 #250000
     # logic:
     #   - Geometry Building Type RECS|Single-Family Detached
     # resample: true
@@ -35,8 +35,8 @@ workflow_generator:
       reporting_frequency: Hourly
       include_enduse_subcategories: true
 
-    reporting_measures:
-      - measure_dir_name: QOIReport
+    # reporting_measures:
+      # - measure_dir_name: QOIReport
 
     server_directory_cleanup:
       retain_in_idf: true
@@ -47,21 +47,21 @@ eagle:
   n_jobs: 20 #1000
   minutes_per_sim: 4
   sampling:
-    time: 200
+    time: 20
   postprocessing:
-    time: 1439
+    time: 300 #1439
     n_workers: 1 #10
   
-# postprocessing:
-#   aws:
-#     region_name: 'us-west-2'
-#     s3:
-#       bucket: nrel-scout
-#       prefix: geb-potential/FY22_runs
-#     athena:
-#       glue_service_role: service-role/AWSGlueServiceRole-default
-#       database_name: geb_potential
-#       max_crawling_time: 3000 #seconds to wait for the crawler to complete before aborting it
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: nrel-scout
+      prefix: geb-potential/FY22_runs
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: geb_potential
+      max_crawling_time: 3000 #seconds to wait for the crawler to complete before aborting it
 
 upgrades:
   #note: no reference scenarios. Everything happens today.  
@@ -223,13 +223,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
         apply_logic:
           or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
       - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
         apply_logic:
           or:
-            - Location City|Albuquerque
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -240,7 +244,8 @@ upgrades:
           or:
             - Location City|New York_1
             - Location City|New York_2
-            - Location City|Seattle
+            - Location City|Seattle_1
+            - Location City|Seattle_2
 
       - option: Windows|SCOUT 5.88 R, 0.25 SHGC #AIA4 & AIA5
         apply_logic:
@@ -249,8 +254,10 @@ upgrades:
             - Location City|Tucson
             - Location City|Atlanta_1
             - Location City|Atlanta_2
-            - Location City|Midland
-            - Location City|Tampa
+            - Location City|Midland_1
+            - Location City|Midland_2
+            - Location City|Tampa_1
+            - Location City|Tampa_2
 
       #Best foundation:
       - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
@@ -260,10 +267,14 @@ upgrades:
             - Insulation Floor|Ceiling R-13
             - Insulation Floor|Ceiling R-19
         - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -278,10 +289,14 @@ upgrades:
             - Insulation Foundation Wall|Wall R-5, Exterior
             - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -563,13 +578,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
         apply_logic:
           or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
       - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
         apply_logic:
           or:
-            - Location City|Albuquerque
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -580,7 +599,8 @@ upgrades:
           or:
             - Location City|New York_1
             - Location City|New York_2
-            - Location City|Seattle
+            - Location City|Seattle_1
+            - Location City|Seattle_2
       - option: Windows|SCOUT 5.88 R, 0.25 SHGC #AIA4 & AIA5
         apply_logic:
           or:
@@ -588,8 +608,10 @@ upgrades:
             - Location City|Tucson
             - Location City|Atlanta_1
             - Location City|Atlanta_2
-            - Location City|Midland
-            - Location City|Tampa
+            - Location City|Midland_1
+            - Location City|Midland_2
+            - Location City|Tampa_1
+            - Location City|Tampa_2
       #Best foundation:
       - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
         apply_logic:
@@ -598,10 +620,14 @@ upgrades:
             - Insulation Floor|Ceiling R-13
             - Insulation Floor|Ceiling R-19
         - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -616,10 +642,14 @@ upgrades:
             - Insulation Foundation Wall|Wall R-5, Exterior
             - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -759,13 +789,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
         apply_logic:
           or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
       - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
         apply_logic:
           or:
-            - Location City|Albuquerque
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -776,7 +810,8 @@ upgrades:
           or:
             - Location City|New York_1
             - Location City|New York_2
-            - Location City|Seattle
+            - Location City|Seattle_1
+            - Location City|Seattle_2
       - option: Windows|SCOUT 5.88 R, 0.25 SHGC #AIA4 & AIA5
         apply_logic:
           or:
@@ -784,8 +819,10 @@ upgrades:
             - Location City|Tucson
             - Location City|Atlanta_1
             - Location City|Atlanta_2
-            - Location City|Midland
-            - Location City|Tampa
+            - Location City|Midland_1
+            - Location City|Midland_2
+            - Location City|Tampa_1
+            - Location City|Tampa_2
 
       #Best foundation:
       - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
@@ -795,10 +832,14 @@ upgrades:
             - Insulation Floor|Ceiling R-13
             - Insulation Floor|Ceiling R-19
         - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -813,10 +854,14 @@ upgrades:
             - Insulation Foundation Wall|Wall R-5, Exterior
             - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -956,13 +1001,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
         apply_logic:
           or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
       - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
         apply_logic:
           or:
-            - Location City|Albuquerque
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -973,7 +1022,8 @@ upgrades:
           or:
             - Location City|New York_1
             - Location City|New York_2
-            - Location City|Seattle
+            - Location City|Seattle_1
+            - Location City|Seattle_2
       - option: Windows|SCOUT 5.88 R, 0.25 SHGC #AIA4 & AIA5
         apply_logic:
           or:
@@ -981,8 +1031,10 @@ upgrades:
             - Location City|Tucson
             - Location City|Atlanta_1
             - Location City|Atlanta_2
-            - Location City|Midland
-            - Location City|Tampa
+            - Location City|Midland_1
+            - Location City|Midland_2
+            - Location City|Tampa_1
+            - Location City|Tampa_2
 
       #Best foundation:
       - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
@@ -992,10 +1044,14 @@ upgrades:
             - Insulation Floor|Ceiling R-13
             - Insulation Floor|Ceiling R-19
         - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1010,10 +1066,14 @@ upgrades:
             - Insulation Foundation Wall|Wall R-5, Exterior
             - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1064,10 +1124,14 @@ upgrades:
             - Insulation Floor|Ceiling R-13
             - Insulation Floor|Ceiling R-19
         - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1082,10 +1146,14 @@ upgrades:
             - Insulation Foundation Wall|Wall R-5, Exterior
             - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1118,13 +1186,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
         apply_logic:
           or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
       - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
         apply_logic:
           or:
-            - Location City|Albuquerque
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1135,7 +1207,8 @@ upgrades:
           or:
             - Location City|New York_1
             - Location City|New York_2
-            - Location City|Seattle
+            - Location City|Seattle_1
+            - Location City|Seattle_2
       - option: Windows|SCOUT 5.88 R, 0.25 SHGC #AIA4 & AIA5
         apply_logic:
           or:
@@ -1143,8 +1216,10 @@ upgrades:
             - Location City|Tucson
             - Location City|Atlanta_1
             - Location City|Atlanta_2
-            - Location City|Midland
-            - Location City|Tampa
+            - Location City|Midland_1
+            - Location City|Midland_2
+            - Location City|Tampa_1
+            - Location City|Tampa_2
    
   ##up12 - package 2 - DR (wh, thermostat, appliance)
   - upgrade_name: package 2 DR only
@@ -1178,22 +1253,32 @@ upgrades:
           - not: Heating Setpoint|80F 
       - option: ThermoDR|San Diego
         apply_logic: Location City|San Diego
-      - option: ThermoDR|Tampa
-        apply_logic: Location City|Tampa
+      - option: ThermoDR|Tampa_1
+        apply_logic: Location City|Tampa_1
+      - option: ThermoDR|Tampa_2
+        apply_logic: Location City|Tampa_2
       - option: ThermoDR|Tucson
         apply_logic: Location City|Tucson
-      - option: ThermoDR|Albuquerque
-        apply_logic: Location City|Albuquerque
+      - option: ThermoDR|Albuquerque_1
+        apply_logic: Location City|Albuquerque_1
+      - option: ThermoDR|Albuquerque_2
+        apply_logic: Location City|Albuquerque_2
       - option: ThermoDR|Atlanta_1
         apply_logic: Location City|Atlanta_1
       - option: ThermoDR|Atlanta_2
         apply_logic: Location City|Atlanta_2
-      - option: ThermoDR|Seattle
-        apply_logic: Location City|Seattle
-      - option: ThermoDR|Great Falls
-        apply_logic: Location City|Great Falls
-      - option: ThermoDR|Denver
-        apply_logic: Location City|Denver
+      - option: ThermoDR|Seattle_1
+        apply_logic: Location City|Seattle_1
+      - option: ThermoDR|Seattle_2
+        apply_logic: Location City|Seattle_2
+      - option: ThermoDR|Great Falls_1
+        apply_logic: Location City|Great Falls_1
+      - option: ThermoDR|Great Falls_2
+        apply_logic: Location City|Great Falls_2
+      - option: ThermoDR|Denver_1
+        apply_logic: Location City|Denver_1
+      - option: ThermoDR|Denver_2
+        apply_logic: Location City|Denver_2
       - option: ThermoDR|Buffalo_1
         apply_logic: Location City|Buffalo_1
       - option: ThermoDR|Buffalo_2
@@ -1204,10 +1289,14 @@ upgrades:
         apply_logic: Location City|New York_2
       - option: ThermoDR|Port Angeles
         apply_logic: Location City|Port Angeles
-      - option: ThermoDR|Midland
-        apply_logic: Location City|Midland
-      - option: ThermoDR|International Falls
-        apply_logic: Location City|International Falls
+      - option: ThermoDR|Midland_1
+        apply_logic: Location City|Midland_1
+      - option: ThermoDR|Midland_2
+        apply_logic: Location City|Midland_2
+      - option: ThermoDR|International Falls_1
+        apply_logic: Location City|International Falls_1
+      - option: ThermoDR|International Falls_2
+        apply_logic: Location City|International Falls_2
       - option: ThermoDR|Rochester_1
         apply_logic: Location City|Rochester_1
       - option: ThermoDR|Rochester_2
@@ -1317,13 +1406,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
         apply_logic:
           or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
       - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
         apply_logic:
           or:
-            - Location City|Albuquerque
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1334,7 +1427,8 @@ upgrades:
           or:
             - Location City|New York_1
             - Location City|New York_2
-            - Location City|Seattle
+            - Location City|Seattle_1
+            - Location City|Seattle_2
       - option: Windows|SCOUT 5.88 R, 0.25 SHGC #AIA4 & AIA5
         apply_logic:
           or:
@@ -1342,8 +1436,10 @@ upgrades:
             - Location City|Tucson
             - Location City|Atlanta_1
             - Location City|Atlanta_2
-            - Location City|Midland
-            - Location City|Tampa
+            - Location City|Midland_1
+            - Location City|Midland_2
+            - Location City|Tampa_1
+            - Location City|Tampa_2
 
       #Best foundation:
       - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
@@ -1353,10 +1449,14 @@ upgrades:
             - Insulation Floor|Ceiling R-13
             - Insulation Floor|Ceiling R-19
         - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1371,10 +1471,14 @@ upgrades:
             - Insulation Foundation Wall|Wall R-5, Exterior
             - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1490,13 +1594,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
         apply_logic:
           or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
       - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
         apply_logic:
           or:
-            - Location City|Albuquerque
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1507,7 +1615,8 @@ upgrades:
           or:
             - Location City|New York_1
             - Location City|New York_2
-            - Location City|Seattle
+            - Location City|Seattle_1
+            - Location City|Seattle_2
       - option: Windows|SCOUT 5.88 R, 0.25 SHGC #AIA4 & AIA5
         apply_logic:
           or:
@@ -1515,8 +1624,10 @@ upgrades:
             - Location City|Tucson
             - Location City|Atlanta_1
             - Location City|Atlanta_2
-            - Location City|Midland
-            - Location City|Tampa
+            - Location City|Midland_1
+            - Location City|Midland_2
+            - Location City|Tampa_1
+            - Location City|Tampa_2
 
       #Best foundation:
       - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
@@ -1526,10 +1637,14 @@ upgrades:
             - Insulation Floor|Ceiling R-13
             - Insulation Floor|Ceiling R-19
         - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1544,10 +1659,14 @@ upgrades:
             - Insulation Foundation Wall|Wall R-5, Exterior
             - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1662,13 +1781,17 @@ upgrades:
       - option: Windows|SCOUT 5.88 R, 0.49 SHGC #AIA1
         apply_logic:
           or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
       - option: Windows|SCOUT 5.88 R, 0.42 SHGC #AIA2
         apply_logic:
           or:
-            - Location City|Albuquerque
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1679,7 +1802,8 @@ upgrades:
           or:
             - Location City|New York_1
             - Location City|New York_2
-            - Location City|Seattle
+            - Location City|Seattle_1
+            - Location City|Seattle_2
       - option: Windows|SCOUT 5.88 R, 0.25 SHGC #AIA4 & AIA5
         apply_logic:
           or:
@@ -1687,8 +1811,10 @@ upgrades:
             - Location City|Tucson
             - Location City|Atlanta_1
             - Location City|Atlanta_2
-            - Location City|Midland
-            - Location City|Tampa
+            - Location City|Midland_1
+            - Location City|Midland_2
+            - Location City|Tampa_1
+            - Location City|Tampa_2
 
       #Best foundation:
       - option: Insulation Floor|Ceiling R-30 #AIA1 & AIA12
@@ -1698,10 +1824,14 @@ upgrades:
             - Insulation Floor|Ceiling R-13
             - Insulation Floor|Ceiling R-19
         - or:
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
@@ -1716,10 +1846,14 @@ upgrades:
             - Insulation Foundation Wall|Wall R-5, Exterior
             - Insulation Foundation Wall|Wall R-10, Exterior
         - or:   
-            - Location City|Denver
-            - Location City|Great Falls
-            - Location City|International Falls
-            - Location City|Albuquerque
+            - Location City|Denver_1
+            - Location City|Denver_2
+            - Location City|Great Falls_1
+            - Location City|Great Falls_2
+            - Location City|International Falls_1
+            - Location City|International Falls_2
+            - Location City|Albuquerque_1
+            - Location City|Albuquerque_2
             - Location City|Port Angeles
             - Location City|Buffalo_1
             - Location City|Buffalo_2
