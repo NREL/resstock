@@ -1,5 +1,5 @@
 schema_version: '0.3'
-buildstock_directory: /home/epresent/resstock # Relative to this file or absolute
+buildstock_directory: . # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
 output_directory: /projects/enduse/gmlc-bills/upload-test-aps
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
@@ -1023,6 +1023,13 @@ upgrades:
           - value: 0
             multiplier: Floor Area, Lighting (ft^2)
         lifetime: 78.28
+
+  - upgrade_name: Thermostat setbacks for all
+    options: 
+      - option: Cooling Setpoint Has Offset|Yes
+        apply_logic: Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Has Offset|Yes
+        apply_logic: Heating Setpoint Has Offset|No
 
 
 eagle:
