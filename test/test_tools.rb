@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
+require 'minitest/autorun'
 require 'csv'
 
 class TestTools < MiniTest::Test
@@ -15,8 +15,15 @@ class TestTools < MiniTest::Test
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
       puts "\n#{project}"
-      puts "buildstockbatch - run_analysis: #{buildstockbatch.headers - run_analysis.headers}"
-      puts "run_analysis - buildstockbatch: #{run_analysis.headers - buildstockbatch.headers}"
+
+      buildstockbatch_extras = buildstockbatch.headers - run_analysis.headers
+      puts "buildstockbatch - run_analysis: #{buildstockbatch_extras}"
+
+      run_analysis_extras = run_analysis.headers - buildstockbatch.headers
+      puts "run_analysis - buildstockbatch: #{run_analysis_extras}"
+
+      # assert_equal(0, buildstockbatch_extras.size)
+      # assert_equal(0, run_analysis_extras.size)
     end
   end
 end
