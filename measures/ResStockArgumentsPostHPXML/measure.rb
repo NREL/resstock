@@ -79,6 +79,12 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     arg.setUnits('deg-F')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('cooling_setpoint_offset_nighttime_is_setup', false)
+    arg.setDisplayName('Setpoint Schedules: Cooling Setpoint Offset Nighttime Is Setup')
+    arg.setDescription('The magnitude of the cooling setpoint offset (setpoint is raised) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.')
+    arg.setUnits('deg-F')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeDoubleArgument('cooling_setpoint_offset_daytime_unoccupied', true)
     arg.setDisplayName('Setpoint Schedules: Cooling Setpoint Offset Daytime Unoccupied')
     arg.setDescription('The magnitude of the cooling setpoint offset (setpoint is raised) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.')
@@ -171,6 +177,8 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
     heating_setpoint_offset_daytime_unoccupied = args[:heating_setpoint_offset_daytime_unoccupied]
     cooling_setpoint = args[:cooling_setpoint]
     cooling_setpoint_offset_nighttime = args[:cooling_setpoint_offset_nighttime]
+    cooling_setpoint_offset_nighttime_is_setup = true
+    cooling_setpoint_offset_nighttime_is_setup = args[:cooling_setpoint_offset_nighttime_is_setup].get if args[:cooling_setpoint_offset_nighttime_is_setup].is_initialized
     cooling_setpoint_offset_daytime_unoccupied = args[:cooling_setpoint_offset_daytime_unoccupied]
 
     schedules[schedules.keys[0]].each_with_index do |_, i|
@@ -182,7 +190,11 @@ class ResStockArgumentsPostHPXML < OpenStudio::Measure::ModelMeasure
 
       if sleeping == 1 # nighttime
         heating_setpoints << heating_setpoint - heating_setpoint_offset_nighttime
-        cooling_setpoints << cooling_setpoint + cooling_setpoint_offset_nighttime
+        if cooling_setpoint_offset_nighttime_is_setup
+          cooling_setpoints << cooling_setpoint + cooling_setpoint_offset_nighttime
+        else
+          cooling_setpoints << cooling_setpoint - cooling_setpoint_offset_nighttime
+        end
       elsif sleeping == 0 && occupants == 0 # daytime unoccupied
         heating_setpoints << heating_setpoint - heating_setpoint_offset_daytime_unoccupied
         cooling_setpoints << cooling_setpoint + cooling_setpoint_offset_daytime_unoccupied

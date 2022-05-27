@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>res_stock_arguments_post_hpxml</name>
   <uid>db102ce5-ac96-4ef9-90d3-abbe53478716</uid>
-  <version_id>c60c7d7b-d07d-4f72-85be-3bc92cd8139c</version_id>
-  <version_modified>20220518T202452Z</version_modified>
+  <version_id>ab670b5b-deea-418f-b963-b903b53bf80c</version_id>
+  <version_modified>20220527T221948Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>ResStockArgumentsPostHPXML</class_name>
   <display_name>ResStock Arguments Post-HPXML</display_name>
@@ -113,6 +113,25 @@
       <model_dependent>false</model_dependent>
     </argument>
     <argument>
+      <name>cooling_setpoint_offset_nighttime_is_setup</name>
+      <display_name>Setpoint Schedules: Cooling Setpoint Offset Nighttime Is Setup</display_name>
+      <description>The magnitude of the cooling setpoint offset (setpoint is raised) for nighttime hours. For smooth schedules, nighttime hours occur during the period from 10pm - 7am. For stochastic schedules, nighttime hours can vary.</description>
+      <type>Boolean</type>
+      <units>deg-F</units>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
+    </argument>
+    <argument>
       <name>cooling_setpoint_offset_daytime_unoccupied</name>
       <display_name>Setpoint Schedules: Cooling Setpoint Offset Daytime Unoccupied</display_name>
       <description>The magnitude of the cooling setpoint offset (setpoint is raised) for daytime unoccupied hours. For smooth schedules, daytime unoccupied hours never occur. For stochastic schedules, daytime unoccupied hours can vary.</description>
@@ -144,7 +163,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>66693EB6</checksum>
+      <checksum>5D79C6B6</checksum>
     </file>
   </files>
 </measure>
