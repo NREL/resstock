@@ -201,6 +201,8 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@testing_baseline, 'xml', 'Baseline', '1.xml')))
+
+    FileUtils.cp_r(@testing_baseline, File.join(File.dirname(@testing_baseline), 'project_testing'))
   end
 
   def test_national_baseline
@@ -229,6 +231,8 @@ class TestRunAnalysis < MiniTest::Test
 
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
+
+    FileUtils.cp_r(@national_baseline, File.join(File.dirname(@national_baseline), 'project_national'))
   end
 
   def test_testing_upgrades
