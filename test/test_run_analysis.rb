@@ -64,7 +64,10 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output_log = File.read(File.join(@testing_baseline, 'cli_output.log'))
     assert(cli_output_log.include?('ERROR'))
-    assert(cli_output_log.include?('Run Period End Day of Month (32) must be one of'))
+    if !cli_output_log.include?('Run Period End Day of Month (32) must be one of')
+      puts cli_output_log
+      assert(false)
+    end
   end
 
   def test_errors_already_exists
