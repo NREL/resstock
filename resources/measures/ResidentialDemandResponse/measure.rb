@@ -730,16 +730,24 @@ class DemandResponseSchedule < OpenStudio::Measure::ModelMeasure
                 winter_dates = rule.specificDates.select { |x| winter_months.include?(x.monthOfYear.value) }
                 summer_sch = avoid_peaks(day_sch, summer_peak_hours, model)
                 winter_sch = avoid_peaks(day_sch, winter_peak_hours, model)
-                summer_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, summer_sch)
-                summer_rule.setName('summer_' + rule.name.get)
-                summer_dates.each { |date| summer_rule.addSpecificDate(date) }
-                winter_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, winter_sch)
-                winter_rule.setName('winter_' + rule.name.get)
-                winter_dates.each { |date| winter_rule.addSpecificDate(date) }
-                Schedule.set_weekday_rule(summer_rule)
-                Schedule.set_weekend_rule(summer_rule)
-                Schedule.set_weekday_rule(winter_rule)
-                Schedule.set_weekend_rule(winter_rule)
+
+                start_date = rule.startDate.get
+                end_date = rule.endDate.get
+                if summer_months.include? start_date.monthOfYear.value
+                  summer_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, summer_sch)
+                  summer_rule.setName('summer_' + rule.name.get)
+                  summer_rule.setStartDate(start_date)
+                  summer_rule.setEndDate(end_date)
+                  Schedule.set_weekday_rule(summer_rule)
+                  Schedule.set_weekend_rule(summer_rule)
+                else
+                  winter_rule = OpenStudio::Model::ScheduleRule.new(new_schedule, winter_sch)
+                  winter_rule.setName('winter_' + rule.name.get)
+                  winter_rule.setStartDate(start_date)
+                  winter_rule.setEndDate(end_date)
+                  Schedule.set_weekday_rule(winter_rule)
+                  Schedule.set_weekend_rule(winter_rule)
+                end
               end
             end
             if (ee.name.to_s == Constants.ObjectNamePoolPump(unit.name.to_s)) || ee.name.to_s.start_with?('res misc plug loads')
