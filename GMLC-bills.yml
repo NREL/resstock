@@ -214,6 +214,8 @@ upgrades:
         apply_logic: HVAC Has Ducts|No 
         costs: *blank_costs
         lifetime: 15
+      #Change the cooling efficiency to Heat Pump
+      - option: HVAC Cooling Efficiency|Heat Pump
       #Duct sealing
       - &duct_sealing
         option: Ducts|10% Leakage, R-8
@@ -339,6 +341,7 @@ upgrades:
 
 
   - upgrade_name: Package without Fuel Switching
+    #Up02
     options:
       #If home has AC but non-electric heat, upgrade CAC to SEER 18, and room AC to EER 12
       - option: HVAC Cooling Efficiency|AC, SEER 18
@@ -386,6 +389,10 @@ upgrades:
           - value: 0
             multiplier: Fixed (1)
         lifetime: 15
+      #Change the cooling efficiency to Heat Pump for homes with electric heating
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic: Heating Fuel|Electricity
+      - *duct_sealing
       - option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic: 
           and:
@@ -464,6 +471,7 @@ upgrades:
       - *dishwasher_120pct
       - *cooking_range
   - upgrade_name: Envelope Package
+    #Up03
     options:
       #Attic insulation - R-values for 2021 IECC for homes with vented attics
       - &R-30_attic_uninsulated
