@@ -361,6 +361,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   option_apply_logic.split('||').each do |or_segment|
     or_segment.split('&&').each do |segment|
       segment.strip!
+      segment.delete!("'")
 
       # Handle presence of open parentheses
       rindex = segment.rindex('(')
@@ -393,6 +394,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
       else
         segment_existing_option = get_value_from_runner(runner, segment_parameter)
       end
+      segment_existing_option.delete!("'")
 
       ruby_eval_str += segment_open + "'" + segment_existing_option + segment_equality + segment_option + "'" + segment_close + ' and '
     end

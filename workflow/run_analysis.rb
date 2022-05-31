@@ -101,7 +101,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
 
         if measure_dir_name == 'build_existing_model'
           arguments['building_id'] = 1
-          arguments['sample_weight'] = Float(cfg['baseline']['n_buildings_represented']) / n_datapoints
+          arguments['sample_weight'] = Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
 
           if workflow_args.keys.include?('emissions')
             arguments['emissions_scenario_names'] = workflow_args['emissions'].collect { |s| s['scenario_name'] }.join(',')
@@ -398,6 +398,7 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
   result_output['completed_at'] = completed_at
   result_output['completed_status'] = completed_status
   result_output['build_existing_model.units_represented'] = 1 # aligns with buildstockbatch
+  result_output.delete('build_existing_model.weight') # aligns with buildstockbatch
 
   all_results_output[upgrade_name] << result_output
   all_cli_output << cli_output
