@@ -429,7 +429,7 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.run_and_check(in_osw, parent_dir, cli_output, upgrade, measures, reporting_measures, measures_only = false)
+  def self.run(in_osw, parent_dir, cli_output, upgrade, measures, reporting_measures, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
@@ -442,18 +442,20 @@ class RunOSWs
 
     out = File.join(parent_dir, 'out.osw')
     out = JSON.parse(File.read(File.expand_path(out)))
+    started_at = out['started_at']
+    completed_at = out['completed_at']
     completed_status = out['completed_status']
 
     results = File.join(parent_dir, 'run/results.json')
 
-    return completed_status, result_output, cli_output if measures_only || !File.exist?(results)
+    return started_at, completed_at, completed_status, result_output, cli_output if measures_only || !File.exist?(results)
 
     rows = {}
     old_rows = JSON.parse(File.read(File.expand_path(results)))
     old_rows.each do |measure, values|
       rows[measure] = {}
       values.each do |arg, val|
-        next if arg == 'applicable'
+        next if measure == 'BuildExistingModel' && arg == 'building_id'
 
         rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
       end
@@ -470,7 +472,7 @@ class RunOSWs
       result_output = get_measure_results(rows, result_output, reporting_measure)
     end
 
-    return completed_status, result_output, cli_output
+    return started_at, completed_at, completed_status, result_output, cli_output
   end
 
   def self.get_measure_results(rows, result, measure)
@@ -494,14 +496,14 @@ class RunOSWs
     end
     column_headers = column_headers.sort
 
-    ['job_id', 'building_id'].each do |col|
+    ['completed_status', 'completed_at', 'started_at', 'job_id', 'building_id'].each do |col|
       column_headers.delete(col)
-      column_headers.insert(1, col)
+      column_headers.insert(0, col)
     end
 
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
-      results.sort_by { |h| h['OSW'] }.each do |result|
+      results.sort_by { |h| h['building_id'] }.each do |result|
         csv_row = []
         column_headers.each do |column_header|
           csv_row << result[column_header]

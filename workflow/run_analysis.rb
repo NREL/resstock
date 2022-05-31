@@ -101,6 +101,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
 
         if measure_dir_name == 'build_existing_model'
           arguments['building_id'] = 1
+          arguments['sample_weight'] = Float(cfg['baseline']['n_buildings_represented']) / n_datapoints
 
           if workflow_args.keys.include?('emissions')
             arguments['emissions_scenario_names'] = workflow_args['emissions'].collect { |s| s['scenario_name'] }.join(',')
@@ -384,14 +385,19 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
 
   cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{job_id}.\n"
   upgrade = upgrade_name != 'Baseline'
-  completed_status, result_output, cli_output = RunOSWs.run_and_check(osw, worker_dir, cli_output, upgrade, measures, reporting_measures, measures_only)
+  started_at, completed_at, completed_status, result_output, cli_output = RunOSWs.run(osw, worker_dir, cli_output, upgrade, measures, reporting_measures, measures_only)
+
+  started_at = create_timestamp(started_at)
+  completed_at = create_timestamp(completed_at)
 
   osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
 
-  result_output['OSW'] = osw
   result_output['building_id'] = building_id
   result_output['job_id'] = job_id
+  result_output['started_at'] = started_at
+  result_output['completed_at'] = completed_at
   result_output['completed_status'] = completed_status
+  result_output['build_existing_model.units_represented'] = 1 # aligns with buildstockbatch
 
   all_results_output[upgrade_name] << result_output
   all_cli_output << cli_output
@@ -409,6 +415,10 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_re
     FileUtils.cp(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'existing.osw')) && !File.exist?(File.join(run_dir, 'upgraded.osw'))
     FileUtils.cp(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
   end
+end
+
+def create_timestamp(time_str)
+  return Time.parse(time_str).iso8601.delete('Z')
 end
 
 def change_building_id(osw, building_id)
