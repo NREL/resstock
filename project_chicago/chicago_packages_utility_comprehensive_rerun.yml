@@ -1,0 +1,770 @@
+stock_type: residential
+buildstock_directory: ../ResStock_chicago  # Relative to this file or absolute
+project_directory: project_chicago  # Relative to buildstock_directory
+output_directory: /projects/enduse/project_chicago/cookcnty_packages_comprehensive
+weather_files_path: ../project_chicago/weatherfiles/TMY_2007_Chicago.zip  # Relative to this file or absolute path to zipped weather files
+
+### SWITCH WEATHER TO TMY
+
+reporting_measures:
+  - QOIReport
+
+baseline:
+  sampling_algorithm: precomputed #quota
+  precomputed_sample: buildstock.csv #../OpenStudio-BuildStock/project_chicago/buildstock_SFD.csv # sampled from 40K, down-selected to SFD, renumbered buildings
+  n_datapoints: 40000
+  n_buildings_represented: 2173433 #total number of housing units in Cook County using ACS 2010 5-year estimates
+schema_version: 0.2
+
+residential_simulation_controls:
+  timesteps_per_hr: 4
+  begin_month: 1
+  begin_day_of_month: 1
+  end_month: 12
+  end_day_of_month: 31
+  calendar_year: 2007
+
+upgrades:
+  
+#### Phase 2: Packaged Upgrades v3
+
+##### Comprehensive Upgrades ###################################
+### Package 1 ### (29 options)
+  - upgrade_name: Comprehensive - Forced Air + WH + Shell
+    options:
+## Wall Insulation (2) 
+      - &wall_insulation_r13_p1
+        option: Insulation Wall|Wood Stud, R-13 #1
+        apply_logic: Insulation Wall|Wood Stud, Uninsulated
+        costs: 
+          - value: 2.4
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+      - &wall_insulation_r13_p2
+        option: Insulation Wall|Wood Stud, R-13 #2
+        apply_logic: 
+          or:
+            - Insulation Wall|Wood Stud, R-7
+            - Insulation Wall|Wood Stud, R-11
+        costs: 
+          - value: 1.2
+            multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
+        lifetime: 999
+## Windows (1)
+      - &windows_double_high_gain
+        option: Windows|Low-E, Double, High-Gain #3
+        apply_logic: 
+          or:
+            - Windows|1 Pane
+            - Windows|2+ Pane
+        costs:
+          - value: 44
+            multiplier: Window Area (ft^2)
+        lifetime: 30
+## Lighting (1)
+      - &lighting
+        option: Lighting|100% LED #4
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|100% CFL
+        costs:
+          - value: 0.40
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+## Fuel Furnace Upgrade (2)
+      - option: HVAC Heating Efficiency|Fuel Furnace, 96% AFUE #5
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 2600
+            multiplier: Fixed (1)
+          - value: 3.9
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 20
+      - option: HVAC Heating Type And Fuel|Natural Gas Fuel Furnace #6
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Furnace, 60% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Furnace, 92.5% AFUE
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+## Water Heater (1)
+      - &water_heater_heat_pump
+        option: Water Heater|Electric Heat Pump, 50 gal, Rheem #7
+        apply_logic: 
+          or:
+            - Water Heater|Gas Standard
+            - Water Heater|Gas Premium
+            - Water Heater|Oil Standard
+            - Water Heater|Oil Premium
+            - Water Heater|Propane Standard
+            - Water Heater|Propane Premium
+        costs:
+          - value: 1800
+            multiplier: Fixed (1)
+        lifetime: 20
+## Attic Insulation R-60 (7)
+      - &attic_insulation_r60_p1
+        option: Insulation Unfinished Attic|Ceiling R-60, Vented #1, #8
+        apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+        costs:
+          - value: 2.9
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r60_p2
+        option: Insulation Unfinished Attic|Ceiling R-60, Vented #2, #9
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        costs:
+          - value: 2.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r60_p3
+        option: Insulation Unfinished Attic|Ceiling R-60, Vented #3, #10
+        apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+        costs:
+          - value: 2.1
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r60_p4
+        option: Insulation Unfinished Attic|Ceiling R-60, Vented #4, #11
+        apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 1.9
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r60_p5
+        option: Insulation Unfinished Attic|Ceiling R-60, Vented #5, #12
+        apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
+        costs:
+          - value: 1.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r60_p6
+        option: Insulation Unfinished Attic|Ceiling R-60, Vented #6, #13
+        apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0.99
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r60_p7
+        option: Insulation Unfinished Attic|Ceiling R-60, Vented #7, #14
+        apply_logic: Insulation Unfinished Attic|Ceiling R-49, Vented
+        costs:
+          - value: 0.49
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+## Air Sealing (15)
+      - &air_sealing_25pct_p1
+        option: Infiltration|37.5 ACH50 #1, #15
+        apply_logic: Infiltration|50 ACH50
+        costs:
+          - value: 2.17 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p2
+        option: Infiltration|30 ACH50 #2, #16
+        apply_logic: Infiltration|40 ACH50
+        costs:
+          - value: 1.78 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p3
+        option: Infiltration|22.5 ACH50 #3, #17
+        apply_logic: Infiltration|30 ACH50
+        costs:
+          - value: 1.39 #based on regression
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p4
+        option: Infiltration|18.75 ACH50 #4, #18
+        apply_logic: Infiltration|25 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p5
+        option: Infiltration|15 ACH50 #5, #19
+        apply_logic: Infiltration|20 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p6
+        option: Infiltration|11.25 ACH50 #6, #20
+        apply_logic: Infiltration|15 ACH50
+        costs:
+          - value: 1.2
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p7
+        option: Infiltration|7.5 ACH50 #7, #21
+        apply_logic: Infiltration|10 ACH50
+        costs:
+          - value: 0.63
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p8
+        option: Infiltration|6 ACH50 #8, #22
+        apply_logic: Infiltration|8 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p9
+        option: Infiltration|5.25 ACH50 #9, #15
+        apply_logic: Infiltration|7 ACH50
+        costs:
+          - value: 0.52
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p10
+        option: Infiltration|4.5 ACH50 #10, #16
+        apply_logic: Infiltration|6 ACH50
+        costs:
+          - value: 0.41
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p11
+        option: Infiltration|3.75 ACH50 #11, #17
+        apply_logic: Infiltration|5 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p12
+        option: Infiltration|3 ACH50 #12, #18
+        apply_logic: Infiltration|4 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p13
+        option: Infiltration|2.25 ACH50 #13, #19
+        apply_logic: Infiltration|3 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p14
+        option: Infiltration|1.5 ACH50 #14, #20
+        apply_logic: Infiltration|2 ACH50
+        costs:
+          - value: 0.31
+            multiplier: Floor Area, Conditioned (ft^2)
+        lifetime: 999
+      - &air_sealing_25pct_p15
+        option: Mechanical Ventilation|Exhaust, 2010 ASHRAE 62.2 #15, #21
+        apply_logic: 
+          and:
+            - Mechanical Ventilation|None
+            - or:
+              - Infiltration|2 ACH50
+              - Infiltration|3 ACH50
+              - Infiltration|4 ACH50
+              - Infiltration|5 ACH50
+              - Infiltration|6 ACH50
+              - Infiltration|7 ACH50
+        costs: 
+          - value: 360
+            multiplier: Fixed (1)
+        lifetime: 999
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|Yes
+
+
+### Package 2 ### (29 options)
+  - upgrade_name: Comprehensive - Hydronic + WH + Shell
+    options:
+## Wall Insulation (2) 
+      - *wall_insulation_r13_p1 #1
+      - *wall_insulation_r13_p2 #2
+## Windows (1)
+      - *windows_double_high_gain #3
+## Lighting (1)
+      - *lighting #4
+## Fuel Boiler Upgrade (2)
+      - option: HVAC Heating Efficiency|Fuel Boiler, 96% AFUE #5
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+        costs:
+          - value: 43
+            multiplier: Size, Heating System (kBtu/h)
+          - value: 3100
+            multiplier: Fixed (1)
+        lifetime: 24
+      - option: HVAC Heating Type And Fuel|Natural Gas Fuel Boiler #6
+        apply_logic:
+          or:
+            - HVAC Heating Efficiency|Fuel Boiler, 76% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 80% AFUE
+            - HVAC Heating Efficiency|Fuel Boiler, 90% AFUE
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+## Water Heater (1)
+      - *water_heater_heat_pump #7
+## Attic Insulation R-60 (7)
+      - *attic_insulation_r60_p1 #8
+      - *attic_insulation_r60_p2 #9
+      - *attic_insulation_r60_p3 #10
+      - *attic_insulation_r60_p4 #11
+      - *attic_insulation_r60_p5 #12
+      - *attic_insulation_r60_p6 #13
+      - *attic_insulation_r60_p7 #14
+## Air Sealing (15)
+      - *air_sealing_25pct_p1 #15
+      - *air_sealing_25pct_p2 #16
+      - *air_sealing_25pct_p3 #17
+      - *air_sealing_25pct_p4 #18
+      - *air_sealing_25pct_p5 #19
+      - *air_sealing_25pct_p6 #20
+      - *air_sealing_25pct_p7 #21
+      - *air_sealing_25pct_p8 #22
+      - *air_sealing_25pct_p9 #23
+      - *air_sealing_25pct_p10 #24
+      - *air_sealing_25pct_p11 #25
+      - *air_sealing_25pct_p12 #26
+      - *air_sealing_25pct_p13 #27
+      - *air_sealing_25pct_p14 #28
+      - *air_sealing_25pct_p15 #29
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Heating Type And Fuel|Natural Gas Fuel Boiler
+
+
+### Package 3 ### (29 options)
+  - upgrade_name: Comprehensive - ASHP
+    options:
+## Wall Insulation (2) 
+      - *wall_insulation_r13_p1 #1
+      - *wall_insulation_r13_p2 #2
+## Lighting (1)
+      - *lighting #3
+## ASHP (3)
+      - &ashp_p1
+        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF #4
+        apply_logic: HVAC Has Ducts|Yes
+        costs:
+          - value: 4600
+            multiplier: Fixed (1)
+          - value: 42
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &ashp_p2
+        option: HVAC Cooling Efficiency|Heat Pump #5
+        apply_logic: HVAC Has Ducts|Yes
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &ashp_p3
+        option: HVAC Heating Type And Fuel|Electricity ASHP #6
+        apply_logic: HVAC Has Ducts|Yes
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+## Water Heater (1)
+      - *water_heater_heat_pump #7
+## Attic Insulation R-60 (7)
+      - *attic_insulation_r60_p1 #8
+      - *attic_insulation_r60_p2 #9
+      - *attic_insulation_r60_p3 #10
+      - *attic_insulation_r60_p4 #11
+      - *attic_insulation_r60_p5 #12
+      - *attic_insulation_r60_p6 #13
+      - *attic_insulation_r60_p7 #14
+## Air Sealing (15)
+      - *air_sealing_25pct_p1 #15
+      - *air_sealing_25pct_p2 #16
+      - *air_sealing_25pct_p3 #17
+      - *air_sealing_25pct_p4 #18
+      - *air_sealing_25pct_p5 #19
+      - *air_sealing_25pct_p6 #20
+      - *air_sealing_25pct_p7 #21
+      - *air_sealing_25pct_p8 #22
+      - *air_sealing_25pct_p9 #23
+      - *air_sealing_25pct_p10 #24
+      - *air_sealing_25pct_p11 #25
+      - *air_sealing_25pct_p12 #26
+      - *air_sealing_25pct_p13 #27
+      - *air_sealing_25pct_p14 #28
+      - *air_sealing_25pct_p15 #29
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|Yes
+
+
+### Package 4 ### (30 options)
+  - upgrade_name: Comprehensive - MSHP
+    options:
+## Wall Insulation (2) 
+      - *wall_insulation_r13_p1 #1
+      - *wall_insulation_r13_p2 #2
+## Lighting (1)
+      - *lighting #3
+## MSHP (4)
+      - &mshp_p1
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF #4
+        apply_logic: HVAC Has Ducts|No
+        costs:
+          - value: 710 # prev: 2510
+            multiplier: Fixed (1)
+          - value: 245 # prev: 95, new: 95+1800/12 = 95+150
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &mshp_p2
+        option: HVAC Cooling Type|Heat Pump #5
+        apply_logic: HVAC Has Ducts|No
+        costs:
+          - value: 0 
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &mshp_p3
+        option: HVAC Cooling Efficiency|Heat Pump #6
+        apply_logic: HVAC Has Ducts|No
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - &mshp_p4
+        option: HVAC Heating Type And Fuel|Electricity MSHP #7
+        apply_logic: HVAC Has Ducts|No
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+## Water Heater (1)
+      - *water_heater_heat_pump #8
+## Attic Insulation R-60 (7)
+      - *attic_insulation_r60_p1 #9
+      - *attic_insulation_r60_p2 #10
+      - *attic_insulation_r60_p3 #11
+      - *attic_insulation_r60_p4 #12
+      - *attic_insulation_r60_p5 #13
+      - *attic_insulation_r60_p6 #14
+      - *attic_insulation_r60_p7 #15
+## Air Sealing (15) - (2 partitions)
+      - *air_sealing_25pct_p1 #16
+      - *air_sealing_25pct_p2 #17
+      - *air_sealing_25pct_p3 #18
+      - *air_sealing_25pct_p4 #19
+      - *air_sealing_25pct_p5 #20
+      - *air_sealing_25pct_p6 #21
+      - *air_sealing_25pct_p7 #22
+      - *air_sealing_25pct_p8 #23
+      - *air_sealing_25pct_p9 #24
+      - *air_sealing_25pct_p10 #25
+      - *air_sealing_25pct_p11 #26
+      - *air_sealing_25pct_p12 #27
+      - *air_sealing_25pct_p13 #28
+      - *air_sealing_25pct_p14 #29
+      - *air_sealing_25pct_p15 #30
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|No
+
+
+##### Package Type 2: Electrification Packages ###################################
+### Package 5 ### (39 options)
+  - upgrade_name: Electrification - Gas to ASHP
+    options:
+## Wall Insulation (2) 
+      - *wall_insulation_r13_p1 #1
+      - *wall_insulation_r13_p2 #2
+## Windows (1)
+      - *windows_double_high_gain #3
+## Lighting (1)
+      - *lighting #4
+## ASHP (3)
+      - *ashp_p1 #5
+      - *ashp_p2 #6
+      - *ashp_p3 #7
+## Water Heater (1)
+      - *water_heater_heat_pump #8
+## Clothes Washer (3)
+      - &clothes_washer_p1
+        option: Clothes Washer|EnergyStar Most Efficient, 80% Usage #9
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 80% Usage
+            - Clothes Washer|Standard, 80% Usage
+        costs:
+          - value: 1400
+            multiplier: Fixed (1)
+        lifetime: 14
+      - &clothes_washer_p2
+        option: Clothes Washer|EnergyStar Most Efficient, 100% Usage #10
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 100% Usage
+            - Clothes Washer|Standard, 100% Usage
+        costs:
+          - value: 1400
+            multiplier: Fixed (1)
+        lifetime: 14
+      - &clothes_washer_p3
+        option: Clothes Washer|EnergyStar Most Efficient, 120% Usage #11
+        apply_logic:
+          or:
+            - Clothes Washer|EnergyStar, 120% Usage
+            - Clothes Washer|Standard, 120% Usage
+        costs:
+          - value: 1400
+            multiplier: Fixed (1)
+        lifetime: 14
+## Dryer (3)
+      - &clothes_dryer_p1
+        option: Clothes Dryer|Electric, Heat Pump, Ventless, 80% Usage #12
+        apply_logic: 
+          or:
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Gas, 80% Usage
+        costs:
+          - value: 1450
+            multiplier: Fixed (1)
+        lifetime: 13
+      - &clothes_dryer_p2
+        option: Clothes Dryer|Electric, Heat Pump, Ventless, 100% Usage #13
+        apply_logic: 
+          or:
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Gas, 100% Usage
+        costs:
+          - value: 1450
+            multiplier: Fixed (1)
+        lifetime: 13
+      - &clothes_dryer_p3
+        option: Clothes Dryer|Electric, Heat Pump, Ventless, 120% Usage #14
+        apply_logic: 
+          or:
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Gas, 120% Usage
+        costs:
+          - value: 1450
+            multiplier: Fixed (1)
+        lifetime: 13
+## Dishwasher (3)
+      - &dishwasher_p1
+        option: Dishwasher|199 Rated kWh, 80% Usage #15
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 80% Usage
+            - Dishwasher|290 Rated kWh, 80% Usage
+        costs:
+          - value: 1200
+            multiplier: Fixed (1)
+        lifetime: 11
+      - &dishwasher_p2
+        option: Dishwasher|199 Rated kWh, 100% Usage #16
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 100% Usage
+            - Dishwasher|290 Rated kWh, 100% Usage
+        costs:
+          - value: 1200
+            multiplier: Fixed (1)
+        lifetime: 11
+      - &dishwasher_p3
+        option: Dishwasher|199 Rated kWh, 120% Usage #17
+        apply_logic: 
+          or:
+            - Dishwasher|318 Rated kWh, 120% Usage
+            - Dishwasher|290 Rated kWh, 120% Usage
+        costs:
+          - value: 1200
+            multiplier: Fixed (1)
+        lifetime: 11
+## Range (1)
+      - &induction_cooking
+        option: Cooking Range|Electric, Induction #18
+        apply_logic: 
+          or:
+            - Cooking Range|Electric, 80% Usage
+            - Cooking Range|Electric, 100% Usage
+            - Cooking Range|Electric, 120% Usage
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Gas, 120% Usage
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Propane, 120% Usage
+        costs:
+          - value: 1900
+            multiplier: Fixed (1)
+        lifetime: 13
+## Air Sealing (15)
+      - *air_sealing_25pct_p1 #19
+      - *air_sealing_25pct_p2 #20
+      - *air_sealing_25pct_p3 #21
+      - *air_sealing_25pct_p4 #22
+      - *air_sealing_25pct_p5 #23
+      - *air_sealing_25pct_p6 #24
+      - *air_sealing_25pct_p7 #25
+      - *air_sealing_25pct_p8 #26
+      - *air_sealing_25pct_p9 #27
+      - *air_sealing_25pct_p10 #28
+      - *air_sealing_25pct_p11 #29
+      - *air_sealing_25pct_p12 #30
+      - *air_sealing_25pct_p13 #31
+      - *air_sealing_25pct_p14 #32
+      - *air_sealing_25pct_p15 #33
+## Attic Insulation R-49 (6)
+      - &attic_insulation_r49_p1
+        option: Insulation Unfinished Attic|Ceiling R-49, Vented #1, #34
+        apply_logic: Insulation Unfinished Attic|Uninsulated, Vented
+        costs:
+          - value: 2.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r49_p2
+        option: Insulation Unfinished Attic|Ceiling R-49, Vented #2, #35
+        apply_logic: Insulation Unfinished Attic|Ceiling R-7, Vented
+        costs:
+          - value: 1.9
+            multiplier: Floor Area, Attic (ft^2)
+      - &attic_insulation_r49_p3
+        option: Insulation Unfinished Attic|Ceiling R-49, Vented #3, #36
+        apply_logic: Insulation Unfinished Attic|Ceiling R-13, Vented
+        costs:
+          - value: 1.6
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r49_p4
+        option: Insulation Unfinished Attic|Ceiling R-49, Vented #4, #37
+        apply_logic: Insulation Unfinished Attic|Ceiling R-19, Vented
+        costs:
+          - value: 1.4
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r49_p5
+        option: Insulation Unfinished Attic|Ceiling R-49, Vented #5, #38
+        apply_logic: Insulation Unfinished Attic|Ceiling R-30, Vented
+        costs:
+          - value: 0.87
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+      - &attic_insulation_r49_p6
+        option: Insulation Unfinished Attic|Ceiling R-49, Vented #6, #39
+        apply_logic: Insulation Unfinished Attic|Ceiling R-38, Vented
+        costs:
+          - value: 0.5
+            multiplier: Floor Area, Attic (ft^2)
+        lifetime: 999
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|Yes
+
+
+### Package 6 ### (40 options)
+  - upgrade_name: Electrification - Gas to MSHP
+    options:
+## Wall Insulation (2) 
+      - *wall_insulation_r13_p1 #1
+      - *wall_insulation_r13_p2 #2
+## Windows (1)
+      - *windows_double_high_gain #3
+## Lighting (1)
+      - *lighting #4
+## MSHP (4)
+      - *mshp_p1 #5
+      - *mshp_p2 #6
+      - *mshp_p3 #7
+      - *mshp_p4 #8
+## Water Heater (1)
+      - *water_heater_heat_pump #9
+## Clothes Washer (3)
+      - *clothes_washer_p1 #10
+      - *clothes_washer_p2 #11
+      - *clothes_washer_p3 #12
+## Dryer (3)
+      - *clothes_dryer_p1 #13
+      - *clothes_dryer_p2 #14
+      - *clothes_dryer_p3 #15
+## Dishwasher (3)
+      - *dishwasher_p1 #16
+      - *dishwasher_p2 #17
+      - *dishwasher_p3 #18
+## Range (1)
+      - *induction_cooking #19
+## Air Sealing (15)
+      - *air_sealing_25pct_p1 #20
+      - *air_sealing_25pct_p2 #21
+      - *air_sealing_25pct_p3 #22
+      - *air_sealing_25pct_p4 #23
+      - *air_sealing_25pct_p5 #24
+      - *air_sealing_25pct_p6 #25
+      - *air_sealing_25pct_p7 #26
+      - *air_sealing_25pct_p8 #27
+      - *air_sealing_25pct_p9 #28
+      - *air_sealing_25pct_p10 #29
+      - *air_sealing_25pct_p11 #30
+      - *air_sealing_25pct_p12 #31
+      - *air_sealing_25pct_p13 #32
+      - *air_sealing_25pct_p14 #33
+      - *air_sealing_25pct_p15 #34
+## Attic Insulation R-49 (6)
+      - *attic_insulation_r49_p1 #35
+      - *attic_insulation_r49_p2 #36
+      - *attic_insulation_r49_p3 #37
+      - *attic_insulation_r49_p4 #38
+      - *attic_insulation_r49_p5 #39
+      - *attic_insulation_r49_p6 #40
+    package_apply_logic: 
+      and: 
+          - Heating Fuel|Natural Gas
+          - HVAC Has Ducts|No
+
+simulation_output:
+  include_enduse_subcategories: true
+
+timeseries_csv_export:
+  reporting_frequency: Timestep
+  include_enduse_subcategories: true
+  output_variables: Site Outdoor Air Drybulb Temperature, Site Outdoor Air Relative Humidity, Zone Mean Air Temperature
+
+# downselect:
+#   resample: false
+#   logic:
+#     - Geometry Building Type RECS|Single-Family Detached
+
+eagle:
+  n_jobs: 185
+  minutes_per_sim: 60
+  account: enduse
+  sampling:
+    time: 120
+  postprocessing:
+    time: 240
+    n_workers: 20
+
+postprocessing:
+  aggregate_timeseries: false
+  # aws:
+  #   region_name: 'us-west-2'
+  #   s3:
+  #     bucket: resbldg-datasets
+  #     prefix: chicagoeui/cookcnty_packages_02
+  #   athena:
+  #     glue_service_role: service-role/AWSGlueServiceRole-default
+  #     database_name: chicagoeui
+  #     max_crawling_time: 1000 #time to wait for the crawler to complete before aborting it
