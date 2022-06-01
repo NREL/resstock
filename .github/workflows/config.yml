@@ -74,8 +74,10 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: |
-            project_national/national_baseline/results-Baseline.csv
-            project_testing/testing_baseline/results-Baseline.csv
+            project_national/results-Baseline.csv
+            project_testing/results-Baseline.csv
+            project_national/results-AllUpgrades.csv
+            project_testing/results-AllUpgrades.csv
           name: run_analysis
 
   integration-tests:
@@ -132,6 +134,8 @@ jobs:
           path: |
             project_national/national_baseline/results_csvs/results_up00.csv
             project_testing/testing_baseline/results_csvs/results_up00.csv
+            project_national/national_upgrades/results_csvs/results_up13.csv
+            project_testing/testing_upgrades/results_csvs/results_up13.csv
           name: buildstockbatch
 
   compare-tools:
