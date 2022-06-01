@@ -1,6 +1,7 @@
 ## LA100 ES - ResStock v2.5.0 
 
 Updates: 
+- Merge in ResStock Income/Tenure ([#83](https://github.com/NREL/la100es-resstock/pull/83))
 - Add simulation yaml files and revive EULP visualization notebook for pre- and post-HPXML resstock comparison ([#82](https://github.com/NREL/la100es-resstock/pull/82))
 - Copy over the sampling probability script from resstock-estimation to correct bugs in previous versions of the code ([#74](https://github.com/NREL/la100es-resstock/pull/74))
 - Bring in commit history from ResStock ([#73](https://github.com/NREL/la100es-resstock/pull/73))
