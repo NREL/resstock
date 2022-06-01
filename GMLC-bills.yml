@@ -235,10 +235,9 @@ upgrades:
               - Bedrooms|1
               - Bedrooms|2
               - Bedrooms|3
-            - not:
-              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         costs: *blank_costs
         lifetime: 12
       - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
@@ -246,10 +245,9 @@ upgrades:
           and:
             - or:
               - Bedrooms|4
-            - not:
-              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         costs: *blank_costs
         lifetime: 12
       - option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
@@ -257,10 +255,9 @@ upgrades:
           and:
             - or:
               - Bedrooms|5
-            - not:
-              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
         costs: *blank_costs
         lifetime: 12
       # Clothes washer Upgrade
@@ -336,10 +333,31 @@ upgrades:
             - Clothes Dryer|Propane, 120% Usage
         costs: *blank_costs
         lifetime: 13
-      - &cooking_range
+      - &cooking_range_120_pct_usage
         option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
-          not: Cooking Range|Electric, Induction, 100% Usage
+          or:
+            - Cooking Range: Gas, 120% Usage
+            - Cooking Range: Propane, 120% Usage
+            - Cooking Range: Electric, 120% Usage
+        costs: *blank_costs
+        lifetime: 999
+      - &cooking_range_100_pct_usage
+        option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range: Gas, 100% Usage
+            - Cooking Range: Propane, 100% Usage
+            - Cooking Range: Electric, 100% Usage
+        costs: *blank_costs
+        lifetime: 999
+      - &cooking_range_80_pct_usage
+        option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range: Gas, 80% Usage
+            - Cooking Range: Propane, 80% Usage
+            - Cooking Range: Electric, 80% Usage
         costs: *blank_costs
         lifetime: 999
 
@@ -414,10 +432,9 @@ upgrades:
               - Bedrooms|1
               - Bedrooms|2
               - Bedrooms|3
-            - not:
-              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
             - Water Heater Fuel|Electricity
         costs:
           - value: 0
@@ -428,10 +445,9 @@ upgrades:
           and:
             - or:
               - Bedrooms|4
-            - not:
-              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
             - Water Heater Fuel|Electricity
         costs:
           - value: 0
@@ -442,10 +458,9 @@ upgrades:
           and:
             - or:
               - Bedrooms|5
-            - not:
-              - Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
-              - Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
             - Water Heater Fuel|Electricity
         costs:
           - value: 0
@@ -483,7 +498,25 @@ upgrades:
       - *dishwasher_80pct
       - *dishwasher_100pct
       - *dishwasher_120pct
-      - *cooking_range
+      - option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range: Electric, 120% Usage
+        costs: *blank_costs
+        lifetime: 999
+      - option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range: Electric, 100% Usage
+        costs: *blank_costs
+        lifetime: 999
+      - option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range: Electric, 80% Usage
+        costs: *blank_costs
+        lifetime: 999
+
   - upgrade_name: Envelope Package
     #Up03
     options:
@@ -499,9 +532,6 @@ upgrades:
               - Insulation Ceiling|R-7
               - Insulation Ceiling|R-13
               - Insulation Ceiling|R-19
-              - Insulation Ceiling|R-30
-              - Insulation Ceiling|R-38
-              - Insulation Ceiling|R-49
             - Geometry Attic Type|Vented Attic
         costs: *blank_costs
         lifetime: 999
@@ -522,7 +552,6 @@ upgrades:
               - Insulation Ceiling|R-19
               - Insulation Ceiling|R-30
               - Insulation Ceiling|R-38
-              - Insulation Ceiling|R-49
               - Geometry Attic Type|Vented Attic
         costs: *blank_costs
         lifetime: 999
@@ -558,6 +587,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, Uninsulated
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_R-7_wood
@@ -565,6 +597,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-7
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_R-11_wood
@@ -572,6 +607,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-11
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_R-13_wood
@@ -579,6 +617,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-13
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_R-15_wood
@@ -586,6 +627,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Wood Stud, R-15
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_uninsulated_cmu
@@ -600,6 +644,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, R-7
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_R-11_cmu
@@ -607,6 +654,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|CMU, 6-in Hollow, R-11
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_R-15_cmu
@@ -621,6 +671,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_R-7_brick
@@ -628,6 +681,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_R-11_brick
@@ -635,6 +691,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       - &polyiso_1inch_on_R-15_brick
@@ -642,6 +701,9 @@ upgrades:
         apply_logic:
           and:
             - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
         costs:  *blank_costs
         lifetime: 30
       #Add exterior low-E storms for single and double pane windows
