@@ -336,7 +336,7 @@ class TestRunAnalysis < MiniTest::Test
     _test_contents(contents, false, false)
 
     _test_measure_order(File.join(@national_upgrades, 'national_upgrades-AllUpgrades.osw'))
-    results_allupgrades - File.join(@national_upgrades, 'results-AllUpgrades.csv')
+    results_allupgrades = File.join(@national_upgrades, 'results-AllUpgrades.csv')
     assert(File.exist?(results_allupgrades))
     results = CSV.read(results_allupgrades, headers: true)
 

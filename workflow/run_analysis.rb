@@ -302,14 +302,15 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   all_cli_output = []
 
   Parallel.map(workflow_and_building_ids, in_threads: n_threads) do |upgrade_name, workflow, building_id|
+    job_id = Parallel.worker_number + 1
     if keep_run_folders
-      job_id = workflow_and_building_ids.index([upgrade_name, workflow, building_id]) + 1
+      folder_id = workflow_and_building_ids.index([upgrade_name, workflow, building_id]) + 1
     else
-      job_id = Parallel.worker_number + 1
+      folder_id = job_id
     end
 
     all_results_output[upgrade_name] = [] if !all_results_output.keys.include?(upgrade_name)
-    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
+    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
 
     info = "[Parallel(n_jobs=#{n_threads})]: "
     max_size = "#{workflow_and_building_ids.size}".size
@@ -368,14 +369,14 @@ def get_elapsed_time(t1, t0)
   return t
 end
 
-def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
+def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
   scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
 
   scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
 
   osw_basename = File.basename(workflow)
 
-  worker_folder = "run#{job_id}"
+  worker_folder = "run#{folder_id}"
   worker_dir = File.join(results_dir, worker_folder)
   FileUtils.rm_rf(worker_dir)
   Dir.mkdir(worker_dir)
