@@ -3,7 +3,6 @@
 require 'parallel'
 require 'json'
 require 'yaml'
-require 'zip'
 
 require_relative '../resources/buildstock'
 require_relative '../resources/run_sampling'
@@ -258,6 +257,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     end
 
     puts 'Extracting weather files...'
+    require 'zip'
+    Zip.on_exists_proc = true
     Zip::File.open(weather_files_path) do |zip_file|
       zip_file.each do |f|
         fpath = File.join(weather_dir, f.name)

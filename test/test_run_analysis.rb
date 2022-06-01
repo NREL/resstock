@@ -182,6 +182,14 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
+    cli_output_log = File.join(@testing_baseline, 'cli_output.log')
+    assert(File.exist?(cli_output_log))
+    cli_output = File.read(cli_output_log)
+    if cli_output.include?('ERROR')
+      puts cli_output
+      assert(!cli_output.include?('ERROR'))
+    end
+
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     results_baseline = File.join(@testing_baseline, 'results-Baseline.csv')
     assert(File.exist?(results_baseline))
@@ -197,9 +205,6 @@ class TestRunAnalysis < MiniTest::Test
     timeseries = _get_timeseries_columns(Dir[File.join(@testing_baseline, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries, true))
 
-    assert(File.exist?(File.join(@testing_baseline, 'cli_output.log')))
-    assert(!File.read(File.join(@testing_baseline, 'cli_output.log')).include?('ERROR'))
-
     assert(File.exist?(File.join(@testing_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@testing_baseline, 'xml', 'Baseline', '1.xml')))
 
@@ -212,6 +217,14 @@ class TestRunAnalysis < MiniTest::Test
     @command += ' -k'
 
     system(@command)
+
+    cli_output_log = File.join(@national_baseline, 'cli_output.log')
+    assert(File.exist?(cli_output_log))
+    cli_output = File.read(cli_output_log)
+    if cli_output.include?('ERROR')
+      puts cli_output
+      assert(!cli_output.include?('ERROR'))
+    end
 
     _test_measure_order(File.join(@national_baseline, 'national_baseline-Baseline.osw'))
     results_baseline = File.join(@national_baseline, 'results-Baseline.csv')
@@ -228,9 +241,6 @@ class TestRunAnalysis < MiniTest::Test
     timeseries = _get_timeseries_columns(Dir[File.join(@national_baseline, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
 
-    assert(File.exist?(File.join(@national_baseline, 'cli_output.log')))
-    assert(!File.read(File.join(@national_baseline, 'cli_output.log')).include?('ERROR'))
-
     assert(File.exist?(File.join(@national_baseline, 'osw', 'Baseline', '1.osw')))
     assert(File.exist?(File.join(@national_baseline, 'xml', 'Baseline', '1.xml')))
 
@@ -244,6 +254,14 @@ class TestRunAnalysis < MiniTest::Test
     @command += ' -k'
 
     system(@command)
+
+    cli_output_log = File.join(@testing_upgrades, 'cli_output.log')
+    assert(File.exist?(cli_output_log))
+    cli_output = File.read(cli_output_log)
+    if cli_output.include?('ERROR')
+      puts cli_output
+      assert(!cli_output.include?('ERROR'))
+    end
 
     _test_measure_order(File.join(@testing_upgrades, 'testing_upgrades-Baseline.osw'))
     results_baseline = File.join(@testing_upgrades, 'results-Baseline.csv')
@@ -272,9 +290,6 @@ class TestRunAnalysis < MiniTest::Test
     timeseries = _get_timeseries_columns(Dir[File.join(@testing_upgrades, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries, true))
 
-    assert(File.exist?(File.join(@testing_upgrades, 'cli_output.log')))
-    assert(!File.read(File.join(@testing_upgrades, 'cli_output.log')).include?('ERROR'))
-
     assert(File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@testing_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
     assert(File.exist?(File.join(@testing_upgrades, 'xml', 'Baseline', '1-existing-defaulted.xml')))
@@ -299,6 +314,14 @@ class TestRunAnalysis < MiniTest::Test
     @command += ' -k'
 
     system(@command)
+
+    cli_output_log = File.join(@national_upgrades, 'cli_output.log')
+    assert(File.exist?(cli_output_log))
+    cli_output = File.read(cli_output_log)
+    if cli_output.include?('ERROR')
+      puts cli_output
+      assert(!cli_output.include?('ERROR'))
+    end
 
     _test_measure_order(File.join(@national_upgrades, 'national_upgrades-Baseline.osw'))
     results_baseline = File.join(@national_upgrades, 'results-Baseline.csv')
@@ -326,9 +349,6 @@ class TestRunAnalysis < MiniTest::Test
 
     timeseries = _get_timeseries_columns(Dir[File.join(@national_upgrades, 'run*/run/results_timeseries.csv')])
     assert(_test_timeseries_columns(timeseries))
-
-    assert(File.exist?(File.join(@national_upgrades, 'cli_output.log')))
-    assert(!File.read(File.join(@national_upgrades, 'cli_output.log')).include?('ERROR'))
 
     assert(File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-existing.osw')))
     assert(!File.exist?(File.join(@national_upgrades, 'osw', 'Baseline', '1-upgraded.osw')))
