@@ -44,7 +44,7 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
 
   def test_stochastic_schedules
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-stochastic.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic.xml'))
     model, hpxml = _test_measure(args_hash)
 
     schedule_constants = 9
@@ -114,7 +114,7 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
 
   def test_stochastic_vacancy_schedules
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-stochastic-vacancy.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy.xml'))
     model, hpxml = _test_measure(args_hash)
 
     schedule_constants = 9
@@ -131,7 +131,7 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
 
   def test_smooth_schedules
     args_hash = {}
-    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-smooth.xml'))
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-smooth.xml'))
     model, hpxml = _test_measure(args_hash)
 
     schedule_constants = 9

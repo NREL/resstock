@@ -1,6 +1,7 @@
 ## LA100 ES - ResStock v2.5.0 
 
 Updates: 
+- Merge in ResStock Income/Tenure ([#83](https://github.com/NREL/la100es-resstock/pull/83))
 - Add weather files for years 2012, 2015, 2016, 2017, 2020, 2025, 2030, 2035, 2040, and 2045 ([#85](https://github.com/NREL/la100es-resstock/pull/85))
 - Add simulation yaml files and revive EULP visualization notebook for pre- and post-HPXML resstock comparison ([#82](https://github.com/NREL/la100es-resstock/pull/82))
 - Copy over the sampling probability script from resstock-estimation to correct bugs in previous versions of the code ([#74](https://github.com/NREL/la100es-resstock/pull/74))
