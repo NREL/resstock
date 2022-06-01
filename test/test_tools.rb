@@ -16,7 +16,7 @@ class TestTools < MiniTest::Test
       run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-Baseline.csv")
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
-      puts "\n#{project}"
+      puts "\n#{project}_baseline"
 
       buildstockbatch_extras = buildstockbatch.headers - run_analysis.headers
       puts "buildstockbatch - run_analysis: #{buildstockbatch_extras}"
@@ -39,7 +39,7 @@ class TestTools < MiniTest::Test
       run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-AllUpgrades.csv")
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
-      puts "\n#{project}"
+      puts "\n#{project}_upgrades"
 
       buildstockbatch_extras = buildstockbatch.headers - run_analysis.headers
       puts "buildstockbatch - run_analysis: #{buildstockbatch_extras}"
@@ -47,7 +47,7 @@ class TestTools < MiniTest::Test
       run_analysis_extras = run_analysis.headers - buildstockbatch.headers
       puts "run_analysis - buildstockbatch: #{run_analysis_extras}"
 
-      buildstockbatch_extras -= ['apply_upgrade.applicable', 'apply_upgrade.upgrade_name', 'apply_upgrade.reference_scenario']
+      buildstockbatch_extras -= ['apply_upgrade.reference_scenario', 'simulation_output_report.applicable'] # TODO: remove simulation_output_report.applicable from buildstockbatch
       assert_equal(0, buildstockbatch_extras.size)
 
       assert_equal(0, run_analysis_extras.size)

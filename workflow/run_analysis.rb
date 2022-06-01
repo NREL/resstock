@@ -399,8 +399,8 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
   result_output['started_at'] = started_at
   result_output['completed_at'] = completed_at
   result_output['completed_status'] = completed_status
-  result_output['build_existing_model.units_represented'] = 1 # aligns with buildstockbatch
-  result_output.delete('build_existing_model.weight') # aligns with buildstockbatch
+
+  clean_up_result_output(result_output, upgrade)
 
   all_results_output[upgrade_name] << result_output
   all_cli_output << cli_output
@@ -417,6 +417,20 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
     FileUtils.cp(File.join(run_dir, 'in.xml'), File.join(scenario_xml_dir, "#{building_id}.xml")) if File.exist?(File.join(run_dir, 'in.xml'))
     FileUtils.cp(File.join(run_dir, 'existing.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'existing.osw')) && !File.exist?(File.join(run_dir, 'upgraded.osw'))
     FileUtils.cp(File.join(run_dir, 'upgraded.osw'), File.join(scenario_osw_dir, "#{building_id}.osw")) if File.exist?(File.join(run_dir, 'upgraded.osw'))
+  end
+end
+
+def clean_up_result_output(result_output, upgrade)
+  # aligns with buildstockbatch
+  result_output['build_existing_model.units_represented'] = 1 if !upgrade
+  result_output.keys.each do |col|
+    if col == 'build_existing_model.weight'
+      result_output.delete(col)
+    elsif col.include?('apply_upgrade')
+      if !['apply_upgrade.applicable', 'apply_upgrade.upgrade_name', 'apply_upgrade.reference_scenario'].include?(col)
+        result_output.delete(col)
+      end
+    end
   end
 end
 
