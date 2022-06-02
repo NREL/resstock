@@ -42,7 +42,7 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert("#{Version.software_program_used} v#{Version.software_program_version}", cli_output)
+    assert("ResStock v#{Version::ResStock_Version}", cli_output)
   end
 
   def test_errors_wrong_path
