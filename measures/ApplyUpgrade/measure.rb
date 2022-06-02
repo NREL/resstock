@@ -116,6 +116,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       return false
     end
 
+    Version.check_buildstockbatch_version()
+
     # Return N/A if not selected to run
     run_measure = runner.getIntegerArgumentValue('run_measure', user_arguments)
     if run_measure == 0
@@ -372,8 +374,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Get software program used and version
-    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = Version.software_program_used
-    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version.software_program_version
+    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
+    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
 
     # Get registered values and pass them to BuildResidentialHPXML
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = values['simulation_control_timestep']
