@@ -2,7 +2,7 @@ schema_version: '0.3'
 os_version: '3.3.0'
 buildstock_directory: . # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/enduse/gmlc-bills/bug-fix-test-aps-2
+output_directory: /projects/enduse/gmlc-bills/bug-fix-test-aps-3
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2019_FIPS.zip
 
@@ -338,27 +338,27 @@ upgrades:
         option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
           or:
-            - Cooking Range: Gas, 120% Usage
-            - Cooking Range: Propane, 120% Usage
-            - Cooking Range: Electric, 120% Usage
+            - Cooking Range|Gas, 120% Usage
+            - Cooking Range|Propane, 120% Usage
+            - Cooking Range|Electric, 120% Usage
         costs: *blank_costs
         lifetime: 999
       - &cooking_range_100_pct_usage
         option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
           or:
-            - Cooking Range: Gas, 100% Usage
-            - Cooking Range: Propane, 100% Usage
-            - Cooking Range: Electric, 100% Usage
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Electric, 100% Usage
         costs: *blank_costs
         lifetime: 999
       - &cooking_range_80_pct_usage
         option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
           or:
-            - Cooking Range: Gas, 80% Usage
-            - Cooking Range: Propane, 80% Usage
-            - Cooking Range: Electric, 80% Usage
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Electric, 80% Usage
         costs: *blank_costs
         lifetime: 999
 
@@ -502,19 +502,19 @@ upgrades:
       - option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
           or:
-            - Cooking Range: Electric, 120% Usage
+            - Cooking Range|Electric, 120% Usage
         costs: *blank_costs
         lifetime: 999
       - option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
           or:
-            - Cooking Range: Electric, 100% Usage
+            - Cooking Range|Electric, 100% Usage
         costs: *blank_costs
         lifetime: 999
       - option: Cooking Range|Electric, Induction, 100% Usage
         apply_logic:
           or:
-            - Cooking Range: Electric, 80% Usage
+            - Cooking Range|Electric, 80% Usage
         costs: *blank_costs
         lifetime: 999
 
@@ -1117,22 +1117,32 @@ upgrades:
         apply_logic: Heating Setpoint Has Offset|No
 
 
+# eagle:
+#   n_jobs: 50
+#   minutes_per_sim: 30
+#   account: enduse
+#   postprocessing:
+#     time: 480
+#     n_workers: 32
+#   sampling:
+#     time: 60
+
 eagle:
-  n_jobs: 50
-  minutes_per_sim: 30
+  n_jobs: 2
+  minutes_per_sim: 5
   account: enduse
   postprocessing:
-    time: 480
-    n_workers: 32
+    time: 30
+    n_workers: 1
   sampling:
-    time: 60
+    time: 20
 
 postprocessing:
   aws:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-gmlc-bills-lbnl #change this to an NREL bucket if needed for testing
-      prefix: bug-fix-test-aps-2 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: bug-fix-test-aps-3 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: resstock-gmlc #collection of Athena tables (post-crawling), can be constant for the entire analysis
