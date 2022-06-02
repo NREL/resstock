@@ -535,9 +535,15 @@ class Version
   BuildStockBatch_Version = 'develop' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
-    buildStockBatchVersion = 'develop' # FIXME: get this somehow
-    if buildStockBatchVersion < BuildStockBatch_Version
-      fail "BuildStockBatch version #{BuildStockBatch_Version} is required. Found version: #{buildStockBatchVersion}"
+    command = 'pip list | grep buildstockbatch'
+    bsb_output = `#{command}`
+    if !bsb_output.empty? # buildstockbatch is installed
+      _, buildStockBatchVersion, _ = bsb_output.split(' ')
+      buildStockBatchVersion = 'develop' # FIXME: remove this when buildstockbatch's version gets updated
+
+      if buildStockBatchVersion < BuildStockBatch_Version
+        fail "BuildStockBatch version #{BuildStockBatch_Version} is required. Found version: #{buildStockBatchVersion}"
+      end
     end
   end
 end
