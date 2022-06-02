@@ -116,8 +116,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    Version.check_buildstockbatch_version()
-
     # Return N/A if not selected to run
     run_measure = runner.getIntegerArgumentValue('run_measure', user_arguments)
     if run_measure == 0
@@ -194,6 +192,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+
+    Version.check_buildstockbatch_version()
 
     # Check file/dir paths exist
     check_dir_exists(resources_dir, runner)

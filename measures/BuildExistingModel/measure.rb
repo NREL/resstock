@@ -153,8 +153,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    Version.check_buildstockbatch_version()
-
     # assign the user inputs to variables
     args = get_argument_values(runner, arguments(model), user_arguments)
 
@@ -176,6 +174,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
+
+    Version.check_buildstockbatch_version()
 
     # Check file/dir paths exist
     check_dir_exists(resources_dir, runner)
