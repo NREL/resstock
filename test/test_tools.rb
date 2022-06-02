@@ -47,7 +47,9 @@ class TestTools < MiniTest::Test
       run_analysis_extras = run_analysis.headers - buildstockbatch.headers
       puts "run_analysis - buildstockbatch: #{run_analysis_extras}"
 
-      buildstockbatch_extras -= ['apply_upgrade.reference_scenario', 'simulation_output_report.applicable'] # TODO: remove simulation_output_report.applicable from buildstockbatch
+      buildstockbatch_extras -= ['apply_upgrade.reference_scenario']
+      buildstockbatch_extras -= ['simulation_output_report.applicable'] # TODO: remove simulation_output_report.applicable from buildstockbatch
+      buildstockbatch_extras -= ['upgrade_costs.option_04_name'] # TODO: buildstockbatch writes this because another upgrade (Lighting) has 4 options; see https://github.com/NREL/buildstockbatch/pull/271
       assert_equal(0, buildstockbatch_extras.size)
 
       assert_equal(0, run_analysis_extras.size)
