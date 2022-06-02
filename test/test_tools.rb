@@ -16,13 +16,11 @@ class TestTools < MiniTest::Test
       run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-Baseline.csv")
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
-      puts "\n#{project}_baseline"
-
       buildstockbatch_extras = buildstockbatch.headers - run_analysis.headers
-      puts "buildstockbatch - run_analysis: #{buildstockbatch_extras}"
+      puts "#{project}_baseline, buildstockbatch - run_analysis: #{buildstockbatch_extras}" if !buildstockbatch_extras.empty?
 
       run_analysis_extras = run_analysis.headers - buildstockbatch.headers
-      puts "run_analysis - buildstockbatch: #{run_analysis_extras}"
+      puts "#{project}_baseline, run_analysis - buildstockbatch: #{run_analysis_extras}" if !run_analysis_extras.empty?
 
       buildstockbatch_extras -= ['apply_upgrade.applicable', 'apply_upgrade.upgrade_name', 'apply_upgrade.reference_scenario']
       assert_equal(0, buildstockbatch_extras.size)
@@ -39,13 +37,11 @@ class TestTools < MiniTest::Test
       run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-AllUpgrades.csv")
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
-      puts "\n#{project}_upgrades"
-
       buildstockbatch_extras = buildstockbatch.headers - run_analysis.headers
-      puts "buildstockbatch - run_analysis: #{buildstockbatch_extras}"
+      puts "#{project}_upgrades, buildstockbatch - run_analysis: #{buildstockbatch_extras}" if !buildstockbatch_extras.empty?
 
       run_analysis_extras = run_analysis.headers - buildstockbatch.headers
-      puts "run_analysis - buildstockbatch: #{run_analysis_extras}"
+      puts "#{project}_upgrades, run_analysis - buildstockbatch: #{run_analysis_extras}" if !run_analysis_extras.empty?
 
       buildstockbatch_extras -= ['apply_upgrade.reference_scenario']
       buildstockbatch_extras -= ['simulation_output_report.applicable'] # TODO: remove simulation_output_report.applicable from buildstockbatch
@@ -53,6 +49,46 @@ class TestTools < MiniTest::Test
       assert_equal(0, buildstockbatch_extras.size)
 
       assert_equal(0, run_analysis_extras.size)
+    end
+  end
+
+  def test_baseline_results
+    columns = ['report_simulation_output.energy_use_total_m_btu']
+
+    ['national', 'testing'].each do |project|
+      buildstockbatch_path = File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_baseline/results_csvs/results_up00.csv")
+      buildstockbatch = CSV.read(buildstockbatch_path, headers: true)
+
+      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-Baseline.csv")
+      run_analysis = CSV.read(run_analysis_path, headers: true)
+
+      columns.each do |col|
+        buildstockbatch_sum = buildstockbatch[col].map { |v| Float(v) }.sum
+        run_analysis_sum = run_analysis[col].map { |v| Float(v) }.sum
+
+        assert_equal(buildstockbatch[col].size, run_analysis[col].size)
+        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.001)
+      end
+    end
+  end
+
+  def test_upgrades_results
+    columns = ['report_simulation_output.energy_use_total_m_btu']
+
+    ['national', 'testing'].each do |project|
+      buildstockbatch_path = File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_upgrades/results_csvs/results_up13.csv")
+      buildstockbatch = CSV.read(buildstockbatch_path, headers: true)
+
+      run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-AllUpgrades.csv")
+      run_analysis = CSV.read(run_analysis_path, headers: true)
+
+      columns.each do |col|
+        buildstockbatch_sum = buildstockbatch[col].map { |v| Float(v) }.sum
+        run_analysis_sum = run_analysis[col].map { |v| Float(v) }.sum
+
+        assert_equal(buildstockbatch[col].size, run_analysis[col].size)
+        assert_in_delta(buildstockbatch_sum, run_analysis_sum, 0.001)
+      end
     end
   end
 end
