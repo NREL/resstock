@@ -536,9 +536,9 @@ class Version
 
   def self.check_buildstockbatch_version
     if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
-      buildStockBatchVersion = ENV['BUILDSTOCKBATCH_VERSION']
-      if buildStockBatchVersion < BuildStockBatch_Version
-        fail "BuildStockBatch version #{BuildStockBatch_Version} is required. Found version: #{buildStockBatchVersion}"
+      bsb_version = ENV['BUILDSTOCKBATCH_VERSION']
+      if bsb_version < BuildStockBatch_Version
+        fail "BuildStockBatch version #{BuildStockBatch_Version} or above is required. Found version: #{bsb_version}"
       end
     end
   end
