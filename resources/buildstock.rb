@@ -535,10 +535,8 @@ class Version
   BuildStockBatch_Version = '0.22' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
-    command = 'pip list | grep buildstockbatch'
-    bsb_output = `#{command}`
-    if !bsb_output.empty? # buildstockbatch is installed
-      _, buildStockBatchVersion, _ = bsb_output.split(' ')
+    if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
+      buildStockBatchVersion = ENV['BUILDSTOCKBATCH_VERSION']
       if buildStockBatchVersion < BuildStockBatch_Version
         fail "BuildStockBatch version #{BuildStockBatch_Version} is required. Found version: #{buildStockBatchVersion}"
       end
