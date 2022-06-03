@@ -539,8 +539,6 @@ class Version
     bsb_output = `#{command}`
     if !bsb_output.empty? # buildstockbatch is installed
       _, buildStockBatchVersion, _ = bsb_output.split(' ')
-      buildStockBatchVersion = 'develop' # FIXME: remove this when buildstockbatch's version gets updated
-
       if buildStockBatchVersion < BuildStockBatch_Version
         fail "BuildStockBatch version #{BuildStockBatch_Version} is required. Found version: #{buildStockBatchVersion}"
       end
