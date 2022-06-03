@@ -193,8 +193,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
-    Version.check_buildstockbatch_version()
-
     # Check file/dir paths exist
     check_dir_exists(resources_dir, runner)
     [measures_dir, hpxml_measures_dir].each do |dir|
