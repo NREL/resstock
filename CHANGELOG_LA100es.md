@@ -74,3 +74,4 @@ Updates:
 - Delete contents of CHANGELOG.md
 
 Fixes
+- Improved LA spatial down-selection by removing unused / irrelevant option columns ([#86](https://github.com/NREL/la100es-resstock/pull/86))
