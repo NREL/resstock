@@ -11,6 +11,7 @@ require_relative '../HPXMLtoOpenStudio/resources/constants'
 require_relative '../HPXMLtoOpenStudio/resources/geometry'
 require_relative '../HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../HPXMLtoOpenStudio/resources/lighting'
+require_relative '../HPXMLtoOpenStudio/resources/location'
 require_relative '../HPXMLtoOpenStudio/resources/meta_measure'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/xmlhelper'
@@ -72,6 +73,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Absolute/relative output path of the HPXML file. This HPXML file will include the output CSV path.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
+    arg.setDisplayName('Debug Mode?')
+    arg.setDescription('Applicable when schedules type is stochastic. If true: Write extra state column(s).')
+    arg.setDefaultValue(false)
+    args << arg
+
     return args
   end
 
@@ -105,14 +112,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     hpxml = HPXML.new(hpxml_path: hpxml_path)
 
     # create EpwFile object
-    epw_path = hpxml.climate_and_risk_zones.weather_station_epw_filepath
-    if not File.exist? epw_path
-      epw_path = File.join(File.expand_path(File.join(File.dirname(__FILE__), '..', 'weather')), epw_path) # a filename was entered for weather_station_epw_filepath
-    end
-    if not File.exist? epw_path
-      runner.registerError("Could not find EPW file at '#{epw_path}'.")
-      return false
-    end
+    epw_path = Location.get_epw_path(hpxml, hpxml_path)
     epw_file = OpenStudio::EpwFile.new(epw_path)
 
     # create the schedules
@@ -191,7 +191,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
   def get_generator_inputs(hpxml, epw_file, args)
     args[:state] = 'CO'
-    args[:state] = epw_file.stateProvinceRegion if Constants.StateCodes.include?(epw_file.stateProvinceRegion)
+    args[:state] = epw_file.stateProvinceRegion if Constants.StateCodesMap.keys.include?(epw_file.stateProvinceRegion)
     args[:state] = hpxml.header.state_code if !hpxml.header.state_code.nil?
 
     args[:random_seed] = args[:schedules_random_seed].get if args[:schedules_random_seed].is_initialized
@@ -209,6 +209,12 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:schedules_vacancy_end_month] = end_month
       args[:schedules_vacancy_end_day] = end_day
     end
+
+    debug = false
+    if args[:schedules_type] == 'stochastic' && args[:debug].is_initialized
+      debug = args[:debug].get
+    end
+    args[:debug] = debug
   end
 end
 

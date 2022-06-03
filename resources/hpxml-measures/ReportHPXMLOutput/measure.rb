@@ -3,6 +3,7 @@
 # see the URL below for information on how to write OpenStudio measures
 # http://nrel.github.io/OpenStudio-user-documentation/reference/measure_writing_guide/
 
+require 'msgpack'
 require_relative 'resources/constants.rb'
 
 # start the measure
@@ -30,6 +31,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     format_chs = OpenStudio::StringVector.new
     format_chs << 'csv'
     format_chs << 'json'
+    format_chs << 'msgpack'
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('output_format', format_chs, false)
     arg.setDisplayName('Output Format')
     arg.setDescription('The file format of the annual (and timeseries, if requested) outputs.')
@@ -56,31 +58,19 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     output_format = runner.getStringArgumentValue('output_format', user_arguments)
+    output_dir = File.dirname(runner.lastEpwFilePath.get.to_s)
 
-    sqlFile = runner.lastEnergyPlusSqlFile
-    if sqlFile.empty?
-      runner.registerError('Cannot find EnergyPlus sql file.')
+    if not File.exist? File.join(output_dir, 'eplusout.msgpack')
+      runner.registerError('Cannot find eplusout.msgpack.')
       return false
     end
-    sqlFile = sqlFile.get
-    if not sqlFile.connectionOpen
-      runner.registerError('EnergyPlus simulation failed.')
-      return false
-    end
-    model.setSqlFile(sqlFile)
+    @msgpackData = MessagePack.unpack(File.read(File.join(output_dir, 'eplusout.msgpack'), mode: 'rb'))
 
     hpxml_defaults_path = model.getBuilding.additionalProperties.getFeatureAsString('hpxml_defaults_path').get
     hpxml = HPXML.new(hpxml_path: hpxml_defaults_path)
 
     # Set paths
-    output_dir = File.dirname(sqlFile.path.to_s)
     output_path = File.join(output_dir, "results_hpxml.#{output_format}")
-
-    sqlFile.close()
-
-    # Ensure sql file is immediately freed; otherwise we can get
-    # errors on Windows when trying to delete this file.
-    GC.start()
 
     # Initialize
     cost_multipliers = {}
@@ -89,6 +79,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     cost_multipliers[BS::WallBelowGrade] = BaseOutput.new
     cost_multipliers[BS::FloorConditioned] = BaseOutput.new
     cost_multipliers[BS::FloorLighting] = BaseOutput.new
+    cost_multipliers[BS::FloorFoundation] = BaseOutput.new
     cost_multipliers[BS::Ceiling] = BaseOutput.new
     cost_multipliers[BS::Roof] = BaseOutput.new
     cost_multipliers[BS::Window] = BaseOutput.new
@@ -149,6 +140,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       cost_mult_type_str = OpenStudio::toUnderscoreCase("#{cost_mult_type} #{cost_mult.units}")
       cost_mult = cost_mult.output.round(2)
       runner.registerValue(cost_mult_type_str, cost_mult)
+      runner.registerInfo("Registering #{cost_mult} for #{cost_mult_type_str}.")
     end
 
     # Write results
@@ -173,9 +165,9 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
       results_out << ["#{key} (#{cost_mult.units})", cost_mult.output.round(2)]
     end
 
-    if output_format == 'csv'
+    if ['csv'].include? output_format
       CSV.open(output_path, 'wb') { |csv| results_out.to_a.each { |elem| csv << elem } }
-    elsif output_format == 'json'
+    elsif ['json', 'msgpack'].include? output_format
       h = {}
       results_out.each do |out|
         next if out == [line_break]
@@ -185,8 +177,12 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
         h[grp][name.strip] = out[1]
       end
 
-      require 'json'
-      File.open(output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
+      if output_format == 'json'
+        require 'json'
+        File.open(output_path, 'w') { |json| json.write(JSON.pretty_generate(h)) }
+      elsif output_format == 'msgpack'
+        File.open(output_path, 'w') { |json| h.to_msgpack(json) }
+      end
     end
     runner.registerInfo("Wrote hpxml output to #{output_path}.")
   end
@@ -221,12 +217,18 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     elsif cost_mult_type == 'Enclosure: Floor Area Conditioned'
       cost_mult += hpxml.building_construction.conditioned_floor_area
     elsif cost_mult_type == 'Enclosure: Floor Area Lighting'
-      if hpxml.lighting.interior_usage_multiplier != 0
+      if hpxml.lighting.interior_usage_multiplier.to_f != 0
         cost_mult += hpxml.building_construction.conditioned_floor_area
       end
       hpxml.slabs.each do |slab|
         next unless [HPXML::LocationGarage].include?(slab.interior_adjacent_to)
-        next if hpxml.lighting.garage_usage_multiplier == 0
+        next if hpxml.lighting.garage_usage_multiplier.to_f == 0
+
+        cost_mult += slab.area
+      end
+    elsif cost_mult_type == 'Enclosure: Floor Area Foundation'
+      hpxml.slabs.each do |slab|
+        next if slab.interior_adjacent_to == HPXML::LocationGarage
 
         cost_mult += slab.area
       end

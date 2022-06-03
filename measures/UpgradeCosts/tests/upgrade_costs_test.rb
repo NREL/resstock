@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 require 'openstudio'
-
-require_relative '../measure.rb'
 require_relative '../../../resources/hpxml-measures/HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../../resources/hpxml-measures/ReportHPXMLOutput/measure.rb'
+require_relative '../measure.rb'
 
 class UpgradeCostsTest < MiniTest::Test
   def test_SFD_1story_FB_UA_GRG_MSHP_FuelTanklessWH
@@ -18,6 +17,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 2250.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 2250.0,
       'Floor Area, Lighting (ft^2)' => 2250.0 * 2 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 2250.0,
       'Roof Area (ft^2)' => 1338.0 + 101.0 * 2 + 1237.0 + 61.0,
       'Window Area (ft^2)' => 0.12 * (196.0 + 96.0 * 2 + 429.0 + 292.0 + 525.0 - 96.0 * 2),
       'Door Area (ft^2)' => 30.0,
@@ -45,6 +45,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1000.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 1000.0,
       'Floor Area, Lighting (ft^2)' => 1000.0 * 2 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 1000.0,
       'Roof Area (ft^2)' => 640.0 + 101.0 * 2 + 599.0,
       'Window Area (ft^2)' => 0.12 * (106.0 + 96.0 * 2 + 267.0 + 202.0 + 363.0 - 96.0 * 2),
       'Door Area (ft^2)' => 40.0,
@@ -72,6 +73,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 3000.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 3000.0,
       'Floor Area, Lighting (ft^2)' => 3000.0,
+      'Floor Area, Foundation (ft^2)' => 3000.0,
       'Roof Area (ft^2)' => 1677.0 * 2,
       'Window Area (ft^2)' => 0.12 * (327.0 * 2 + 588.0 * 2),
       'Door Area (ft^2)' => 40.0,
@@ -99,6 +101,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 4500.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 4500.0,
       'Floor Area, Lighting (ft^2)' => 4500.0 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 4500.0,
       'Roof Area (ft^2)' => 2596.0 + 101.0 * 2 + 2471.0 + 85.0,
       'Window Area (ft^2)' => 0.12 * (310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
@@ -126,6 +129,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 4500.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 4500.0,
       'Floor Area, Lighting (ft^2)' => 4500.0 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 4500.0,
       'Roof Area (ft^2)' => 2596.0 + 101.0 * 2 + 2471.0 + 85.0,
       'Window Area (ft^2)' => 0.12 * (310.0 + 96.0 * 2 + 635.0 + 406.0 + 731.0 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
@@ -153,6 +157,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1000.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 1000.0,
       'Floor Area, Lighting (ft^2)' => 1000.0 * 2,
+      'Floor Area, Foundation (ft^2)' => 1000.0,
       'Roof Area (ft^2)' => 559.0 * 2,
       'Window Area (ft^2)' => 0.12 * (189.0 * 4 + 339.0 * 4),
       'Door Area (ft^2)' => 20.0,
@@ -180,6 +185,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1500.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 1500.0 - 144.0,
       'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
@@ -207,6 +213,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1548.0 + 144.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1548.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 3 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 1500.0 - 96.0,
       'Roof Area (ft^2)' => 865.0 + 101.0 * 2 + 825.0,
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
@@ -234,6 +241,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1548.0 + 144.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1548.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 3 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 1500.0 - 96.0,
       'Roof Area (ft^2)' => 865.0 + 101.0 * 2 + 825.0,
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
       'Door Area (ft^2)' => 20.0,
@@ -261,6 +269,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1548.0 + 144.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1548.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 3 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 1500.0 - 96.0,
       'Roof Area (ft^2)' => 865.0 + 101.0 * 2 + 825.0,
       'Window Area (ft^2)' => 0.12 * (2819.59 - 96.0 * 2),
       'Door Area (ft^2)' => 30.0,
@@ -288,6 +297,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1000.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 1000.0,
       'Floor Area, Lighting (ft^2)' => 1000.0 * 2,
+      'Floor Area, Foundation (ft^2)' => 0.0,
       'Roof Area (ft^2)' => 559.0 * 2,
       'Window Area (ft^2)' => 0.12 * (189.0 * 4 + 339.0 * 4),
       'Door Area (ft^2)' => 40.0,
@@ -315,6 +325,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1500.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 1500.0 - 144.0,
       'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
       'Door Area (ft^2)' => 40.0,
@@ -342,6 +353,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1500.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 1500.0 - 144.0,
       'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
       'Door Area (ft^2)' => 40.0,
@@ -369,6 +381,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 1500.0 + 144.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * (1500.0 + 144.0),
       'Floor Area, Lighting (ft^2)' => 1500.0 * 2 + 12.0 * 24.0,
+      'Floor Area, Foundation (ft^2)' => 1500.0 - 144.0,
       'Roof Area (ft^2)' => 839.0 + 101.0 * 2 + 798.0,
       'Window Area (ft^2)' => 0.12 * (135.0 + 96.0 * 4 + 320.0 * 2 + 231.0 * 2 + 416.0 * 2 + 327.0 - 96.0 * 2),
       'Door Area (ft^2)' => 40.0,
@@ -396,6 +409,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 250.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 250.0,
       'Floor Area, Lighting (ft^2)' => 250.0 * 2,
+      'Floor Area, Foundation (ft^2)' => 250.0,
       'Roof Area (ft^2)' => 140.0 * 2,
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
       'Door Area (ft^2)' => 20.0,
@@ -423,6 +437,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 250.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 250.0,
       'Floor Area, Lighting (ft^2)' => 250.0 * 2,
+      'Floor Area, Foundation (ft^2)' => 250.0,
       'Roof Area (ft^2)' => 140.0 * 2,
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
       'Door Area (ft^2)' => 20.0,
@@ -450,6 +465,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 250.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 250.0,
       'Floor Area, Lighting (ft^2)' => 250.0 * 2,
+      'Floor Area, Foundation (ft^2)' => 250.0,
       'Roof Area (ft^2)' => 140.0 * 2,
       'Window Area (ft^2)' => 0.18 * (94.28 * 4 + 169.7 * 2),
       'Door Area (ft^2)' => 20.0,
@@ -477,6 +493,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 167.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 167.0,
       'Floor Area, Lighting (ft^2)' => 167.0 + 167.0 * 2,
+      'Floor Area, Foundation (ft^2)' => 167.0,
       'Roof Area (ft^2)' => 93.0 * 2,
       'Window Area (ft^2)' => 0.18 * (139.0 * 2 + 77.0 * 4),
       'Door Area (ft^2)' => 20.0,
@@ -504,6 +521,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 0.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
+      'Floor Area, Foundation (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 0.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
       'Door Area (ft^2)' => 0.0, # door is in the corridor
@@ -531,6 +549,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 0.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
+      'Floor Area, Foundation (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 0.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
       'Door Area (ft^2)' => 0.0, # door is in the corridor
@@ -558,6 +577,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 0.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
+      'Floor Area, Foundation (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 0.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
       'Door Area (ft^2)' => 0.0, # door is in the corridor
@@ -585,6 +605,7 @@ class UpgradeCostsTest < MiniTest::Test
       'Floor Area, Attic (ft^2)' => 0.0,
       'Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)' => (60.0 - 38.0) * 0.0,
       'Floor Area, Lighting (ft^2)' => 500.0,
+      'Floor Area, Foundation (ft^2)' => 500.0,
       'Roof Area (ft^2)' => 500.0,
       'Window Area (ft^2)' => 0.18 * (240.0 + 133.0),
       'Door Area (ft^2)' => 0.0, # door is in the corridor
@@ -694,6 +715,8 @@ class UpgradeCostsTest < MiniTest::Test
         hpxml['enclosure_floor_area_conditioned_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Floor Area Conditioned')
       elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
         hpxml['enclosure_floor_area_lighting_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Floor Area Lighting')
+      elsif cost_mult_type == 'Floor Area, Foundation (ft^2)'
+        hpxml['enclosure_floor_area_foundation_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Floor Area Foundation')
       elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
         hpxml['enclosure_ceiling_area_thermal_boundary_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Ceiling Area Thermal Boundary')
       elsif cost_mult_type == 'Roof Area (ft^2)'

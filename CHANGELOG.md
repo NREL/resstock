@@ -1,18 +1,25 @@
 ## ResStock v2.6.0 (pending)
 
 Features
+- Update to OpenStudio v3.4.0 ([#863](https://github.com/NREL/resstock/pull/863))
+- Add a new "Floor Area, Foundation (ft^2)" cost multiplier ([#870](https://github.com/NREL/resstock/pull/870))
 - Add a new "Floor Area, Attic * Insulation Increase (ft^2 * Delta R-value)" cost multiplier for handling incremental costs of adding attic insulation ([#842](https://github.com/NREL/resstock/pull/842))
 - Allow air leakage % reduction upgrades (e.g., 25%), and add a new "Floor Area, Conditioned * Infiltration Reduction (ft^2 * Delta ACH50)" cost multiplier for handling incremental costs of such upgrades ([#840](https://github.com/NREL/resstock/pull/840))
 - For the testing project, sample equal distributions of (1) smooth and stochastic schedules (each 50%) and (2) faulted and non-faulted HVAC systems (each 50%) ([#828](https://github.com/NREL/resstock/pull/828))
 - Allow upgrade options to be defined in the lookup using measures other than ResStockArguments ([#839](https://github.com/NREL/resstock/pull/839))
 - Enable rim joists for homes with basements/crawlspaces; assumes a height of 9.25 inches and calculates rim joist assembly R-value from new insulation arguments ([#831](https://github.com/NREL/resstock/pull/831))
 - Enable the HEScore workflow to be run with BuildExistingModel ([#782](https://github.com/NREL/resstock/pull/782))
+- Cities with more than 15,000 dwelling units are added as a geographic characteristic ([#874](https://github.com/NREL/resstock/pull/874))
+- Update tsvs with new sampling_probability calculation ([#905](https://github.com/NREL/resstock/pull/905))
+- Improve distributions of heat pumps in the southeast U.S. by spliting IECC zone 2A into two zones: 2A (FL, GA, AL, MS) and 2A (TX, LA) ([#913](https://github.com/NREL/resstock/pull/913))
+- Add Income and Tenure tsv, update PUMS tsvs from 2017 5-yrs to 2019 5-yrs, update dependencies and fix encoding error in Occupants.tsv ([#900](https://github.com/NREL/resstock/pull/900))
 
 Fixes
 - Clean up option names for natural ventilation and hot water distribution ([#828](https://github.com/NREL/resstock/pull/828))
 - Remove the zero degree switchover temperature for heat pump backup heating ([#833](https://github.com/NREL/resstock/pull/833))
 - For homes with a finished attic or cathedral ceilings, models a conditioned attic instead of a vented attic ([#830](https://github.com/NREL/resstock/pull/830))
 - Reduce housing characteristic file size by relaxing the six digit float format in the housing characteristics ([#877](https://github.com/NREL/resstock/pull/877))
+- Fix minor bug in sampling probability calculation ([#934](https://github.com/NREL/resstock/pull/934)) 
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)
