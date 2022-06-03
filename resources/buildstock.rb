@@ -532,7 +532,7 @@ end
 
 class Version
   ResStock_Version = '2.6.0-beta' # Version of ResStock
-  BuildStockBatch_Version = 'develop' # Minimum required version of BuildStockBatch
+  BuildStockBatch_Version = '0.22' # Minimum required version of BuildStockBatch
 
   def self.check_buildstockbatch_version
     command = 'pip list | grep buildstockbatch'
