@@ -89,6 +89,7 @@ def expected_timeseries_columns(testing)
 end
 
 def _test_columns(results, upgrade = false)
+  assert(!results.empty?)
   assert(_test_baseline_columns(results))
   assert(_test_upgrade_columns(results)) if upgrade
   assert(_test_nonnull_columns(results, upgrade))
