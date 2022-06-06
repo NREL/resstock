@@ -8,7 +8,7 @@ weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 sampler:
   type: residential_quota_downselect
   args:
-    n_datapoints: 500
+    n_datapoints: 1000
     logic:
       - Geometry Building Type RECS|Mobile Home
       - County|NC, New Hanover County
@@ -51,6 +51,13 @@ workflow_generator:
 
 baseline:
   n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resstock-resilience
+      prefix: seto/florence/New_Hanover_MH
 
 eagle:
   n_jobs: 10
