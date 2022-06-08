@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: . # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/enduse/euss/resstock_runs/res_test_02_2018_10k_20220520
+output_directory: /projects/enduse/euss/resstock_runs/res_test_03_2018_10k_20220607
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
@@ -523,10 +523,11 @@ upgrades:
             - Heating Fuel|Propane
             - Heating Fuel|Fuel Oil
           - not:
-            - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
-            - HVAC Heating Type And Fuel|Propane Fuel Furnace
-            - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
-            - HVAC Heating Efficiency|Shared Heating
+              or:
+                - HVAC Heating Type And Fuel|Natural Gas Fuel Furnace
+                - HVAC Heating Type And Fuel|Propane Fuel Furnace
+                - HVAC Heating Type And Fuel|Fuel Oil Fuel Furnace
+                - HVAC Heating Efficiency|Shared Heating
         costs: *costs_ashp_ducted_SEER_15_9_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
 
@@ -1044,17 +1045,18 @@ upgrades:
         option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic: 
           and:
-            - or: &non-elec_WH
-              - Water Heater Efficiency|FIXME Fuel Oil Indirect
-              - Water Heater Efficiency|Fuel Oil Premium
-              - Water Heater Efficiency|Fuel Oil Standard
-              - Water Heater Efficiency|Natural Gas Premium
-              - Water Heater Efficiency|Natural Gas Standard
-              - Water Heater Efficiency|Natural Gas Tankless
-              - Water Heater Efficiency|Other Fuel
-              - Water Heater Efficiency|Propane Premium
-              - Water Heater Efficiency|Propane Standard
-              - Water Heater Efficiency|Propane Tankless
+            - &non-elec_WH
+                or:
+                  - Water Heater Efficiency|FIXME Fuel Oil Indirect
+                  - Water Heater Efficiency|Fuel Oil Premium
+                  - Water Heater Efficiency|Fuel Oil Standard
+                  - Water Heater Efficiency|Natural Gas Premium
+                  - Water Heater Efficiency|Natural Gas Standard
+                  - Water Heater Efficiency|Natural Gas Tankless
+                  - Water Heater Efficiency|Other Fuel
+                  - Water Heater Efficiency|Propane Premium
+                  - Water Heater Efficiency|Propane Standard
+                  - Water Heater Efficiency|Propane Tankless
             - or:
               - Bedrooms|1
               - Bedrooms|2
