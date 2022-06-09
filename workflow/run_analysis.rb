@@ -495,11 +495,6 @@ OptionParser.new do |opts|
     options[:measures_only] = true
   end
 
-  options[:debug] = false
-  opts.on('-d', '--debug', 'Save both existing and upgraded xml/osw files') do |t|
-    options[:debug] = true
-  end
-
   options[:building_ids] = []
   opts.on('-i', '--building_id ID', Integer, 'Only run this building ID; can be called multiple times') do |t|
     options[:building_ids] << t
@@ -515,19 +510,25 @@ OptionParser.new do |opts|
     options[:samplingonly] = true
   end
 
+  options[:version] = false
+  opts.on_tail('-v', '--version', 'Display version') do
+    options[:version] = true
+  end
+
+  options[:debug] = false
+  opts.on('-d', '--debug', 'Save both existing and upgraded xml/osw files') do |t|
+    options[:debug] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
   end
-
-  options[:version] = false
-  opts.on_tail('-v', '--version', 'Display version') do
-    options[:version] = true
-    puts "#{Version.software_program_used} v#{Version.software_program_version}"
-  end
 end.parse!
 
-if not options[:version]
+if options[:version]
+  puts "ResStock v#{Version::ResStock_Version}"
+else
   if not options[:yml]
     fail "YML argument is required. Call #{File.basename(__FILE__)} -h for usage."
   end

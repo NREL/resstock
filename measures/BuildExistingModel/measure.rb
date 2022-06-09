@@ -175,6 +175,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Load buildstock_file
     require File.join(File.dirname(buildstock_file), File.basename(buildstock_file, File.extname(buildstock_file)))
 
+    Version.check_buildstockbatch_version()
+
     # Check file/dir paths exist
     check_dir_exists(resources_dir, runner)
     [measures_dir, hpxml_measures_dir].each do |dir|
@@ -283,8 +285,8 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['additional_properties'] = additional_properties.join('|') unless additional_properties.empty?
 
     # Get software program used and version
-    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = Version.software_program_used
-    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version.software_program_version
+    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
+    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
 
     # Get registered values and pass them to BuildResidentialHPXML
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = args['simulation_control_timestep'].get if args['simulation_control_timestep'].is_initialized

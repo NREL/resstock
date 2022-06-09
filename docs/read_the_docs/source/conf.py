@@ -12,22 +12,21 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
+# import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-metadata = {}
-with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', '..', '..', 'resources', '__version__.py'), 'r') as f:
-    exec(f.read(), metadata)
 
 # -- Project information -----------------------------------------------------
 
-project = metadata['__title__']
-copyright = metadata['__copyright__']
-author = metadata['__author__']
+project = u'ResStock'
+copyright = u'2019, NREL'
+author = u'NREL'
 
+# The short X.Y version
+version = u''
 # The full version, including alpha/beta/rc tags
-release = metadata['__resstock_version__']
+release = u''
 
 
 # -- General configuration ---------------------------------------------------

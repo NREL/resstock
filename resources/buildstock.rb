@@ -531,22 +531,15 @@ class RunOSWs
 end
 
 class Version
-  def self.version
-    version = {}
-    File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
-      file.each_line do |line|
-        key, value = line.split(' = ')
-        version[key] = value.chomp.gsub("'", '')
+  ResStock_Version = '2.6.0-beta' # Version of ResStock
+  BuildStockBatch_Version = '0.22' # Minimum required version of BuildStockBatch
+
+  def self.check_buildstockbatch_version
+    if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
+      bsb_version = ENV['BUILDSTOCKBATCH_VERSION']
+      if bsb_version < BuildStockBatch_Version
+        fail "BuildStockBatch version #{BuildStockBatch_Version} or above is required. Found version: #{bsb_version}"
       end
     end
-    return version
-  end
-
-  def self.software_program_used
-    return version['__title__']
-  end
-
-  def self.software_program_version
-    return version['__resstock_version__']
   end
 end
