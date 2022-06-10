@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 class Airflow
-  def self.apply(model, runner, weather, spaces, hpxml, cfa, nbeds,
+  def self.apply(model, weather, spaces, hpxml, cfa, nbeds,
                  ncfl_ag, duct_systems, airloop_map, clg_ssn_sensor, eri_version,
                  frac_windows_operable, apply_ashrae140_assumptions, schedules_file)
 
     # Global variables
 
-    @runner = runner
     @spaces = spaces
     @year = hpxml.header.sim_calendar_year
     @infil_volume = hpxml.air_infiltration_measurements.select { |i| !i.infiltration_volume.nil? }[0].infiltration_volume
@@ -108,8 +107,8 @@ class Airflow
       break
     end
 
-    apply_natural_ventilation_and_whole_house_fan(model, weather, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor)
-    apply_infiltration_and_ventilation_fans(model, @runner, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+    apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor)
+    apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
                                             vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
   end
@@ -269,7 +268,7 @@ class Airflow
     end
   end
 
-  def self.apply_natural_ventilation_and_whole_house_fan(model, weather, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
+  def self.apply_natural_ventilation_and_whole_house_fan(model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
     if @living_zone.thermostatSetpointDualSetpoint.is_initialized
       thermostat = @living_zone.thermostatSetpointDualSetpoint.get
       htg_sch = thermostat.heatingSetpointTemperatureSchedule.get
@@ -1122,7 +1121,7 @@ class Airflow
     end
   end
 
-  def self.apply_infiltration_to_garage(model, weather, site, ach50)
+  def self.apply_infiltration_to_garage(model, site, ach50)
     return if @spaces[HPXML::LocationGarage].nil?
 
     space = @spaces[HPXML::LocationGarage]
@@ -1132,19 +1131,15 @@ class Airflow
     neutral_level = 0.5
     sla = get_infiltration_SLA_from_ACH50(ach50, 0.65, area, volume)
     ela = sla * area
-    ach = get_infiltration_ACH_from_SLA(sla, 8.202, weather)
-    cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     c_w_SG, c_s_SG = calc_wind_stack_coeffs(site, hor_lk_frac, neutral_level, space)
     apply_infiltration_to_unconditioned_space(model, space, nil, ela, c_w_SG, c_s_SG)
   end
 
-  def self.apply_infiltration_to_unconditioned_basement(model, weather)
+  def self.apply_infiltration_to_unconditioned_basement(model)
     return if @spaces[HPXML::LocationBasementUnconditioned].nil?
 
     space = @spaces[HPXML::LocationBasementUnconditioned]
-    volume = UnitConversions.convert(space.volume, 'm^3', 'ft^3')
     ach = get_default_unvented_space_ach()
-    cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
   end
 
@@ -1152,21 +1147,17 @@ class Airflow
     return if @spaces[HPXML::LocationCrawlspaceVented].nil?
 
     space = @spaces[HPXML::LocationCrawlspaceVented]
-    volume = UnitConversions.convert(space.volume, 'm^3', 'ft^3')
     height = Geometry.get_height_of_spaces([space])
     sla = vented_crawl.vented_crawlspace_sla
     ach = get_infiltration_ACH_from_SLA(sla, height, weather)
-    cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
   end
 
-  def self.apply_infiltration_to_unvented_crawlspace(model, weather)
+  def self.apply_infiltration_to_unvented_crawlspace(model)
     return if @spaces[HPXML::LocationCrawlspaceUnvented].nil?
 
     space = @spaces[HPXML::LocationCrawlspaceUnvented]
-    volume = UnitConversions.convert(space.volume, 'm^3', 'ft^3')
     ach = get_default_unvented_space_ach()
-    cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
   end
 
@@ -1188,31 +1179,25 @@ class Airflow
     end
 
     space = @spaces[HPXML::LocationAtticVented]
-    volume = UnitConversions.convert(space.volume, 'm^3', 'ft^3')
     if not vented_attic_sla.nil?
       vented_attic_area = UnitConversions.convert(space.floorArea, 'm^2', 'ft^2')
       hor_lk_frac = 0.75
       neutral_level = 0.5
       sla = vented_attic_sla
-      ach = get_infiltration_ACH_from_SLA(sla, 8.202, weather)
       ela = sla * vented_attic_area
-      cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
       c_w_SG, c_s_SG = calc_wind_stack_coeffs(site, hor_lk_frac, neutral_level, space)
       apply_infiltration_to_unconditioned_space(model, space, nil, ela, c_w_SG, c_s_SG)
     elsif not vented_attic_const_ach.nil?
       ach = vented_attic_const_ach
-      cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
       apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
     end
   end
 
-  def self.apply_infiltration_to_unvented_attic(model, weather, site)
+  def self.apply_infiltration_to_unvented_attic(model)
     return if @spaces[HPXML::LocationAtticUnvented].nil?
 
     space = @spaces[HPXML::LocationAtticUnvented]
-    volume = UnitConversions.convert(space.volume, 'm^3', 'ft^3')
     ach = get_default_unvented_space_ach()
-    cfm = ach / UnitConversions.convert(1.0, 'hr', 'min') * volume
     apply_infiltration_to_unconditioned_space(model, space, ach, nil, nil, nil)
   end
 
@@ -1248,7 +1233,7 @@ class Airflow
     return obj_sch_sensor
   end
 
-  def self.apply_dryer_exhaust(model, runner, vented_dryer, schedules_file, index)
+  def self.apply_dryer_exhaust(model, vented_dryer, schedules_file, index)
     obj_name = "#{Constants.ObjectNameClothesDryerExhaust} #{index}"
 
     # Create schedule
@@ -1289,7 +1274,7 @@ class Airflow
         t_sup_in = 0.0
         w_sup_in = 0.0028
         t_exh_in = 22.0
-        w_exh_in = 0.0065
+        # w_exh_in = 0.0065
         cp_a = 1006.0
         p_fan = vent_mech.average_unit_fan_power # Watts
 
@@ -1469,7 +1454,7 @@ class Airflow
     return fan_sens_load_actuator, fan_lat_load_actuator
   end
 
-  def self.apply_infiltration_adjustment_to_conditioned(model, runner, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+  def self.apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                         sup_cfm_tot, exh_cfm_tot, bal_cfm_tot, erv_hrv_cfm_tot, infil_flow_actuator, schedules_file)
     infil_program.addLine('Set Qrange = 0')
     vent_fans_kitchen.each_with_index do |vent_kitchen, index|
@@ -1494,7 +1479,7 @@ class Airflow
       next unless @clothes_dryer_in_cond_space
 
       # Infiltration impact
-      obj_sch_sensor, cfm_mult = apply_dryer_exhaust(model, runner, vented_dryer, schedules_file, index)
+      obj_sch_sensor, cfm_mult = apply_dryer_exhaust(model, vented_dryer, schedules_file, index)
       infil_program.addLine("Set Qdryer = Qdryer + #{UnitConversions.convert(vented_dryer.vented_flow_rate * cfm_mult, 'cfm', 'm^3/s').round(5)} * #{obj_sch_sensor.name}")
     end
 
@@ -1528,7 +1513,7 @@ class Airflow
     infil_program.addLine("Set #{infil_flow_actuator.name} = Qinf_adj")
   end
 
-  def self.calculate_fan_loads(model, infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, q_var, preconditioned = false)
+  def self.calculate_fan_loads(infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, q_var, preconditioned = false)
     # Variables for combined effectivenesses
     infil_program.addLine('Set Effectiveness_Sens = 0.0')
     infil_program.addLine('Set Effectiveness_Lat = 0.0')
@@ -1596,7 +1581,7 @@ class Airflow
       else
         vent_mech_erv_hrv_tot = []
       end
-      calculate_fan_loads(model, infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qpreheat', true)
+      calculate_fan_loads(infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qpreheat', true)
 
       infil_program.addLine('  If ZoneInTemp < HtgStp')
       infil_program.addLine('    Set FanSensToSpt = Fan_MFR * ZoneCp * (ZoneInTemp - HtgStp)')
@@ -1621,7 +1606,7 @@ class Airflow
       else
         vent_mech_erv_hrv_tot = []
       end
-      calculate_fan_loads(model, infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qprecool', true)
+      calculate_fan_loads(infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qprecool', true)
 
       infil_program.addLine('  If ZoneInTemp > ClgStp')
       infil_program.addLine('    Set FanSensToSpt = Fan_MFR * ZoneCp * (ZoneInTemp - ClgStp)')
@@ -1638,12 +1623,11 @@ class Airflow
     end
   end
 
-  def self.apply_infiltration_ventilation_to_conditioned(model, runner, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+  def self.apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                          has_flue_chimney, clg_ssn_sensor, schedules_file)
     # Categorize fans into different types
     vent_mech_preheat = vent_fans_mech.select { |vent_mech| (not vent_mech.preheating_efficiency_cop.nil?) }
     vent_mech_precool = vent_fans_mech.select { |vent_mech| (not vent_mech.precooling_efficiency_cop.nil?) }
-    vent_mech_shared = vent_fans_mech.select { |vent_mech| vent_mech.is_shared_system }
 
     vent_mech_sup_tot = vent_fans_mech.select { |vent_mech| vent_mech.fan_type == HPXML::MechVentTypeSupply }
     vent_mech_exh_tot = vent_fans_mech.select { |vent_mech| vent_mech.fan_type == HPXML::MechVentTypeExhaust }
@@ -1701,7 +1685,7 @@ class Airflow
 
     # Calculate Qfan, Qinf_adj
     # Calculate adjusted infiltration based on mechanical ventilation system
-    apply_infiltration_adjustment_to_conditioned(model, runner, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+    apply_infiltration_adjustment_to_conditioned(model, infil_program, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                  sup_cfm_tot, exh_cfm_tot, bal_cfm_tot, erv_hrv_cfm_tot, infil_flow_actuator, schedules_file)
 
     # Address load of Qfan (Qload)
@@ -1711,7 +1695,7 @@ class Airflow
       # Subtract recirculation air flow rate from Qfan, only come from supply side as exhaust is not allowed to have recirculation
       infil_program.addLine("Set Qload = Qload - #{UnitConversions.convert(f.average_total_unit_flow_rate - f.average_oa_unit_flow_rate, 'cfm', 'm^3/s').round(4)}")
     end
-    calculate_fan_loads(model, infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qload')
+    calculate_fan_loads(infil_program, vent_mech_erv_hrv_tot, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, 'Qload')
 
     # Address preconditioning
     calculate_precond_loads(model, infil_program, vent_mech_preheat, vent_mech_precool, hrv_erv_effectiveness_map, fan_sens_load_actuator, fan_lat_load_actuator, clg_ssn_sensor)
@@ -1722,7 +1706,7 @@ class Airflow
     program_calling_manager.addProgram(infil_program)
   end
 
-  def self.apply_infiltration_and_ventilation_fans(model, runner, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+  def self.apply_infiltration_and_ventilation_fans(model, weather, site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                    has_flue_chimney, air_infils, vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
     # Get living space infiltration
     living_ach50 = nil
@@ -1745,15 +1729,15 @@ class Airflow
     end
 
     # Infiltration for unconditioned spaces
-    apply_infiltration_to_garage(model, weather, site, living_ach50)
-    apply_infiltration_to_unconditioned_basement(model, weather)
+    apply_infiltration_to_garage(model, site, living_ach50)
+    apply_infiltration_to_unconditioned_basement(model)
     apply_infiltration_to_vented_crawlspace(model, weather, vented_crawl)
-    apply_infiltration_to_unvented_crawlspace(model, weather)
+    apply_infiltration_to_unvented_crawlspace(model)
     apply_infiltration_to_vented_attic(model, weather, site, vented_attic)
-    apply_infiltration_to_unvented_attic(model, weather, site)
+    apply_infiltration_to_unvented_attic(model)
 
     # Infiltration/ventilation for conditioned space
-    apply_infiltration_ventilation_to_conditioned(model, runner, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
+    apply_infiltration_ventilation_to_conditioned(model, site, vent_fans_mech, living_ach50, living_const_ach, weather, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                                   has_flue_chimney, clg_ssn_sensor, schedules_file)
   end
 
@@ -1787,12 +1771,10 @@ class Airflow
       if not @spaces[HPXML::LocationCrawlspaceVented].nil?
         # 15% ceiling, 35% walls, 50% floor leakage distribution for vented crawl
         leakage_ceiling = 0.15
-        leakage_walls = 0.35
         leakage_floor = 0.50
       else
         # 25% ceiling, 50% walls, 25% floor leakage distribution for slab/basement/unvented crawl
         leakage_ceiling = 0.25
-        leakage_walls = 0.50
         leakage_floor = 0.25
       end
 
@@ -1814,10 +1796,9 @@ class Airflow
         else
           z_f = (@ncfl_ag + 0.5) / @ncfl_ag # Typical value is 1.5 according to THE ALBERTA AIR INFIL1RATION MODEL, Walker and Wilson, 1990, presumably for a single story home
         end
-        x_c = r_i + (2.0 * (1.0 - r_i - y_i)) / (n_i + 1.0) - 2.0 * y_i * (z_f - 1.0)**n_i # Eq. 13
+        x_c = r_i + (2.0 * (1.0 - r_i - y_i)) / (n_i + 1.0) - 2.0 * y_i * (z_f - 1.0)**n_i # Critical value of ceiling-floor leakage difference where the neutral level is located at the ceiling (eq. 13)
         f_i = n_i * y_i * (z_f - 1.0)**((3.0 * n_i - 1.0) / 3.0) * (1.0 - (3.0 * (x_c - x_i)**2.0 * r_i**(1 - n_i)) / (2.0 * (z_f + 1.0))) # Additive flue function, Eq. 12
       else
-        x_c = r_i + (2.0 * (1.0 - r_i - y_i)) / (n_i + 1.0) # Critical value of ceiling-floor leakage difference where the neutral level is located at the ceiling (eq. 13)
         f_i = 0.0 # Additive flue function (eq. 12)
       end
       f_s = ((1.0 + n_i * r_i) / (n_i + 1.0)) * (0.5 - 0.5 * m_i**1.2)**(n_i + 1.0) + f_i
@@ -1840,9 +1821,6 @@ class Airflow
       end
       wind_coef = f_w * UnitConversions.convert(outside_air_density / 2.0, 'lbm/ft^3', 'inH2O/mph^2')**n_i # inH2O^n/mph^2n
 
-      living_ach = get_infiltration_ACH_from_SLA(living_sla, @infil_height, weather)
-      living_cfm = living_ach / UnitConversions.convert(1.0, 'hr', 'min') * @infil_volume
-
       infil_program.addLine("Set p_m = #{site_ap.ashrae_terrain_exponent}")
       infil_program.addLine("Set p_s = #{site_ap.ashrae_site_terrain_exponent}")
       infil_program.addLine("Set s_m = #{site_ap.ashrae_terrain_thickness}")
@@ -1862,10 +1840,7 @@ class Airflow
       infil_program.addLine('Set Qinf = (@Max Qinf 0)')
 
     elsif living_const_ach.to_f > 0
-
       living_ach = living_const_ach
-      living_cfm = living_ach / UnitConversions.convert(1.0, 'hr', 'min') * @infil_volume
-
       infil_program.addLine("Set Qinf = #{living_ach * UnitConversions.convert(@infil_volume, 'ft^3', 'm^3') / UnitConversions.convert(1.0, 'hr', 's')}")
     else
       infil_program.addLine('Set Qinf = 0')

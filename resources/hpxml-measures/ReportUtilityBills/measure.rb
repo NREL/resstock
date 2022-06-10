@@ -29,7 +29,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model = nil)
+  def arguments(model = nil) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
     format_chs = OpenStudio::StringVector.new
@@ -262,7 +262,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     fuels, _, _ = setup_outputs()
 
     # Fuel outputs
-    fuels.each do |fuel_type, fuel|
+    fuels.values.each do |fuel|
       fuel.meters.each do |meter|
         result << OpenStudio::IdfObject.load("Output:Meter,#{meter},#{timeseries_frequency};").get
       end
@@ -326,7 +326,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     fuels, utility_rates, utility_bills = setup_outputs()
 
     # Get timestamps
-    @timestamps, _, _ = OutputMethods.get_timestamps(timeseries_frequency, @msgpackData, @hpxml)
+    @timestamps, _, _ = OutputMethods.get_timestamps(@msgpackData, @hpxml)
 
     # Get outputs
     get_outputs(fuels)
@@ -351,7 +351,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     # Report results
     utility_bill_type_str = OpenStudio::toUnderscoreCase('Total USD')
-    utility_bill_type_val = utility_bills.sum { |fuel_type, utility_bill| utility_bill.annual_total.round(2) }.round(2)
+    utility_bill_type_val = utility_bills.values.sum { |bill| bill.annual_total.round(2) }.round(2)
     runner.registerValue(utility_bill_type_str, utility_bill_type_val)
     runner.registerInfo("Registering #{utility_bill_type_val} for #{utility_bill_type_str}.")
 
@@ -577,7 +577,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     fuels[[FT::WoodPellets, false]] = Fuel.new(meters: ["#{EPlus::FuelTypeWoodPellets}:Facility"])
     fuels[[FT::Coal, false]] = Fuel.new(meters: ["#{EPlus::FuelTypeCoal}:Facility"])
 
-    fuels.each do |(fuel_type, is_production), fuel|
+    fuels.each do |(fuel_type, _is_production), fuel|
       fuel.units = get_timeseries_units_from_fuel_type(fuel_type)
     end
 
@@ -603,7 +603,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_outputs(fuels)
-    fuels.each do |(fuel_type, is_production), fuel|
+    fuels.each do |(fuel_type, _is_production), fuel|
       unit_conv = UnitConversions.convert(1.0, 'J', fuel.units)
       unit_conv /= 139.0 if fuel_type == FT::Oil
       unit_conv /= 91.6 if fuel_type == FT::Propane
@@ -629,7 +629,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     rows = @msgpackData['MeterData'][msgpack_timeseries_name]['Rows']
     indexes = cols.each_index.select { |i| meter_names.include? cols[i]['Variable'] }
     vals = []
-    rows.each_with_index do |row, idx|
+    rows.each do |row|
       row = row[row.keys[0]]
       val = 0.0
       indexes.each do |i|
@@ -693,13 +693,13 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
         marginal_rates = get_gallon_marginal_rates('PET_PRI_WFR_A_EPD2F_PRS_DPGAL_W.csv')
         header = "Weekly #{state_name} Weekly No. 2 Heating Oil Residential Price  (Dollars per Gallon)"
       elsif fuel_type == FT::Propane
-        marginal_rates = marginal_rates = get_gallon_marginal_rates('PET_PRI_WFR_A_EPLLPA_PRS_DPGAL_W.csv')
+        marginal_rates = get_gallon_marginal_rates('PET_PRI_WFR_A_EPLLPA_PRS_DPGAL_W.csv')
         header = "Weekly #{state_name} Propane Residential Price  (Dollars per Gallon)"
       end
 
       if marginal_rates[header].nil?
         padd = get_state_code_to_padd[state_code]
-        marginal_rates.each do |k, v|
+        marginal_rates.keys.each do |k|
           header = k if k.include?(padd)
         end
         average = "region (#{padd})"
@@ -771,7 +771,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     segment = utility_bills.keys[0].split(':', 2)[0]
     segment = segment.strip
     results_out = []
-    results_out << ['Total ($)', utility_bills.sum { |key, bill| bill.annual_total.round(2) }.round(2)]
+    results_out << ['Total ($)', utility_bills.values.sum { |bill| bill.annual_total.round(2) }.round(2)]
     results_out << [line_break]
     utility_bills.each do |key, bill|
       new_segment = key.split(':', 2)[0]

@@ -208,7 +208,7 @@ class WeatherProcess
 
     calc_annual_drybulbs(rowdata)
     calc_monthly_drybulbs(rowdata)
-    calc_heat_cool_degree_days(rowdata, dailydbs)
+    calc_heat_cool_degree_days(dailydbs)
     calc_avg_monthly_highs_lows(dailyhighdbs, dailylowdbs)
     calc_avg_windspeed(rowdata)
     calc_ground_temperatures
@@ -271,7 +271,7 @@ class WeatherProcess
     @data.AnnualAvgWindspeed = avgws
   end
 
-  def calc_heat_cool_degree_days(hd, dailydbs)
+  def calc_heat_cool_degree_days(dailydbs)
     # Calculates and stores heating/cooling degree days
     @data.HDD65F = calc_degree_days(dailydbs, 65, true)
     @data.HDD50F = calc_degree_days(dailydbs, 50, true)

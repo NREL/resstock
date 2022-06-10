@@ -285,12 +285,12 @@ Peak Building Loads
 
 Peak building loads are listed below.
 
-   ====================================  ==================================
-   Type                                  Notes
-   ====================================  ==================================
-   Peak Load: Heating: Delivered (kBtu)  Includes HVAC distribution losses.
-   Peak Load: Cooling: Delivered (kBtu)  Includes HVAC distribution losses.
-   ====================================  ==================================
+   =======================================  ==================================
+   Type                                     Notes
+   =======================================  ==================================
+   Peak Load: Heating: Delivered (kBtu/hr)  Includes HVAC distribution losses.
+   Peak Load: Cooling: Delivered (kBtu/hr)  Includes HVAC distribution losses.
+   =======================================  ==================================
 
 Note that the "Delivered" peak loads represent the energy delivered by the HVAC system; if a system is significantly undersized, there will be unmet peak load not reflected by these values.
 
