@@ -19,7 +19,7 @@ class ApplyUpgradeTest < MiniTest::Test
       'heat_pump_backup_heating_capacity' => 100000.0
     }
 
-    _lighting_upgrade(args_hash, expected_capacities)
+    _lighting_upgrade(args_hash)
     _test_retaining_capacities(osw_file, args_hash, expected_capacities)
 
     _heating_system_upgrade(args_hash, expected_capacities)
