@@ -26,7 +26,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
     return args

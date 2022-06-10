@@ -32,7 +32,7 @@ class TestRunAnalysis < MiniTest::Test
                       'QOIReport',
                       'ServerDirectoryCleanup']
     json = JSON.parse(File.read(osw), symbolize_names: true)
-    actual_order = json[:steps].collect { |k, v| k[:measure_dir_name] }
+    actual_order = json[:steps].collect { |k, _v| k[:measure_dir_name] }
     expected_order &= actual_order # subset expected_order to what's in actual_order
     assert_equal(expected_order, actual_order)
   end
@@ -71,7 +71,6 @@ class TestRunAnalysis < MiniTest::Test
     yml = ' -y test/tests_yml_files/yml_bad_value/testing_baseline.yml'
     @command += yml
 
-    cli_output = `#{@command}`
     cli_output = `#{@command}`
 
     assert(cli_output.include?("Output directory 'testing_baseline' already exists."))

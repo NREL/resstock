@@ -704,7 +704,7 @@ class UpgradeCostsTest < MiniTest::Test
     # Check for correct cost multiplier values
     hpxml_output_report.assign_primary_and_secondary(hpxml_in, cost_multipliers)
     hpxml = values['report_hpxml_output']
-    cost_multipliers.each do |cost_mult_type, mult_value|
+    cost_multipliers.keys.each do |cost_mult_type|
       if cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
         hpxml['enclosure_wall_area_thermal_boundary_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Wall Area Thermal Boundary')
       elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'

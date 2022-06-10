@@ -482,7 +482,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Seasons
     if args['use_auto_heating_season'] || args['use_auto_cooling_season']
       epw_path, cache_path = process_weather(args['weather_station_epw_filepath'], runner, model, '../in.xml')
-      weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
+      weather, _epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
       heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
     end
 
@@ -599,7 +599,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       # Error check MF & SFA geometry
       if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
         runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
-        corridor_position = 'Single Exterior (Front)'
+        # FIXME: This doesn't actually do anything because corridor_position is not used later.
+        # Remove code? Or should the code be moved up?
+        # corridor_position = 'Single Exterior (Front)'
       end
       if has_rear_units
         unit_width = n_units_per_floor / 2
