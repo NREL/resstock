@@ -4,7 +4,7 @@ require 'fileutils'
 
 def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars: [],
                        output_meters: [], run_measures_only: false, print_prefix: '',
-                       ep_input_format: 'idf')
+                       ep_input_format: 'idf', skip_simulation: false)
   rm_path(rundir)
   FileUtils.mkdir_p(rundir)
 
@@ -90,6 +90,10 @@ def run_hpxml_workflow(rundir, measures, measures_dir, debug: false, output_vars
     File.open(File.join(rundir, ep_input_filename), 'w') { |f| f << json.to_s }
   else
     fail "Unexpected ep_input_format: #{ep_input_format}."
+  end
+
+  if skip_simulation
+    return { success: success, runner: runner }
   end
 
   # Run simulation
@@ -229,7 +233,7 @@ def print_measure_call(measure_args, measure_dir, runner)
     return
   end
 
-  args_s = hash_to_string(measure_args, delim = ' -> ', separator = " \n")
+  args_s = hash_to_string(measure_args, ' -> ', " \n")
   if args_s.size > 0
     runner.registerInfo("Calling #{measure_dir} measure with arguments:\n#{args_s}")
   else

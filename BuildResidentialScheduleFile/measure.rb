@@ -34,7 +34,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_path', true)
@@ -200,6 +200,10 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
       args[:geometry_num_occupants] = Geometry.get_occupancy_default_num(hpxml.building_construction.number_of_bedrooms)
     else
       args[:geometry_num_occupants] = hpxml.building_occupancy.number_of_residents
+    end
+    # Stochastic occupancy required integer number of occupants
+    if args[:schedules_type] == 'stochastic'
+      args[:geometry_num_occupants] = Float(Integer(args[:geometry_num_occupants]))
     end
 
     if args[:schedules_vacancy_period].is_initialized

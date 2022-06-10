@@ -1035,7 +1035,7 @@ class Schedule
 
   def self.day_start_months(year)
     month_num_days = Constants.NumDaysInMonths(year)
-    return month_num_days.each_with_index.map { |n, i| get_day_num_from_month_day(year, i + 1, 1) }
+    return month_num_days.each_with_index.map { |_n, i| get_day_num_from_month_day(year, i + 1, 1) }
   end
 
   def self.day_end_months(year)
@@ -1400,7 +1400,7 @@ class SchedulesFile
 
     col_names = SchedulesFile.ColumnNames
 
-    @tmp_schedules[col_names[0]].each_with_index do |ts, i|
+    @tmp_schedules[col_names[0]].each_with_index do |_ts, i|
       col_names.each do |col_name|
         next unless affected_by_vacancy[col_name] # skip those unaffected by vacancy
 
@@ -1414,7 +1414,7 @@ class SchedulesFile
 
     col_names = @tmp_schedules.keys
 
-    @tmp_schedules[col_names[0]].each_with_index do |ts, i|
+    @tmp_schedules[col_names[0]].each_with_index do |_ts, i|
       SchedulesFile.SetpointColumnNames.each do |setpoint_col_name|
         next unless col_names.include?(setpoint_col_name)
 

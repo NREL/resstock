@@ -33,7 +33,7 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
   def test_lighting
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check interior lighting
     int_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameInteriorLighting)
@@ -47,7 +47,7 @@ class HPXMLtoOpenStudioLightingTest < MiniTest::Test
   def test_lighting_garage
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-2stories-garage.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check interior lighting
     int_kwh_yr = get_kwh_per_year(model, Constants.ObjectNameInteriorLighting)

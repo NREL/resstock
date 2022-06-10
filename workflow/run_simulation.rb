@@ -121,12 +121,12 @@ OptionParser.new do |opts|
   end
 
   options[:skip_validation] = false
-  opts.on('-s', '--skip-validation', 'Skip Schema/Schematron validation for faster performance') do |t|
+  opts.on('-s', '--skip-validation', 'Skip Schema/Schematron validation for faster performance') do |_t|
     options[:skip_validation] = true
   end
 
   options[:add_comp_loads] = false
-  opts.on('--add-component-loads', 'Add heating/cooling component loads calculation') do |t|
+  opts.on('--add-component-loads', 'Add heating/cooling component loads calculation') do |_t|
     options[:add_comp_loads] = true
   end
 
@@ -145,7 +145,7 @@ OptionParser.new do |opts|
   end
 
   options[:add_utility_bills] = false
-  opts.on('--add-utility-bills', 'Add utility bill calculations (using default rates).') do |t|
+  opts.on('--add-utility-bills', 'Add utility bill calculations (using default rates).') do |_t|
     options[:add_utility_bills] = true
   end
 
@@ -159,12 +159,12 @@ OptionParser.new do |opts|
   end
 
   options[:version] = false
-  opts.on('-v', '--version', 'Reports the version') do |t|
+  opts.on('-v', '--version', 'Reports the version') do |_t|
     options[:version] = true
   end
 
   options[:debug] = false
-  opts.on('-d', '--debug') do |t|
+  opts.on('-d', '--debug') do |_t|
     options[:debug] = true
   end
 
@@ -178,77 +178,76 @@ if options[:version]
   puts "OpenStudio-HPXML v#{Version::OS_HPXML_Version}"
   puts "OpenStudio v#{OpenStudio.openStudioLongVersion}"
   puts "EnergyPlus v#{OpenStudio.energyPlusVersion}.#{OpenStudio.energyPlusBuildSHA}"
-  exit!
-end
+else
+  if not options[:hpxml]
+    fail "HPXML argument is required. Call #{File.basename(__FILE__)} -h for usage."
+  end
 
-if not options[:hpxml]
-  fail "HPXML argument is required. Call #{File.basename(__FILE__)} -h for usage."
-end
+  timeseries_output_freq = 'none'
+  timeseries_outputs = []
+  n_freq = 0
+  if not options[:hourly_outputs].empty?
+    n_freq += 1
+    timeseries_output_freq = 'hourly'
+    timeseries_outputs = options[:hourly_outputs]
+  end
+  if not options[:daily_outputs].empty?
+    n_freq += 1
+    timeseries_output_freq = 'daily'
+    timeseries_outputs = options[:daily_outputs]
+  end
+  if not options[:monthly_outputs].empty?
+    n_freq += 1
+    timeseries_output_freq = 'monthly'
+    timeseries_outputs = options[:monthly_outputs]
+  end
+  if not options[:timestep_outputs].empty?
+    n_freq += 1
+    timeseries_output_freq = 'timestep'
+    timeseries_outputs = options[:timestep_outputs]
+  end
 
-timeseries_output_freq = 'none'
-timeseries_outputs = []
-n_freq = 0
-if not options[:hourly_outputs].empty?
-  n_freq += 1
-  timeseries_output_freq = 'hourly'
-  timeseries_outputs = options[:hourly_outputs]
-end
-if not options[:daily_outputs].empty?
-  n_freq += 1
-  timeseries_output_freq = 'daily'
-  timeseries_outputs = options[:daily_outputs]
-end
-if not options[:monthly_outputs].empty?
-  n_freq += 1
-  timeseries_output_freq = 'monthly'
-  timeseries_outputs = options[:monthly_outputs]
-end
-if not options[:timestep_outputs].empty?
-  n_freq += 1
-  timeseries_output_freq = 'timestep'
-  timeseries_outputs = options[:timestep_outputs]
-end
+  if not options[:timeseries_output_variables].empty?
+    timeseries_output_freq = 'timestep' if timeseries_output_freq == 'none'
+  end
 
-if not options[:timeseries_output_variables].empty?
-  timeseries_output_freq = 'timestep' if timeseries_output_freq == 'none'
+  if n_freq > 1
+    fail 'Multiple timeseries frequencies (hourly, daily, monthly, timestep) are not supported.'
+  end
+
+  if timeseries_outputs.include? 'ALL'
+    timeseries_outputs = timeseries_types[1..-1]
+  end
+
+  unless (Pathname.new options[:hpxml]).absolute?
+    options[:hpxml] = File.expand_path(options[:hpxml])
+  end
+  unless File.exist?(options[:hpxml]) && options[:hpxml].downcase.end_with?('.xml')
+    fail "'#{options[:hpxml]}' does not exist or is not an .xml file."
+  end
+
+  if options[:output_dir].nil?
+    options[:output_dir] = File.dirname(options[:hpxml]) # default
+  end
+  options[:output_dir] = File.expand_path(options[:output_dir])
+
+  unless Dir.exist?(options[:output_dir])
+    FileUtils.mkdir_p(options[:output_dir])
+  end
+
+  # Create run dir
+  rundir = File.join(options[:output_dir], 'run')
+
+  # Run design
+  puts "HPXML: #{options[:hpxml]}"
+  success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
+                         options[:skip_validation], options[:add_comp_loads], options[:add_utility_bills], options[:output_format], options[:building_id],
+                         options[:ep_input_format], options[:detailed_schedules_type], options[:timeseries_time_column_types],
+                         options[:timeseries_output_variables])
+
+  if not success
+    exit! 1
+  end
+
+  puts "Completed in #{(Time.now - start_time).round(1)}s."
 end
-
-if n_freq > 1
-  fail 'Multiple timeseries frequencies (hourly, daily, monthly, timestep) are not supported.'
-end
-
-if timeseries_outputs.include? 'ALL'
-  timeseries_outputs = timeseries_types[1..-1]
-end
-
-unless (Pathname.new options[:hpxml]).absolute?
-  options[:hpxml] = File.expand_path(options[:hpxml])
-end
-unless File.exist?(options[:hpxml]) && options[:hpxml].downcase.end_with?('.xml')
-  fail "'#{options[:hpxml]}' does not exist or is not an .xml file."
-end
-
-if options[:output_dir].nil?
-  options[:output_dir] = File.dirname(options[:hpxml]) # default
-end
-options[:output_dir] = File.expand_path(options[:output_dir])
-
-unless Dir.exist?(options[:output_dir])
-  FileUtils.mkdir_p(options[:output_dir])
-end
-
-# Create run dir
-rundir = File.join(options[:output_dir], 'run')
-
-# Run design
-puts "HPXML: #{options[:hpxml]}"
-success = run_workflow(basedir, rundir, options[:hpxml], options[:debug], timeseries_output_freq, timeseries_outputs,
-                       options[:skip_validation], options[:add_comp_loads], options[:add_utility_bills], options[:output_format], options[:building_id],
-                       options[:ep_input_format], options[:detailed_schedules_type], options[:timeseries_time_column_types],
-                       options[:timeseries_output_variables])
-
-if not success
-  exit! 1
-end
-
-puts "Completed in #{(Time.now - start_time).round(1)}s."

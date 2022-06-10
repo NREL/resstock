@@ -763,7 +763,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     heat_pump = hpxml.heat_pumps[0]
-    airflow_defect = heat_pump.airflow_defect_ratio
     charge_defect = heat_pump.charge_defect_ratio
     fan_watts_cfm = heat_pump.fan_watts_per_cfm
 
@@ -825,7 +824,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     # Get HPXML values
     cooling_system = hpxml.cooling_systems[0]
     heating_system = hpxml.heating_systems[0]
-    airflow_defect_clg = cooling_system.airflow_defect_ratio
     charge_defect = cooling_system.charge_defect_ratio
     fan_watts_cfm = cooling_system.fan_watts_per_cfm
     fan_watts_cfm2 = heating_system.fan_watts_per_cfm
@@ -883,7 +881,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     heating_system = hpxml.heating_systems[0]
-    airflow_defect_htg = heating_system.airflow_defect_ratio
     fan_watts_cfm = heating_system.fan_watts_per_cfm
 
     assert_equal(1, model.getAirLoopHVACUnitarySystems.size)
@@ -901,7 +898,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
 
     # Get HPXML values
     heat_pump = hpxml.heat_pumps[0]
-    airflow_defect = heat_pump.airflow_defect_ratio
     charge_defect = heat_pump.charge_defect_ratio
     fan_watts_cfm = heat_pump.fan_watts_per_cfm
 
@@ -1050,7 +1046,6 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
   end
 
   def _check_install_quality_multispeed_ratio(hpxml_clg_sys, model, hpxml_htg_sys = nil)
-    airflow_defect = hpxml_clg_sys.airflow_defect_ratio
     charge_defect = hpxml_clg_sys.charge_defect_ratio
     fan_watts_cfm = hpxml_clg_sys.fan_watts_per_cfm
 

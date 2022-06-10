@@ -6097,7 +6097,7 @@ class HPXML < Object
   end
 
   def _create_oga_document()
-    doc = XMLHelper.create_doc(version = '1.0', encoding = 'UTF-8')
+    doc = XMLHelper.create_doc('1.0', 'UTF-8')
     hpxml = XMLHelper.add_element(doc, 'HPXML')
     XMLHelper.add_attribute(hpxml, 'xmlns', 'http://hpxmlonline.com/2019/10')
     XMLHelper.add_attribute(hpxml, 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')

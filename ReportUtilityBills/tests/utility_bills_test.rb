@@ -234,7 +234,7 @@ class ReportUtilityBillsTest < MiniTest::Test
 
     # Check that any other state code is gracefully handled (no error)
     fuel_types.each do |fuel_type|
-      flatratebuy = @measure.get_auto_marginal_rate(runner, 'XX', fuel_type, 0)
+      @measure.get_auto_marginal_rate(runner, 'XX', fuel_type, 0)
     end
   end
 
@@ -352,13 +352,13 @@ class ReportUtilityBillsTest < MiniTest::Test
       end
     end
 
-    fuels.each do |(fuel_type, is_production), fuel|
+    fuels.values.each do |fuel|
       fuel.timeseries = [0] * fuels[[FT::Elec, false]].timeseries.size if fuel.timeseries.empty?
     end
 
     # Convert hourly data to monthly data
     num_days_in_month = Constants.NumDaysInMonths(2002) # Arbitrary non-leap year
-    fuels.each do |(fuel_type, is_production), fuel|
+    fuels.values.each do |fuel|
       ts_data = fuel.timeseries.dup
       fuel.timeseries = []
       start_day = 0
