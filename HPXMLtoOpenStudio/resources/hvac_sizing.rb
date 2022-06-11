@@ -44,22 +44,19 @@ class HVACSizing
 
     # Loop through each HVAC system and calculate equipment values.
     all_hvac_sizing_values = {}
-    bldg_design_loads_without_ducts = bldg_design_loads.dup
+    system_design_loads = bldg_design_loads.dup
     hvac_systems.each do |hvac_system|
       hvac = get_hvac_information(hvac_system)
       next if is_system_to_skip(hvac)
-
-      system_design_loads = bldg_design_loads_without_ducts.dup
 
       # Apply duct loads as needed
       apply_hvac_temperatures(hvac, system_design_loads)
       ducts_heat_load = calculate_load_ducts_heating(system_design_loads, hvac)
       ducts_cool_load_sens, ducts_cool_load_lat = calculate_load_ducts_cooling(system_design_loads, weather, hvac)
-      apply_load_ducts(system_design_loads, ducts_heat_load, ducts_cool_load_sens, ducts_cool_load_lat)
-      apply_load_ducts(bldg_design_loads, ducts_heat_load, ducts_cool_load_sens, ducts_cool_load_lat)
+      apply_load_ducts(bldg_design_loads, ducts_heat_load, ducts_cool_load_sens, ducts_cool_load_lat) # Update duct loads in reported building design loads
 
       hvac_sizing_values = HVACSizingValues.new
-      apply_hvac_loads(hvac, hvac_sizing_values, system_design_loads)
+      apply_hvac_loads(hvac, hvac_sizing_values, system_design_loads, ducts_heat_load, ducts_cool_load_sens, ducts_cool_load_lat)
       apply_hvac_heat_pump_logic(hvac_sizing_values, hvac)
       apply_hvac_equipment_adjustments(hvac_sizing_values, weather, hvac)
       apply_hvac_installation_quality(hvac_sizing_values, weather, hvac)
@@ -1067,7 +1064,7 @@ class HVACSizing
     bldg_design_loads.Cool_Ducts_Lat = 0.0
   end
 
-  def self.apply_hvac_temperatures(hvac, bldg_design_loads)
+  def self.apply_hvac_temperatures(hvac, system_design_loads)
     '''
     HVAC Temperatures
     '''
@@ -1078,7 +1075,7 @@ class HVACSizing
       hvac.LeavingAirTemp = @cool_design_temps[HPXML::LocationOutside] - td
     else
       # Calculate Leaving Air Temperature
-      shr = [bldg_design_loads.Cool_Sens / bldg_design_loads.Cool_Tot, 1.0].min
+      shr = [system_design_loads.Cool_Sens / system_design_loads.Cool_Tot, 1.0].min
       # Determine the Leaving Air Temperature (LAT) based on Manual S Table 1-4
       if shr < 0.80
         hvac.LeavingAirTemp = 54.0 # F
@@ -1104,21 +1101,27 @@ class HVACSizing
     end
   end
 
-  def self.apply_hvac_loads(hvac, hvac_sizing_values, bldg_design_loads)
+  def self.apply_hvac_loads(hvac, system_design_loads, bldg_design_loads, ducts_heat_load, ducts_cool_load_sens, ducts_cool_load_lat)
     # Calculate design loads that this HVAC system serves
 
     # Heating
-    hvac_sizing_values.Heat_Load = bldg_design_loads.Heat_Tot * hvac.HeatingLoadFraction
+    system_design_loads.Heat_Load = bldg_design_loads.Heat_Tot * hvac.HeatingLoadFraction
     if hvac.HeatType == HPXML::HVACTypeHeatPumpWaterLoopToAir
       # Size to meet original fraction load served (not adjusted value from HVAC.apply_shared_heating_systems()
       # This ensures, e.g., that an appropriate heating airflow is used for duct losses.
-      hvac_sizing_values.Heat_Load = hvac_sizing_values.Heat_Load / (1.0 / hvac.HeatingCOP)
+      system_design_loads.Heat_Load = system_design_loads.Heat_Load / (1.0 / hvac.HeatingCOP)
     end
 
     # Cooling
-    hvac_sizing_values.Cool_Load_Tot = bldg_design_loads.Cool_Tot * hvac.CoolingLoadFraction
-    hvac_sizing_values.Cool_Load_Sens = bldg_design_loads.Cool_Sens * hvac.CoolingLoadFraction
-    hvac_sizing_values.Cool_Load_Lat = bldg_design_loads.Cool_Lat * hvac.CoolingLoadFraction
+    system_design_loads.Cool_Load_Tot = bldg_design_loads.Cool_Tot * hvac.CoolingLoadFraction
+    system_design_loads.Cool_Load_Sens = bldg_design_loads.Cool_Sens * hvac.CoolingLoadFraction
+    system_design_loads.Cool_Load_Lat = bldg_design_loads.Cool_Lat * hvac.CoolingLoadFraction
+
+    # After applying load fraction to building design loads (w/o ducts), add duct load specific to this HVAC system
+    system_design_loads.Heat_Load += ducts_heat_load.to_f
+    system_design_loads.Cool_Load_Sens += ducts_cool_load_sens.to_f
+    system_design_loads.Cool_Load_Lat += ducts_cool_load_lat.to_f
+    system_design_loads.Cool_Load_Tot += ducts_cool_load_sens.to_f + ducts_cool_load_lat.to_f
   end
 
   def self.apply_hvac_heat_pump_logic(hvac_sizing_values, hvac)
@@ -1212,14 +1215,14 @@ class HVACSizing
     return dse_Fregain
   end
 
-  def self.calculate_load_ducts_heating(bldg_design_loads, hvac)
+  def self.calculate_load_ducts_heating(system_design_loads, hvac)
     '''
     Heating Duct Loads
     '''
 
-    return if (bldg_design_loads.Heat_Tot == 0) || (hvac.HeatingLoadFraction == 0) || hvac.Ducts.empty?
+    return if (system_design_loads.Heat_Tot == 0) || (hvac.HeatingLoadFraction == 0) || hvac.Ducts.empty?
 
-    init_heat_load = bldg_design_loads.Heat_Tot * hvac.HeatingLoadFraction
+    init_heat_load = system_design_loads.Heat_Tot * hvac.HeatingLoadFraction
 
     # Distribution system efficiency (DSE) calculations based on ASHRAE Standard 152
     dse_As, dse_Ar = calc_ducts_areas(hvac.Ducts)
@@ -1265,14 +1268,14 @@ class HVACSizing
     return ducts_heat_load
   end
 
-  def self.calculate_load_ducts_cooling(bldg_design_loads, weather, hvac)
+  def self.calculate_load_ducts_cooling(system_design_loads, weather, hvac)
     '''
     Cooling Duct Loads
     '''
-    return if (bldg_design_loads.Cool_Sens == 0) || (hvac.CoolingLoadFraction == 0) || hvac.Ducts.empty?
+    return if (system_design_loads.Cool_Sens == 0) || (hvac.CoolingLoadFraction == 0) || hvac.Ducts.empty?
 
-    init_cool_load_sens = bldg_design_loads.Cool_Sens * hvac.CoolingLoadFraction
-    init_cool_load_lat = bldg_design_loads.Cool_Lat * hvac.CoolingLoadFraction
+    init_cool_load_sens = system_design_loads.Cool_Sens * hvac.CoolingLoadFraction
+    init_cool_load_lat = system_design_loads.Cool_Lat * hvac.CoolingLoadFraction
 
     # Distribution system efficiency (DSE) calculations based on ASHRAE Standard 152
     dse_As, dse_Ar = calc_ducts_areas(hvac.Ducts)
