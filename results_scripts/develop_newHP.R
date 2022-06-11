@@ -3,9 +3,10 @@ cat("\014") # clear console
 library(dplyr)
 library(reshape2)
 library(ggplot2)
+library(gridExtra)
 setwd("~/Yale Courses/Research/Final Paper/resstock_projections/results_scripts")
 
-# Last Update Peter Berrill May 6 2022
+# Last Update Peter Berrill June 10 2022
 
 # Purpose: Calculate demand for new heat pumps in different scenarios
 
@@ -99,11 +100,14 @@ names(hp_DE_erm)<-c('Year','Source','Demand')
 hp_DE_erm$Scenario<-'Inc. Elec. NHC & Ext. Ren.'
 
 windows(width = 6.8,height = 5.4)
-ggplot(hp_base_rrm,aes(Year,1E-6*Demand,fill=Source)) + geom_area(alpha=0.75)  + scale_y_continuous(limits = c(0, 10), breaks = seq(0, 10,2)) +
+a<-ggplot(hp_base_rrm,aes(Year,1E-6*Demand,fill=Source)) + geom_area(alpha=0.75)  + scale_y_continuous(limits = c(0, 10), breaks = seq(0, 10,2)) +
   labs(title ="a) Heat Pump Demand for Construction & Renovation",subtitle = 'Base NHC and Reg. Ren. Scenario',y="Million Heat Pump Units") + theme_bw() + 
   theme(axis.text=element_text(size=11),axis.title=element_text(size=12,face = "bold"),plot.title = element_text(size = 12),legend.key.width = unit(1,'cm'))
 
 windows(width = 6.8,height = 5.4)
-ggplot(hp_DE_erm,aes(Year,1E-6*Demand,fill=Source)) + geom_area(alpha=0.75)  + scale_y_continuous(limits = c(0, 10), breaks = seq(0, 10,2)) +
+b<-ggplot(hp_DE_erm,aes(Year,1E-6*Demand,fill=Source)) + geom_area(alpha=0.75)  + scale_y_continuous(limits = c(0, 10), breaks = seq(0, 10,2)) +
   labs(title ="b) Heat Pump Demand for Construction & Renovation",subtitle = 'Inc. Elec. NHC and Ext. Ren. Scenario',y="Million Heat Pump Units") + theme_bw() + 
   theme(axis.text=element_text(size=11),axis.title=element_text(size=12,face = "bold"),plot.title = element_text(size = 12),legend.key.width = unit(1,'cm'))
+
+windows(width = 6.8,height = 10.5)
+grid.arrange(a,b,nrow=2)

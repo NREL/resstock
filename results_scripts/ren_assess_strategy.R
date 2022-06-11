@@ -6,7 +6,7 @@ library(dplyr)
 library(reshape2)
 library(stringr)
 
-# Last Update Peter Berrill May 6 2022
+# Last Update Peter Berrill June 10 2022
 
 # Purpose: Test the benefits of individual renovation strategies in different scenarios. Make environmental-economic cost-benefit analysis of renovation strategies
 
@@ -1049,7 +1049,6 @@ ggplot(heat_all_plot[heat_all_plot$Strategy %in% heat_strategies,],aes(x=CD_Abbr
 # windows()
 ggplot(heat_all_plot[heat_all_plot$Strategy %in% heat_strategies,],aes(x=CD_Abbr,y=0.001*NPVc)) +  geom_boxplot(outlier.color='grey',outlier.size = 1) + facet_wrap(~Strategy,scale='free',ncol=3) + scale_y_continuous(labels=scales::comma_format()) + 
   geom_hline(yintercept=0,color='red') +labs(title = "b) NPV of Heating Renovations by Fuel-Switch and Division",subtitle = 'For renovations occuring between 2021-2025',x='Census Division',y='NPV (1,000 2021$)') + theme(axis.text=element_text(size=8)) + theme_bw() 
-
 
 # windows()
 ggplot(heat_all_plot[heat_all_plot$Strategy %in% heat_strategies,],aes(x=CD_Abbr,y=GHG_abate_cost_LREC)) +  geom_boxplot(outlier.color='grey',outlier.size = 1) + facet_wrap(~Strategy,scale='free',ncol=3) + scale_y_continuous(labels=scales::comma_format()) + 

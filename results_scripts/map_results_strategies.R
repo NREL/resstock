@@ -25,6 +25,8 @@ library(RColorBrewer)
 library(urbnthemes)
 library(ggrepel)
 library(stringr)
+library(sf)
+library(gridExtra)
 set_urbn_defaults(style = "map")
 '%!in%' <- function(x,y)!('%in%'(x,y))
 # load in results
@@ -80,8 +82,6 @@ vars3[vars3$best3=='ER',]$best4<-'Ext. Ren.'
 vars3[vars3$best3=='hiMF',]$best4<-'High-MF'
 vars3[vars3$best3=='DERFA',]$best4<-'IE & RFA'
 
-load('../Final_results/StockCountComp.RData')
-
 vars<-cty_assess[!cty_assess$County %in% filter$County ,c('County','abs_redn_ER','best','GeoID')]
 
 vars$best2<-NA
@@ -92,30 +92,29 @@ vars[vars$best=='DERFA',]$best2<-'IE & RFA'
 table(vars$best)
 map_data<-right_join(counties_sf,vars,by = c("county_fips" ="GeoID"))
 
-# Fig S34a
-windows()
+# Fig S34a, ED Figure 6a
+windows(8.8, 5.4)
 ggplot() +
   geom_sf(data = counties_sf, fill = 'white', color = "#ffffff", size = 0.25) +
   geom_sf(map_data,mapping = aes(fill = best2)) + coord_sf(datum = NA) + scale_fill_manual(values = c("#009E73","#CC79A7","#D55E00", "#E69F00")) +  #scale_fill_manual(values = c("blue", "magenta",  "#fdc086", "green")) +
   geom_sf(data = states_sf, fill = NA, color = "#ffffff", size = 0.25) +
   labs(fill = "Strategy") + 
   ggtitle("a) Best Mitigation Strategy by County") +
-  theme(legend.title = element_text(size = 13,face='bold'),legend.text = element_text(size = 12),legend.key.size = unit(2,"line"),plot.title = element_text(hjust = 0.5,vjust=0,size=19),
+  theme(legend.title = element_text(size = 13,face='bold'),legend.text = element_text(size = 11),legend.key.size = unit(1.4,"line"),plot.title = element_text(hjust = 0.5,vjust=0,size=15),
         legend.box.margin=margin(-20,-20,-20,-20))
-        # legend.position = 'bottom',legend.direction = 'horizontal') 
 
 # now without LRE
 
 map_data<-right_join(counties_sf,vars3,by = c("county_fips" ="GeoID"))
-# Fig S34b
-windows()
+# Fig S34b, ED Figure 6b
+windows(8.8, 5.4)
 ggplot() +
   geom_sf(data = counties_sf, fill = 'white', color = "#ffffff", size = 0.25) +
   geom_sf(map_data,mapping = aes(fill = best4)) + coord_sf(datum = NA) + scale_fill_manual(values = c("#009E73","#CC79A7",'blue',"#D55E00")) +  #scale_fill_manual(values = c("blue", "magenta",  "#fdc086", "green")) +
   geom_sf(data = states_sf, fill = NA, color = "#ffffff", size = 0.25) +
   labs(fill = "Strategy") + 
   ggtitle("b) Best Mitigation Strategy by County, Excluding Electricity Supply Strategies") +
-  theme(legend.title = element_text(size = 13,face='bold'),legend.text = element_text(size = 12),legend.key.size = unit(2,"line"),plot.title = element_text(hjust = 0.5,vjust=0,size=19),
+  theme(legend.title = element_text(size = 13,face='bold'),legend.text = element_text(size = 11),legend.key.size = unit(1.4,"line"),plot.title = element_text(hjust = 0.5,vjust=0,size=15),
         legend.box.margin=margin(-20,-20,-20,-20))
 
 
@@ -362,32 +361,55 @@ map$rto2<-str_sub(map$rto,4)
 vars<-map
 map_data<-right_join(counties_sf,vars,by = c("county_fips" ="geoid"))
 
-
 windows()
 ggplot() +
   geom_sf(data = counties_sf, fill = 'red', color = "#ffffff", size = 0.25) +
-  geom_sf(map_data,mapping = aes(fill = rto2)) + coord_sf(datum = NA)  + scale_fill_manual(values=colorRampPalette(brewer.pal(8,"Dark2"))(18))  + #scale_fill_manual(values = c("blue", "magenta",  "#fdc086", "green")) +   # scale_fill_discrete() +   # scale_fill_brewer(palette = "Set3") +
+  geom_sf(md,mapping = aes(fill = rto2)) + coord_sf(datum = NA)  + scale_fill_manual(values=colorRampPalette(brewer.pal(8,"Dark2"))(18))  + #scale_fill_manual(values = c("blue", "magenta",  "#fdc086", "green")) +   # scale_fill_discrete() +   # scale_fill_brewer(palette = "Set3") +
   geom_sf(data = states_sf, fill = NA, color = "#ffffff", size = 0.25) +
   labs(fill = "RTO") + 
   ggtitle("RTO") +
   theme(legend.title = element_text(size = 12),legend.text = element_text(size = 12),legend.key.size = unit(2,"line"),plot.title = element_text(hjust = 0.5,size=16)) 
 
-# see how GHG intensities differ by BA and RTO, by scenario, and by year. 
-
+# now make the figure of GHG intensity in 2020 and in 2050 with LREC, for Fig S24 and ED Fig4
 ghgi_gea20<-gicty_gea_LREC[gicty_gea_LREC$Year==2020,]
 ghgi_gea20[ghgi_gea20$geoid10==46113,]$geoid10<-46102 # fix Oglala Lakota
+ghgi_gea50<-gicty_gea_LREC[gicty_gea_LREC$Year==2050,]
+ghgi_gea50[ghgi_gea50$geoid10==46113,]$geoid10<-46102 # fix Oglala Lakota
 vars<-merge(map,ghgi_gea20[,c('geoid10','GHG_int')],by='geoid10')
 names(vars)[11]<-'GHG_int_20'
-map_data<-right_join(counties_sf,vars,by = c("county_fips" ="geoid"))
+vars<-merge(vars,ghgi_gea50[,c('geoid10','GHG_int')],by='geoid10')
+names(vars)[12]<-'GHG_int_50'
+md<-unique(right_join(counties_sf,vars,by = c("county_fips" ="geoid")))
 
+gea_list<-unique(md$gea)
+
+gea_ghg=data.frame(gea=rep('gea',length(gea_list)),ghg20=rep(0,length(gea_list)),ghg50=rep(0,length(gea_list)),geometry=rep(md$geometry[1],length(gea_list)))
+
+for (k in 1:length(gea_list)) {
+  g<-gea_list[k]
+  gea_ghg$gea[k]<-g
+  gea_ghg$geometry[k]<-st_union(md[md$gea==g,'geometry'])
+  gea_ghg$ghg20[k]<-mean(md[md$gea==g,]$GHG_int_20)
+  gea_ghg$ghg50[k]<-mean(md[md$gea==g,]$GHG_int_50)
+  
+}
+
+# 
 windows()
-ggplot() +
-  geom_sf(data = counties_sf, fill = 'red', color = "#ffffff", size = 0.1) +
-  geom_sf(map_data,mapping = aes(fill = GHG_int_20)) + coord_sf(datum = NA)  + 
-  geom_sf(data = states_sf, fill = NA, color = "#ffffff", size = 0.25) +
+ggplot() + 
+  geom_sf(data=gea_ghg$geometry,mapping = aes(fill=gea_ghg$ghg20),color='white',size=0.2) + 
+  geom_sf(data = states_sf, fill = NA, color = 'grey' ,size = 0.05) + 
   labs(fill = "gCO2/kWh") + scale_fill_viridis_c(option = "plasma") +
   ggtitle("a) 2020 GHG intensity by GEA region") + 
-  theme(legend.title = element_text(size = 12),legend.text = element_text(size = 12),legend.key.size = unit(2,"line"),plot.title = element_text(hjust = 0.5,size=16)) 
+  theme(legend.title = element_text(size = 12),legend.text = element_text(size = 12),legend.key.size = unit(2,"line"),plot.title = element_text(hjust = 0.5,size=16))
+
+windows()
+ggplot() + 
+  geom_sf(data=gea_ghg$geometry,mapping = aes(fill=gea_ghg$ghg50),color='white',size=0.2) + 
+  geom_sf(data = states_sf, fill = NA, color = 'grey' ,size = 0.05) + 
+  labs(fill = "gCO2/kWh") + scale_fill_viridis_c(option = "plasma") +
+  ggtitle("b) 2050 GHG intensity by GEA region, LREC electricity scenario") + 
+  theme(legend.title = element_text(size = 12),legend.text = element_text(size = 12),legend.key.size = unit(2,"line"),plot.title = element_text(hjust = 0.5,size=16))
 
 # plot evolution of grid intensities by grid region. need to do this before/without loading the urbanthemes, urbnmapr
 gea_LREC<-unique(merge(gicty_gea_LREC,vars[,c('geoid10','gea')],by='geoid10')[,2:4])
@@ -396,48 +418,38 @@ gea_MC<-unique(merge(gicty_gea,vars[,c('geoid10','gea')],by='geoid10')[,2:4])
 write.csv(gea_LREC,'../Figures/Grid/gea_LREC.csv',row.names = FALSE)
 write.csv(gea_MC,'../Figures/Grid/gea_MC.csv',row.names = FALSE)
 
-
 geas<-sort(unique(gea_LREC$gea))
 
-windows(width = 7.6, height = 5.8)
-ggplot(gea_MC[gea_MC$gea %in% geas[1:10],],aes(Year,GHG_int,group=gea)) + geom_line(aes(color=gea),size=1) + theme_bw() + 
+windows(width = 6.5, height = 5.8)
+a<-ggplot(gea_MC[gea_MC$gea %in% geas[1:10],],aes(Year,GHG_int,group=gea)) + geom_line(aes(color=gea),size=1) + theme_bw() + 
   scale_color_brewer(palette="Paired") + scale_y_continuous(limits = c(0,650)) + 
-  labs(title = "a) Reduction of GHG intensity, 2020-2050, MC", subtitle = "Group 1",  y = "kgCO2/kWh") +
-  theme(axis.text=element_text(size=11),axis.title=element_text(size=12,face = "bold"),plot.title = element_text(size = 14))
+  labs(title = "a) Reduction of GHG intensity, 2020-2050, MC", subtitle = "GEA Regions Group 1",  y = "kgCO2/kWh") +
+  theme(axis.text=element_text(size=10),axis.title=element_text(size=11,face = "bold"),plot.title = element_text(size = 12), plot.subtitle = element_text(size=11),legend.position = 'bottom',legend.margin=margin(t = 0, unit='cm'), legend.spacing.x = unit(0.1,'cm'),legend.title=element_blank(),legend.text = element_text(size=8))
+a
 
-windows(width = 7.6, height = 5.8)
-ggplot(gea_MC[gea_MC$gea %in% geas[11:20],],aes(Year,GHG_int,group=gea)) + geom_line(aes(color=gea),size=1) + theme_bw() + 
+windows(width = 6.5, height = 5.8)
+b<-ggplot(gea_MC[gea_MC$gea %in% geas[11:20],],aes(Year,GHG_int,group=gea)) + geom_line(aes(color=gea),size=1) + theme_bw() + 
   scale_color_brewer(palette="Paired") + scale_y_continuous(limits = c(0,650)) + 
-  labs(title = "b) Reduction of GHG intensity, 2020-2050, MC", subtitle = "Group 2",  y = "kgCO2/kWh") +
-  theme(axis.text=element_text(size=11),axis.title=element_text(size=12,face = "bold"),plot.title = element_text(size = 14))
+  labs(title = "c) Reduction of GHG intensity, 2020-2050, MC", subtitle = "GEA Regions Group 2",  y = "kgCO2/kWh") +
+  theme(axis.text=element_text(size=10),axis.title=element_text(size=11,face = "bold"),plot.title = element_text(size = 12), plot.subtitle = element_text(size=11),legend.position = 'bottom',legend.margin=margin(t = 0, unit='cm'), legend.spacing.x = unit(0.1,'cm'),legend.title=element_blank(),legend.text = element_text(size=8))
+b
 
-windows(width = 7.6, height = 5.8)
-ggplot(gea_LREC[gea_LREC$gea %in% geas[1:10],],aes(Year,GHG_int,group=gea)) + geom_line(aes(color=gea),size=1) + theme_bw() + 
+windows(width = 6.5, height = 5.8)
+c<-ggplot(gea_LREC[gea_LREC$gea %in% geas[1:10],],aes(Year,GHG_int,group=gea)) + geom_line(aes(color=gea),size=1) + theme_bw() + 
   scale_color_brewer(palette="Paired") + scale_y_continuous(limits = c(0,650)) + 
-  labs(title = "c) Reduction of GHG intensity, 2020-2050, LREC", subtitle = "Group 1",  y = "kgCO2/kWh") +
-  theme(axis.text=element_text(size=11),axis.title=element_text(size=12,face = "bold"),plot.title = element_text(size = 14))
-
-windows(width = 7.6, height = 5.8)
-ggplot(gea_LREC[gea_LREC$gea %in% geas[11:20],],aes(Year,GHG_int,group=gea)) + geom_line(aes(color=gea),size=1) + theme_bw() + 
+  labs(title = "b) Reduction of GHG intensity, 2020-2050, LREC", subtitle = "GEA Regions Group 1",  y = "kgCO2/kWh") +
+  theme(axis.text=element_text(size=10),axis.title=element_text(size=11,face = "bold"),plot.title = element_text(size = 12), plot.subtitle = element_text(size=11), legend.position = 'bottom',legend.margin=margin(t = 0, unit='cm'), legend.spacing.x = unit(0.1,'cm'),legend.title=element_blank(),legend.text = element_text(size=8), axis.title.y=element_blank())
+c
+windows(width = 6.5, height = 5.8)
+d<-ggplot(gea_LREC[gea_LREC$gea %in% geas[11:20],],aes(Year,GHG_int,group=gea)) + geom_line(aes(color=gea),size=1) + theme_bw() + 
   scale_color_brewer(palette="Paired") + scale_y_continuous(limits = c(0,650)) + 
-  labs(title = "d) Reduction of GHG intensity, 2020-2050, LREC", subtitle = "Group 2",  y = "kgCO2/kWh") +
-  theme(axis.text=element_text(size=11),axis.title=element_text(size=12,face = "bold"),plot.title = element_text(size = 14))
+  labs(title = "d) Reduction of GHG intensity, 2020-2050, LREC", subtitle = "GEA Regions Group 2",  y = "kgCO2/kWh") +
+  theme(axis.text=element_text(size=10),axis.title=element_text(size=11,face = "bold"),plot.title = element_text(size = 12), plot.subtitle = element_text(size=11),legend.position = 'bottom',legend.margin=margin(t = 0, unit='cm'), legend.spacing.x = unit(0.1,'cm'), legend.title=element_blank(),legend.text = element_text(size=8), axis.title.y=element_blank())
+d
 
-ghgi_gea50<-gicty_gea_LREC[gicty_gea_LREC$Year==2050,]
-ghgi_gea50[ghgi_gea50$geoid10==46113,]$geoid10<-46102 # fix Oglala Lakota
-vars<-merge(map,ghgi_gea50[,c('geoid10','GHG_int')],by='geoid10')
-names(vars)[11]<-'GHG_int_50'
-map_data<-right_join(counties_sf,vars,by = c("county_fips" ="geoid"))
+grid.arrange(a, c,b,d,nrow = 2)
 
-windows()
-ggplot() +
-  geom_sf(data = counties_sf, fill = 'red', color = "#ffffff", size = 0.1) +
-  geom_sf(map_data,mapping = aes(fill = GHG_int_50)) + coord_sf(datum = NA)  + 
-  geom_sf(data = states_sf, fill = NA, color = "#ffffff", size = 0.25) +
-  labs(fill = "gCO2/kWh") + scale_fill_viridis_c(option = "plasma") +
-  ggtitle("b) 2050 GHG intensity by GEA region, LREC") + 
-  theme(legend.title = element_text(size = 12),legend.text = element_text(size = 12),legend.key.size = unit(2,"line"),plot.title = element_text(hjust = 0.5,size=16)) 
-
+# see how much GHG intensity reduced by GEA region
 ghgi_gea20_50<-ghgi_gea50[,1:2]
 ghgi_gea20_50$pc_redn_LREC<-100*(ghgi_gea20$GHG_int-ghgi_gea50$GHG_int)/ghgi_gea20$GHG_int
 

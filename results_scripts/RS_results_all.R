@@ -3,9 +3,10 @@ library(dplyr)
 library(reshape2)
 library(RColorBrewer)
 library(openxlsx)
+library(gridExtra)
 
 
-# Last Update Peter Berrill May 6 2022
+# Last Update Peter Berrill June 10 2022
 
 # Purpose: Visualize main results, and generate numerous supporting figures and table data for the SI.
 
@@ -3387,7 +3388,7 @@ ggplot(ghgp,aes(Year,TotGHG,group=UniqScen)) + geom_line(aes(color=Scenario),siz
   geom_segment(aes(x=2028,xend=2032,y=492,yend=492),linetype="dashed")+geom_text(x=2030, y=470, label="50% of 2020 GHG",size=3.5) + geom_point(data=odf,aes(x=xa,y=ya,group=1)) +
   geom_segment(aes(x=2028,xend=2032,y=659,yend=659),linetype="dashed")+geom_text(x=2030, y=680, label="50% of 2005 GHG",size=3.5) + geom_point(data=hdf,aes(x=xa,y=ya,group=1)) +
   geom_segment(aes(x=2048,xend=2052,y=0,yend=0),linetype="dashed")+geom_text(x=2050, y=20, label="Net-Zero",size=3.5) + geom_point(data=zdf,aes(x=xa,y=ya,group=1)) +
-  labs(title ="Annual Emissions by Electricity and Renovation Scenario",y="Mton CO2e/yr") +
+  labs(title ="Annual Emission Pathways",y="Mton CO2e/yr") +
   theme(axis.text=element_text(size=10),axis.title=element_text(size=11,face = "bold"),plot.title = element_text(size = 11),legend.key.width = unit(0.8,'cm'))
 # Close the pdf file, if using pdf() function to save
 # dev.off() 
@@ -3465,11 +3466,12 @@ colarea<-c("#D5D6DE","8D8E91",bop,"#F5F5DC")
 colln<-colorRampPalette(brewer.pal(4,"Set1"))(2)
 colln<-c('tan4','black','blue')
 windows(width = 9,height = 6.2)
-ggplot() + geom_area(data=GHGdff,aes(Year,DiffGHG,fill=Strategy)) + geom_line(data=GHGln,aes(Year,TotGHG,color=Scenario),size=1,linetype="longdash") + scale_y_continuous(breaks = seq(0,1200,200),limits = c(0,1000)) +
-  labs(title ="a) GHG reduction potential by sequential strategy adoption",y="Mton CO2e/yr",subtitle = "Strategy Group Order: Grid, Renovation, New Housing Chars/Stock Evolution") + theme_classic() + 
+a<-ggplot() + geom_area(data=GHGdff,aes(Year,DiffGHG,fill=Strategy)) + geom_line(data=GHGln,aes(Year,TotGHG,color=Scenario),size=1,linetype="longdash") + scale_y_continuous(breaks = seq(0,1200,200),limits = c(0,1000)) +
+  labs(title ="a) GHG reduction by sequential strategy adoption",y="Mton CO2e/yr",subtitle = "Strategy Order: Grid, Renovation, New Housing/Stock Evolution") + theme_classic() + 
   scale_fill_manual(values=colarea)  + scale_color_manual(values=colln) +
-  theme(axis.text=element_text(size=11),axis.title=element_text(size=12, face = "bold"),plot.title = element_text(size = 12),
+  theme(axis.text=element_text(size=11),axis.title=element_text(size=12, face = "bold"),plot.title = element_text(size = 12),plot.subtitle = element_text(size = 11),
         legend.key.width = unit(1,'cm'),legend.text =  element_text(size = 10)) + guides(linetype=guide_legend(order=1),color=guide_legend(order=2))
+a
 write.csv(GHGdff,'../Figures/SI_Other/S31a.csv',row.names = FALSE)
 
 # repeat Fig with different order
@@ -3521,12 +3523,17 @@ colarea<-c("#D5D6DE","8D8E91",pob,"#F5F5DC")
 colln<-colorRampPalette(brewer.pal(4,"Set1"))(2)
 colln<-c('tan4','black','blue')
 windows(width = 9,height = 6.2)
-ggplot() + geom_area(data=GHGdff2,aes(Year,DiffGHG,fill=Strategy)) + geom_line(data=GHGln,aes(Year,TotGHG,color=Scenario),size=1,linetype="longdash") + scale_y_continuous(breaks = seq(0,1200,200),limits = c(0,1000)) +
-  labs(title ="b) GHG reduction potential by sequential strategy adoption",y="Mton CO2e/yr",subtitle = "Strategy Group Order: New Housing Chars/Stock Evolution, Renovation, Grid") + theme_classic() + 
+b<-ggplot() + geom_area(data=GHGdff2,aes(Year,DiffGHG,fill=Strategy)) + geom_line(data=GHGln,aes(Year,TotGHG,color=Scenario),size=1,linetype="longdash") + scale_y_continuous(breaks = seq(0,1200,200),limits = c(0,1000)) +
+  labs(title ="b) GHG reduction by sequential strategy adoption",y="Mton CO2e/yr",subtitle = "Strategy Order: New Housing/Stock Evolution, Renovation, Grid") + theme_classic() + 
   scale_fill_manual(values=colarea)  + scale_color_manual(values=colln) +
   theme(axis.text=element_text(size=11),axis.title=element_text(size=12, face = "bold"),plot.title = element_text(size = 12),
         legend.key.width = unit(1,'cm'),legend.text =  element_text(size = 10)) + guides(linetype=guide_legend(order=1),color=guide_legend(order=2))
+b
 write.csv(GHGdff2,'../Figures/SI_Other/S31b.csv',row.names = FALSE)
+
+# created extended data figure 3
+windows(width = 8,height = 12)
+grid.arrange(a, b, nrow = 2)
 
 # Emissions from construction, and fuel use in new and old construction, Fig 3 #########
 # 1
@@ -3624,81 +3631,84 @@ save(g_base_RR,g_base_RR_LREC,g_base_RR_CFE,g_base_ER,g_base_ER_LREC,g_base_ER_C
 # load("../Final_results/GHG_Source_new.RData")
 # now make a dual axis version of Fig 3
 # base emissions
+GHG_base_RR<-GHGall[GHGall$UniqScen=='1_A_RR_MC',]
 GHG_base_RR$CumGHG<-GHG_base_RR$TotGHG
 for (k in 2:41) {
   GHG_base_RR$CumGHG[k]<-GHG_base_RR$CumGHG[k-1]+GHG_base_RR$TotGHG[k]
 }
 GHG_base_RR$CumGHG_Gt<-0.001*GHG_base_RR$CumGHG
 coeff<-0.03
-g_base_RR$`Ann. Emissions`<-g_base_RR$Source
+g_base_RR$`Annual Emissions`<-g_base_RR$Source
 
 # 3b base RR LREC
+GHG_base_RR_LREC<-GHGall[GHGall$UniqScen=='1_A_RR_LREC',]
 GHG_base_RR_LREC$CumGHG<-GHG_base_RR_LREC$TotGHG
 for (k in 2:41) {
   GHG_base_RR_LREC$CumGHG[k]<-GHG_base_RR_LREC$CumGHG[k-1]+GHG_base_RR_LREC$TotGHG[k]
 }
 GHG_base_RR_LREC$CumGHG_Gt<-0.001*GHG_base_RR_LREC$CumGHG
 cc1<-GHG_base_RR[,c("Year","CumGHG_Gt")]
-cc1$`Cum. Emissions` <-"Baseline scenario"
+cc1$`Cumulative Emissions` <-"Baseline scenario"
 cc2<-GHG_base_RR_LREC[,c("Year","CumGHG_Gt")]
-cc2$`Cum. Emissions`<-"Featured scenario"
+cc2$`Cumulative Emissions`<-"Featured scenario"
 cc<-rbind(cc1,cc2)
-g_base_RR_LREC$`Ann. Emissions`<-g_base_RR_LREC$Source
+g_base_RR_LREC$`Annual Emissions`<-g_base_RR_LREC$Source
 
 # 3(b)
 # first create all Fig. 3 sub-figures, then combine and shrink in InkScape
 windows(width = 9.5,height = 7)
-ggplot(g_base_RR_LREC) + geom_bar(aes(x=Year,y=GHG,fill=`Ann. Emissions`), position="stack", stat="identity",width=0.75) +
-  geom_line(data=cc,aes(x=Year,y=CumGHG_Gt/coeff,linetype=`Cum. Emissions`),size=0.8,color="black")+
+ggplot(g_base_RR_LREC) + geom_bar(aes(x=Year,y=GHG,fill=`Annual Emissions`), position="stack", stat="identity",width=0.75) +
+  geom_line(data=cc,aes(x=Year,y=CumGHG_Gt/coeff,linetype=`Cumulative Emissions`),size=0.8,color="black")+
   scale_y_continuous(name = "Annual Emissions (Mt CO2e/yr)", limits = c(0,960), breaks = c(0,250,500,750,1000),
-                     sec.axis = sec_axis(~.*coeff, name="Cum. Emissions (Gt CO2e)",breaks = c(7.5,15,22.5,30))) + 
-  labs(title="b) Baseline Stock and Characteristics (1A)",
-       subtitle = "      LREC Elec, Regular Renovation (LREC-RR)") +
+                     sec.axis = sec_axis(~.*coeff, name="Cumulative Emissions (Gt CO2e)",breaks = c(7.5,15,22.5,30))) + 
+  labs(title="b) Baseline Stock and Characteristics (1A),",
+       subtitle = "     LREC Electricity, Regular Renovation (LREC-RR)") +
   theme_bw() + scale_fill_manual(values=c(brewer.pal(12,"Paired")[c(1,2,7,8,9,10)],"#EEB486","#8A592B"))  +
   theme(axis.text=element_text(size=12),axis.title=element_text(size=13, face = "bold"),
         axis.title.y.right = element_text(angle=90),
-        plot.title = element_text(size = 14),plot.subtitle = element_text(size=13,face ="bold"),
-        legend.text=element_text(size=12),legend.title = element_text(face="bold"))
+        plot.title = element_text(size = 14),plot.subtitle = element_text(size=13),
+        legend.text=element_text(size=12),legend.title = element_text(face="bold")) + guides(linetype = guide_legend(order = 2),fill = guide_legend(order = 1))
 
 write.csv(g_base_RR_LREC,'../Figures/MainText/Fig3b_ann.csv',row.names = FALSE)
 cc$Scenario<-'1_A_RR_MC'
-cc[cc$`Cum. Emissions`=="Featured scenario",]$Scenario<-"1_A_RR_LREC"
+cc[cc$`Cumulative Emissions`=="Featured scenario",]$Scenario<-"1_A_RR_LREC"
 write.csv(cc,'../Figures/MainText/Fig3b_cum.csv',row.names = FALSE)
 # To read in the results file for plotting later, use following lines
 # cc<-read.csv('../Figures/MainText/Fig3b_cum.csv')
-# names(cc)[3]<-'Cum. Emissions'
+# names(cc)[3]<-'Cumulative Emissions'
 
 
 # 3a base ER
+GHG_base_ER<-GHGall[GHGall$UniqScen=='1_A_ER_MC',]
 GHG_base_ER$CumGHG<-GHG_base_ER$TotGHG
 for (k in 2:41) {
   GHG_base_ER$CumGHG[k]<-GHG_base_ER$CumGHG[k-1]+GHG_base_ER$TotGHG[k]
 }
 GHG_base_ER$CumGHG_Gt<-0.001*GHG_base_ER$CumGHG
 cc1<-GHG_base_RR[,c("Year","CumGHG_Gt")]
-cc1$`Cum. Emissions` <-"Baseline scenario"
+cc1$`Cumulative Emissions` <-"Baseline scenario"
 cc2<-GHG_base_ER[,c("Year","CumGHG_Gt")]
-cc2$`Cum. Emissions`<-"Featured scenario"
+cc2$`Cumulative Emissions`<-"Featured scenario"
 cc<-rbind(cc1,cc2)
-g_base_ER$`Ann. Emissions`<-g_base_ER$Source
+g_base_ER$`Annual Emissions`<-g_base_ER$Source
 
 # 3(a)
 windows(width = 9.5,height = 7)
-ggplot(g_base_ER) + geom_bar(aes(x=Year,y=GHG,fill=`Ann. Emissions`), position="stack", stat="identity",width=0.75) +
-  geom_line(data=cc,aes(x=Year,y=CumGHG_Gt/coeff,linetype=`Cum. Emissions`),size=0.8,color="black")+
+ggplot(g_base_ER) + geom_bar(aes(x=Year,y=GHG,fill=`Annual Emissions`), position="stack", stat="identity",width=0.75) +
+  geom_line(data=cc,aes(x=Year,y=CumGHG_Gt/coeff,linetype=`Cumulative Emissions`),size=0.8,color="black")+
   scale_y_continuous(name = "Annual Emissions (Mt CO2e/yr)", limits = c(0,960), breaks = c(0,250,500,750,1000),
-                     sec.axis = sec_axis(~.*coeff, name="Cum. Emissions (Gt CO2e)",breaks = c(7.5,15,22.5,30))) + 
-  labs(title="a) Baseline Stock and Characteristics (1A)",
-       subtitle = "      MC Elec, Extensive Renovation (MC-ER)") +
+                     sec.axis = sec_axis(~.*coeff, name="Cumulative Emissions (Gt CO2e)",breaks = c(7.5,15,22.5,30))) + 
+  labs(title="a) Baseline Stock and Characteristics (1A),",
+       subtitle = "     MC Electricity, Extensive Renovation (MC-ER)") +
   theme_bw() + scale_fill_manual(values=c(brewer.pal(12,"Paired")[c(1,2,7,8,9,10)],"#EEB486","#8A592B"))  +
   theme(axis.text=element_text(size=12),axis.title=element_text(size=13, face = "bold"),
         axis.title.y.right = element_text(angle=90),
-        plot.title = element_text(size = 14),plot.subtitle = element_text(size=13,face="bold"),
-        legend.text=element_text(size=12),legend.title = element_text(face="bold"))
+        plot.title = element_text(size = 14),plot.subtitle = element_text(size=13),
+        legend.text=element_text(size=12),legend.title = element_text(face="bold")) + guides(linetype = guide_legend(order = 2),fill = guide_legend(order = 1))
 
 write.csv(g_base_ER,'../Figures/MainText/Fig3a_ann.csv',row.names = FALSE)
 cc$Scenario<-'1_A_RR_MC'
-cc[cc$`Cum. Emissions`=="Featured scenario",]$Scenario<-"1_A_ER_MC"
+cc[cc$`Cumulative Emissions`=="Featured scenario",]$Scenario<-"1_A_ER_MC"
 write.csv(cc,'../Figures/MainText/Fig3a_cum.csv',row.names = FALSE)
 # To read in the results file for plotting later, use following lines
 # cc<-read.csv('../Figures/MainText/Fig3a_cum.csv')
@@ -3706,68 +3716,70 @@ write.csv(cc,'../Figures/MainText/Fig3a_cum.csv',row.names = FALSE)
 
 
 # 3c hiMFDERFA ER_LREC
+GHG_hiMFDERFA_ER_LREC<-GHGall[GHGall$UniqScen=='3_D_ER_LREC',]
 GHG_hiMFDERFA_ER_LREC$CumGHG<-GHG_hiMFDERFA_ER_LREC$TotGHG
 for (k in 2:41) {
   GHG_hiMFDERFA_ER_LREC$CumGHG[k]<-GHG_hiMFDERFA_ER_LREC$CumGHG[k-1]+GHG_hiMFDERFA_ER_LREC$TotGHG[k]
 }
 GHG_hiMFDERFA_ER_LREC$CumGHG_Gt<-0.001*GHG_hiMFDERFA_ER_LREC$CumGHG
 cc1<-GHG_base_RR[,c("Year","CumGHG_Gt")]
-cc1$`Cum. Emissions` <-"Baseline scenario"
+cc1$`Cumulative Emissions` <-"Baseline scenario"
 cc2<-GHG_hiMFDERFA_ER_LREC[,c("Year","CumGHG_Gt")]
-cc2$`Cum. Emissions`<-"Featured scenario"
+cc2$`Cumulative Emissions`<-"Featured scenario"
 cc<-rbind(cc1,cc2)
-g_hiMFDERFA_ER_LREC$`Ann. Emissions`<-g_hiMFDERFA_ER_LREC$Source
+g_hiMFDERFA_ER_LREC$`Annual Emissions`<-g_hiMFDERFA_ER_LREC$Source
 # 3(c)
 windows(width = 9.5,height = 7)
-ggplot(g_hiMFDERFA_ER_LREC) + geom_bar(aes(x=Year,y=GHG,fill=`Ann. Emissions`), position="stack", stat="identity",width=0.75) +
-  geom_line(data=cc,aes(x=Year,y=CumGHG_Gt/coeff,linetype=`Cum. Emissions`),size=0.8,color="black")+
+ggplot(g_hiMFDERFA_ER_LREC) + geom_bar(aes(x=Year,y=GHG,fill=`Annual Emissions`), position="stack", stat="identity",width=0.75) +
+  geom_line(data=cc,aes(x=Year,y=CumGHG_Gt/coeff,linetype=`Cumulative Emissions`),size=0.8,color="black")+
   scale_y_continuous(name = "Annual Emissions (Mt CO2e/yr)", limits = c(0,960), breaks = c(0,250,500,750,1000),
-                     sec.axis = sec_axis(~.*coeff, name="Cum. Emissions (Gt CO2e)",breaks = c(7.5,15,22.5,30))) + 
-  labs(title="c) Hi Multifamily, Inc. Electrification, Red. Floor Area (3D)",
-       subtitle = "      LREC Elec, Extensive Renovation (LREC-ER)") +
+                     sec.axis = sec_axis(~.*coeff, name="Cumulative Emissions (Gt CO2e)",breaks = c(7.5,15,22.5,30))) + 
+  labs(title="c) Hi Multifamily, Inc. Electrification, Red. Floor Area (3D),",
+       subtitle = "     LREC Electricity, Extensive Renovation (LREC-ER)") +
   theme_bw() + scale_fill_manual(values=c(brewer.pal(12,"Paired")[c(1,2,7,8,9,10)],"#EEB486","#8A592B"))  +
   theme(axis.text=element_text(size=12),axis.title=element_text(size=13, face = "bold"),
         axis.title.y.right = element_text(angle=90),
-        plot.title = element_text(size = 14),plot.subtitle = element_text(size=13,face="bold"),
-        legend.text=element_text(size=12),legend.title = element_text(face="bold"))
+        plot.title = element_text(size = 14),plot.subtitle = element_text(size=13),
+        legend.text=element_text(size=12),legend.title = element_text(face="bold")) + guides(linetype = guide_legend(order = 2),fill = guide_legend(order = 1))
 write.csv(g_hiMFDERFA_ER_LREC,'../Figures/MainText/Fig3c_ann.csv',row.names = FALSE)
 cc$Scenario<-'1_A_RR_MC'
-cc[cc$`Cum. Emissions`=="Featured scenario",]$Scenario<-"3_D_ER_LREC"
+cc[cc$`Cumulative Emissions`=="Featured scenario",]$Scenario<-"3_D_ER_LREC"
 write.csv(cc,'../Figures/MainText/Fig3c_cum.csv',row.names = FALSE)
 # cc<-read.csv('../Figures/MainText/Fig3c_cum.csv')
-# names(cc)[3]<-'Cum. Emissions'
+# names(cc)[3]<-'Cumulative Emissions'
 
 # 3d hiMFDERFA ER_CFE
+GHG_hiMFDERFA_ER_CFE<-GHGall[GHGall$UniqScen=='3_D_ER_CFE',]
 GHG_hiMFDERFA_ER_CFE$CumGHG<-GHG_hiMFDERFA_ER_CFE$TotGHG
 for (k in 2:41) {
   GHG_hiMFDERFA_ER_CFE$CumGHG[k]<-GHG_hiMFDERFA_ER_CFE$CumGHG[k-1]+GHG_hiMFDERFA_ER_CFE$TotGHG[k]
 }
 GHG_hiMFDERFA_ER_CFE$CumGHG_Gt<-0.001*GHG_hiMFDERFA_ER_CFE$CumGHG
 cc1<-GHG_base_RR[,c("Year","CumGHG_Gt")]
-cc1$`Cum. Emissions` <-"Baseline scenario"
+cc1$`Cumulative Emissions` <-"Baseline scenario"
 cc2<-GHG_hiMFDERFA_ER_CFE[,c("Year","CumGHG_Gt")]
-cc2$`Cum. Emissions`<-"Featured scenario"
+cc2$`Cumulative Emissions`<-"Featured scenario"
 cc<-rbind(cc1,cc2)
-g_hiMFDERFA_ER_CFE$`Ann. Emissions`<-g_hiMFDERFA_ER_CFE$Source
+g_hiMFDERFA_ER_CFE$`Annual Emissions`<-g_hiMFDERFA_ER_CFE$Source
 # 3(d)
 windows(width = 9.5,height = 7)
-ggplot(g_hiMFDERFA_ER_CFE) + geom_bar(aes(x=Year,y=GHG,fill=`Ann. Emissions`), position="stack", stat="identity",width=0.75) +
-  geom_line(data=cc,aes(x=Year,y=CumGHG_Gt/coeff,linetype=`Cum. Emissions`),size=0.8,color="black")+
+ggplot(g_hiMFDERFA_ER_CFE) + geom_bar(aes(x=Year,y=GHG,fill=`Annual Emissions`), position="stack", stat="identity",width=0.75) +
+  geom_line(data=cc,aes(x=Year,y=CumGHG_Gt/coeff,linetype=`Cumulative Emissions`),size=0.8,color="black")+
   scale_y_continuous(name = "Annual Emissions (Mt CO2e/yr)", limits = c(0,960), breaks = c(0,250,500,750,1000),
-                     sec.axis = sec_axis(~.*coeff, name="Cum. Emissions (Gt CO2e)",breaks = c(7.5,15,22.5,30))) + 
-  labs(title="d) Hi Multifamily, Inc. Electrification, Red. Floor Area (3D)",
-       subtitle = "      CFE Elec, Extensive Renovation (CFE-ER)") +
+                     sec.axis = sec_axis(~.*coeff, name="Cumulative Emissions (Gt CO2e)",breaks = c(7.5,15,22.5,30))) + 
+  labs(title="d) Hi Multifamily, Inc. Electrification, Red. Floor Area (3D),",
+       subtitle = "     CFE Electricity, Extensive Renovation (CFE-ER)") +
   theme_bw() + scale_fill_manual(values=c(brewer.pal(12,"Paired")[c(1,2,7,8,9,10)],"#EEB486","#8A592B"))  +
   theme(axis.text=element_text(size=12),axis.title=element_text(size=13, face = "bold"),
         axis.title.y.right = element_text(angle=90),
-        plot.title = element_text(size = 14),plot.subtitle = element_text(size=13,face="bold"),
-        legend.text=element_text(size=12),legend.title = element_text(face="bold"))
-write.csv(g_hiMFDERFA_ER_LREC,'../Figures/MainText/Fig3d_ann.csv',row.names = FALSE)
+        plot.title = element_text(size = 14),plot.subtitle = element_text(size=13),
+        legend.text=element_text(size=12),legend.title = element_text(face="bold")) + guides(linetype = guide_legend(order = 2),fill = guide_legend(order = 1))
+write.csv(g_hiMFDERFA_ER_CFE,'../Figures/MainText/Fig3d_ann.csv',row.names = FALSE)
 cc$Scenario<-'1_A_RR_MC'
-cc[cc$`Cum. Emissions`=="Featured scenario",]$Scenario<-"3_D_ER_CFE"
+cc[cc$`Cumulative Emissions`=="Featured scenario",]$Scenario<-"3_D_ER_CFE"
 write.csv(cc,'../Figures/MainText/Fig3d_cum.csv',row.names = FALSE)
 # cc<-read.csv('../Figures/MainText/Fig3d_cum.csv')
-# names(cc)[3]<-'Cum. Emissions'
+# names(cc)[3]<-'Cumulative Emissions'
 
 # save data for fig. 3
 save(g_base_RR,g_base_RR_LREC,g_base_ER,
