@@ -90,6 +90,7 @@ class TestRunAnalysis < MiniTest::Test
     @command += yml
 
     FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
+    assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
     cli_output = `#{@command}`
 
     assert(cli_output.include?("Must include 'weather_files_url' or 'weather_files_path' in yml."))
@@ -167,11 +168,17 @@ class TestRunAnalysis < MiniTest::Test
     yml = ' -y test/tests_yml_files/yml_relative_weather_path/testing_baseline.yml'
     @command += yml
 
+    FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
+    assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
+
     system(@command)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'run2')))
+
+    FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
+    assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
   end
 
   def test_testing_baseline
