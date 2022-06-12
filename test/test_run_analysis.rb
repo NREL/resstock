@@ -71,6 +71,7 @@ class TestRunAnalysis < MiniTest::Test
     yml = ' -y test/tests_yml_files/yml_bad_value/testing_baseline.yml'
     @command += yml
 
+    `#{@command}`
     cli_output = `#{@command}`
 
     assert(cli_output.include?("Output directory 'testing_baseline' already exists."))
