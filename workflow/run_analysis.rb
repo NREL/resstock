@@ -61,7 +61,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   end
 
   measures = []
-  cfg['workflow_generator']['args'].each do |measure_dir_name, arguments|
+  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
     next unless ['measures'].include?(measure_dir_name)
 
     cfg['workflow_generator']['args']['measures'].each do |k|
@@ -70,7 +70,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   end
 
   reporting_measures = []
-  cfg['workflow_generator']['args'].each do |measure_dir_name, arguments|
+  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
     next unless ['reporting_measures'].include?(measure_dir_name)
 
     cfg['workflow_generator']['args']['reporting_measures'].each do |k|
@@ -94,7 +94,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
                           'server_directory_cleanup' => 'ServerDirectoryCleanup' }
 
     steps = []
-    measure_dir_names.each do |k, v|
+    measure_dir_names.keys.each do |k|
       workflow_args.each do |measure_dir_name, arguments|
         next if k != measure_dir_name
 
@@ -170,7 +170,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       step_idx += 1
     end
 
-    workflow_args.each do |measure_dir_name, arguments|
+    workflow_args.keys.each do |measure_dir_name|
       next unless ['measures'].include?(measure_dir_name)
 
       workflow_args[measure_dir_name].each do |k|
@@ -193,7 +193,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
     steps.insert(step_idx, { 'measure_dir_name' => 'UpgradeCosts' })
     step_idx += 1
 
-    workflow_args.each do |measure_dir_name, arguments|
+    workflow_args.keys.each do |measure_dir_name|
       next unless ['reporting_measures'].include?(measure_dir_name)
 
       workflow_args[measure_dir_name].each do |k|
@@ -217,7 +217,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       'steps': steps
     }
 
-    base, ext = File.basename(yml).split('.')
+    base, _ext = File.basename(yml).split('.')
 
     osw_paths[upgrade_name] = File.join(results_dir, "#{base}-#{upgrade_name}.osw")
     File.open(osw_paths[upgrade_name], 'w') do |f|
@@ -374,8 +374,6 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
 
   scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
 
-  osw_basename = File.basename(workflow)
-
   worker_folder = "run#{folder_id}"
   worker_dir = File.join(results_dir, worker_folder)
   FileUtils.rm_rf(worker_dir)
@@ -391,8 +389,6 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
 
   started_at = create_timestamp(started_at)
   completed_at = create_timestamp(completed_at)
-
-  osw = "#{building_id.to_s.rjust(4, '0')}-#{upgrade_name}.osw"
 
   result_output['building_id'] = building_id
   result_output['job_id'] = job_id
@@ -491,7 +487,7 @@ OptionParser.new do |opts|
   end
 
   options[:measures_only] = false
-  opts.on('-m', '--measures_only', 'Only run the OpenStudio and EnergyPlus measures') do |t|
+  opts.on('-m', '--measures_only', 'Only run the OpenStudio and EnergyPlus measures') do |_t|
     options[:measures_only] = true
   end
 
@@ -501,12 +497,12 @@ OptionParser.new do |opts|
   end
 
   options[:keep_run_folders] = false
-  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints') do |t|
+  opts.on('-k', '--keep_run_folders', 'Preserve run folder for all datapoints') do |_t|
     options[:keep_run_folders] = true
   end
 
   options[:samplingonly] = false
-  opts.on('-s', '--samplingonly', 'Run the sampling only') do |t|
+  opts.on('-s', '--samplingonly', 'Run the sampling only') do |_t|
     options[:samplingonly] = true
   end
 
@@ -516,7 +512,7 @@ OptionParser.new do |opts|
   end
 
   options[:debug] = false
-  opts.on('-d', '--debug', 'Save both existing and upgraded xml/osw files') do |t|
+  opts.on('-d', '--debug', 'Save both existing and upgraded xml/osw files') do |_t|
     options[:debug] = true
   end
 

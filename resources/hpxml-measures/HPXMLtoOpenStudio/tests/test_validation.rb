@@ -55,7 +55,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         xml_doc = Nokogiri::XML(File.open(s_path)) do |config|
           config.options = Nokogiri::XML::ParseOptions::STRICT
         end
-        stron_doc = SchematronNokogiri::Schema.new(xml_doc)
+        SchematronNokogiri::Schema.new(xml_doc)
       end
     rescue LoadError
     end
@@ -1042,7 +1042,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       end
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('error', error_case, expected_errors)
+      _test_measure('error', expected_errors)
     end
   end
 
@@ -1120,7 +1120,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       hpxml_doc = hpxml.to_oga()
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('warning', warning_case, expected_warnings)
+      _test_measure('warning', expected_warnings)
     end
   end
 
@@ -1146,7 +1146,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     end
   end
 
-  def _test_measure(error_or_warning, error_or_warning_case, expected_errors_or_warnings)
+  def _test_measure(error_or_warning, expected_errors_or_warnings)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new
 

@@ -90,7 +90,7 @@ class TsvFile
       next if row[0].start_with? "\#"
 
       row_key_values = {}
-      @dependency_cols.each do |dep, dep_col|
+      @dependency_cols.keys.each do |dep|
         row_key_values[dep] = row[@dependency_cols[dep]]
       end
       key_s = hash_to_string(row_key_values)
@@ -162,7 +162,7 @@ class TsvFile
     # Find appropriate value
     rowsum = 0
     n_options = @option_cols.size
-    @option_cols.each_with_index do |(option_name, option_col), index|
+    @option_cols.keys.each_with_index do |option_name, index|
       rowsum += rowvals[option_name]
       next unless (rowsum >= sample_value) || ((index == n_options - 1) && (rowsum + 0.00001 >= sample_value))
 

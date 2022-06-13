@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Battery
-  def self.apply(runner, model, battery)
+  def self.apply(model, battery)
     obj_name = battery.id
 
     rated_power_output = battery.rated_power_output # W

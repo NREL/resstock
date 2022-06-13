@@ -117,7 +117,7 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
       # Check file format to be consistent with specified guidelines
       starting = Time.now
-      check_parameter_file_format(tsvpath, tsvfile.dependency_cols.length(), parameter_name)
+      check_parameter_file_format(tsvpath, parameter_name)
       ending = Time.now
       puts "  Checking file format: \t\t\t#{ending - starting} seconds\n"
 
@@ -295,8 +295,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
     end
 
     all_measure_args = []
-    max_checks_reached = false
-    option_combinations.each_with_index do |option_combination, combo_num|
+    option_combinations.each do |option_combination|
       measure_args = {}
       option_combination.each_with_index do |option_name, idx|
         measures[measure_subdir][param_names[idx]][option_name].each do |k, v|
@@ -308,7 +307,7 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
       all_measure_args << measure_args
     end
 
-    all_measure_args.shuffle.each_with_index do |measure_args, idx|
+    all_measure_args.shuffle.each do |measure_args|
       validate_measure_args(measure_instance.arguments(model), measure_args, lookup_file, measure_subdir, nil)
     end
   end
@@ -324,7 +323,7 @@ def check_for_illegal_chars(name, name_type)
   end
 end
 
-def check_parameter_file_format(tsvpath, n_deps, name)
+def check_parameter_file_format(tsvpath, name)
   # For each line in file
   i = 1
   File.read(tsvpath, mode: 'rb').each_line do |line|

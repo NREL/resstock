@@ -134,7 +134,7 @@ class RunSampling
     # Returns a hash with key:dep_hash, value:Array[bldgs]
 
     data = []
-    dep_hashes[0].each do |dep_name, dep_val|
+    dep_hashes[0].keys.each do |dep_name|
       data << results_data[results_data_cols[dep_name]]
     end
     data = data.transpose
@@ -269,7 +269,7 @@ class RunSampling
     end
 
     # Remove items with no samples
-    return_samples.delete_if { |k, v| v == 0 }
+    return_samples.delete_if { |_k, v| v == 0 }
 
     if return_samples.values.reduce(:+) != num_samples
       register_error('Sampling algorithm unexpectedly failed.', nil)
