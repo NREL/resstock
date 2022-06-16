@@ -12,7 +12,6 @@ class HPXMLDefaults
     ncfl = hpxml.building_construction.number_of_conditioned_floors
     ncfl_ag = hpxml.building_construction.number_of_conditioned_floors_above_grade
     has_uncond_bsmnt = hpxml.has_location(HPXML::LocationBasementUnconditioned)
-    nbeds_adjusted = get_nbeds_adjusted_for_operational_calculation(hpxml)
 
     infil_volume = nil
     infil_height = nil
@@ -57,13 +56,14 @@ class HPXMLDefaults
     apply_hvac_control(hpxml, schedules_file)
     apply_hvac_distribution(hpxml, ncfl, ncfl_ag)
     apply_ventilation_fans(hpxml, infil_measurements, weather, cfa, nbeds)
-    apply_water_heaters(hpxml, nbeds, eri_version)
+    apply_water_heaters(hpxml, nbeds, eri_version, schedules_file)
     apply_hot_water_distribution(hpxml, cfa, ncfl, has_uncond_bsmnt)
     apply_water_fixtures(hpxml, schedules_file)
     apply_solar_thermal_systems(hpxml)
     apply_appliances(hpxml, nbeds, eri_version, schedules_file)
     apply_lighting(hpxml, schedules_file)
     apply_ceiling_fans(hpxml, nbeds, weather, schedules_file)
+    nbeds_adjusted = get_nbeds_adjusted_for_operational_calculation(hpxml)
     apply_pools_and_hot_tubs(hpxml, cfa, nbeds_adjusted, schedules_file)
     apply_plug_loads(hpxml, cfa, nbeds_adjusted, schedules_file)
     apply_fuel_loads(hpxml, cfa, nbeds_adjusted, schedules_file)
@@ -103,7 +103,7 @@ class HPXMLDefaults
     if azimuth_areas.empty?
       primary_azimuth = 0
     else
-      primary_azimuth = azimuth_areas.max_by { |k, v| v }[0]
+      primary_azimuth = azimuth_areas.max_by { |_k, v| v }[0]
     end
     return [primary_azimuth,
             sanitize_azimuth(primary_azimuth + 90),
@@ -114,6 +114,11 @@ class HPXMLDefaults
   private
 
   def self.apply_header(hpxml, epw_file)
+    if hpxml.header.occupancy_calculation_type.nil?
+      hpxml.header.occupancy_calculation_type = HPXML::OccupancyCalculationTypeAsset
+      hpxml.header.occupancy_calculation_type_isdefaulted = true
+    end
+
     if hpxml.header.timestep.nil?
       hpxml.header.timestep = 60
       hpxml.header.timestep_isdefaulted = true
@@ -961,6 +966,16 @@ class HPXMLDefaults
       heat_pump.compressor_type_isdefaulted = true
     end
 
+    # Default ASHP backup heating lockout capability
+    hpxml.heat_pumps.each do |heat_pump|
+      next if heat_pump.backup_type.nil?
+      next unless heat_pump.backup_heating_switchover_temp.nil?
+      next unless heat_pump.backup_heating_lockout_temp.nil?
+
+      heat_pump.backup_heating_lockout_temp = 40.0 # deg-F
+      heat_pump.backup_heating_lockout_temp_isdefaulted = true
+    end
+
     # Default boiler EAE
     hpxml.heating_systems.each do |heating_system|
       next unless heating_system.electric_auxiliary_energy.nil?
@@ -1197,7 +1212,6 @@ class HPXMLDefaults
       end
     end
     hpxml.heating_systems.each do |heating_system|
-      htg_ap = heating_system.additional_properties
       next unless [HPXML::HVACTypeStove,
                    HPXML::HVACTypePortableHeater,
                    HPXML::HVACTypeFixedHeater,
@@ -1267,7 +1281,7 @@ class HPXMLDefaults
       schedules_file_includes_heating_setpoint_temp = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnHeatingSetpoint)
       if hvac_control.heating_setpoint_temp.nil? && hvac_control.weekday_heating_setpoints.nil? && !schedules_file_includes_heating_setpoint_temp
         # No heating setpoints; set a default heating setpoint for, e.g., natural ventilation
-        htg_sp, htg_setback_sp, htg_setback_hrs_per_week, htg_setback_start_hr = HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual)
+        htg_sp, _htg_setback_sp, _htg_setback_hrs_per_week, _htg_setback_start_hr = HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual)
         hvac_control.heating_setpoint_temp = htg_sp
         hvac_control.heating_setpoint_temp_isdefaulted = true
       end
@@ -1275,7 +1289,7 @@ class HPXMLDefaults
       schedules_file_includes_cooling_setpoint_temp = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnCoolingSetpoint)
       if hvac_control.cooling_setpoint_temp.nil? && hvac_control.weekday_cooling_setpoints.nil? && !schedules_file_includes_cooling_setpoint_temp
         # No cooling setpoints; set a default cooling setpoint for, e.g., natural ventilation
-        clg_sp, clg_setup_sp, clg_setup_hrs_per_week, clg_setup_start_hr = HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual)
+        clg_sp, _clg_setup_sp, _clg_setup_hrs_per_week, _clg_setup_start_hr = HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual)
         hvac_control.cooling_setpoint_temp = clg_sp
         hvac_control.cooling_setpoint_temp_isdefaulted = true
       end
@@ -1492,13 +1506,14 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_water_heaters(hpxml, nbeds, eri_version)
+  def self.apply_water_heaters(hpxml, nbeds, eri_version, schedules_file)
     hpxml.water_heating_systems.each do |water_heating_system|
       if water_heating_system.is_shared_system.nil?
         water_heating_system.is_shared_system = false
         water_heating_system.is_shared_system_isdefaulted = true
       end
-      if water_heating_system.temperature.nil?
+      schedules_file_includes_water_heater_setpoint_temp = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnWaterHeaterSetpoint)
+      if water_heating_system.temperature.nil? && !schedules_file_includes_water_heater_setpoint_temp
         water_heating_system.temperature = Waterheater.get_default_hot_water_temperature(eri_version)
         water_heating_system.temperature_isdefaulted = true
       end
@@ -1531,6 +1546,17 @@ class HPXMLDefaults
         if water_heating_system.recovery_efficiency.nil?
           water_heating_system.recovery_efficiency = Waterheater.get_default_recovery_efficiency(water_heating_system)
           water_heating_system.recovery_efficiency_isdefaulted = true
+        end
+        if water_heating_system.tank_model_type.nil?
+          water_heating_system.tank_model_type = HPXML::WaterHeaterTankModelTypeMixed
+          water_heating_system.tank_model_type_isdefaulted = true
+        end
+      end
+      if (water_heating_system.water_heater_type == HPXML::WaterHeaterTypeHeatPump)
+        schedules_file_includes_water_heater_operating_mode = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnWaterHeaterOperatingMode)
+        if water_heating_system.operating_mode.nil? && !schedules_file_includes_water_heater_operating_mode
+          water_heating_system.operating_mode = HPXML::WaterHeaterOperatingModeStandard
+          water_heating_system.operating_mode_isdefaulted = true
         end
       end
       if water_heating_system.location.nil?
@@ -2525,11 +2551,6 @@ class HPXMLDefaults
               htg_sys.backup_heating_capacity = hvac_sizing_values.Heat_Capacity_Supp.round
               htg_sys.backup_heating_capacity_isdefaulted = true
             end
-          elsif htg_sys.backup_type == HPXML::HeatPumpBackupTypeSeparate
-            if htg_sys.backup_system.heating_capacity.nil? || ((htg_sys.backup_system.heating_capacity - hvac_sizing_values.Heat_Capacity_Supp).abs >= 1.0)
-              htg_sys.backup_system.heating_capacity = hvac_sizing_values.Heat_Capacity_Supp.round
-              htg_sys.backup_system.heating_capacity_isdefaulted = true
-            end
           end
         end
 
@@ -2539,10 +2560,6 @@ class HPXMLDefaults
                  HPXML::HVACTypeElectricResistance].include?(htg_sys.heating_system_type))
           htg_sys.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
           htg_sys.heating_airflow_cfm_isdefaulted = true
-        end
-        if htg_sys.is_a?(HPXML::HeatPump) && (htg_sys.backup_type == HPXML::HeatPumpBackupTypeSeparate)
-          htg_sys.backup_system.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow_Supp.round
-          htg_sys.backup_system.heating_airflow_cfm_isdefaulted = true
         end
 
         # Heating GSHP loop

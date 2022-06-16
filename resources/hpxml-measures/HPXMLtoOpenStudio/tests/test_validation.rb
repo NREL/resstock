@@ -55,7 +55,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         xml_doc = Nokogiri::XML(File.open(s_path)) do |config|
           config.options = Nokogiri::XML::ParseOptions::STRICT
         end
-        stron_doc = SchematronNokogiri::Schema.new(xml_doc)
+        SchematronNokogiri::Schema.new(xml_doc)
       end
     rescue LoadError
     end
@@ -174,8 +174,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'missing-distribution-cfa-served' => ['Expected 1 element(s) for xpath: ../../../ConditionedFloorAreaServed [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctSurfaceArea)], id: "HVACDistribution1"]'],
                             'missing-duct-area' => ['Expected 1 or more element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[DuctLocation], id: "HVACDistribution1"]'],
                             'missing-duct-location' => ['Expected 0 element(s) for xpath: FractionDuctArea | DuctSurfaceArea [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACDistribution/DistributionSystemType/AirDistribution/Ducts[not(DuctLocation)], id: "HVACDistribution1"]'],
-                            'missing-elements' => ['Expected 1 element(s) for xpath: SoftwareInfo/extension/OccupancyCalculationType[text()="asset" or text()="operational"]',
-                                                   'Expected 1 element(s) for xpath: NumberofConditionedFloors [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]',
+                            'missing-elements' => ['Expected 1 element(s) for xpath: NumberofConditionedFloors [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]',
                                                    'Expected 1 element(s) for xpath: ConditionedFloorArea [context: /HPXML/Building/BuildingDetails/BuildingSummary/BuildingConstruction]'],
                             'missing-num-residents' => ['Expected 1 element(s) for xpath: NumberofResidents'],
                             'multifamily-reference-appliance' => ['There are references to "other housing unit" but ResidentialFacilityType is not "single-family attached" or "apartment unit".'],
@@ -445,7 +444,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.hvac_distributions[0].ducts[1].duct_location = nil
       elsif ['missing-elements'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.header.occupancy_calculation_type = nil
         hpxml.building_construction.number_of_conditioned_floors = nil
         hpxml.building_construction.conditioned_floor_area = nil
       elsif ['missing-num-residents'].include? error_case
@@ -560,8 +558,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                               'wrong-units' => ['Thickness is greater than 12 inches; this may indicate incorrect units.',
                                                 'Thickness is less than 1 inch; this may indicate incorrect units.',
                                                 'Depth is greater than 72 feet; this may indicate incorrect units.',
-                                                'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units.',
-                                                'DistanceToBottomOfWindow is greater than 12 feet; this may indicate incorrect units.'] }
+                                                'DistanceToTopOfWindow is greater than 12 feet; this may indicate incorrect units.'] }
 
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
@@ -684,7 +681,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'hvac-dse-multiple-attached-heating' => ["Multiple heating systems found attached to distribution system 'HVACDistribution1'."],
                             'hvac-inconsistent-fan-powers' => ["Fan powers for heating system 'HeatingSystem1' and cooling system 'CoolingSystem1' are attached to a single distribution system and therefore must be the same."],
                             'hvac-invalid-distribution-system-type' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
-                            'hvac-seasons-less-than-a-year' => ['HeatingSeason and CoolingSeason, when combined, must span the entire year.'],
                             'hvac-shared-boiler-multiple' => ['More than one shared heating system found.'],
                             'hvac-shared-chiller-multiple' => ['More than one shared cooling system found.'],
                             'hvac-shared-chiller-negative-seer-eq' => ["Negative SEER equivalent calculated for cooling system 'CoolingSystem1', double check inputs."],
@@ -718,8 +714,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'schedule-detailed-bad-values-max-not-one' => ["Schedule max value for column 'lighting_interior' must be 1."],
                             'schedule-detailed-bad-values-negative' => ["Schedule min value for column 'lighting_interior' must be non-negative."],
                             'schedule-detailed-bad-values-non-numeric' => ["Schedule value must be numeric for column 'lighting_interior'."],
+                            'schedule-detailed-bad-values-mode-negative' => ["Schedule value for column 'water_heater_operating_mode' must be either 0 or 1."],
+                            'schedule-detailed-bad-values-mode-fraction' => ["Schedule value for column 'vacancy' must be either 0 or 1."],
                             'schedule-detailed-duplicate-columns' => ["Schedule column name 'occupants' is duplicated."],
-                            'schedule-detailed-wrong-columns' => ["Schedule column name 'lighting' is invalid."],
                             'schedule-detailed-wrong-filename' => ["Schedules file path 'invalid-wrong-filename.csv' does not exist."],
                             'schedule-detailed-wrong-rows' => ["Schedule has invalid number of rows (8759) for column 'occupants'. Must be one of: 8760, 17520, 26280, 35040, 43800, 52560, 87600, 105120, 131400, 175200, 262800, 525600."],
                             'solar-thermal-system-with-combi-tankless' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be a space-heating boiler."],
@@ -801,16 +798,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.cooling_systems[0].fan_watts_per_cfm = 0.55
         hpxml.heating_systems[0].fan_watts_per_cfm = 0.45
-      elsif ['hvac-seasons-less-than-a-year'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.hvac_controls[0].seasons_heating_begin_month = 10
-        hpxml.hvac_controls[0].seasons_heating_begin_day = 1
-        hpxml.hvac_controls[0].seasons_heating_end_month = 5
-        hpxml.hvac_controls[0].seasons_heating_end_day = 31
-        hpxml.hvac_controls[0].seasons_cooling_begin_month = 7
-        hpxml.hvac_controls[0].seasons_cooling_begin_day = 1
-        hpxml.hvac_controls[0].seasons_cooling_end_month = 9
-        hpxml.hvac_controls[0].seasons_cooling_end_day = 30
       elsif ['hvac-shared-boiler-multiple'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-boiler-only-baseboard.xml'))
         hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
@@ -942,6 +929,18 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         csv_data[1][1] = 'NA'
         File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
         hpxml.header.schedules_filepaths = [@tmp_csv_path]
+      elsif ['schedule-detailed-bad-values-mode-negative'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-dhw-tank-heat-pump-detailed-schedules.xml'))
+        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[1]))
+        csv_data[1][0] = -0.5
+        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
+        hpxml.header.schedules_filepaths = [@tmp_csv_path]
+      elsif ['schedule-detailed-bad-values-mode-fraction'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic-vacancy.xml'))
+        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
+        csv_data[1][csv_data[0].index(SchedulesFile::ColumnVacancy)] = 0.5
+        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
+        hpxml.header.schedules_filepaths = [@tmp_csv_path]
       elsif ['schedule-detailed-duplicate-columns'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
         csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
@@ -949,12 +948,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.header.schedules_filepaths = []
         hpxml.header.schedules_filepaths << @tmp_csv_path
         hpxml.header.schedules_filepaths << @tmp_csv_path
-      elsif ['schedule-detailed-wrong-columns'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
-        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
-        csv_data[0][1] = 'lighting'
-        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
-        hpxml.header.schedules_filepaths = [@tmp_csv_path]
       elsif ['schedule-detailed-wrong-filename'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.schedules_filepaths << 'invalid-wrong-filename.csv'
@@ -1049,13 +1042,16 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       end
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('error', error_case, expected_errors)
+      _test_measure('error', expected_errors)
     end
   end
 
   def test_measure_warning_messages
     # Test case => Error message
-    all_expected_warnings = { 'schedule-file-and-weekday-weekend-multipliers' => ["Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.",
+    all_expected_warnings = { 'hvac-setpoint-adjustments' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
+                              'hvac-setpoint-adjustments-daily-setbacks' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
+                              'hvac-setpoint-adjustments-daily-schedules' => ['HVAC setpoints have been automatically adjusted to prevent periods where the heating setpoint is greater than the cooling setpoint.'],
+                              'schedule-file-and-weekday-weekend-multipliers' => ["Both 'occupants' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'occupants' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'occupants' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'clothes_washer' schedule file and weekday fractions provided; the latter will be ignored.",
@@ -1087,14 +1083,36 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                                                   "Both 'lighting_interior' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'lighting_exterior' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'lighting_exterior' schedule file and weekend fractions provided; the latter will be ignored.",
-                                                                                  "Both 'lighting_exterior' schedule file and monthly multipliers provided; the latter will be ignored."] }
+                                                                                  "Both 'lighting_exterior' schedule file and monthly multipliers provided; the latter will be ignored."],
+                              'schedule-file-and-setpoints' => ["Both 'heating_setpoint' schedule file and heating setpoint temperature provided; the latter will be ignored.",
+                                                                "Both 'cooling_setpoint' schedule file and cooling setpoint temperature provided; the latter will be ignored.",
+                                                                "Both 'water_heater_setpoint' schedule file and setpoint temperature provided; the latter will be ignored."],
+                              'schedule-file-and-operating-mode' => ["Both 'water_heater_operating_mode' schedule file and operating mode provided; the latter will be ignored."] }
 
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
       puts "[#{i + 1}/#{all_expected_warnings.size}] Testing #{warning_case}..."
       # Create HPXML object
-      if ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
+      if ['hvac-setpoint-adjustments'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.hvac_controls[0].heating_setpoint_temp = 76.0
+        hpxml.hvac_controls[0].cooling_setpoint_temp = 75.0
+      elsif ['hvac-setpoint-adjustments-daily-setbacks'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-setpoints-daily-setbacks.xml'))
+        hpxml.hvac_controls[0].heating_setback_temp = 76.0
+        hpxml.hvac_controls[0].cooling_setpoint_temp = 75.0
+      elsif ['hvac-setpoint-adjustments-daily-schedules'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-setpoints-daily-schedules.xml'))
+        hpxml.hvac_controls[0].weekday_heating_setpoints = '64, 64, 64, 64, 64, 64, 64, 76, 70, 66, 66, 66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 64, 64'
+      elsif ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-simple.xml'))
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
+      elsif ['schedule-file-and-setpoints'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/setpoints.csv'
+        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv'
+      elsif ['schedule-file-and-operating-mode'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml'))
+        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
       else
         fail "Unhandled case: #{warning_case}."
       end
@@ -1102,7 +1120,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       hpxml_doc = hpxml.to_oga()
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('warning', warning_case, expected_warnings)
+      _test_measure('warning', expected_warnings)
     end
   end
 
@@ -1128,7 +1146,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     end
   end
 
-  def _test_measure(error_or_warning, error_or_warning_case, expected_errors_or_warnings)
+  def _test_measure(error_or_warning, expected_errors_or_warnings)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new
 

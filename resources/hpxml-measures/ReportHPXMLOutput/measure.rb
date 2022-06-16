@@ -25,7 +25,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
     format_chs = OpenStudio::StringVector.new
@@ -217,12 +217,12 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     elsif cost_mult_type == 'Enclosure: Floor Area Conditioned'
       cost_mult += hpxml.building_construction.conditioned_floor_area
     elsif cost_mult_type == 'Enclosure: Floor Area Lighting'
-      if hpxml.lighting.interior_usage_multiplier != 0
+      if hpxml.lighting.interior_usage_multiplier.to_f != 0
         cost_mult += hpxml.building_construction.conditioned_floor_area
       end
       hpxml.slabs.each do |slab|
         next unless [HPXML::LocationGarage].include?(slab.interior_adjacent_to)
-        next if hpxml.lighting.garage_usage_multiplier == 0
+        next if hpxml.lighting.garage_usage_multiplier.to_f == 0
 
         cost_mult += slab.area
       end

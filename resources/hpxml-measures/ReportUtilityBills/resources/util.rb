@@ -94,7 +94,7 @@ class CalculateUtilityBill
     return net_elec
   end
 
-  def self.detailed_electric(fuels, rate, bill, net_elec)
+  def self.detailed_electric(_fuels, _rate, _bill, net_elec)
     # TODO
     return net_elec
   end

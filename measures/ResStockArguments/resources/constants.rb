@@ -31,6 +31,11 @@ class Constants
     # don't make these BuildResidentialScheduleFile arguments into ResStockArguments arguments
     return ['hpxml_path',
             'output_csv_path',
-            'hpxml_output_path']
+            'hpxml_output_path',
+            'debug']
+  end
+
+  def self.Auto
+    return 'auto'
   end
 end

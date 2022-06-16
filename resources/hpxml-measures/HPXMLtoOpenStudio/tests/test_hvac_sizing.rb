@@ -23,17 +23,17 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
       # Run w/ ACCA sizing
       args_hash = {}
       args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, "#{hpxml_file}-acca.xml"))
-      model_acca, hpxml_acca = _test_measure(args_hash)
+      _model_acca, hpxml_acca = _test_measure(args_hash)
 
       # Run w/ HERS sizing
       args_hash = {}
       args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, "#{hpxml_file}-hers.xml"))
-      model_hers, hpxml_hers = _test_measure(args_hash)
+      _model_hers, hpxml_hers = _test_measure(args_hash)
 
       # Run w/ MaxLoad sizing
       args_hash = {}
       args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, "#{hpxml_file}-maxload.xml"))
-      model_maxload, hpxml_maxload = _test_measure(args_hash)
+      _model_maxload, hpxml_maxload = _test_measure(args_hash)
 
       # Check that MaxLoad >= HERS > ACCA for heat pump heating capacity
       hp_capacity_acca = hpxml_acca.heat_pumps[0].heating_capacity
@@ -42,6 +42,42 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
       assert_operator(hp_capacity_maxload, :>=, hp_capacity_hers)
       assert_operator(hp_capacity_hers, :>, hp_capacity_acca)
     end
+  end
+
+  def test_heat_pump_separate_backup_systems
+    # Run w/ ducted heat pump and ductless backup
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-boiler.xml'))
+    _model, hpxml = _test_measure(args_hash)
+
+    # Check that boiler capacity equals building heating design load w/o duct load.
+    htg_design_load_without_ducts = hpxml.hvac_plant.hdl_total - hpxml.hvac_plant.hdl_ducts
+    htg_capacity = hpxml.heating_systems[0].heating_capacity
+    assert_in_epsilon(htg_design_load_without_ducts, htg_capacity, 0.001) # 0.001 to handle rounding
+
+    # Run w/ ducted heat pump and ducted backup
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-autosize-air-to-air-heat-pump-var-speed-backup-furnace.xml'))
+    _model, hpxml = _test_measure(args_hash)
+
+    # Check that furnace capacity is between the building heating design load w/o duct load
+    # and the building heating design load w/ duct load. This is because the building duct
+    # load is the sum of the furnace duct load AND the heat pump duct load.
+    htg_design_load_with_ducts = hpxml.hvac_plant.hdl_total
+    htg_design_load_without_ducts = htg_design_load_with_ducts - hpxml.hvac_plant.hdl_ducts
+    htg_capacity = hpxml.heating_systems[0].heating_capacity
+    assert_operator(htg_capacity, :>, htg_design_load_without_ducts * 1.001) # 1.001 to handle rounding
+    assert_operator(htg_capacity, :<, htg_design_load_with_ducts * 0.999) # 0.999 to handle rounding
+
+    # Run w/ ductless heat pump and ductless backup
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-autosize-mini-split-heat-pump-ductless-backup-stove.xml'))
+    _model, hpxml = _test_measure(args_hash)
+
+    # Check that stove capacity equals building heating design load
+    htg_design_load = hpxml.hvac_plant.hdl_total
+    htg_capacity = hpxml.heating_systems[0].heating_capacity
+    assert_in_epsilon(htg_design_load, htg_capacity, 0.001) # 0.001 to handle rounding
   end
 
   def test_slab_f_factor

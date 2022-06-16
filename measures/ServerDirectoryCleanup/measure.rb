@@ -12,7 +12,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     arg = OpenStudio::Ruleset::OSArgument.makeBoolArgument('retain_in_osm', true)
@@ -151,7 +151,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
 
     if debug.is_initialized
       if debug.get
-        in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_msgpack = eplusout_htm = stdout_energyplus = stdout_expandobject = schedules_csv = true
+        in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_msgpack = stdout_energyplus = stdout_expandobject = schedules_csv = true
       end
     end
 
