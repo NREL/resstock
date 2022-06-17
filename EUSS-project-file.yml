@@ -62,6 +62,9 @@ workflow_generator:
       include_timeseries_end_use_consumptions: true
       include_timeseries_emissions: true
       include_timeseries_total_loads: true
+      output_variables:
+      - name: Site Outdoor Air Drybulb Temperature
+      - name: Zone Mean Air Temperature
 
     reporting_measures: #do we want this?
       - measure_dir_name: QOIReport
@@ -802,30 +805,28 @@ upgrades:
           - HVAC Heating Efficiency|Shared Heating                      
         costs: *costs_ashp_ducted_SEER_15_9_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 78% Propane Boiler
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Separate Backup
         apply_logic: &dual-fuel_propane_ducted_shared_apply_logic
-          #modeling as integrated backup but reflecting two-system staging
           - HVAC Has Ducts|Yes
           - Heating Fuel|Propane
           - HVAC Heating Efficiency|Shared Heating                      
         costs: *costs_ashp_ducted_SEER_15_9_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 78% Natural Gas Boiler
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Separate Backup
         apply_logic: &dual-fuel_ng_ducted_shared_apply_logic
-          #modeling as integrated backup but reflecting two-system staging
           - HVAC Has Ducts|Yes
           - Heating Fuel|Natural Gas
           - HVAC Heating Efficiency|Shared Heating                      
         costs: *costs_ashp_ducted_SEER_15_9_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
-      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Integrated Backup, 78% Fuel Oil Boiler
+      - option: HVAC Heating Efficiency|Dual-Fuel ASHP, SEER 15, 9.0 HSPF, Separate Backup
         apply_logic: &dual-fuel_fo_ducted_shared_apply_logic
-          #modeling as integrated backup but reflecting two-system staging
           - HVAC Has Ducts|Yes
           - Heating Fuel|Fuel Oil
           - HVAC Heating Efficiency|Shared Heating                      
         costs: *costs_ashp_ducted_SEER_15_9_HSPF
         lifetime: *lifetime_ashp_ducted_SEER_15_9_HSPF
+        
   # MSHP Max Load separate backup for fossil fuels, full replacement for electric
       - option: HVAC Heating Efficiency|Dual-Fuel MSHP, SEER 15, 9.0 HSPF, Max Load, Separate Backup
         apply_logic: &dual-fuel_ductless_shared_apply_logic
@@ -845,40 +846,35 @@ upgrades:
         costs: *costs_mshp_ductless_SEER_15_9_HSPF
         lifetime: *lifetime_mshp_ductless_SEER_15_9_HSPF
 
-  # Shared Heating as secondary systems for dwellings with no ducts
-  # Set secondary shared system fuel type with no ducts
+
+  # Shared Heating as secondary systems for dwellings
+  # Set secondary shared system fuel type
       - option: HVAC Secondary Heating Type And Fuel|Natural Gas Shared Heating
         apply_logic:
           - HVAC Heating Efficiency|Shared Heating
-          - Heating Fuel|Natural Gas
-          - HVAC Has Ducts|No            
+          - Heating Fuel|Natural Gas         
       - option: HVAC Secondary Heating Type And Fuel|Propane Shared Heating
         apply_logic:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Propane
-          - HVAC Has Ducts|No    
       - option: HVAC Secondary Heating Type And Fuel|Fuel Oil Shared Heating
         apply_logic:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Fuel Oil
-          - HVAC Has Ducts|No
 
   # Set secondary shared system efficiency levels for dwellings with no ducts
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Natural Gas
         apply_logic:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Natural Gas
-          - HVAC Has Ducts|No  
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Propane
         apply_logic:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Propane
-          - HVAC Has Ducts|No  
       - option: HVAC Secondary Heating Efficiency|Boiler Baseboards Heating Only, Fuel Oil
         apply_logic:
           - HVAC Heating Efficiency|Shared Heating
           - Heating Fuel|Fuel Oil
-          - HVAC Has Ducts|No  
 #global
       - option: HVAC Cooling Efficiency|Heat Pump # Applied regardless of which option is applied
         apply_logic:
