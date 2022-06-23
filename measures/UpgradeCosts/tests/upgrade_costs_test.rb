@@ -706,31 +706,31 @@ class UpgradeCostsTest < MiniTest::Test
     hpxml = values['report_hpxml_output']
     cost_multipliers.keys.each do |cost_mult_type|
       if cost_mult_type == 'Wall Area, Above-Grade, Conditioned (ft^2)'
-        hpxml['enclosure_wall_area_thermal_boundary_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Wall Area Thermal Boundary')
+        hpxml['enclosure_wall_area_thermal_boundary_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Wall Area Thermal Boundary')
       elsif cost_mult_type == 'Wall Area, Above-Grade, Exterior (ft^2)'
-        hpxml['enclosure_wall_area_exterior_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Wall Area Exterior')
+        hpxml['enclosure_wall_area_exterior_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Wall Area Exterior')
       elsif cost_mult_type == 'Wall Area, Below-Grade (ft^2)'
-        hpxml['enclosure_foundation_wall_area_exterior_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Foundation Wall Area Exterior')
+        hpxml['enclosure_foundation_wall_area_exterior_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Foundation Wall Area Exterior')
       elsif cost_mult_type == 'Floor Area, Conditioned (ft^2)'
-        hpxml['enclosure_floor_area_conditioned_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Floor Area Conditioned')
+        hpxml['enclosure_floor_area_conditioned_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Floor Area Conditioned')
       elsif cost_mult_type == 'Floor Area, Lighting (ft^2)'
-        hpxml['enclosure_floor_area_lighting_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Floor Area Lighting')
+        hpxml['enclosure_floor_area_lighting_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Floor Area Lighting')
       elsif cost_mult_type == 'Floor Area, Foundation (ft^2)'
-        hpxml['enclosure_floor_area_foundation_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Floor Area Foundation')
+        hpxml['enclosure_floor_area_foundation_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Floor Area Foundation')
       elsif cost_mult_type == 'Floor Area, Attic (ft^2)'
-        hpxml['enclosure_ceiling_area_thermal_boundary_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Ceiling Area Thermal Boundary')
+        hpxml['enclosure_ceiling_area_thermal_boundary_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Ceiling Area Thermal Boundary')
       elsif cost_mult_type == 'Roof Area (ft^2)'
-        hpxml['enclosure_roof_area_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Roof Area')
+        hpxml['enclosure_roof_area_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Roof Area')
       elsif cost_mult_type == 'Window Area (ft^2)'
-        hpxml['enclosure_window_area_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Window Area')
+        hpxml['enclosure_window_area_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Window Area')
       elsif cost_mult_type == 'Door Area (ft^2)'
-        hpxml['enclosure_door_area_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Door Area')
+        hpxml['enclosure_door_area_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Door Area')
       elsif cost_mult_type == 'Duct Unconditioned Surface Area (ft^2)'
-        hpxml['enclosure_duct_area_unconditioned_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Duct Area Unconditioned')
+        hpxml['enclosure_duct_area_unconditioned_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Duct Area Unconditioned')
       elsif cost_mult_type == 'Rim Joist Area, Above-Grade, Exterior (ft^2)'
-        hpxml['enclosure_rim_joist_area_ft_2'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Rim Joist Area')
+        hpxml['enclosure_rim_joist_area_ft_2'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Rim Joist Area')
       elsif cost_mult_type == 'Slab Perimeter, Exposed, Conditioned (ft)'
-        hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Enclosure: Slab Exposed Perimeter Thermal Boundary')
+        hpxml['enclosure_slab_exposed_perimeter_thermal_boundary_ft'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Enclosure: Slab Exposed Perimeter Thermal Boundary')
       elsif cost_mult_type == 'Size, Heating System Primary (kBtu/h)'
         hpxml['primary_systems_heating_capacity_btu_h'] = 0.0
         if cost_multipliers.keys.include?('Primary Systems: Heating Capacity')
@@ -752,16 +752,16 @@ class UpgradeCostsTest < MiniTest::Test
           hpxml['primary_systems_heat_pump_backup_capacity_btu_h'] = cost_multipliers['Primary Systems: Heat Pump Backup Capacity'].output
         end
       elsif cost_mult_type == 'Size, Water Heater (gal)'
-        hpxml['systems_water_heater_tank_volume_gal'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Systems: Water Heater Tank Volume')
+        hpxml['systems_water_heater_tank_volume_gal'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Systems: Water Heater Tank Volume')
       elsif cost_mult_type == 'Flow Rate, Mechanical Ventilation (cfm)'
-        hpxml['systems_mechanical_ventilation_flow_rate_cfm'] = hpxml_output_report.get_cost_multiplier(hpxml_in, 'Systems: Mechanical Ventilation Flow Rate')
+        hpxml['systems_mechanical_ventilation_flow_rate_cfm'] = hpxml_output_report.get_bldg_output(hpxml_in, 'Systems: Mechanical Ventilation Flow Rate')
       end
     end
 
     cost_multipliers.each do |mult_type, mult_value|
       next if mult_type.include?('Systems:')
 
-      value = upgrade_costs.get_cost_multiplier(mult_type, values, existing_hpxml, upgraded_hpxml)
+      value = upgrade_costs.get_bldg_output(mult_type, values, existing_hpxml, upgraded_hpxml)
       assert(!value.nil?)
       if mult_type.include?('ft^2') || mult_type.include?('gal')
         assert_in_epsilon(mult_value, value, 0.005)
