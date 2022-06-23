@@ -81,6 +81,18 @@ Annual Outputs
 OpenStudio-HPXML will always generate an annual output file called ``results_annual.csv`` (or ``results_annual.json`` or ``results_annual.msgpack``), located in the run directory.
 The file includes the following sections of output:
 
+Annual Energy Consumption
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Annual energy consumption outputs are listed below.
+
+  ====================================  ===========================
+  Type                                  Notes
+  ====================================  ===========================
+  Energy Use: Total (MBtu)
+  Energy Use: Net (MBtu)                Subtracts any power produced by PV (including any battery storage) or generators.
+  ====================================  ===========================
+
 Annual Energy Consumption by Fuel Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -233,7 +245,7 @@ Note that rows below with values of zero will be excluded.
    Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: <EndUse> (lb)  Scenario emissions for this Wood Pellets end use only (one row per end use)
    Emissions: <EmissionsType>: <ScenarioName>: Coal: Total (lb)             Scenario emissions for Coal only
    Emissions: <EmissionsType>: <ScenarioName>: Coal: <EndUse> (lb)          Scenario emissions for this Coal end use only (one row per end use)
-   =======================================================================  ====================================================================
+   =======================================================================  ==================================================================
 
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
