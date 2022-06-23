@@ -13,7 +13,7 @@ def expected_baseline_columns
     'report_simulation_output.energy_use_net_m_btu',
     'report_simulation_output.fuel_use_electricity_total_m_btu',
     'report_simulation_output.end_use_natural_gas_heating_m_btu',
-    'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_lb_total',
+    'report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_total_lb',
     'upgrade_costs.door_area_ft_2',
     'qoi_report.qoi_average_maximum_daily_timing_cooling_hour'
   ]
