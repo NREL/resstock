@@ -122,7 +122,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
     # Building outputs
     bldg_outputs.each do |bldg_type, bldg_output|
-      bldg_output.output = get_bldg_outputiplier(hpxml, bldg_type)
+      bldg_output.output = get_bldg_output(hpxml, bldg_type)
     end
 
     # Primary and Secondary
@@ -194,7 +194,7 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     attr_accessor(:output, :units)
   end
 
-  def get_bldg_outputiplier(hpxml, bldg_type)
+  def get_bldg_output(hpxml, bldg_type)
     bldg_output = 0.0
     if bldg_type == BO::EnclosureWallAreaThermalBoundary
       hpxml.walls.each do |wall|
