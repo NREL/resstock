@@ -428,6 +428,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     expected_annual_rows = AnnualRows
     actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
     assert_equal(expected_annual_rows.sort, actual_annual_rows.sort)
+    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), expected_annual_rows)
   end
 
   def test_annual_only2
@@ -453,6 +454,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     expected_annual_rows = AnnualRows + emission_annual_cols
     actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
     assert_equal(expected_annual_rows.sort, actual_annual_rows.sort)
+    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), expected_annual_rows)
   end
 
   def test_timeseries_hourly_total_energy
@@ -1316,6 +1318,18 @@ class ReportSimulationOutputTest < MiniTest::Test
     timeseries_cols.each do |col|
       has_no_zero_timeseries_value = !values[col].include?(0.0)
       assert(has_no_zero_timeseries_value)
+    end
+  end
+
+  def _check_for_runner_registered_values(results_json, expected_annual_rows)
+    expected_registered_values = expected_annual_rows.map { |c| OpenStudio::toUnderscoreCase(c).chomp('_') }
+
+    require 'json'
+    json = JSON.parse(File.read(results_json))
+    actual_registered_values = json['ReportSimulationOutput'].keys
+
+    expected_registered_values.each do |val|
+      assert(actual_registered_values.include? val)
     end
   end
 end

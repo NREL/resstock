@@ -183,7 +183,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     output_names = []
     all_outputs.each do |outputs|
       outputs.values.each do |obj|
-        output_names << get_runner_output_name(obj)
+        output_names << get_runner_output_name(obj.name, obj.annual_units)
       end
     end
 
@@ -1265,9 +1265,9 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     all_outputs.each do |o|
       o.each do |key, obj|
         if obj.is_a?(Emission)
-          runner_output_name = "#{get_runner_output_name(obj)}: Total"
+          runner_output_name = get_runner_output_name("#{obj.name}: Total", obj.annual_units)
         else
-          runner_output_name = get_runner_output_name(obj)
+          runner_output_name = get_runner_output_name(obj.name, obj.annual_units)
         end
         output_name = OpenStudio::toUnderscoreCase(runner_output_name)
         output_val = obj.annual_output.to_f.round(n_digits)
@@ -1277,7 +1277,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         if obj.is_a?(Emission)
           # Include disaggregated by fuel
           obj.annual_output_by_fuel.each do |fuel, annual_output|
-            output_name = OpenStudio::toUnderscoreCase("#{get_runner_output_name(obj)}: #{fuel}: Total")
+            output_name = OpenStudio::toUnderscoreCase(get_runner_output_name("#{obj.name}: #{fuel}: Total", obj.annual_units))
             output_val = annual_output.to_f.round(n_digits)
             runner.registerValue(output_name, output_val)
             runner.registerInfo("Registering #{output_val} for #{output_name}.")
@@ -1285,7 +1285,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
           # Include disaggregated by end use
           obj.annual_output_by_end_use.each do |key, annual_output|
             fuel_type, end_use_type = key
-            output_name = OpenStudio::toUnderscoreCase("#{get_runner_output_name(obj)}: #{fuel_type}: #{end_use_type}")
+            output_name = OpenStudio::toUnderscoreCase(get_runner_output_name("#{obj.name}: #{fuel_type}: #{end_use_type}", obj.annual_units))
             output_val = annual_output.to_f.round(n_digits)
             runner.registerValue(output_name, output_val)
             runner.registerInfo("Registering #{output_val} for #{output_name}.")
@@ -1301,8 +1301,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
   end
 
-  def get_runner_output_name(obj)
-    return "#{obj.name} #{obj.annual_units}"
+  def get_runner_output_name(name, annual_units)
+    return "#{name} #{annual_units}"
   end
 
   def append_eri_results(results_out, line_break)
