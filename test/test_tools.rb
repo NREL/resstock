@@ -31,7 +31,7 @@ class TestTools < MiniTest::Test
 
   def test_upgrades_columns
     ['national', 'testing'].each do |project|
-      buildstockbatch_path = File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_upgrades/results_csvs/results_up13.csv")
+      buildstockbatch_path = File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_upgrades/results_csvs/results_up14.csv")
       buildstockbatch = CSV.read(buildstockbatch_path, headers: true)
 
       run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-AllUpgrades.csv")
@@ -76,7 +76,7 @@ class TestTools < MiniTest::Test
     columns = ['report_simulation_output.energy_use_total_m_btu']
 
     ['national', 'testing'].each do |project|
-      buildstockbatch_path = File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_upgrades/results_csvs/results_up13.csv")
+      buildstockbatch_path = File.join(@buildstock_directory, "buildstockbatch/project_#{project}/#{project}_upgrades/results_csvs/results_up14.csv")
       buildstockbatch = CSV.read(buildstockbatch_path, headers: true)
 
       run_analysis_path = File.join(@buildstock_directory, "run_analysis/project_#{project}/results-AllUpgrades.csv")
