@@ -73,7 +73,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       next if cost_mult_type.include?('Fixed')
 
       cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+      cost_mult = get_bldg_output(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
       cost_mult = cost_mult.round(2)
       register_value(runner, cost_mult_type_str, cost_mult)
     end
@@ -120,7 +120,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
-        cost_mult = get_cost_multiplier(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+        cost_mult = get_bldg_output(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
         total_cost = cost_value * cost_mult
         next if total_cost == 0
 
@@ -166,7 +166,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     return existing_hpxml, upgraded_hpxml
   end
 
-  def get_cost_multiplier(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+  def get_bldg_output(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
     hpxml = values['report_hpxml_output']
 
     cost_mult = 0.0

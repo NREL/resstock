@@ -2,10 +2,13 @@
 
 __New Features__
 - Allows heating/cooling seasons that don't span the entire year.
-- Allows generating timeseries unmet hours for heating and cooling.
-- Allows CSV timeseries output to be formatted for use with the DView application.
 - EnergyPlus modeling changes:
   - Switches Kiva foundation model timestep from 'Hourly' to 'Timestep'; small increase in runtime for sub-hourly simulations.
+- Annual/timeseries outputs:
+  - Adds annual emission outputs disaggregated by end use; timeseries emission outputs disaggregated by end use can be requested.
+  - Allows generating timeseries unmet hours for heating and cooling.
+  - Allows CSV timeseries output to be formatted for use with the DView application.
+  - Adds heating/cooling setpoints to timeseries outputs when requesting zone temperatures.
 - BuildResidentialHPXML measure:
   - **Breaking change**: Replaces arguments using 'auto' for defaults with optional arguments of the appropriate data type. New `heat_pump_sizing_methodology` argument and new boolean `foo_present` arguments for lighting, appliances, etc.
 - ReportUtilityBills measure:
@@ -17,6 +20,7 @@ __Bugfixes__
 - Fixes handling non-integer number of occupants when using the stochastic occupancy schedule generator.
 - Fixes units for Peak Loads (kBtu/hr, not kBtu) in annual results file.
 - Fixes possible output error for ground source heat pumps with a shared hydronic circulation loop.
+- Provides an error message if the EnergyPlus simulation used infinite energy.
 
 ## OpenStudio-HPXML v1.4.0
 
