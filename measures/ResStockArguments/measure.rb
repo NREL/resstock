@@ -192,6 +192,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue(0.0)
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('primary_becomes_secondary', false)
+    arg.setDisplayName('Primary Becomes Secondary')
+    arg.setDescription('Primary becomes secondary.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('hvac_control_heating_weekday_setpoint_temp', true)
     arg.setDisplayName('Heating Setpoint: Weekday Temperature')
     arg.setDescription('Specify the weekday heating setpoint temperature.')
@@ -449,6 +454,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       args['pv_system_num_bedrooms_served'] = Integer(args['geometry_unit_num_bedrooms'])
     else
       args['pv_system_num_bedrooms_served'] = 0
+    end
+
+    # Seconday System
+    if args['primary_becomes_secondary'].is_initialized
+      args['primary_becomes_secondary'] = args['primary_becomes_secondary'].get
     end
 
     # Setpoints
