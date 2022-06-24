@@ -300,6 +300,15 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
               new_args_hash[k] = v
             end
+
+            if measures['ResStockArguments'][0]['primary_becomes_secondary']
+              if args_hash.has_key?('heating_system_type') && [HPXML::HVACTypeWallFurnace, HPXML::HVACTypeFloorFurnace, HPXML::HVACTypeBoiler, HPXML::HVACTypeElectricResistance, HPXML::HVACTypeStove, HPXML::HVACTypePortableHeater, HPXML::HVACTypeFireplace].include?(args_hash['heating_system_type'])
+                new_args_hash['heating_system_2_type'] = args_hash['heating_system_type'] if args_hash.has_key?('heating_system_type')
+                new_args_hash['heating_system_2_fuel'] = args_hash['heating_system_fuel'] if args_hash.has_key?('heating_system_fuel')
+                new_args_hash['heating_system_2_heating_efficiency'] = args_hash['heating_system_heating_efficiency'] if args_hash.has_key?('heating_system_heating_efficiency')
+              end
+            end
+
             update_args_hash(measures, measure_subdir, new_args_hash, false)
           end
         end
@@ -345,7 +354,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
     # Retain HVAC capacities
 
-    capacities = get_system_capacities(hpxml, system_upgrades)
+    capacities = get_system_capacities(hpxml, system_upgrades, measures['ResStockArguments'][0]['primary_becomes_secondary'])
 
     unless capacities['heating_system_heating_capacity'].nil?
       measures['BuildResidentialHPXML'][0]['heating_system_heating_capacity'] = capacities['heating_system_heating_capacity']
@@ -483,7 +492,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     return system_upgrades
   end
 
-  def get_system_capacities(hpxml, system_upgrades)
+  def get_system_capacities(hpxml, system_upgrades, primary_becomes_secondary)
     capacities = {}
 
     hpxml.heating_systems.each do |heating_system|
@@ -494,10 +503,14 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     hpxml.heating_systems.each do |heating_system|
-      next if heating_system.primary_system
-      next if system_upgrades.include?(heating_system.id)
+      if primary_becomes_secondary && heating_system.primary_system
+        capacities['heating_system_2_heating_capacity'] = heating_system.heating_capacity
+      else
+        next if heating_system.primary_system
+        next if system_upgrades.include?(heating_system.id)
 
-      capacities['heating_system_2_heating_capacity'] = heating_system.heating_capacity
+        capacities['heating_system_2_heating_capacity'] = heating_system.heating_capacity
+      end
     end
 
     hpxml.cooling_systems.each do |cooling_system|
