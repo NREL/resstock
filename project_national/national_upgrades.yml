@@ -157,6 +157,17 @@ upgrades:
         lifetime: 30
       - option: HVAC Cooling Efficiency|Heat Pump
 
+  - upgrade_name: MSHP
+    options:
+      - option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF, Ducted
+        apply_logic:
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 50.0
+            multiplier: Size, Heating System Primary (kBtu/h)
+        lifetime: 30
+      - option: HVAC Cooling Efficiency|Heat Pump
+
   - upgrade_name: HPWH
     options:
       - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
