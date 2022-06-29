@@ -199,6 +199,10 @@ The column names available in the schedule CSV files are:
 Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
 Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
 
+The schedule file must have a full year of data even if the simulation is not an entire year.
+Frequency of schedule values do not need to match the simulation timestep.
+For example, hourly schedules can be used with a 10-minute simulation timestep, or 10-minute schedules can be used with an hourly simulation timestep.
+
 A detailed stochastic or smooth occupancy schedule CSV file can also be automatically generated for you; see the :ref:`usage_instructions` for the commands.
 Inputs for the schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
 See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
@@ -370,7 +374,7 @@ Building occupancy is entered in ``/HPXML/Building/BuildingDetails/BuildingSumma
   ========================================  ========  =====  ===========  ========  ====================  ========================
   Element                                   Type      Units  Constraints  Required  Default               Notes
   ========================================  ========  =====  ===========  ========  ====================  ========================
-  ``NumberofResidents``                     integer          >= 0         See [#]_  <number of bedrooms>  Number of occupants [#]_
+  ``NumberofResidents``                     double           >= 0         See [#]_  <number of bedrooms>  Number of occupants [#]_
   ``extension/WeekdayScheduleFractions``    array                         No        See [#]_              24 comma-separated weekday fractions
   ``extension/WeekendScheduleFractions``    array                         No                              24 comma-separated weekend fractions
   ``extension/MonthlyScheduleMultipliers``  array                         No        See [#]_              12 comma-separated monthly multipliers
@@ -1316,6 +1320,10 @@ If a mini-split is specified, additional information is entered in ``CoolingSyst
          A non-zero charge defect should typically only be applied for systems that are pre-charged on site.
          See ANSI/RESNET/ACCA 310-2020 Standard for Grading the Installation of HVAC Systems for more information.
 
+.. note::
+
+  Mini-splits do not have a ``CompressorType`` input because they are assumed to be inverter driven (variable speed).
+ 
 .. _hvac_cooling_chiller:
 
 Chiller
@@ -1495,6 +1503,10 @@ If a mini-split heat pump is specified, additional information is entered in ``H
          A non-zero charge defect should typically only be applied for systems that are pre-charged on site.
          See ANSI/RESNET/ACCA 310-2020 Standard for Grading the Installation of HVAC Systems for more information.
 
+.. note::
+
+  Mini-splits do not have a ``CompressorType`` input because they are assumed to be inverter driven (variable speed).
+
 Packaged Terminal Heat Pump
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1613,8 +1625,6 @@ If a heating and/or cooling season is defined, additional information is entered
   ``EndMonth``         integer          1 - 12       Yes                End month
   ``EndDayOfMonth``    integer          1 - 31       Yes                End day
   ===================  ========  =====  ===========  ========  =======  ===========
-
-Heating and cooling seasons, when combined, must span the entire year.
 
 Thermostat setpoints are additionally entered using either simple inputs or hourly inputs.
 Alternatively, setpoints can be defined using :ref:`detailedschedules`.
@@ -1773,7 +1783,7 @@ To define a hydronic distribution system, additional information is entered in `
   ``HydronicDistributionType``  string            See [#]_     Yes                  Type of hydronic distribution system
   ============================  =======  =======  ===========  ========  =========  ====================================
 
-  .. [#] HydronicDistributionType choices are "radiator", "baseboard", "radiant floor", or "radiant ceiling".
+  .. [#] HydronicDistributionType choices are "radiator", "baseboard", "radiant floor", "radiant ceiling", or "water loop".
 
 Distribution System Efficiency (DSE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

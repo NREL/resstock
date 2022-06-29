@@ -29,7 +29,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model = nil)
+  def arguments(model = nil) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
     format_chs = OpenStudio::StringVector.new
@@ -78,11 +78,10 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(12.0) # https://www.nrdc.org/experts/samantha-williams/there-war-attrition-electricity-fixed-charges says $11.19/month in 2018
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('electricity_marginal_rate', false)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('electricity_marginal_rate', false)
     arg.setDisplayName('Electricity: Marginal Rate')
     arg.setUnits('$/kWh')
-    arg.setDescription("Price per kilowatt-hour for electricity. Use '#{Constants.Auto}' to obtain a state-average value from EIA.")
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDescription('Price per kilowatt-hour for electricity. If not provided, uses a state-average value from EIA.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('natural_gas_fixed_charge', false)
@@ -92,25 +91,22 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     arg.setDefaultValue(12.0) # https://www.aga.org/sites/default/files/aga_energy_analysis_-_natural_gas_utility_rate_structure.pdf says $11.25/month in 2015
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('natural_gas_marginal_rate', false)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('natural_gas_marginal_rate', false)
     arg.setDisplayName('Natural Gas: Marginal Rate')
     arg.setUnits('$/therm')
-    arg.setDescription("Price per therm for natural gas. Use '#{Constants.Auto}' to obtain a state-average value from EIA.")
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDescription('Price per therm for natural gas. If not provided, uses a state-average value from EIA.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('fuel_oil_marginal_rate', false)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('fuel_oil_marginal_rate', false)
     arg.setDisplayName('Fuel Oil: Marginal Rate')
     arg.setUnits('$/gal')
-    arg.setDescription("Price per gallon for fuel oil. Use '#{Constants.Auto}' to obtain a state-average value from EIA.")
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDescription('Price per gallon for fuel oil. If not provided, uses a state-average value from EIA.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument::makeStringArgument('propane_marginal_rate', false)
+    arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('propane_marginal_rate', false)
     arg.setDisplayName('Propane: Marginal Rate')
     arg.setUnits('$/gal')
-    arg.setDescription("Price per gallon for propane. Use '#{Constants.Auto}' to obtain a state-average value from EIA.")
-    arg.setDefaultValue(Constants.Auto)
+    arg.setDescription('Price per gallon for propane. If not provided, uses a state-average value from EIA.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('wood_cord_marginal_rate', false)
@@ -266,7 +262,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     fuels, _, _ = setup_outputs()
 
     # Fuel outputs
-    fuels.each do |fuel_type, fuel|
+    fuels.values.each do |fuel|
       fuel.meters.each do |meter|
         result << OpenStudio::IdfObject.load("Output:Meter,#{meter},#{timeseries_frequency};").get
       end
@@ -330,7 +326,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     fuels, utility_rates, utility_bills = setup_outputs()
 
     # Get timestamps
-    @timestamps, _, _ = OutputMethods.get_timestamps(timeseries_frequency, @msgpackData, @hpxml)
+    @timestamps, _, _ = OutputMethods.get_timestamps(@msgpackData, @hpxml)
 
     # Get outputs
     get_outputs(fuels)
@@ -355,7 +351,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
 
     # Report results
     utility_bill_type_str = OpenStudio::toUnderscoreCase('Total USD')
-    utility_bill_type_val = utility_bills.sum { |fuel_type, utility_bill| utility_bill.annual_total.round(2) }.round(2)
+    utility_bill_type_val = utility_bills.values.sum { |bill| bill.annual_total.round(2) }.round(2)
     runner.registerValue(utility_bill_type_str, utility_bill_type_val)
     runner.registerInfo("Registering #{utility_bill_type_val} for #{utility_bill_type_str}.")
 
@@ -394,21 +390,21 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
   end
 
   def preprocess_arguments(args)
-    args[:electricity_fixed_charge] = args[:electricity_fixed_charge].get
-    args[:electricity_marginal_rate] = args[:electricity_marginal_rate].get
-    args[:natural_gas_fixed_charge] = args[:natural_gas_fixed_charge].get
-    args[:natural_gas_marginal_rate] = args[:natural_gas_marginal_rate].get
-    args[:fuel_oil_marginal_rate] = args[:fuel_oil_marginal_rate].get
-    args[:propane_marginal_rate] = args[:propane_marginal_rate].get
-    args[:wood_cord_marginal_rate] = args[:wood_cord_marginal_rate].get
-    args[:wood_pellets_marginal_rate] = args[:wood_pellets_marginal_rate].get
-    args[:coal_marginal_rate] = args[:coal_marginal_rate].get
-    args[:pv_compensation_type] = args[:pv_compensation_type].get
-    args[:pv_annual_excess_sellback_rate_type] = args[:pv_annual_excess_sellback_rate_type].get
-    args[:pv_net_metering_annual_excess_sellback_rate] = args[:pv_net_metering_annual_excess_sellback_rate].get
-    args[:pv_feed_in_tariff_rate] = args[:pv_feed_in_tariff_rate].get
-    args[:pv_grid_connection_fee_units] = args[:pv_grid_connection_fee_units].get
-    args[:pv_monthly_grid_connection_fee] = args[:pv_monthly_grid_connection_fee].get
+    args[:electricity_fixed_charge] = args[:electricity_fixed_charge].is_initialized ? args[:electricity_fixed_charge].get : nil
+    args[:electricity_marginal_rate] = args[:electricity_marginal_rate].is_initialized ? args[:electricity_marginal_rate].get : nil
+    args[:natural_gas_fixed_charge] = args[:natural_gas_fixed_charge].is_initialized ? args[:natural_gas_fixed_charge].get : nil
+    args[:natural_gas_marginal_rate] = args[:natural_gas_marginal_rate].is_initialized ? args[:natural_gas_marginal_rate].get : nil
+    args[:fuel_oil_marginal_rate] = args[:fuel_oil_marginal_rate].is_initialized ? args[:fuel_oil_marginal_rate].get : nil
+    args[:propane_marginal_rate] = args[:propane_marginal_rate].is_initialized ? args[:propane_marginal_rate].get : nil
+    args[:wood_cord_marginal_rate] = args[:wood_cord_marginal_rate].is_initialized ? args[:wood_cord_marginal_rate].get : nil
+    args[:wood_pellets_marginal_rate] = args[:wood_pellets_marginal_rate].is_initialized ? args[:wood_pellets_marginal_rate].get : nil
+    args[:coal_marginal_rate] = args[:coal_marginal_rate].is_initialized ? args[:coal_marginal_rate].get : nil
+    args[:pv_compensation_type] = args[:pv_compensation_type].is_initialized ? args[:pv_compensation_type].get : nil
+    args[:pv_annual_excess_sellback_rate_type] = args[:pv_annual_excess_sellback_rate_type].is_initialized ? args[:pv_annual_excess_sellback_rate_type].get : nil
+    args[:pv_net_metering_annual_excess_sellback_rate] = args[:pv_net_metering_annual_excess_sellback_rate].is_initialized ? args[:pv_net_metering_annual_excess_sellback_rate].get : nil
+    args[:pv_feed_in_tariff_rate] = args[:pv_feed_in_tariff_rate].is_initialized ? args[:pv_feed_in_tariff_rate].get : nil
+    args[:pv_grid_connection_fee_units] = args[:pv_grid_connection_fee_units].is_initialized ? args[:pv_grid_connection_fee_units].get : nil
+    args[:pv_monthly_grid_connection_fee] = args[:pv_monthly_grid_connection_fee].is_initialized ? args[:pv_monthly_grid_connection_fee].get : nil
   end
 
   def get_utility_rates(fuels, utility_rates, args, state_code, pv_systems, runner = nil)
@@ -483,7 +479,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
         rate.flatratebuy = args[:coal_marginal_rate]
       end
 
-      if rate.flatratebuy == Constants.Auto
+      if rate.flatratebuy.nil?
         if [FT::Elec, FT::Gas, FT::Oil, FT::Propane].include? fuel_type
           rate.flatratebuy = get_auto_marginal_rate(runner, state_code, fuel_type, rate.fixedmonthlycharge)
 
@@ -581,7 +577,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     fuels[[FT::WoodPellets, false]] = Fuel.new(meters: ["#{EPlus::FuelTypeWoodPellets}:Facility"])
     fuels[[FT::Coal, false]] = Fuel.new(meters: ["#{EPlus::FuelTypeCoal}:Facility"])
 
-    fuels.each do |(fuel_type, is_production), fuel|
+    fuels.each do |(fuel_type, _is_production), fuel|
       fuel.units = get_timeseries_units_from_fuel_type(fuel_type)
     end
 
@@ -607,7 +603,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
   end
 
   def get_outputs(fuels)
-    fuels.each do |(fuel_type, is_production), fuel|
+    fuels.each do |(fuel_type, _is_production), fuel|
       unit_conv = UnitConversions.convert(1.0, 'J', fuel.units)
       unit_conv /= 139.0 if fuel_type == FT::Oil
       unit_conv /= 91.6 if fuel_type == FT::Propane
@@ -633,7 +629,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     rows = @msgpackData['MeterData'][msgpack_timeseries_name]['Rows']
     indexes = cols.each_index.select { |i| meter_names.include? cols[i]['Variable'] }
     vals = []
-    rows.each_with_index do |row, idx|
+    rows.each do |row|
       row = row[row.keys[0]]
       val = 0.0
       indexes.each do |i|
@@ -697,13 +693,13 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
         marginal_rates = get_gallon_marginal_rates('PET_PRI_WFR_A_EPD2F_PRS_DPGAL_W.csv')
         header = "Weekly #{state_name} Weekly No. 2 Heating Oil Residential Price  (Dollars per Gallon)"
       elsif fuel_type == FT::Propane
-        marginal_rates = marginal_rates = get_gallon_marginal_rates('PET_PRI_WFR_A_EPLLPA_PRS_DPGAL_W.csv')
+        marginal_rates = get_gallon_marginal_rates('PET_PRI_WFR_A_EPLLPA_PRS_DPGAL_W.csv')
         header = "Weekly #{state_name} Propane Residential Price  (Dollars per Gallon)"
       end
 
       if marginal_rates[header].nil?
         padd = get_state_code_to_padd[state_code]
-        marginal_rates.each do |k, v|
+        marginal_rates.keys.each do |k|
           header = k if k.include?(padd)
         end
         average = "region (#{padd})"
@@ -775,7 +771,7 @@ class ReportUtilityBills < OpenStudio::Measure::ReportingMeasure
     segment = utility_bills.keys[0].split(':', 2)[0]
     segment = segment.strip
     results_out = []
-    results_out << ['Total ($)', utility_bills.sum { |key, bill| bill.annual_total.round(2) }.round(2)]
+    results_out << ['Total ($)', utility_bills.values.sum { |bill| bill.annual_total.round(2) }.round(2)]
     results_out << [line_break]
     utility_bills.each do |key, bill|
       new_segment = key.split(':', 2)[0]

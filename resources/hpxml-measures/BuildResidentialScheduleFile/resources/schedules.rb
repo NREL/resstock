@@ -16,7 +16,8 @@ class ScheduleGenerator
                  total_days_in_year:,
                  sim_year:,
                  sim_start_day:,
-                 **remainder)
+                 debug:,
+                 **)
     @runner = runner
     @epw_file = epw_file
     @state = state
@@ -28,6 +29,7 @@ class ScheduleGenerator
     @total_days_in_year = total_days_in_year
     @sim_year = sim_year
     @sim_start_day = sim_start_day
+    @debug = debug
   end
 
   def get_random_seed
@@ -282,7 +284,7 @@ class ScheduleGenerator
     # States are: 'sleeping', 'shower', 'laundry', 'cooking', 'dishwashing', 'absent', 'nothingAtHome'
     # if geometry_num_occupants = 2, period_in_a_year = 35040,  num_of_states = 7, then
     # shape of all_simulated_values is [2, 35040, 7]
-    (1..args[:geometry_num_occupants]).each do |i|
+    for _n in 1..args[:geometry_num_occupants]
       occ_type_id = weighted_random(prng, schedule_config['occupancy_types']['probabilities'])
       init_prob_file_weekday = args[:resources_path] + "/weekday/mkv_chain_initial_prob_cluster_#{occ_type_id}.csv"
       initial_prob_weekday = CSV.read(init_prob_file_weekday)
@@ -321,7 +323,7 @@ class ScheduleGenerator
           state_vector[active_state] = 1 # Transition to the new state
           # sample the duration of the state, and skip markov-chain based state transition until the end of the duration
           activity_duration = sample_activity_duration(prng, activity_duration_prob_map, occ_type_id, active_state, day_type, j / 4)
-          activity_duration.times do |repeat_activity_count|
+          for _i in 1..activity_duration
             # repeat the same activity for the duration times
             simulated_values << state_vector
             j += 1
@@ -343,7 +345,6 @@ class ScheduleGenerator
     lighting_sch = schedule_config['lighting']
     ceiling_fan_sch = schedule_config['ceiling_fan']
 
-    monthly_lighting_schedule = schedule_config['lighting']['monthly_multiplier']
     holiday_lighting_schedule = schedule_config['lighting']['holiday_sch']
 
     sch = Lighting.get_schedule(@epw_file)
@@ -358,6 +359,7 @@ class ScheduleGenerator
 
     holiday_lighting_schedule = get_holiday_lighting_sch(holiday_lighting_schedule)
 
+    sleep_schedule = []
     away_schedule = []
     idle_schedule = []
 
@@ -371,10 +373,10 @@ class ScheduleGenerator
       @steps_in_day.times do |step|
         minute = day * 1440 + step * @minutes_per_step
         index_15 = (minute / 15).to_i
-        sleep = sum_across_occupants(all_simulated_values, 0, index_15).to_f / args[:geometry_num_occupants]
+        sleep_schedule << sum_across_occupants(all_simulated_values, 0, index_15).to_f / args[:geometry_num_occupants]
         away_schedule << sum_across_occupants(all_simulated_values, 5, index_15).to_f / args[:geometry_num_occupants]
         idle_schedule << sum_across_occupants(all_simulated_values, 6, index_15).to_f / args[:geometry_num_occupants]
-        active_occupancy_percentage = 1 - (away_schedule[-1] + sleep)
+        active_occupancy_percentage = 1 - (away_schedule[-1] + sleep_schedule[-1])
         @schedules[SchedulesFile::ColumnPlugLoadsOther][day * @steps_in_day + step] = get_value_from_daily_sch(plugload_sch, month, is_weekday, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::ColumnLightingInterior][day * @steps_in_day + step] = scale_lighting_by_occupancy(interior_lighting_schedule, minute, active_occupancy_percentage)
         @schedules[SchedulesFile::ColumnLightingExterior][day * @steps_in_day + step] = get_value_from_daily_sch(lighting_sch, month, is_weekday, minute, 1)
@@ -431,7 +433,7 @@ class ScheduleGenerator
     sink_flow_rate_std = schedule_config['sink']['flow_rate_std']
     sink_flow_rate = gaussian_rand(prng, sink_flow_rate_mean, sink_flow_rate_std, 0.1)
     @total_days_in_year.times do |day|
-      cluster_per_day.times do |cluster_count|
+      for _n in 1..cluster_per_day
         todays_probable_steps = sink_activity_probable_mins[day * @mkc_ts_per_day...((day + 1) * @mkc_ts_per_day)]
         todays_probablities = todays_probable_steps.map.with_index { |p, i| p * hourly_onset_prob[i / @mkc_ts_per_hour] }
         prob_sum = todays_probablities.sum(0)
@@ -443,7 +445,7 @@ class ScheduleGenerator
         num_events = weighted_random(prng, events_per_cluster_probs) + 1
         start_min = cluster_start_index * 15
         end_min = (cluster_start_index + 1) * 15
-        num_events.times do |event_count|
+        for _i in 1..num_events
           duration = weighted_random(prng, sink_duration_probs) + 1
           if start_min + duration > end_min then duration = (end_min - start_min) end
           sink_activity_sch.fill(sink_flow_rate, (day * 1440) + start_min, duration)
@@ -490,47 +492,45 @@ class ScheduleGenerator
       # shower_state will be equal to number of occupant taking shower/bath in the given 15-minute mkc interval
       shower_state = sum_across_occupants(all_simulated_values, 1, step)
       step_jump = 1
-      if shower_state > 0
-        shower_state.to_i.times do |occupant_number|
-          r = prng.rand
-          if r <= bath_ratio
-            # fill in bath for this time
-            duration = gaussian_rand(prng, bath_duration_mean, bath_duration_std, 0.1)
+      for _n in 1..shower_state.to_i
+        r = prng.rand
+        if r <= bath_ratio
+          # fill in bath for this time
+          duration = gaussian_rand(prng, bath_duration_mean, bath_duration_std, 0.1)
+          int_duration = duration.ceil
+          # since we are rounding duration to integer minute, we compensate by scaling flow rate
+          flow_rate = bath_flow_rate * duration / int_duration
+          start_min = step * 15
+          m = 0
+          int_duration.times do
+            bath_activity_sch[start_min + m] += flow_rate
+            m += 1
+            if (start_min + m) >= mins_in_year then break end
+          end
+          step_jump = [step_jump, 1 + (m / 15)].max # jump additional step if the bath occupies multiple 15-min slots
+        else
+          # fill in the shower
+          num_events = sample_activity_cluster_size(prng, cluster_size_prob_map, 'shower')
+          start_min = step * 15
+          m = 0
+          num_events.times do
+            duration = sample_event_duration(prng, event_duration_prob_map, 'shower')
             int_duration = duration.ceil
+            flow_rate = shower_flow_rate * duration / int_duration
             # since we are rounding duration to integer minute, we compensate by scaling flow rate
-            flow_rate = bath_flow_rate * duration / int_duration
-            start_min = step * 15
-            m = 0
             int_duration.times do
-              bath_activity_sch[start_min + m] += flow_rate
+              shower_activity_sch[start_min + m] += flow_rate
               m += 1
               if (start_min + m) >= mins_in_year then break end
             end
-            step_jump = [step_jump, 1 + (m / 15)].max # jump additional step if the bath occupies multiple 15-min slots
-          else
-            # fill in the shower
-            num_events = sample_activity_cluster_size(prng, cluster_size_prob_map, 'shower')
-            start_min = step * 15
-            m = 0
-            num_events.times do
-              duration = sample_event_duration(prng, event_duration_prob_map, 'shower')
-              int_duration = duration.ceil
-              flow_rate = shower_flow_rate * duration / int_duration
-              # since we are rounding duration to integer minute, we compensate by scaling flow rate
-              int_duration.times do
-                shower_activity_sch[start_min + m] += flow_rate
-                m += 1
-                if (start_min + m) >= mins_in_year then break end
-              end
-              shower_minutes_between_event_gap.times do
-                # skip the gap between events
-                m += 1
-                if (start_min + m) >= mins_in_year then break end
-              end
-              if start_min + m >= mins_in_year then break end
+            shower_minutes_between_event_gap.times do
+              # skip the gap between events
+              m += 1
+              if (start_min + m) >= mins_in_year then break end
             end
-            step_jump = [step_jump, 1 + (m / 15)].max
+            if start_min + m >= mins_in_year then break end
           end
+          step_jump = [step_jump, 1 + (m / 15)].max
         end
       end
       step += step_jump
@@ -554,7 +554,7 @@ class ScheduleGenerator
     # Fill in dw_water draw schedule
     step = 0
     while step < mkc_steps_in_a_year
-      dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip = 1)
+      dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip: 1)
       step_jump = 1
       if dish_state > 0
         cluster_size = sample_activity_cluster_size(prng, cluster_size_prob_map, 'hot_water_dishwasher')
@@ -593,7 +593,7 @@ class ScheduleGenerator
     step = 0
     # Fill in clothes washer water draw schedule based on markov-chain state 2 (laundry)
     while step < mkc_steps_in_a_year
-      clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip = 1)
+      clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip: 1)
       step_jump = 1
       if clothes_state > 0
         num_loads = weighted_random(prng, cw_load_size_probability) + 1
@@ -636,7 +636,7 @@ class ScheduleGenerator
     last_state = 0
     start_time = Time.new(@sim_year, 1, 1)
     while step < mkc_steps_in_a_year
-      dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip = 1)
+      dish_state = sum_across_occupants(all_simulated_values, 4, step, max_clip: 1)
       step_jump = 1
       if (dish_state > 0) && (last_state == 0) # last_state == 0 prevents consecutive dishwasher power without gap
         duration_15min, avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, 'dishwasher')
@@ -660,7 +660,7 @@ class ScheduleGenerator
     last_state = 0
     start_time = Time.new(@sim_year, 1, 1)
     while step < mkc_steps_in_a_year
-      clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip = 1)
+      clothes_state = sum_across_occupants(all_simulated_values, 2, step, max_clip: 1)
       step_jump = 1
       if (clothes_state > 0) && (last_state == 0) # last_state == 0 prevents consecutive washer power without gap
         cw_duration_15min, cw_avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, 'clothes_washer')
@@ -688,7 +688,7 @@ class ScheduleGenerator
     last_state = 0
     start_time = Time.new(@sim_year, 1, 1)
     while step < mkc_steps_in_a_year
-      cooking_state = sum_across_occupants(all_simulated_values, 3, step, max_clip = 1)
+      cooking_state = sum_across_occupants(all_simulated_values, 3, step, max_clip: 1)
       step_jump = 1
       if (cooking_state > 0) && (last_state == 0) # last_state == 0 prevents consecutive cooking power without gap
         duration_15min, avg_power = sample_appliance_duration_power(prng, appliance_power_dist_map, 'cooking')
@@ -772,6 +772,10 @@ class ScheduleGenerator
     @schedules[SchedulesFile::ColumnDishwasher] = dw_power_sch.map { |power| power / dw_peak_power }
 
     @schedules[SchedulesFile::ColumnOccupants] = away_schedule.map { |i| 1.0 - i }
+
+    if @debug
+      @schedules[SchedulesFile::ColumnSleeping] = sleep_schedule
+    end
 
     @schedules[SchedulesFile::ColumnHotWaterFixtures] = [showers, sinks, baths].transpose.map { |flow| flow.reduce(:+) }
     fixtures_peak_flow = @schedules[SchedulesFile::ColumnHotWaterFixtures].max
@@ -980,7 +984,7 @@ class ScheduleGenerator
     return x
   end
 
-  def sum_across_occupants(all_simulated_values, activity_index, time_index, max_clip = nil)
+  def sum_across_occupants(all_simulated_values, activity_index, time_index, max_clip: nil)
     sum = 0
     all_simulated_values.size.times do |i|
       sum += all_simulated_values[i][time_index, activity_index]

@@ -45,7 +45,7 @@ jobs:
       - name: Build documentation
         run: |
           cd docs/read_the_docs
-          make html
+          make html SPHINXOPTS="-W --keep-going -n"
 
       - name: Save Docs
         uses: actions/upload-artifact@v2
@@ -70,6 +70,16 @@ jobs:
         run: |
           bundle exec rake workflow:analysis_tests
 
+      - name: Upload run_analysis.rb results
+        uses: actions/upload-artifact@v2
+        with:
+          path: |
+            project_national/results-Baseline.csv
+            project_testing/results-Baseline.csv
+            project_national/results-AllUpgrades.csv
+            project_testing/results-AllUpgrades.csv
+          name: run_analysis
+
   integration-tests:
     runs-on: ubuntu-latest
     steps:
@@ -86,16 +96,6 @@ jobs:
           
           buildstock_docker project_national/national_upgrades.yml
           buildstock_docker project_testing/testing_upgrades.yml
-
-      # - name: Upload bsb results
-        # uses: actions/upload-artifact@v2
-        # with:
-          # path: |
-            # project_national/national_baseline
-            # project_testing/testing_baseline
-            # project_national/national_upgrades
-            # project_testing/testing_upgrades
-          # name: bsb_results
 
       - name: Unzip results
         run: |
@@ -127,6 +127,40 @@ jobs:
             baseline
             upgrades
           name: results
+
+      - name: Upload buildstockbatch results
+        uses: actions/upload-artifact@v2
+        with:
+          path: |
+            project_national/national_baseline/results_csvs/results_up00.csv
+            project_testing/testing_baseline/results_csvs/results_up00.csv
+            project_national/national_upgrades/results_csvs/results_up14.csv
+            project_testing/testing_upgrades/results_csvs/results_up14.csv
+          name: buildstockbatch
+
+  compare-tools:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, analysis-tests, integration-tests]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Download buildstockbatch results
+        uses: actions/download-artifact@v2
+        with:
+          path: buildstockbatch
+          name: buildstockbatch
+
+      - name: Download run_analysis results
+        uses: actions/download-artifact@v2
+        with:
+          path: run_analysis
+          name: run_analysis
+
+      - name: Run tests
+        run: |
+          ruby test/test_tools.rb
 
   compare-results:
     if: github.event_name == 'pull_request'

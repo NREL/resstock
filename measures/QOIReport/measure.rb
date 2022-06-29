@@ -20,7 +20,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
     return args
@@ -58,7 +58,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   def average_daily_base_magnitude_by_season
     output_names = []
-    seasons.each do |season, temperature_range|
+    seasons.keys.each do |season|
       output_names << "average_minimum_daily_use_#{season.downcase}_kw"
     end
     return output_names
@@ -66,7 +66,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   def average_daily_peak_magnitude_by_season
     output_names = []
-    seasons.each do |season, temperature_range|
+    seasons.keys.each do |season|
       output_names << "average_maximum_daily_use_#{season.downcase}_kw"
     end
     return output_names
@@ -74,7 +74,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   def average_daily_peak_timing_by_season
     output_names = []
-    seasons.each do |season, temperature_range|
+    seasons.keys.each do |season|
       output_names << "average_maximum_daily_timing_#{season.downcase}_hour"
     end
     return output_names
@@ -82,7 +82,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   def top_ten_daily_seasonal_peak_magnitude_by_season
     output_names = []
-    seasons.each do |season, temperature_range|
+    seasons.keys.each do |season|
       next if season == Constants.SeasonOverlap
 
       output_names << "average_of_top_ten_highest_peaks_use_#{season.downcase}_kw"
@@ -92,7 +92,7 @@ class QOIReport < OpenStudio::Measure::ReportingMeasure
 
   def top_ten_seasonal_timing_of_peak_by_season
     output_names = []
-    seasons.each do |season, temperature_range|
+    seasons.keys.each do |season|
       next if season == Constants.SeasonOverlap
 
       output_names << "average_of_top_ten_highest_peaks_timing_#{season.downcase}_hour"

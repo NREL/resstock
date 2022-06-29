@@ -39,18 +39,6 @@ class Constants
     return 'AirFilm'
   end
 
-  def self.Auto
-    return 'auto'
-  end
-
-  def self.AutoHERSForHP
-    return 'auto using HERS'
-  end
-
-  def self.AutoMaxLoadForHP
-    return 'auto using max load'
-  end
-
   def self.CalcTypeCO2eRatedHome
     return 'CO2e Rated Home'
   end
@@ -262,6 +250,10 @@ class Constants
     return 'ground source heat pump'
   end
 
+  def self.ObjectNameGSHPSharedPump()
+    return 'gshp shared loop pump'
+  end
+
   def self.ObjectNameHeatingSeason
     return 'heating season'
   end
@@ -414,10 +406,6 @@ class Constants
     return 'room ac'
   end
 
-  def self.ObjectNameSharedPump(hvac_name)
-    return "#{hvac_name} shared pump"
-  end
-
   def self.ObjectNameSkylightShade
     return 'skylight shade'
   end
@@ -436,6 +424,10 @@ class Constants
 
   def self.ObjectNameUnitHeater
     return 'unit heater'
+  end
+
+  def self.ObjectNameUnmetHoursProgram
+    return 'unmet hours program'
   end
 
   def self.ObjectNameWaterHeater
