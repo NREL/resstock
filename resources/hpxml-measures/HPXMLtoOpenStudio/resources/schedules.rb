@@ -1390,6 +1390,8 @@ class SchedulesFile
           File.delete(tmp_schedules_path)
         rescue
         end
+      else
+        fail "Could not get external file for path '#{tmp_schedules_path}'."
       end
     end
   end
