@@ -34,7 +34,8 @@ class ZonalHeatPump():
                                        skip_reports=True)
     return resstock_savings
 
-  def get_savings_shape(self, upgrade_id, upgrade_name):
+
+  def get_savings_shape(self, resstock_savings, upgrade_id, upgrade_name):
     df = resstock_savings.savings_shape(upgrade_id=upgrade_id,
                                         enduses=self.enduses,
                                         group_by=self.group_by,
@@ -50,7 +51,7 @@ class ZonalHeatPump():
     return df
 
 
-  def get_results_csv(self, upgrade_id=None):
+  def get_results_csv(self, resstock_savings, upgrade_id=None):
     if upgrade_id == None:
       df = resstock_savings.get_results_csv()
     else:
@@ -63,13 +64,15 @@ def stacked_bar(df, enduses, group_by):
   for group in group_by:
     for enduse in enduses:
       fig = px.histogram(df, x=group, y=f'{enduse}__savings', color='upgrade_name', barmode='group',
-                         title=f'Total annual savings for {enduse}')
+                         title=f'Total annual savings for {enduse}', text_auto=True)
+      fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
 
       path = os.path.join(os.path.dirname(__file__), f'upgrade_{group}_{enduse}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
 
       fig = px.histogram(df, x=group, y=f'{enduse}__average_savings', color='upgrade_name', barmode='group',
-                         title=f'Average annual savings for {enduse}')
+                         title=f'Average annual savings for {enduse}', text_auto=True)
+      fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
 
       path = os.path.join(os.path.dirname(__file__), f'upgrade_average_{group}_{enduse}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
@@ -81,8 +84,8 @@ def histogram(baseline, up, enduses, group_by):
 
   for group in group_by:
     for enduse in enduses:
-      fig = px.histogram(df, x=enduse, color=group,
-                         marginal='box')
+      # fig = px.histogram(df, x=enduse, color=group, marginal='box', barmode='overlay')
+      fig = px.histogram(df, x=enduse, color=group, marginal='box')
       path = os.path.join(os.path.dirname(__file__), f'histogram_{group.replace("build_existing_model.", "")}_{enduse.replace("report_simulation_output.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
 
@@ -134,15 +137,35 @@ def value_counts(df, file):
     w.writerows(value_counts)
 
 
+def geometry_building_type(x):
+  if 'Multi' in x:
+    return 'Multi-Family'
+  return 'Single-Family Attached'
+
+
 if __name__ == '__main__':
 
-  enduses = ['energy_use_total_m_btu']
-  group_by = ['ashrae_iecc_climate_zone_2004', 'geometry_building_type_recs']
+  enduses = [
+             'energy_use_total_m_btu',
+             'end_use_electricity_heating_m_btu',
+             'end_use_natural_gas_heating_m_btu',
+             'end_use_propane_heating_m_btu',
+             'end_use_fuel_oil_heating_m_btu',
+             # 'end_use_coal_heating_m_btu',
+             # 'end_use_wood_cord_heating_m_btu',
+             # 'end_use_wood_pellets_heating_m_btu',
+             'end_use_electricity_cooling_m_btu'
+             ]
+
+  group_by = ['ashrae_iecc_climate_zone_2004',
+              'geometry_building_type_recs',
+              'geometry_floor_area']
+
   upgrades = {
-                # 1: 'Envelope Only',
-                2: 'Envelope And MSHP (R-30)',
-                3: 'Envelope And MSHP (R-5)',
-                4: 'Envelope And MSHP (R-15)'
+                1: 'Envelope Only',
+                # 2: 'Envelope w/HP (R-30)',
+                # 3: 'Envelope w/HP (R-5)',
+                4: 'Envelope w/HP (R-15)'
              }
 
 
@@ -156,7 +179,7 @@ if __name__ == '__main__':
 
     dfs = {}
     for upgrade_id, upgrade_name in upgrades.items():
-      df = zonal_heat_pump.get_savings_shape(upgrade_id, upgrade_name)
+      df = zonal_heat_pump.get_savings_shape(resstock_savings, upgrade_id, upgrade_name)
       dfs[upgrade_id] = df
 
     df = pd.concat(dfs)
@@ -164,6 +187,11 @@ if __name__ == '__main__':
   else:
     df = pd.read_csv(path)
 
+  df['end_use_heating_m_btu__baseline'] = df['end_use_electricity_heating_m_btu__baseline'] + df['end_use_natural_gas_heating_m_btu__baseline'] + df['end_use_propane_heating_m_btu__baseline'] + df['end_use_fuel_oil_heating_m_btu__baseline']
+  df['end_use_heating_m_btu__savings'] = df['end_use_electricity_heating_m_btu__savings'] + df['end_use_natural_gas_heating_m_btu__savings'] + df['end_use_propane_heating_m_btu__savings'] + df['end_use_fuel_oil_heating_m_btu__savings']
+  df['end_use_cooling_m_btu__baseline'] = df['end_use_electricity_cooling_m_btu__baseline']
+  df['end_use_cooling_m_btu__savings'] = df['end_use_electricity_cooling_m_btu__savings']
+  enduses += ['end_use_heating_m_btu', 'end_use_cooling_m_btu']
   stacked_bar(df, enduses, group_by)
 
 
@@ -173,15 +201,22 @@ if __name__ == '__main__':
   # comparing across characteristics
   enduses = [
               'report_simulation_output.energy_use_total_m_btu',
-              'report_simulation_output.fuel_use_electricity_total_m_btu',
-              'report_simulation_output.fuel_use_natural_gas_total_m_btu'
-            ]
+              # 'report_simulation_output.end_use_electricity_heating_m_btu',
+              # 'report_simulation_output.end_use_natural_gas_heating_m_btu',
+              # 'report_simulation_output.end_use_propane_heating_m_btu',
+              # 'report_simulation_output.end_use_fuel_oil_heating_m_btu',
+              # 'report_simulation_output.end_use_electricity_cooling_m_btu'
+             ]
+
   group_by = [
                 'build_existing_model.ashrae_iecc_climate_zone_2004',
-                'build_existing_model.geometry_building_type_recs',
+                # 'build_existing_model.geometry_building_type_recs',
+                # 'build_existing_model.geometry_building_type_acs',
+                'build_existing_model.geometry_building_type',
                 'build_existing_model.hvac_heating_type',
                 'build_existing_model.hvac_heating_efficiency',
-                'build_existing_model.hvac_cooling_efficiency'
+                'build_existing_model.hvac_cooling_efficiency',
+                'build_existing_model.geometry_floor_area'
              ]
 
   path = os.path.join(os.path.dirname(__file__), 'results_up0.csv')
@@ -189,13 +224,13 @@ if __name__ == '__main__':
     zonal_heat_pump = ZonalHeatPump(enduses, group_by)
     resstock_savings = zonal_heat_pump.get_resstock_savings()
 
-    baseline = zonal_heat_pump.get_results_csv()
+    baseline = zonal_heat_pump.get_results_csv(resstock_savings)
     baseline.to_csv(path)
 
     ups = {}
     for upgrade_id in upgrades.keys():
       path = os.path.join(os.path.dirname(__file__), f'results_up{upgrade_id}.csv')
-      df = zonal_heat_pump.get_results_csv(upgrade_id)
+      df = zonal_heat_pump.get_results_csv(resstock_savings, upgrade_id)
       df.to_csv(path)
       ups[upgrade_id] = df
   else:
@@ -207,6 +242,7 @@ if __name__ == '__main__':
       ups[upgrade_id] = pd.read_csv(path)
 
   baseline = baseline[baseline['completed_status']=='Success']
+  baseline['build_existing_model.geometry_building_type'] = baseline['build_existing_model.geometry_building_type_recs'].apply(lambda x: geometry_building_type(x))
   baseline = baseline.set_index('building_id').sort_index()
   baseline = baseline[enduses + group_by]
 
