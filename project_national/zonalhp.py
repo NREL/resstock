@@ -81,9 +81,9 @@ def histogram(baseline, up, enduses, group_by):
 
   for group in group_by:
     for enduse in enduses:
-      fig = px.histogram(baseline, x=enduse, color=group,
+      fig = px.histogram(df, x=enduse, color=group,
                          marginal='box')
-      path = os.path.join(os.path.dirname(__file__), f'histogram_{group}_{enduse}.html')
+      path = os.path.join(os.path.dirname(__file__), f'histogram_{group.replace("build_existing_model.", "")}_{enduse.replace("report_simulation_output.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
 
 
@@ -104,7 +104,7 @@ def density(baseline, up, enduses, group_by):
         group_labels.append(item)
 
       fig = ff.create_distplot(hist_data, group_labels, bin_size=1, show_hist=False, show_curve=True, show_rug=True)
-      path = os.path.join(os.path.dirname(__file__), f'density_{group}_{enduse}.html')
+      path = os.path.join(os.path.dirname(__file__), f'density_{group.replace("build_existing_model.", "")}_{enduse.replace("report_simulation_output.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
 
 
@@ -113,13 +113,22 @@ def value_counts(df, file):
   with open(file, 'w', newline='') as f:
     for col in sorted(df.columns):
       value_count = df[col].value_counts(normalize=True)
-      value_count = value_count.round(2)
-      keys_to_values = dict(zip(value_count.index.values, value_count.values))
+      value_count_round = value_count.round(2)
+      keys_to_values = dict(zip(value_count_round.index.values, value_count_round.values))
       keys_to_values = dict(sorted(keys_to_values.items(), key=lambda x: (x[1], x[0]), reverse=True))
-      value_counts.append([value_count.name])
+      value_counts.append([value_count_round.name])
       value_counts.append(keys_to_values.keys())
       value_counts.append(keys_to_values.values())
       value_counts.append('')
+
+      t = value_count.rename_axis(col).reset_index(name='percentage')
+      t['percentage'] = (t['percentage'] * 100.0).round(1)
+      fig = px.bar(t, x=col, y='percentage', title=f'{col.replace("build_existing_model.", "")}', text=t['percentage'].apply(lambda x: '{0:1.1f}%'.format(x)))
+      fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+      fig.update_xaxes(title='')
+
+      path = os.path.join(os.path.dirname(__file__), f'{col.replace("build_existing_model.", "")}.html')
+      plotly.offline.plot(fig, filename=path, auto_open=False)
 
     w = csv.writer(f)
     w.writerows(value_counts)
@@ -168,6 +177,7 @@ if __name__ == '__main__':
               'report_simulation_output.fuel_use_natural_gas_total_m_btu'
             ]
   group_by = [
+                'build_existing_model.ashrae_iecc_climate_zone_2004',
                 'build_existing_model.geometry_building_type_recs',
                 'build_existing_model.hvac_heating_type',
                 'build_existing_model.hvac_heating_efficiency',
@@ -200,6 +210,14 @@ if __name__ == '__main__':
   baseline = baseline.set_index('building_id').sort_index()
   baseline = baseline[enduses + group_by]
 
+
+
+  # summary statistics for group_by
+  path = os.path.join(os.path.dirname(__file__), 'value_counts.csv')
+  value_counts(baseline[group_by], path)
+
+
+
   for upgrade_id, up in ups.items():
     up = up[up['completed_status']=='Success']
     up = up.set_index('building_id').sort_index()
@@ -212,11 +230,3 @@ if __name__ == '__main__':
 
     histogram(baseline, up, enduses, group_by) # stacked histograms
     density(baseline, up, enduses, group_by) # histograms with density lines
-
-
-
-
-
-  # summary statistics for group_by
-  path = os.path.join(os.path.dirname(__file__), 'value_counts.csv')
-  value_counts(baseline[group_by], path)
