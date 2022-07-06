@@ -307,8 +307,9 @@ def integrity_check_options_lookup_tsv(project_dir_name, housing_characteristics
       all_measure_args << measure_args
     end
 
+    measure_instance_args = measure_instance.arguments(model)
     all_measure_args.shuffle.each do |measure_args|
-      validate_measure_args(measure_instance.arguments(model), measure_args, lookup_file, measure_subdir, nil)
+      validate_measure_args(measure_instance_args, measure_args, lookup_file, measure_subdir, nil)
     end
   end
 end
