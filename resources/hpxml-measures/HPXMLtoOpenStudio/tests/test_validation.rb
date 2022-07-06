@@ -46,6 +46,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
   end
 
   def test_validation_of_schematron_doc
+    begin_dir = Dir.pwd
     # Check that the schematron file is valid
 
     begin
@@ -59,6 +60,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       end
     rescue LoadError
     end
+    Dir.chdir(begin_dir) # Prevent above code from changing the working dir and causing random test failures
   end
 
   def test_role_attributes_in_schematron_doc
@@ -1182,6 +1184,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         actual_errors_or_warnings << s
       end
     elsif error_or_warning == 'warning'
+      # show the output
+      show_output(result) unless result.value.valueName == 'Success'
+
       assert_equal('Success', result.value.valueName)
 
       result.stepWarnings.each do |s|
