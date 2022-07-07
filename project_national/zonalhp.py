@@ -70,12 +70,12 @@ def stacked_bar(df, enduses, group_by):
       path = os.path.join(os.path.dirname(__file__), f'upgrade_{group}_{enduse}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
 
-      fig = px.histogram(df, x=group, y=f'{enduse}__average_savings', color='upgrade_name', barmode='group',
-                         title=f'Average annual savings for {enduse}', text_auto=True)
-      fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+      # fig = px.histogram(df, x=group, y=f'{enduse}__average_savings', color='upgrade_name', barmode='group',
+                         # title=f'Average annual savings for {enduse}', text_auto=True)
+      # fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
 
-      path = os.path.join(os.path.dirname(__file__), f'upgrade_average_{group}_{enduse}.html')
-      plotly.offline.plot(fig, filename=path, auto_open=False)
+      # path = os.path.join(os.path.dirname(__file__), f'upgrade_average_{group}_{enduse}.html')
+      # plotly.offline.plot(fig, filename=path, auto_open=False)
 
 
 def histogram(baseline, up, enduses, group_by):
@@ -126,9 +126,11 @@ def value_counts(df, file):
 
       t = value_count.rename_axis(col).reset_index(name='percentage')
       t['percentage'] = (t['percentage'] * 100.0).round(1)
-      fig = px.bar(t, x=col, y='percentage', title=f'{col.replace("build_existing_model.", "")}', text=t['percentage'].apply(lambda x: '{0:1.1f}%'.format(x)))
-      fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
-      fig.update_xaxes(title='')
+      fig = px.bar(t, x=col, y='percentage', text=t['percentage'].apply(lambda x: '{0:1.1f}%'.format(x)))
+      fig.update_traces(textfont_size=24, textangle=0, textposition="outside", cliponaxis=False)
+      fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'},
+                        xaxis={'title': '', 'tickfont': {'size': 24}, 'tickangle': 90, 'showline': True, 'linecolor': 'black'},
+                        yaxis={'title': '', 'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black'})
 
       path = os.path.join(os.path.dirname(__file__), f'{col.replace("build_existing_model.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
@@ -141,6 +143,12 @@ def geometry_building_type(x):
   if 'Multi' in x:
     return 'Multi-Family'
   return 'Single-Family Attached'
+
+
+def hvac_heating_efficiency(x):
+  if 'Other' in x:
+    return 'None'
+  return x
 
 
 if __name__ == '__main__':
@@ -215,6 +223,7 @@ if __name__ == '__main__':
                 'build_existing_model.geometry_building_type',
                 'build_existing_model.hvac_heating_type',
                 'build_existing_model.hvac_heating_efficiency',
+                'build_existing_model.hvac_shared_efficiencies',
                 'build_existing_model.hvac_cooling_efficiency',
                 'build_existing_model.geometry_floor_area'
              ]
@@ -243,6 +252,7 @@ if __name__ == '__main__':
 
   baseline = baseline[baseline['completed_status']=='Success']
   baseline['build_existing_model.geometry_building_type'] = baseline['build_existing_model.geometry_building_type_recs'].apply(lambda x: geometry_building_type(x))
+  baseline['build_existing_model.hvac_heating_efficiency'] = baseline['build_existing_model.hvac_heating_efficiency'].apply(lambda x: hvac_heating_efficiency(x))
   baseline = baseline.set_index('building_id').sort_index()
   baseline = baseline[enduses + group_by]
 
