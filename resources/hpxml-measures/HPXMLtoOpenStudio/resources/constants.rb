@@ -39,34 +39,6 @@ class Constants
     return 'AirFilm'
   end
 
-  def self.CalcTypeCO2eRatedHome
-    return 'CO2e Rated Home'
-  end
-
-  def self.CalcTypeCO2eReferenceHome
-    return 'CO2e Reference Home'
-  end
-
-  def self.CalcTypeERIRatedHome
-    return 'ERI Rated Home'
-  end
-
-  def self.CalcTypeERIReferenceHome
-    return 'ERI Reference Home'
-  end
-
-  def self.CalcTypeERIIndexAdjustmentDesign
-    return 'ERI Index Adjustment Design'
-  end
-
-  def self.CalcTypeERIIndexAdjustmentReferenceHome
-    return 'ERI Index Adjustment Reference Home'
-  end
-
-  def self.BuildingAmericaClimateZone
-    return 'Building America'
-  end
-
   def self.ERIVersions
     return ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
             '2019AB', '2019ABC', '2019ABCD']

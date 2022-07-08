@@ -1111,6 +1111,7 @@ class HVACSizing
       # This ensures, e.g., that an appropriate heating airflow is used for duct losses.
       system_design_loads.Heat_Load = system_design_loads.Heat_Load / (1.0 / hvac.HeatingCOP)
     end
+    system_design_loads.Heat_Load_Supp = system_design_loads.Heat_Load
 
     # Cooling
     system_design_loads.Cool_Load_Tot = bldg_design_loads.Cool_Tot * hvac.CoolingLoadFraction
@@ -1119,6 +1120,7 @@ class HVACSizing
 
     # After applying load fraction to building design loads (w/o ducts), add duct load specific to this HVAC system
     system_design_loads.Heat_Load += ducts_heat_load.to_f
+    system_design_loads.Heat_Load_Supp += ducts_heat_load.to_f
     system_design_loads.Cool_Load_Sens += ducts_cool_load_sens.to_f
     system_design_loads.Cool_Load_Lat += ducts_cool_load_lat.to_f
     system_design_loads.Cool_Load_Tot += ducts_cool_load_sens.to_f + ducts_cool_load_lat.to_f
@@ -1132,6 +1134,7 @@ class HVACSizing
         HPXML::HVACTypeHeatPumpWaterLoopToAir,
         HPXML::HVACTypeHeatPumpPTHP].include? hvac.CoolType
       if (@hpxml.header.heat_pump_sizing_methodology != HPXML::HeatPumpSizingACCA) && (hvac.CoolingLoadFraction > 0) && (hvac.HeatingLoadFraction > 0)
+        # Note: Heat_Load_Supp should NOT be adjusted; we only want to adjust the HP capacity, not the HP backup heating capacity.
         max_load = [hvac_sizing_values.Heat_Load, hvac_sizing_values.Cool_Load_Tot].max
         hvac_sizing_values.Heat_Load = max_load
         hvac_sizing_values.Cool_Load_Sens *= max_load / hvac_sizing_values.Cool_Load_Tot
@@ -1561,7 +1564,7 @@ class HVACSizing
            HPXML::HVACTypeHeatPumpMiniSplit,
            HPXML::HVACTypeHeatPumpPTHP].include? hvac.HeatType
       process_heat_pump_adjustment(hvac_sizing_values, weather, hvac, totalCap_CurveValue)
-      hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
+      hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load_Supp
       if hvac.HeatType == HPXML::HVACTypeHeatPumpAirToAir
         hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
       else
@@ -1573,14 +1576,12 @@ class HVACSizing
 
       if hvac_sizing_values.Cool_Capacity > 0
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
-        hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
+        hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load_Supp
 
         # For single stage compressor, when heating capacity is much larger than cooling capacity,
         # in order to avoid frequent cycling in cooling mode, heating capacity is derated to 75%.
         if hvac_sizing_values.Heat_Capacity >= 1.5 * hvac_sizing_values.Cool_Capacity
           hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load * 0.75
-        elsif hvac_sizing_values.Heat_Capacity < hvac_sizing_values.Cool_Capacity
-          hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Capacity
         end
 
         hvac_sizing_values.Cool_Capacity = [hvac_sizing_values.Cool_Capacity, hvac_sizing_values.Heat_Capacity].max
@@ -1593,7 +1594,7 @@ class HVACSizing
         hvac_sizing_values.Cool_Airflow = calc_airflow_rate_manual_s(cool_Load_SensCap_Design, (@cool_setpoint - hvac.LeavingAirTemp))
       else
         hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
-        hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
+        hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load_Supp
       end
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
       hvac_sizing_values.Heat_Airflow_Supp = calc_airflow_rate_manual_s(hvac_sizing_values.Heat_Capacity_Supp, (hvac.BackupSupplyAirTemp - @heat_setpoint))
@@ -1601,7 +1602,7 @@ class HVACSizing
     elsif [HPXML::HVACTypeHeatPumpWaterLoopToAir].include? hvac.HeatType
 
       hvac_sizing_values.Heat_Capacity = hvac_sizing_values.Heat_Load
-      hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load
+      hvac_sizing_values.Heat_Capacity_Supp = hvac_sizing_values.Heat_Load_Supp
 
       hvac_sizing_values.Heat_Airflow = calc_airflow_rate_manual_s(hvac_sizing_values.Heat_Capacity, (hvac.SupplyAirTemp - @heat_setpoint))
       hvac_sizing_values.Heat_Airflow_Supp = calc_airflow_rate_manual_s(hvac_sizing_values.Heat_Capacity_Supp, (hvac.BackupSupplyAirTemp - @heat_setpoint))
@@ -1959,7 +1960,7 @@ class HVACSizing
 
     if (not hvac.SwitchoverTemperature.nil?) && (hvac.SwitchoverTemperature > weather.design.HeatingDrybulb)
       # Calculate the heating load at the switchover temperature to limit uninitialized capacity
-      switchover_weather = weather.dup
+      switchover_weather = Marshal.load(Marshal.dump(weather))
       switchover_weather.design.HeatingDrybulb = hvac.SwitchoverTemperature
       _switchover_bldg_design_loads, switchover_all_hvac_sizing_values = calculate(switchover_weather, @hpxml, @cfa, @nbeds, [hvac.hvac_system])
       heating_load = switchover_all_hvac_sizing_values[hvac.hvac_system].Heat_Load
@@ -3392,7 +3393,7 @@ class HVACSizingValues
   end
   attr_accessor(:Cool_Load_Sens, :Cool_Load_Lat, :Cool_Load_Tot,
                 :Cool_Capacity, :Cool_Capacity_Sens, :Cool_Airflow,
-                :Heat_Load, :Heat_Capacity, :Heat_Capacity_Supp,
+                :Heat_Load, :Heat_Load_Supp, :Heat_Capacity, :Heat_Capacity_Supp,
                 :Heat_Airflow, :Heat_Airflow_Supp,
                 :GSHP_Loop_flow, :GSHP_Bore_Holes, :GSHP_Bore_Depth, :GSHP_G_Functions)
 end
