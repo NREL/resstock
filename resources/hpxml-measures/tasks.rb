@@ -390,6 +390,7 @@ def create_hpxmls
     'base-schedules-detailed-occupancy-smooth.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic.xml' => 'base.xml',
     'base-schedules-detailed-occupancy-stochastic-vacancy.xml' => 'base.xml',
+    'base-schedules-detailed-occupancy-stochastic-10-mins.xml' => 'base.xml',
     'base-schedules-detailed-setpoints.xml' => 'base.xml',
     'base-schedules-detailed-setpoints-daily-schedules.xml' => 'base.xml',
     'base-schedules-detailed-setpoints-daily-setbacks.xml' => 'base.xml',
@@ -397,7 +398,9 @@ def create_hpxmls
     'base-simcontrol-daylight-saving-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-disabled.xml' => 'base.xml',
     'base-simcontrol-runperiod-1-month.xml' => 'base.xml',
-    'base-simcontrol-timestep-10-mins.xml' => 'base.xml'
+    'base-simcontrol-timestep-10-mins.xml' => 'base.xml',
+    'base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
+    'base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml' => 'base-simcontrol-timestep-10-mins.xml'
   }
 
   puts "Generating #{hpxmls_files.size} HPXML files..."
@@ -451,7 +454,7 @@ def create_hpxmls
       if hpxml_file.include? 'ASHRAE_Standard_140'
         hpxml_path = File.absolute_path(File.join(tests_dir, '..', 'tests', hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
-        apply_hpxml_modification_ashrae_140(hpxml_file, hpxml)
+        apply_hpxml_modification_ashrae_140(hpxml)
       else
         hpxml_path = File.absolute_path(File.join(tests_dir, hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
@@ -1021,7 +1024,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['misc_plug_loads_other_annual_kwh'] = 7302.0
     args['misc_plug_loads_other_frac_sensible'] = 0.822
     args['misc_plug_loads_other_frac_latent'] = 0.178
-    args['misc_plug_loads_other_usage_multiplier'] = 1.0
     args['misc_plug_loads_well_pump_present'] = false
     args['misc_plug_loads_vehicle_present'] = false
     args['misc_fuel_loads_grill_present'] = false
@@ -2343,6 +2345,10 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['simulation_control_run_period'] = 'Jan 1 - Jan 31'
   elsif ['base-simcontrol-timestep-10-mins.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 10
+  elsif ['base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
+  elsif ['base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic.csv'
   end
 
   # Occupancy Schedules
@@ -2362,6 +2368,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     sch_args['schedules_vacancy_period'] = 'Dec 1 - Jan 31'
     sch_args['output_csv_path'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-vacancy.csv'
     sch_args['hpxml_output_path'] = sch_args['hpxml_path']
+  elsif ['base-schedules-detailed-occupancy-stochastic-10-mins.xml'].include? hpxml_file
+    args['schedules_filepaths'] = '../../HPXMLtoOpenStudio/resources/schedule_files/occupancy-stochastic-10-mins.csv'
   elsif ['base-schedules-detailed-all-10-mins.xml'].include? hpxml_file
     sch_args['hpxml_path'] = args['hpxml_path']
     sch_args['schedules_type'] = 'stochastic'
@@ -2431,7 +2439,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   end
 end
 
-def apply_hpxml_modification_ashrae_140(hpxml_file, hpxml)
+def apply_hpxml_modification_ashrae_140(hpxml)
   # Set detailed HPXML values for ASHRAE 140 test files
 
   renumber_hpxml_ids(hpxml)
@@ -3290,7 +3298,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
                     [HPXML::SidingTypeSyntheticStucco, HPXML::ColorMediumDark],
                     [HPXML::SidingTypeVinyl, HPXML::ColorLight],
                     [HPXML::SidingTypeNone, HPXML::ColorMedium]]
-    siding_types.each_with_index do |siding_type, i|
+    siding_types.each do |siding_type|
       hpxml.rim_joists.add(id: "RimJoist#{hpxml.rim_joists.size + 1}",
                            exterior_adjacent_to: HPXML::LocationOutside,
                            interior_adjacent_to: HPXML::LocationBasementConditioned,
@@ -3505,7 +3513,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.slabs << hpxml.slabs[-1].dup
     hpxml.slabs[-1].id += '_tiny'
     hpxml.slabs[-1].area = 0.05
-    area_adjustments = []
     for n in 1..hpxml.windows.size
       hpxml.windows[n - 1].area /= 9.0
       hpxml.windows[n - 1].fraction_operable = 0.0
@@ -3542,7 +3549,6 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.skylights << hpxml.skylights[-1].dup
     hpxml.skylights[-1].id += '_tiny'
     hpxml.skylights[-1].area = 0.05
-    area_adjustments = []
     for n in 1..hpxml.doors.size
       hpxml.doors[n - 1].area /= 9.0
       for i in 2..9
@@ -4581,7 +4587,7 @@ end
 
 def get_elements_from_sample_files(hpxml_docs)
   elements_being_used = []
-  hpxml_docs.each do |xml, hpxml_doc|
+  hpxml_docs.values.each do |hpxml_doc|
     root = XMLHelper.get_element(hpxml_doc, '/HPXML')
     root.each_node do |node|
       next unless node.is_a?(Oga::XML::Element)
@@ -4638,7 +4644,7 @@ def create_schematron_hpxml_validator(hpxml_docs)
   end
 
   # construct HPXMLvalidator.xml
-  hpxml_validator = XMLHelper.create_doc(version = '1.0', encoding = 'UTF-8')
+  hpxml_validator = XMLHelper.create_doc('1.0', 'UTF-8')
   root = XMLHelper.add_element(hpxml_validator, 'sch:schema')
   XMLHelper.add_attribute(root, 'xmlns:sch', 'http://purl.oclc.org/dsdl/schematron')
   XMLHelper.add_element(root, 'sch:title', 'HPXML Schematron Validator: HPXML.xsd', :string)
@@ -4867,7 +4873,17 @@ if ARGV[0].to_sym == :update_measures
   # Apply rubocop
   cops = ['Layout',
           'Lint/DeprecatedClassMethods',
+          'Lint/DuplicateElsifCondition',
+          'Lint/DuplicateHashKey',
+          'Lint/DuplicateMethods',
+          'Lint/InterpolationCheck',
+          'Lint/LiteralAsCondition',
           'Lint/RedundantStringCoercion',
+          'Lint/SelfAssignment',
+          'Lint/UnderscorePrefixedVariableName',
+          'Lint/UnusedBlockArgument',
+          'Lint/UnusedMethodArgument',
+          'Lint/UselessAssignment',
           'Style/AndOr',
           'Style/FrozenStringLiteralComment',
           'Style/HashSyntax',
@@ -4891,7 +4907,7 @@ if ARGV[0].to_sym == :update_measures
   require 'oga'
   require_relative 'HPXMLtoOpenStudio/resources/xmlhelper'
   Dir['**/measure.xml'].each do |measure_xml|
-    for n_attempt in 1..5 # For some reason CLI randomly generates errors, so try multiple times; FIXME: Fix CLI so this doesn't happen
+    for n_attempt in 1..5 # For some reason CLI randomly generates errors, so try multiple times
       measure_dir = File.dirname(measure_xml)
       command = "#{OpenStudio.getOpenStudioCLI} measure -u '#{measure_dir}'"
       system(command, [:out, :err] => File::NULL)
@@ -4909,7 +4925,21 @@ if ARGV[0].to_sym == :update_measures
           fail "#{measure_xml}: #{err_val}" # Error generated all 5 times, fail
         else
           # Remove error from measure XML, try again
-          new_lines = File.readlines(measure_xml).select { |l| !l.include?('<error>') }
+          orig_lines = File.readlines(measure_xml)
+          new_lines = []
+          inside_error = false
+          orig_lines.each do |l|
+            if l.include? '<error>'
+              inside_error = true
+            end
+            if l.include? '</error>'
+              inside_error = false
+              next
+            end
+            next if inside_error
+
+            new_lines << l
+          end
           File.open(measure_xml, 'w') do |file|
             file.puts new_lines
           end
@@ -5043,7 +5073,7 @@ if ARGV[0].to_sym == :create_release_zips
     if num_epws_local < num_epws_expected
       puts 'Fetching all weather files...'
       command = "#{OpenStudio.getOpenStudioCLI} #{__FILE__} download_weather"
-      log = `#{command}`
+      `#{command}`
     end
   end
 

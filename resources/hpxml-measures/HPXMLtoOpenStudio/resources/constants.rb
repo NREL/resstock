@@ -250,6 +250,10 @@ class Constants
     return 'ground source heat pump'
   end
 
+  def self.ObjectNameGSHPSharedPump()
+    return 'gshp shared loop pump'
+  end
+
   def self.ObjectNameHeatingSeason
     return 'heating season'
   end
@@ -400,10 +404,6 @@ class Constants
 
   def self.ObjectNameRoomAirConditioner
     return 'room ac'
-  end
-
-  def self.ObjectNameSharedPump(hvac_name)
-    return "#{hvac_name} shared pump"
   end
 
   def self.ObjectNameSkylightShade

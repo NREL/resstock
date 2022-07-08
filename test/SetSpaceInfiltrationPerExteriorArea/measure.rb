@@ -59,7 +59,7 @@ class SetSpaceInfiltrationPerExteriorArea < OpenStudio::Measure::ModelMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
     # add double argument for space infiltration target

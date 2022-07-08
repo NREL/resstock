@@ -37,7 +37,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def test_infiltration_ach50
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -49,7 +49,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def test_infiltration_ach_house_pressure
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-ach-house-pressure.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -61,7 +61,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def test_infiltration_ach50_flue
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-flue.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -73,7 +73,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def test_infiltration_cfm50
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-cfm50.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -85,7 +85,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def test_infiltration_cfm_house_pressure
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-cfm-house-pressure.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -97,7 +97,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def test_infiltration_natural_ach
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-enclosure-infil-natural-ach.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -109,7 +109,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def test_natural_ventilation
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check natural ventilation/whole house fan program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameNaturalVentilation} program")
@@ -122,7 +122,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def test_mechanical_ventilation_none
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -325,11 +325,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
   def test_clothes_dryer_exhaust
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
-
-    # Get HPXML values
-    clothes_dryer = hpxml.clothes_dryers[0]
-    clothes_dryer_cfm = clothes_dryer.vented_flow_rate
+    model, _hpxml = _test_measure(args_hash)
 
     # Check infiltration/ventilation program
     program_values = get_ems_values(model.getEnergyManagementSystemPrograms, "#{Constants.ObjectNameInfiltration} program")
@@ -389,7 +385,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     assert_in_epsilon(vent_fan_power_cfis, program_values['CFIS_fan_w'].sum, 0.01)
     range_fan_eeds = get_eed_for_ventilation(model, Constants.ObjectNameMechanicalVentilationRangeFan)
     assert_equal(2, range_fan_eeds.size)
-    assert_in_epsilon(bath_fan_power, range_fan_eeds.map { |f| f.designLevel.get }.sum(0.0), 0.01)
+    assert_in_epsilon(kitchen_fan_power, range_fan_eeds.map { |f| f.designLevel.get }.sum(0.0), 0.01)
     assert_in_epsilon(1.0, range_fan_eeds[0].fractionLost, 0.01)
     assert_in_epsilon(1.0, range_fan_eeds[1].fractionLost, 0.01)
     bath_fan_eeds = get_eed_for_ventilation(model, Constants.ObjectNameMechanicalVentilationBathFan)
