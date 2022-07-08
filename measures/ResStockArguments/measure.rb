@@ -482,7 +482,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     # Seasons
     if args['use_auto_heating_season'] || args['use_auto_cooling_season']
       epw_path, cache_path = process_weather(args['weather_station_epw_filepath'], runner, model, '../in.xml')
-      weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
+      weather, _epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
       heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
     end
 
@@ -583,9 +583,16 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
           has_rear_units = false
           args['geometry_unit_front_wall_is_adiabatic'] = false
         end
+
+        # Error check MF & SFA geometry
+        if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
+          corridor_position = 'Single Exterior (Front)'
+          runner.registerWarning("Specified incompatible corridor; setting corridor position to '#{corridor_position}'.")
+        end
+
         # Model exterior corridors as overhangs
-        if (args['geometry_corridor_position'].include? 'Exterior') && args['geometry_corridor_width'] > 0
-          args['overhangs_front_depth'] = args['geometry_corridor_width']
+        if (corridor_position.include? 'Exterior') && corridor_width > 0
+          args['overhangs_front_depth'] = corridor_width
           args['overhangs_front_distance_to_top_of_window'] = 1
         end
 
@@ -593,14 +600,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         n_floors = 1.0
         n_units_per_floor = n_units
         has_rear_units = false
-        corridor_position = 'None'
       end
 
-      # Error check MF & SFA geometry
-      if !has_rear_units && ((corridor_position == 'Double-Loaded Interior') || (corridor_position == 'Double Exterior'))
-        runner.registerWarning("Specified incompatible corridor; setting corridor position to 'Single Exterior (Front)'.")
-        corridor_position = 'Single Exterior (Front)'
-      end
       if has_rear_units
         unit_width = n_units_per_floor / 2
       else

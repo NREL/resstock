@@ -139,18 +139,8 @@ class WT
 end
 
 class OutputMethods
-  def self.get_timestamps(timeseries_frequency, msgpackData, hpxml, add_dst_column = false, add_utc_column = false)
+  def self.get_timestamps(msgpackData, hpxml, add_dst_column = false, add_utc_column = false)
     return if msgpackData.nil?
-
-    if timeseries_frequency == 'hourly'
-      interval_type = 1
-    elsif timeseries_frequency == 'daily'
-      interval_type = 2
-    elsif timeseries_frequency == 'monthly'
-      interval_type = 3
-    elsif timeseries_frequency == 'timestep'
-      interval_type = -1
-    end
 
     if msgpackData.keys.include? 'MeterData'
       # Get data for ReportUtilityBills measure

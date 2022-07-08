@@ -559,7 +559,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.walls[1].interior_finish_thickness = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_wall_values(hpxml_default.walls[1], HPXML::SidingTypeWood, 0.5, HPXML::ColorLight, 0.90, HPXML::InteriorFinishNone, nil, 180)
+    _test_default_wall_values(hpxml_default.walls[1], HPXML::SidingTypeWood, 0.5, HPXML::ColorLight, 0.90, HPXML::InteriorFinishNone, nil, nil)
   end
 
   def test_foundation_walls
@@ -3318,6 +3318,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     else
       assert_nil(wall.interior_finish_thickness)
     end
+    if not azimuth.nil?
+      assert_equal(azimuth, wall.azimuth)
+    else
+      assert_nil(wall.azimuth)
+    end
   end
 
   def _test_default_foundation_wall_values(foundation_wall, thickness, int_finish_type, int_finish_thickness, azimuth, area,
@@ -3851,7 +3856,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   end
 
   def _test_default_pv_system_values(hpxml, interver_efficiency, system_loss_frac, is_shared_system, location, tracking, module_type, azimuth)
-    hpxml.pv_systems.each_with_index do |pv, idx|
+    hpxml.pv_systems.each do |pv|
       assert_equal(is_shared_system, pv.is_shared_system)
       assert_equal(interver_efficiency, pv.inverter_efficiency)
       assert_in_epsilon(system_loss_frac, pv.system_losses_fraction, 0.01)
@@ -3890,7 +3895,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   end
 
   def _test_default_generator_values(hpxml, is_shared_system)
-    hpxml.generators.each_with_index do |generator, idx|
+    hpxml.generators.each do |generator|
       assert_equal(is_shared_system, generator.is_shared_system)
     end
   end

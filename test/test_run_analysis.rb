@@ -32,7 +32,7 @@ class TestRunAnalysis < MiniTest::Test
                       'QOIReport',
                       'ServerDirectoryCleanup']
     json = JSON.parse(File.read(osw), symbolize_names: true)
-    actual_order = json[:steps].collect { |k, v| k[:measure_dir_name] }
+    actual_order = json[:steps].collect { |k, _v| k[:measure_dir_name] }
     expected_order &= actual_order # subset expected_order to what's in actual_order
     assert_equal(expected_order, actual_order)
   end
@@ -42,7 +42,7 @@ class TestRunAnalysis < MiniTest::Test
 
     cli_output = `#{@command}`
 
-    assert("#{Version.software_program_used} v#{Version.software_program_version}", cli_output)
+    assert("ResStock v#{Version::ResStock_Version}", cli_output)
   end
 
   def test_errors_wrong_path
@@ -71,7 +71,7 @@ class TestRunAnalysis < MiniTest::Test
     yml = ' -y test/tests_yml_files/yml_bad_value/testing_baseline.yml'
     @command += yml
 
-    cli_output = `#{@command}`
+    `#{@command}`
     cli_output = `#{@command}`
 
     assert(cli_output.include?("Output directory 'testing_baseline' already exists."))
@@ -91,6 +91,7 @@ class TestRunAnalysis < MiniTest::Test
     @command += yml
 
     FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
+    assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
     cli_output = `#{@command}`
 
     assert(cli_output.include?("Must include 'weather_files_url' or 'weather_files_path' in yml."))
@@ -168,11 +169,17 @@ class TestRunAnalysis < MiniTest::Test
     yml = ' -y test/tests_yml_files/yml_relative_weather_path/testing_baseline.yml'
     @command += yml
 
+    FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
+    assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
+
     system(@command)
 
     _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'run2')))
+
+    FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
+    assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
   end
 
   def test_testing_baseline

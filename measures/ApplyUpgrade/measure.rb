@@ -40,7 +40,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     # Make string arg for upgrade name
@@ -273,7 +273,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
         options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
         options_measure_args[option_name].each do |measure_subdir, args_hash|
           system_upgrades = get_system_upgrades(hpxml, system_upgrades, args_hash)
-          update_args_hash(measures, measure_subdir, args_hash, add_new = false)
+          update_args_hash(measures, measure_subdir, args_hash, false)
         end
       end
 
@@ -301,7 +301,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
 
               new_args_hash[k] = v
             end
-            update_args_hash(measures, measure_subdir, new_args_hash, add_new = false)
+            update_args_hash(measures, measure_subdir, new_args_hash, false)
           end
         end
       end
@@ -374,8 +374,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Get software program used and version
-    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = Version.software_program_used
-    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version.software_program_version
+    measures['BuildResidentialHPXML'][0]['software_info_program_used'] = 'ResStock'
+    measures['BuildResidentialHPXML'][0]['software_info_program_version'] = Version::ResStock_Version
 
     # Simulation control
     measures['BuildResidentialHPXML'][0]['simulation_control_timestep'] = values['simulation_control_timestep']
@@ -455,7 +455,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
   end
 
   def get_system_upgrades(hpxml, system_upgrades, args_hash)
-    args_hash.each do |arg, value|
+    args_hash.keys.each do |arg|
       # Detect whether we are upgrading the heating system
       if arg.start_with?('heating_system_') && (not arg.start_with?('heating_system_2_'))
         hpxml.heating_systems.each do |heating_system|
