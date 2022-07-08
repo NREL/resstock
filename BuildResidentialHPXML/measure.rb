@@ -28,6 +28,7 @@ require_relative '../HPXMLtoOpenStudio/resources/pv'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
 require_relative '../HPXMLtoOpenStudio/resources/util'
+require_relative '../HPXMLtoOpenStudio/resources/utility_bills'
 require_relative '../HPXMLtoOpenStudio/resources/validator'
 require_relative '../HPXMLtoOpenStudio/resources/version'
 require_relative '../HPXMLtoOpenStudio/resources/waterheater'
@@ -2897,6 +2898,63 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       args << arg
     end
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_scenario_names', false)
+    arg.setDisplayName('Utility Bills: Scenario Names')
+    arg.setDescription('Names of utility bill scenarios. If multiple scenarios, use a comma-separated list. If not provided, no utility bills scenarios are calculated.')
+    args << arg
+
+    ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+      underscore_case = OpenStudio::toUnderscoreCase(fuel)
+      all_caps_case = fuel.split(' ').map(&:capitalize).join(' ')
+      cap_case = fuel.capitalize
+
+      arg = OpenStudio::Measure::OSArgument.makeStringArgument("utility_bill_#{underscore_case}_fixed_charges", false)
+      arg.setDisplayName("Utility Bills: #{all_caps_case} Fixed Charges")
+      arg.setDescription("#{cap_case} utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.")
+      args << arg
+    end
+
+    ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+      underscore_case = OpenStudio::toUnderscoreCase(fuel)
+      all_caps_case = fuel.split(' ').map(&:capitalize).join(' ')
+      cap_case = fuel.capitalize
+
+      arg = OpenStudio::Measure::OSArgument.makeStringArgument("utility_bill_#{underscore_case}_marginal_rates", false)
+      arg.setDisplayName("Utility Bills: #{all_caps_case} Marginal Rates")
+      arg.setDescription("#{cap_case} utility bill marginal rates. If multiple scenarios, use a comma-separated list.")
+      args << arg
+    end
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_compensation_types', false)
+    arg.setDisplayName('Utility Bills: PV Compensation Types')
+    arg.setDescription('Utility bill PV compensation types. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_net_metering_annual_excess_sellback_rate_types', false)
+    arg.setDisplayName('Utility Bills: PV Net Metering Annual Excess Sellback Rate Types')
+    arg.setDescription("Utility bill PV net metering annual excess sellback rate types. Only applies if the PV compensation type is '#{HPXML::PVCompensationTypeNetMetering}'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_net_metering_annual_excess_sellback_rates', false)
+    arg.setDisplayName('Utility Bills: PV Net Metering Annual Excess Sellback Rates')
+    arg.setDescription("Utility bill PV net metering annual excess sellback rates. Only applies if the PV compensation type is '#{HPXML::PVCompensationTypeNetMetering}' and the PV annual excess sellback rate type is '#{HPXML::PVAnnualExcessSellbackRateTypeUserSpecified}'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_feed_in_tariff_rates', false)
+    arg.setDisplayName('Utility Bills: PV Feed-In Tariff Rates')
+    arg.setDescription("Utility bill PV annual full/gross feed-in tariff rates. Only applies if the PV compensation type is '#{HPXML::PVCompensationTypeFeedInTariff}'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_monthly_grid_connection_fee_units', false)
+    arg.setDisplayName('Utility Bills: PV Monthly Grid Connection Fee Units')
+    arg.setDescription('Utility bill PV monthly grid connection fee units. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_monthly_grid_connection_fees', false)
+    arg.setDisplayName('Utility Bills: PV Monthly Grid Connection Fees')
+    arg.setDescription('Utility bill PV monthly grid connection fees. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('additional_properties', false)
     arg.setDisplayName('Additional Properties')
     arg.setDescription("Additional properties specified as key-value pairs (i.e., key=value). If multiple additional properties, use a |-separated list. For example, 'LowIncome=false|Remodeled|Description=2-story home in Denver'. These properties will be stored in the HPXML file under /HPXML/SoftwareInfo/extension/AdditionalProperties.")
@@ -3113,6 +3171,20 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       errors << 'One or more emissions arguments does not have enough comma-separated elements specified.' if error
     end
 
+    bills_args_initialized = [args[:utility_bill_scenario_names].is_initialized]
+    if bills_args_initialized.uniq[0]
+      bills_scenario_lengths = [args[:utility_bill_scenario_names].get.count(',')]
+      ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+        underscore_case = OpenStudio::toUnderscoreCase(fuel)
+
+        bills_scenario_lengths += [args["utility_bill_#{underscore_case}_fixed_charges".to_sym].get.count(',')] if args["utility_bill_#{underscore_case}_fixed_charges".to_sym].is_initialized
+        bills_scenario_lengths += [args["utility_bill_#{underscore_case}_marginal_rates".to_sym].get.count(',')] if args["utility_bill_#{underscore_case}_marginal_rates".to_sym].is_initialized
+      end
+
+      error = (bills_scenario_lengths.uniq.size != 1)
+      errors << 'One or more utility bill arguments does not have enough comma-separated elements specified.' if error
+    end
+
     error = (args[:geometry_unit_aspect_ratio] <= 0)
     errors << 'Aspect ratio must be greater than zero.' if error
 
@@ -3275,7 +3347,7 @@ class HPXMLFile
       eri_version = Constants.ERIVersions[-1]
       OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
       weather = WeatherProcess.new(model, runner)
-      HPXMLDefaults.apply(hpxml, eri_version, weather, epw_file: epw_file)
+      HPXMLDefaults.apply(runner, hpxml, eri_version, weather, epw_file: epw_file)
     end
 
     hpxml_doc = hpxml.to_oga()
@@ -3475,6 +3547,148 @@ class HPXMLFile
                                              wood_value: wood_value,
                                              wood_pellets_units: fuel_units,
                                              wood_pellets_value: wood_pellets_value)
+      end
+    end
+
+    if args[:utility_bill_scenario_names].is_initialized
+      bills_scenario_names = args[:utility_bill_scenario_names].get.split(',').map(&:strip)
+
+      fixed_charges = {}
+      ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+        underscore_case = OpenStudio::toUnderscoreCase(fuel)
+
+        if args["utility_bill_#{underscore_case}_fixed_charges".to_sym].is_initialized
+          fixed_charges[fuel] = args["utility_bill_#{underscore_case}_fixed_charges".to_sym].get.split(',').map(&:strip)
+        else
+          fixed_charges[fuel] = [nil] * bills_scenario_names.size
+        end
+      end
+
+      marginal_rates = {}
+      ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+        underscore_case = OpenStudio::toUnderscoreCase(fuel)
+
+        if args["utility_bill_#{underscore_case}_marginal_rates".to_sym].is_initialized
+          marginal_rates[fuel] = args["utility_bill_#{underscore_case}_marginal_rates".to_sym].get.split(',').map(&:strip)
+        else
+          marginal_rates[fuel] = [nil] * bills_scenario_names.size
+        end
+      end
+
+      if args[:utility_bill_pv_compensation_types].is_initialized
+        bills_pv_compensation_types = args[:utility_bill_pv_compensation_types].get.split(',').map(&:strip)
+      else
+        bills_pv_compensation_types = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_net_metering_annual_excess_sellback_rate_types].is_initialized
+        bills_pv_net_metering_annual_excess_sellback_rate_types = args[:utility_bill_pv_net_metering_annual_excess_sellback_rate_types].get.split(',').map(&:strip)
+      else
+        bills_pv_net_metering_annual_excess_sellback_rate_types = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_net_metering_annual_excess_sellback_rates].is_initialized
+        bills_pv_net_metering_annual_excess_sellback_rates = args[:utility_bill_pv_net_metering_annual_excess_sellback_rates].get.split(',').map(&:strip)
+      else
+        bills_pv_net_metering_annual_excess_sellback_rates = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_feed_in_tariff_rates].is_initialized
+        bills_pv_feed_in_tariff_rates = args[:utility_bill_pv_feed_in_tariff_rates].get.split(',').map(&:strip)
+      else
+        bills_pv_feed_in_tariff_rates = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_monthly_grid_connection_fee_units].is_initialized
+        bills_pv_monthly_grid_connection_fee_units = args[:utility_bill_pv_monthly_grid_connection_fee_units].get.split(',').map(&:strip)
+      else
+        bills_pv_monthly_grid_connection_fee_units = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_monthly_grid_connection_fees].is_initialized
+        bills_pv_monthly_grid_connection_fees = args[:utility_bill_pv_monthly_grid_connection_fees].get.split(',').map(&:strip)
+      else
+        bills_pv_monthly_grid_connection_fees = [nil] * bills_scenario_names.size
+      end
+
+      bills_scenarios = bills_scenario_names.zip(fixed_charges[HPXML::FuelTypeElectricity],
+                                                 fixed_charges[HPXML::FuelTypeNaturalGas],
+                                                 fixed_charges[HPXML::FuelTypePropane],
+                                                 fixed_charges[HPXML::FuelTypeOil],
+                                                 fixed_charges[HPXML::FuelTypeCoal],
+                                                 fixed_charges[HPXML::FuelTypeWoodCord],
+                                                 fixed_charges[HPXML::FuelTypeWoodPellets],
+                                                 marginal_rates[HPXML::FuelTypeElectricity],
+                                                 marginal_rates[HPXML::FuelTypeNaturalGas],
+                                                 marginal_rates[HPXML::FuelTypePropane],
+                                                 marginal_rates[HPXML::FuelTypeOil],
+                                                 marginal_rates[HPXML::FuelTypeCoal],
+                                                 marginal_rates[HPXML::FuelTypeWoodCord],
+                                                 marginal_rates[HPXML::FuelTypeWoodPellets],
+                                                 bills_pv_compensation_types,
+                                                 bills_pv_net_metering_annual_excess_sellback_rate_types,
+                                                 bills_pv_net_metering_annual_excess_sellback_rates,
+                                                 bills_pv_feed_in_tariff_rates,
+                                                 bills_pv_monthly_grid_connection_fee_units,
+                                                 bills_pv_monthly_grid_connection_fees)
+
+      bills_scenarios.each do |bills_scenario|
+        name, elec_fixed_charge, natural_gas_fixed_charge, propane_fixed_charge, fuel_oil_fixed_charge, coal_fixed_charge, wood_fixed_charge, wood_pellets_fixed_charge, elec_marginal_rate, natural_gas_marginal_rate, propane_marginal_rate, fuel_oil_marginal_rate, coal_marginal_rate, wood_marginal_rate, wood_pellets_marginal_rate, pv_compensation_type, pv_net_metering_annual_excess_sellback_rate_type, pv_net_metering_annual_excess_sellback_rate, pv_feed_in_tariff_rate, pv_monthly_grid_connection_fee_unit, pv_monthly_grid_connection_fee = bills_scenario
+        elec_fixed_charge = Float(elec_fixed_charge) rescue nil
+        natural_gas_fixed_charge = Float(natural_gas_fixed_charge) rescue nil
+        propane_fixed_charge = Float(propane_fixed_charge) rescue nil
+        fuel_oil_fixed_charge = Float(fuel_oil_fixed_charge) rescue nil
+        coal_fixed_charge = Float(coal_fixed_charge) rescue nil
+        wood_fixed_charge = Float(wood_fixed_charge) rescue nil
+        wood_pellets_fixed_charge = Float(wood_pellets_fixed_charge) rescue nil
+        elec_marginal_rate = Float(elec_marginal_rate) rescue nil
+        natural_gas_marginal_rate = Float(natural_gas_marginal_rate) rescue nil
+        propane_marginal_rate = Float(propane_marginal_rate) rescue nil
+        fuel_oil_marginal_rate = Float(fuel_oil_marginal_rate) rescue nil
+        coal_marginal_rate = Float(coal_marginal_rate) rescue nil
+        wood_marginal_rate = Float(wood_marginal_rate) rescue nil
+        wood_pellets_marginal_rate = Float(wood_pellets_marginal_rate) rescue nil
+
+        if pv_compensation_type == HPXML::PVCompensationTypeNetMetering
+          if pv_net_metering_annual_excess_sellback_rate_type == HPXML::PVAnnualExcessSellbackRateTypeUserSpecified
+            pv_net_metering_annual_excess_sellback_rate = Float(pv_net_metering_annual_excess_sellback_rate) rescue nil
+          else
+            pv_net_metering_annual_excess_sellback_rate = nil
+          end
+          pv_feed_in_tariff_rate = nil
+        elsif pv_compensation_type == HPXML::PVCompensationTypeFeedInTariff
+          pv_feed_in_tariff_rate = Float(pv_feed_in_tariff_rate) rescue nil
+          pv_net_metering_annual_excess_sellback_rate_type = nil
+          pv_net_metering_annual_excess_sellback_rate = nil
+        end
+
+        if pv_monthly_grid_connection_fee_unit == HPXML::UnitsDollarsPerkW
+          pv_monthly_grid_connection_fee_dollars_per_kw = Float(pv_monthly_grid_connection_fee) rescue nil
+        elsif pv_monthly_grid_connection_fee_unit == HPXML::UnitsDollars
+          pv_monthly_grid_connection_fee_dollars = Float(pv_monthly_grid_connection_fee) rescue nil
+        end
+
+        hpxml.header.utility_bill_scenarios.add(name: name,
+                                                elec_fixed_charge: elec_fixed_charge,
+                                                natural_gas_fixed_charge: natural_gas_fixed_charge,
+                                                propane_fixed_charge: propane_fixed_charge,
+                                                fuel_oil_fixed_charge: fuel_oil_fixed_charge,
+                                                coal_fixed_charge: coal_fixed_charge,
+                                                wood_fixed_charge: wood_fixed_charge,
+                                                wood_pellets_fixed_charge: wood_pellets_fixed_charge,
+                                                elec_marginal_rate: elec_marginal_rate,
+                                                natural_gas_marginal_rate: natural_gas_marginal_rate,
+                                                propane_marginal_rate: propane_marginal_rate,
+                                                fuel_oil_marginal_rate: fuel_oil_marginal_rate,
+                                                coal_marginal_rate: coal_marginal_rate,
+                                                wood_marginal_rate: wood_marginal_rate,
+                                                wood_pellets_marginal_rate: wood_pellets_marginal_rate,
+                                                pv_compensation_type: pv_compensation_type,
+                                                pv_net_metering_annual_excess_sellback_rate_type: pv_net_metering_annual_excess_sellback_rate_type,
+                                                pv_net_metering_annual_excess_sellback_rate: pv_net_metering_annual_excess_sellback_rate,
+                                                pv_feed_in_tariff_rate: pv_feed_in_tariff_rate,
+                                                pv_monthly_grid_connection_fee_dollars_per_kw: pv_monthly_grid_connection_fee_dollars_per_kw,
+                                                pv_monthly_grid_connection_fee_dollars: pv_monthly_grid_connection_fee_dollars)
       end
     end
 

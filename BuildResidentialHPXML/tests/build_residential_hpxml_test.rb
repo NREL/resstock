@@ -42,6 +42,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-state-code-different-than-epw.xml' => 'base-sfd.xml',
       'extra-time-zone-different-than-epw.xml' => 'base-sfd.xml',
       'extra-emissions-fossil-fuel-factors.xml' => 'base-sfd.xml',
+      'extra-bills-fossil-fuel-rates.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-flat.xml' => 'base-sfa.xml',
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
@@ -162,6 +163,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-emissions-args-not-all-specified.xml' => 'base-sfd.xml',
       'error-emissions-args-not-all-same-size.xml' => 'base-sfd.xml',
       'error-emissions-natural-gas-args-not-all-specified.xml' => 'base-sfd.xml',
+      'error-bills-args-not-all-same-size.xml' => 'base-sfd.xml',
       'error-invalid-aspect-ratio.xml' => 'base-sfd.xml',
       'error-negative-foundation-height.xml' => 'base-sfd.xml',
       'error-too-many-floors.xml' => 'base-sfd.xml',
@@ -217,6 +219,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-emissions-args-not-all-specified.xml' => 'Did not specify all required emissions arguments.',
       'error-emissions-args-not-all-same-size.xml' => 'One or more emissions arguments does not have enough comma-separated elements specified.',
       'error-emissions-natural-gas-args-not-all-specified.xml' => 'Did not specify fossil fuel emissions units for natural gas emissions values.',
+      'error-bills-args-not-all-same-size.xml' => 'One or more utility bill arguments does not have enough comma-separated elements specified.',
       'error-invalid-aspect-ratio.xml' => 'Aspect ratio must be greater than zero.',
       'error-negative-foundation-height.xml' => 'Foundation height cannot be negative.',
       'error-too-many-floors.xml' => 'Number of above-grade floors must be six or less.',
@@ -764,6 +767,18 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['emissions_fuel_oil_values'] = '161.0, 0.0015'
       args['emissions_coal_values'] = '211.1, 0.0020'
       args['emissions_wood_values'] = '200.0, 0.0025'
+    elsif ['extra-bills-fossil-fuel-rates.xml'].include? hpxml_file
+      args['utility_bill_scenario_names'] = 'Scenario1, Scenario2'
+      args['utility_bill_propane_fixed_charges'] = '1, 2'
+      args['utility_bill_propane_marginal_rates'] = '3, 4'
+      args['utility_bill_fuel_oil_fixed_charges'] = '5, 6'
+      args['utility_bill_fuel_oil_marginal_rates'] = '6, 7'
+      args['utility_bill_coal_fixed_charges'] = '8, 9'
+      args['utility_bill_coal_marginal_rates'] = '10, 11'
+      args['utility_bill_wood_fixed_charges'] = '12, 13'
+      args['utility_bill_wood_marginal_rates'] = '14, 15'
+      args['utility_bill_wood_pellets_fixed_charges'] = '16, 17'
+      args['utility_bill_wood_pellets_marginal_rates'] = '18, 19'
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0
@@ -1017,6 +1032,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_MidCase.csv'
     elsif ['error-emissions-natural-gas-args-not-all-specified.xml'].include? hpxml_file
       args['emissions_natural_gas_values'] = '117.6'
+    elsif ['error-bills-args-not-all-same-size.xml'].include? hpxml_file
+      args['utility_bill_scenario_names'] = 'Scenario1'
+      args['utility_bill_electricity_fixed_charges'] = '1'
+      args['utility_bill_electricity_marginal_rates'] = '2,2'
     elsif ['error-invalid-aspect-ratio.xml'].include? hpxml_file
       args['geometry_unit_aspect_ratio'] = -1
     elsif ['error-negative-foundation-height.xml'].include? hpxml_file
