@@ -63,9 +63,11 @@ class ZonalHeatPump():
 def stacked_bar(df, enduses, group_by):
   for group in group_by:
     for enduse in enduses:
-      fig = px.histogram(df, x=group, y=f'{enduse}__savings', color='upgrade_name', barmode='group',
-                         title=f'Total annual savings for {enduse}', text_auto=True)
-      fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+      fig = px.histogram(df, x=group, y=f'{enduse}__savings', color='upgrade_name', barmode='group', text_auto=True)
+      fig.update_traces(textfont_size=24, textangle=0, textposition="outside", cliponaxis=False)
+      fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'}, font={'size': 28}, legend_title='',
+                        xaxis={'title': '', 'tickfont': {'size': 24}, 'tickangle': 0, 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        yaxis={'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True})
 
       path = os.path.join(os.path.dirname(__file__), f'upgrade_{group}_{enduse}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
@@ -85,7 +87,11 @@ def histogram(baseline, up, enduses, group_by):
   for group in group_by:
     for enduse in enduses:
       # fig = px.histogram(df, x=enduse, color=group, marginal='box', barmode='overlay')
-      fig = px.histogram(df, x=enduse, color=group, marginal='box')
+      fig = px.histogram(df, x=enduse, color=group, marginal='box', text_auto=False, barmode='relative')
+      fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'}, font={'size': 28}, legend_title='',
+                        xaxis={'title': enduse.replace('report_simulation_output.', ''), 'tickfont': {'size': 24}, 'tickangle': 0, 'showgrid': False, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        yaxis={'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True})
+
       path = os.path.join(os.path.dirname(__file__), f'histogram_{group.replace("build_existing_model.", "")}_{enduse.replace("report_simulation_output.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
 
@@ -106,7 +112,11 @@ def density(baseline, up, enduses, group_by):
         hist_data.append(sub[enduse].values)
         group_labels.append(item)
 
-      fig = ff.create_distplot(hist_data, group_labels, bin_size=1, show_hist=False, show_curve=True, show_rug=True)
+      fig = ff.create_distplot(hist_data, group_labels, bin_size=1, colors=['blue', 'red'], show_hist=False, show_curve=True, show_rug=True)
+      fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'}, font={'size': 28}, legend_title='',
+                        xaxis={'title': enduse.replace('report_simulation_output.', ''), 'tickfont': {'size': 24}, 'tickangle': 0, 'showgrid': False, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        yaxis={'title': 'density', 'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True})
+
       path = os.path.join(os.path.dirname(__file__), f'density_{group.replace("build_existing_model.", "")}_{enduse.replace("report_simulation_output.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
 
@@ -128,9 +138,9 @@ def value_counts(df, file):
       t['percentage'] = (t['percentage'] * 100.0).round(1)
       fig = px.bar(t, x=col, y='percentage', text=t['percentage'].apply(lambda x: '{0:1.1f}%'.format(x)))
       fig.update_traces(textfont_size=24, textangle=0, textposition="outside", cliponaxis=False)
-      fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'},
-                        xaxis={'title': '', 'tickfont': {'size': 24}, 'tickangle': 90, 'showline': True, 'linecolor': 'black'},
-                        yaxis={'title': '', 'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black'})
+      fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'}, font={'size': 28},
+                        xaxis={'title': '', 'tickfont': {'size': 24}, 'tickangle': 90, 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        yaxis={'title': '', 'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True})
 
       path = os.path.join(os.path.dirname(__file__), f'{col.replace("build_existing_model.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
