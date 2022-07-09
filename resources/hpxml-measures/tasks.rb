@@ -216,6 +216,7 @@ def create_hpxmls
     'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-acca.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-hers.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload-miami-fl.xml' => 'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload.xml',
     'base-hvac-autosize-air-to-air-heat-pump-2-speed-sizing-methodology-acca.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
     'base-hvac-autosize-air-to-air-heat-pump-2-speed-sizing-methodology-hers.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
     'base-hvac-autosize-air-to-air-heat-pump-2-speed-sizing-methodology-maxload.xml' => 'base-hvac-air-to-air-heat-pump-2-speed.xml',
@@ -370,6 +371,9 @@ def create_hpxmls
     'base-mechvent-supply.xml' => 'base.xml',
     'base-mechvent-whole-house-fan.xml' => 'base.xml',
     'base-misc-additional-properties.xml' => 'base.xml',
+    'base-misc-bills.xml' => 'base.xml',
+    'base-misc-bills-none.xml' => 'base.xml',
+    'base-misc-bills-pv.xml' => 'base-pv.xml',
     'base-misc-defaults.xml' => 'base.xml',
     'base-misc-emissions.xml' => 'base-pv-battery.xml',
     'base-misc-generators.xml' => 'base.xml',
@@ -796,6 +800,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['pool_heater_type'] = HPXML::HeaterTypeElectricResistance
     args['hot_tub_present'] = false
     args['hot_tub_heater_type'] = HPXML::HeaterTypeElectricResistance
+    args['utility_bill_scenario_names'] = 'Bills'
   elsif ['ASHRAE_Standard_140/L100AC.xml'].include? hpxml_file
     args['weather_station_epw_filepath'] = 'USA_CO_Colorado.Springs-Peterson.Field.724660_TMY3.epw'
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFD
@@ -2042,6 +2047,10 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['site_state_code'] = 'FL'
     args['weather_station_epw_filepath'] = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
     args['heating_system_heating_capacity'] = 12000.0
+  elsif ['base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload-miami-fl.xml'].include? hpxml_file
+    args['site_iecc_zone'] = '1A'
+    args['site_state_code'] = 'FL'
+    args['weather_station_epw_filepath'] = 'USA_FL_Miami.Intl.AP.722020_TMY3.epw'
   elsif ['base-location-phoenix-az.xml'].include? hpxml_file
     args['site_iecc_zone'] = '2B'
     args['site_state_code'] = 'AZ'
@@ -2124,6 +2133,27 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   end
   if ['base-misc-additional-properties.xml'].include? hpxml_file
     args['additional_properties'] += '|LowIncome=false|Remodeled|Description=2-story home in Denver|comma=,|special=<|special2=>|special3=/|special4=\\'
+  elsif ['base-misc-bills.xml'].include? hpxml_file
+    args['utility_bill_scenario_names'] = 'Bills'
+    args['utility_bill_electricity_fixed_charges'] = '12'
+    args['utility_bill_electricity_marginal_rates'] = '0.12'
+    args['utility_bill_natural_gas_fixed_charges'] = '12'
+    args['utility_bill_natural_gas_marginal_rates'] = '1.10'
+  elsif ['base-misc-bills-none.xml'].include? hpxml_file
+    args.delete('utility_bill_scenario_names')
+  elsif ['base-misc-bills-pv.xml'].include? hpxml_file
+    args['pv_system_max_power_output'] = 10000 # Ensure there is excess annual PV production
+    args['utility_bill_scenario_names'] = 'Net Metering w/ Wholesale Excess Rate, Net Metering w/ Retail Excess Rate, Feed-In Tariff'
+    args['utility_bill_electricity_fixed_charges'] = '10, 10, 10'
+    args['utility_bill_electricity_marginal_rates'] = '0.12, 0.12, 0.12'
+    args['utility_bill_natural_gas_fixed_charges'] = '11, 11, 11'
+    args['utility_bill_natural_gas_marginal_rates'] = '1.10, 1.10, 1.10'
+    args['utility_bill_pv_compensation_types'] = "#{HPXML::PVCompensationTypeNetMetering}, #{HPXML::PVCompensationTypeNetMetering}, #{HPXML::PVCompensationTypeFeedInTariff}"
+    args['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = "#{HPXML::PVAnnualExcessSellbackRateTypeUserSpecified}, #{HPXML::PVAnnualExcessSellbackRateTypeRetailElectricityCost}, NA"
+    args['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = '0.035, NA, NA'
+    args['utility_bill_pv_feed_in_tariff_rates'] = 'NA, NA, 0.13'
+    args['utility_bill_pv_monthly_grid_connection_fee_units'] = "#{HPXML::UnitsDollarsPerkW}, #{HPXML::UnitsDollarsPerkW}, #{HPXML::UnitsDollars}"
+    args['utility_bill_pv_monthly_grid_connection_fees'] = '2.5, 2.5, 7.5'
   elsif ['base-misc-defaults.xml'].include? hpxml_file
     args.delete('simulation_control_timestep')
     args.delete('site_type')

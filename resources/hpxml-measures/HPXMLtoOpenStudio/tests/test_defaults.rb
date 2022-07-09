@@ -202,6 +202,68 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
+  def test_utility_bills
+    # Test inputs not overridden by defaults
+    hpxml = _create_hpxml('base-pv.xml')
+    hpxml.header.utility_bill_scenarios.clear
+    for pv_compensation_type in [HPXML::PVCompensationTypeNetMetering, HPXML::PVCompensationTypeFeedInTariff]
+      hpxml.header.utility_bill_scenarios.add(name: pv_compensation_type,
+                                              elec_fixed_charge: 8,
+                                              natural_gas_fixed_charge: 9,
+                                              propane_fixed_charge: 10,
+                                              fuel_oil_fixed_charge: 11,
+                                              coal_fixed_charge: 12,
+                                              wood_fixed_charge: 13,
+                                              wood_pellets_fixed_charge: 14,
+                                              elec_marginal_rate: 0.2,
+                                              natural_gas_marginal_rate: 0.3,
+                                              propane_marginal_rate: 0.4,
+                                              fuel_oil_marginal_rate: 0.5,
+                                              coal_marginal_rate: 0.6,
+                                              wood_marginal_rate: 0.7,
+                                              wood_pellets_marginal_rate: 0.8,
+                                              pv_compensation_type: pv_compensation_type,
+                                              pv_net_metering_annual_excess_sellback_rate_type: HPXML::PVAnnualExcessSellbackRateTypeRetailElectricityCost,
+                                              pv_net_metering_annual_excess_sellback_rate: 0.04,
+                                              pv_feed_in_tariff_rate: 0.15,
+                                              pv_monthly_grid_connection_fee_dollars: 3)
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    scenarios = hpxml_default.header.utility_bill_scenarios
+    _test_default_bills_values(scenarios[0], 8, 9, 10, 11, 12, 13, 14, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, HPXML::PVCompensationTypeNetMetering, HPXML::PVAnnualExcessSellbackRateTypeRetailElectricityCost, nil, nil, nil, 3)
+    _test_default_bills_values(scenarios[1], 8, 9, 10, 11, 12, 13, 14, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, HPXML::PVCompensationTypeFeedInTariff, nil, nil, 0.15, nil, 3)
+
+    # Test defaults
+    hpxml.header.utility_bill_scenarios.each do |scenario|
+      scenario.elec_fixed_charge = nil
+      scenario.natural_gas_fixed_charge = nil
+      scenario.propane_fixed_charge = nil
+      scenario.fuel_oil_fixed_charge = nil
+      scenario.coal_fixed_charge = nil
+      scenario.wood_fixed_charge = nil
+      scenario.wood_pellets_fixed_charge = nil
+      scenario.elec_marginal_rate = nil
+      scenario.natural_gas_marginal_rate = nil
+      scenario.propane_marginal_rate = nil
+      scenario.fuel_oil_marginal_rate = nil
+      scenario.coal_marginal_rate = nil
+      scenario.wood_marginal_rate = nil
+      scenario.wood_pellets_marginal_rate = nil
+      scenario.pv_compensation_type = nil
+      scenario.pv_net_metering_annual_excess_sellback_rate_type = nil
+      scenario.pv_net_metering_annual_excess_sellback_rate = nil
+      scenario.pv_feed_in_tariff_rate = nil
+      scenario.pv_monthly_grid_connection_fee_dollars_per_kw = nil
+      scenario.pv_monthly_grid_connection_fee_dollars = nil
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    hpxml_default.header.utility_bill_scenarios.each do |scenario|
+      _test_default_bills_values(scenario, 12, 12, nil, nil, nil, nil, nil, 0.11362695139911635, 0.7169975308418142, nil, nil, nil, nil, nil, HPXML::PVCompensationTypeNetMetering, HPXML::PVAnnualExcessSellbackRateTypeUserSpecified, 0.03, nil, nil, 0)
+    end
+  end
+
   def test_site
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
@@ -3212,6 +3274,113 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     else
       assert_equal(wood_pellets_units, scenario.wood_pellets_units)
       assert_equal(wood_pellets_value, scenario.wood_pellets_value)
+    end
+  end
+
+  def _test_default_bills_values(scenario,
+                                 elec_fixed_charge, natural_gas_fixed_charge, propane_fixed_charge, fuel_oil_fixed_charge, coal_fixed_charge, wood_fixed_charge, wood_pellets_fixed_charge,
+                                 elec_marginal_rate, natural_gas_marginal_rate, propane_marginal_rate, fuel_oil_marginal_rate, coal_marginal_rate, wood_marginal_rate, wood_pellets_marginal_rate,
+                                 pv_compensation_type, pv_net_metering_annual_excess_sellback_rate_type, pv_net_metering_annual_excess_sellback_rate,
+                                 pv_feed_in_tariff_rate, pv_monthly_grid_connection_fee_dollars_per_kw, pv_monthly_grid_connection_fee_dollars)
+    if elec_fixed_charge.nil?
+      assert_nil(scenario.elec_fixed_charge)
+    else
+      assert_equal(elec_fixed_charge, scenario.elec_fixed_charge)
+    end
+    if natural_gas_fixed_charge.nil?
+      assert_nil(scenario.natural_gas_fixed_charge)
+    else
+      assert_equal(natural_gas_fixed_charge, scenario.natural_gas_fixed_charge)
+    end
+    if propane_fixed_charge.nil?
+      assert_nil(scenario.propane_fixed_charge)
+    else
+      assert_equal(propane_fixed_charge, scenario.propane_fixed_charge)
+    end
+    if fuel_oil_fixed_charge.nil?
+      assert_nil(scenario.fuel_oil_fixed_charge)
+    else
+      assert_equal(fuel_oil_fixed_charge, scenario.fuel_oil_fixed_charge)
+    end
+    if coal_fixed_charge.nil?
+      assert_nil(scenario.coal_fixed_charge)
+    else
+      assert_equal(coal_fixed_charge, scenario.coal_fixed_charge)
+    end
+    if wood_fixed_charge.nil?
+      assert_nil(scenario.wood_fixed_charge)
+    else
+      assert_equal(wood_fixed_charge, scenario.wood_fixed_charge)
+    end
+    if wood_pellets_fixed_charge.nil?
+      assert_nil(scenario.wood_pellets_fixed_charge)
+    else
+      assert_equal(wood_pellets_fixed_charge, scenario.wood_pellets_fixed_charge)
+    end
+    if elec_marginal_rate.nil?
+      assert_nil(scenario.elec_marginal_rate)
+    else
+      assert_equal(elec_marginal_rate, scenario.elec_marginal_rate)
+    end
+    if natural_gas_marginal_rate.nil?
+      assert_nil(scenario.natural_gas_marginal_rate)
+    else
+      assert_equal(natural_gas_marginal_rate, scenario.natural_gas_marginal_rate)
+    end
+    if propane_marginal_rate.nil?
+      assert_nil(scenario.propane_marginal_rate)
+    else
+      assert_equal(propane_marginal_rate, scenario.propane_marginal_rate)
+    end
+    if fuel_oil_marginal_rate.nil?
+      assert_nil(scenario.fuel_oil_marginal_rate)
+    else
+      assert_equal(fuel_oil_marginal_rate, scenario.fuel_oil_marginal_rate)
+    end
+    if coal_marginal_rate.nil?
+      assert_nil(scenario.coal_marginal_rate)
+    else
+      assert_equal(coal_marginal_rate, scenario.coal_marginal_rate)
+    end
+    if wood_marginal_rate.nil?
+      assert_nil(scenario.wood_marginal_rate)
+    else
+      assert_equal(wood_marginal_rate, scenario.wood_marginal_rate)
+    end
+    if wood_pellets_marginal_rate.nil?
+      assert_nil(scenario.wood_pellets_marginal_rate)
+    else
+      assert_equal(wood_pellets_marginal_rate, scenario.wood_pellets_marginal_rate)
+    end
+    if pv_compensation_type.nil?
+      assert_nil(scenario.pv_compensation_type)
+    else
+      assert_equal(pv_compensation_type, scenario.pv_compensation_type)
+    end
+    if pv_net_metering_annual_excess_sellback_rate_type.nil?
+      assert_nil(scenario.pv_net_metering_annual_excess_sellback_rate_type)
+    else
+      assert_equal(pv_net_metering_annual_excess_sellback_rate_type, scenario.pv_net_metering_annual_excess_sellback_rate_type)
+    end
+    if pv_net_metering_annual_excess_sellback_rate.nil?
+      assert_nil(scenario.pv_net_metering_annual_excess_sellback_rate)
+    else
+      assert_equal(pv_net_metering_annual_excess_sellback_rate, scenario.pv_net_metering_annual_excess_sellback_rate)
+    end
+    if pv_feed_in_tariff_rate.nil?
+      assert_nil(scenario.pv_feed_in_tariff_rate)
+    else
+      assert_equal(pv_feed_in_tariff_rate, scenario.pv_feed_in_tariff_rate)
+    end
+    if pv_monthly_grid_connection_fee_dollars_per_kw.nil?
+      assert_nil(scenario.pv_monthly_grid_connection_fee_dollars_per_kw)
+    else
+      assert_equal(pv_monthly_grid_connection_fee_dollars_per_kw, scenario.pv_monthly_grid_connection_fee_dollars_per_kw)
+    end
+    if pv_monthly_grid_connection_fee_dollars.nil?
+      assert_nil(scenario.pv_monthly_grid_connection_fee_dollars)
+    else
+      assert_equal(pv_monthly_grid_connection_fee_dollars, scenario.pv_monthly_grid_connection_fee_dollars)
     end
   end
 
