@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>report_utility_bills</name>
   <uid>ca88a425-e59a-4bc4-af51-c7e7d1e960fe</uid>
-  <version_id>8a385b32-239d-4f9b-a020-01e658457c63</version_id>
-  <version_modified>20220610T150740Z</version_modified>
+  <version_id>f17f2a22-0978-4fd0-ae81-ad90242b0d23</version_id>
+  <version_modified>20220701T011705Z</version_modified>
   <xml_checksum>15BF4E57</xml_checksum>
   <class_name>ReportUtilityBills</class_name>
   <display_name>Utility Bills Report</display_name>
@@ -33,179 +33,6 @@
           <display_name>msgpack</display_name>
         </choice>
       </choices>
-    </argument>
-    <argument>
-      <name>electricity_fixed_charge</name>
-      <display_name>Electricity: Fixed Charge</display_name>
-      <description>Monthly fixed charge for electricity.</description>
-      <type>Double</type>
-      <units>$/month</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>12</default_value>
-    </argument>
-    <argument>
-      <name>electricity_marginal_rate</name>
-      <display_name>Electricity: Marginal Rate</display_name>
-      <description>Price per kilowatt-hour for electricity. If not provided, uses a state-average value from EIA.</description>
-      <type>Double</type>
-      <units>$/kWh</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>natural_gas_fixed_charge</name>
-      <display_name>Natural Gas: Fixed Charge</display_name>
-      <description>Monthly fixed charge for natural gas.</description>
-      <type>Double</type>
-      <units>$/month</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>12</default_value>
-    </argument>
-    <argument>
-      <name>natural_gas_marginal_rate</name>
-      <display_name>Natural Gas: Marginal Rate</display_name>
-      <description>Price per therm for natural gas. If not provided, uses a state-average value from EIA.</description>
-      <type>Double</type>
-      <units>$/therm</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>fuel_oil_marginal_rate</name>
-      <display_name>Fuel Oil: Marginal Rate</display_name>
-      <description>Price per gallon for fuel oil. If not provided, uses a state-average value from EIA.</description>
-      <type>Double</type>
-      <units>$/gal</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>propane_marginal_rate</name>
-      <display_name>Propane: Marginal Rate</display_name>
-      <description>Price per gallon for propane. If not provided, uses a state-average value from EIA.</description>
-      <type>Double</type>
-      <units>$/gal</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>wood_cord_marginal_rate</name>
-      <display_name>Wood Cord: Marginal Rate</display_name>
-      <description>Price per kBtu for wood cord.</description>
-      <type>Double</type>
-      <units>$/kBtu</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.015</default_value>
-    </argument>
-    <argument>
-      <name>wood_pellets_marginal_rate</name>
-      <display_name>Wood Pellets: Marginal Rate</display_name>
-      <description>Price per kBtu for wood pellets.</description>
-      <type>Double</type>
-      <units>$/kBtu</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.015</default_value>
-    </argument>
-    <argument>
-      <name>coal_marginal_rate</name>
-      <display_name>Coal: Marginal Rate</display_name>
-      <description>Price per kBtu for coal.</description>
-      <type>Double</type>
-      <units>$/kBtu</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.015</default_value>
-    </argument>
-    <argument>
-      <name>pv_compensation_type</name>
-      <display_name>PV: Compensation Type</display_name>
-      <description>The type of compensation for PV.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>Net Metering</default_value>
-      <choices>
-        <choice>
-          <value>Net Metering</value>
-          <display_name>Net Metering</display_name>
-        </choice>
-        <choice>
-          <value>Feed-In Tariff</value>
-          <display_name>Feed-In Tariff</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>pv_annual_excess_sellback_rate_type</name>
-      <display_name>PV: Net Metering Annual Excess Sellback Rate Type</display_name>
-      <description>The type of annual excess sellback rate for PV. Only applies if the PV compensation type is 'Net Metering'.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>User-Specified</default_value>
-      <choices>
-        <choice>
-          <value>User-Specified</value>
-          <display_name>User-Specified</display_name>
-        </choice>
-        <choice>
-          <value>Retail Electricity Cost</value>
-          <display_name>Retail Electricity Cost</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>pv_net_metering_annual_excess_sellback_rate</name>
-      <display_name>PV: Net Metering Annual Excess Sellback Rate</display_name>
-      <description>The annual excess sellback rate for PV. Only applies if the PV compensation type is 'Net Metering' and the PV annual excess sellback rate type is 'User-Specified'.</description>
-      <type>Double</type>
-      <units>$/kWh</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.03</default_value>
-    </argument>
-    <argument>
-      <name>pv_feed_in_tariff_rate</name>
-      <display_name>PV: Feed-In Tariff Rate</display_name>
-      <description>The annual full/gross tariff rate for PV. Only applies if the PV compensation type is 'Feed-In Tariff'.</description>
-      <type>Double</type>
-      <units>$/kWh</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0.12</default_value>
-    </argument>
-    <argument>
-      <name>pv_grid_connection_fee_units</name>
-      <display_name>PV: Grid Connection Fee Units</display_name>
-      <description>Units for PV grid connection fee. Only applies when there is PV.</description>
-      <type>Choice</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>$/kW</default_value>
-      <choices>
-        <choice>
-          <value>$/kW</value>
-          <display_name>$/kW</display_name>
-        </choice>
-        <choice>
-          <value>$</value>
-          <display_name>$</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>pv_monthly_grid_connection_fee</name>
-      <display_name>PV: Monthly Grid Connection Fee</display_name>
-      <description>Monthly fee for PV grid connection. Only applies when there is PV.</description>
-      <type>Double</type>
-      <units>$</units>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <default_value>0</default_value>
     </argument>
   </arguments>
   <outputs />
@@ -282,12 +109,6 @@
       <checksum>EE9F4205</checksum>
     </file>
     <file>
-      <filename>utility_bills_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>124AD241</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>3.3.0</identifier>
@@ -296,7 +117,13 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>A4A00112</checksum>
+      <checksum>151F9601</checksum>
+    </file>
+    <file>
+      <filename>utility_bills_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>86C9774F</checksum>
     </file>
   </files>
 </measure>

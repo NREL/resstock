@@ -12,6 +12,7 @@
       <sch:assert role='ERROR' test='count(h:SoftwareInfo/h:extension/h:HVACSizingControl) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SoftwareInfo/extension/HVACSizingControl</sch:assert> <!-- See [HVACSizingControl] -->
       <sch:assert role='ERROR' test='count(h:SoftwareInfo/h:extension/h:SchedulesFilePath) &gt;= 0'>Expected 0 or more element(s) for xpath: SoftwareInfo/extension/SchedulesFilePath</sch:assert>
       <sch:assert role='ERROR' test='count(h:SoftwareInfo/h:extension/h:EmissionsScenarios/h:EmissionsScenario) &gt;= 0'>Expected 0 or more element(s) for xpath: SoftwareInfo/extension/EmissionsScenarios/EmissionsScenario</sch:assert> <!-- See [EmissionsScenario] -->
+      <sch:assert role='ERROR' test='count(h:SoftwareInfo/h:extension/h:UtilityBillScenarios/h:UtilityBillScenario) &gt;= 0'>Expected 0 or more element(s) for xpath: SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario</sch:assert> <!-- See [UtilityBillScenario] -->
       <sch:assert role='ERROR' test='count(h:Building) &gt;= 1'>Expected 1 or more element(s) for xpath: Building</sch:assert> <!-- See [Building] -->
     </sch:rule>
   </sch:pattern>
@@ -92,6 +93,67 @@
     <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:EmissionsScenarios/h:EmissionsScenario/h:EmissionsFactor[h:FuelType!="electricity"]'>
       <sch:assert role='ERROR' test='count(h:Units[text()="lb/MBtu" or text()="kg/MBtu"]) = 1'>Expected 1 element(s) for xpath: Units[text()="lb/MBtu" or text()="kg/MBtu"]</sch:assert>
       <sch:assert role='ERROR' test='count(h:Value) = 1'>Expected 1 element(s) for xpath: Value</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[UtilityBillScenario]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:UtilityBillScenarios/h:UtilityBillScenario'>
+      <sch:assert role='ERROR' test='count(h:Name) = 1'>Expected 1 element(s) for xpath: Name</sch:assert>
+      <sch:assert role='ERROR' test='count(h:UtilityRate[h:FuelType="electricity"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UtilityRate[FuelType="electricity"]</sch:assert> <!-- See [UtilityRate=Electricity] -->
+      <sch:assert role='ERROR' test='count(h:UtilityRate[h:FuelType="natural gas"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UtilityRate[FuelType="natural gas"]</sch:assert> <!-- See [UtilityRate=OtherFuel] -->
+      <sch:assert role='ERROR' test='count(h:UtilityRate[h:FuelType="propane"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UtilityRate[FuelType="propane"]</sch:assert> <!-- See [UtilityRate=OtherFuel] -->
+      <sch:assert role='ERROR' test='count(h:UtilityRate[h:FuelType="fuel oil"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UtilityRate[FuelType="fuel oil"]</sch:assert> <!-- See [UtilityRate=OtherFuel] -->
+      <sch:assert role='ERROR' test='count(h:UtilityRate[h:FuelType="coal"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UtilityRate[FuelType="coal"]</sch:assert> <!-- See [UtilityRate=OtherFuel] -->
+      <sch:assert role='ERROR' test='count(h:UtilityRate[h:FuelType="wood"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UtilityRate[FuelType="wood"]</sch:assert> <!-- See [UtilityRate=OtherFuel] -->
+      <sch:assert role='ERROR' test='count(h:UtilityRate[h:FuelType="wood pellets"]) &lt;= 1'>Expected 0 or 1 element(s) for xpath: UtilityRate[FuelType="wood pellets"]</sch:assert> <!-- See [UtilityRate=OtherFuel] -->
+      <sch:assert role='ERROR' test='count(h:PVCompensation) &lt;= 1'>Expected 0 or 1 element(s) for xpath: PVCompensation</sch:assert> <!-- See [PVCompensation] -->
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[UtilityRate=Electricity]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:UtilityBillScenarios/h:UtilityBillScenario/h:UtilityRate[h:FuelType="electricity"]'>
+      <sch:assert role='ERROR' test='count(h:FixedCharge) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FixedCharge</sch:assert>
+      <sch:assert role='ERROR' test='count(h:MarginalRate) &lt;= 1'>Expected 0 or 1 element(s) for xpath: MarginalRate</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[UtilityRate=Fuel]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:UtilityBillScenarios/h:UtilityBillScenario/h:UtilityRate[h:FuelType!="electricity"]'>
+      <sch:assert role='ERROR' test='count(h:FixedCharge) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FixedCharge</sch:assert>
+      <sch:assert role='ERROR' test='count(h:MarginalRate) &lt;= 1'>Expected 0 or 1 element(s) for xpath: MarginalRate</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[PVCompensation]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:UtilityBillScenarios/h:UtilityBillScenario/h:PVCompensation'>
+      <sch:assert role='ERROR' test='count(h:CompensationType[h:NetMetering | h:FeedInTariff]) = 1'>Expected 1 element(s) for xpath: CompensationType[NetMetering | FeedInTariff]</sch:assert> <!-- See [PVCompensationType=NetMetering] or [PVCompensationType=FeedInTariff] -->
+      <sch:assert role='ERROR' test='count(h:MonthlyGridConnectionFee[h:Units="$/kW" or h:Units="$"]/h:Value) &lt;= 1'>Expected 0 or 1 element(s) for xpath: MonthlyGridConnectionFee[Units="$/kW" or Units="$"]/Value</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[PVCompensationType=NetMetering]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:UtilityBillScenarios/h:UtilityBillScenario/h:PVCompensation/h:CompensationType/h:NetMetering'>
+      <sch:assert role='ERROR' test='count(h:AnnualExcessSellbackRateType) &lt;= 1'>Expected 0 or 1 element(s) for xpath: AnnualExcessSellbackRateType</sch:assert> <!-- See [PVCompensationType=NetMeteringWithUserExcessSellbackRate] -->
+      <sch:assert role='ERROR' test='h:AnnualExcessSellbackRateType[text()="User-Specified" or text()="Retail Electricity Cost"] or not(h:AnnualExcessSellbackRateType)'>Expected AnnualExcessSellbackRateType to be 'User-Specified' or 'Retail Electricity Cost'</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[PVCompensationType=NetMeteringWithUserExcessSellbackRate]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:UtilityBillScenarios/h:UtilityBillScenario/h:PVCompensation/h:CompensationType/h:NetMetering[h:AnnualExcessSellbackRateType="User-Specified"]'>
+      <sch:assert role='ERROR' test='count(h:AnnualExcessSellbackRate) &lt;= 1'>Expected 0 or 1 element(s) for xpath: AnnualExcessSellbackRate</sch:assert>
+    </sch:rule>
+  </sch:pattern>
+
+  <sch:pattern>
+    <sch:title>[PVCompensationType=FeedInTariff]</sch:title>
+    <sch:rule context='/h:HPXML/h:SoftwareInfo/h:extension/h:UtilityBillScenarios/h:UtilityBillScenario/h:PVCompensation/h:CompensationType/h:FeedInTariff'>
+      <sch:assert role='ERROR' test='count(h:FeedInTariffRate) &lt;= 1'>Expected 0 or 1 element(s) for xpath: FeedInTariffRate</sch:assert>
     </sch:rule>
   </sch:pattern>
 

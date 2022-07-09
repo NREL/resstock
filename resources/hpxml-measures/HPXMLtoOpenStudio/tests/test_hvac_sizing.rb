@@ -80,6 +80,15 @@ class HPXMLtoOpenStudioHVACSizingTest < MiniTest::Test
     assert_in_epsilon(htg_design_load, htg_capacity, 0.001) # 0.001 to handle rounding
   end
 
+  def test_heat_pump_integrated_backup_systems
+    # Check that HP backup heating capacity matches heating design load even when using MaxLoad in a hot climate (GitHub issue #1140)
+    args_hash = {}
+    args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload-miami-fl.xml'))
+    _model, hpxml = _test_measure(args_hash)
+
+    assert_equal(hpxml.heat_pumps[0].backup_heating_capacity, hpxml.hvac_plant.hdl_total)
+  end
+
   def test_slab_f_factor
     def get_unins_slab()
       slab = HPXML::Slab.new(nil)
