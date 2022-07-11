@@ -90,7 +90,7 @@ class TsvFile
       next if row[0].start_with? "\#"
 
       row_key_values = {}
-      @dependency_cols.each do |dep, dep_col|
+      @dependency_cols.keys.each do |dep|
         row_key_values[dep] = row[@dependency_cols[dep]]
       end
       key_s = hash_to_string(row_key_values)
@@ -162,7 +162,7 @@ class TsvFile
     # Find appropriate value
     rowsum = 0
     n_options = @option_cols.size
-    @option_cols.each_with_index do |(option_name, option_col), index|
+    @option_cols.keys.each_with_index do |option_name, index|
       rowsum += rowvals[option_name]
       next unless (rowsum >= sample_value) || ((index == n_options - 1) && (rowsum + 0.00001 >= sample_value))
 
@@ -361,6 +361,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
   option_apply_logic.split('||').each do |or_segment|
     or_segment.split('&&').each do |segment|
       segment.strip!
+      segment.delete!("'")
 
       # Handle presence of open parentheses
       rindex = segment.rindex('(')
@@ -393,6 +394,7 @@ def evaluate_logic(option_apply_logic, runner, past_results = true)
       else
         segment_existing_option = get_value_from_runner(runner, segment_parameter)
       end
+      segment_existing_option.delete!("'")
 
       ruby_eval_str += segment_open + "'" + segment_existing_option + segment_equality + segment_option + "'" + segment_close + ' and '
     end
@@ -429,7 +431,7 @@ class RunOSWs
   require 'csv'
   require 'json'
 
-  def self.run_and_check(in_osw, parent_dir, cli_output, upgrade, measures_only = false)
+  def self.run(in_osw, parent_dir, cli_output, upgrade, measures, reporting_measures, measures_only = false)
     # Run workflow
     cli_path = OpenStudio.getOpenStudioCLI
     command = "\"#{cli_path}\" run"
@@ -442,18 +444,20 @@ class RunOSWs
 
     out = File.join(parent_dir, 'out.osw')
     out = JSON.parse(File.read(File.expand_path(out)))
+    started_at = out['started_at']
+    completed_at = out['completed_at']
     completed_status = out['completed_status']
 
     results = File.join(parent_dir, 'run/results.json')
 
-    return completed_status, result_output, cli_output if measures_only || !File.exist?(results)
+    return started_at, completed_at, completed_status, result_output, cli_output if measures_only || !File.exist?(results)
 
     rows = {}
     old_rows = JSON.parse(File.read(File.expand_path(results)))
     old_rows.each do |measure, values|
       rows[measure] = {}
       values.each do |arg, val|
-        next if arg == 'applicable'
+        next if measure == 'BuildExistingModel' && arg == 'building_id'
 
         rows[measure]["#{OpenStudio::toUnderscoreCase(measure)}.#{arg}"] = val
       end
@@ -461,11 +465,16 @@ class RunOSWs
 
     result_output = get_measure_results(rows, result_output, 'BuildExistingModel') if !upgrade
     result_output = get_measure_results(rows, result_output, 'ApplyUpgrade')
+    measures.each do |measure|
+      result_output = get_measure_results(rows, result_output, measure)
+    end
     result_output = get_measure_results(rows, result_output, 'ReportSimulationOutput')
     result_output = get_measure_results(rows, result_output, 'UpgradeCosts')
-    result_output = get_measure_results(rows, result_output, 'QOIReport')
+    reporting_measures.each do |reporting_measure|
+      result_output = get_measure_results(rows, result_output, reporting_measure)
+    end
 
-    return completed_status, result_output, cli_output
+    return started_at, completed_at, completed_status, result_output, cli_output
   end
 
   def self.get_measure_results(rows, result, measure)
@@ -489,14 +498,14 @@ class RunOSWs
     end
     column_headers = column_headers.sort
 
-    ['job_id', 'building_id'].each do |col|
+    ['completed_status', 'completed_at', 'started_at', 'job_id', 'building_id'].each do |col|
       column_headers.delete(col)
-      column_headers.insert(1, col)
+      column_headers.insert(0, col)
     end
 
     CSV.open(csv_out, 'wb') do |csv|
       csv << column_headers
-      results.sort_by { |h| h['OSW'] }.each do |result|
+      results.sort_by { |h| h['building_id'] }.each do |result|
         csv_row = []
         column_headers.each do |column_header|
           csv_row << result[column_header]
@@ -522,22 +531,15 @@ class RunOSWs
 end
 
 class Version
-  def self.version
-    version = {}
-    File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
-      file.each_line do |line|
-        key, value = line.split(' = ')
-        version[key] = value.chomp.gsub("'", '')
+  ResStock_Version = '2.6.0-beta' # Version of ResStock
+  BuildStockBatch_Version = '0.22' # Minimum required version of BuildStockBatch
+
+  def self.check_buildstockbatch_version
+    if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
+      bsb_version = ENV['BUILDSTOCKBATCH_VERSION']
+      if bsb_version < BuildStockBatch_Version
+        fail "BuildStockBatch version #{BuildStockBatch_Version} or above is required. Found version: #{bsb_version}"
       end
     end
-    return version
-  end
-
-  def self.software_program_used
-    return version['__title__']
-  end
-
-  def self.software_program_version
-    return version['__resstock_version__']
   end
 end

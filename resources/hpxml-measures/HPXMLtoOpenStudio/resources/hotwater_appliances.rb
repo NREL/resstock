@@ -767,7 +767,7 @@ class HotWaterAndAppliances
   end
 
   def self.add_other_equipment(model, obj_name, space, design_level_w, frac_sens, frac_lat, schedule, fuel_type)
-    return if design_level_w == 0.0 # Negative values intentinally allowed, e.g. for water sensible
+    return if design_level_w == 0.0 # Negative values intentionally allowed, e.g. for water sensible
 
     oe_def = OpenStudio::Model::OtherEquipmentDefinition.new(model)
     oe = OpenStudio::Model::OtherEquipment.new(oe_def)

@@ -39,7 +39,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_misc_loads
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -71,7 +71,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_large_uncommon_loads
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-misc-loads-large-uncommon.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -132,7 +132,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_large_uncommon_loads2
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-misc-loads-large-uncommon2.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -193,7 +193,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_operational_defaults
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational-misc-defaults.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -254,7 +254,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_operational_large_uncommon_loads
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational-misc-loads-large-uncommon.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)
@@ -315,7 +315,7 @@ class HPXMLtoOpenStudioMiscLoadsTest < MiniTest::Test
   def test_operational_large_uncommon_loads2
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-calctype-operational-misc-loads-large-uncommon2.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     # Check misc plug loads
     kwh_yr, therm_yr = get_kwh_therm_per_year(model, Constants.ObjectNameMiscPlugLoads)

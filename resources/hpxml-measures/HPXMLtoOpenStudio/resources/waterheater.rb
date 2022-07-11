@@ -36,7 +36,7 @@ class Waterheater
     return loop
   end
 
-  def self.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, nbeds, solar_thermal_system, eri_version, schedules_file)
+  def self.apply_tankless(model, runner, loc_space, loc_schedule, water_heating_system, ec_adj, solar_thermal_system, eri_version, schedules_file)
     water_heating_system.heating_capacity = 100000000000.0
     solar_fraction = get_water_heater_solar_fraction(water_heating_system, solar_thermal_system)
     set_temp_c = get_set_temp_c(water_heating_system.temperature, water_heating_system.water_heater_type)
@@ -51,7 +51,7 @@ class Waterheater
     new_manager.addToNode(loop.supplyOutletNode)
 
     act_vol = 1.0
-    u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction)
+    _u, ua, eta_c = calc_tank_UA(act_vol, water_heating_system, solar_fraction)
     new_heater = create_new_heater(name: Constants.ObjectNameWaterHeater,
                                    water_heating_system: water_heating_system,
                                    act_vol: act_vol,
@@ -159,7 +159,7 @@ class Waterheater
 
     # Amb temp & RH sensors, temp sensor shared across programs
     amb_temp_sensor, amb_rh_sensors = get_loc_temp_rh_sensors(model, obj_name_hpwh, loc_schedule, loc_space, living_zone)
-    hpwh_inlet_air_program = add_hpwh_inlet_air_and_zone_heat_gain_program(model, obj_name_hpwh, loc_space, loc_schedule, hpwh_tamb, hpwh_rhamb, tank, coil, fan, amb_temp_sensor, amb_rh_sensors)
+    hpwh_inlet_air_program = add_hpwh_inlet_air_and_zone_heat_gain_program(model, obj_name_hpwh, loc_space, hpwh_tamb, hpwh_rhamb, tank, coil, fan, amb_temp_sensor, amb_rh_sensors)
 
     # EMS for the HPWH control logic
     op_mode = water_heating_system.operating_mode
@@ -605,7 +605,7 @@ class Waterheater
     storage_tank.setHeaterFuelType(EPlus::FuelTypeElectricity)
     storage_tank.setHeaterThermalEfficiency(1)
     storage_tank.ambientTemperatureSchedule.get.remove
-    set_wh_ambient(loc_space, loc_schedule, model, storage_tank)
+    set_wh_ambient(loc_space, loc_schedule, storage_tank)
     if fluid_type == Constants.FluidWater # Direct, make the storage tank a dummy tank with 0 tank losses
       storage_tank.setUniformSkinLossCoefficientperUnitAreatoAmbientTemperature(0.0)
     else
@@ -918,7 +918,7 @@ class Waterheater
     return amb_temp_sensor, rh_sensors
   end
 
-  def self.add_hpwh_inlet_air_and_zone_heat_gain_program(model, obj_name_hpwh, loc_space, loc_schedule, hpwh_tamb, hpwh_rhamb, tank, coil, fan, amb_temp_sensor, amb_rh_sensors)
+  def self.add_hpwh_inlet_air_and_zone_heat_gain_program(model, obj_name_hpwh, loc_space, hpwh_tamb, hpwh_rhamb, tank, coil, fan, amb_temp_sensor, amb_rh_sensors)
     # EMS Actuators: Inlet T & RH, sensible and latent gains to the space
     tamb_act_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_tamb, *EPlus::EMSActuatorScheduleConstantValue)
     tamb_act_actuator.setName("#{obj_name_hpwh} Tamb act")
@@ -1323,6 +1323,7 @@ class Waterheater
   def self.get_default_num_bathrooms(num_beds)
     # From BA HSP
     num_baths = num_beds / 2.0 + 0.5
+    return num_baths
   end
 
   def self.add_ec_adj(model, heater, ec_adj, loc_space, water_heating_system, combi_boiler = nil)
@@ -1584,7 +1585,6 @@ class Waterheater
     if [HPXML::WaterHeaterTypeTankless, HPXML::WaterHeaterTypeCombiTankless].include? wh_type
       ef = eta_c
     else
-      pi = Math::PI
       volume_drawn = 64.3 # gal/day
       density = 8.2938 # lb/gal
       draw_mass = volume_drawn * density # lb
@@ -1713,7 +1713,7 @@ class Waterheater
     new_heater.setName(name)
     new_heater.setTankVolume(UnitConversions.convert(act_vol, 'gal', 'm^3'))
     new_heater.setHeaterFuelType(EPlus.fuel_type(fuel)) unless fuel.nil?
-    set_wh_ambient(loc_space, loc_schedule, model, new_heater)
+    set_wh_ambient(loc_space, loc_schedule, new_heater)
 
     # FUTURE: These are always zero right now; develop smart defaults.
     new_heater.setOnCycleParasiticFuelConsumptionRate(0.0)
@@ -1752,7 +1752,7 @@ class Waterheater
     water_heater.setOffCycleLossFractiontoThermalZone(skinlossfrac)
   end
 
-  def self.set_wh_ambient(loc_space, loc_schedule, model, wh_obj)
+  def self.set_wh_ambient(loc_space, loc_schedule, wh_obj)
     if wh_obj.ambientTemperatureSchedule.is_initialized
       wh_obj.ambientTemperatureSchedule.get.remove
     end

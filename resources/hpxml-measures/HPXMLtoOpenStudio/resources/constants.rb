@@ -39,46 +39,6 @@ class Constants
     return 'AirFilm'
   end
 
-  def self.Auto
-    return 'auto'
-  end
-
-  def self.AutoHERSForHP
-    return 'auto using HERS'
-  end
-
-  def self.AutoMaxLoadForHP
-    return 'auto using max load'
-  end
-
-  def self.CalcTypeCO2eRatedHome
-    return 'CO2e Rated Home'
-  end
-
-  def self.CalcTypeCO2eReferenceHome
-    return 'CO2e Reference Home'
-  end
-
-  def self.CalcTypeERIRatedHome
-    return 'ERI Rated Home'
-  end
-
-  def self.CalcTypeERIReferenceHome
-    return 'ERI Reference Home'
-  end
-
-  def self.CalcTypeERIIndexAdjustmentDesign
-    return 'ERI Index Adjustment Design'
-  end
-
-  def self.CalcTypeERIIndexAdjustmentReferenceHome
-    return 'ERI Index Adjustment Reference Home'
-  end
-
-  def self.BuildingAmericaClimateZone
-    return 'Building America'
-  end
-
   def self.ERIVersions
     return ['2014', '2014A', '2014AE', '2014AEG', '2019', '2019A',
             '2019AB', '2019ABC', '2019ABCD']
@@ -262,6 +222,10 @@ class Constants
     return 'ground source heat pump'
   end
 
+  def self.ObjectNameGSHPSharedPump()
+    return 'gshp shared loop pump'
+  end
+
   def self.ObjectNameHeatingSeason
     return 'heating season'
   end
@@ -414,10 +378,6 @@ class Constants
     return 'room ac'
   end
 
-  def self.ObjectNameSharedPump(hvac_name)
-    return "#{hvac_name} shared pump"
-  end
-
   def self.ObjectNameSkylightShade
     return 'skylight shade'
   end
@@ -436,6 +396,10 @@ class Constants
 
   def self.ObjectNameUnitHeater
     return 'unit heater'
+  end
+
+  def self.ObjectNameUnmetHoursProgram
+    return 'unmet hours program'
   end
 
   def self.ObjectNameWaterHeater

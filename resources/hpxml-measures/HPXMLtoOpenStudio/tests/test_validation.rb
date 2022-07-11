@@ -46,6 +46,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
   end
 
   def test_validation_of_schematron_doc
+    begin_dir = Dir.pwd
     # Check that the schematron file is valid
 
     begin
@@ -55,10 +56,11 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         xml_doc = Nokogiri::XML(File.open(s_path)) do |config|
           config.options = Nokogiri::XML::ParseOptions::STRICT
         end
-        stron_doc = SchematronNokogiri::Schema.new(xml_doc)
+        SchematronNokogiri::Schema.new(xml_doc)
       end
     rescue LoadError
     end
+    Dir.chdir(begin_dir) # Prevent above code from changing the working dir and causing random test failures
   end
 
   def test_role_attributes_in_schematron_doc
@@ -681,7 +683,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'hvac-dse-multiple-attached-heating' => ["Multiple heating systems found attached to distribution system 'HVACDistribution1'."],
                             'hvac-inconsistent-fan-powers' => ["Fan powers for heating system 'HeatingSystem1' and cooling system 'CoolingSystem1' are attached to a single distribution system and therefore must be the same."],
                             'hvac-invalid-distribution-system-type' => ["Incorrect HVAC distribution system type for HVAC type: 'Furnace'. Should be one of: ["],
-                            'hvac-seasons-less-than-a-year' => ['HeatingSeason and CoolingSeason, when combined, must span the entire year.'],
                             'hvac-shared-boiler-multiple' => ['More than one shared heating system found.'],
                             'hvac-shared-chiller-multiple' => ['More than one shared cooling system found.'],
                             'hvac-shared-chiller-negative-seer-eq' => ["Negative SEER equivalent calculated for cooling system 'CoolingSystem1', double check inputs."],
@@ -718,7 +719,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'schedule-detailed-bad-values-mode-negative' => ["Schedule value for column 'water_heater_operating_mode' must be either 0 or 1."],
                             'schedule-detailed-bad-values-mode-fraction' => ["Schedule value for column 'vacancy' must be either 0 or 1."],
                             'schedule-detailed-duplicate-columns' => ["Schedule column name 'occupants' is duplicated."],
-                            'schedule-detailed-wrong-columns' => ["Schedule column name 'lighting' is invalid."],
                             'schedule-detailed-wrong-filename' => ["Schedules file path 'invalid-wrong-filename.csv' does not exist."],
                             'schedule-detailed-wrong-rows' => ["Schedule has invalid number of rows (8759) for column 'occupants'. Must be one of: 8760, 17520, 26280, 35040, 43800, 52560, 87600, 105120, 131400, 175200, 262800, 525600."],
                             'solar-thermal-system-with-combi-tankless' => ["Water heating system 'WaterHeatingSystem1' connected to solar thermal system 'SolarThermalSystem1' cannot be a space-heating boiler."],
@@ -800,16 +800,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.cooling_systems[0].fan_watts_per_cfm = 0.55
         hpxml.heating_systems[0].fan_watts_per_cfm = 0.45
-      elsif ['hvac-seasons-less-than-a-year'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.hvac_controls[0].seasons_heating_begin_month = 10
-        hpxml.hvac_controls[0].seasons_heating_begin_day = 1
-        hpxml.hvac_controls[0].seasons_heating_end_month = 5
-        hpxml.hvac_controls[0].seasons_heating_end_day = 31
-        hpxml.hvac_controls[0].seasons_cooling_begin_month = 7
-        hpxml.hvac_controls[0].seasons_cooling_begin_day = 1
-        hpxml.hvac_controls[0].seasons_cooling_end_month = 9
-        hpxml.hvac_controls[0].seasons_cooling_end_day = 30
       elsif ['hvac-shared-boiler-multiple'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-boiler-only-baseboard.xml'))
         hpxml.hvac_distributions << hpxml.hvac_distributions[0].dup
@@ -960,12 +950,6 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.header.schedules_filepaths = []
         hpxml.header.schedules_filepaths << @tmp_csv_path
         hpxml.header.schedules_filepaths << @tmp_csv_path
-      elsif ['schedule-detailed-wrong-columns'].include? error_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-detailed-occupancy-stochastic.xml'))
-        csv_data = CSV.read(File.join(File.dirname(hpxml.hpxml_path), hpxml.header.schedules_filepaths[0]))
-        csv_data[0][1] = 'lighting'
-        File.write(@tmp_csv_path, csv_data.map(&:to_csv).join)
-        hpxml.header.schedules_filepaths = [@tmp_csv_path]
       elsif ['schedule-detailed-wrong-filename'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.schedules_filepaths << 'invalid-wrong-filename.csv'
@@ -1060,7 +1044,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       end
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('error', error_case, expected_errors)
+      _test_measure('error', expected_errors)
     end
   end
 
@@ -1138,7 +1122,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       hpxml_doc = hpxml.to_oga()
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('warning', warning_case, expected_warnings)
+      _test_measure('warning', expected_warnings)
     end
   end
 
@@ -1164,7 +1148,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     end
   end
 
-  def _test_measure(error_or_warning, error_or_warning_case, expected_errors_or_warnings)
+  def _test_measure(error_or_warning, expected_errors_or_warnings)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new
 
@@ -1200,6 +1184,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         actual_errors_or_warnings << s
       end
     elsif error_or_warning == 'warning'
+      # show the output
+      show_output(result) unless result.value.valueName == 'Success'
+
       assert_equal('Success', result.value.valueName)
 
       result.stepWarnings.each do |s|
