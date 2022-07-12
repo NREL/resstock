@@ -8,6 +8,7 @@ require 'csv'
 require 'oga'
 require_relative 'resources/airflow'
 require_relative 'resources/battery'
+require_relative 'resources/utility_bills'
 require_relative 'resources/constants'
 require_relative 'resources/constructions'
 require_relative 'resources/energyplus'
@@ -213,7 +214,7 @@ class OSModel
                                         schedules_paths: @hpxml.header.schedules_filepaths)
 
     weather, epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
-    set_defaults_and_globals(output_dir, epw_file, weather, @schedules_file)
+    set_defaults_and_globals(runner, output_dir, epw_file, weather, @schedules_file)
     validate_emissions_files()
     @schedules_file.validate_schedules(year: @hpxml.header.sim_calendar_year) if not @schedules_file.nil?
     Location.apply(model, weather, epw_file, @hpxml)
@@ -328,7 +329,7 @@ class OSModel
     end
   end
 
-  def self.set_defaults_and_globals(output_dir, epw_file, weather, schedules_file)
+  def self.set_defaults_and_globals(runner, output_dir, epw_file, weather, schedules_file)
     # Initialize
     @remaining_heat_load_frac = 1.0
     @remaining_cool_load_frac = 1.0
@@ -343,7 +344,7 @@ class OSModel
     @default_azimuths = HPXMLDefaults.get_default_azimuths(@hpxml)
 
     # Apply defaults to HPXML object
-    HPXMLDefaults.apply(@hpxml, @eri_version, weather, epw_file: epw_file, schedules_file: schedules_file)
+    HPXMLDefaults.apply(runner, @hpxml, @eri_version, weather, epw_file: epw_file, schedules_file: schedules_file)
 
     @frac_windows_operable = @hpxml.fraction_of_windows_operable()
 
@@ -1872,6 +1873,10 @@ class OSModel
     additionalProperties.setFeature('emissions_scenario_names', emissions_scenario_names)
     emissions_scenario_types = @hpxml.header.emissions_scenarios.map { |s| s.emissions_type }.to_s
     additionalProperties.setFeature('emissions_scenario_types', emissions_scenario_types)
+    has_heating = (@hpxml.total_fraction_heat_load_served > 0)
+    additionalProperties.setFeature('has_heating', has_heating)
+    has_cooling = (@hpxml.total_fraction_cool_load_served > 0)
+    additionalProperties.setFeature('has_cooling', has_cooling)
   end
 
   def self.add_unmet_hours_output(model, spaces)

@@ -338,7 +338,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     model, hpxml = _test_measure(args_hash)
 
     # Get HPXML values
-    vent_fans = hpxml.ventilation_fans.select { |f| f.flow_rate > 0 && f.hours_in_operation.to_f > 0 }
+    vent_fans = hpxml.ventilation_fans.select { |f| f.hours_in_operation.to_f > 0 }
 
     bath_fans = vent_fans.select { |f| f.used_for_local_ventilation && f.fan_location == HPXML::LocationBath }
     bath_fan_cfm = bath_fans.map { |bath_fan| bath_fan.flow_rate * bath_fan.quantity }.sum(0.0)

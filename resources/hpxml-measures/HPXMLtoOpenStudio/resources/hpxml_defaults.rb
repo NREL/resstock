@@ -6,7 +6,7 @@ class HPXMLDefaults
   # being written to the HPXML file. This is useful to associate additional values
   # with the HPXML objects that will ultimately get passed around.
 
-  def self.apply(hpxml, eri_version, weather, epw_file: nil, schedules_file: nil, convert_shared_systems: true)
+  def self.apply(runner, hpxml, eri_version, weather, epw_file: nil, schedules_file: nil, convert_shared_systems: true)
     cfa = hpxml.building_construction.conditioned_floor_area
     nbeds = hpxml.building_construction.number_of_bedrooms
     ncfl = hpxml.building_construction.number_of_conditioned_floors
@@ -33,6 +33,7 @@ class HPXMLDefaults
 
     apply_header(hpxml, epw_file)
     apply_emissions_scenarios(hpxml)
+    apply_utility_bill_scenarios(runner, hpxml)
     apply_site(hpxml)
     apply_neighbor_buildings(hpxml)
     apply_building_occupancy(hpxml, nbeds, schedules_file)
@@ -271,6 +272,120 @@ class HPXMLDefaults
       scenario.wood_pellets_units_isdefaulted = true
       scenario.wood_pellets_value = wood_pellets
       scenario.wood_pellets_value_isdefaulted = true
+    end
+  end
+
+  def self.apply_utility_bill_scenarios(runner, hpxml)
+    hpxml_doc = nil
+    hpxml.header.utility_bill_scenarios.each do |scenario|
+      hpxml_doc = hpxml.to_oga if hpxml_doc.nil?
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeElectricity)
+        if scenario.elec_fixed_charge.nil?
+          scenario.elec_fixed_charge = 12.0 # https://www.nrdc.org/experts/samantha-williams/there-war-attrition-electricity-fixed-charges says $11.19/month in 2018
+          scenario.elec_fixed_charge_isdefaulted = true
+        end
+        if scenario.elec_marginal_rate.nil?
+          scenario.elec_marginal_rate, _ = UtilityBills.get_rates_from_eia_data(runner, hpxml.header.state_code, HPXML::FuelTypeElectricity, scenario.elec_fixed_charge)
+          scenario.elec_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeNaturalGas)
+        if scenario.natural_gas_fixed_charge.nil?
+          scenario.natural_gas_fixed_charge = 12.0 # https://www.aga.org/sites/default/files/aga_energy_analysis_-_natural_gas_utility_rate_structure.pdf says $11.25/month in 2015
+          scenario.natural_gas_fixed_charge_isdefaulted = true
+        end
+        if scenario.natural_gas_marginal_rate.nil?
+          scenario.natural_gas_marginal_rate, _ = UtilityBills.get_rates_from_eia_data(runner, hpxml.header.state_code, HPXML::FuelTypeNaturalGas, scenario.natural_gas_fixed_charge)
+          scenario.natural_gas_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypePropane)
+        if scenario.propane_fixed_charge.nil?
+          scenario.propane_fixed_charge = 0.0
+          scenario.propane_fixed_charge_isdefaulted = true
+        end
+        if scenario.propane_marginal_rate.nil?
+          scenario.propane_marginal_rate, _ = UtilityBills.get_rates_from_eia_data(runner, hpxml.header.state_code, HPXML::FuelTypePropane, nil)
+          scenario.propane_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeOil)
+        if scenario.fuel_oil_fixed_charge.nil?
+          scenario.fuel_oil_fixed_charge = 0.0
+          scenario.fuel_oil_fixed_charge_isdefaulted = true
+        end
+        if scenario.fuel_oil_marginal_rate.nil?
+          scenario.fuel_oil_marginal_rate, _ = UtilityBills.get_rates_from_eia_data(runner, hpxml.header.state_code, HPXML::FuelTypeOil, nil)
+          scenario.fuel_oil_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeCoal)
+        if scenario.coal_fixed_charge.nil?
+          scenario.coal_fixed_charge = 0.0
+          scenario.coal_fixed_charge_isdefaulted = true
+        end
+        if scenario.coal_marginal_rate.nil?
+          scenario.coal_marginal_rate = 0.015
+          scenario.coal_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeWoodCord)
+        if scenario.wood_fixed_charge.nil?
+          scenario.wood_fixed_charge = 0.0
+          scenario.wood_fixed_charge_isdefaulted = true
+        end
+        if scenario.wood_marginal_rate.nil?
+          scenario.wood_marginal_rate = 0.015
+          scenario.wood_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeWoodPellets)
+        if scenario.wood_pellets_fixed_charge.nil?
+          scenario.wood_pellets_fixed_charge = 0.0
+          scenario.wood_pellets_fixed_charge_isdefaulted = true
+        end
+        if scenario.wood_pellets_marginal_rate.nil?
+          scenario.wood_pellets_marginal_rate = 0.015
+          scenario.wood_pellets_marginal_rate_isdefaulted = true
+        end
+      end
+
+      next unless hpxml.pv_systems.size > 0
+
+      if scenario.pv_compensation_type.nil?
+        scenario.pv_compensation_type = HPXML::PVCompensationTypeNetMetering
+        scenario.pv_compensation_type_isdefaulted = true
+      end
+
+      if scenario.pv_compensation_type == HPXML::PVCompensationTypeNetMetering
+        if scenario.pv_net_metering_annual_excess_sellback_rate_type.nil?
+          scenario.pv_net_metering_annual_excess_sellback_rate_type = HPXML::PVAnnualExcessSellbackRateTypeUserSpecified
+          scenario.pv_net_metering_annual_excess_sellback_rate_type_isdefaulted = true
+        end
+        if scenario.pv_net_metering_annual_excess_sellback_rate_type == HPXML::PVAnnualExcessSellbackRateTypeUserSpecified
+          if scenario.pv_net_metering_annual_excess_sellback_rate.nil?
+            scenario.pv_net_metering_annual_excess_sellback_rate = 0.03
+            scenario.pv_net_metering_annual_excess_sellback_rate_isdefaulted = true
+          end
+        end
+      elsif scenario.pv_compensation_type == HPXML::PVCompensationTypeFeedInTariff
+        if scenario.pv_feed_in_tariff_rate.nil?
+          scenario.pv_feed_in_tariff_rate = 0.12
+          scenario.pv_feed_in_tariff_rate_isdefaulted = true
+        end
+      end
+
+      if scenario.pv_monthly_grid_connection_fee_dollars_per_kw.nil? && scenario.pv_monthly_grid_connection_fee_dollars.nil?
+        scenario.pv_monthly_grid_connection_fee_dollars = 0.0
+        scenario.pv_monthly_grid_connection_fee_dollars_isdefaulted = true
+      end
     end
   end
 
