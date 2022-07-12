@@ -114,10 +114,64 @@ def density(baseline, up, enduses, group_by):
 
       fig = ff.create_distplot(hist_data, group_labels, bin_size=1, colors=['blue', 'red'], show_hist=False, show_curve=True, show_rug=True)
       fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'}, font={'size': 28}, legend_title='',
-                        xaxis={'title': enduse.replace('report_simulation_output.', ''), 'tickfont': {'size': 24}, 'tickangle': 0, 'showgrid': False, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        xaxis={'title': enduse.replace('report_simulation_output.', ''), 'tickfont': {'size': 24}, 'showgrid': False, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True},
                         yaxis={'title': 'density', 'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True})
 
       path = os.path.join(os.path.dirname(__file__), f'density_{group.replace("build_existing_model.", "")}_{enduse.replace("report_simulation_output.", "")}.html')
+      plotly.offline.plot(fig, filename=path, auto_open=False)
+
+
+def hvac_heating_efficiency_color(x):
+  if 'Furnace' in x:
+    return 'Furnace'
+  elif 'Boiler' in x:
+    return 'Boiler'
+  elif 'Baseboard' in x:
+    return 'Baseboard'
+  elif 'ASHP' in x:
+    return 'ASHP'
+  elif 'Other' in x:
+    return 'Other'
+  elif 'None' in x:
+    return 'None'
+  return x
+
+
+def hvac_cooling_efficiency_color(x):
+  if 'AC, S' in x:
+    return 'AC'
+  elif 'None' in x:
+    return 'None'
+  elif 'HP' in x:
+    return 'HP'
+  elif 'Room AC' in x:
+    return 'Room'
+  return x
+
+
+def box(baseline, up, enduses, group_by):
+  df = baseline[enduses].subtract(up[enduses]) # absolute
+  # df = baseline[enduses].subtract(up[enduses]).div(baseline[enduses]) # percent
+  df = baseline[group_by].join(df)
+
+  for group in group_by:
+    for enduse in enduses:
+
+      if group == 'build_existing_model.hvac_heating_efficiency':
+        df['color'] = df['build_existing_model.hvac_heating_efficiency'].apply(lambda x: hvac_heating_efficiency_color(x))
+        fig = px.box(df, x=enduse, y=group, color='color', boxmode="overlay", template='plotly_white')
+      elif group == 'build_existing_model.hvac_cooling_efficiency':
+        df['color'] = df['build_existing_model.hvac_cooling_efficiency'].apply(lambda x: hvac_cooling_efficiency_color(x))
+        fig = px.box(df, x=enduse, y=group, color='color', boxmode="overlay", template='plotly_white')
+      else:
+        fig = px.box(df, x=enduse, y=group)
+
+      fig.update_layout(font={'size': 28}, legend_title='',
+                        xaxis={'title': enduse.replace('report_simulation_output.', ''), 'tickfont': {'size': 24}, 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        yaxis={'title': '', 'tickfont': {'size': 24}, 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        showlegend=False)
+
+      path = os.path.join(os.path.dirname(__file__), f'box_{group.replace("build_existing_model.", "")}_{enduse.replace("report_simulation_output.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
 
 
@@ -136,11 +190,21 @@ def value_counts(df, file):
 
       t = value_count.rename_axis(col).reset_index(name='percentage')
       t['percentage'] = (t['percentage'] * 100.0).round(1)
-      fig = px.bar(t, x=col, y='percentage', text=t['percentage'].apply(lambda x: '{0:1.1f}%'.format(x)))
+
+      if col == 'build_existing_model.hvac_heating_efficiency':
+        t['color'] = ['Furnace', 'Boiler', 'Furnace', 'Baseboard', 'Furnace', 'ASHP', 'Boiler', 'Furnace', 'Furnace', 'Other', 'Furnace', 'ASHP', 'None']
+        fig = px.bar(t, x='percentage', y=col, text=t['percentage'].apply(lambda x: '{0:1.1f}%'.format(x)), orientation='h', color='color', template='plotly_white')
+      elif col == 'build_existing_model.hvac_cooling_efficiency':
+        t['color'] = ['AC', 'None', 'Room', 'HP', 'Room', 'AC', 'AC', 'Room', 'HP', 'Room', 'AC']
+        fig = px.bar(t, x='percentage', y=col, text=t['percentage'].apply(lambda x: '{0:1.1f}%'.format(x)), orientation='h', color='color', template='plotly_white')
+      else:
+        fig = px.bar(t, x='percentage', y=col, text=t['percentage'].apply(lambda x: '{0:1.1f}%'.format(x)), orientation='h')
+      
       fig.update_traces(textfont_size=24, textangle=0, textposition="outside", cliponaxis=False)
       fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'}, font={'size': 28},
-                        xaxis={'title': '', 'tickfont': {'size': 24}, 'tickangle': 90, 'showline': True, 'linecolor': 'black', 'mirror': True},
-                        yaxis={'title': '', 'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True})
+                        yaxis={'title': '', 'tickfont': {'size': 24}, 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        xaxis={'title': '', 'tickfont': {'size': 24}, 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        showlegend=False)
 
       path = os.path.join(os.path.dirname(__file__), f'{col.replace("build_existing_model.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
@@ -156,8 +220,30 @@ def geometry_building_type(x):
 
 
 def hvac_heating_efficiency(x):
-  if 'Other' in x:
+  if 'Other' == x:
     return 'None'
+  elif 'Electric Boiler, 100% AFUE' == x:
+    return ' Other'
+  elif 'Electric Wall Furnace, 100% AFUE' == x:
+    return ' Other'
+  elif 'Fuel Boiler, 90% AFUE' == x:
+    return ' Other'
+  elif 'Fuel Furnace, 60% AFUE' == x:
+    return ' Other'
+  elif 'ASHP, SEER 10, 6.2 HSPF' == x:
+    return ' Other'
+  elif 'Fuel Boiler, 76% AFUE' == x:
+    return ' Other'
+  elif 'Shared Heating' == x:
+    return 'Shared (Central) Boiler'
+  return x
+
+
+def hvac_cooling_efficiency(x):
+  if 'Shared Cooling' == x:
+    return 'Ductless MSHP'
+  elif 'Heat Pump' == x:
+    return 'ASHP'
   return x
 
 
@@ -169,9 +255,6 @@ if __name__ == '__main__':
              'end_use_natural_gas_heating_m_btu',
              'end_use_propane_heating_m_btu',
              'end_use_fuel_oil_heating_m_btu',
-             # 'end_use_coal_heating_m_btu',
-             # 'end_use_wood_cord_heating_m_btu',
-             # 'end_use_wood_pellets_heating_m_btu',
              'end_use_electricity_cooling_m_btu'
              ]
 
@@ -181,8 +264,8 @@ if __name__ == '__main__':
 
   upgrades = {
                 1: 'Envelope Only',
-                # 2: 'Envelope w/HP (R-30)',
-                # 3: 'Envelope w/HP (R-5)',
+                2: 'Envelope w/HP (R-30)',
+                3: 'Envelope w/HP (R-5)',
                 4: 'Envelope w/HP (R-15)'
              }
 
@@ -219,23 +302,23 @@ if __name__ == '__main__':
   # comparing across characteristics
   enduses = [
               'report_simulation_output.energy_use_total_m_btu',
-              # 'report_simulation_output.end_use_electricity_heating_m_btu',
-              # 'report_simulation_output.end_use_natural_gas_heating_m_btu',
-              # 'report_simulation_output.end_use_propane_heating_m_btu',
-              # 'report_simulation_output.end_use_fuel_oil_heating_m_btu',
-              # 'report_simulation_output.end_use_electricity_cooling_m_btu'
+              'report_simulation_output.end_use_electricity_heating_m_btu',
+              'report_simulation_output.end_use_natural_gas_heating_m_btu',
+              'report_simulation_output.end_use_propane_heating_m_btu',
+              'report_simulation_output.end_use_fuel_oil_heating_m_btu',
+              'report_simulation_output.end_use_electricity_cooling_m_btu'
              ]
 
   group_by = [
                 'build_existing_model.ashrae_iecc_climate_zone_2004',
                 # 'build_existing_model.geometry_building_type_recs',
                 # 'build_existing_model.geometry_building_type_acs',
-                'build_existing_model.geometry_building_type',
-                'build_existing_model.hvac_heating_type',
+                # 'build_existing_model.geometry_building_type',
+                # 'build_existing_model.hvac_heating_type',
                 'build_existing_model.hvac_heating_efficiency',
-                'build_existing_model.hvac_shared_efficiencies',
+                # 'build_existing_model.hvac_shared_efficiencies',
                 'build_existing_model.hvac_cooling_efficiency',
-                'build_existing_model.geometry_floor_area'
+                # 'build_existing_model.geometry_floor_area'
              ]
 
   path = os.path.join(os.path.dirname(__file__), 'results_up0.csv')
@@ -255,14 +338,25 @@ if __name__ == '__main__':
   else:
     baseline = pd.read_csv(path)
 
+    baseline['report_simulation_output.end_use_heating_m_btu'] = baseline['report_simulation_output.end_use_electricity_heating_m_btu'] + baseline['report_simulation_output.end_use_natural_gas_heating_m_btu'] + baseline['report_simulation_output.end_use_propane_heating_m_btu'] + baseline['report_simulation_output.end_use_fuel_oil_heating_m_btu']
+    baseline['report_simulation_output.end_use_cooling_m_btu'] = baseline['report_simulation_output.end_use_electricity_cooling_m_btu']
+
     ups = {}
     for upgrade_id in upgrades.keys():
       path = os.path.join(os.path.dirname(__file__), f'results_up{upgrade_id}.csv')
-      ups[upgrade_id] = pd.read_csv(path)
+      up = pd.read_csv(path)
+      
+      up['report_simulation_output.end_use_heating_m_btu'] = up['report_simulation_output.end_use_electricity_heating_m_btu'] + up['report_simulation_output.end_use_natural_gas_heating_m_btu'] + up['report_simulation_output.end_use_propane_heating_m_btu'] + up['report_simulation_output.end_use_fuel_oil_heating_m_btu']
+      up['report_simulation_output.end_use_cooling_m_btu'] = up['report_simulation_output.end_use_electricity_cooling_m_btu']      
+      
+      ups[upgrade_id] = up
+
+  enduses += ['report_simulation_output.end_use_heating_m_btu', 'report_simulation_output.end_use_cooling_m_btu']
 
   baseline = baseline[baseline['completed_status']=='Success']
   baseline['build_existing_model.geometry_building_type'] = baseline['build_existing_model.geometry_building_type_recs'].apply(lambda x: geometry_building_type(x))
   baseline['build_existing_model.hvac_heating_efficiency'] = baseline['build_existing_model.hvac_heating_efficiency'].apply(lambda x: hvac_heating_efficiency(x))
+  baseline['build_existing_model.hvac_cooling_efficiency'] = baseline['build_existing_model.hvac_cooling_efficiency'].apply(lambda x: hvac_cooling_efficiency(x))
   baseline = baseline.set_index('building_id').sort_index()
   baseline = baseline[enduses + group_by]
 
@@ -284,5 +378,6 @@ if __name__ == '__main__':
     if upgrade_id != 4:
       continue
 
-    histogram(baseline, up, enduses, group_by) # stacked histograms
-    density(baseline, up, enduses, group_by) # histograms with density lines
+    # histogram(baseline, up, enduses, group_by) # stacked histograms
+    # density(baseline, up, enduses, group_by) # histograms with density lines
+    box(baseline, up, enduses, group_by) # box and whisker
