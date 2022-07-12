@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: . # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/enduse/euss/resstock_runs/res_test_06_2018_10k_20220706
+output_directory: /projects/enduse/euss/resstock_runs/res_test_05_2018_500_20220706
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
@@ -12,7 +12,7 @@ baseline:
 sampler: 
   type: residential_quota
   args: 
-    n_datapoints: 10000
+    n_datapoints: 500
 
 workflow_generator: 
   type: residential_hpxml
@@ -70,7 +70,7 @@ workflow_generator:
       - measure_dir_name: QOIReport
 
     server_directory_cleanup: #check
-      debug: false
+      debug: true
 
 eagle:
   account: enduse
@@ -91,7 +91,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: euss
-      prefix: tests #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: test04-2018 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: euss-test #collection of Athena tables (post-crawling), can be constant for the entire analysis
