@@ -16,11 +16,12 @@ class TestRunAnalysis < MiniTest::Test
     @national_baseline = File.join(buildstock_directory, 'national_baseline')
     @testing_upgrades = File.join(buildstock_directory, 'testing_upgrades')
     @national_upgrades = File.join(buildstock_directory, 'national_upgrades')
-
+    @la100es_baseline = File.join(buildstock_directory, 'la100es_baseline')
     FileUtils.rm_rf(@testing_baseline)
     FileUtils.rm_rf(@national_baseline)
     FileUtils.rm_rf(@testing_upgrades)
     FileUtils.rm_rf(@national_upgrades)
+    FileUtils.rm_rf(@la100es_baseline)
   end
 
   def _test_measure_order(osw)
@@ -183,6 +184,7 @@ class TestRunAnalysis < MiniTest::Test
   end
 
   def test_testing_baseline
+    skip
     yml = ' -y project_testing/testing_baseline.yml'
     @command += yml
     @command += ' -k'
@@ -219,6 +221,7 @@ class TestRunAnalysis < MiniTest::Test
   end
 
   def test_national_baseline
+    skip
     yml = ' -y project_national/national_baseline.yml'
     @command += yml
     @command += ' -k'
@@ -255,6 +258,7 @@ class TestRunAnalysis < MiniTest::Test
   end
 
   def test_testing_upgrades
+    skip
     yml = ' -y project_testing/testing_upgrades.yml'
     @command += yml
     @command += ' -d'
@@ -315,6 +319,7 @@ class TestRunAnalysis < MiniTest::Test
   end
 
   def test_national_upgrades
+    skip
     yml = ' -y project_national/national_upgrades.yml'
     @command += yml
     @command += ' -d'
@@ -374,3 +379,4 @@ class TestRunAnalysis < MiniTest::Test
     FileUtils.cp(results_allupgrades, File.join(File.dirname(@national_upgrades), 'project_national'))
   end
 end
+
