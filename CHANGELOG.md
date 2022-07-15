@@ -22,6 +22,7 @@ Fixes
 - Reduce housing characteristic file size by relaxing the six digit float format in the housing characteristics ([#877](https://github.com/NREL/resstock/pull/877))
 - Fix minor bug in sampling probability calculation ([#934](https://github.com/NREL/resstock/pull/934)) 
 - Rename sources subfolders so all tsv_makers can be imported as packages ([#959](https://github.com/NREL/resstock/pull/959))
+- Fix encoding error in Federal Poverty Level ([#966](https://github.com/NREL/resstock/pull/966))
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)
