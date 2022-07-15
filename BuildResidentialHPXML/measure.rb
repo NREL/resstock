@@ -3276,7 +3276,7 @@ class HPXMLFile
     set_rim_joists(hpxml, model, args, sorted_surfaces)
     set_walls(hpxml, model, args, sorted_surfaces)
     set_foundation_walls(hpxml, model, args, sorted_surfaces)
-    set_frame_floors(hpxml, args, sorted_surfaces)
+    set_floors(hpxml, args, sorted_surfaces)
     set_slabs(hpxml, model, args, sorted_surfaces)
     set_windows(hpxml, model, args, sorted_subsurfaces)
     set_skylights(hpxml, args, sorted_subsurfaces)
@@ -3319,7 +3319,7 @@ class HPXMLFile
     # Collapse surfaces so that we don't get, e.g., individual windows
     # or the front wall split because of the door. Exclude foundation walls
     # from the list so we get all 4 foundation walls.
-    hpxml.collapse_enclosure_surfaces([:roofs, :walls, :rim_joists, :frame_floors,
+    hpxml.collapse_enclosure_surfaces([:roofs, :walls, :rim_joists, :floors,
                                        :slabs, :windows, :skylights, :doors])
 
     # After surfaces are collapsed, round all areas
@@ -3327,7 +3327,7 @@ class HPXMLFile
      hpxml.rim_joists +
      hpxml.walls +
      hpxml.foundation_walls +
-     hpxml.frame_floors +
+     hpxml.floors +
      hpxml.slabs +
      hpxml.windows +
      hpxml.skylights +
@@ -4114,7 +4114,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_frame_floors(hpxml, args, sorted_surfaces)
+  def self.set_floors(hpxml, args, sorted_surfaces)
     if [HPXML::FoundationTypeBasementConditioned,
         HPXML::FoundationTypeCrawlspaceConditioned].include?(args[:geometry_foundation_type]) && (args[:floor_over_foundation_assembly_r] > 2.1)
       args[:floor_over_foundation_assembly_r] = 2.1 # Uninsulated
@@ -4137,9 +4137,9 @@ class HPXMLFile
       elsif surface.outsideBoundaryCondition == 'Adiabatic'
         exterior_adjacent_to = HPXML::LocationOtherHousingUnit
         if surface.surfaceType == 'Floor'
-          other_space_above_or_below = HPXML::FrameFloorOtherSpaceBelow
+          other_space_above_or_below = HPXML::FloorOtherSpaceBelow
         elsif surface.surfaceType == 'RoofCeiling'
-          other_space_above_or_below = HPXML::FrameFloorOtherSpaceAbove
+          other_space_above_or_below = HPXML::FloorOtherSpaceAbove
         end
       end
 
@@ -4149,23 +4149,23 @@ class HPXMLFile
                HPXML::LocationBasementConditioned,
                HPXML::LocationCrawlspaceConditioned].include? exterior_adjacent_to
 
-      hpxml.frame_floors.add(id: "FrameFloor#{hpxml.frame_floors.size + 1}",
-                             exterior_adjacent_to: exterior_adjacent_to,
-                             interior_adjacent_to: interior_adjacent_to,
-                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2'),
-                             other_space_above_or_below: other_space_above_or_below)
-      @surface_ids[surface.name.to_s] = hpxml.frame_floors[-1].id
+      hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                       exterior_adjacent_to: exterior_adjacent_to,
+                       interior_adjacent_to: interior_adjacent_to,
+                       area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2'),
+                       other_space_above_or_below: other_space_above_or_below)
+      @surface_ids[surface.name.to_s] = hpxml.floors[-1].id
 
-      if hpxml.frame_floors[-1].is_thermal_boundary
+      if hpxml.floors[-1].is_thermal_boundary
         if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? exterior_adjacent_to
-          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:ceiling_assembly_r]
+          hpxml.floors[-1].insulation_assembly_r_value = args[:ceiling_assembly_r]
         elsif [HPXML::LocationGarage].include? exterior_adjacent_to
-          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_over_garage_assembly_r]
+          hpxml.floors[-1].insulation_assembly_r_value = args[:floor_over_garage_assembly_r]
         else
-          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_over_foundation_assembly_r]
+          hpxml.floors[-1].insulation_assembly_r_value = args[:floor_over_foundation_assembly_r]
         end
       else
-        hpxml.frame_floors[-1].insulation_assembly_r_value = 2.1 # Uninsulated
+        hpxml.floors[-1].insulation_assembly_r_value = 2.1 # Uninsulated
       end
     end
   end
@@ -4386,7 +4386,7 @@ class HPXMLFile
   def self.set_attics(hpxml, args)
     surf_ids = { 'roofs' => { 'surfaces' => hpxml.roofs, 'ids' => [] },
                  'walls' => { 'surfaces' => hpxml.walls, 'ids' => [] },
-                 'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] } }
+                 'floors' => { 'surfaces' => hpxml.floors, 'ids' => [] } }
 
     attic_locations = [HPXML::LocationAtticUnconditioned, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented]
     surf_ids.values.each do |surf_hash|
@@ -4411,12 +4411,12 @@ class HPXMLFile
                      attic_type: args[:geometry_attic_type],
                      attached_to_roof_idrefs: surf_ids['roofs']['ids'],
                      attached_to_wall_idrefs: surf_ids['walls']['ids'],
-                     attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'])
+                     attached_to_floor_idrefs: surf_ids['floors']['ids'])
   end
 
   def self.set_foundations(hpxml, args)
     surf_ids = { 'slabs' => { 'surfaces' => hpxml.slabs, 'ids' => [] },
-                 'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] },
+                 'floors' => { 'surfaces' => hpxml.floors, 'ids' => [] },
                  'foundation_walls' => { 'surfaces' => hpxml.foundation_walls, 'ids' => [] },
                  'walls' => { 'surfaces' => hpxml.walls, 'ids' => [] },
                  'rim_joists' => { 'surfaces' => hpxml.rim_joists, 'ids' => [] }, }
@@ -4432,7 +4432,7 @@ class HPXMLFile
         next unless (foundation_locations.include? surface.interior_adjacent_to) ||
                     (foundation_locations.include? surface.exterior_adjacent_to) ||
                     (surf_type == 'slabs' && surface.interior_adjacent_to == HPXML::LocationLivingSpace) ||
-                    (surf_type == 'frame_floors' && surface.exterior_adjacent_to == HPXML::LocationOutside)
+                    (surf_type == 'floors' && surface.exterior_adjacent_to == HPXML::LocationOutside)
 
         surf_hash['ids'] << surface.id
       end
@@ -4441,7 +4441,7 @@ class HPXMLFile
     hpxml.foundations.add(id: "Foundation#{hpxml.foundations.size + 1}",
                           foundation_type: args[:geometry_foundation_type],
                           attached_to_slab_idrefs: surf_ids['slabs']['ids'],
-                          attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'],
+                          attached_to_floor_idrefs: surf_ids['floors']['ids'],
                           attached_to_foundation_wall_idrefs: surf_ids['foundation_walls']['ids'],
                           attached_to_wall_idrefs: surf_ids['walls']['ids'],
                           attached_to_rim_joist_idrefs: surf_ids['rim_joists']['ids'])
