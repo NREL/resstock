@@ -150,17 +150,17 @@
       <sch:assert role='ERROR' test='number(h:AssemblyEffectiveRValue) &gt; 0 or not(h:AssemblyEffectiveRValue)'>Expected AssemblyEffectiveRValue to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:SystemIdentifier[@id]) = 1'>Expected SystemIdentifier with id attribute</sch:assert>
     </sch:rule>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:FrameFloors/h:FrameFloor'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Floors/h:Floor'>
       <sch:assert role='ERROR' test='h:ExteriorAdjacentTo[text()="attic" or text()="attic - conditioned" or text()="attic - unconditioned" or text()="attic - unvented" or text()="attic - vented" or text()="basement" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace" or text()="crawlspace - conditioned" or text()="crawlspace - unconditioned" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="garage" or text()="garage - conditioned" or text()="garage - unconditioned" or text()="ground" or text()="living space" or text()="other" or text()="other heated space" or text()="other housing unit" or text()="other housing unit above" or text()="other housing unit below" or text()="other multifamily buffer space" or text()="other non-freezing space" or text()="outside" or text()="unconditioned space"] or not(h:ExteriorAdjacentTo)'>Expected ExteriorAdjacentTo to be 'attic' or 'attic - conditioned' or 'attic - unconditioned' or 'attic - unvented' or 'attic - vented' or 'basement' or 'basement - conditioned' or 'basement - unconditioned' or 'crawlspace' or 'crawlspace - conditioned' or 'crawlspace - unconditioned' or 'crawlspace - unvented' or 'crawlspace - vented' or 'garage' or 'garage - conditioned' or 'garage - unconditioned' or 'ground' or 'living space' or 'other' or 'other heated space' or 'other housing unit' or 'other housing unit above' or 'other housing unit below' or 'other multifamily buffer space' or 'other non-freezing space' or 'outside' or 'unconditioned space'</sch:assert>
       <sch:assert role='ERROR' test='h:InteriorAdjacentTo[text()="attic" or text()="attic - conditioned" or text()="attic - unconditioned" or text()="attic - unvented" or text()="attic - vented" or text()="basement" or text()="basement - conditioned" or text()="basement - unconditioned" or text()="crawlspace" or text()="crawlspace - conditioned" or text()="crawlspace - unconditioned" or text()="crawlspace - unvented" or text()="crawlspace - vented" or text()="garage" or text()="garage - conditioned" or text()="garage - unconditioned" or text()="ground" or text()="living space" or text()="other" or text()="other heated space" or text()="other housing unit" or text()="other housing unit above" or text()="other housing unit below" or text()="other multifamily buffer space" or text()="other non-freezing space" or text()="outside" or text()="unconditioned space"] or not(h:InteriorAdjacentTo)'>Expected InteriorAdjacentTo to be 'attic' or 'attic - conditioned' or 'attic - unconditioned' or 'attic - unvented' or 'attic - vented' or 'basement' or 'basement - conditioned' or 'basement - unconditioned' or 'crawlspace' or 'crawlspace - conditioned' or 'crawlspace - unconditioned' or 'crawlspace - unvented' or 'crawlspace - vented' or 'garage' or 'garage - conditioned' or 'garage - unconditioned' or 'ground' or 'living space' or 'other' or 'other heated space' or 'other housing unit' or 'other housing unit above' or 'other housing unit below' or 'other multifamily buffer space' or 'other non-freezing space' or 'outside' or 'unconditioned space'</sch:assert>
       <sch:assert role='ERROR' test='number(h:Area) &gt; 0 or not(h:Area)'>Expected Area to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:SystemIdentifier[@id]) = 1'>Expected SystemIdentifier with id attribute</sch:assert>
     </sch:rule>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:FrameFloors/h:FrameFloor/h:InteriorFinish'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Floors/h:Floor/h:InteriorFinish'>
       <sch:assert role='ERROR' test='h:Type[text()="gypsum board" or text()="gypsum composite board" or text()="plaster" or text()="wood" or text()="other" or text()="none"] or not(h:Type)'>Expected Type to be 'gypsum board' or 'gypsum composite board' or 'plaster' or 'wood' or 'other' or 'none'</sch:assert>
       <sch:assert role='ERROR' test='number(h:Thickness) &gt;= 0 or not(h:Thickness)'>Expected Thickness to be greater than or equal to 0</sch:assert>
     </sch:rule>
-    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:FrameFloors/h:FrameFloor/h:Insulation'>
+    <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Floors/h:Floor/h:Insulation'>
       <sch:assert role='ERROR' test='number(h:AssemblyEffectiveRValue) &gt; 0 or not(h:AssemblyEffectiveRValue)'>Expected AssemblyEffectiveRValue to be greater than 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:SystemIdentifier[@id]) = 1'>Expected SystemIdentifier with id attribute</sch:assert>
     </sch:rule>
@@ -594,14 +594,14 @@
       <sch:assert role='ERROR' test='count(h:SystemIdentifier[@id]) = 1'>Expected SystemIdentifier with id attribute</sch:assert>
       <sch:assert role='ERROR' test='count(h:AttachedToRoof[@idref]) = count(h:AttachedToRoof)'>Expected idref attribute for AttachedToRoof</sch:assert>
       <sch:assert role='ERROR' test='count(h:AttachedToWall[@idref]) = count(h:AttachedToWall)'>Expected idref attribute for AttachedToWall</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AttachedToFrameFloor[@idref]) = count(h:AttachedToFrameFloor)'>Expected idref attribute for AttachedToFrameFloor</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AttachedToFloor[@idref]) = count(h:AttachedToFloor)'>Expected idref attribute for AttachedToFloor</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Foundations/h:Foundation'>
       <sch:assert role='ERROR' test='count(h:SystemIdentifier[@id]) = 1'>Expected SystemIdentifier with id attribute</sch:assert>
       <sch:assert role='ERROR' test='count(h:AttachedToRimJoist[@idref]) = count(h:AttachedToRimJoist)'>Expected idref attribute for AttachedToRimJoist</sch:assert>
       <sch:assert role='ERROR' test='count(h:AttachedToFoundationWall[@idref]) = count(h:AttachedToFoundationWall)'>Expected idref attribute for AttachedToFoundationWall</sch:assert>
       <sch:assert role='ERROR' test='count(h:AttachedToSlab[@idref]) = count(h:AttachedToSlab)'>Expected idref attribute for AttachedToSlab</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AttachedToFrameFloor[@idref]) = count(h:AttachedToFrameFloor)'>Expected idref attribute for AttachedToFrameFloor</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AttachedToFloor[@idref]) = count(h:AttachedToFloor)'>Expected idref attribute for AttachedToFloor</sch:assert>
       <sch:assert role='ERROR' test='count(h:AttachedToWall[@idref]) = count(h:AttachedToWall)'>Expected idref attribute for AttachedToWall</sch:assert>
     </sch:rule>
     <sch:rule context='/h:HPXML/h:Building/h:BuildingDetails/h:Enclosure/h:Slabs/h:Slab/h:PerimeterInsulation'>

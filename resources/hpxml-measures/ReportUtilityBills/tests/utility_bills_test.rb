@@ -363,52 +363,6 @@ class ReportUtilityBillsTest < MiniTest::Test
     assert_equal(0.0, CalculateUtilityBill.calculate_monthly_prorate(header, 5))
   end
 
-  def test_call_from_cli
-    # This is used by BEopt v3
-
-    # Test retrieval of marginal/average rates for user-specified fixed charges
-    elec_state = 'CT'
-    elec_fixed_charge = 12.0
-    elec_marginal_rate = 0.0
-    gas_state = 'US'
-    gas_fixed_charge = 12.0
-    gas_marginal_rate = 0.0
-    oil_state = 'CT'
-    propane_state = 'US'
-    utility_bills_rb = File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources/utility_bills.rb')
-    io = IO.popen([OpenStudio.getOpenStudioCLI.to_s, utility_bills_rb,
-                   elec_state, elec_fixed_charge.to_s, elec_marginal_rate.to_s,
-                   gas_state, gas_fixed_charge.to_s, gas_marginal_rate.to_s,
-                   oil_state, propane_state])
-    out_lines = io.read.split("\n")
-    assert_equal(4, out_lines.size)
-    assert_equal("#{HPXML::FuelTypeElectricity} 0.202184 0.2186", out_lines[0])
-    assert_equal("#{HPXML::FuelTypeNaturalGas} 0.987814 1.180328", out_lines[1])
-    assert_equal("#{HPXML::FuelTypeOil} 3.436115 3.436115", out_lines[2])
-    assert_equal("#{HPXML::FuelTypePropane} 2.695423 2.695423", out_lines[3])
-
-    # Test retrieval of average rates for user-specified fixed charges and marginal rates
-    elec_state = 'US'
-    elec_fixed_charge = 12.0
-    elec_marginal_rate = 0.12
-    gas_state = 'CT'
-    gas_fixed_charge = 12.0
-    gas_marginal_rate = 0.8
-    oil_state = 'US'
-    propane_state = 'CT'
-    utility_bills_rb = File.join(File.dirname(__FILE__), '../../HPXMLtoOpenStudio/resources/utility_bills.rb')
-    io = IO.popen([OpenStudio.getOpenStudioCLI.to_s, utility_bills_rb,
-                   elec_state, elec_fixed_charge.to_s, elec_marginal_rate.to_s,
-                   gas_state, gas_fixed_charge.to_s, gas_marginal_rate.to_s,
-                   oil_state, propane_state])
-    out_lines = io.read.split("\n")
-    assert_equal(4, out_lines.size)
-    assert_equal("#{HPXML::FuelTypeElectricity} #{elec_marginal_rate} 0.133043", out_lines[0])
-    assert_equal("#{HPXML::FuelTypeNaturalGas} #{gas_marginal_rate} 0.955844", out_lines[1])
-    assert_equal("#{HPXML::FuelTypeOil} 3.495346 3.495346", out_lines[2])
-    assert_equal("#{HPXML::FuelTypePropane} 3.628692 3.628692", out_lines[3])
-  end
-
   def _check_bills(expected_bills, actual_bills)
     bills = expected_bills.keys | actual_bills.keys
     bills.each do |bill|
