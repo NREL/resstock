@@ -14,6 +14,7 @@ Features
 - Improve distributions of heat pumps in the southeast U.S. by spliting IECC zone 2A into two zones: 2A (FL, GA, AL, MS) and 2A (TX, LA) ([#913](https://github.com/NREL/resstock/pull/913))
 - Add Income and Tenure tsv, update PUMS tsvs from 2017 5-yrs to 2019 5-yrs, update dependencies and fix encoding error in Occupants.tsv ([#900](https://github.com/NREL/resstock/pull/900))
 - Add Income and Tenure into Geometry Floor Area ([#949](https://github.com/NREL/resstock/pull/949))
+- Add distributions for partial space cooling ([#964](https://github.com/NREL/resstock/pull/964))
 
 Fixes
 - Clean up option names for natural ventilation and hot water distribution ([#828](https://github.com/NREL/resstock/pull/828))
