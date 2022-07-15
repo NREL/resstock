@@ -94,6 +94,7 @@ class CLT
   WholeHouseFan = 'Whole House Fan'
   Ducts = 'Ducts'
   InternalGains = 'Internal Gains'
+  Lighting = 'Lighting'
 end
 
 class UHT

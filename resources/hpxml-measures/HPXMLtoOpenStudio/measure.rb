@@ -2199,6 +2199,25 @@ class OSModel
       end
     end
 
+    # EMS Sensors: Lighting
+    lightings_sensors = []
+    lightings_sensors << []
+    model.getLightss.sort.each do |e|
+      next unless e.space.get.thermalZone.get.name.to_s == living_zone.name.to_s
+
+      lightings_sensors << []
+      { 'Lights Convective Heating Energy' => 'ig_lgt_conv',
+        'Lights Radiant Heating Energy' => 'ig_lgt_rad',
+        'Lights Visible Radiation Heating Energy' => 'ig_lgt_vis' }.each do |var, name|
+      # { 'Lights Convective Heating Energy' => 'ig_lgt_conv',
+      #   'Lights Visible Radiation Heating Energy' => 'ig_lgt_vis' }.each do |var, name|
+        intgains_lights_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
+        intgains_lights_sensor.setName(name)
+        intgains_lights_sensor.setKeyName(e.name.to_s)
+        lightings_sensors[-1] << intgains_lights_sensor
+      end
+    end
+
     # EMS Sensors: Internal Gains
 
     intgains_sensors = []
@@ -2228,20 +2247,6 @@ class OSModel
         intgains_other_equip_sensor.setName(name)
         intgains_other_equip_sensor.setKeyName(o.name.to_s)
         intgains_sensors[-1] << intgains_other_equip_sensor
-      end
-    end
-
-    model.getLightss.sort.each do |e|
-      next unless e.space.get.thermalZone.get.name.to_s == living_zone.name.to_s
-
-      intgains_sensors << []
-      { 'Lights Convective Heating Energy' => 'ig_lgt_conv',
-        'Lights Radiant Heating Energy' => 'ig_lgt_rad',
-        'Lights Visible Radiation Heating Energy' => 'ig_lgt_vis' }.each do |var, name|
-        intgains_lights_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
-        intgains_lights_sensor.setName(name)
-        intgains_lights_sensor.setKeyName(e.name.to_s)
-        intgains_sensors[-1] << intgains_lights_sensor
       end
     end
 
@@ -2287,7 +2292,7 @@ class OSModel
       intgains_dhw_sensors[dhw_sensor] = [offcycle_loss, oncycle_loss, dhw_rtf_sensor]
     end
 
-    nonsurf_names = ['intgains', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
+    nonsurf_names = ['intgains', 'lighting', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
 
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
@@ -2310,6 +2315,16 @@ class OSModel
         end
         program.addLine(s) if sensors.size > 0
       end
+    end
+
+    # EMS program: Lighting
+    program.addLine('Set hr_lighting = 0')
+    lightings_sensors.each do |lighting_sensors|
+      s = 'Set hr_lighting = hr_lighting'
+      lighting_sensors.each do |sensor|
+        s += " - #{sensor.name}"
+      end
+      program.addLine(s) if lighting_sensors.size > 0
     end
 
     # EMS program: Internal gains

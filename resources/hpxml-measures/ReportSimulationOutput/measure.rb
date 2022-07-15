@@ -2212,6 +2212,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @component_loads[[LT::Heating, CLT::WholeHouseFan]] = ComponentLoad.new(ems_variable: 'loads_htg_whf')
     @component_loads[[LT::Heating, CLT::Ducts]] = ComponentLoad.new(ems_variable: 'loads_htg_ducts')
     @component_loads[[LT::Heating, CLT::InternalGains]] = ComponentLoad.new(ems_variable: 'loads_htg_intgains')
+    @component_loads[[LT::Heating, CLT::Lighting]] = ComponentLoad.new(ems_variable: 'loads_htg_lighting')
     @component_loads[[LT::Cooling, CLT::Roofs]] = ComponentLoad.new(ems_variable: 'loads_clg_roofs')
     @component_loads[[LT::Cooling, CLT::Ceilings]] = ComponentLoad.new(ems_variable: 'loads_clg_ceilings')
     @component_loads[[LT::Cooling, CLT::Walls]] = ComponentLoad.new(ems_variable: 'loads_clg_walls')
@@ -2229,6 +2230,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     @component_loads[[LT::Cooling, CLT::WholeHouseFan]] = ComponentLoad.new(ems_variable: 'loads_clg_whf')
     @component_loads[[LT::Cooling, CLT::Ducts]] = ComponentLoad.new(ems_variable: 'loads_clg_ducts')
     @component_loads[[LT::Cooling, CLT::InternalGains]] = ComponentLoad.new(ems_variable: 'loads_clg_intgains')
+    @component_loads[[LT::Cooling, CLT::Lighting]] = ComponentLoad.new(ems_variable: 'loads_clg_lighting')
 
     @component_loads.each do |key, comp_load|
       load_type, comp_load_type = key
