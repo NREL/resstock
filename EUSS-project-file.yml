@@ -1,10 +1,10 @@
 schema_version: '0.3'
 buildstock_directory: . # Relative to this file or absolute
 project_directory: project_national  # Relative to buildstock_directory
-output_directory: /projects/enduse/euss/resstock_runs/res_full_01_TMY3_550k_20220620
+output_directory: /projects/enduse/euss/resstock_runs/res_full_01_2018_550k_20220713
 # weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
-weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2018_FIPS.zip
 
 baseline:
   n_buildings_represented: 133172057
@@ -23,7 +23,7 @@ workflow_generator:
       simulation_control_run_period_begin_day_of_month: 1
       simulation_control_run_period_end_month: 12
       simulation_control_run_period_end_day_of_month: 31
-      simulation_control_run_period_calendar_year: 2007
+      simulation_control_run_period_calendar_year: 2018
 
     emissions: #double check syntax
       - scenario_name: LRMER_MidCase_15
@@ -70,7 +70,7 @@ workflow_generator:
       - measure_dir_name: QOIReport
 
     server_directory_cleanup: #check
-      debug: true
+      debug: false
 
 eagle:
   account: enduse
@@ -91,7 +91,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: euss
-      prefix: full1 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: full1-2018 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: euss-full1 #collection of Athena tables (post-crawling), can be constant for the entire analysis
