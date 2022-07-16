@@ -279,7 +279,7 @@ class ReportSimulationOutputTest < MiniTest::Test
   BaseHPXMLTimeseriesColsAdvancedOutputVariables = [
     'Surface Construction Index: Door1',
     'Surface Construction Index: Foundationwall1',
-    'Surface Construction Index: Framefloor1',
+    'Surface Construction Index: Floor1',
     'Surface Construction Index: Furniture Mass Living Space 1 Above Grade',
     'Surface Construction Index: Furniture Mass Living Space 1 Below Grade',
     'Surface Construction Index: Inferred Conditioned Ceiling',

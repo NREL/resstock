@@ -275,11 +275,11 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         end
       elsif ['enclosure-garage-missing-roof-ceiling'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-garage.xml'))
-        hpxml.frame_floors.select { |w|
+        hpxml.floors.select { |w|
           w.interior_adjacent_to == HPXML::LocationGarage &&
             w.exterior_adjacent_to == HPXML::LocationAtticUnvented
-        }.reverse_each do |frame_floor|
-          frame_floor.delete
+        }.reverse_each do |floor|
+          floor.delete
         end
       elsif ['enclosure-garage-missing-slab'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-garage.xml'))
@@ -288,8 +288,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         end
       elsif ['enclosure-living-missing-ceiling-roof'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.frame_floors.reverse_each do |frame_floor|
-          frame_floor.delete
+        hpxml.floors.reverse_each do |floor|
+          floor.delete
         end
       elsif ['enclosure-living-missing-exterior-wall'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
@@ -459,10 +459,10 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.hvac_distributions[0].ducts[0].duct_location = HPXML::LocationOtherMultifamilyBufferSpace
       elsif ['multifamily-reference-surface'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.frame_floors << hpxml.frame_floors[0].dup
-        hpxml.frame_floors[1].id = "FrameFloor#{hpxml.frame_floors.size}"
-        hpxml.frame_floors[1].exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
-        hpxml.frame_floors[1].other_space_above_or_below = HPXML::FrameFloorOtherSpaceAbove
+        hpxml.floors << hpxml.floors[0].dup
+        hpxml.floors[1].id = "Floor#{hpxml.floors.size}"
+        hpxml.floors[1].exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
+        hpxml.floors[1].other_space_above_or_below = HPXML::FloorOtherSpaceAbove
       elsif ['multifamily-reference-water-heater'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.water_heating_systems[0].location = HPXML::LocationOtherNonFreezingSpace
