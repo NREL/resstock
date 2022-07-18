@@ -43,9 +43,14 @@ class ZonalHeatPump():
                                         applied_only=True,
                                         get_query_only=self.get_query_only)
 
+    df['end_use_heating_m_btu__baseline'] = df['end_use_electricity_heating_m_btu__baseline'] + df['end_use_natural_gas_heating_m_btu__baseline'] + df['end_use_propane_heating_m_btu__baseline'] + df['end_use_fuel_oil_heating_m_btu__baseline']
+    df['end_use_heating_m_btu__savings'] = df['end_use_electricity_heating_m_btu__savings'] + df['end_use_natural_gas_heating_m_btu__savings'] + df['end_use_propane_heating_m_btu__savings'] + df['end_use_fuel_oil_heating_m_btu__savings']
+    df['end_use_cooling_m_btu__baseline'] = df['end_use_electricity_cooling_m_btu__baseline']
+    df['end_use_cooling_m_btu__savings'] = df['end_use_electricity_cooling_m_btu__savings']
+
     df['upgrade_name'] = upgrade_name
 
-    for col in self.enduses:
+    for col in self.enduses + ['end_use_heating_m_btu', 'end_use_cooling_m_btu']:
       df[f'{col}__average_savings'] = df[f'{col}__savings'] / df['units_count']
 
     return df
@@ -61,23 +66,36 @@ class ZonalHeatPump():
 
 
 def stacked_bar(df, enduses, group_by):
+  value_vars = ['end_use_cooling_m_btu__average_savings', 'end_use_heating_m_btu__average_savings']
+  id_vars = list(set(df.columns) - set(value_vars))
+  df = pd.melt(df, id_vars=id_vars, value_vars=value_vars, var_name='end_use', value_name='average_savings')
+
   for group in group_by:
     for enduse in enduses:
-      fig = px.histogram(df, x=group, y=f'{enduse}__savings', color='upgrade_name', barmode='group', text_auto=True)
-      fig.update_traces(textfont_size=24, textangle=0, textposition="outside", cliponaxis=False)
-      fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'}, font={'size': 28}, legend_title='',
-                        xaxis={'title': '', 'tickfont': {'size': 24}, 'tickangle': 0, 'showline': True, 'linecolor': 'black', 'mirror': True},
-                        yaxis={'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True})
+      # fig = px.histogram(df, x=group, y=f'{enduse}__savings', color='upgrade_name', barmode='group', text_auto=True)
+      # fig.update_traces(textfont_size=24, textangle=0, textposition="outside", cliponaxis=False)
+      # fig.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)'}, font={'size': 28}, legend_title='',
+                        # xaxis={'title': '', 'tickfont': {'size': 24}, 'tickangle': 0, 'showline': True, 'linecolor': 'black', 'mirror': True},
+                        # yaxis={'tickfont': {'size': 24}, 'showgrid': True, 'gridcolor': 'black', 'showline': True, 'linecolor': 'black', 'mirror': True})
 
-      path = os.path.join(os.path.dirname(__file__), f'upgrade_{group}_{enduse}.html')
-      plotly.offline.plot(fig, filename=path, auto_open=False)
-
-      # fig = px.histogram(df, x=group, y=f'{enduse}__average_savings', color='upgrade_name', barmode='group',
-                         # title=f'Average annual savings for {enduse}', text_auto=True)
-      # fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
-
-      # path = os.path.join(os.path.dirname(__file__), f'upgrade_average_{group}_{enduse}.html')
+      # path = os.path.join(os.path.dirname(__file__), f'upgrade_{group}_{enduse}.html')
       # plotly.offline.plot(fig, filename=path, auto_open=False)
+
+      fig = px.histogram(df, x='average_savings', y=group, color='end_use', orientation='h',
+                         template='plotly_white', text_auto=True,
+                         facet_row='upgrade_name')
+      fig.update_traces(textfont_size=24, textangle=0, textposition="outside", cliponaxis=False)
+      fig.update_layout(font={'size': 28}, legend_title='',
+                        showlegend=False)
+      fig.update_xaxes(title='Average Heating and Cooling Savings (MBtu) per Dwelling Unit', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+      fig.update_xaxes(row=2, title='', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+      fig.update_yaxes(title='', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+
+      # for annotation in fig['layout']['annotations']: 
+        # annotation['textangle']= 0
+
+      path = os.path.join(os.path.dirname(__file__), f'upgrade_average_{group}_{enduse}.html')
+      plotly.offline.plot(fig, filename=path, auto_open=False)
 
 
 def histogram(baseline, up, enduses, group_by):
@@ -258,14 +276,16 @@ if __name__ == '__main__':
              'end_use_electricity_cooling_m_btu'
              ]
 
-  group_by = ['ashrae_iecc_climate_zone_2004',
-              'geometry_building_type_recs',
-              'geometry_floor_area']
+  group_by = [
+              'ashrae_iecc_climate_zone_2004',
+              # 'geometry_building_type_recs',
+              # 'geometry_floor_area'
+              ]
 
   upgrades = {
                 1: 'Envelope Only',
-                2: 'Envelope w/HP (R-30)',
-                3: 'Envelope w/HP (R-5)',
+                # 2: 'Envelope w/HP (R-30)',
+                # 3: 'Envelope w/HP (R-5)',
                 4: 'Envelope w/HP (R-15)'
              }
 
@@ -288,10 +308,6 @@ if __name__ == '__main__':
   else:
     df = pd.read_csv(path)
 
-  df['end_use_heating_m_btu__baseline'] = df['end_use_electricity_heating_m_btu__baseline'] + df['end_use_natural_gas_heating_m_btu__baseline'] + df['end_use_propane_heating_m_btu__baseline'] + df['end_use_fuel_oil_heating_m_btu__baseline']
-  df['end_use_heating_m_btu__savings'] = df['end_use_electricity_heating_m_btu__savings'] + df['end_use_natural_gas_heating_m_btu__savings'] + df['end_use_propane_heating_m_btu__savings'] + df['end_use_fuel_oil_heating_m_btu__savings']
-  df['end_use_cooling_m_btu__baseline'] = df['end_use_electricity_cooling_m_btu__baseline']
-  df['end_use_cooling_m_btu__savings'] = df['end_use_electricity_cooling_m_btu__savings']
   enduses += ['end_use_heating_m_btu', 'end_use_cooling_m_btu']
   stacked_bar(df, enduses, group_by)
 
