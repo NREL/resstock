@@ -167,27 +167,24 @@ def hvac_cooling_efficiency_color(x):
   return x
 
 
-def box(baseline, up, enduses, group_by):
-  df = baseline[enduses].subtract(up[enduses]) # absolute
-  # df = baseline[enduses].subtract(up[enduses]).div(baseline[enduses]) # percent
-  df = baseline[group_by].join(df)
-
+def box(df, enduses, group_by):
   for group in group_by:
     for enduse in enduses:
 
       if group == 'build_existing_model.hvac_heating_efficiency':
         df['color'] = df['build_existing_model.hvac_heating_efficiency'].apply(lambda x: hvac_heating_efficiency_color(x))
-        fig = px.box(df, x=enduse, y=group, color='color', boxmode="overlay", template='plotly_white')
+        fig = px.box(df, x=enduse, y=group, color='color', boxmode='overlay', template='plotly_white', facet_row='upgrade_name')
       elif group == 'build_existing_model.hvac_cooling_efficiency':
         df['color'] = df['build_existing_model.hvac_cooling_efficiency'].apply(lambda x: hvac_cooling_efficiency_color(x))
-        fig = px.box(df, x=enduse, y=group, color='color', boxmode="overlay", template='plotly_white')
+        fig = px.box(df, x=enduse, y=group, color='color', boxmode='overlay', template='plotly_white', facet_row='upgrade_name')
       else:
         fig = px.box(df, x=enduse, y=group)
 
       fig.update_layout(font={'size': 28}, legend_title='',
-                        xaxis={'title': enduse.replace('report_simulation_output.', ''), 'tickfont': {'size': 24}, 'showline': True, 'linecolor': 'black', 'mirror': True},
-                        yaxis={'title': '', 'tickfont': {'size': 24}, 'showline': True, 'linecolor': 'black', 'mirror': True},
                         showlegend=False)
+      fig.update_xaxes(title=enduse.replace('report_simulation_output.', ''), tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+      fig.update_xaxes(row=2, title='', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+      fig.update_yaxes(title='', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
 
       path = os.path.join(os.path.dirname(__file__), f'box_{group.replace("build_existing_model.", "")}_{enduse.replace("report_simulation_output.", "")}.html')
       plotly.offline.plot(fig, filename=path, auto_open=False)
@@ -388,12 +385,20 @@ if __name__ == '__main__':
     up = up[up['completed_status']=='Success']
     up = up.set_index('building_id').sort_index()
     up = up[enduses]
-    ups[upgrade_id] = up
 
-  for upgrade_id, up in ups.items():
+    df = baseline[enduses].subtract(up[enduses]) # absolute
+    # df = baseline[enduses].subtract(up[enduses]).div(baseline[enduses]) # percent
+    df = baseline[group_by].join(df)
+    df['upgrade_name'] = upgrades[upgrade_id]
+
+    ups[upgrade_id] = df
+
+  for upgrade_id, df in ups.items():
     if upgrade_id != 4:
       continue
 
     # histogram(baseline, up, enduses, group_by) # stacked histograms
     # density(baseline, up, enduses, group_by) # histograms with density lines
-    box(baseline, up, enduses, group_by) # box and whisker
+    box(df, enduses, group_by) # box and whisker
+
+  box(pd.concat([ups[1], ups[4]]), enduses, group_by)
