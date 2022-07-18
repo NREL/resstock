@@ -2011,8 +2011,10 @@ class OSModel
                          ceilings: [],
                          roofs: [],
                          windows: [],
+                         windows_transmitted: [],
                          doors: [],
                          skylights: [],
+                         skylights_transmitted: [],
                          internal_mass: [] }
 
     # Output diagnostics needed for some output variables used below
@@ -2038,8 +2040,8 @@ class OSModel
         fail "Unexpected subsurface for component loads: '#{ss.name}'." if key.nil?
 
         if (surface_type == 'Window') || (surface_type == 'Skylight')
-          vars = { 'Surface Window Transmitted Solar Radiation Energy' => 'ss_trans_in',
-                   'Surface Window Shortwave from Zone Back Out Window Heat Transfer Rate' => 'ss_back_out',
+          #'Surface Window Transmitted Solar Radiation Energy' => 'ss_trans_in',
+          vars = { 'Surface Window Shortwave from Zone Back Out Window Heat Transfer Rate' => 'ss_back_out',
                    'Surface Window Total Glazing Layers Absorbed Shortwave Radiation Rate' => 'ss_sw_abs',
                    'Surface Window Total Glazing Layers Absorbed Solar Radiation Energy' => 'ss_sol_abs',
                    'Surface Inside Face Initial Transmitted Diffuse Transmitted Out Window Solar Radiation Rate' => 'ss_trans_out',
@@ -2060,6 +2062,20 @@ class OSModel
           sensor.setName(name)
           sensor.setKeyName(ss.name.to_s)
           surfaces_sensors[key][-1] << sensor
+        end
+
+        # Store window transmitted solar separately 
+        if (surface_type == 'Window') || (surface_type == 'Skylight')
+          var = 'Surface Window Transmitted Solar Radiation Energy'
+          name = 'ss_trans_in'
+          sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
+          sensor.setName(name)
+          sensor.setKeyName(ss.name.to_s)
+          key_transmit = {'Window'=> :windows_transmitted,
+                          'Skylight'=> :skylights_transmitted}[surface_type]
+
+          surfaces_sensors[key_transmit] << []
+          surfaces_sensors[key_transmit][-1] << sensor
         end
       end
 
