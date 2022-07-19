@@ -233,14 +233,14 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
         bldg_output += slab.area
       end
     elsif bldg_type == BO::EnclosureCeilingAreaThermalBoundary
-      hpxml.frame_floors.each do |frame_floor|
-        next unless frame_floor.is_thermal_boundary
-        next unless frame_floor.is_interior
-        next unless frame_floor.is_ceiling
+      hpxml.floors.each do |floor|
+        next unless floor.is_thermal_boundary
+        next unless floor.is_interior
+        next unless floor.is_ceiling
         next unless [HPXML::LocationAtticVented,
-                     HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
+                     HPXML::LocationAtticUnvented].include?(floor.exterior_adjacent_to)
 
-        bldg_output += frame_floor.area
+        bldg_output += floor.area
       end
     elsif bldg_type == BO::EnclosureRoofArea
       hpxml.roofs.each do |roof|

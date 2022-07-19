@@ -679,29 +679,29 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
                                          1000, 0.0, 10.0, 0.0, 10.0, HPXML::FoundationWallTypeSolidConcrete)
   end
 
-  def test_frame_floors
+  def test_floors
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
-    hpxml.frame_floors[0].interior_finish_type = HPXML::InteriorFinishWood
-    hpxml.frame_floors[0].interior_finish_thickness = 0.375
+    hpxml.floors[0].interior_finish_type = HPXML::InteriorFinishWood
+    hpxml.floors[0].interior_finish_thickness = 0.375
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_frame_floor_values(hpxml_default.frame_floors[0], HPXML::InteriorFinishWood, 0.375)
+    _test_default_floor_values(hpxml_default.floors[0], HPXML::InteriorFinishWood, 0.375)
 
     # Test defaults w/ ceiling
-    hpxml.frame_floors[0].interior_finish_type = nil
-    hpxml.frame_floors[0].interior_finish_thickness = nil
+    hpxml.floors[0].interior_finish_type = nil
+    hpxml.floors[0].interior_finish_thickness = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_frame_floor_values(hpxml_default.frame_floors[0], HPXML::InteriorFinishGypsumBoard, 0.5)
+    _test_default_floor_values(hpxml_default.floors[0], HPXML::InteriorFinishGypsumBoard, 0.5)
 
     # Test defaults w/ floor
     hpxml = _create_hpxml('base-foundation-vented-crawlspace.xml')
-    hpxml.frame_floors[0].interior_finish_type = nil
-    hpxml.frame_floors[0].interior_finish_thickness = nil
+    hpxml.floors[0].interior_finish_type = nil
+    hpxml.floors[0].interior_finish_thickness = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_frame_floor_values(hpxml_default.frame_floors[0], HPXML::InteriorFinishNone, nil)
+    _test_default_floor_values(hpxml_default.floors[0], HPXML::InteriorFinishNone, nil)
   end
 
   def test_slabs
@@ -3512,12 +3512,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(type, foundation_wall.type)
   end
 
-  def _test_default_frame_floor_values(frame_floor, int_finish_type, int_finish_thickness)
-    assert_equal(int_finish_type, frame_floor.interior_finish_type)
+  def _test_default_floor_values(floor, int_finish_type, int_finish_thickness)
+    assert_equal(int_finish_type, floor.interior_finish_type)
     if not int_finish_thickness.nil?
-      assert_equal(int_finish_thickness, frame_floor.interior_finish_thickness)
+      assert_equal(int_finish_thickness, floor.interior_finish_thickness)
     else
-      assert_nil(frame_floor.interior_finish_thickness)
+      assert_nil(floor.interior_finish_thickness)
     end
   end
 

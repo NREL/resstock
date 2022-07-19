@@ -129,7 +129,7 @@ class HVACSizing
     @heat_design_temps = {}
 
     locations = []
-    (@hpxml.roofs + @hpxml.rim_joists + @hpxml.walls + @hpxml.foundation_walls + @hpxml.frame_floors + @hpxml.slabs).each do |surface|
+    (@hpxml.roofs + @hpxml.rim_joists + @hpxml.walls + @hpxml.foundation_walls + @hpxml.floors + @hpxml.slabs).each do |surface|
       locations << surface.interior_adjacent_to
       locations << surface.exterior_adjacent_to
     end
@@ -168,7 +168,7 @@ class HVACSizing
 
     elsif (location == HPXML::LocationAtticUnvented) || (location == HPXML::LocationAtticVented)
 
-      attic_floors = @hpxml.frame_floors.select { |f| f.is_ceiling && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(location) }
+      attic_floors = @hpxml.floors.select { |f| f.is_ceiling && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(location) }
       avg_floor_rvalue = calculate_average_r_value(attic_floors)
 
       attic_roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == location }
@@ -209,11 +209,11 @@ class HVACSizing
 
         area_total += roof.area
       end
-      @hpxml.frame_floors.each do |frame_floor|
-        next unless [frame_floor.interior_adjacent_to, frame_floor.exterior_adjacent_to].include? location
+      @hpxml.floors.each do |floor|
+        next unless [floor.interior_adjacent_to, floor.exterior_adjacent_to].include? location
 
-        area_total += frame_floor.area
-        area_conditioned += frame_floor.area if frame_floor.is_thermal_boundary
+        area_total += floor.area
+        area_conditioned += floor.area if floor.is_thermal_boundary
       end
       if area_total == 0
         garage_frac_under_conditioned = 0.5
@@ -239,7 +239,7 @@ class HVACSizing
 
     elsif (location == HPXML::LocationAtticUnvented) || (location == HPXML::LocationAtticVented)
 
-      attic_floors = @hpxml.frame_floors.select { |f| f.is_ceiling && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(location) }
+      attic_floors = @hpxml.floors.select { |f| f.is_ceiling && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(location) }
       avg_floor_rvalue = calculate_average_r_value(attic_floors)
 
       attic_roofs = @hpxml.roofs.select { |r| r.interior_adjacent_to == location }
@@ -861,17 +861,17 @@ class HVACSizing
     bldg_design_loads.Heat_Ceilings = 0.0
     bldg_design_loads.Cool_Ceilings = 0.0
 
-    @hpxml.frame_floors.each do |frame_floor|
-      next unless frame_floor.is_ceiling
-      next unless frame_floor.is_thermal_boundary
+    @hpxml.floors.each do |floor|
+      next unless floor.is_ceiling
+      next unless floor.is_thermal_boundary
 
-      if frame_floor.is_exterior
-        bldg_design_loads.Cool_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@ctd - 5.0 + @daily_range_temp_adjust[@daily_range_num])
-        bldg_design_loads.Heat_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * @htd
+      if floor.is_exterior
+        bldg_design_loads.Cool_Ceilings += (1.0 / floor.insulation_assembly_r_value) * floor.area * (@ctd - 5.0 + @daily_range_temp_adjust[@daily_range_num])
+        bldg_design_loads.Heat_Ceilings += (1.0 / floor.insulation_assembly_r_value) * floor.area * @htd
       else
-        adjacent_space = frame_floor.exterior_adjacent_to
-        bldg_design_loads.Cool_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
-        bldg_design_loads.Heat_Ceilings += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
+        adjacent_space = floor.exterior_adjacent_to
+        bldg_design_loads.Cool_Ceilings += (1.0 / floor.insulation_assembly_r_value) * floor.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
+        bldg_design_loads.Heat_Ceilings += (1.0 / floor.insulation_assembly_r_value) * floor.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
       end
     end
   end
@@ -884,17 +884,17 @@ class HVACSizing
     bldg_design_loads.Heat_Floors = 0.0
     bldg_design_loads.Cool_Floors = 0.0
 
-    @hpxml.frame_floors.each do |frame_floor|
-      next unless frame_floor.is_floor
-      next unless frame_floor.is_thermal_boundary
+    @hpxml.floors.each do |floor|
+      next unless floor.is_floor
+      next unless floor.is_thermal_boundary
 
-      if frame_floor.is_exterior
-        bldg_design_loads.Cool_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@ctd - 5.0 + @daily_range_temp_adjust[@daily_range_num])
-        bldg_design_loads.Heat_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * @htd
+      if floor.is_exterior
+        bldg_design_loads.Cool_Floors += (1.0 / floor.insulation_assembly_r_value) * floor.area * (@ctd - 5.0 + @daily_range_temp_adjust[@daily_range_num])
+        bldg_design_loads.Heat_Floors += (1.0 / floor.insulation_assembly_r_value) * floor.area * @htd
       else # Partition floor
-        adjacent_space = frame_floor.exterior_adjacent_to
-        if frame_floor.is_floor && [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned].include?(adjacent_space)
-          u_floor = 1.0 / frame_floor.insulation_assembly_r_value
+        adjacent_space = floor.exterior_adjacent_to
+        if floor.is_floor && [HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented, HPXML::LocationBasementUnconditioned].include?(adjacent_space)
+          u_floor = 1.0 / floor.insulation_assembly_r_value
 
           sum_ua_wall = 0.0
           sum_a_wall = 0.0
@@ -928,11 +928,11 @@ class HVACSizing
             ptdh_floor = u_wall * @htd / (4.0 * u_floor + u_wall)
           end
 
-          bldg_design_loads.Cool_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * ptdc_floor
-          bldg_design_loads.Heat_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * ptdh_floor
+          bldg_design_loads.Cool_Floors += (1.0 / floor.insulation_assembly_r_value) * floor.area * ptdc_floor
+          bldg_design_loads.Heat_Floors += (1.0 / floor.insulation_assembly_r_value) * floor.area * ptdh_floor
         else # E.g., floor over garage
-          bldg_design_loads.Cool_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
-          bldg_design_loads.Heat_Floors += (1.0 / frame_floor.insulation_assembly_r_value) * frame_floor.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
+          bldg_design_loads.Cool_Floors += (1.0 / floor.insulation_assembly_r_value) * floor.area * (@cool_design_temps[adjacent_space] - @cool_setpoint)
+          bldg_design_loads.Heat_Floors += (1.0 / floor.insulation_assembly_r_value) * floor.area * (@heat_setpoint - @heat_design_temps[adjacent_space])
         end
       end
     end
@@ -1164,7 +1164,7 @@ class HVACSizing
 
     elsif [HPXML::LocationBasementUnconditioned, HPXML::LocationCrawlspaceVented, HPXML::LocationCrawlspaceUnvented].include? duct.Location
 
-      ceilings = @hpxml.frame_floors.select { |f| f.is_floor && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(duct.Location) }
+      ceilings = @hpxml.floors.select { |f| f.is_floor && [f.interior_adjacent_to, f.exterior_adjacent_to].include?(duct.Location) }
       avg_ceiling_rvalue = calculate_average_r_value(ceilings)
       ceiling_insulated = (avg_ceiling_rvalue > 4)
 
@@ -2605,7 +2605,7 @@ class HVACSizing
                   HPXML::LocationLivingSpace => 0.0 }
 
     # Surface UAs
-    (@hpxml.roofs + @hpxml.frame_floors + @hpxml.walls + @hpxml.foundation_walls).each do |surface|
+    (@hpxml.roofs + @hpxml.floors + @hpxml.walls + @hpxml.foundation_walls).each do |surface|
       next unless ((location == surface.interior_adjacent_to && space_UAs.keys.include?(surface.exterior_adjacent_to)) ||
                    (location == surface.exterior_adjacent_to && space_UAs.keys.include?(surface.interior_adjacent_to)))
 
