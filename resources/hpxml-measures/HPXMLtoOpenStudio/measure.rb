@@ -169,12 +169,12 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     cache_path = epw_path.gsub('.epw', '-cache.csv')
     if not File.exist?(cache_path)
       # Process weather file to create cache .csv
-      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
-      epw_file = OpenStudio::EpwFile.new(epw_path)
-      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-      weather = WeatherProcess.new(model, runner)
       begin
         File.open(cache_path, 'wb') do |file|
+          runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
+          epw_file = OpenStudio::EpwFile.new(epw_path)
+          OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+          weather = WeatherProcess.new(model, runner)
           weather.dump_to_csv(file)
         end
       rescue SystemCallError
