@@ -477,9 +477,12 @@ def create_hpxmls
           # Make all IDs unique so the HPXML is valid
           new_building_element.each_node do |node|
             next unless node.is_a?(Oga::XML::Element)
-            next if XMLHelper.get_attribute_value(node, 'id').nil?
 
-            XMLHelper.add_attribute(node, 'id', "#{XMLHelper.get_attribute_value(node, 'id')}_#{i}")
+            if not XMLHelper.get_attribute_value(node, 'id').nil?
+              XMLHelper.add_attribute(node, 'id', "#{XMLHelper.get_attribute_value(node, 'id')}_#{i}")
+            elsif not XMLHelper.get_attribute_value(node, 'idref').nil?
+              XMLHelper.add_attribute(node, 'idref', "#{XMLHelper.get_attribute_value(node, 'idref')}_#{i}")
+            end
           end
 
           hpxml_element.children << new_building_element
@@ -2479,7 +2482,7 @@ def apply_hpxml_modification_ashrae_140(hpxml)
   # ------------ #
 
   hpxml.header.xml_generated_by = 'tasks.rb'
-  hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
+  hpxml.header.created_date_and_time = Time.new(2000, 1, 1, 0, 0, 0, '-07:00').strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
   hpxml.header.apply_ashrae140_assumptions = true
 
   # --------------------- #
@@ -2588,7 +2591,7 @@ def apply_hpxml_modification(hpxml_file, hpxml)
 
   # General logic for all files
   hpxml.header.xml_generated_by = 'tasks.rb'
-  hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
+  hpxml.header.created_date_and_time = Time.new(2000, 1, 1, 0, 0, 0, '-07:00').strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
 
   # Logic that can only be applied based on the file name
   if ['base-hvac-undersized-allow-increased-fixed-capacities.xml'].include? hpxml_file
