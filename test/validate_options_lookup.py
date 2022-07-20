@@ -70,7 +70,7 @@ def get_options_from_options_lookup(opt_lkup):
 
 def extract_options_from_tsv(tsv_file):
     df = load_data(tsv_file)
-    return [col.split("Option=")[1] for col in df.columns if col.startswith("Option=")]
+    return [col.removeprefix("Option=") for col in df.columns if col.startswith("Option=")]
 
 
 def validate_options_lookup(project_folder="project_national"):
