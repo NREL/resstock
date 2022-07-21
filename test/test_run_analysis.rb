@@ -26,6 +26,7 @@ class TestRunAnalysis < MiniTest::Test
   def _test_measure_order(osw)
     expected_order = ['BuildExistingModel',
                       'ApplyUpgrade',
+                      'HPXMLtoOpenStudio',
                       'ReportSimulationOutput',
                       'ReportHPXMLOutput',
                       'UpgradeCosts',
