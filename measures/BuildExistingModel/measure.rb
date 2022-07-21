@@ -50,11 +50,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription("Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&&' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.")
     args << arg
 
-    arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('measures_to_ignore', false)
-    arg.setDisplayName('Measures to Ignore')
-    arg.setDescription("Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (this measure will fail). INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS.")
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('simulation_control_timestep', false)
     arg.setDisplayName('Simulation Control: Timestep')
     arg.setUnits('min')
@@ -234,24 +229,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       end
     end
 
-    # Remove any measures_to_ignore from the list of measures to run
-    if args['measures_to_ignore'].is_initialized
-      measures_to_ignore = args['measures_to_ignore'].get
-      # core ResStock measures are those specified below
-      # those should not be ignored ...
-      core_measures = ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
-      measures_to_ignore.split('|').each do |measure_dir|
-        if core_measures.include? measure_dir
-          # fail if core ResStock measure is ignored
-          msg = "Core ResStock measure #{measure_dir} cannot be ignored"
-          runner.registerError(msg)
-          fail msg
-        end
-        runner.registerInfo("Ignoring/not running measure #{measure_dir}")
-        measures.delete(measure_dir)
-      end
-    end
-
     # Get the absolute paths relative to this meta measure in the run directory
     new_runner = OpenStudio::Measure::OSRunner.new(OpenStudio::WorkflowJSON.new) # we want only ResStockArguments registered argument values
     if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
@@ -260,10 +237,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Initialize measure keys with hpxml_path arguments
-    hpxml_path = File.expand_path('../existing.xml')
+    hpxml_path = File.expand_path('../in.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
-    measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -369,17 +345,12 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = args['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
-    # Get registered values and pass them to HPXMLtoOpenStudio
-    measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
-    measures['HPXMLtoOpenStudio'][0]['debug'] = args['debug'].get if args['debug'].is_initialized
-    measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = args['add_component_loads'].get if args['add_component_loads'].is_initialized
-
     # Specify measures to run
+    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
     if run_hescore_workflow
-      measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
     else
-      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
+      measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] }
     end
 
     if not apply_measures(hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', 'existing.osw')
