@@ -237,7 +237,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     end
 
     # Initialize measure keys with hpxml_path arguments
-    hpxml_path = File.expand_path('../in.xml')
+    hpxml_path = File.expand_path('../existing.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
 
@@ -357,6 +357,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       register_logs(runner, new_runner)
       return false
     end
+
+    # Copy existing.xml to in.xml for downstream HPXMLtoOpenStudio
+    # We need existing.xml (and not just in.xml) for UpgradeCosts
+    in_path = File.expand_path('../in.xml')
+    FileUtils.cp(hpxml_path, in_path)
 
     # Run HEScore Measures
     if run_hescore_workflow

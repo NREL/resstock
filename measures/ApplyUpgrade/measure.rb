@@ -217,7 +217,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Get defaulted hpxml
-    hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
+    hpxml_path = File.expand_path('../existing.xml') # this is the defaulted hpxml
     if File.exist?(hpxml_path)
       hpxml = HPXML.new(hpxml_path: hpxml_path)
     else
@@ -319,7 +319,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Initialize measure keys with hpxml_path arguments
-    hpxml_path = File.expand_path('../in.xml')
+    hpxml_path = File.expand_path('../upgraded.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
 
@@ -425,6 +425,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
       return false
     end
+
+    # Copy upgraded.xml to in.xml for downstream HPXMLtoOpenStudio
+    # This will overwrite in.xml from BuildExistingModel
+    # We need upgraded.xml (and not just in.xml) for UpgradeCosts
+    in_path = File.expand_path('../in.xml')
+    FileUtils.cp(hpxml_path, in_path)
 
     return true
   end
