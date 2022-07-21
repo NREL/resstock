@@ -10,7 +10,7 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_folders, samplingonly)
+def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, keep_run_folders, samplingonly)
   fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
 
   cfg = YAML.load_file(yml)
@@ -43,6 +43,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   else
     results_dir = File.absolute_path(output_directory)
   end
+  FileUtils.rm_rf(results_dir) if overwrite
   fail "Output directory '#{output_directory}' already exists." if File.exist?(results_dir)
 
   Dir.mkdir(results_dir)
@@ -99,7 +100,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
         next if k != measure_dir_name
 
         if measure_dir_name == 'build_existing_model'
-          arguments['building_id'] = 1
+          arguments['building_id'] = ''
           arguments['sample_weight'] = Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
 
           if workflow_args.keys.include?('emissions')
@@ -127,12 +128,17 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
                    'arguments' => arguments }
       end
     end
-
     workflow_args['simulation_output_report'].delete('output_variables')
 
     if cfg['sampler']['type'] == 'residential_quota_downselect'
       workflow_args['build_existing_model']['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
     end
+
+    steps.insert(-3, { 'measure_dir_name' => 'HPXMLtoOpenStudio',
+                       'arguments' => {
+                         'hpxml_path' => '',
+                         'output_dir' => ''
+                       } })
 
     step_idx = 1
     if upgrade_idx > 0
@@ -183,7 +189,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       end
     end
 
-    step_idx += 1 # for ReportSimulationOutput
+    step_idx += 2 # for HPXMLtoOpenStudio, ReportSimulationOutput
     steps.insert(step_idx, { 'measure_dir_name' => 'ReportHPXMLOutput',
                              'arguments' => {
                                'output_format' => 'csv',
@@ -381,7 +387,9 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
   FileUtils.cp(workflow, worker_dir)
   osw = File.join(worker_dir, File.basename(workflow))
 
-  change_building_id(osw, building_id)
+  output_dir = File.join(worker_dir, 'run')
+  hpxml_path = File.join(output_dir, 'in.xml')
+  change_arguments(osw, building_id, hpxml_path, output_dir)
 
   cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{job_id}.\n"
   upgrade = upgrade_name != 'Baseline'
@@ -434,12 +442,15 @@ def create_timestamp(time_str)
   return Time.parse(time_str).iso8601.delete('Z')
 end
 
-def change_building_id(osw, building_id)
+def change_arguments(osw, building_id, hpxml_path, output_dir)
   json = JSON.parse(File.read(osw), symbolize_names: true)
   json[:steps].each do |measure|
-    next if measure[:measure_dir_name] != 'BuildExistingModel'
-
-    measure[:arguments][:building_id] = "#{building_id}"
+    if measure[:measure_dir_name] == 'BuildExistingModel'
+      measure[:arguments][:building_id] = "#{building_id}"
+    elsif measure[:measure_dir_name] == 'HPXMLtoOpenStudio'
+      measure[:arguments][:hpxml_path] = hpxml_path
+      measure[:arguments][:output_dir] = output_dir
+    end
   end
   File.open(osw, 'w') do |f|
     f.write(JSON.pretty_generate(json))
@@ -516,6 +527,11 @@ OptionParser.new do |opts|
     options[:debug] = true
   end
 
+  options[:overwrite] = false
+  opts.on('-o', '--overwrite', 'Overwrite existing project directory') do |_t|
+    options[:overwrite] = true
+  end
+
   opts.on_tail('-h', '--help', 'Display help') do
     puts opts
     exit!
@@ -531,7 +547,7 @@ else
 
   # Run analysis
   puts "YML: #{options[:yml]}"
-  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug],
+  success = run_workflow(options[:yml], options[:threads], options[:measures_only], options[:debug], options[:overwrite],
                          options[:building_ids], options[:keep_run_folders], options[:samplingonly])
 
   if not success
