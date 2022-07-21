@@ -345,7 +345,7 @@ def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, 
     end
   end
 
-  FileUtils.rm_rf(lib_dir)
+  FileUtils.rm_rf(lib_dir) if !debug
 
   return true
 end
@@ -377,7 +377,6 @@ end
 
 def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
   scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
-
   scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
 
   worker_folder = "run#{folder_id}"
@@ -523,7 +522,7 @@ OptionParser.new do |opts|
   end
 
   options[:debug] = false
-  opts.on('-d', '--debug', 'Save both existing and upgraded xml/osw files') do |_t|
+  opts.on('-d', '--debug', 'Preserve lib folder and "existing" xml/osw files') do |_t|
     options[:debug] = true
   end
 
