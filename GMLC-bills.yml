@@ -1,7 +1,7 @@
 schema_version: '0.3'
 buildstock_directory: . # Relative to this file or absolute
 project_directory: project_national # Relative to buildstock_directory
-output_directory: /projects/enduse/gmlc-bills/full-gmp-1b
+output_directory: /projects/enduse/gmlc-bills/full-aps-2
 # weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
 weather_files_path: /shared-projects/buildstock/weather/BuildStock_2019_FIPS.zip
 
@@ -19,13 +19,13 @@ sampler:
         - Heating Fuel|Fuel Oil
       - or:
         #APS
-        # - County|AZ, Gila County
-        # - County|AZ, La Paz County
-        # - County|AZ, Navajo County
-        # - County|AZ, Coconino County
-        # - County|AZ, Yavapai County
-        # - County|AZ, Maricopa County
-        # - County|AZ, Yuma County
+        - County|AZ, Gila County
+        - County|AZ, La Paz County
+        - County|AZ, Navajo County
+        - County|AZ, Coconino County
+        - County|AZ, Yavapai County
+        - County|AZ, Maricopa County
+        - County|AZ, Yuma County
         # #Ameren
         # - County|IL, Christian County
         # - County|IL, Shelby County
@@ -112,16 +112,16 @@ sampler:
         # - County|IL, Jefferson County
         # - County|IL, Jackson County
         # #GMP
-        - County|VT, Bennington County
-        - County|VT, Caledonia County
-        - County|VT, Addison County
-        - County|VT, Grand Isle County
-        - County|VT, Windham County
-        - County|VT, Orange County
-        - County|VT, Windsor County
-        - County|VT, Rutland County
-        - County|VT, Washington County
-        - County|VT, Chittenden County
+        # - County|VT, Bennington County
+        # - County|VT, Caledonia County
+        # - County|VT, Addison County
+        # - County|VT, Grand Isle County
+        # - County|VT, Windham County
+        # - County|VT, Orange County
+        # - County|VT, Windsor County
+        # - County|VT, Rutland County
+        # - County|VT, Washington County
+        # - County|VT, Chittenden County
         # #OGE
         # - County|OK, Carter County
         # - County|OK, Marshall County
@@ -425,6 +425,9 @@ upgrades:
       - option: HVAC Cooling Efficiency|Heat Pump
         apply_logic: Heating Fuel|Electricity
       - *duct_sealing
+      #Duct sealing
+      - *duct_sealing
+      #HPWH
       - option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
         apply_logic: 
           and:
@@ -739,17 +742,20 @@ upgrades:
           - and:
             - not: &vented_crawlspace
               - Geometry Foundation Type|Vented Crawlspace
-            - not: &walls_ineligible_R-19
-              - Insulation Wall|Wood Stud, R-19
-              - Insulation Wall|CMU, 6-in Hollow, R-19
-              - Insulation Wall|Brick, 12-in, 3-wythe, R-19
-            - not: &upgradable_single_pane
-              - Windows|Single, Clear, Metal
-              - Windows|Single, Clear, Non-metal
-            - not: &upgradable_double_pane_or_single_and_storm
-              - Windows|Single, Clear, Metal, Exterior Clear Storm
-              - Windows|Single, Clear, Non-metal, Exterior Clear Storm
-              - Windows|Double, Clear, Metal, Air
+            - not: 
+              - or: &walls_ineligible_R-19
+                - Insulation Wall|Wood Stud, R-19
+                - Insulation Wall|CMU, 6-in Hollow, R-19
+                - Insulation Wall|Brick, 12-in, 3-wythe, R-19
+            - not: 
+              - or: &upgradable_single_pane
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Non-metal
+            - not: 
+              - or: &upgradable_double_pane_or_single_and_storm
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+                - Windows|Double, Clear, Metal, Air
             - not: &R-30_attic_eligible
               - and:
                 - or: 
@@ -808,9 +814,10 @@ upgrades:
         apply_logic:
           - and:
             - not: *vented_crawlspace
-            - *walls_ineligible_R-19
-            - *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - not: *R-30_attic_eligible
             - not: *R-49_attic_eligible
             - not: *R-60_attic_eligible
@@ -821,9 +828,10 @@ upgrades:
         apply_logic:
           - and:
             - not: *vented_crawlspace
-            - *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - *upgradable_double_pane_or_single_and_storm
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
             - not: *R-30_attic_eligible
             - not: *R-49_attic_eligible
             - not: *R-60_attic_eligible
@@ -833,10 +841,13 @@ upgrades:
       - option: Infiltration Reduction|13%
         apply_logic:
           - and:
-            - not: *vented_crawlspace
-            - *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -848,9 +859,11 @@ upgrades:
         apply_logic:
           - and:
             - not: *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - not: *R-30_attic_eligible
             - not: *R-49_attic_eligible
             - not: *R-60_attic_eligible
@@ -861,9 +874,11 @@ upgrades:
         apply_logic:
           - and:
             - not: *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
             - not: *R-30_attic_eligible
             - not: *R-49_attic_eligible
             - not: *R-60_attic_eligible
@@ -874,9 +889,10 @@ upgrades:
         apply_logic:
           - and:
             - not: *vented_crawlspace
-            - *walls_ineligible_R-19
-            - *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -888,9 +904,10 @@ upgrades:
         apply_logic:
           - and:
             - not: *vented_crawlspace
-            - *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - *upgradable_double_pane_or_single_and_storm
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -902,9 +919,12 @@ upgrades:
         apply_logic:
           - and:
             - not: *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -915,10 +935,13 @@ upgrades:
       - option: Infiltration Reduction|50.70%
         apply_logic:
           - and:
-            - not: *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -930,9 +953,11 @@ upgrades:
         apply_logic:
           - and:
             - not: *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -945,9 +970,12 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - not: *R-30_attic_eligible
             - not: *R-49_attic_eligible
             - not: *R-60_attic_eligible
@@ -958,9 +986,10 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - *walls_ineligible_R-19
-            - *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - not: *R-30_attic_eligible
             - not: *R-49_attic_eligible
             - not: *R-60_attic_eligible
@@ -971,9 +1000,10 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - *upgradable_double_pane_or_single_and_storm
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
             - not: *R-30_attic_eligible
             - not: *R-49_attic_eligible
             - not: *R-60_attic_eligible
@@ -984,9 +1014,11 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -998,9 +1030,11 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - not: *R-30_attic_eligible
             - not: *R-49_attic_eligible
             - not: *R-60_attic_eligible
@@ -1011,9 +1045,12 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - not: *R-30_attic_eligible
             - not: *R-49_attic_eligible
             - not: *R-60_attic_eligible
@@ -1024,9 +1061,10 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - *walls_ineligible_R-19
-            - *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -1038,9 +1076,10 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - *upgradable_double_pane_or_single_and_storm
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -1052,9 +1091,12 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -1066,9 +1108,11 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - *upgradable_single_pane
-            - not: *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -1080,9 +1124,11 @@ upgrades:
         apply_logic:
           - and:
             - *vented_crawlspace
-            - not: *walls_ineligible_R-19
-            - not: *upgradable_single_pane
-            - *upgradable_double_pane_or_single_and_storm
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
             - or:
               - *R-30_attic_eligible
               - *R-49_attic_eligible
@@ -1131,7 +1177,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: resstock-gmlc-bills-lbnl #change this to an NREL bucket if needed for testing
-      prefix: full-gmp-1b #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: full-aps-2 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: resstock-gmlc #collection of Athena tables (post-crawling), can be constant for the entire analysis
