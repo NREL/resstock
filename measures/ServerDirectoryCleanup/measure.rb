@@ -108,6 +108,7 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
     arg.setDisplayName('Debug Mode?')
     arg.setDescription('If true, retain all files.')
+    arg.setDefaultValue(false)
     args << arg
 
     return args
@@ -147,12 +148,10 @@ class ServerDirectoryCleanup < OpenStudio::Measure::ReportingMeasure
     stdout_energyplus = runner.getBoolArgumentValue('retain_stdout_energyplus', user_arguments)
     stdout_expandobject = runner.getBoolArgumentValue('retain_stdout_expandobject', user_arguments)
     schedules_csv = runner.getBoolArgumentValue('retain_schedules_csv', user_arguments)
-    debug = runner.getOptionalBoolArgumentValue('debug', user_arguments)
+    debug = runner.getBoolArgumentValue('debug', user_arguments)
 
-    if debug.is_initialized
-      if debug.get
-        in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_msgpack = stdout_energyplus = stdout_expandobject = schedules_csv = true
-      end
+    if debug
+      in_osm = in_idf = pre_process_idf = eplusout_audit = eplusout_bnd = eplusout_eio = eplusout_end = eplusout_err = eplusout_eso = eplusout_mdd = eplusout_mtd = eplusout_rdd = eplusout_shd = eplusout_msgpack = stdout_energyplus = stdout_expandobject = schedules_csv = true
     end
 
     Dir.glob('./../in.osm').each do |f|

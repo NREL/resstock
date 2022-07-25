@@ -426,10 +426,10 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Copy upgraded.xml to in.xml for downstream HPXMLtoOpenStudio
-    # This will overwrite in.xml from BuildExistingModel
-    # We need upgraded.xml (and not just in.xml) for UpgradeCosts
-    in_path = File.expand_path('../in.xml')
+    # Copy upgraded.xml to home.xml for downstream HPXMLtoOpenStudio
+    # This will overwrite home.xml from BuildExistingModel
+    # We need upgraded.xml (and not just home.xml) for UpgradeCosts
+    in_path = File.expand_path('../home.xml')
     FileUtils.cp(hpxml_path, in_path)
 
     return true

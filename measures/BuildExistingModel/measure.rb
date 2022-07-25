@@ -86,11 +86,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
-    arg.setDisplayName('Debug Mode?')
-    arg.setDescription('If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.')
-    args << arg
-
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
     arg.setDisplayName('Annual Component Loads?')
     arg.setDescription('If true, output the annual component loads.')
@@ -358,9 +353,9 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       return false
     end
 
-    # Copy existing.xml to in.xml for downstream HPXMLtoOpenStudio
-    # We need existing.xml (and not just in.xml) for UpgradeCosts
-    in_path = File.expand_path('../in.xml')
+    # Copy existing.xml to home.xml for downstream HPXMLtoOpenStudio
+    # We need existing.xml (and not just home.xml) for UpgradeCosts
+    in_path = File.expand_path('../home.xml')
     FileUtils.cp(hpxml_path, in_path)
 
     # Run HEScore Measures
