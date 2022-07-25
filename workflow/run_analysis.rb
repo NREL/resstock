@@ -120,8 +120,10 @@ def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, 
 
           arguments['user_output_variables'] = arguments['output_variables'].collect { |o| o['name'] }.join(',') if arguments.keys.include?('output_variables')
         elsif measure_dir_name == 'server_directory_cleanup'
+          arguments = {} if arguments.nil?
           arguments['retain_in_idf'] = true if !arguments.keys.include?('retain_in_idf')
           arguments['retain_schedules_csv'] = true if !arguments.keys.include?('retain_schedules_csv')
+          arguments['debug'] = workflow_args['debug'] if workflow_args.keys.include?('debug')
         end
 
         steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
@@ -134,11 +136,9 @@ def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, 
       workflow_args['build_existing_model']['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
     end
 
-    steps.insert(-3, { 'measure_dir_name' => 'HPXMLtoOpenStudio',
-                       'arguments' => {
-                         'hpxml_path' => '',
-                         'output_dir' => ''
-                       } })
+    step = { 'measure_dir_name' => 'HPXMLtoOpenStudio', 'arguments' => { 'hpxml_path' => '', 'output_dir' => '' } }
+    step['arguments']['debug'] = workflow_args['debug'] if workflow_args.keys.include?('debug')
+    steps.insert(-3, step)
 
     step_idx = 1
     if upgrade_idx > 0
@@ -196,7 +196,9 @@ def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, 
                              } })
     step_idx += 1
 
-    steps.insert(step_idx, { 'measure_dir_name' => 'UpgradeCosts' })
+    step = { 'measure_dir_name' => 'UpgradeCosts', 'arguments' => {} }
+    step['arguments']['debug'] = workflow_args['debug'] if workflow_args.keys.include?('debug')
+    steps.insert(step_idx, step)
     step_idx += 1
 
     workflow_args.keys.each do |measure_dir_name|
@@ -387,7 +389,7 @@ def samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder
   osw = File.join(worker_dir, File.basename(workflow))
 
   output_dir = File.join(worker_dir, 'run')
-  hpxml_path = File.join(output_dir, 'in.xml')
+  hpxml_path = File.join(output_dir, 'home.xml')
   change_arguments(osw, building_id, hpxml_path, output_dir)
 
   cli_output = "Building ID: #{building_id}. Upgrade Name: #{upgrade_name}. Job ID: #{job_id}.\n"
