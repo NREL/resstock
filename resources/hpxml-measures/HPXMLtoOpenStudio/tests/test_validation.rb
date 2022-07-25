@@ -46,6 +46,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
   end
 
   def test_validation_of_schematron_doc
+    begin_dir = Dir.pwd
     # Check that the schematron file is valid
 
     begin
@@ -55,10 +56,11 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         xml_doc = Nokogiri::XML(File.open(s_path)) do |config|
           config.options = Nokogiri::XML::ParseOptions::STRICT
         end
-        stron_doc = SchematronNokogiri::Schema.new(xml_doc)
+        SchematronNokogiri::Schema.new(xml_doc)
       end
     rescue LoadError
     end
+    Dir.chdir(begin_dir) # Prevent above code from changing the working dir and causing random test failures
   end
 
   def test_role_attributes_in_schematron_doc
@@ -273,11 +275,11 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         end
       elsif ['enclosure-garage-missing-roof-ceiling'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-garage.xml'))
-        hpxml.frame_floors.select { |w|
+        hpxml.floors.select { |w|
           w.interior_adjacent_to == HPXML::LocationGarage &&
             w.exterior_adjacent_to == HPXML::LocationAtticUnvented
-        }.reverse_each do |frame_floor|
-          frame_floor.delete
+        }.reverse_each do |floor|
+          floor.delete
         end
       elsif ['enclosure-garage-missing-slab'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-garage.xml'))
@@ -286,8 +288,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         end
       elsif ['enclosure-living-missing-ceiling-roof'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.frame_floors.reverse_each do |frame_floor|
-          frame_floor.delete
+        hpxml.floors.reverse_each do |floor|
+          floor.delete
         end
       elsif ['enclosure-living-missing-exterior-wall'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
@@ -457,10 +459,10 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.hvac_distributions[0].ducts[0].duct_location = HPXML::LocationOtherMultifamilyBufferSpace
       elsif ['multifamily-reference-surface'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.frame_floors << hpxml.frame_floors[0].dup
-        hpxml.frame_floors[1].id = "FrameFloor#{hpxml.frame_floors.size}"
-        hpxml.frame_floors[1].exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
-        hpxml.frame_floors[1].other_space_above_or_below = HPXML::FrameFloorOtherSpaceAbove
+        hpxml.floors << hpxml.floors[0].dup
+        hpxml.floors[1].id = "Floor#{hpxml.floors.size}"
+        hpxml.floors[1].exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
+        hpxml.floors[1].other_space_above_or_below = HPXML::FloorOtherSpaceAbove
       elsif ['multifamily-reference-water-heater'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.water_heating_systems[0].location = HPXML::LocationOtherNonFreezingSpace
@@ -1042,7 +1044,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       end
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('error', error_case, expected_errors)
+      _test_measure('error', expected_errors)
     end
   end
 
@@ -1120,7 +1122,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       hpxml_doc = hpxml.to_oga()
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('warning', warning_case, expected_warnings)
+      _test_measure('warning', expected_warnings)
     end
   end
 
@@ -1146,7 +1148,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     end
   end
 
-  def _test_measure(error_or_warning, error_or_warning_case, expected_errors_or_warnings)
+  def _test_measure(error_or_warning, expected_errors_or_warnings)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new
 
@@ -1182,6 +1184,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         actual_errors_or_warnings << s
       end
     elsif error_or_warning == 'warning'
+      # show the output
+      show_output(result) unless result.value.valueName == 'Success'
+
       assert_equal('Success', result.value.valueName)
 
       result.stepWarnings.each do |s|

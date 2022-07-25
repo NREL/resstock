@@ -202,6 +202,68 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
+  def test_utility_bills
+    # Test inputs not overridden by defaults
+    hpxml = _create_hpxml('base-pv.xml')
+    hpxml.header.utility_bill_scenarios.clear
+    for pv_compensation_type in [HPXML::PVCompensationTypeNetMetering, HPXML::PVCompensationTypeFeedInTariff]
+      hpxml.header.utility_bill_scenarios.add(name: pv_compensation_type,
+                                              elec_fixed_charge: 8,
+                                              natural_gas_fixed_charge: 9,
+                                              propane_fixed_charge: 10,
+                                              fuel_oil_fixed_charge: 11,
+                                              coal_fixed_charge: 12,
+                                              wood_fixed_charge: 13,
+                                              wood_pellets_fixed_charge: 14,
+                                              elec_marginal_rate: 0.2,
+                                              natural_gas_marginal_rate: 0.3,
+                                              propane_marginal_rate: 0.4,
+                                              fuel_oil_marginal_rate: 0.5,
+                                              coal_marginal_rate: 0.6,
+                                              wood_marginal_rate: 0.7,
+                                              wood_pellets_marginal_rate: 0.8,
+                                              pv_compensation_type: pv_compensation_type,
+                                              pv_net_metering_annual_excess_sellback_rate_type: HPXML::PVAnnualExcessSellbackRateTypeRetailElectricityCost,
+                                              pv_net_metering_annual_excess_sellback_rate: 0.04,
+                                              pv_feed_in_tariff_rate: 0.15,
+                                              pv_monthly_grid_connection_fee_dollars: 3)
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    scenarios = hpxml_default.header.utility_bill_scenarios
+    _test_default_bills_values(scenarios[0], 8, 9, 10, 11, 12, 13, 14, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, HPXML::PVCompensationTypeNetMetering, HPXML::PVAnnualExcessSellbackRateTypeRetailElectricityCost, nil, nil, nil, 3)
+    _test_default_bills_values(scenarios[1], 8, 9, 10, 11, 12, 13, 14, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, HPXML::PVCompensationTypeFeedInTariff, nil, nil, 0.15, nil, 3)
+
+    # Test defaults
+    hpxml.header.utility_bill_scenarios.each do |scenario|
+      scenario.elec_fixed_charge = nil
+      scenario.natural_gas_fixed_charge = nil
+      scenario.propane_fixed_charge = nil
+      scenario.fuel_oil_fixed_charge = nil
+      scenario.coal_fixed_charge = nil
+      scenario.wood_fixed_charge = nil
+      scenario.wood_pellets_fixed_charge = nil
+      scenario.elec_marginal_rate = nil
+      scenario.natural_gas_marginal_rate = nil
+      scenario.propane_marginal_rate = nil
+      scenario.fuel_oil_marginal_rate = nil
+      scenario.coal_marginal_rate = nil
+      scenario.wood_marginal_rate = nil
+      scenario.wood_pellets_marginal_rate = nil
+      scenario.pv_compensation_type = nil
+      scenario.pv_net_metering_annual_excess_sellback_rate_type = nil
+      scenario.pv_net_metering_annual_excess_sellback_rate = nil
+      scenario.pv_feed_in_tariff_rate = nil
+      scenario.pv_monthly_grid_connection_fee_dollars_per_kw = nil
+      scenario.pv_monthly_grid_connection_fee_dollars = nil
+    end
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    hpxml_default.header.utility_bill_scenarios.each do |scenario|
+      _test_default_bills_values(scenario, 12, 12, nil, nil, nil, nil, nil, 0.11362695139911635, 0.7169975308418142, nil, nil, nil, nil, nil, HPXML::PVCompensationTypeNetMetering, HPXML::PVAnnualExcessSellbackRateTypeUserSpecified, 0.03, nil, nil, 0)
+    end
+  end
+
   def test_site
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
@@ -559,7 +621,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.walls[1].interior_finish_thickness = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_wall_values(hpxml_default.walls[1], HPXML::SidingTypeWood, 0.5, HPXML::ColorLight, 0.90, HPXML::InteriorFinishNone, nil, 180)
+    _test_default_wall_values(hpxml_default.walls[1], HPXML::SidingTypeWood, 0.5, HPXML::ColorLight, 0.90, HPXML::InteriorFinishNone, nil, nil)
   end
 
   def test_foundation_walls
@@ -617,29 +679,29 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
                                          1000, 0.0, 10.0, 0.0, 10.0, HPXML::FoundationWallTypeSolidConcrete)
   end
 
-  def test_frame_floors
+  def test_floors
     # Test inputs not overridden by defaults
     hpxml = _create_hpxml('base.xml')
-    hpxml.frame_floors[0].interior_finish_type = HPXML::InteriorFinishWood
-    hpxml.frame_floors[0].interior_finish_thickness = 0.375
+    hpxml.floors[0].interior_finish_type = HPXML::InteriorFinishWood
+    hpxml.floors[0].interior_finish_thickness = 0.375
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_frame_floor_values(hpxml_default.frame_floors[0], HPXML::InteriorFinishWood, 0.375)
+    _test_default_floor_values(hpxml_default.floors[0], HPXML::InteriorFinishWood, 0.375)
 
     # Test defaults w/ ceiling
-    hpxml.frame_floors[0].interior_finish_type = nil
-    hpxml.frame_floors[0].interior_finish_thickness = nil
+    hpxml.floors[0].interior_finish_type = nil
+    hpxml.floors[0].interior_finish_thickness = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_frame_floor_values(hpxml_default.frame_floors[0], HPXML::InteriorFinishGypsumBoard, 0.5)
+    _test_default_floor_values(hpxml_default.floors[0], HPXML::InteriorFinishGypsumBoard, 0.5)
 
     # Test defaults w/ floor
     hpxml = _create_hpxml('base-foundation-vented-crawlspace.xml')
-    hpxml.frame_floors[0].interior_finish_type = nil
-    hpxml.frame_floors[0].interior_finish_thickness = nil
+    hpxml.floors[0].interior_finish_type = nil
+    hpxml.floors[0].interior_finish_thickness = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_frame_floor_values(hpxml_default.frame_floors[0], HPXML::InteriorFinishNone, nil)
+    _test_default_floor_values(hpxml_default.floors[0], HPXML::InteriorFinishNone, nil)
   end
 
   def test_slabs
@@ -3215,6 +3277,113 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
   end
 
+  def _test_default_bills_values(scenario,
+                                 elec_fixed_charge, natural_gas_fixed_charge, propane_fixed_charge, fuel_oil_fixed_charge, coal_fixed_charge, wood_fixed_charge, wood_pellets_fixed_charge,
+                                 elec_marginal_rate, natural_gas_marginal_rate, propane_marginal_rate, fuel_oil_marginal_rate, coal_marginal_rate, wood_marginal_rate, wood_pellets_marginal_rate,
+                                 pv_compensation_type, pv_net_metering_annual_excess_sellback_rate_type, pv_net_metering_annual_excess_sellback_rate,
+                                 pv_feed_in_tariff_rate, pv_monthly_grid_connection_fee_dollars_per_kw, pv_monthly_grid_connection_fee_dollars)
+    if elec_fixed_charge.nil?
+      assert_nil(scenario.elec_fixed_charge)
+    else
+      assert_equal(elec_fixed_charge, scenario.elec_fixed_charge)
+    end
+    if natural_gas_fixed_charge.nil?
+      assert_nil(scenario.natural_gas_fixed_charge)
+    else
+      assert_equal(natural_gas_fixed_charge, scenario.natural_gas_fixed_charge)
+    end
+    if propane_fixed_charge.nil?
+      assert_nil(scenario.propane_fixed_charge)
+    else
+      assert_equal(propane_fixed_charge, scenario.propane_fixed_charge)
+    end
+    if fuel_oil_fixed_charge.nil?
+      assert_nil(scenario.fuel_oil_fixed_charge)
+    else
+      assert_equal(fuel_oil_fixed_charge, scenario.fuel_oil_fixed_charge)
+    end
+    if coal_fixed_charge.nil?
+      assert_nil(scenario.coal_fixed_charge)
+    else
+      assert_equal(coal_fixed_charge, scenario.coal_fixed_charge)
+    end
+    if wood_fixed_charge.nil?
+      assert_nil(scenario.wood_fixed_charge)
+    else
+      assert_equal(wood_fixed_charge, scenario.wood_fixed_charge)
+    end
+    if wood_pellets_fixed_charge.nil?
+      assert_nil(scenario.wood_pellets_fixed_charge)
+    else
+      assert_equal(wood_pellets_fixed_charge, scenario.wood_pellets_fixed_charge)
+    end
+    if elec_marginal_rate.nil?
+      assert_nil(scenario.elec_marginal_rate)
+    else
+      assert_equal(elec_marginal_rate, scenario.elec_marginal_rate)
+    end
+    if natural_gas_marginal_rate.nil?
+      assert_nil(scenario.natural_gas_marginal_rate)
+    else
+      assert_equal(natural_gas_marginal_rate, scenario.natural_gas_marginal_rate)
+    end
+    if propane_marginal_rate.nil?
+      assert_nil(scenario.propane_marginal_rate)
+    else
+      assert_equal(propane_marginal_rate, scenario.propane_marginal_rate)
+    end
+    if fuel_oil_marginal_rate.nil?
+      assert_nil(scenario.fuel_oil_marginal_rate)
+    else
+      assert_equal(fuel_oil_marginal_rate, scenario.fuel_oil_marginal_rate)
+    end
+    if coal_marginal_rate.nil?
+      assert_nil(scenario.coal_marginal_rate)
+    else
+      assert_equal(coal_marginal_rate, scenario.coal_marginal_rate)
+    end
+    if wood_marginal_rate.nil?
+      assert_nil(scenario.wood_marginal_rate)
+    else
+      assert_equal(wood_marginal_rate, scenario.wood_marginal_rate)
+    end
+    if wood_pellets_marginal_rate.nil?
+      assert_nil(scenario.wood_pellets_marginal_rate)
+    else
+      assert_equal(wood_pellets_marginal_rate, scenario.wood_pellets_marginal_rate)
+    end
+    if pv_compensation_type.nil?
+      assert_nil(scenario.pv_compensation_type)
+    else
+      assert_equal(pv_compensation_type, scenario.pv_compensation_type)
+    end
+    if pv_net_metering_annual_excess_sellback_rate_type.nil?
+      assert_nil(scenario.pv_net_metering_annual_excess_sellback_rate_type)
+    else
+      assert_equal(pv_net_metering_annual_excess_sellback_rate_type, scenario.pv_net_metering_annual_excess_sellback_rate_type)
+    end
+    if pv_net_metering_annual_excess_sellback_rate.nil?
+      assert_nil(scenario.pv_net_metering_annual_excess_sellback_rate)
+    else
+      assert_equal(pv_net_metering_annual_excess_sellback_rate, scenario.pv_net_metering_annual_excess_sellback_rate)
+    end
+    if pv_feed_in_tariff_rate.nil?
+      assert_nil(scenario.pv_feed_in_tariff_rate)
+    else
+      assert_equal(pv_feed_in_tariff_rate, scenario.pv_feed_in_tariff_rate)
+    end
+    if pv_monthly_grid_connection_fee_dollars_per_kw.nil?
+      assert_nil(scenario.pv_monthly_grid_connection_fee_dollars_per_kw)
+    else
+      assert_equal(pv_monthly_grid_connection_fee_dollars_per_kw, scenario.pv_monthly_grid_connection_fee_dollars_per_kw)
+    end
+    if pv_monthly_grid_connection_fee_dollars.nil?
+      assert_nil(scenario.pv_monthly_grid_connection_fee_dollars)
+    else
+      assert_equal(pv_monthly_grid_connection_fee_dollars, scenario.pv_monthly_grid_connection_fee_dollars)
+    end
+  end
+
   def _test_default_site_values(hpxml, site_type, shielding_of_home)
     assert_equal(site_type, hpxml.site.site_type)
     assert_equal(shielding_of_home, hpxml.site.shielding_of_home)
@@ -3318,6 +3487,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     else
       assert_nil(wall.interior_finish_thickness)
     end
+    if not azimuth.nil?
+      assert_equal(azimuth, wall.azimuth)
+    else
+      assert_nil(wall.azimuth)
+    end
   end
 
   def _test_default_foundation_wall_values(foundation_wall, thickness, int_finish_type, int_finish_thickness, azimuth, area,
@@ -3338,12 +3512,12 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     assert_equal(type, foundation_wall.type)
   end
 
-  def _test_default_frame_floor_values(frame_floor, int_finish_type, int_finish_thickness)
-    assert_equal(int_finish_type, frame_floor.interior_finish_type)
+  def _test_default_floor_values(floor, int_finish_type, int_finish_thickness)
+    assert_equal(int_finish_type, floor.interior_finish_type)
     if not int_finish_thickness.nil?
-      assert_equal(int_finish_thickness, frame_floor.interior_finish_thickness)
+      assert_equal(int_finish_thickness, floor.interior_finish_thickness)
     else
-      assert_nil(frame_floor.interior_finish_thickness)
+      assert_nil(floor.interior_finish_thickness)
     end
   end
 
@@ -3851,7 +4025,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   end
 
   def _test_default_pv_system_values(hpxml, interver_efficiency, system_loss_frac, is_shared_system, location, tracking, module_type, azimuth)
-    hpxml.pv_systems.each_with_index do |pv, idx|
+    hpxml.pv_systems.each do |pv|
       assert_equal(is_shared_system, pv.is_shared_system)
       assert_equal(interver_efficiency, pv.inverter_efficiency)
       assert_in_epsilon(system_loss_frac, pv.system_losses_fraction, 0.01)
@@ -3890,7 +4064,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
   end
 
   def _test_default_generator_values(hpxml, is_shared_system)
-    hpxml.generators.each_with_index do |generator, idx|
+    hpxml.generators.each do |generator|
       assert_equal(is_shared_system, generator.is_shared_system)
     end
   end

@@ -90,7 +90,7 @@ class TsvFile
       next if row[0].start_with? "\#"
 
       row_key_values = {}
-      @dependency_cols.each do |dep, dep_col|
+      @dependency_cols.keys.each do |dep|
         row_key_values[dep] = row[@dependency_cols[dep]]
       end
       key_s = hash_to_string(row_key_values)
@@ -162,7 +162,7 @@ class TsvFile
     # Find appropriate value
     rowsum = 0
     n_options = @option_cols.size
-    @option_cols.each_with_index do |(option_name, option_col), index|
+    @option_cols.keys.each_with_index do |option_name, index|
       rowsum += rowvals[option_name]
       next unless (rowsum >= sample_value) || ((index == n_options - 1) && (rowsum + 0.00001 >= sample_value))
 
@@ -531,22 +531,15 @@ class RunOSWs
 end
 
 class Version
-  def self.version
-    version = {}
-    File.open("#{File.dirname(__FILE__)}/__version__.py", 'r') do |file|
-      file.each_line do |line|
-        key, value = line.split(' = ')
-        version[key] = value.chomp.gsub("'", '')
+  ResStock_Version = '2.6.0-beta' # Version of ResStock
+  BuildStockBatch_Version = '0.22' # Minimum required version of BuildStockBatch
+
+  def self.check_buildstockbatch_version
+    if ENV.keys.include?('BUILDSTOCKBATCH_VERSION') # buildstockbatch is installed
+      bsb_version = ENV['BUILDSTOCKBATCH_VERSION']
+      if bsb_version < BuildStockBatch_Version
+        fail "BuildStockBatch version #{BuildStockBatch_Version} or above is required. Found version: #{bsb_version}"
       end
     end
-    return version
-  end
-
-  def self.software_program_used
-    return version['__title__']
-  end
-
-  def self.software_program_version
-    return version['__resstock_version__']
   end
 end

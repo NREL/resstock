@@ -26,7 +26,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
     return args
@@ -73,7 +73,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       next if cost_mult_type.include?('Fixed')
 
       cost_mult_type_str = OpenStudio::toUnderscoreCase(cost_mult_type)
-      cost_mult = get_cost_multiplier(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+      cost_mult = get_bldg_output(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
       cost_mult = cost_mult.round(2)
       register_value(runner, cost_mult_type_str, cost_mult)
     end
@@ -120,7 +120,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
 
       option_cost = 0.0
       option_cost_pairs[option_num].each do |cost_value, cost_mult_type|
-        cost_mult = get_cost_multiplier(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+        cost_mult = get_bldg_output(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
         total_cost = cost_value * cost_mult
         next if total_cost == 0
 
@@ -166,7 +166,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     return existing_hpxml, upgraded_hpxml
   end
 
-  def get_cost_multiplier(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
+  def get_bldg_output(cost_mult_type, values, existing_hpxml, upgraded_hpxml)
     hpxml = values['report_hpxml_output']
 
     cost_mult = 0.0
@@ -207,14 +207,14 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
       if !upgraded_hpxml.nil?
         ceiling_assembly_r = { existing_hpxml => [], upgraded_hpxml => [] }
         [existing_hpxml, upgraded_hpxml].each do |hpxml_obj|
-          hpxml_obj.frame_floors.each do |frame_floor|
-            next unless frame_floor.is_thermal_boundary
-            next unless frame_floor.is_interior
-            next unless frame_floor.is_ceiling
+          hpxml_obj.floors.each do |floor|
+            next unless floor.is_thermal_boundary
+            next unless floor.is_interior
+            next unless floor.is_ceiling
             next unless [HPXML::LocationAtticVented,
-                         HPXML::LocationAtticUnvented].include?(frame_floor.exterior_adjacent_to)
+                         HPXML::LocationAtticUnvented].include?(floor.exterior_adjacent_to)
 
-            ceiling_assembly_r[hpxml_obj] << frame_floor.insulation_assembly_r_value unless frame_floor.insulation_assembly_r_value.nil?
+            ceiling_assembly_r[hpxml_obj] << floor.insulation_assembly_r_value unless floor.insulation_assembly_r_value.nil?
           end
         end
         fail 'Found multiple ceiling assembly R-values.' if ceiling_assembly_r[existing_hpxml].uniq.size > 1 || ceiling_assembly_r[upgraded_hpxml].uniq.size > 1

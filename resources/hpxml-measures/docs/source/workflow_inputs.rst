@@ -199,6 +199,10 @@ The column names available in the schedule CSV files are:
 Columns with units of `frac` must be normalized to MAX=1; that is, these schedules only define *when* energy is used, not *how much* energy is used.
 Example schedule CSV files are provided in the ``HPXMLtoOpenStudio/resources/schedule_files`` directory.
 
+The schedule file must have a full year of data even if the simulation is not an entire year.
+Frequency of schedule values do not need to match the simulation timestep.
+For example, hourly schedules can be used with a 10-minute simulation timestep, or 10-minute schedules can be used with an hourly simulation timestep.
+
 A detailed stochastic or smooth occupancy schedule CSV file can also be automatically generated for you; see the :ref:`usage_instructions` for the commands.
 Inputs for the schedule generator are entered in ``/HPXML/Building/BuildingDetails/BuildingSummary/BuildingOccupancy/NumberofResidents`` and ``/HPXML/Building/Site/Address/StateCode``.
 See :ref:`buildingoccupancy` and :ref:`buildingsite` for more information.
@@ -290,8 +294,6 @@ Default Values
 ~~~~~~~~~~~~~~
 
 If EmissionsType is "CO2e", "NOx" or "SO2" and a given fuel's emissions factor is not entered, they will be defaulted as follows.
-Values are based on ANSI/RESNET/ICC 301 and include both combustion and pre-combustion (e.g., methane leakage for natural gas) emissions.
-If no default value is available, a warning will be issued.
 
   ============  ==============  =============  =============
   Fuel Type     CO2e [lb/MBtu]  NOx [lb/MBtu]  SO2 [lb/MBtu]
@@ -303,6 +305,114 @@ If no default value is available, a warning will be issued.
   wood          --              --             --
   wood pellets  --              --             --
   ============  ==============  =============  =============
+
+Default values are from *Table 5.1.2(1) National Average Emission Factors for Household Fuels* from *ANSI/RESNET/ICCC 301 Standard for the Calculation and Labeling of the Energy Performance of Dwelling and Sleeping Units using an Energy Rating Index* and include both combustion and pre-combustion (e.g., methane leakage for natural gas) emissions.
+
+If no default value is available, a warning will be issued.
+
+HPXML Utility Bill Scenarios
+****************************
+
+One or more utility bill scenarios can be entered as an ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario``.
+
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+  Element                           Type      Units  Constraints  Required  Default   Notes
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+  ``Name``                          string                        Yes                 Name of the scenario (which shows up in the output file)
+  ``UtilityRate``                   element          >= 0                             Utility rate(s) for a given fuel type
+  ``PVCompensation``                element          <= 1                             PV compensation information
+  ================================  ========  =====  ===========  ========  ========  ============================================================
+
+See :ref:`bill_outputs` for a description of how the calculated utility bills appear in the output files.
+
+Electricity Rates
+~~~~~~~~~~~~~~~~~
+
+For each scenario, electricity rates can be optionally entered as an ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario/UtilityRate``.
+
+  ================================  ========  =======  ===========  ========  ========  ============================================================
+  Element                           Type      Units    Constraints  Required  Default   Notes
+  ================================  ========  =======  ===========  ========  ========  ============================================================
+  ``FuelType``                      string             electricity  Yes                 Fuel type
+  ``FixedCharge``                   double    $/month               No        12.0      Monthly fixed charge
+  ``MarginalRate``                  double    $/kWh                 No        See [#]_  Marginal rate
+  ================================  ========  =======  ===========  ========  ========  ============================================================
+
+  .. [#] If MarginalRate not provided, defaults to state, regional, or national average based on EIA data that can be found at ``ReportUtilityBills/resources/Data/UtilityRates/Average_retail_price_of_electricity.csv``.
+
+Fuel Rates
+~~~~~~~~~~
+
+For each scenario, fuel rates can be optionally entered as an ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario/UtilityRate``.
+
+  ================================  ========  ========  ===========  ========  ========  ============================================================
+  Element                           Type      Units     Constraints  Required  Default   Notes
+  ================================  ========  ========  ===========  ========  ========  ============================================================
+  ``FuelType``                      string              See [#]_     Yes                 Fuel type
+  ``FixedCharge``                   double    $/month                No        See [#]_  Monthly fixed charge
+  ``MarginalRate``                  double    See [#]_               No        See [#]_  Marginal rate
+  ================================  ========  ========  ===========  ========  ========  ============================================================
+
+  .. [#] FuelType choices are "natural gas", "propane", "fuel oil", "coal", "wood", and "wood pellets".
+  .. [#] FixedCharge defaults to $12/month for natural gas and $0/month for other fuels.
+  .. [#] MarginalRate units are $/therm for natural gas, $/gallon for propane and fuel oil, and $/kBtu for other fuels.
+  .. [#] If MarginalRate not provided, defaults to state, regional, or national average based on EIA data that can be found at:
+
+         - natural gas: ``ReportUtilityBills/resources/Data/UtilityRates/NG_PRI_SUM_A_EPG0_PRS_DMCF_A.csv``
+         - propane: ``ReportUtilityBills/resources/Data/UtilityRates/PET_PRI_WFR_A_EPLLPA_PRS_DPGAL_W.csv``
+         - fuel oil: ``ReportUtilityBills/resources/Data/UtilityRates/PET_PRI_WFR_A_EPD2F_PRS_DPGAL_W.csv``
+
+         or defaults to $0.015/kBtu for other fuels.
+
+PV Compensation
+~~~~~~~~~~~~~~~
+
+For each scenario, PV compensation information can be optionally entered in ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario/PVCompensation``.
+
+  =============================================================  ========  =======  ===========  ========  ==============  ==============================
+  Element                                                        Type      Units    Constraints  Required  Default         Notes
+  =============================================================  ========  =======  ===========  ========  ==============  ==============================
+  ``CompensationType[NetMetering | FeedInTariff]``               element                         No        NetMetering     PV compensation type
+  ``MonthlyGridConnectionFee[Units="$/kW" or Units="$"]/Value``  double                          No        0               PV monthly grid connection fee
+  =============================================================  ========  =======  ===========  ========  ==============  ==============================
+
+**Net-Metering**
+
+If the PV compensation type is net-metering, additional information can be entered in ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario/PVCompensation/CompensationType/NetMetering``.
+
+  ================================  ========  =======  ===========  ========  ==============  =============================================================
+  Element                           Type      Units    Constraints  Required  Default         Notes
+  ================================  ========  =======  ===========  ========  ==============  =============================================================
+  ``AnnualExcessSellbackRateType``  string             See [#]_     No        User-Specified  Net metering annual excess sellback rate type [#]_
+  ================================  ========  =======  ===========  ========  ==============  =============================================================
+  
+  .. [#] AnnualExcessSellbackRateType choices are "User-Specified" and "Retail Electricity Cost".
+  .. [#] When annual PV production exceeds the annual building electricity consumption, this rate, which is often significantly below the retail rate, determines the value of the excess electricity sold back to the utility.
+         This may happen to offset gas consumption, for example.
+
+  If the net-metering annual excess sellback rate type is user-specified, additional information can be entered in ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario/PVCompensation/CompensationType/NetMetering``.
+
+    ============================  ========  =======  ===========  ========  ==============  =============================================================
+    Element                       Type      Units    Constraints  Required  Default         Notes
+    ============================  ========  =======  ===========  ========  ==============  =============================================================
+    ``AnnualExcessSellbackRate``  double    $/kWh                 No        0.03            User-specified net metering annual excess sellback rate [#]_
+    ============================  ========  =======  ===========  ========  ==============  =============================================================
+
+    .. [#] Since there are very few cases where modeled electricity consumption will increase from one year to the next, "indefinite rollover" of annual excess generation credit is best approximated by setting this to "User-Specified" and entering a rate of zero.
+
+**Feed-in Tariff**
+
+If the PV compensation type is feed-in tariff, additional information can be entered in ``/HPXML/SoftwareInfo/extension/UtilityBillScenarios/UtilityBillScenario/PVCompensation/CompensationType/FeedInTariff``.
+
+  ============================  ========  =======  ===========  ========  ==============  =============================================================
+  Element                       Type      Units    Constraints  Required  Default         Notes
+  ============================  ========  =======  ===========  ========  ==============  =============================================================
+  ``FeedInTariffRate``          double    $/kWh                 No        0.12            Feed-in tariff rate [#]_
+  ============================  ========  =======  ===========  ========  ==============  =============================================================
+
+  .. [#] FeedInTariffRate applies to full (not excess) PV production.
+         Some utilities/regions may have a feed-in tariff policy where compensation occurs for excess PV production (i.e., PV-generated electricity sent to the grid that is not immediately consumed by the building), rather than full PV production.
+         OpenStudio-HPXML is currently unable to calculate utility bills for such a feed-in tariff policy.
 
 .. _buildingsite:
 
@@ -522,7 +632,7 @@ HPXML Roofs
 
 Each pitched or flat roof surface that is exposed to ambient conditions is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Roofs/Roof``.
 
-For a multifamily building where the dwelling unit has another dwelling unit above it, the surface between the two dwelling units should be considered a ``FrameFloor`` and not a ``Roof``.
+For a multifamily building where the dwelling unit has another dwelling unit above it, the surface between the two dwelling units should be considered a ``Floor`` and not a ``Roof``.
 
   ======================================  =================  ================  =====================  =========  ==============================  ==================================
   Element                                 Type               Units             Constraints            Required   Default                         Notes
@@ -710,10 +820,10 @@ If insulation layers are provided, additional information is entered in each ``F
 
   .. [#] When NominalRValue is non-zero, DistanceToBottomOfInsulation must be greater than DistanceToTopOfInsulation and less than or equal to FoundationWall/Height.
 
-HPXML Frame Floors
+HPXML Floors
 ******************
 
-Each floor/ceiling surface that is not in contact with the ground (Slab) nor adjacent to ambient conditions above (Roof) is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/FrameFloors/FrameFloor``.
+Each floor/ceiling surface that is not in contact with the ground (Slab) nor adjacent to ambient conditions above (Roof) is entered as an ``/HPXML/Building/BuildingDetails/Enclosure/Floors/Floor``.
 
   ======================================  ========  ============  ===========  ========  ========  ============================
   Element                                 Type      Units         Constraints  Required  Default   Notes
@@ -736,7 +846,7 @@ Each floor/ceiling surface that is not in contact with the ground (Slab) nor adj
   .. [#] InteriorFinish/Type defaults to "gypsum board" if InteriorAdjacentTo is living space and the surface is a ceiling, otherwise "none".
   .. [#] AssemblyEffectiveRValue includes all material layers, interior/exterior air films, and insulation installation grade.
 
-For frame floors adjacent to "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space", additional information is entered in ``FrameFloor``.
+For floors adjacent to "other housing unit", "other heated space", "other multifamily buffer space", or "other non-freezing space", additional information is entered in ``Floor``.
 
   ======================================  ========  =====  ==============  ========  =======  ==========================================
   Element                                 Type      Units  Constraints     Required  Default  Notes
@@ -1271,7 +1381,7 @@ If a PTAC is specified, additional information is entered in ``CoolingSystem``.
   ===================================================================  =================  ===========  ===============  ========  =========  ==================================
   Element                                                              Type               Units        Constraints      Required  Default    Notes
   ===================================================================  =================  ===========  ===============  ========  =========  ==================================
-  ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``       integer or double  # or Btu/Wh  > 1600 or > 0    Yes                  Rated efficiency
+  ``AnnualCoolingEfficiency[Units="EER" or Units="CEER"]/Value``       double             Btu/Wh       > 0              Yes                  Rated efficiency
   ``CoolingCapacity``                                                  double             Btu/hr       >= 0             No        autosized  Cooling output capacity
   ``SensibleHeatFraction``                                             double             frac         0 - 1            No                   Sensible heat fraction
   ===================================================================  =================  ===========  ===============  ========  =========  ==================================
@@ -1316,6 +1426,10 @@ If a mini-split is specified, additional information is entered in ``CoolingSyst
          A non-zero charge defect should typically only be applied for systems that are pre-charged on site.
          See ANSI/RESNET/ACCA 310-2020 Standard for Grading the Installation of HVAC Systems for more information.
 
+.. note::
+
+  Mini-splits do not have a ``CompressorType`` input because they are assumed to be inverter driven (variable speed).
+ 
 .. _hvac_cooling_chiller:
 
 Chiller
@@ -1494,6 +1608,10 @@ If a mini-split heat pump is specified, additional information is entered in ``H
   .. [#] ChargeDefectRatio is defined as (InstalledCharge - DesignCharge) / DesignCharge; a value of zero means no refrigerant charge defect.
          A non-zero charge defect should typically only be applied for systems that are pre-charged on site.
          See ANSI/RESNET/ACCA 310-2020 Standard for Grading the Installation of HVAC Systems for more information.
+
+.. note::
+
+  Mini-splits do not have a ``CompressorType`` input because they are assumed to be inverter driven (variable speed).
 
 Packaged Terminal Heat Pump
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

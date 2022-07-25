@@ -28,6 +28,7 @@ require_relative '../HPXMLtoOpenStudio/resources/pv'
 require_relative '../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../HPXMLtoOpenStudio/resources/unit_conversions'
 require_relative '../HPXMLtoOpenStudio/resources/util'
+require_relative '../HPXMLtoOpenStudio/resources/utility_bills'
 require_relative '../HPXMLtoOpenStudio/resources/validator'
 require_relative '../HPXMLtoOpenStudio/resources/version'
 require_relative '../HPXMLtoOpenStudio/resources/waterheater'
@@ -52,7 +53,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_path', true)
@@ -1005,7 +1006,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heating_system_type', heating_system_type_choices, true)
     arg.setDisplayName('Heating System: Type')
-    arg.setDescription("The type of heating system. Use 'none' if there is no heating system.")
+    arg.setDescription("The type of heating system. Use 'none' if there is no heating system or if there is a heat pump serving a heating load.")
     arg.setDefaultValue(HPXML::HVACTypeFurnace)
     args << arg
 
@@ -1043,7 +1044,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooling_system_type', cooling_system_type_choices, true)
     arg.setDisplayName('Cooling System: Type')
-    arg.setDescription("The type of cooling system. Use 'none' if there is no cooling system.")
+    arg.setDescription("The type of cooling system. Use 'none' if there is no cooling system or if there is a heat pump serving a cooling load.")
     arg.setDefaultValue(HPXML::HVACTypeCentralAirConditioner)
     args << arg
 
@@ -2909,6 +2910,63 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       args << arg
     end
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_scenario_names', false)
+    arg.setDisplayName('Utility Bills: Scenario Names')
+    arg.setDescription('Names of utility bill scenarios. If multiple scenarios, use a comma-separated list. If not provided, no utility bills scenarios are calculated.')
+    args << arg
+
+    ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+      underscore_case = OpenStudio::toUnderscoreCase(fuel)
+      all_caps_case = fuel.split(' ').map(&:capitalize).join(' ')
+      cap_case = fuel.capitalize
+
+      arg = OpenStudio::Measure::OSArgument.makeStringArgument("utility_bill_#{underscore_case}_fixed_charges", false)
+      arg.setDisplayName("Utility Bills: #{all_caps_case} Fixed Charges")
+      arg.setDescription("#{cap_case} utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.")
+      args << arg
+    end
+
+    ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+      underscore_case = OpenStudio::toUnderscoreCase(fuel)
+      all_caps_case = fuel.split(' ').map(&:capitalize).join(' ')
+      cap_case = fuel.capitalize
+
+      arg = OpenStudio::Measure::OSArgument.makeStringArgument("utility_bill_#{underscore_case}_marginal_rates", false)
+      arg.setDisplayName("Utility Bills: #{all_caps_case} Marginal Rates")
+      arg.setDescription("#{cap_case} utility bill marginal rates. If multiple scenarios, use a comma-separated list.")
+      args << arg
+    end
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_compensation_types', false)
+    arg.setDisplayName('Utility Bills: PV Compensation Types')
+    arg.setDescription('Utility bill PV compensation types. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_net_metering_annual_excess_sellback_rate_types', false)
+    arg.setDisplayName('Utility Bills: PV Net Metering Annual Excess Sellback Rate Types')
+    arg.setDescription("Utility bill PV net metering annual excess sellback rate types. Only applies if the PV compensation type is '#{HPXML::PVCompensationTypeNetMetering}'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_net_metering_annual_excess_sellback_rates', false)
+    arg.setDisplayName('Utility Bills: PV Net Metering Annual Excess Sellback Rates')
+    arg.setDescription("Utility bill PV net metering annual excess sellback rates. Only applies if the PV compensation type is '#{HPXML::PVCompensationTypeNetMetering}' and the PV annual excess sellback rate type is '#{HPXML::PVAnnualExcessSellbackRateTypeUserSpecified}'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_feed_in_tariff_rates', false)
+    arg.setDisplayName('Utility Bills: PV Feed-In Tariff Rates')
+    arg.setDescription("Utility bill PV annual full/gross feed-in tariff rates. Only applies if the PV compensation type is '#{HPXML::PVCompensationTypeFeedInTariff}'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_monthly_grid_connection_fee_units', false)
+    arg.setDisplayName('Utility Bills: PV Monthly Grid Connection Fee Units')
+    arg.setDescription('Utility bill PV monthly grid connection fee units. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_monthly_grid_connection_fees', false)
+    arg.setDisplayName('Utility Bills: PV Monthly Grid Connection Fees')
+    arg.setDescription('Utility bill PV monthly grid connection fees. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('additional_properties', false)
     arg.setDisplayName('Additional Properties')
     arg.setDescription("Additional properties specified as key-value pairs (i.e., key=value). If multiple additional properties, use a |-separated list. For example, 'LowIncome=false|Remodeled|Description=2-story home in Denver'. These properties will be stored in the HPXML file under /HPXML/SoftwareInfo/extension/AdditionalProperties.")
@@ -3125,6 +3183,20 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
       errors << 'One or more emissions arguments does not have enough comma-separated elements specified.' if error
     end
 
+    bills_args_initialized = [args[:utility_bill_scenario_names].is_initialized]
+    if bills_args_initialized.uniq[0]
+      bills_scenario_lengths = [args[:utility_bill_scenario_names].get.count(',')]
+      ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+        underscore_case = OpenStudio::toUnderscoreCase(fuel)
+
+        bills_scenario_lengths += [args["utility_bill_#{underscore_case}_fixed_charges".to_sym].get.count(',')] if args["utility_bill_#{underscore_case}_fixed_charges".to_sym].is_initialized
+        bills_scenario_lengths += [args["utility_bill_#{underscore_case}_marginal_rates".to_sym].get.count(',')] if args["utility_bill_#{underscore_case}_marginal_rates".to_sym].is_initialized
+      end
+
+      error = (bills_scenario_lengths.uniq.size != 1)
+      errors << 'One or more utility bill arguments does not have enough comma-separated elements specified.' if error
+    end
+
     error = (args[:geometry_unit_aspect_ratio] <= 0)
     errors << 'Aspect ratio must be greater than zero.' if error
 
@@ -3205,61 +3277,61 @@ class HPXMLFile
 
     hpxml = HPXML.new
 
-    set_header(hpxml, runner, args)
-    set_site(hpxml, runner, args)
-    set_neighbor_buildings(hpxml, runner, args)
-    set_building_occupancy(hpxml, runner, args)
-    set_building_construction(hpxml, runner, args)
-    set_climate_and_risk_zones(hpxml, runner, args, epw_file)
-    set_air_infiltration_measurements(hpxml, runner, args)
-    set_roofs(hpxml, runner, model, args, sorted_surfaces)
-    set_rim_joists(hpxml, runner, model, args, sorted_surfaces)
-    set_walls(hpxml, runner, model, args, sorted_surfaces)
-    set_foundation_walls(hpxml, runner, model, args, sorted_surfaces)
-    set_frame_floors(hpxml, runner, model, args, sorted_surfaces)
-    set_slabs(hpxml, runner, model, args, sorted_surfaces)
-    set_windows(hpxml, runner, model, args, sorted_subsurfaces)
-    set_skylights(hpxml, runner, model, args, sorted_subsurfaces)
-    set_doors(hpxml, runner, model, args, sorted_subsurfaces)
-    set_attics(hpxml, runner, model, args)
-    set_foundations(hpxml, runner, model, args)
-    set_heating_systems(hpxml, runner, args)
-    set_cooling_systems(hpxml, runner, args)
-    set_heat_pumps(hpxml, runner, args)
-    set_secondary_heating_systems(hpxml, runner, args)
-    set_hvac_distribution(hpxml, runner, args)
-    set_hvac_control(hpxml, runner, args)
-    set_ventilation_fans(hpxml, runner, args)
-    set_water_heating_systems(hpxml, runner, args)
-    set_hot_water_distribution(hpxml, runner, args)
-    set_water_fixtures(hpxml, runner, args)
-    set_solar_thermal(hpxml, runner, args, epw_file)
-    set_pv_systems(hpxml, runner, args, epw_file)
-    set_battery(hpxml, runner, args)
-    set_lighting(hpxml, runner, args)
-    set_dehumidifier(hpxml, runner, args)
-    set_clothes_washer(hpxml, runner, args)
-    set_clothes_dryer(hpxml, runner, args)
-    set_dishwasher(hpxml, runner, args)
-    set_refrigerator(hpxml, runner, args)
-    set_extra_refrigerator(hpxml, runner, args)
-    set_freezer(hpxml, runner, args)
-    set_cooking_range_oven(hpxml, runner, args)
-    set_ceiling_fans(hpxml, runner, args)
-    set_misc_plug_loads_television(hpxml, runner, args)
-    set_misc_plug_loads_other(hpxml, runner, args)
-    set_misc_plug_loads_vehicle(hpxml, runner, args)
-    set_misc_plug_loads_well_pump(hpxml, runner, args)
-    set_misc_fuel_loads_grill(hpxml, runner, args)
-    set_misc_fuel_loads_lighting(hpxml, runner, args)
-    set_misc_fuel_loads_fireplace(hpxml, runner, args)
-    set_pool(hpxml, runner, args)
-    set_hot_tub(hpxml, runner, args)
+    set_header(hpxml, args)
+    set_site(hpxml, args)
+    set_neighbor_buildings(hpxml, args)
+    set_building_occupancy(hpxml, args)
+    set_building_construction(hpxml, args)
+    set_climate_and_risk_zones(hpxml, args)
+    set_air_infiltration_measurements(hpxml, args)
+    set_roofs(hpxml, args, sorted_surfaces)
+    set_rim_joists(hpxml, model, args, sorted_surfaces)
+    set_walls(hpxml, model, args, sorted_surfaces)
+    set_foundation_walls(hpxml, model, args, sorted_surfaces)
+    set_floors(hpxml, args, sorted_surfaces)
+    set_slabs(hpxml, model, args, sorted_surfaces)
+    set_windows(hpxml, model, args, sorted_subsurfaces)
+    set_skylights(hpxml, args, sorted_subsurfaces)
+    set_doors(hpxml, model, args, sorted_subsurfaces)
+    set_attics(hpxml, args)
+    set_foundations(hpxml, args)
+    set_heating_systems(hpxml, args)
+    set_cooling_systems(hpxml, args)
+    set_heat_pumps(hpxml, args)
+    set_secondary_heating_systems(hpxml, args)
+    set_hvac_distribution(hpxml, args)
+    set_hvac_control(hpxml, args)
+    set_ventilation_fans(hpxml, args)
+    set_water_heating_systems(hpxml, args)
+    set_hot_water_distribution(hpxml, args)
+    set_water_fixtures(hpxml, args)
+    set_solar_thermal(hpxml, args, epw_file)
+    set_pv_systems(hpxml, args, epw_file)
+    set_battery(hpxml, args)
+    set_lighting(hpxml, args)
+    set_dehumidifier(hpxml, args)
+    set_clothes_washer(hpxml, args)
+    set_clothes_dryer(hpxml, args)
+    set_dishwasher(hpxml, args)
+    set_refrigerator(hpxml, args)
+    set_extra_refrigerator(hpxml, args)
+    set_freezer(hpxml, args)
+    set_cooking_range_oven(hpxml, args)
+    set_ceiling_fans(hpxml, args)
+    set_misc_plug_loads_television(hpxml, args)
+    set_misc_plug_loads_other(hpxml, args)
+    set_misc_plug_loads_vehicle(hpxml, args)
+    set_misc_plug_loads_well_pump(hpxml, args)
+    set_misc_fuel_loads_grill(hpxml, args)
+    set_misc_fuel_loads_lighting(hpxml, args)
+    set_misc_fuel_loads_fireplace(hpxml, args)
+    set_pool(hpxml, args)
+    set_hot_tub(hpxml, args)
 
     # Collapse surfaces so that we don't get, e.g., individual windows
     # or the front wall split because of the door. Exclude foundation walls
     # from the list so we get all 4 foundation walls.
-    hpxml.collapse_enclosure_surfaces([:roofs, :walls, :rim_joists, :frame_floors,
+    hpxml.collapse_enclosure_surfaces([:roofs, :walls, :rim_joists, :floors,
                                        :slabs, :windows, :skylights, :doors])
 
     # After surfaces are collapsed, round all areas
@@ -3267,7 +3339,7 @@ class HPXMLFile
      hpxml.rim_joists +
      hpxml.walls +
      hpxml.foundation_walls +
-     hpxml.frame_floors +
+     hpxml.floors +
      hpxml.slabs +
      hpxml.windows +
      hpxml.skylights +
@@ -3287,7 +3359,7 @@ class HPXMLFile
       eri_version = Constants.ERIVersions[-1]
       OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
       weather = WeatherProcess.new(model, runner)
-      HPXMLDefaults.apply(hpxml, eri_version, weather, epw_file: epw_file)
+      HPXMLDefaults.apply(runner, hpxml, eri_version, weather, epw_file: epw_file)
     end
 
     hpxml_doc = hpxml.to_oga()
@@ -3331,9 +3403,9 @@ class HPXMLFile
     if args[:geometry_unit_type] == HPXML::ResidentialTypeSFD
       success = Geometry.create_single_family_detached(runner: runner, model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeSFA
-      success = Geometry.create_single_family_attached(runner: runner, model: model, **args)
+      success = Geometry.create_single_family_attached(model: model, **args)
     elsif args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
-      success = Geometry.create_apartment(runner: runner, model: model, **args)
+      success = Geometry.create_apartment(model: model, **args)
     end
     return false if not success
 
@@ -3346,7 +3418,7 @@ class HPXMLFile
     return true
   end
 
-  def self.set_header(hpxml, runner, args)
+  def self.set_header(hpxml, args)
     hpxml.header.xml_type = 'HPXML'
     hpxml.header.xml_generated_by = 'BuildResidentialHPXML'
     hpxml.header.transaction = 'create'
@@ -3490,6 +3562,148 @@ class HPXMLFile
       end
     end
 
+    if args[:utility_bill_scenario_names].is_initialized
+      bills_scenario_names = args[:utility_bill_scenario_names].get.split(',').map(&:strip)
+
+      fixed_charges = {}
+      ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+        underscore_case = OpenStudio::toUnderscoreCase(fuel)
+
+        if args["utility_bill_#{underscore_case}_fixed_charges".to_sym].is_initialized
+          fixed_charges[fuel] = args["utility_bill_#{underscore_case}_fixed_charges".to_sym].get.split(',').map(&:strip)
+        else
+          fixed_charges[fuel] = [nil] * bills_scenario_names.size
+        end
+      end
+
+      marginal_rates = {}
+      ([HPXML::FuelTypeElectricity] + Constants.FossilFuels).each do |fuel|
+        underscore_case = OpenStudio::toUnderscoreCase(fuel)
+
+        if args["utility_bill_#{underscore_case}_marginal_rates".to_sym].is_initialized
+          marginal_rates[fuel] = args["utility_bill_#{underscore_case}_marginal_rates".to_sym].get.split(',').map(&:strip)
+        else
+          marginal_rates[fuel] = [nil] * bills_scenario_names.size
+        end
+      end
+
+      if args[:utility_bill_pv_compensation_types].is_initialized
+        bills_pv_compensation_types = args[:utility_bill_pv_compensation_types].get.split(',').map(&:strip)
+      else
+        bills_pv_compensation_types = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_net_metering_annual_excess_sellback_rate_types].is_initialized
+        bills_pv_net_metering_annual_excess_sellback_rate_types = args[:utility_bill_pv_net_metering_annual_excess_sellback_rate_types].get.split(',').map(&:strip)
+      else
+        bills_pv_net_metering_annual_excess_sellback_rate_types = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_net_metering_annual_excess_sellback_rates].is_initialized
+        bills_pv_net_metering_annual_excess_sellback_rates = args[:utility_bill_pv_net_metering_annual_excess_sellback_rates].get.split(',').map(&:strip)
+      else
+        bills_pv_net_metering_annual_excess_sellback_rates = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_feed_in_tariff_rates].is_initialized
+        bills_pv_feed_in_tariff_rates = args[:utility_bill_pv_feed_in_tariff_rates].get.split(',').map(&:strip)
+      else
+        bills_pv_feed_in_tariff_rates = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_monthly_grid_connection_fee_units].is_initialized
+        bills_pv_monthly_grid_connection_fee_units = args[:utility_bill_pv_monthly_grid_connection_fee_units].get.split(',').map(&:strip)
+      else
+        bills_pv_monthly_grid_connection_fee_units = [nil] * bills_scenario_names.size
+      end
+
+      if args[:utility_bill_pv_monthly_grid_connection_fees].is_initialized
+        bills_pv_monthly_grid_connection_fees = args[:utility_bill_pv_monthly_grid_connection_fees].get.split(',').map(&:strip)
+      else
+        bills_pv_monthly_grid_connection_fees = [nil] * bills_scenario_names.size
+      end
+
+      bills_scenarios = bills_scenario_names.zip(fixed_charges[HPXML::FuelTypeElectricity],
+                                                 fixed_charges[HPXML::FuelTypeNaturalGas],
+                                                 fixed_charges[HPXML::FuelTypePropane],
+                                                 fixed_charges[HPXML::FuelTypeOil],
+                                                 fixed_charges[HPXML::FuelTypeCoal],
+                                                 fixed_charges[HPXML::FuelTypeWoodCord],
+                                                 fixed_charges[HPXML::FuelTypeWoodPellets],
+                                                 marginal_rates[HPXML::FuelTypeElectricity],
+                                                 marginal_rates[HPXML::FuelTypeNaturalGas],
+                                                 marginal_rates[HPXML::FuelTypePropane],
+                                                 marginal_rates[HPXML::FuelTypeOil],
+                                                 marginal_rates[HPXML::FuelTypeCoal],
+                                                 marginal_rates[HPXML::FuelTypeWoodCord],
+                                                 marginal_rates[HPXML::FuelTypeWoodPellets],
+                                                 bills_pv_compensation_types,
+                                                 bills_pv_net_metering_annual_excess_sellback_rate_types,
+                                                 bills_pv_net_metering_annual_excess_sellback_rates,
+                                                 bills_pv_feed_in_tariff_rates,
+                                                 bills_pv_monthly_grid_connection_fee_units,
+                                                 bills_pv_monthly_grid_connection_fees)
+
+      bills_scenarios.each do |bills_scenario|
+        name, elec_fixed_charge, natural_gas_fixed_charge, propane_fixed_charge, fuel_oil_fixed_charge, coal_fixed_charge, wood_fixed_charge, wood_pellets_fixed_charge, elec_marginal_rate, natural_gas_marginal_rate, propane_marginal_rate, fuel_oil_marginal_rate, coal_marginal_rate, wood_marginal_rate, wood_pellets_marginal_rate, pv_compensation_type, pv_net_metering_annual_excess_sellback_rate_type, pv_net_metering_annual_excess_sellback_rate, pv_feed_in_tariff_rate, pv_monthly_grid_connection_fee_unit, pv_monthly_grid_connection_fee = bills_scenario
+        elec_fixed_charge = Float(elec_fixed_charge) rescue nil
+        natural_gas_fixed_charge = Float(natural_gas_fixed_charge) rescue nil
+        propane_fixed_charge = Float(propane_fixed_charge) rescue nil
+        fuel_oil_fixed_charge = Float(fuel_oil_fixed_charge) rescue nil
+        coal_fixed_charge = Float(coal_fixed_charge) rescue nil
+        wood_fixed_charge = Float(wood_fixed_charge) rescue nil
+        wood_pellets_fixed_charge = Float(wood_pellets_fixed_charge) rescue nil
+        elec_marginal_rate = Float(elec_marginal_rate) rescue nil
+        natural_gas_marginal_rate = Float(natural_gas_marginal_rate) rescue nil
+        propane_marginal_rate = Float(propane_marginal_rate) rescue nil
+        fuel_oil_marginal_rate = Float(fuel_oil_marginal_rate) rescue nil
+        coal_marginal_rate = Float(coal_marginal_rate) rescue nil
+        wood_marginal_rate = Float(wood_marginal_rate) rescue nil
+        wood_pellets_marginal_rate = Float(wood_pellets_marginal_rate) rescue nil
+
+        if pv_compensation_type == HPXML::PVCompensationTypeNetMetering
+          if pv_net_metering_annual_excess_sellback_rate_type == HPXML::PVAnnualExcessSellbackRateTypeUserSpecified
+            pv_net_metering_annual_excess_sellback_rate = Float(pv_net_metering_annual_excess_sellback_rate) rescue nil
+          else
+            pv_net_metering_annual_excess_sellback_rate = nil
+          end
+          pv_feed_in_tariff_rate = nil
+        elsif pv_compensation_type == HPXML::PVCompensationTypeFeedInTariff
+          pv_feed_in_tariff_rate = Float(pv_feed_in_tariff_rate) rescue nil
+          pv_net_metering_annual_excess_sellback_rate_type = nil
+          pv_net_metering_annual_excess_sellback_rate = nil
+        end
+
+        if pv_monthly_grid_connection_fee_unit == HPXML::UnitsDollarsPerkW
+          pv_monthly_grid_connection_fee_dollars_per_kw = Float(pv_monthly_grid_connection_fee) rescue nil
+        elsif pv_monthly_grid_connection_fee_unit == HPXML::UnitsDollars
+          pv_monthly_grid_connection_fee_dollars = Float(pv_monthly_grid_connection_fee) rescue nil
+        end
+
+        hpxml.header.utility_bill_scenarios.add(name: name,
+                                                elec_fixed_charge: elec_fixed_charge,
+                                                natural_gas_fixed_charge: natural_gas_fixed_charge,
+                                                propane_fixed_charge: propane_fixed_charge,
+                                                fuel_oil_fixed_charge: fuel_oil_fixed_charge,
+                                                coal_fixed_charge: coal_fixed_charge,
+                                                wood_fixed_charge: wood_fixed_charge,
+                                                wood_pellets_fixed_charge: wood_pellets_fixed_charge,
+                                                elec_marginal_rate: elec_marginal_rate,
+                                                natural_gas_marginal_rate: natural_gas_marginal_rate,
+                                                propane_marginal_rate: propane_marginal_rate,
+                                                fuel_oil_marginal_rate: fuel_oil_marginal_rate,
+                                                coal_marginal_rate: coal_marginal_rate,
+                                                wood_marginal_rate: wood_marginal_rate,
+                                                wood_pellets_marginal_rate: wood_pellets_marginal_rate,
+                                                pv_compensation_type: pv_compensation_type,
+                                                pv_net_metering_annual_excess_sellback_rate_type: pv_net_metering_annual_excess_sellback_rate_type,
+                                                pv_net_metering_annual_excess_sellback_rate: pv_net_metering_annual_excess_sellback_rate,
+                                                pv_feed_in_tariff_rate: pv_feed_in_tariff_rate,
+                                                pv_monthly_grid_connection_fee_dollars_per_kw: pv_monthly_grid_connection_fee_dollars_per_kw,
+                                                pv_monthly_grid_connection_fee_dollars: pv_monthly_grid_connection_fee_dollars)
+      end
+    end
+
     if args[:additional_properties].is_initialized
       extension_properties = {}
       additional_properties = args[:additional_properties].get.split('|').map(&:strip)
@@ -3501,7 +3715,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_site(hpxml, runner, args)
+  def self.set_site(hpxml, args)
     if args[:site_shielding_of_home].is_initialized
       shielding_of_home = args[:site_shielding_of_home].get
     end
@@ -3545,7 +3759,7 @@ class HPXMLFile
     hpxml.site.shielding_of_home = shielding_of_home
   end
 
-  def self.set_neighbor_buildings(hpxml, runner, args)
+  def self.set_neighbor_buildings(hpxml, args)
     nbr_map = { Constants.FacadeFront => [args[:neighbor_front_distance], args[:neighbor_front_height]],
                 Constants.FacadeBack => [args[:neighbor_back_distance], args[:neighbor_back_height]],
                 Constants.FacadeLeft => [args[:neighbor_left_distance], args[:neighbor_left_height]],
@@ -3567,13 +3781,13 @@ class HPXMLFile
     end
   end
 
-  def self.set_building_occupancy(hpxml, runner, args)
+  def self.set_building_occupancy(hpxml, args)
     if args[:geometry_unit_num_occupants].is_initialized
       hpxml.building_occupancy.number_of_residents = args[:geometry_unit_num_occupants].get
     end
   end
 
-  def self.set_building_construction(hpxml, runner, args)
+  def self.set_building_construction(hpxml, args)
     if args[:geometry_unit_type] == HPXML::ResidentialTypeApartment
       args[:geometry_unit_num_floors_above_grade] = 1
     end
@@ -3606,7 +3820,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_climate_and_risk_zones(hpxml, runner, args, epw_file)
+  def self.set_climate_and_risk_zones(hpxml, args)
     hpxml.climate_and_risk_zones.weather_station_id = 'WeatherStation'
 
     if args[:site_iecc_zone].is_initialized
@@ -3619,7 +3833,7 @@ class HPXMLFile
     hpxml.climate_and_risk_zones.weather_station_epw_filepath = args[:weather_station_epw_filepath]
   end
 
-  def self.set_air_infiltration_measurements(hpxml, runner, args)
+  def self.set_air_infiltration_measurements(hpxml, args)
     if args[:air_leakage_units] == HPXML::UnitsACH
       house_pressure = args[:air_leakage_house_pressure]
       unit_of_measure = HPXML::UnitsACH
@@ -3639,7 +3853,7 @@ class HPXMLFile
                                             infiltration_volume: infiltration_volume)
   end
 
-  def self.set_roofs(hpxml, runner, model, args, sorted_surfaces)
+  def self.set_roofs(hpxml, args, sorted_surfaces)
     args[:geometry_roof_pitch] *= 12.0
     if (args[:geometry_attic_type] == HPXML::AtticTypeFlatRoof) || (args[:geometry_attic_type] == HPXML::AtticTypeBelowApartment)
       args[:geometry_roof_pitch] = 0.0
@@ -3685,7 +3899,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_rim_joists(hpxml, runner, model, args, sorted_surfaces)
+  def self.set_rim_joists(hpxml, model, args, sorted_surfaces)
     sorted_surfaces.each do |surface|
       next if surface.surfaceType != 'Wall'
       next unless ['Outdoors', 'Adiabatic'].include? surface.outsideBoundaryCondition
@@ -3741,7 +3955,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_walls(hpxml, runner, model, args, sorted_surfaces)
+  def self.set_walls(hpxml, model, args, sorted_surfaces)
     sorted_surfaces.each do |surface|
       next if surface.surfaceType != 'Wall'
       next if Geometry.surface_is_rim_joist(surface, args[:geometry_rim_joist_height])
@@ -3819,7 +4033,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_foundation_walls(hpxml, runner, model, args, sorted_surfaces)
+  def self.set_foundation_walls(hpxml, model, args, sorted_surfaces)
     sorted_surfaces.each do |surface|
       next if surface.surfaceType != 'Wall'
       next unless ['Foundation', 'Adiabatic'].include? surface.outsideBoundaryCondition
@@ -3912,7 +4126,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_frame_floors(hpxml, runner, model, args, sorted_surfaces)
+  def self.set_floors(hpxml, args, sorted_surfaces)
     if [HPXML::FoundationTypeBasementConditioned,
         HPXML::FoundationTypeCrawlspaceConditioned].include?(args[:geometry_foundation_type]) && (args[:floor_over_foundation_assembly_r] > 2.1)
       args[:floor_over_foundation_assembly_r] = 2.1 # Uninsulated
@@ -3935,9 +4149,9 @@ class HPXMLFile
       elsif surface.outsideBoundaryCondition == 'Adiabatic'
         exterior_adjacent_to = HPXML::LocationOtherHousingUnit
         if surface.surfaceType == 'Floor'
-          other_space_above_or_below = HPXML::FrameFloorOtherSpaceBelow
+          other_space_above_or_below = HPXML::FloorOtherSpaceBelow
         elsif surface.surfaceType == 'RoofCeiling'
-          other_space_above_or_below = HPXML::FrameFloorOtherSpaceAbove
+          other_space_above_or_below = HPXML::FloorOtherSpaceAbove
         end
       end
 
@@ -3947,28 +4161,28 @@ class HPXMLFile
                HPXML::LocationBasementConditioned,
                HPXML::LocationCrawlspaceConditioned].include? exterior_adjacent_to
 
-      hpxml.frame_floors.add(id: "FrameFloor#{hpxml.frame_floors.size + 1}",
-                             exterior_adjacent_to: exterior_adjacent_to,
-                             interior_adjacent_to: interior_adjacent_to,
-                             area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2'),
-                             other_space_above_or_below: other_space_above_or_below)
-      @surface_ids[surface.name.to_s] = hpxml.frame_floors[-1].id
+      hpxml.floors.add(id: "Floor#{hpxml.floors.size + 1}",
+                       exterior_adjacent_to: exterior_adjacent_to,
+                       interior_adjacent_to: interior_adjacent_to,
+                       area: UnitConversions.convert(surface.grossArea, 'm^2', 'ft^2'),
+                       other_space_above_or_below: other_space_above_or_below)
+      @surface_ids[surface.name.to_s] = hpxml.floors[-1].id
 
-      if hpxml.frame_floors[-1].is_thermal_boundary
+      if hpxml.floors[-1].is_thermal_boundary
         if [HPXML::LocationAtticUnvented, HPXML::LocationAtticVented].include? exterior_adjacent_to
-          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:ceiling_assembly_r]
+          hpxml.floors[-1].insulation_assembly_r_value = args[:ceiling_assembly_r]
         elsif [HPXML::LocationGarage].include? exterior_adjacent_to
-          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_over_garage_assembly_r]
+          hpxml.floors[-1].insulation_assembly_r_value = args[:floor_over_garage_assembly_r]
         else
-          hpxml.frame_floors[-1].insulation_assembly_r_value = args[:floor_over_foundation_assembly_r]
+          hpxml.floors[-1].insulation_assembly_r_value = args[:floor_over_foundation_assembly_r]
         end
       else
-        hpxml.frame_floors[-1].insulation_assembly_r_value = 2.1 # Uninsulated
+        hpxml.floors[-1].insulation_assembly_r_value = 2.1 # Uninsulated
       end
     end
   end
 
-  def self.set_slabs(hpxml, runner, model, args, sorted_surfaces)
+  def self.set_slabs(hpxml, model, args, sorted_surfaces)
     sorted_surfaces.each do |surface|
       next unless ['Foundation'].include? surface.outsideBoundaryCondition
       next if surface.surfaceType != 'Floor'
@@ -4041,7 +4255,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_windows(hpxml, runner, model, args, sorted_subsurfaces)
+  def self.set_windows(hpxml, model, args, sorted_subsurfaces)
     sorted_subsurfaces.each do |sub_surface|
       next if sub_surface.subSurfaceType != 'FixedWindow'
 
@@ -4131,7 +4345,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_skylights(hpxml, runner, model, args, sorted_subsurfaces)
+  def self.set_skylights(hpxml, args, sorted_subsurfaces)
     sorted_subsurfaces.each do |sub_surface|
       next if sub_surface.subSurfaceType != 'Skylight'
 
@@ -4157,7 +4371,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_doors(hpxml, runner, model, args, sorted_subsurfaces)
+  def self.set_doors(hpxml, model, args, sorted_subsurfaces)
     sorted_subsurfaces.each do |sub_surface|
       next if sub_surface.subSurfaceType != 'Door'
 
@@ -4165,13 +4379,10 @@ class HPXMLFile
 
       interior_adjacent_to = Geometry.get_adjacent_to(surface: surface)
 
-      adjacent_surface = surface
       if [HPXML::LocationOtherHousingUnit].include?(interior_adjacent_to)
         adjacent_surface = Geometry.get_adiabatic_adjacent_surface(model: model, surface: surface)
         next if adjacent_surface.nil?
       end
-
-      sub_surface_facade = Geometry.get_facade_for_surface(sub_surface)
 
       wall_idref = @surface_ids[surface.name.to_s]
       next if wall_idref.nil?
@@ -4184,13 +4395,13 @@ class HPXMLFile
     end
   end
 
-  def self.set_attics(hpxml, runner, model, args)
+  def self.set_attics(hpxml, args)
     surf_ids = { 'roofs' => { 'surfaces' => hpxml.roofs, 'ids' => [] },
                  'walls' => { 'surfaces' => hpxml.walls, 'ids' => [] },
-                 'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] } }
+                 'floors' => { 'surfaces' => hpxml.floors, 'ids' => [] } }
 
     attic_locations = [HPXML::LocationAtticUnconditioned, HPXML::LocationAtticUnvented, HPXML::LocationAtticVented]
-    surf_ids.each do |surf_type, surf_hash|
+    surf_ids.values.each do |surf_hash|
       surf_hash['surfaces'].each do |surface|
         next if (not attic_locations.include? surface.interior_adjacent_to) &&
                 (not attic_locations.include? surface.exterior_adjacent_to)
@@ -4212,12 +4423,12 @@ class HPXMLFile
                      attic_type: args[:geometry_attic_type],
                      attached_to_roof_idrefs: surf_ids['roofs']['ids'],
                      attached_to_wall_idrefs: surf_ids['walls']['ids'],
-                     attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'])
+                     attached_to_floor_idrefs: surf_ids['floors']['ids'])
   end
 
-  def self.set_foundations(hpxml, runner, model, args)
+  def self.set_foundations(hpxml, args)
     surf_ids = { 'slabs' => { 'surfaces' => hpxml.slabs, 'ids' => [] },
-                 'frame_floors' => { 'surfaces' => hpxml.frame_floors, 'ids' => [] },
+                 'floors' => { 'surfaces' => hpxml.floors, 'ids' => [] },
                  'foundation_walls' => { 'surfaces' => hpxml.foundation_walls, 'ids' => [] },
                  'walls' => { 'surfaces' => hpxml.walls, 'ids' => [] },
                  'rim_joists' => { 'surfaces' => hpxml.rim_joists, 'ids' => [] }, }
@@ -4233,7 +4444,7 @@ class HPXMLFile
         next unless (foundation_locations.include? surface.interior_adjacent_to) ||
                     (foundation_locations.include? surface.exterior_adjacent_to) ||
                     (surf_type == 'slabs' && surface.interior_adjacent_to == HPXML::LocationLivingSpace) ||
-                    (surf_type == 'frame_floors' && surface.exterior_adjacent_to == HPXML::LocationOutside)
+                    (surf_type == 'floors' && surface.exterior_adjacent_to == HPXML::LocationOutside)
 
         surf_hash['ids'] << surface.id
       end
@@ -4242,13 +4453,13 @@ class HPXMLFile
     hpxml.foundations.add(id: "Foundation#{hpxml.foundations.size + 1}",
                           foundation_type: args[:geometry_foundation_type],
                           attached_to_slab_idrefs: surf_ids['slabs']['ids'],
-                          attached_to_frame_floor_idrefs: surf_ids['frame_floors']['ids'],
+                          attached_to_floor_idrefs: surf_ids['floors']['ids'],
                           attached_to_foundation_wall_idrefs: surf_ids['foundation_walls']['ids'],
                           attached_to_wall_idrefs: surf_ids['walls']['ids'],
                           attached_to_rim_joist_idrefs: surf_ids['rim_joists']['ids'])
   end
 
-  def self.set_heating_systems(hpxml, runner, args)
+  def self.set_heating_systems(hpxml, args)
     heating_system_type = args[:heating_system_type]
 
     return if heating_system_type == 'none'
@@ -4307,7 +4518,7 @@ class HPXMLFile
                               primary_system: true)
   end
 
-  def self.set_cooling_systems(hpxml, runner, args)
+  def self.set_cooling_systems(hpxml, args)
     cooling_system_type = args[:cooling_system_type]
 
     return if cooling_system_type == 'none'
@@ -4365,7 +4576,7 @@ class HPXMLFile
                               primary_system: true)
   end
 
-  def self.set_heat_pumps(hpxml, runner, args)
+  def self.set_heat_pumps(hpxml, args)
     heat_pump_type = args[:heat_pump_type]
 
     return if heat_pump_type == 'none'
@@ -4505,7 +4716,7 @@ class HPXMLFile
                          primary_cooling_system: primary_cooling_system)
   end
 
-  def self.set_secondary_heating_systems(hpxml, runner, args)
+  def self.set_secondary_heating_systems(hpxml, args)
     heating_system_type = args[:heating_system_2_type]
     heating_system_is_heatpump_backup = (args[:heat_pump_type] != 'none' && args[:heat_pump_backup_type] == HPXML::HeatPumpBackupTypeSeparate)
 
@@ -4544,7 +4755,7 @@ class HPXMLFile
                               heating_efficiency_percent: heating_efficiency_percent)
   end
 
-  def self.set_hvac_distribution(hpxml, runner, args)
+  def self.set_hvac_distribution(hpxml, args)
     # HydronicDistribution?
     hpxml.heating_systems.each do |heating_system|
       next unless [heating_system.heating_system_type].include?(HPXML::HVACTypeBoiler)
@@ -4670,7 +4881,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_hvac_control(hpxml, runner, args)
+  def self.set_hvac_control(hpxml, args)
     return if (args[:heating_system_type] == 'none') && (args[:cooling_system_type] == 'none') && (args[:heat_pump_type] == 'none')
 
     # Heating
@@ -4739,7 +4950,7 @@ class HPXMLFile
                             seasons_cooling_end_day: seasons_cooling_end_day)
   end
 
-  def self.set_ventilation_fans(hpxml, runner, args)
+  def self.set_ventilation_fans(hpxml, args)
     if args[:mech_vent_fan_type] != 'none'
 
       if [HPXML::MechVentTypeERV].include?(args[:mech_vent_fan_type])
@@ -4930,7 +5141,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_water_heating_systems(hpxml, runner, args)
+  def self.set_water_heating_systems(hpxml, args)
     water_heater_type = args[:water_heater_type]
     return if water_heater_type == 'none'
 
@@ -5061,7 +5272,7 @@ class HPXMLFile
                                     operating_mode: operating_mode)
   end
 
-  def self.set_hot_water_distribution(hpxml, runner, args)
+  def self.set_hot_water_distribution(hpxml, args)
     return if args[:water_heater_type] == 'none'
 
     if args[:dwhr_facilities_connected] != 'none'
@@ -5107,7 +5318,7 @@ class HPXMLFile
                                       dwhr_efficiency: dwhr_efficiency)
   end
 
-  def self.set_water_fixtures(hpxml, runer, args)
+  def self.set_water_fixtures(hpxml, args)
     return if args[:water_heater_type] == 'none'
 
     hpxml.water_fixtures.add(id: "WaterFixture#{hpxml.water_fixtures.size + 1}",
@@ -5123,7 +5334,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_solar_thermal(hpxml, runner, args, epw_file)
+  def self.set_solar_thermal(hpxml, args, epw_file)
     return if args[:solar_thermal_system_type] == 'none'
 
     if args[:solar_thermal_solar_fraction] > 0
@@ -5160,7 +5371,7 @@ class HPXMLFile
                                     solar_fraction: solar_fraction)
   end
 
-  def self.set_pv_systems(hpxml, runner, args, epw_file)
+  def self.set_pv_systems(hpxml, args, epw_file)
     [args[:pv_system_present], args[:pv_system_2_present]].each_with_index do |pv_system_present, i|
       next unless pv_system_present
 
@@ -5207,7 +5418,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_battery(hpxml, runner, args)
+  def self.set_battery(hpxml, args)
     return unless args[:battery_present]
 
     if args[:battery_location].is_initialized
@@ -5234,7 +5445,7 @@ class HPXMLFile
                         usable_capacity_kwh: usable_capacity_kwh)
   end
 
-  def self.set_lighting(hpxml, runner, args)
+  def self.set_lighting(hpxml, args)
     return unless args[:lighting_present] || args[:ceiling_fan_present] # If ceiling fans present but not lighting present, need to continue and use lighting multipliers = 0 instead
 
     hpxml.lighting_groups.add(id: "LightingGroup#{hpxml.lighting_groups.size + 1}",
@@ -5309,7 +5520,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_dehumidifier(hpxml, runner, args)
+  def self.set_dehumidifier(hpxml, args)
     return if args[:dehumidifier_type] == 'none'
 
     if args[:dehumidifier_efficiency_type] == 'EnergyFactor'
@@ -5328,7 +5539,7 @@ class HPXMLFile
                             location: HPXML::LocationLivingSpace)
   end
 
-  def self.set_clothes_washer(hpxml, runner, args)
+  def self.set_clothes_washer(hpxml, args)
     return if args[:water_heater_type] == 'none'
     return unless args[:clothes_washer_present]
 
@@ -5385,7 +5596,7 @@ class HPXMLFile
                               usage_multiplier: usage_multiplier)
   end
 
-  def self.set_clothes_dryer(hpxml, runner, args)
+  def self.set_clothes_dryer(hpxml, args)
     return if args[:water_heater_type] == 'none'
     return unless args[:clothes_washer_present]
     return unless args[:clothes_dryer_present]
@@ -5424,7 +5635,7 @@ class HPXMLFile
                              usage_multiplier: usage_multiplier)
   end
 
-  def self.set_dishwasher(hpxml, runner, args)
+  def self.set_dishwasher(hpxml, args)
     return if args[:water_heater_type] == 'none'
     return unless args[:dishwasher_present]
 
@@ -5478,7 +5689,7 @@ class HPXMLFile
                           usage_multiplier: usage_multiplier)
   end
 
-  def self.set_refrigerator(hpxml, runner, args)
+  def self.set_refrigerator(hpxml, args)
     return unless args[:refrigerator_present]
 
     if args[:refrigerator_rated_annual_kwh].is_initialized
@@ -5500,7 +5711,7 @@ class HPXMLFile
                             usage_multiplier: usage_multiplier)
   end
 
-  def self.set_extra_refrigerator(hpxml, runner, args)
+  def self.set_extra_refrigerator(hpxml, args)
     return unless args[:extra_refrigerator_present]
 
     if args[:extra_refrigerator_rated_annual_kwh].is_initialized
@@ -5522,7 +5733,7 @@ class HPXMLFile
                             usage_multiplier: usage_multiplier)
   end
 
-  def self.set_freezer(hpxml, runner, args)
+  def self.set_freezer(hpxml, args)
     return unless args[:freezer_present]
 
     if args[:freezer_rated_annual_kwh].is_initialized
@@ -5543,7 +5754,7 @@ class HPXMLFile
                        usage_multiplier: usage_multiplier)
   end
 
-  def self.set_cooking_range_oven(hpxml, runner, args)
+  def self.set_cooking_range_oven(hpxml, args)
     return unless args[:cooking_range_oven_present]
 
     if args[:cooking_range_oven_location].is_initialized
@@ -5572,7 +5783,7 @@ class HPXMLFile
                     is_convection: is_convection)
   end
 
-  def self.set_ceiling_fans(hpxml, runner, args)
+  def self.set_ceiling_fans(hpxml, args)
     return unless args[:ceiling_fan_present]
 
     if args[:ceiling_fan_efficiency].is_initialized
@@ -5588,7 +5799,7 @@ class HPXMLFile
                            quantity: quantity)
   end
 
-  def self.set_misc_plug_loads_television(hpxml, runner, args)
+  def self.set_misc_plug_loads_television(hpxml, args)
     return unless args[:misc_plug_loads_television_present]
 
     if args[:misc_plug_loads_television_annual_kwh].is_initialized
@@ -5605,7 +5816,7 @@ class HPXMLFile
                          usage_multiplier: usage_multiplier)
   end
 
-  def self.set_misc_plug_loads_other(hpxml, runner, args)
+  def self.set_misc_plug_loads_other(hpxml, args)
     if args[:misc_plug_loads_other_annual_kwh].is_initialized
       kWh_per_year = args[:misc_plug_loads_other_annual_kwh].get
     end
@@ -5630,7 +5841,7 @@ class HPXMLFile
                          usage_multiplier: usage_multiplier)
   end
 
-  def self.set_misc_plug_loads_well_pump(hpxml, runner, args)
+  def self.set_misc_plug_loads_well_pump(hpxml, args)
     return unless args[:misc_plug_loads_well_pump_present]
 
     if args[:misc_plug_loads_well_pump_annual_kwh].is_initialized
@@ -5647,7 +5858,7 @@ class HPXMLFile
                          usage_multiplier: usage_multiplier)
   end
 
-  def self.set_misc_plug_loads_vehicle(hpxml, runner, args)
+  def self.set_misc_plug_loads_vehicle(hpxml, args)
     return unless args[:misc_plug_loads_vehicle_present]
 
     if args[:misc_plug_loads_vehicle_annual_kwh].is_initialized
@@ -5664,7 +5875,7 @@ class HPXMLFile
                          usage_multiplier: usage_multiplier)
   end
 
-  def self.set_misc_fuel_loads_grill(hpxml, runner, args)
+  def self.set_misc_fuel_loads_grill(hpxml, args)
     return unless args[:misc_fuel_loads_grill_present]
 
     if args[:misc_fuel_loads_grill_annual_therm].is_initialized
@@ -5682,7 +5893,7 @@ class HPXMLFile
                          usage_multiplier: usage_multiplier)
   end
 
-  def self.set_misc_fuel_loads_lighting(hpxml, runner, args)
+  def self.set_misc_fuel_loads_lighting(hpxml, args)
     return unless args[:misc_fuel_loads_lighting_present]
 
     if args[:misc_fuel_loads_lighting_annual_therm].is_initialized
@@ -5700,7 +5911,7 @@ class HPXMLFile
                          usage_multiplier: usage_multiplier)
   end
 
-  def self.set_misc_fuel_loads_fireplace(hpxml, runner, args)
+  def self.set_misc_fuel_loads_fireplace(hpxml, args)
     return unless args[:misc_fuel_loads_fireplace_present]
 
     if args[:misc_fuel_loads_fireplace_annual_therm].is_initialized
@@ -5728,7 +5939,7 @@ class HPXMLFile
                          usage_multiplier: usage_multiplier)
   end
 
-  def self.set_pool(hpxml, runner, args)
+  def self.set_pool(hpxml, args)
     return unless args[:pool_present]
 
     if args[:pool_pump_annual_kwh].is_initialized
@@ -5770,7 +5981,7 @@ class HPXMLFile
                     heater_usage_multiplier: heater_usage_multiplier)
   end
 
-  def self.set_hot_tub(hpxml, runner, args)
+  def self.set_hot_tub(hpxml, args)
     return unless args[:hot_tub_present]
 
     if args[:hot_tub_pump_annual_kwh].is_initialized
