@@ -10,7 +10,7 @@ require_relative '../resources/util'
 
 $start_time = Time.now
 
-def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, keep_run_folders, samplingonly)
+def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_ids, keep_run_folders, samplingonly)
   fail "YML file does not exist at '#{yml}'." if !File.exist?(yml)
 
   cfg = YAML.load_file(yml)
@@ -372,7 +372,7 @@ def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, 
     end
 
     all_results_output[upgrade_name] = [] if !all_results_output.keys.include?(upgrade_name)
-    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug)
+    samples_osw(results_dir, upgrade_name, workflow, building_id, job_id, folder_id, all_results_output, all_cli_output, measures, reporting_measures, measures_only, debug_arg)
 
     info = "[Parallel(n_jobs=#{n_threads})]: "
     max_size = "#{workflow_and_building_ids.size}".size
@@ -401,7 +401,7 @@ def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, 
     end
   end
 
-  FileUtils.rm_rf(lib_dir) if !debug
+  FileUtils.rm_rf(lib_dir) if !debug_arg
 
   return true
 end
