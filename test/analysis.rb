@@ -73,7 +73,7 @@ def expected_upgrade_contents
   contents += [
     'upgraded.osw',
     'upgraded.xml'
-  } if testing
+  ] if testing
   return contents
 end
 
