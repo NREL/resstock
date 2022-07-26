@@ -61,24 +61,6 @@ def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, 
     end
   end
 
-  measures = []
-  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
-    next unless ['measures'].include?(measure_dir_name)
-
-    cfg['workflow_generator']['args']['measures'].each do |k|
-      measures << k['measure_dir_name']
-    end
-  end
-
-  reporting_measures = []
-  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
-    next unless ['reporting_measures'].include?(measure_dir_name)
-
-    cfg['workflow_generator']['args']['reporting_measures'].each do |k|
-      reporting_measures << k['measure_dir_name']
-    end
-  end
-
   osw_paths = {}
   upgrade_names.each_with_index do |upgrade_name, upgrade_idx|
     scenario_osw_dir = File.join(results_dir, 'osw', upgrade_name)
@@ -87,60 +69,153 @@ def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, 
     scenario_xml_dir = File.join(results_dir, 'xml', upgrade_name)
     Dir.mkdir(scenario_xml_dir)
 
-    workflow_args = {}
+    workflow_args = { 'build_existing_model' => {},
+                      'measures' => [],
+                      'simulation_output_report' => {},
+                      'server_directory_cleanup' => {} }
     workflow_args.update(cfg['workflow_generator']['args'])
 
-    measure_dir_names = { 'build_existing_model' => 'BuildExistingModel',
-                          'simulation_output_report' => 'ReportSimulationOutput',
-                          'server_directory_cleanup' => 'ServerDirectoryCleanup' }
+    sim_ctl_args = {
+      'simulation_control_timestep' => 60,
+      'simulation_control_run_period_begin_month' => 1,
+      'simulation_control_run_period_begin_day_of_month' => 1,
+      'simulation_control_run_period_end_month' => 12,
+      'simulation_control_run_period_end_day_of_month' => 31,
+      'simulation_control_run_period_calendar_year' => 2007,
+      'add_component_loads' => false
+    }
 
-    steps = []
-    measure_dir_names.keys.each do |k|
-      workflow_args.each do |measure_dir_name, arguments|
-        next if k != measure_dir_name
+    bld_exist_model_args = {
+      'building_id': '',
+      'sample_weight': Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
+    }
 
-        if measure_dir_name == 'build_existing_model'
-          arguments['building_id'] = ''
-          arguments['sample_weight'] = Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
+    bld_exist_model_args.update(sim_ctl_args)
+    bld_exist_model_args.update(workflow_args['build_existing_model'])
 
-          if workflow_args.keys.include?('emissions')
-            arguments['emissions_scenario_names'] = workflow_args['emissions'].collect { |s| s['scenario_name'] }.join(',')
-            arguments['emissions_types'] = workflow_args['emissions'].collect { |s| s['type'] }.join(',')
-            arguments['emissions_electricity_folders'] = workflow_args['emissions'].collect { |s| s['elec_folder'] }.join(',')
-            arguments['emissions_natural_gas_values'] = workflow_args['emissions'].collect { |s| s['gas_value'] }.join(',')
-            arguments['emissions_propane_values'] = workflow_args['emissions'].collect { |s| s['propane_value'] }.join(',')
-            arguments['emissions_fuel_oil_values'] = workflow_args['emissions'].collect { |s| s['oil_value'] }.join(',')
-            arguments['emissions_wood_values'] = workflow_args['emissions'].collect { |s| s['wood_value'] }.join(',')
-          end
-        elsif measure_dir_name == 'simulation_output_report'
-          arguments['include_timeseries_end_use_consumptions'] = true if !arguments.keys.include?('include_timeseries_end_use_consumptions')
-          arguments['include_timeseries_total_loads'] = true if !arguments.keys.include?('include_timeseries_total_loads')
-          arguments['add_timeseries_dst_column'] = true if !arguments.keys.include?('add_timeseries_dst_column')
-          arguments['add_timeseries_utc_column'] = true if !arguments.keys.include?('add_timeseries_utc_column')
-
-          arguments['user_output_variables'] = arguments['output_variables'].collect { |o| o['name'] }.join(',') if arguments.keys.include?('output_variables')
-        elsif measure_dir_name == 'server_directory_cleanup'
-          arguments = {} if arguments.nil?
-          arguments['retain_in_idf'] = true if !arguments.keys.include?('retain_in_idf')
-          arguments['retain_schedules_csv'] = true if !arguments.keys.include?('retain_schedules_csv')
-          arguments['debug'] = workflow_args['debug'] if workflow_args.keys.include?('debug')
-        end
-
-        steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
-                   'arguments' => arguments }
-      end
+    add_component_loads = false
+    if bld_exist_model_args.keys.include?('add_component_loads')
+      add_component_loads = bld_exist_model_args['add_component_loads']
+      bld_exist_model_args.delete('add_component_loads')
     end
-    workflow_args['simulation_output_report'].delete('output_variables')
+
+    if workflow_args.keys.include?('emissions')
+      emissions = workflow_args['emissions']
+      bld_exist_model_args['emissions_scenario_names'] = emissions.collect { |s| s['scenario_name'] }.join(',')
+      bld_exist_model_args['emissions_types'] = emissions.collect { |s| s['type'] }.join(',')
+      bld_exist_model_args['emissions_electricity_folders'] = emissions.collect { |s| s['elec_folder'] }.join(',')
+      bld_exist_model_args['emissions_natural_gas_values'] = emissions.collect { |s| s['gas_value'] }.join(',')
+      bld_exist_model_args['emissions_propane_values'] = emissions.collect { |s| s['propane_value'] }.join(',')
+      bld_exist_model_args['emissions_fuel_oil_values'] = emissions.collect { |s| s['oil_value'] }.join(',')
+      bld_exist_model_args['emissions_wood_values'] = emissions.collect { |s| s['wood_value'] }.join(',')
+    end
 
     if cfg['sampler']['type'] == 'residential_quota_downselect'
-      workflow_args['build_existing_model']['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
+      bld_exist_model_args['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
     end
 
-    step = { 'measure_dir_name' => 'HPXMLtoOpenStudio', 'arguments' => { 'hpxml_path' => '', 'output_dir' => '' } }
-    step['arguments']['debug'] = workflow_args['debug'] if workflow_args.keys.include?('debug')
-    steps.insert(-3, step)
+    sim_out_rep_args = {
+      'timeseries_frequency' => 'none',
+      'include_timeseries_total_consumptions' => false,
+      'include_timeseries_fuel_consumptions' => false,
+      'include_timeseries_end_use_consumptions' => true,
+      'include_timeseries_emissions' => false,
+      'include_timeseries_emission_fuels' => false,
+      'include_timeseries_emission_end_uses' => false,
+      'include_timeseries_hot_water_uses' => false,
+      'include_timeseries_total_loads' => true,
+      'include_timeseries_component_loads' => false,
+      'include_timeseries_zone_temperatures' => false,
+      'include_timeseries_airflows' => false,
+      'include_timeseries_weather' => false,
+      'add_timeseries_dst_column' => true,
+      'add_timeseries_utc_column' => true
+    }
+    sim_out_rep_args.update(workflow_args['simulation_output_report'])
 
-    step_idx = 1
+    if sim_out_rep_args.keys.include?('output_variables')
+      output_variables = sim_out_rep_args['output_variables']
+      sim_out_rep_args['user_output_variables'] = output_variables.collect { |o| o['name'] }.join(',')
+      sim_out_rep_args.delete('output_variables')
+    end
+
+    osw = {
+      'steps' => [
+        {
+          'measure_dir_name' => 'BuildExistingModel',
+          'arguments' => bld_exist_model_args
+        }
+      ],
+      'created_at' => Time.now.strftime('%Y-%m-%dT%H:%M:%S'),
+      'measure_paths' => [
+        File.absolute_path(File.join(File.dirname(__FILE__), '../measures')),
+        File.absolute_path(File.join(File.dirname(__FILE__), '../resources/hpxml-measures'))
+      ],
+      'run_options' => {
+        'skip_zip_results' => true
+      }
+    }
+
+    osw['steps'] += workflow_args['measures']
+
+    debug = false
+    if workflow_args.keys.include?('debug')
+      debug = workflow_args['debug']
+    end
+
+    server_dir_cleanup_args = {
+      'retain_in_osm' => false,
+      'retain_in_idf' => true,
+      'retain_pre_process_idf' => false,
+      'retain_eplusout_audit' => false,
+      'retain_eplusout_bnd' => false,
+      'retain_eplusout_eio' => false,
+      'retain_eplusout_end' => false,
+      'retain_eplusout_err' => false,
+      'retain_eplusout_eso' => false,
+      'retain_eplusout_mdd' => false,
+      'retain_eplusout_mtd' => false,
+      'retain_eplusout_rdd' => false,
+      'retain_eplusout_shd' => false,
+      'retain_eplusout_msgpack' => false,
+      'retain_eplustbl_htm' => false,
+      'retain_stdout_energyplus' => false,
+      'retain_stdout_expandobject' => false,
+      'retain_schedules_csv' => true,
+      'debug' => debug
+    }
+    server_dir_cleanup_args.update(workflow_args['server_directory_cleanup'])
+
+    osw['steps'] += [
+      {
+        'measure_dir_name' => 'HPXMLtoOpenStudio',
+        'arguments' => {
+          'hpxml_path' => '',
+          'output_dir' => '',
+          'debug' => debug,
+          'add_component_loads' => add_component_loads
+        }
+      },
+      {
+        'measure_dir_name' => 'ReportSimulationOutput',
+        'arguments' => sim_out_rep_args
+      },
+      {
+        'measure_dir_name' => 'ReportHPXMLOutput',
+        'arguments' => {}
+      },
+      {
+        'measure_dir_name' => 'UpgradeCosts',
+        'arguments' => {
+          'debug' => debug
+        }
+      },
+      {
+        'measure_dir_name' => 'ServerDirectoryCleanup',
+        'arguments' => server_dir_cleanup_args
+      }
+    ]
+
     if upgrade_idx > 0
       measure_d = cfg['upgrades'][upgrade_idx - 1]
       apply_upgrade_measure = { 'measure_dir_name' => 'ApplyUpgrade',
@@ -172,64 +247,43 @@ def run_workflow(yml, n_threads, measures_only, debug, overwrite, building_ids, 
         apply_upgrade_measure['arguments']['package_apply_logic'] = make_apply_logic_arg(measure_d['package_apply_logic'])
       end
 
-      steps.insert(step_idx, apply_upgrade_measure)
-      step_idx += 1
+      build_existing_model_idx = osw['steps'].index { |s| s['measure_dir_name'] == 'BuildExistingModel' }
+      osw['steps'].insert(build_existing_model_idx + 1, apply_upgrade_measure)
     end
 
-    workflow_args.keys.each do |measure_dir_name|
-      next unless ['measures'].include?(measure_dir_name)
-
-      workflow_args[measure_dir_name].each do |k|
-        step = { 'measure_dir_name' => k['measure_dir_name'] }
-        if k.keys.include?('arguments')
-          step['arguments'] = k['arguments']
+    if workflow_args.keys.include?('reporting_measures')
+      workflow_args['reporting_measures'].each do |reporting_measure|
+        if !reporting_measure.keys.include?('arguments')
+          reporting_measure['arguments'] = {}
         end
-        steps.insert(step_idx, step)
-        step_idx += 1
+        reporting_measure['measure_type'] = 'ReportingMeasure'
+        osw['steps'].insert(-2, reporting_measure) # right before ServerDirectoryCleanup
       end
     end
-
-    step_idx += 2 # for HPXMLtoOpenStudio, ReportSimulationOutput
-    steps.insert(step_idx, { 'measure_dir_name' => 'ReportHPXMLOutput',
-                             'arguments' => {
-                               'output_format' => 'csv',
-                             } })
-    step_idx += 1
-
-    step = { 'measure_dir_name' => 'UpgradeCosts', 'arguments' => {} }
-    step['arguments']['debug'] = workflow_args['debug'] if workflow_args.keys.include?('debug')
-    steps.insert(step_idx, step)
-    step_idx += 1
-
-    workflow_args.keys.each do |measure_dir_name|
-      next unless ['reporting_measures'].include?(measure_dir_name)
-
-      workflow_args[measure_dir_name].each do |k|
-        step = { 'measure_dir_name' => k['measure_dir_name'] }
-        if k.keys.include?('arguments')
-          step['arguments'] = k['arguments']
-        end
-        steps.insert(step_idx, step)
-        step_idx += 1
-      end
-    end
-
-    measure_paths = [
-      File.absolute_path(File.join(File.dirname(__FILE__), '../measures')),
-      File.absolute_path(File.join(File.dirname(__FILE__), '../resources/hpxml-measures'))
-    ]
-
-    osw = {
-      'measure_paths': measure_paths,
-      'run_options': { 'skip_zip_results': true },
-      'steps': steps
-    }
 
     base, _ext = File.basename(yml).split('.')
 
     osw_paths[upgrade_name] = File.join(results_dir, "#{base}-#{upgrade_name}.osw")
     File.open(osw_paths[upgrade_name], 'w') do |f|
       f.write(JSON.pretty_generate(osw))
+    end
+  end
+
+  measures = []
+  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
+    next unless ['measures'].include?(measure_dir_name)
+
+    cfg['workflow_generator']['args']['measures'].each do |k|
+      measures << k['measure_dir_name']
+    end
+  end
+
+  reporting_measures = []
+  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
+    next unless ['reporting_measures'].include?(measure_dir_name)
+
+    cfg['workflow_generator']['args']['reporting_measures'].each do |k|
+      reporting_measures << k['measure_dir_name']
     end
   end
 
