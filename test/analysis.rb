@@ -68,7 +68,7 @@ def expected_baseline_contents(testing)
   return contents
 end
 
-def expected_upgrade_contents
+def expected_upgrade_contents(testing)
   contents = []
   contents += [
     'upgraded.osw',
@@ -165,7 +165,7 @@ def _test_baseline_contents(contents, testing = false)
 end
 
 def _test_upgrade_contents(contents, testing = false)
-  expected_contents = expected_baseline_contents(testing) + expected_upgrade_contents
+  expected_contents = expected_baseline_contents(testing) + expected_upgrade_contents(testing)
 
   return true if (expected_contents - contents).empty?
 
