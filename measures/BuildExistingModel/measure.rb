@@ -341,7 +341,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
     # Specify measures to run
-    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
+    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true # for apply_hvac_sizing
     if run_hescore_workflow
       measures_hash = { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'] }
     else

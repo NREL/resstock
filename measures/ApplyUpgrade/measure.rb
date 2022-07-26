@@ -400,6 +400,8 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
+    # Specify measures to run
+    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
     measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] },
                                measures_dir => {} }
 
