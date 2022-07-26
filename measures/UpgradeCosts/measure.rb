@@ -116,6 +116,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     if not has_costs
+      remove_intermediate_files(debug) if !debug
       register_value(runner, upgrade_cost_name, 0.0)
       runner.registerInfo("Registering 0.0 for #{upgrade_cost_name}.")
       return true
@@ -159,14 +160,16 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     register_value(runner, upgrade_cost_name, upgrade_cost)
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
-    if !debug
-      FileUtils.rm_rf(File.expand_path('../existing.osw'))
-      FileUtils.rm_rf(File.expand_path('../existing.xml'))
-      FileUtils.rm_rf(File.expand_path('../upgraded.osw'))
-      FileUtils.rm_rf(File.expand_path('../upgraded.xml'))
-    end
+    remove_intermediate_files(debug) if !debug
 
     return true
+  end
+
+  def remove_intermediate_files()
+    FileUtils.rm_rf(File.expand_path('../existing.osw'))
+    FileUtils.rm_rf(File.expand_path('../existing.xml'))
+    FileUtils.rm_rf(File.expand_path('../upgraded.osw'))
+    FileUtils.rm_rf(File.expand_path('../upgraded.xml'))
   end
 
   def retrieve_hpxmls(existing_hpxml, upgraded_hpxml)

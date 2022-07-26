@@ -55,10 +55,12 @@ end
 def expected_baseline_contents(testing)
   contents = [
     'data_point_out.json',
-    'existing.xml',
+    'home.xml',
     'results_timeseries.csv'
   ]
   contents += [
+    'existing.osw',
+    'existing.xml',
     'in.osm',
     'in.idf',
     'schedules.csv'
@@ -67,9 +69,12 @@ def expected_baseline_contents(testing)
 end
 
 def expected_upgrade_contents
-  return [
+  contents = []
+  contents += [
+    'upgraded.osw',
     'upgraded.xml'
-  ]
+  } if testing
+  return contents
 end
 
 def expected_timeseries_columns(testing)
