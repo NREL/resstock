@@ -30,7 +30,6 @@ This measure creates the baseline scenario. Set the following inputs:
 #. ``Simulation Control: Run Period End Month``: This numeric field should contain the end month number (1 = January, 2 = February, etc.) for the annual run period desired.
 #. ``Simulation Control: Run Period End Day of Month``: This numeric field should contain the ending day of the ending month (must be valid for month) for the annual run period desired.
 #. ``Simulation Control: Run Period Calendar Year``: This numeric field should contain the calendar year that determines the start day of week (e.g., 2007 sets the start day of week to Monday). If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.
-#. ``Annual Component Loads?``: If true, output the annual component loads.
 #. ``Emissions: Scenario Names``: Names of emissions scenarios. If multiple scenarios, use a comma-separated list.
 #. ``Emissions: Types``: Types of emissions (e.g., CO2e, NOx, etc.). If multiple scenarios, use a comma-separated list.
 #. ``Emissions: Electricity Folders``: Relative paths of electricity emissions factor schedule files with hourly values. Paths are relative to the resources folder (see `this example yml file <https://github.com/NREL/resstock/blob/develop/project_national/national_baseline.yml>`_). If multiple scenarios, use a comma-separated list. File names must contain GEA region names. Units are kg/MWh.

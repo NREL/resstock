@@ -86,11 +86,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file.')
     args << arg
 
-    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('add_component_loads', false)
-    arg.setDisplayName('Annual Component Loads?')
-    arg.setDescription('If true, output the annual component loads.')
-    args << arg
-
     arg = OpenStudio::Ruleset::OSArgument.makeStringArgument('os_hescore_directory', false)
     arg.setDisplayName('HEScore Workflow: OpenStudio-HEScore directory path')
     arg.setDescription('Path to the OpenStudio-HEScore directory. If specified, the HEScore workflow will run.')
