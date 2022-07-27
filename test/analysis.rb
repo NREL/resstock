@@ -68,12 +68,11 @@ def expected_baseline_contents(testing)
   return contents
 end
 
-def expected_upgrade_contents(testing)
-  contents = []
-  contents += [
+def expected_upgrade_contents
+  contents = [
     'upgraded.osw',
     'upgraded.xml'
-  ] if testing
+  ]
   return contents
 end
 
@@ -103,9 +102,9 @@ end
 
 def _test_contents(contents, upgrade = false, testing = false)
   assert(_test_baseline_contents(contents, testing))
-  if upgrade
+  if upgrade || !testing
     assert(_test_upgrade_contents(contents, testing))
-  else
+  else # only when debug=true (i.e., testing project) are baseline contents different from upgrades contents
     assert(!_test_upgrade_contents(contents, testing))
   end
 end
@@ -165,7 +164,8 @@ def _test_baseline_contents(contents, testing = false)
 end
 
 def _test_upgrade_contents(contents, testing = false)
-  expected_contents = expected_baseline_contents(testing) + expected_upgrade_contents(testing)
+  expected_contents = expected_baseline_contents(testing)
+  expected_contents += expected_upgrade_contents if testing
 
   return true if (expected_contents - contents).empty?
 
