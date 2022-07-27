@@ -2225,8 +2225,6 @@ class OSModel
       { 'Lights Convective Heating Energy' => 'ig_lgt_conv',
         'Lights Radiant Heating Energy' => 'ig_lgt_rad',
         'Lights Visible Radiation Heating Energy' => 'ig_lgt_vis' }.each do |var, name|
-      # { 'Lights Convective Heating Energy' => 'ig_lgt_conv',
-      #   'Lights Visible Radiation Heating Energy' => 'ig_lgt_vis' }.each do |var, name|
         intgains_lights_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, var)
         intgains_lights_sensor.setName(name)
         intgains_lights_sensor.setKeyName(e.name.to_s)
@@ -2309,6 +2307,23 @@ class OSModel
     end
 
     nonsurf_names = ['intgains', 'lighting', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
+
+    # EMS program: Initialize cumulative compontent loads 
+    program_init = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+    program_init.setName("initialize_component_load_vars")
+    surfaces_sensors.keys.each do |k|
+      accum_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "hr_#{k}_accum")
+      program_init.addLine("Set #{accum_var.name} = 0")
+    end
+    nonsurf_names.each do |nonsurf_name|
+      accum_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "hr_#{nonsurf_name}_accum")
+      program_init.addLine("Set #{accum_var.name} = 0")
+    end
+
+    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_calling_manager.setName("#{program_init.name} calling manager")
+    program_calling_manager.setCallingPoint('EndOfZoneTimestepAfterZoneReporting')
+    program_calling_manager.addProgram(program_init)
 
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
@@ -2394,10 +2409,6 @@ class OSModel
     program.addLine('  Set htg_mode = 1')
     program.addLine("ElseIf (#{liv_load_sensors[:clg].name} > 0)") # Assign hour to cooling if cooling load
     program.addLine('  Set clg_mode = 1')
-    program.addLine("ElseIf (#{@clg_ssn_sensor.name} > 0)") # No load, assign hour to cooling if in cooling season definition (Note: natural ventilation & whole house fan only operate during the cooling season)
-    program.addLine('  Set clg_mode = 1')
-    program.addLine('Else') # No load, assign hour to heating if not in cooling season definition
-    program.addLine('  Set htg_mode = 1')
     program.addLine('EndIf')
 
     [:htg, :clg].each do |mode|
@@ -2407,12 +2418,29 @@ class OSModel
         sign = '-'
       end
       surfaces_sensors.keys.each do |k|
-        program.addLine("Set loads_#{mode}_#{k} = #{sign}hr_#{k} * #{mode}_mode")
+        program.addLine("Set loads_#{mode}_#{k} = #{sign}(hr_#{k} + hr_#{k}_accum) * #{mode}_mode")
       end
       nonsurf_names.each do |nonsurf_name|
-        program.addLine("Set loads_#{mode}_#{nonsurf_name} = #{sign}hr_#{nonsurf_name} * #{mode}_mode")
+        program.addLine("Set loads_#{mode}_#{nonsurf_name} = #{sign}(hr_#{nonsurf_name} + hr_#{nonsurf_name}_accum) * #{mode}_mode")
       end
     end
+
+    # EMS program: Update cumulative load variables
+    program.addLine("If (htg_mode == 0) and (clg_mode == 0)")
+    surfaces_sensors.keys.each do |k|
+      program.addLine("  Set hr_#{k}_accum = hr_#{k}_accum + hr_#{k}") # Accumulated loads to be assigned when HVAC is on
+    end
+    nonsurf_names.each do |nonsurf_name|
+      program.addLine("  Set hr_#{nonsurf_name}_accum = hr_#{nonsurf_name}_accum + hr_#{nonsurf_name}")
+    end
+    program.addLine("Else") 
+    surfaces_sensors.keys.each do |k|
+      program.addLine("  Set hr_#{k}_accum = 0")
+    end
+    nonsurf_names.each do |nonsurf_name|
+      program.addLine("  Set hr_#{nonsurf_name}_accum = 0")
+    end
+    program.addLine('EndIf')
 
     # EMS calling manager
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
