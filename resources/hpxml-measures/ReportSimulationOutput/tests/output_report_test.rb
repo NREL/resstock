@@ -279,7 +279,7 @@ class ReportSimulationOutputTest < MiniTest::Test
   BaseHPXMLTimeseriesColsAdvancedOutputVariables = [
     'Surface Construction Index: Door1',
     'Surface Construction Index: Foundationwall1',
-    'Surface Construction Index: Framefloor1',
+    'Surface Construction Index: Floor1',
     'Surface Construction Index: Furniture Mass Living Space 1 Above Grade',
     'Surface Construction Index: Furniture Mass Living Space 1 Below Grade',
     'Surface Construction Index: Inferred Conditioned Ceiling',
@@ -1190,7 +1190,7 @@ class ReportSimulationOutputTest < MiniTest::Test
     # Create HPXML w/ AFUE=0 to generate Infinity result
     hpxml_path = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base.xml')
     hpxml = HPXML.new(hpxml_path: hpxml_path)
-    hpxml.heating_systems[0].heating_efficiency_afue = 0.0
+    hpxml.heating_systems[0].heating_efficiency_afue = 10.0**-315
     XMLHelper.write_file(hpxml.to_oga(), @tmp_hpxml_path)
 
     args_hash = { 'hpxml_path' => @tmp_hpxml_path }
