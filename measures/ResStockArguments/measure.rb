@@ -232,6 +232,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_heating_setpoint_offset', true)
+    arg.setDisplayName('Heating Setpoint: Apply Weekend and Weekday Offsets')
+    arg.setDescription('Turns on the heating offset if there is a non-zero magnitude and a schedule')
+    arg.setDefaultValue(true)
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('use_auto_heating_season', true)
     arg.setDisplayName('Use Auto Heating Season')
     arg.setDescription('Specifies whether to automatically define the heating season based on the weather file.')
@@ -276,6 +282,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDisplayName('Cooling Setpoint: Weekend Schedule')
     arg.setDescription('Specify the 24-hour comma-separated weekend cooling schedule of 0s and 1s.')
     arg.setDefaultValue('0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument::makeBoolArgument('apply_cooling_setpoint_offset', true)
+    arg.setDisplayName('Cooling Setpoint: Apply Weekend and Weekday Offsets')
+    arg.setDescription('Turns on the cooling offset if there is a non-zero magnitude and a schedule')
+    arg.setDefaultValue(true)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeBoolArgument('use_auto_cooling_season', true)
@@ -457,6 +469,17 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     weekday_cooling_setpoints = [args['hvac_control_cooling_weekday_setpoint_temp']] * 24
     weekend_cooling_setpoints = [args['hvac_control_cooling_weekend_setpoint_temp']] * 24
+
+
+    if not args['apply_cooling_setpoint_offset']
+      args['hvac_control_cooling_weekday_setpoint_offset_magnitude'] = 0
+      args['hvac_control_cooling_weekend_setpoint_offset_magnitude'] = 0
+    end
+
+    if not args['apply_heating_setpoint_offset']
+      args['hvac_control_heating_weekday_setpoint_offset_magnitude'] = 0
+      args['hvac_control_heating_weekend_setpoint_offset_magnitude'] = 0
+    end
 
     hvac_control_heating_weekday_setpoint_offset_magnitude = args['hvac_control_heating_weekday_setpoint_offset_magnitude']
     hvac_control_heating_weekday_setpoint_schedule = args['hvac_control_heating_weekday_setpoint_schedule'].split(',').map { |i| Float(i) }

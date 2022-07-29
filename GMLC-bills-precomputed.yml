@@ -1,0 +1,1032 @@
+schema_version: '0.3'
+buildstock_directory: . # Relative to this file or absolute
+project_directory: project_national # Relative to buildstock_directory
+output_directory: /projects/enduse/gmlc-bills/full-oge-2
+# weather_files_url: https://data.nrel.gov/system/files/156/BuildStock_TMY3_FIPS.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_2019_FIPS.zip
+
+sampler:
+  type: precomputed
+  args:
+    sample_file: /projects/enduse/gmlc-bills/full-1_buildstocks/oge_buildstock.csv
+
+workflow_generator:
+  type: residential_hpxml
+  args:
+    build_existing_model:
+      simulation_control_timestep: 60
+      simulation_control_run_period_begin_month: 1
+      simulation_control_run_period_begin_day_of_month: 1
+      simulation_control_run_period_end_month: 12
+      simulation_control_run_period_end_day_of_month: 31
+      simulation_control_run_period_calendar_year: 2018
+
+    emissions:
+      - scenario_name: LRMER_LowRECost_15
+        type: CO2
+        elec_folder: data/cambium/LRMER_LowRECost_15
+        gas_value: 117.6
+        propane_value: 136.6
+        oil_value: 161.0
+        wood_value: 200.0
+
+    simulation_output_report:
+      timeseries_frequency: hourly
+      include_timeseries_fuel_consumptions: true
+      include_timeseries_end_use_consumptions: true
+      include_timeseries_emissions: true
+      include_timeseries_total_loads: true
+
+    reporting_measures:
+      - measure_dir_name: QOIReport
+
+    server_directory_cleanup:
+      retain_in_idf: false
+      retain_schedules_csv: false
+
+baseline:
+  n_buildings_represented: 136569411 # American Community Survey 2019 5-year, B25001, does not include AK, HI, and territories
+
+upgrades:
+  - upgrade_name: Package with Fuel Switching
+    options:
+      #ASHP for all homes with ducts
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic: HVAC Has Ducts|Yes
+        costs: &blank_costs
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 15
+      - option: HVAC Heating Type And Fuel|Electricity ASHP #note options_lookup has been updated to automatically do this when upgrading to a heat pump, but I haven't pulled in those changes
+        apply_logic: HVAC Has Ducts|Yes
+      #MSHP for all homes without ducts
+      - option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
+        apply_logic: HVAC Has Ducts|No 
+        costs: *blank_costs
+        lifetime: 15
+      - option: HVAC Heating Type And Fuel|Electricity MSHP
+        apply_logic: HVAC Has Ducts|No
+      #Change the cooling efficiency to Heat Pump
+      - option: HVAC Cooling Efficiency|Heat Pump
+      #Duct sealing
+      - &duct_sealing
+        option: Ducts|10% Leakage, R-8
+        apply_logic: 
+          not: Ducts|10% Leakage, R-8
+        costs: *blank_costs
+        lifetime: 30
+      #HPWHs for all
+      - option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|1
+              - Bedrooms|2
+              - Bedrooms|3
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs: *blank_costs
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|4
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs: *blank_costs
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|5
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        costs: *blank_costs
+        lifetime: 12
+      # Clothes washer Upgrade
+      - &clothes_washer_80pct
+        option: Clothes Washer|EnergyStar, 80% Usage
+        apply_logic: Clothes Washer|Standard, 80% Usage
+        costs: *blank_costs
+        lifetime: 14
+      - &clothes_washer_100pct
+        option: Clothes Washer|EnergyStar, 100% Usage
+        apply_logic: Clothes Washer|Standard, 100% Usage
+        costs: *blank_costs
+        lifetime: 14
+      - &clothes_washer_120pct
+        option: Clothes Washer|EnergyStar, 120% Usage
+        apply_logic: Clothes Washer|Standard, 120% Usage
+        costs: *blank_costs
+        lifetime: 14
+      # Dishwasher Upgrade
+      - &dishwasher_80pct
+        option: Dishwasher|199 Rated kWh, 80% Usage
+        apply_logic:
+          or: 
+            - Dishwasher|290 Rated kWh, 80% Usage
+            - Dishwasher|318 Rated kWh, 80% Usage
+        costs: *blank_costs
+        lifetime: 11
+      - &dishwasher_100pct
+        option: Dishwasher|199 Rated kWh, 100% Usage
+        apply_logic:
+          or: 
+            - Dishwasher|290 Rated kWh, 100% Usage
+            - Dishwasher|318 Rated kWh, 100% Usage
+        costs: *blank_costs
+        lifetime: 11
+      - &dishwasher_120pct
+        option: Dishwasher|199 Rated kWh, 120% Usage
+        apply_logic:
+          or: 
+            - Dishwasher|290 Rated kWh, 120% Usage
+            - Dishwasher|318 Rated kWh, 120% Usage
+        costs: *blank_costs
+        lifetime: 11
+      # Refrigerator Upgrade
+      - &refrigerator
+        option: Refrigerator|EF 21.9, 100% Usage
+        apply_logic:
+          not: Refrigerator|EF 21.9, 100% Usage
+        costs: *blank_costs
+        lifetime: 17.4
+      # Clothes Dryer Upgrade
+      - option: Clothes Dryer|Electric, Premium, EnergyStar 80% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 80% Usage
+            - Clothes Dryer|Gas, 80% Usage
+            - Clothes Dryer|Propane, 80% Usage
+        costs: *blank_costs
+        lifetime: 13
+      - option: Clothes Dryer|Electric, Premium, EnergyStar 100% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 100% Usage
+            - Clothes Dryer|Gas, 100% Usage
+            - Clothes Dryer|Propane, 100% Usage
+        costs: *blank_costs
+        lifetime: 13
+      - option: Clothes Dryer|Electric, Premium, EnergyStar 120% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 120% Usage
+            - Clothes Dryer|Gas, 120% Usage
+            - Clothes Dryer|Propane, 120% Usage
+        costs: *blank_costs
+        lifetime: 13
+      - &cooking_range_120_pct_usage
+        option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Gas, 120% Usage
+            - Cooking Range|Propane, 120% Usage
+            - Cooking Range|Electric, 120% Usage
+        costs: *blank_costs
+        lifetime: 999
+      - &cooking_range_100_pct_usage
+        option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Gas, 100% Usage
+            - Cooking Range|Propane, 100% Usage
+            - Cooking Range|Electric, 100% Usage
+        costs: *blank_costs
+        lifetime: 999
+      - &cooking_range_80_pct_usage
+        option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Gas, 80% Usage
+            - Cooking Range|Propane, 80% Usage
+            - Cooking Range|Electric, 80% Usage
+        costs: *blank_costs
+        lifetime: 999
+
+
+  - upgrade_name: Package without Fuel Switching
+    #Up02
+    options:
+      #If home has AC but non-electric heat, upgrade CAC to SEER 18, and room AC to EER 12
+      - option: HVAC Cooling Efficiency|AC, SEER 18
+        apply_logic:
+          and:
+            - or:
+              - HVAC Cooling Efficiency|AC, SEER 8
+              - HVAC Cooling Efficiency|AC, SEER 10
+              - HVAC Cooling Efficiency|AC, SEER 13
+              - HVAC Cooling Efficiency|AC, SEER 18
+            - not: Heating Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999
+      - option: HVAC Cooling Efficiency|Room AC, EER 12.0
+        apply_logic:
+          and:
+            - or:
+              - HVAC Cooling Efficiency|Room AC, EER 8.5
+              - HVAC Cooling Efficiency|Room AC, EER 9.8
+              - HVAC Cooling Efficiency|Room AC, EER 10.7
+            - not: Heating Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 999        
+      #ASHP for all homes with ducts and electric heating
+      - option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF
+        apply_logic: 
+          and:
+          - HVAC Has Ducts|Yes
+          - Heating Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 15
+      - option: HVAC Heating Type And Fuel|Electricity ASHP #note options_lookup has been updated to automatically do this when upgrading to a heat pump, but I haven't pulled in those changes
+        apply_logic: 
+          and:
+          - HVAC Has Ducts|Yes
+          - Heating Fuel|Electricity
+      #MSHP for all homes with electric heating and no ducts
+      - option: HVAC Heating Efficiency|MSHP, SEER 25, 12.7 HSPF
+        apply_logic:
+          and:
+          - HVAC Has Ducts|No 
+          - Heating Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 15
+      - option: HVAC Heating Type And Fuel|Electricity MSHP
+        apply_logic:
+          and:
+          - HVAC Has Ducts|No 
+          - Heating Fuel|Electricity
+      #Change the cooling efficiency to Heat Pump for homes with electric heating
+      - option: HVAC Cooling Efficiency|Heat Pump
+        apply_logic: Heating Fuel|Electricity
+      - *duct_sealing
+      #Duct sealing
+      - *duct_sealing
+      #HPWH
+      - option: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|1
+              - Bedrooms|2
+              - Bedrooms|3
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - Water Heater Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|4
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - Water Heater Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      - option: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+        apply_logic: 
+          and:
+            - or:
+              - Bedrooms|5
+            - not: Water Heater Efficiency|Electric Heat Pump, 50 gal, 3.45 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 66 gal, 3.35 UEF
+            - not: Water Heater Efficiency|Electric Heat Pump, 80 gal, 3.45 UEF
+            - Water Heater Fuel|Electricity
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 12
+      - *refrigerator
+      - *clothes_washer_80pct
+      - *clothes_washer_100pct
+      - *clothes_washer_120pct
+      # Clothes Dryer Upgrade
+      - option: Clothes Dryer|Electric, Premium, EnergyStar 80% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 80% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Clothes Dryer|Electric, Premium, EnergyStar 100% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 100% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 13
+      - option: Clothes Dryer|Electric, Premium, EnergyStar 120% Usage
+        apply_logic:
+          or: 
+            - Clothes Dryer|Electric, 120% Usage
+        costs:
+          - value: 0
+            multiplier: Fixed (1)
+        lifetime: 13
+      - *dishwasher_80pct
+      - *dishwasher_100pct
+      - *dishwasher_120pct
+      - option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Electric, 120% Usage
+        costs: *blank_costs
+        lifetime: 999
+      - option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Electric, 100% Usage
+        costs: *blank_costs
+        lifetime: 999
+      - option: Cooking Range|Electric, Induction, 100% Usage
+        apply_logic:
+          or:
+            - Cooking Range|Electric, 80% Usage
+        costs: *blank_costs
+        lifetime: 999
+
+  - upgrade_name: Envelope Package
+    #Up03
+    options:
+      #Attic insulation - R-values for 2021 IECC for homes with vented attics
+      - &R-30_attic_uninsulated
+        option: Insulation Ceiling|R-30
+        apply_logic:
+          - and:
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|1A
+            - or: 
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+            - Geometry Attic Type|Vented Attic
+        costs: *blank_costs
+        lifetime: 999
+      - &R-49_attic
+        option: Insulation Ceiling|R-49
+        apply_logic:
+          - and: 
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|2A
+              - ASHRAE IECC Climate Zone 2004|2B
+              - ASHRAE IECC Climate Zone 2004|3A
+              - ASHRAE IECC Climate Zone 2004|3B
+              - ASHRAE IECC Climate Zone 2004|3C
+            - or: 
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+              - Insulation Ceiling|R-30
+              - Insulation Ceiling|R-38
+              - Geometry Attic Type|Vented Attic
+        costs: *blank_costs
+        lifetime: 999
+      - &R-60_attic
+        option: Insulation Ceiling|R-60
+        apply_logic: 
+          - and: 
+            - or: 
+              - ASHRAE IECC Climate Zone 2004|4A
+              - ASHRAE IECC Climate Zone 2004|4B
+              - ASHRAE IECC Climate Zone 2004|4C
+              - ASHRAE IECC Climate Zone 2004|5A
+              - ASHRAE IECC Climate Zone 2004|5B
+              - ASHRAE IECC Climate Zone 2004|6A
+              - ASHRAE IECC Climate Zone 2004|6B
+              - ASHRAE IECC Climate Zone 2004|7A
+              - ASHRAE IECC Climate Zone 2004|7B
+            - or: 
+              - Insulation Ceiling|Uninsulated
+              - Insulation Ceiling|R-7
+              - Insulation Ceiling|R-13
+              - Insulation Ceiling|R-19
+              - Insulation Ceiling|R-30
+              - Insulation Ceiling|R-38
+              - Insulation Ceiling|R-49
+            - Geometry Attic Type|Vented Attic
+        costs: *blank_costs
+        lifetime: 999
+      #Add R-6 (polyiso) to homes older than 1990 with <R-19 nominal wall insulation
+      - &polyiso_1inch_on_uninsulated_wood
+        #1" polyiso continuous insulation, R-6.5, 19% whole home reduction in ACH50, $1.40 per sq ft exterior wall, for all homes older than 1990 with <R-19 wall insulation
+        option: Insulation Wall|Wood Stud, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, Uninsulated
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_wood
+        option: Insulation Wall|Wood Stud, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-7
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_wood
+        option: Insulation Wall|Wood Stud, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-11
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-13_wood
+        option: Insulation Wall|Wood Stud, R-13, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-13
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_wood
+        option: Insulation Wall|Wood Stud, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Wood Stud, R-15
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, Uninsulated
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-7
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-11
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_cmu
+        option: Insulation Wall|CMU, 6-in Hollow, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|CMU, 6-in Hollow, R-15
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_uninsulated_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, Uninsulated
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-7_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-7, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-7
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-11_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-11, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-11
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      - &polyiso_1inch_on_R-15_brick
+        option: Insulation Wall|Brick, 12-in, 3-wythe, R-15, R-6.5 Sheathing
+        apply_logic:
+          and:
+            - Insulation Wall|Brick, 12-in, 3-wythe, R-15
+            - not: Vintage|1990s
+            - not: Vintage|2000s
+            - not: Vintage|2010s
+        costs:  *blank_costs
+        lifetime: 30
+      #Add exterior low-E storms for single and double pane windows
+      - &low-e_storms_on_single_clear_metal
+        option: Windows|Single, Clear, Metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+        costs:  *blank_costs
+        lifetime: 30
+      - &low-e_storms_on_single_clear_nonmetal
+        option: Windows|Single, Clear, Non-metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - or:
+                - Windows|Single, Clear, Non-metal
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+        costs:  *blank_costs
+        lifetime: 30
+      - &low-e_storms_on_double_clear_metal
+        option: Windows|Double, Clear, Metal, Exterior Low-E Storm
+        apply_logic:
+          and:
+            - Windows|Double, Clear, Metal, Air
+        costs:  *blank_costs
+        lifetime: 30
+      #Non-vented crawlspace air leakage reductions
+      #19% for 1" polyiso
+      - option: Infiltration Reduction|19%
+        apply_logic:
+          - and:
+            - not: &vented_crawlspace
+              - Geometry Foundation Type|Vented Crawlspace
+            - not: 
+              - or: &walls_ineligible_R-19
+                - Insulation Wall|Wood Stud, R-19
+                - Insulation Wall|CMU, 6-in Hollow, R-19
+                - Insulation Wall|Brick, 12-in, 3-wythe, R-19
+            - not: 
+              - or: &upgradable_single_pane
+                - Windows|Single, Clear, Metal
+                - Windows|Single, Clear, Non-metal
+            - not: 
+              - or: &upgradable_double_pane_or_single_and_storm
+                - Windows|Single, Clear, Metal, Exterior Clear Storm
+                - Windows|Single, Clear, Non-metal, Exterior Clear Storm
+                - Windows|Double, Clear, Metal, Air
+            - not: &R-30_attic_eligible
+              - and:
+                - or: 
+                  - ASHRAE IECC Climate Zone 2004|1A
+                - or: 
+                  - Insulation Ceiling|Uninsulated
+                  - Insulation Ceiling|R-7
+                  - Insulation Ceiling|R-13
+                  - Insulation Ceiling|R-19
+                  - Insulation Ceiling|R-30
+                  - Insulation Ceiling|R-38
+                  - Insulation Ceiling|R-49
+                - Geometry Attic Type|Vented Attic
+            - not: &R-49_attic_eligible
+              - and: 
+                - or: 
+                  - ASHRAE IECC Climate Zone 2004|2A
+                  - ASHRAE IECC Climate Zone 2004|2B
+                  - ASHRAE IECC Climate Zone 2004|3A
+                  - ASHRAE IECC Climate Zone 2004|3B
+                  - ASHRAE IECC Climate Zone 2004|3C
+                - or: 
+                  - Insulation Ceiling|Uninsulated
+                  - Insulation Ceiling|R-7
+                  - Insulation Ceiling|R-13
+                  - Insulation Ceiling|R-19
+                  - Insulation Ceiling|R-30
+                  - Insulation Ceiling|R-38
+                  - Insulation Ceiling|R-49
+                - Geometry Attic Type|Vented Attic
+            - not: &R-60_attic_eligible
+              - and: 
+                - or: 
+                  - ASHRAE IECC Climate Zone 2004|4A
+                  - ASHRAE IECC Climate Zone 2004|4B
+                  - ASHRAE IECC Climate Zone 2004|4C
+                  - ASHRAE IECC Climate Zone 2004|5A
+                  - ASHRAE IECC Climate Zone 2004|5B
+                  - ASHRAE IECC Climate Zone 2004|6A
+                  - ASHRAE IECC Climate Zone 2004|6B
+                  - ASHRAE IECC Climate Zone 2004|7A
+                  - ASHRAE IECC Climate Zone 2004|7B
+                - or: 
+                  - Insulation Ceiling|Uninsulated
+                  - Insulation Ceiling|R-7
+                  - Insulation Ceiling|R-13
+                  - Insulation Ceiling|R-19
+                  - Insulation Ceiling|R-30
+                  - Insulation Ceiling|R-38
+                  - Insulation Ceiling|R-49
+                - Geometry Attic Type|Vented Attic
+        costs: *blank_costs
+        lifetime: 999
+      #30% for exterior storms on single pane
+      - option: Infiltration Reduction|30%
+        apply_logic:
+          - and:
+            - not: *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - not: *R-30_attic_eligible
+            - not: *R-49_attic_eligible
+            - not: *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #10% for exterior storms on double pane or single pane + storm
+      - option: Infiltration Reduction|10%
+        apply_logic:
+          - and:
+            - not: *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
+            - not: *R-30_attic_eligible
+            - not: *R-49_attic_eligible
+            - not: *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #13% for attic insulation
+      - option: Infiltration Reduction|13%
+        apply_logic:
+          - and:
+            - not: 
+              - or: *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #43.3% for 1" polyiso and exterior storms on single pane
+      - option: Infiltration Reduction|43.30%
+        apply_logic:
+          - and:
+            - not: *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - not: *R-30_attic_eligible
+            - not: *R-49_attic_eligible
+            - not: *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #27.1% for 1" polyiso and exterior storms on double pane or single pane + storm
+      - option: Infiltration Reduction|27.10%
+        apply_logic:
+          - and:
+            - not: *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
+            - not: *R-30_attic_eligible
+            - not: *R-49_attic_eligible
+            - not: *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #39.1% for attic insulation and exterior storms on single pane
+      - option: Infiltration Reduction|39.10%
+        apply_logic:
+          - and:
+            - not: *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #21.7% for attic insulation and exterior storms on double pane or single pane + storm
+      - option: Infiltration Reduction|21.70%
+        apply_logic:
+          - and:
+            - not: *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #29.5% for atiic insulation and 1" polyiso
+      - option: Infiltration Reduction|29.50%
+        apply_logic:
+          - and:
+            - not: *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #50.7% for attic insulation and 1" polyiso and exterior storms on single pane
+      - option: Infiltration Reduction|50.70%
+        apply_logic:
+          - and:
+            - not: 
+              - or: *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #36.6% for attic insulation and 1" polyiso and exterior clear storms on double pane or single pane + storm
+      - option: Infiltration Reduction|36.60%
+        apply_logic:
+          - and:
+            - not: *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #vented crawlspace air leakage reductions
+      #13% for 1" polyiso
+      - option: Infiltration Reduction|13%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - not: *R-30_attic_eligible
+            - not: *R-49_attic_eligible
+            - not: *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #10% for exterior storms on single pane
+      - option: Infiltration Reduction|10%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - not: *R-30_attic_eligible
+            - not: *R-49_attic_eligible
+            - not: *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #7% for exterior storms on double pane or single pane + storm
+      - option: Infiltration Reduction|7%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
+            - not: *R-30_attic_eligible
+            - not: *R-49_attic_eligible
+            - not: *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #8% for attic insulation
+      - option: Infiltration Reduction|8%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #31.3% for 1" polyiso and exterior storms on single pane
+      - option: Infiltration Reduction|31.30%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - not: *R-30_attic_eligible
+            - not: *R-49_attic_eligible
+            - not: *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #19.1% for 1" polyiso and exterior storms on double pane or single pane + storm
+      - option: Infiltration Reduction|19.10%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - not: *R-30_attic_eligible
+            - not: *R-49_attic_eligible
+            - not: *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #27.3% for attic insulation and exterior storms on single pane
+      - option: Infiltration Reduction|27.30%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #14.4% for attic insulation and exterior storms on double pane or single pane + storm
+      - option: Infiltration Reduction|14.40%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #20.0% for atiic insulation and 1" polyiso
+      - option: Infiltration Reduction|20.00%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #36.8% for attic insulation and 1" polyiso and exterior storms on single pane
+      - option: Infiltration Reduction|36.80%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - or: *upgradable_single_pane
+            - not: 
+              - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+      #25.6% for attic insulation and 1" polyiso and exterior clear storms on double pane or single pane + storm
+      - option: Infiltration Reduction|25.60%
+        apply_logic:
+          - and:
+            - *vented_crawlspace
+            - not: 
+              - or: *walls_ineligible_R-19
+            - not: 
+              - or: *upgradable_single_pane
+            - or: *upgradable_double_pane_or_single_and_storm
+            - or:
+              - *R-30_attic_eligible
+              - *R-49_attic_eligible
+              - *R-60_attic_eligible
+        costs: *blank_costs
+        lifetime: 999
+
+
+  - upgrade_name: Lighting
+    options:
+      # Lighting Upgrade
+      - &lighting
+        option: Lighting|100% LED
+        apply_logic:
+          or:
+            - Lighting|100% Incandescent
+            - Lighting|60% CFL
+            - Lighting|100% CFL
+            - Lighting|20% LED
+            - Lighting|100% LED
+        costs:
+          - value: 0
+            multiplier: Floor Area, Lighting (ft^2)
+        lifetime: 78.28
+
+  - upgrade_name: Thermostat setbacks for all
+    options: 
+      - option: Cooling Setpoint Has Offset|Yes
+        apply_logic: Cooling Setpoint Has Offset|No
+      - option: Heating Setpoint Has Offset|Yes
+        apply_logic: Heating Setpoint Has Offset|No
+
+
+eagle:
+  n_jobs: 50
+  minutes_per_sim: 30
+  account: enduse
+  postprocessing:
+    time: 480
+    n_workers: 32
+  sampling:
+    time: 1200
+
+postprocessing:
+  aws:
+    region_name: 'us-west-2'
+    s3:
+      bucket: resstock-gmlc-bills-lbnl #change this to an NREL bucket if needed for testing
+      prefix: full-oge-2 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+    athena:
+      glue_service_role: service-role/AWSGlueServiceRole-default
+      database_name: resstock-gmlc #collection of Athena tables (post-crawling), can be constant for the entire analysis
+      max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
