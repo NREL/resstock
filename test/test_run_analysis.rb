@@ -135,7 +135,7 @@ class TestRunAnalysis < MiniTest::Test
 
     system(@command)
 
-    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(!File.exist?(File.join(@testing_baseline, 'testing_baseline-Baseline.osw')))
     assert(!File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'buildstock.csv')))
   end
@@ -180,6 +180,27 @@ class TestRunAnalysis < MiniTest::Test
 
     FileUtils.rm_rf(File.join(File.dirname(__FILE__), '../weather'))
     assert(!File.exist?(File.join(File.dirname(__FILE__), '../weather')))
+  end
+
+  def test_precomputed
+    yml = ' -y test/tests_yml_files/yml_precomputed/testing_baseline.yml'
+    @command += yml
+
+    system(@command)
+
+    _test_measure_order(File.join(@testing_baseline, 'testing_baseline-Baseline.osw'))
+    assert(File.exist?(File.join(@testing_baseline, 'run1')))
+    assert(File.exist?(File.join(@testing_baseline, 'run2')))
+    assert(!File.exist?(File.join(@testing_baseline, 'run3')))
+  end
+
+  def test_errors_precomputed_outdated
+    yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline.yml'
+    @command += yml
+
+    cli_output = `#{@command}`
+
+    assert(cli_output.include?('TEst'))
   end
 
   def test_testing_baseline
