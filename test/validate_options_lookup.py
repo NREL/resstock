@@ -1,6 +1,7 @@
 from pathlib import Path
 import sys
 import pandas as pd
+import collections
 
 
 def load_data(file):
@@ -61,11 +62,37 @@ def validate_options(lkup_options, tsv_options, project_folder="project_national
 
 def get_options_from_options_lookup(opt_lkup):
     """ 
-    return pd.Series
+    Get parameter-options dict and apply soft checks (for empty rows and duplicated values)
+    return dict as pd.Series
+
     """
+    print("Check options_options_lookup for empty rows and duplicated PARAMETER or OPTION names")
+    # [1] check nan rows
+    n_na_rows = len(opt_lkup[opt_lkup.isna().all(axis=1)])
+    if n_na_rows>0:
+        print("  * options_lookup has {n_na_rows} empty rows")
+
+    # [2] get options
     opt_lkup["Option Name"] = opt_lkup["Option Name"].astype(str)
     options = opt_lkup.groupby("Parameter Name")["Option Name"].apply(list)
+
+    # [3] check duplicated_values:
+    dup_dict = {}
+    for para, opts in options.items():
+        dup = get_duplicated_values(opts)
+        if dup:
+            dup_dict[para] = dup
+
+    if dup_dict:
+        print(f"  * The following Parameter-Option pairs are duplicated:")
+        for para, opts in dup_dict.items():
+            for opt in opts:
+                print(f"\t{para} : {opt}")
     return options
+
+
+def get_duplicated_values(lst):
+    return [item for item, count in collections.Counter(lst).items() if count > 1]
 
 
 def extract_options_from_tsv(tsv_file):
