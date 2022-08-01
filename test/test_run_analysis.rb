@@ -116,6 +116,26 @@ class TestRunAnalysis < MiniTest::Test
     assert(cli_output.include?("Both 'build_existing_model' and 'simulation_output_report' must be included in yml."))
   end
 
+  def test_errors_precomputed_outdated_missing_parameter
+    yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_missing.yml'
+    @command += yml
+
+    cli_output = `#{@command}` # rubocop:disable Lint/UselessAssignment
+    cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
+
+    assert(cli_output.include?('Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: HVAC Cooling Partial Space Conditioning.'))
+  end
+
+  def test_errors_precomputed_outdated_extra_parameter
+    yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline_extra.yml'
+    @command += yml
+
+    cli_output = `#{@command}` # rubocop:disable Lint/UselessAssignment
+    cli_output = File.read(File.join(@testing_baseline, 'cli_output.log'))
+
+    assert(cli_output.include?('Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: Extra Parameter.'))
+  end
+
   def test_measures_only
     yml = ' -y test/tests_yml_files/yml_valid/testing_baseline.yml'
     @command += yml
@@ -192,15 +212,6 @@ class TestRunAnalysis < MiniTest::Test
     assert(File.exist?(File.join(@testing_baseline, 'run1')))
     assert(File.exist?(File.join(@testing_baseline, 'run2')))
     assert(!File.exist?(File.join(@testing_baseline, 'run3')))
-  end
-
-  def test_errors_precomputed_outdated
-    yml = ' -y test/tests_yml_files/yml_precomputed_outdated/testing_baseline.yml'
-    @command += yml
-
-    cli_output = `#{@command}`
-
-    assert(cli_output.include?('TEst'))
   end
 
   def test_testing_baseline
