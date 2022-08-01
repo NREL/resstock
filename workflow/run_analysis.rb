@@ -48,6 +48,33 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
 
   Dir.mkdir(results_dir)
 
+  # Create lib folder
+  lib_dir = File.join(thisdir, '../lib')
+  resources_dir = File.join(thisdir, '../resources')
+  housing_characteristics_dir = File.join(buildstock_directory, project_directory, 'housing_characteristics')
+  create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
+
+  # Create or read buildstock.csv
+  outfile = File.join('../lib/housing_characteristics/buildstock.csv')
+  if !['precomputed'].include?(cfg['sampler']['type'])
+    create_buildstock_csv(project_directory, n_datapoints, outfile)
+    src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
+    des = results_dir
+    FileUtils.cp(src, des)
+
+    return if samplingonly
+
+    datapoints = (1..n_datapoints).to_a
+  else
+    src = File.expand_path(File.join(File.dirname(yml), cfg['sampler']['args']['sample_file']))
+    des = File.expand_path(File.join(File.dirname(__FILE__), outfile))
+    FileUtils.cp(src, des)
+
+    buildstock_csv = CSV.read(des, headers: true)
+    datapoints = buildstock_csv['Building'].map { |x| Integer(x) }
+    n_datapoints = datapoints.size
+  end
+
   osw_dir = File.join(results_dir, 'osw')
   Dir.mkdir(osw_dir)
 
@@ -287,12 +314,6 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
     end
   end
 
-  # Create lib folder
-  lib_dir = File.join(thisdir, '../lib')
-  resources_dir = File.join(thisdir, '../resources')
-  housing_characteristics_dir = File.join(buildstock_directory, project_directory, 'housing_characteristics')
-  create_lib_folder(lib_dir, resources_dir, housing_characteristics_dir)
-
   # Create weather folder
   weather_dir = File.join(thisdir, '../weather')
   if !File.exist?(weather_dir)
@@ -327,26 +348,6 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
         zip_file.extract(f, fpath) unless File.exist?(fpath)
       end
     end
-  end
-
-  # Create or read buildstock.csv
-  outfile = File.join('../lib/housing_characteristics/buildstock.csv')
-  if !['precomputed'].include?(cfg['sampler']['type'])
-    create_buildstock_csv(project_directory, n_datapoints, outfile)
-    src = File.expand_path(File.join(File.dirname(__FILE__), '../lib/housing_characteristics/buildstock.csv'))
-    des = results_dir
-    FileUtils.cp(src, des)
-
-    return if samplingonly
-
-    datapoints = (1..n_datapoints).to_a
-  else
-    src = File.expand_path(File.join(File.dirname(yml), cfg['sampler']['args']['sample_file']))
-    des = File.expand_path(File.join(File.dirname(__FILE__), outfile))
-    FileUtils.cp(src, des)
-
-    buildstock_csv = CSV.read(des, headers: true)
-    datapoints = buildstock_csv['Building']
   end
 
   building_ids = datapoints if building_ids.empty?

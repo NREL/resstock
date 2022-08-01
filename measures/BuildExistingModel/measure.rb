@@ -179,6 +179,20 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
 
+    # Check buildstock.csv has all parameters
+    missings = parameters_ordered - bldg_data.keys
+    if !missings.empty?
+      runner.registerError("Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: #{missings.join(', ')}.")
+      return false
+    end
+
+    # Check buildstock.csv doesn't have extra parameters
+    extras = bldg_data.keys - parameters_ordered - ['Building']
+    if !extras.empty?
+      runner.registerError("Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: #{extras.join(', ')}.")
+      return false
+    end
+
     # Retrieve options that have been selected for this building_id
     parameters_ordered.each do |parameter_name|
       # Register the option chosen for parameter_name with the runner
