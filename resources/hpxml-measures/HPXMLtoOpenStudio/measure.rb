@@ -2322,7 +2322,7 @@ class OSModel
 
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{program_init.name} calling manager")
-    program_calling_manager.setCallingPoint('EndOfZoneTimestepAfterZoneReporting')
+    program_calling_manager.setCallingPoint('BeginNewEnvironment')
     program_calling_manager.addProgram(program_init)
 
     # EMS program
@@ -2426,7 +2426,7 @@ class OSModel
     end
 
     # EMS program: Update cumulative load variables
-    program.addLine("If (htg_mode == 0) and (clg_mode == 0)")
+    program.addLine("If (htg_mode == 0) && (clg_mode == 0)")
     surfaces_sensors.keys.each do |k|
       program.addLine("  Set hr_#{k}_accum = hr_#{k}_accum + hr_#{k}") # Accumulated loads to be assigned when HVAC is on
     end
