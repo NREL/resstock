@@ -306,6 +306,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
 
       # Get the absolute paths relative to this meta measure in the run directory
+      measures['ResStockArguments'][0]['calendar_year'] = values['simulation_control_run_period_calendar_year']
       if not apply_measures(measures_dir, { 'ResStockArguments' => measures['ResStockArguments'] }, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure', nil)
         return false
       end
