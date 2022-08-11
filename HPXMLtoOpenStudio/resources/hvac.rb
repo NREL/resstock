@@ -3032,13 +3032,12 @@ class HVAC
       hvac_ap.fan_power_rated = hvac_system.fan_watts_per_cfm # W/cfm
     else
       # Based on ASHRAE 1449-RP and recommended by Hugh Henderson
-      seer = hvac_system.cooling_efficiency_seer
-      if seer <= 14
+      if hvac_system.cooling_efficiency_seer <= 14
         hvac_ap.fan_power_rated = 0.25 # W/cfm
-      elsif seer >= 16
+      elsif hvac_system.cooling_efficiency_seer >= 16
         hvac_ap.fan_power_rated = 0.18 # W/cfm
       else
-        hvac_ap.fan_power_rated = 0.25 + (0.18 - 0.25) * (seer - 14.0) / 2.0 # W/cfm
+        hvac_ap.fan_power_rated = 0.25 + (0.18 - 0.25) * (hvac_system.cooling_efficiency_seer - 14.0) / 2.0 # W/cfm
       end
     end
   end
@@ -4214,5 +4213,19 @@ class HVAC
     end
 
     return value
+  end
+
+  def self.calc_seer_from_seer2(seer2)
+    # ANSI/RESNET/ICC 301 Table 4.4.4.1(1) SEER2/HSPF2 Conversion Factors (from AHRI)
+    # Calculation below for split systems.
+    seer = seer2 / 0.95
+    return seer
+  end
+
+  def self.calc_hspf_from_hspf2(hspf2)
+    # ANSI/RESNET/ICC 301 Table 4.4.4.1(1) SEER2/HSPF2 Conversion Factors (from AHRI)
+    # Calculation below for split systems.
+    hspf = hspf2 / 0.85
+    return hspf
   end
 end

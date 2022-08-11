@@ -22,7 +22,8 @@ class Location
     # parsing the weather file.
     if File.exist? weather_cache_path
       weather = WeatherProcess.new(nil, nil, weather_cache_path)
-    else
+    end
+    if weather.nil? || weather.data.AnnualAvgDrybulb.nil?
       weather = WeatherProcess.new(model, runner)
     end
 
