@@ -76,6 +76,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     arg.setDefaultValue('2000')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeIntegerArgument('calendar_year', false)
+    arg.setDisplayName('Simulation Control: Run Period Calendar Year')
+    arg.setUnits('year')
+    arg.setDescription('This numeric field should contain the calendar year that determines the start day of week. If you are running simulations using AMY weather files, the value entered for calendar year will not be used; it will be overridden by the actual year found in the AMY weather file. If not provided, the OS-HPXML default is used.')
+    args << arg
+
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('vintage', false)
     arg.setDisplayName('Building Construction: Vintage')
     arg.setDescription('The building vintage, used for informational purposes only.')
@@ -484,22 +490,17 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       epw_path, cache_path = process_weather(args['weather_station_epw_filepath'], runner, model, '../in.xml')
       weather, _epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
       heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+      year = get_year(epw_path, args['calendar_year'])
     end
 
     if args['use_auto_heating_season']
-      season_heating_begin_month, season_heating_begin_day_of_month, season_heating_end_month, season_heating_end_day_of_month = get_begin_and_end_dates_from_monthly_array(model, heating_months)
-      args['season_heating_begin_month'] = season_heating_begin_month
-      args['season_heating_begin_day_of_month'] = season_heating_begin_day_of_month
-      args['season_heating_end_month'] = season_heating_end_month
-      args['season_heating_end_day_of_month'] = season_heating_end_day_of_month
+      hvac_control_heating_season_period = get_date_range_from_monthly_array(heating_months, year)
+      args['hvac_control_heating_season_period'] = hvac_control_heating_season_period
     end
 
     if args['use_auto_cooling_season']
-      season_cooling_begin_month, season_cooling_begin_day_of_month, season_cooling_end_month, season_cooling_end_day_of_month = get_begin_and_end_dates_from_monthly_array(model, cooling_months)
-      args['season_cooling_begin_month'] = season_cooling_begin_month
-      args['season_cooling_begin_day_of_month'] = season_cooling_begin_day_of_month
-      args['season_cooling_end_month'] = season_cooling_end_month
-      args['season_cooling_end_day_of_month'] = season_cooling_end_day_of_month
+      hvac_control_cooling_season_period = get_date_range_from_monthly_array(cooling_months, year)
+      args['hvac_control_cooling_season_period'] = hvac_control_cooling_season_period
     end
 
     # Flue or Chimney
@@ -789,7 +790,7 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     return epw_path, cache_path
   end
 
-  def get_begin_and_end_dates_from_monthly_array(model, months)
+  def get_date_range_from_monthly_array(months, year)
     if months.include? 0
       if months[0] == 1 && months[11] == 1 # Wrap around year
         begin_month = 12 - months.reverse.index(0) + 1
@@ -799,10 +800,29 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         end_month = 12 - months.reverse.index(1)
       end
     end
-    get_num_days_per_month = Schedule.get_num_days_per_month(model)
+    num_days_in_month = Constants.NumDaysInMonths(year)
+
     begin_day = 1
-    end_day = get_num_days_per_month[end_month - 1]
-    return begin_month, begin_day, end_month, end_day
+    end_day = num_days_in_month[end_month - 1]
+    begin_month = Date::ABBR_MONTHNAMES[begin_month]
+    end_month = Date::ABBR_MONTHNAMES[end_month]
+
+    date_range = "#{begin_month} #{begin_day} - #{end_month} #{end_day}"
+
+    return date_range
+  end
+
+  def get_year(epw_path, simulation_control_run_period_calendar_year)
+    epw_file = OpenStudio::EpwFile.new(epw_path)
+
+    calendar_year = 2007 # default to TMY
+    if simulation_control_run_period_calendar_year.is_initialized
+      calendar_year = simulation_control_run_period_calendar_year.get
+    end
+    if epw_file.startDateActualYear.is_initialized # AMY
+      calendar_year = epw_file.startDateActualYear.get
+    end
+    return calendar_year
   end
 end
 
