@@ -487,7 +487,9 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
 
     # Seasons
     if args['use_auto_heating_season'] || args['use_auto_cooling_season']
-      epw_path, cache_path = process_weather(args['weather_station_epw_filepath'], runner, model, '../in.xml')
+      hpxml_path = File.expand_path('../in.xml')
+      epw_path = args['weather_station_epw_filepath']
+      epw_path, cache_path = process_weather(epw_path, runner, model, hpxml_path)
       weather, _epw_file = Location.apply_weather_file(model, runner, epw_path, cache_path)
       heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
       year = get_year(epw_path, args['calendar_year'])
@@ -759,12 +761,11 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
       test_epw_path = File.join(File.dirname(hpxml_path), epw_path)
       epw_path = test_epw_path if File.exist? test_epw_path
     end
-    if not File.exist? epw_path
-      test_epw_path = File.join(File.dirname(__FILE__), '..', 'weather', epw_path)
-      epw_path = test_epw_path if File.exist? test_epw_path
-    end
-    if not File.exist? epw_path
-      test_epw_path = File.join(File.dirname(__FILE__), '..', '..', 'weather', epw_path)
+    (1..3).to_a.each do |level_deep|
+      next unless not File.exist? epw_path
+
+      level = (['..'] * level_deep).join('/')
+      test_epw_path = File.join(File.dirname(__FILE__), level, 'weather', epw_path)
       epw_path = test_epw_path if File.exist? test_epw_path
     end
     if not File.exist?(epw_path)
@@ -774,12 +775,12 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
     cache_path = epw_path.gsub('.epw', '-cache.csv')
     if not File.exist?(cache_path)
       # Process weather file to create cache .csv
-      runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
-      epw_file = OpenStudio::EpwFile.new(epw_path)
-      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-      weather = WeatherProcess.new(model, runner)
       begin
         File.open(cache_path, 'wb') do |file|
+          runner.registerWarning("'#{cache_path}' could not be found; regenerating it.")
+          epw_file = OpenStudio::EpwFile.new(epw_path)
+          OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+          weather = WeatherProcess.new(model, runner)
           weather.dump_to_csv(file)
         end
       rescue SystemCallError
