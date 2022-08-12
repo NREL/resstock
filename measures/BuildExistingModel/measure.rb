@@ -152,7 +152,6 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
     if args['os_hescore_directory'].is_initialized
       os_hescore_directory = args['os_hescore_directory'].get
-      hes_hpxml_measures_dir = File.join(os_hescore_directory, 'hpxml-measures')
       hes_ruleset_measures_dir = File.join(os_hescore_directory, 'rulesets')
       run_hescore_workflow = true
     end
@@ -370,22 +369,13 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Run HEScore Measures
     if run_hescore_workflow
       hes_json_path = File.expand_path('../hes.json')
-      hes_hpxml_path = File.expand_path('../hes.xml')
-      measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => hpxml_path, 'output_path' => hes_json_path }]
-      measures['HEScoreRuleset'] = [{ 'json_path' => hes_json_path, 'hpxml_output_path' => hes_hpxml_path }]
-      measures['HPXMLtoOpenStudio'][0]['hpxml_path'] = hes_hpxml_path
+      measures['HPXMLtoHEScore'] = [{ 'hpxml_path' => in_path, 'output_path' => hes_json_path }]
+      measures['HEScoreRuleset'] = [{ 'json_path' => hes_json_path, 'hpxml_output_path' => in_path }]
 
       # HPXMLtoHEScore and HEScoreRuleset
       measures_hash = { 'HPXMLtoHEScore' => measures['HPXMLtoHEScore'], 'HEScoreRuleset' => measures['HEScoreRuleset'] }
 
       if not apply_measures(hes_ruleset_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
-        register_logs(runner, new_runner)
-        return false
-      end
-
-      # HPXMLtoOpenStudio
-      measures_hash = { 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] }
-      if not apply_measures(hes_hpxml_measures_dir, measures_hash, new_runner, model, true, 'OpenStudio::Measure::ModelMeasure')
         register_logs(runner, new_runner)
         return false
       end
