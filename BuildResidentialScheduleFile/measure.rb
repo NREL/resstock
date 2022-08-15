@@ -177,13 +177,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:mkc_ts_per_day] = 96
     args[:mkc_ts_per_hour] = args[:mkc_ts_per_day] / 24
 
-    calendar_year = 2007 # default to TMY
-    if !hpxml.header.sim_calendar_year.nil?
-      calendar_year = hpxml.header.sim_calendar_year
-    end
-    if epw_file.startDateActualYear.is_initialized # AMY
-      calendar_year = epw_file.startDateActualYear.get
-    end
+    calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
     args[:sim_year] = calendar_year
     args[:sim_start_day] = DateTime.new(args[:sim_year], 1, 1)
     args[:total_days_in_year] = Constants.NumDaysInYear(calendar_year)

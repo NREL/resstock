@@ -336,7 +336,6 @@ def create_hpxmls
     'base-hvac-room-ac-only-ceer.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-room-ac-only-detailed-setpoints.xml' => 'base-hvac-room-ac-only.xml',
     'base-hvac-seasons.xml' => 'base.xml',
-    'base-hvac-seasons-auto.xml' => 'base.xml',
     'base-hvac-setpoints.xml' => 'base.xml',
     'base-hvac-setpoints-daily-schedules.xml' => 'base-hvac-setpoints-daily-setbacks.xml',
     'base-hvac-setpoints-daily-setbacks.xml' => 'base.xml',
@@ -1898,9 +1897,6 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-hvac-seasons.xml'].include? hpxml_file
     args['hvac_control_heating_season_period'] = 'Nov 1 - May 1'
     args['hvac_control_cooling_season_period'] = 'Jun 1 - Oct 1'
-  elsif ['base-hvac-seasons-auto.xml'].include? hpxml_file
-    args['hvac_control_heating_season_period'] = HPXML::BuildingAmerica
-    args['hvac_control_cooling_season_period'] = HPXML::BuildingAmerica
   elsif ['base-hvac-install-quality-air-to-air-heat-pump-1-speed.xml',
          'base-hvac-install-quality-air-to-air-heat-pump-2-speed.xml',
          'base-hvac-install-quality-air-to-air-heat-pump-var-speed.xml',
