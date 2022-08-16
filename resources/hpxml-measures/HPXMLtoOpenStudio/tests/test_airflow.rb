@@ -546,7 +546,7 @@ class HPXMLtoOpenStudioAirflowTest < MiniTest::Test
     # Test multifamily
     hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(sample_files_dir, 'base-bldgtype-multifamily.xml')))
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas
-    assert_in_delta(686, exterior_area, 1.0)
+    assert_in_delta(784, exterior_area, 1.0)
     assert_in_delta(2780, total_area, 1.0)
   end
 

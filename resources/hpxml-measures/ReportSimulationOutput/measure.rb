@@ -1322,7 +1322,7 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
     end
 
     def get_eec_value_numerator(unit)
-      if ['HSPF', 'SEER', 'EER', 'CEER'].include? unit
+      if ['HSPF', 'HSPF2', 'SEER', 'SEER2', 'EER', 'CEER'].include? unit
         return 3.413
       elsif ['AFUE', 'COP', 'Percent', 'EF'].include? unit
         return 1.0
@@ -1361,6 +1361,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       clg_fuels[clg_system.id] = clg_system.cooling_system_fuel
       if not clg_system.cooling_efficiency_seer.nil?
         clg_eecs[clg_system.id] = get_eec_value_numerator('SEER') / clg_system.cooling_efficiency_seer
+      elsif not clg_system.cooling_efficiency_seer2.nil?
+        clg_eecs[clg_system.id] = get_eec_value_numerator('SEER2') / clg_system.cooling_efficiency_seer2
       elsif not clg_system.cooling_efficiency_eer.nil?
         clg_eecs[clg_system.id] = get_eec_value_numerator('EER') / clg_system.cooling_efficiency_eer
       elsif not clg_system.cooling_efficiency_ceer.nil?
@@ -1377,6 +1379,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
         htg_fuels[heat_pump.id] = heat_pump.heat_pump_fuel
         if not heat_pump.heating_efficiency_hspf.nil?
           htg_eecs[heat_pump.id] = get_eec_value_numerator('HSPF') / heat_pump.heating_efficiency_hspf
+        elsif not heat_pump.heating_efficiency_hspf2.nil?
+          htg_eecs[heat_pump.id] = get_eec_value_numerator('HSPF2') / heat_pump.heating_efficiency_hspf2
         elsif not heat_pump.heating_efficiency_cop.nil?
           htg_eecs[heat_pump.id] = get_eec_value_numerator('COP') / heat_pump.heating_efficiency_cop
         end
@@ -1387,6 +1391,8 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
       clg_seed_id_map[heat_pump.id] = heat_pump.clg_seed_id
       if not heat_pump.cooling_efficiency_seer.nil?
         clg_eecs[heat_pump.id] = get_eec_value_numerator('SEER') / heat_pump.cooling_efficiency_seer
+      elsif not heat_pump.cooling_efficiency_seer2.nil?
+        clg_eecs[heat_pump.id] = get_eec_value_numerator('SEER2') / heat_pump.cooling_efficiency_seer2
       elsif not heat_pump.cooling_efficiency_eer.nil?
         clg_eecs[heat_pump.id] = get_eec_value_numerator('EER') / heat_pump.cooling_efficiency_eer
       end
