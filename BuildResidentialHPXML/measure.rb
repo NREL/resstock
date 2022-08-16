@@ -3253,7 +3253,7 @@ end
 
 class HPXMLFile
   def self.create(runner, model, args, epw_file)
-    if (args[:hvac_control_heating_season_period].is_initialized && args[:hvac_control_heating_season_period].get == HPXML::BuildingAmerica) || (args[:hvac_control_cooling_season_period].is_initialized && args[:hvac_control_cooling_season_period].get == HPXML::BuildingAmerica) || (args[:apply_defaults].is_initialized && args[:apply_defaults].get)
+    if (args[:hvac_control_heating_season_period].to_s == HPXML::BuildingAmerica) || (args[:hvac_control_cooling_season_period].to_s == HPXML::BuildingAmerica) || (args[:apply_defaults].is_initialized && args[:apply_defaults].get)
       OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
       weather = WeatherProcess.new(model, runner)
     end

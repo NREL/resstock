@@ -8,10 +8,15 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class BuildResidentialHPXMLTest < MiniTest::Test
-  def test_workflows
-    this_dir = File.dirname(__FILE__)
-    tests_dir = File.join(this_dir, 'extra_files')
+  def setup
+    @tests_dir = File.join(File.dirname(__FILE__), 'extra_files')
+  end
 
+  def teardown
+    FileUtils.rm_rf(@tests_dir)
+  end
+
+  def test_workflows
     # Extra buildings that don't correspond with sample files
     hpxmls_files = {
       # Base files to derive from
@@ -294,7 +299,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
           flunk "Error: Did not successfully generate #{hpxml_file}."
         end
 
-        hpxml_path = File.absolute_path(File.join(tests_dir, hpxml_file))
+        hpxml_path = File.absolute_path(File.join(@tests_dir, hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
         hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
         hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
@@ -307,7 +312,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
     end
 
     # Check generated HPXML files
-    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(tests_dir, 'extra-seasons-building-america.xml')))
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(@tests_dir, 'extra-seasons-building-america.xml')))
     hvac_control = hpxml.hvac_controls[0]
     assert_equal(10, hvac_control.seasons_heating_begin_month)
     assert_equal(1, hvac_control.seasons_heating_begin_day)
