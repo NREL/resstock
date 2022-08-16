@@ -653,18 +653,40 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     hpxml = _create_hpxml('base-bldgtype-single-family-attached.xml')
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
     a_ext_ratio = exterior_area / total_area
-    assert_in_delta(0.840, a_ext_ratio, 0.001)
+    assert_in_delta(0.893, a_ext_ratio, 0.001)
 
     hpxml.attics[0].within_infiltration_volume = true
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
     a_ext_ratio = exterior_area / total_area
-    assert_in_delta(0.817, a_ext_ratio, 0.001)
+    assert_in_delta(0.882, a_ext_ratio, 0.001)
 
     # Test multifamily
     hpxml = _create_hpxml('base-bldgtype-multifamily.xml')
     total_area, exterior_area = hpxml.compartmentalization_boundary_areas()
     a_ext_ratio = exterior_area / total_area
-    assert_in_delta(0.247, a_ext_ratio, 0.001)
+    assert_in_delta(0.282, a_ext_ratio, 0.001)
+  end
+
+  def test_aspect_ratios
+    # Test single-family attached
+    hpxml = _create_hpxml('base-bldgtype-single-family-attached.xml')
+    wall_outside = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+    wall_other_housing_unit = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+
+    wall_height = hpxml.building_construction.average_ceiling_height
+    left_right_wall_length = wall_other_housing_unit.area / wall_height
+    front_back_wall_length = ((wall_outside.area / wall_height) - left_right_wall_length) / 2.0
+    assert_in_delta(1.5, front_back_wall_length / left_right_wall_length, 0.01)
+
+    # Test multifamily
+    hpxml = _create_hpxml('base-bldgtype-multifamily.xml')
+    wall_outside = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+    wall_other_housing_unit = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+
+    wall_height = hpxml.building_construction.average_ceiling_height
+    left_right_wall_length = wall_other_housing_unit.area / wall_height
+    front_back_wall_length = ((wall_outside.area / wall_height) - left_right_wall_length) / 2.0
+    assert_in_delta(1.5, front_back_wall_length / left_right_wall_length, 0.01)
   end
 
   def _check_surface(hpxml_surface, os_surface, expected_layer_names)

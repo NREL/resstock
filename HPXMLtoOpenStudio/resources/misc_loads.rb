@@ -108,7 +108,7 @@ class MiscLoads
     mfl.setSchedule(sch)
   end
 
-  def self.apply_pool_or_hot_tub_heater(model, pool_or_hot_tub, obj_name, living_space, schedules_file)
+  def self.apply_pool_or_hot_tub_heater(runner, model, pool_or_hot_tub, obj_name, living_space, schedules_file)
     return if pool_or_hot_tub.heater_type == HPXML::TypeNone
 
     heater_kwh = 0
@@ -182,7 +182,7 @@ class MiscLoads
     end
   end
 
-  def self.apply_pool_or_hot_tub_pump(model, pool_or_hot_tub, obj_name, living_space, schedules_file)
+  def self.apply_pool_or_hot_tub_pump(runner, model, pool_or_hot_tub, obj_name, living_space, schedules_file)
     pump_kwh = 0
 
     # Create schedule
