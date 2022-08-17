@@ -190,7 +190,7 @@ def create_hpxmls
     'base-foundation-basement-garage.xml' => 'base.xml',
     'base-foundation-complex.xml' => 'base.xml',
     'base-foundation-conditioned-basement-slab-insulation.xml' => 'base.xml',
-    'base-foundation-conditioned-basement-wall-interior-insulation.xml' => 'base.xml',
+    'base-foundation-conditioned-basement-wall-insulation.xml' => 'base.xml',
     'base-foundation-conditioned-crawlspace.xml' => 'base.xml',
     'base-foundation-multiple.xml' => 'base-foundation-unconditioned-basement.xml',
     'base-foundation-slab.xml' => 'base.xml',
@@ -404,6 +404,7 @@ def create_hpxmls
     'base-simcontrol-daylight-saving-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-disabled.xml' => 'base.xml',
     'base-simcontrol-runperiod-1-month.xml' => 'base.xml',
+    'base-simcontrol-temperature-capacitance-multiplier.xml' => 'base.xml',
     'base-simcontrol-timestep-10-mins.xml' => 'base.xml',
     'base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
     'base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml' => 'base-simcontrol-timestep-10-mins.xml'
@@ -1225,6 +1226,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   if ['base-bldgtype-single-family-attached.xml'].include? hpxml_file
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
     args['geometry_unit_cfa'] = 1800.0
+    args['geometry_unit_aspect_ratio'] = 0.6667
     args['geometry_building_num_units'] = 3
     args['geometry_unit_right_wall_is_adiabatic'] = true
     args['window_front_wwr'] = 0.18
@@ -1257,6 +1259,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   if ['base-bldgtype-multifamily.xml'].include? hpxml_file
     args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
     args['geometry_unit_cfa'] = 900.0
+    args['geometry_unit_aspect_ratio'] = 0.6667
     args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     args['geometry_unit_right_wall_is_adiabatic'] = true
@@ -1588,7 +1591,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-foundation-conditioned-basement-slab-insulation.xml'].include? hpxml_file
     args['slab_under_insulation_r'] = 10
     args['slab_under_width'] = 4
-  elsif ['base-foundation-conditioned-basement-wall-interior-insulation.xml'].include? hpxml_file
+  elsif ['base-foundation-conditioned-basement-wall-insulation.xml'].include? hpxml_file
     args['foundation_wall_type'] = HPXML::FoundationWallTypeConcreteBlockFoamCore
     args['foundation_wall_insulation_r'] = 18.9
     args['foundation_wall_insulation_distance_to_top'] = 1.0
@@ -2386,6 +2389,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['simulation_control_daylight_saving_enabled'] = false
   elsif ['base-simcontrol-runperiod-1-month.xml'].include? hpxml_file
     args['simulation_control_run_period'] = 'Jan 1 - Jan 31'
+  elsif ['base-simcontrol-temperature-capacitance-multiplier.xml'].include? hpxml_file
+    args['simulation_control_temperature_capacitance_multiplier'] = 7.0
   elsif ['base-simcontrol-timestep-10-mins.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 10
   elsif ['base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml'].include? hpxml_file
@@ -3058,10 +3063,10 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.rim_joists[-1].id = "RimJoist#{hpxml.rim_joists.size}"
     hpxml.rim_joists[-1].interior_adjacent_to = HPXML::LocationLivingSpace
     hpxml.rim_joists[-1].area = 116
-  elsif ['base-foundation-conditioned-basement-wall-interior-insulation.xml'].include? hpxml_file
+  elsif ['base-foundation-conditioned-basement-wall-insulation.xml'].include? hpxml_file
     hpxml.foundation_walls.each do |foundation_wall|
       foundation_wall.insulation_interior_r_value = 10
-      foundation_wall.insulation_interior_distance_to_top = 0
+      foundation_wall.insulation_interior_distance_to_top = 1
       foundation_wall.insulation_interior_distance_to_bottom = 8
       foundation_wall.insulation_exterior_r_value = 8.9
       foundation_wall.insulation_exterior_distance_to_top = 1

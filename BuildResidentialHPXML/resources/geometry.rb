@@ -273,8 +273,11 @@ class Geometry
     end
 
     # calculate the dimensions of the building
-    width = Math.sqrt(footprint / aspect_ratio)
-    length = footprint / width
+    # we have: (1) aspect_ratio = fb / lr, and (2) footprint = fb * lr
+    fb = Math.sqrt(footprint * aspect_ratio)
+    lr = footprint / fb
+    length = fb
+    width = lr
 
     # error checking
     if ((garage_width >= length) && (garage_depth > 0))
@@ -1610,8 +1613,11 @@ class Geometry
     end
 
     # calculate the dimensions of the unit
-    x = Math.sqrt(footprint / aspect_ratio)
-    y = footprint / x
+    # we have: (1) aspect_ratio = fb / lr, and (2) footprint = fb * lr
+    fb = Math.sqrt(footprint * aspect_ratio)
+    lr = footprint / fb
+    x = fb
+    y = lr
 
     # create the prototype unit footprint
     nw_point = OpenStudio::Point3d.new(0, 0, rim_joist_height)
@@ -1973,9 +1979,12 @@ class Geometry
     rim_joist_height = UnitConversions.convert(rim_joist_height, 'ft', 'm')
 
     # calculate the dimensions of the unit
+    # we have: (1) aspect_ratio = fb / lr, and (2) footprint = fb * lr
     footprint = cfa
-    x = Math.sqrt(footprint / aspect_ratio)
-    y = footprint / x
+    fb = Math.sqrt(footprint * aspect_ratio)
+    lr = footprint / fb
+    x = fb
+    y = lr
 
     foundation_polygon = nil
 

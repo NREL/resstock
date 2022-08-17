@@ -91,21 +91,25 @@ HPXML Simulation Control
 
 EnergyPlus simulation controls are entered in ``/HPXML/SoftwareInfo/extension/SimulationControl``.
 
-  ==================================  ========  =======  =============  ========  ===========================  =====================================
-  Element                             Type      Units    Constraints    Required  Default                      Description
-  ==================================  ========  =======  =============  ========  ===========================  =====================================
-  ``Timestep``                        integer   minutes  Divisor of 60  No        60 (1 hour)                  Timestep
-  ``BeginMonth``                      integer            1 - 12 [#]_    No        1 (January)                  Run period start date
-  ``BeginDayOfMonth``                 integer            1 - 31         No        1                            Run period start date
-  ``EndMonth``                        integer            1 - 12         No        12 (December)                Run period end date
-  ``EndDayOfMonth``                   integer            1 - 31         No        31                           Run period end date
-  ``CalendarYear``                    integer            > 1600 [#]_    No        2007 (for TMY weather) [#]_  Calendar year (for start day of week)
-  ``DaylightSaving/Enabled``          boolean                           No        true                         Daylight saving enabled?
-  ==================================  ========  =======  =============  ========  ===========================  =====================================
+  ====================================  ========  =======  =============  ========  ===========================  =====================================
+  Element                               Type      Units    Constraints    Required  Default                      Description
+  ====================================  ========  =======  =============  ========  ===========================  =====================================
+  ``Timestep``                          integer   minutes  Divisor of 60  No        60 (1 hour)                  Timestep
+  ``BeginMonth``                        integer            1 - 12 [#]_    No        1 (January)                  Run period start date
+  ``BeginDayOfMonth``                   integer            1 - 31         No        1                            Run period start date
+  ``EndMonth``                          integer            1 - 12         No        12 (December)                Run period end date
+  ``EndDayOfMonth``                     integer            1 - 31         No        31                           Run period end date
+  ``CalendarYear``                      integer            > 1600 [#]_    No        2007 (for TMY weather) [#]_  Calendar year (for start day of week)
+  ``DaylightSaving/Enabled``            boolean                           No        true                         Daylight saving enabled?
+  ``TemperatureCapacitanceMultiplier``  double             > 0            No        1.0                          Multiplier on air heat capacitance [#]_
+  ====================================  ========  =======  =============  ========  ===========================  =====================================
 
   .. [#] BeginMonth/BeginDayOfMonth date must occur before EndMonth/EndDayOfMonth date (e.g., a run period from 10/1 to 3/31 is invalid).
   .. [#] If a leap year is specified (e.g., 2008), the EPW weather file must contain 8784 hours.
   .. [#] CalendarYear only applies to TMY (Typical Meteorological Year) weather. For AMY (Actual Meteorological Year) weather, the AMY year will be used regardless of what is specified.
+  .. [#] TemperatureCapacitanceMultiplier affects the transient calculation of indoor air temperatures.
+         Values greater than 1.0 have the effect of smoothing or damping the rate of change in the indoor air temperature from timestep to timestep.
+         This heat capacitance effect is modeled on top of any other individual mass inputs (e.g., furniture mass, partition wall mass, interior drywall, etc.) in the HPXML.
 
 If daylight saving is enabled, additional information is specified in ``DaylightSaving``.
 
@@ -2138,7 +2142,7 @@ If a conventional storage water heater is specified, additional information is e
   Element                                                           Type               Units          Constraints      Required  Default   Notes
   ================================================================  =================  =============  ===============  ========  ========  ====================================================
   ``FuelType``                                                      string                            See [#]_         Yes                 Fuel type
-  ``TankVolume``                                                    double             gal            > 0              No        See [#]_  Tank volume
+  ``TankVolume``                                                    double             gal            > 0              No        See [#]_  Nominal tank volume
   ``HeatingCapacity``                                               double             Btu/hr         > 0              No        See [#]_  Heating capacity
   ``UniformEnergyFactor`` or ``EnergyFactor`` or ``YearInstalled``  double or integer  frac or #      < 1 or > 1600    Yes       See [#]_  EnergyGuide label rated efficiency or Year installed
   ``UsageBin`` or ``FirstHourRating``                               string or double   str or gal/hr  See [#]_ or > 0  No        See [#]_  EnergyGuide label usage bin/first hour rating
@@ -2189,7 +2193,7 @@ If a heat pump water heater is specified, additional information is entered in `
   Element                                        Type              Units          Constraints      Required  Default   Notes
   =============================================  ================  =============  ===============  ========  ========  =============================================
   ``FuelType``                                   string                           See [#]_         Yes                 Fuel type
-  ``TankVolume``                                 double            gal            > 0              Yes                 Tank volume
+  ``TankVolume``                                 double            gal            > 0              Yes                 Nominal tank volume
   ``UniformEnergyFactor`` or ``EnergyFactor``    double            frac           > 1              Yes                 EnergyGuide label rated efficiency
   ``UsageBin`` or ``FirstHourRating``            string or double  str or gal/hr  See [#]_ or > 0  No        See [#]_  EnergyGuide label usage bin/first hour rating
   ``WaterHeaterInsulation/Jacket/JacketRValue``  double            F-ft2-hr/Btu   >= 0             No        0         R-value of additional tank insulation wrap
@@ -2213,7 +2217,7 @@ If a combination boiler w/ storage tank (sometimes referred to as an indirect wa
   Element                                        Type     Units         Constraints  Required      Default   Notes
   =============================================  =======  ============  ===========  ============  ========  ==================================================
   ``RelatedHVACSystem``                          idref                  See [#]_     Yes                     ID of boiler
-  ``TankVolume``                                 double   gal           > 0          Yes                     Volume of the storage tank
+  ``TankVolume``                                 double   gal           > 0          Yes                     Nominal volume of the storage tank
   ``WaterHeaterInsulation/Jacket/JacketRValue``  double   F-ft2-hr/Btu  >= 0         No            0         R-value of additional storage tank insulation wrap
   ``StandbyLoss``                                double   F/hr          > 0          No            See [#]_  Storage tank standby losses
   =============================================  =======  ============  ===========  ============  ========  ==================================================
