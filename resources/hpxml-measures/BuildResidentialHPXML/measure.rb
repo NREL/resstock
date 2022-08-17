@@ -1345,12 +1345,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_season_period', false)
     arg.setDisplayName('HVAC Control: Heating Season Period')
-    arg.setDescription('Enter a date like "Nov 1 - Jun 30". If not provided, the OS-HPXML default is used.')
+    arg.setDescription("Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default is used. Can also provide '#{HPXML::BuildingAmerica}' to use automatic seasons from the Building America House Simulation Protocols.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_cooling_season_period', false)
     arg.setDisplayName('HVAC Control: Cooling Season Period')
-    arg.setDescription('Enter a date like "Jun 1 - Oct 31". If not provided, the OS-HPXML default is used.')
+    arg.setDescription("Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default is used. Can also provide '#{HPXML::BuildingAmerica}' to use automatic seasons from the Building America House Simulation Protocols.")
     args << arg
 
     duct_leakage_units_choices = OpenStudio::StringVector.new
@@ -3265,6 +3265,11 @@ end
 
 class HPXMLFile
   def self.create(runner, model, args, epw_file)
+    if (args[:hvac_control_heating_season_period].to_s == HPXML::BuildingAmerica) || (args[:hvac_control_cooling_season_period].to_s == HPXML::BuildingAmerica) || (args[:apply_defaults].is_initialized && args[:apply_defaults].get)
+      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+      weather = WeatherProcess.new(model, runner)
+    end
+
     success = create_geometry_envelope(runner, model, args)
     return false if not success
 
@@ -3299,7 +3304,7 @@ class HPXMLFile
     set_heat_pumps(hpxml, args)
     set_secondary_heating_systems(hpxml, args)
     set_hvac_distribution(hpxml, args)
-    set_hvac_control(hpxml, args)
+    set_hvac_control(hpxml, args, epw_file, weather)
     set_ventilation_fans(hpxml, args)
     set_water_heating_systems(hpxml, args)
     set_hot_water_distribution(hpxml, args)
@@ -3356,8 +3361,6 @@ class HPXMLFile
 
     if args[:apply_defaults].is_initialized && args[:apply_defaults].get
       eri_version = Constants.ERIVersions[-1]
-      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-      weather = WeatherProcess.new(model, runner)
       HPXMLDefaults.apply(runner, hpxml, eri_version, weather, epw_file: epw_file)
     end
 
@@ -4889,7 +4892,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_hvac_control(hpxml, args)
+  def self.set_hvac_control(hpxml, args, epw_file, weather)
     return if (args[:heating_system_type] == 'none') && (args[:cooling_system_type] == 'none') && (args[:heat_pump_type] == 'none')
 
     # Heating
@@ -4905,7 +4908,14 @@ class HPXMLFile
       end
 
       if args[:hvac_control_heating_season_period].is_initialized
-        begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_heating_season_period].get)
+        hvac_control_heating_season_period = args[:hvac_control_heating_season_period].get
+        if hvac_control_heating_season_period == HPXML::BuildingAmerica
+          heating_months, _cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+          sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
+          begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(heating_months, sim_calendar_year)
+        else
+          begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(hvac_control_heating_season_period)
+        end
         seasons_heating_begin_month = begin_month
         seasons_heating_begin_day = begin_day
         seasons_heating_end_month = end_month
@@ -4931,7 +4941,14 @@ class HPXMLFile
       end
 
       if args[:hvac_control_cooling_season_period].is_initialized
-        begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_cooling_season_period].get)
+        hvac_control_cooling_season_period = args[:hvac_control_cooling_season_period].get
+        if hvac_control_cooling_season_period == HPXML::BuildingAmerica
+          _heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+          sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
+          begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(cooling_months, sim_calendar_year)
+        else
+          begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_cooling_season_period].get)
+        end
         seasons_cooling_begin_month = begin_month
         seasons_cooling_begin_day = begin_day
         seasons_cooling_end_month = end_month
