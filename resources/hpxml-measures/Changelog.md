@@ -5,6 +5,7 @@ __New Features__
 - Allows SEER2/HSPF2 efficiency types for central air conditioners and heat pumps.
 - Allows heating/cooling seasons that don't span the entire year.
 - Allows calculating one or more utility bill scenarios (e.g., net metering vs feed-in tariff compensation types for a simulation with PV).
+- Allows setting the EnergyPlus temperature capacitance multiplier.
 - EnergyPlus modeling changes:
   - Switches Kiva foundation model timestep from 'Hourly' to 'Timestep'; small increase in runtime for sub-hourly simulations.
 - Annual/timeseries outputs:
@@ -27,6 +28,7 @@ __Bugfixes__
 - Fixes possible output error for ground source heat pumps with a shared hydronic circulation loop.
 - Provides an error message if the EnergyPlus simulation used infinite energy.
 - Fixes zero energy use for a ventilation fan w/ non-zero fan power and zero airflow rate.
+- Fixes excessive heat transfer when foundation wall interior insulation does not start from the top of the wall.
 
 ## OpenStudio-HPXML v1.4.0
 
