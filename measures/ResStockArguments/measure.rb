@@ -633,8 +633,8 @@ class ResStockArguments < OpenStudio::Measure::ModelMeasure
         elsif ['Left', 'Right'].include? horiz_location
           n_unit_sides = 1
         end
-        n_bldg_sides_equivalent = n_bldg_sides + n_bldg_fronts_backs / aspect_ratio
-        n_unit_sides_equivalent = n_unit_sides + n_unit_fronts_backs / aspect_ratio
+        n_bldg_sides_equivalent = n_bldg_sides + n_bldg_fronts_backs * aspect_ratio
+        n_unit_sides_equivalent = n_unit_sides + n_unit_fronts_backs * aspect_ratio
         exposed_wall_area_ratio = n_unit_sides_equivalent / (n_bldg_sides_equivalent / n_units)
       end
 
