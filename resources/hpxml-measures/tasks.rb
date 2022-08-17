@@ -205,6 +205,7 @@ def create_hpxmls
     'base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-air-to-air-heat-pump-1-speed-seer2-hspf2.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-2-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
@@ -272,6 +273,7 @@ def create_hpxmls
     'base-hvac-boiler-propane-only.xml' => 'base-hvac-boiler-gas-only.xml',
     'base-hvac-boiler-wood-only.xml' => 'base-hvac-boiler-gas-only.xml',
     'base-hvac-central-ac-only-1-speed.xml' => 'base.xml',
+    'base-hvac-central-ac-only-1-speed-seer2.xml' => 'base-hvac-central-ac-only-1-speed.xml',
     'base-hvac-central-ac-only-2-speed.xml' => 'base.xml',
     'base-hvac-central-ac-only-var-speed.xml' => 'base.xml',
     'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.xml' => 'base-hvac-central-ac-only-1-speed.xml',
@@ -530,7 +532,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   else
     args['hpxml_path'] = "../workflow/sample_files/#{hpxml_file}"
   end
-  args['apply_validation'] = true
+  args['apply_validation'] = false # It's faster not to validate and the CI tests will catch issues
 
   if ['base.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 60
@@ -1676,6 +1678,11 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
     args['heat_pump_heating_capacity_17_f'] = args['heat_pump_heating_capacity'] * 0.6
     args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
+  elsif ['base-hvac-air-to-air-heat-pump-1-speed-seer2-hspf2.xml'].include? hpxml_file
+    args['heat_pump_cooling_efficiency_type'] = HPXML::UnitsSEER2
+    args['heat_pump_cooling_efficiency'] = (args['heat_pump_cooling_efficiency'] * 0.95).round(1)
+    args['heat_pump_heating_efficiency_type'] = HPXML::UnitsHSPF2
+    args['heat_pump_heating_efficiency'] = (args['heat_pump_heating_efficiency'] * 0.85).round(1)
   elsif ['base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml'].include? hpxml_file
     args['heat_pump_heating_capacity'] = 0.0
     args['heat_pump_heating_capacity_17_f'] = 0.0
@@ -1759,6 +1766,9 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heating_system_fuel'] = HPXML::FuelTypeWoodCord
   elsif ['base-hvac-central-ac-only-1-speed.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
+  elsif ['base-hvac-central-ac-only-1-speed-seer2.xml'].include? hpxml_file
+    args['cooling_system_cooling_efficiency_type'] = HPXML::UnitsSEER2
+    args['cooling_system_cooling_efficiency'] = (args['cooling_system_cooling_efficiency'] * 0.95).round(1)
   elsif ['base-hvac-central-ac-only-2-speed.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
     args['cooling_system_cooling_efficiency'] = 18.0

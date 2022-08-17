@@ -1094,6 +1094,23 @@ class Schedule
     return begin_month, begin_day, end_month, end_day
   end
 
+  def self.get_begin_and_end_dates_from_monthly_array(months, year)
+    if months[0] == 1 && months[11] == 1 # Wrap around year
+      begin_month = 12 - months.reverse.index(0) + 1
+      end_month = months.index(0)
+    else
+      begin_month = months.index(1) + 1
+      end_month = 12 - months.reverse.index(1)
+    end
+
+    num_days_in_month = Constants.NumDaysInMonths(year)
+
+    begin_day = 1
+    end_day = num_days_in_month[end_month - 1]
+
+    return begin_month, begin_day, end_month, end_day
+  end
+
   def self.schedules_file_includes_col_name(schedules_file, col_name)
     schedules_file_includes_col_name = false
     if not schedules_file.nil?

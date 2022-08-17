@@ -1024,11 +1024,18 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.cooling_systems[0].charge_defect_ratio = -0.11
     hpxml.cooling_systems[0].airflow_defect_ratio = -0.22
     hpxml.cooling_systems[0].cooling_capacity = 12345
-    hpxml.cooling_systems[0].cooling_efficiency_seer = 12.5
+    hpxml.cooling_systems[0].cooling_efficiency_seer = 12.0
     hpxml.cooling_systems[0].year_installed = 2010
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_central_air_conditioner_values(hpxml_default.cooling_systems[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 12.5)
+    _test_default_central_air_conditioner_values(hpxml_default.cooling_systems[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 12.0)
+
+    # Test defaults - SEER2
+    hpxml.cooling_systems[0].cooling_efficiency_seer = nil
+    hpxml.cooling_systems[0].cooling_efficiency_seer2 = 11.4
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_central_air_conditioner_values(hpxml_default.cooling_systems[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 12.0)
 
     # Test defaults
     hpxml.cooling_systems[0].cooling_shr = nil
@@ -1037,7 +1044,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.cooling_systems[0].charge_defect_ratio = nil
     hpxml.cooling_systems[0].airflow_defect_ratio = nil
     hpxml.cooling_systems[0].cooling_capacity = nil
-    hpxml.cooling_systems[0].cooling_efficiency_seer = nil
+    hpxml.cooling_systems[0].cooling_efficiency_seer2 = nil
     hpxml.cooling_systems[0].year_installed = 2010
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
@@ -1383,6 +1390,15 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     _test_default_air_to_air_heat_pump_values(hpxml_default.heat_pumps[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 23456, 9876, 34567, 14.0, 8.0, 20.0)
 
+    # Test defaults - SEER2/HSPF2
+    hpxml.heat_pumps[0].cooling_efficiency_seer = nil
+    hpxml.heat_pumps[0].cooling_efficiency_seer2 = 13.3
+    hpxml.heat_pumps[0].heating_efficiency_hspf = nil
+    hpxml.heat_pumps[0].heating_efficiency_hspf2 = 6.8
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_air_to_air_heat_pump_values(hpxml_default.heat_pumps[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 23456, 9876, 34567, 14.0, 8.0, 20.0)
+
     # Test defaults
     hpxml.heat_pumps[0].cooling_shr = nil
     hpxml.heat_pumps[0].compressor_type = nil
@@ -1393,8 +1409,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.heat_pumps[0].heating_capacity = nil
     hpxml.heat_pumps[0].heating_capacity_17F = nil
     hpxml.heat_pumps[0].backup_heating_capacity = nil
-    hpxml.heat_pumps[0].cooling_efficiency_seer = nil
-    hpxml.heat_pumps[0].heating_efficiency_hspf = nil
+    hpxml.heat_pumps[0].cooling_efficiency_seer2 = nil
+    hpxml.heat_pumps[0].heating_efficiency_hspf2 = nil
     hpxml.heat_pumps[0].year_installed = 2010
     hpxml.heat_pumps[0].backup_heating_lockout_temp = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
