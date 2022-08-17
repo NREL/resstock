@@ -2296,14 +2296,16 @@ class ReportSimulationOutput < OpenStudio::Measure::ReportingMeasure
 
     # Emissions
     @emissions = {}
-    emissions_scenario_names = eval(@model.getBuilding.additionalProperties.getFeatureAsString('emissions_scenario_names').get)
-    emissions_scenario_types = eval(@model.getBuilding.additionalProperties.getFeatureAsString('emissions_scenario_types').get)
-    emissions_scenario_names.each_with_index do |scenario_name, i|
-      scenario_type = emissions_scenario_types[i]
-      @emissions[[scenario_type, scenario_name]] = Emission.new()
-      @emissions[[scenario_type, scenario_name]].name = "Emissions: #{scenario_type}: #{scenario_name}"
-      @emissions[[scenario_type, scenario_name]].annual_units = 'lb'
-      @emissions[[scenario_type, scenario_name]].timeseries_units = 'lb'
+    if not @model.nil?
+      emissions_scenario_names = eval(@model.getBuilding.additionalProperties.getFeatureAsString('emissions_scenario_names').get)
+      emissions_scenario_types = eval(@model.getBuilding.additionalProperties.getFeatureAsString('emissions_scenario_types').get)
+      emissions_scenario_names.each_with_index do |scenario_name, i|
+        scenario_type = emissions_scenario_types[i]
+        @emissions[[scenario_type, scenario_name]] = Emission.new()
+        @emissions[[scenario_type, scenario_name]].name = "Emissions: #{scenario_type}: #{scenario_name}"
+        @emissions[[scenario_type, scenario_name]].annual_units = 'lb'
+        @emissions[[scenario_type, scenario_name]].timeseries_units = 'lb'
+      end
     end
 
     # Hot Water Uses
