@@ -48,10 +48,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.state_code = 'CA'
     hpxml.header.time_zone_utc_offset = -8
     hpxml.header.occupancy_calculation_type = HPXML::OccupancyCalculationTypeOperational
+    hpxml.header.temperature_capacitance_multiplier = 1.5
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 30, 2, 2, 11, 11, 2009, false, 3, 3, 10, 10, HPXML::HeatPumpSizingMaxLoad,
-                                true, 'CA', -8, HPXML::OccupancyCalculationTypeOperational)
+                                true, 'CA', -8, HPXML::OccupancyCalculationTypeOperational, 1.5)
 
     # Test defaults - DST not in weather file
     hpxml.header.timestep = nil
@@ -70,10 +71,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.state_code = nil
     hpxml.header.time_zone_utc_offset = nil
     hpxml.header.occupancy_calculation_type = nil
+    hpxml.header.temperature_capacitance_multiplier = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, HPXML::HeatPumpSizingHERS,
-                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset)
+                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0)
 
     # Test defaults - DST in weather file
     hpxml = _create_hpxml('base-location-AMY-2012.xml')
@@ -93,17 +95,18 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.state_code = nil
     hpxml.header.time_zone_utc_offset = nil
     hpxml.header.occupancy_calculation_type = nil
+    hpxml.header.temperature_capacitance_multiplier = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil,
-                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset)
+                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0)
 
     # Test defaults - calendar year override by AMY year
     hpxml.header.sim_calendar_year = 2020
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2012, true, 3, 11, 11, 4, nil,
-                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset)
+                                false, 'CO', -7, HPXML::OccupancyCalculationTypeAsset, 1.0)
 
     # Test defaults - invalid state code
     hpxml = _create_hpxml('base-location-capetown-zaf.xml')
@@ -123,10 +126,11 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.header.state_code = nil
     hpxml.header.time_zone_utc_offset = nil
     hpxml.header.occupancy_calculation_type = nil
+    hpxml.header.temperature_capacitance_multiplier = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
     _test_default_header_values(hpxml_default, 60, 1, 1, 12, 31, 2007, true, 3, 12, 11, 5, nil,
-                                false, nil, 2, HPXML::OccupancyCalculationTypeAsset)
+                                false, nil, 2, HPXML::OccupancyCalculationTypeAsset, 1.0)
   end
 
   def test_emissions_factors
@@ -1024,11 +1028,18 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.cooling_systems[0].charge_defect_ratio = -0.11
     hpxml.cooling_systems[0].airflow_defect_ratio = -0.22
     hpxml.cooling_systems[0].cooling_capacity = 12345
-    hpxml.cooling_systems[0].cooling_efficiency_seer = 12.5
+    hpxml.cooling_systems[0].cooling_efficiency_seer = 12.0
     hpxml.cooling_systems[0].year_installed = 2010
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
-    _test_default_central_air_conditioner_values(hpxml_default.cooling_systems[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 12.5)
+    _test_default_central_air_conditioner_values(hpxml_default.cooling_systems[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 12.0)
+
+    # Test defaults - SEER2
+    hpxml.cooling_systems[0].cooling_efficiency_seer = nil
+    hpxml.cooling_systems[0].cooling_efficiency_seer2 = 11.4
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_central_air_conditioner_values(hpxml_default.cooling_systems[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 12.0)
 
     # Test defaults
     hpxml.cooling_systems[0].cooling_shr = nil
@@ -1037,7 +1048,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.cooling_systems[0].charge_defect_ratio = nil
     hpxml.cooling_systems[0].airflow_defect_ratio = nil
     hpxml.cooling_systems[0].cooling_capacity = nil
-    hpxml.cooling_systems[0].cooling_efficiency_seer = nil
+    hpxml.cooling_systems[0].cooling_efficiency_seer2 = nil
     hpxml.cooling_systems[0].year_installed = 2010
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
     hpxml_default = _test_measure()
@@ -1383,6 +1394,15 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml_default = _test_measure()
     _test_default_air_to_air_heat_pump_values(hpxml_default.heat_pumps[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 23456, 9876, 34567, 14.0, 8.0, 20.0)
 
+    # Test defaults - SEER2/HSPF2
+    hpxml.heat_pumps[0].cooling_efficiency_seer = nil
+    hpxml.heat_pumps[0].cooling_efficiency_seer2 = 13.3
+    hpxml.heat_pumps[0].heating_efficiency_hspf = nil
+    hpxml.heat_pumps[0].heating_efficiency_hspf2 = 6.8
+    XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
+    hpxml_default = _test_measure()
+    _test_default_air_to_air_heat_pump_values(hpxml_default.heat_pumps[0], 0.88, HPXML::HVACCompressorTypeVariableSpeed, 0.66, -0.11, -0.22, 12345, 23456, 9876, 34567, 14.0, 8.0, 20.0)
+
     # Test defaults
     hpxml.heat_pumps[0].cooling_shr = nil
     hpxml.heat_pumps[0].compressor_type = nil
@@ -1393,8 +1413,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     hpxml.heat_pumps[0].heating_capacity = nil
     hpxml.heat_pumps[0].heating_capacity_17F = nil
     hpxml.heat_pumps[0].backup_heating_capacity = nil
-    hpxml.heat_pumps[0].cooling_efficiency_seer = nil
-    hpxml.heat_pumps[0].heating_efficiency_hspf = nil
+    hpxml.heat_pumps[0].cooling_efficiency_seer2 = nil
+    hpxml.heat_pumps[0].heating_efficiency_hspf2 = nil
     hpxml.heat_pumps[0].year_installed = 2010
     hpxml.heat_pumps[0].backup_heating_lockout_temp = nil
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
@@ -3200,7 +3220,8 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
 
   def _test_default_header_values(hpxml, tstep, sim_begin_month, sim_begin_day, sim_end_month, sim_end_day, sim_calendar_year,
                                   dst_enabled, dst_begin_month, dst_begin_day, dst_end_month, dst_end_day, heat_pump_sizing_methodology,
-                                  allow_increased_fixed_capacities, state_code, time_zone_utc_offset, occupancy_calculation_type)
+                                  allow_increased_fixed_capacities, state_code, time_zone_utc_offset, occupancy_calculation_type,
+                                  temperature_capacitance_multiplier)
     assert_equal(tstep, hpxml.header.timestep)
     assert_equal(sim_begin_month, hpxml.header.sim_begin_month)
     assert_equal(sim_begin_day, hpxml.header.sim_begin_day)
@@ -3225,6 +3246,7 @@ class HPXMLtoOpenStudioDefaultsTest < MiniTest::Test
     end
     assert_equal(time_zone_utc_offset, hpxml.header.time_zone_utc_offset)
     assert_equal(occupancy_calculation_type, hpxml.header.occupancy_calculation_type)
+    assert_equal(temperature_capacitance_multiplier, hpxml.header.temperature_capacitance_multiplier)
   end
 
   def _test_default_emissions_values(scenario, elec_schedule_number_of_header_rows, elec_schedule_column_number,

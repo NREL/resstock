@@ -142,21 +142,15 @@ class HPXMLDefaults
       hpxml.header.sim_end_day_isdefaulted = true
     end
 
-    if (not epw_file.nil?) && epw_file.startDateActualYear.is_initialized # AMY
-      if not hpxml.header.sim_calendar_year.nil?
-        if hpxml.header.sim_calendar_year != epw_file.startDateActualYear.get
-          hpxml.header.sim_calendar_year = epw_file.startDateActualYear.get
-          hpxml.header.sim_calendar_year_isdefaulted = true
-        end
-      else
-        hpxml.header.sim_calendar_year = epw_file.startDateActualYear.get
+    sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
+    if not hpxml.header.sim_calendar_year.nil?
+      if hpxml.header.sim_calendar_year != sim_calendar_year
+        hpxml.header.sim_calendar_year = sim_calendar_year
         hpxml.header.sim_calendar_year_isdefaulted = true
       end
     else
-      if hpxml.header.sim_calendar_year.nil?
-        hpxml.header.sim_calendar_year = 2007 # For consistency with SAM utility bill calculations
-        hpxml.header.sim_calendar_year_isdefaulted = true
-      end
+      hpxml.header.sim_calendar_year = sim_calendar_year
+      hpxml.header.sim_calendar_year_isdefaulted = true
     end
 
     if hpxml.header.dst_enabled.nil?
@@ -208,6 +202,11 @@ class HPXMLDefaults
     if (not epw_file.nil?) && hpxml.header.time_zone_utc_offset.nil?
       hpxml.header.time_zone_utc_offset = epw_file.timeZone
       hpxml.header.time_zone_utc_offset_isdefaulted = true
+    end
+
+    if hpxml.header.temperature_capacitance_multiplier.nil?
+      hpxml.header.temperature_capacitance_multiplier = 1.0
+      hpxml.header.temperature_capacitance_multiplier_isdefaulted = true
     end
   end
 
@@ -1038,10 +1037,15 @@ class HPXMLDefaults
       cooling_system_fuel = HPXML::FuelTypeElectricity
 
       if cooling_system_type == HPXML::HVACTypeCentralAirConditioner
-        next unless cooling_system.cooling_efficiency_seer.nil?
-
-        cooling_system.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsSEER)
-        cooling_system.cooling_efficiency_seer_isdefaulted = true
+        if cooling_system.cooling_efficiency_seer.nil?
+          if cooling_system.cooling_efficiency_seer2.nil?
+            cooling_system.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsSEER)
+          else
+            cooling_system.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(cooling_system.cooling_efficiency_seer2).round(2)
+            cooling_system.cooling_efficiency_seer2 = nil
+          end
+          cooling_system.cooling_efficiency_seer_isdefaulted = true
+        end
       elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system_type
         next unless cooling_system.cooling_efficiency_eer.nil? && cooling_system.cooling_efficiency_ceer.nil?
 
@@ -1058,13 +1062,23 @@ class HPXMLDefaults
       next unless [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump_type
 
       if heat_pump.cooling_efficiency_seer.nil?
-        heat_pump.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsSEER)
+        if heat_pump.cooling_efficiency_seer2.nil?
+          heat_pump.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsSEER)
+        else
+          heat_pump.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(heat_pump.cooling_efficiency_seer2).round(2)
+          heat_pump.cooling_efficiency_seer2 = nil
+        end
         heat_pump.cooling_efficiency_seer_isdefaulted = true
       end
-      if heat_pump.heating_efficiency_hspf.nil?
+      next unless heat_pump.heating_efficiency_hspf.nil?
+
+      if heat_pump.heating_efficiency_hspf2.nil?
         heat_pump.heating_efficiency_hspf = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsHSPF)
-        heat_pump.heating_efficiency_hspf_isdefaulted = true
+      else
+        heat_pump.heating_efficiency_hspf = HVAC.calc_hspf_from_hspf2(heat_pump.heating_efficiency_hspf2).round(2)
+        heat_pump.heating_efficiency_hspf2 = nil
       end
+      heat_pump.heating_efficiency_hspf_isdefaulted = true
     end
 
     # Default AC/HP compressor type
