@@ -327,7 +327,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
   private
 
   def _set_measure_argument_values(hpxml_file, args)
-    args['hpxml_path'] = "tests/extra_files/#{hpxml_file}"
+    args['hpxml_path'] = File.join(File.dirname(__FILE__), "extra_files/#{hpxml_file}")
     args['apply_defaults'] = true
     args['apply_validation'] = true
 

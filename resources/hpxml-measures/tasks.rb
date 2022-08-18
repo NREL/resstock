@@ -529,9 +529,9 @@ end
 
 def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   if hpxml_file.include? 'ASHRAE_Standard_140'
-    args['hpxml_path'] = "../workflow/tests/#{hpxml_file}"
+    args['hpxml_path'] = "workflow/tests/#{hpxml_file}"
   else
-    args['hpxml_path'] = "../workflow/sample_files/#{hpxml_file}"
+    args['hpxml_path'] = "workflow/sample_files/#{hpxml_file}"
   end
   args['apply_validation'] = false # It's faster not to validate and the CI tests will catch issues
 
