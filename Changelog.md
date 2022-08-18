@@ -29,6 +29,7 @@ __Bugfixes__
 - Provides an error message if the EnergyPlus simulation used infinite energy.
 - Fixes zero energy use for a ventilation fan w/ non-zero fan power and zero airflow rate.
 - Fixes excessive heat transfer when foundation wall interior insulation does not start from the top of the wall.
+- Fixes how relative paths are treated when using an OpenStudio Workflow.
 - BuildResidentialHPXML measure:
   - Fixes aspect ratio convention for single-family attached and multifamily dwelling units.
 

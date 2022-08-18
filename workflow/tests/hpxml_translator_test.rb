@@ -304,7 +304,7 @@ class HPXMLTest < MiniTest::Test
 
     # Cleanup
     File.delete(osw_path_test)
-    xml_path_test = File.join(File.dirname(__FILE__), '..', 'base-stochastic-schedules.xml')
+    xml_path_test = File.join(File.dirname(__FILE__), '..', 'run', 'base-stochastic-schedules.xml')
     File.delete(xml_path_test)
   end
 
@@ -346,9 +346,9 @@ class HPXMLTest < MiniTest::Test
 
     # Cleanup
     File.delete(osw_path_test)
-    xml_path_test = File.join(File.dirname(__FILE__), '..', 'built.xml')
+    xml_path_test = File.join(File.dirname(__FILE__), '..', 'run', 'built.xml')
     File.delete(xml_path_test)
-    xml_path_test = File.join(File.dirname(__FILE__), '..', 'built-stochastic-schedules.xml')
+    xml_path_test = File.join(File.dirname(__FILE__), '..', 'run', 'built-stochastic-schedules.xml')
     File.delete(xml_path_test)
   end
 
