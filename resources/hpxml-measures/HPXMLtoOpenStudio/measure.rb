@@ -114,14 +114,14 @@ class HPXMLtoOpenStudio < OpenStudio::Measure::ModelMeasure
     building_id = runner.getOptionalStringArgumentValue('building_id', user_arguments)
 
     unless (Pathname.new hpxml_path).absolute?
-      hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
+      hpxml_path = File.expand_path(hpxml_path)
     end
     unless File.exist?(hpxml_path) && hpxml_path.downcase.end_with?('.xml')
       fail "'#{hpxml_path}' does not exist or is not an .xml file."
     end
 
     unless (Pathname.new output_dir).absolute?
-      output_dir = File.expand_path(File.join(File.dirname(__FILE__), output_dir))
+      output_dir = File.expand_path(output_dir)
     end
 
     if building_id.is_initialized
