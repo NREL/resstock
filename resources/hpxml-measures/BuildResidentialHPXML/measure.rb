@@ -112,6 +112,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Enter a date like "Mar 15 - Dec 15". If not provided, the OS-HPXML default is used.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('simulation_control_temperature_capacitance_multiplier', false)
+    arg.setDisplayName('Simulation Control: Temperature Capacitance Multiplier')
+    arg.setDescription('Affects the transient calculation of indoor air temperatures. If not provided, the OS-HPXML default is used.')
+    args << arg
+
     site_type_choices = OpenStudio::StringVector.new
     site_type_choices << HPXML::SiteTypeSuburban
     site_type_choices << HPXML::SiteTypeUrban
@@ -3465,6 +3470,10 @@ class HPXMLFile
       hpxml.header.dst_begin_day = begin_day
       hpxml.header.dst_end_month = end_month
       hpxml.header.dst_end_day = end_day
+    end
+
+    if args[:simulation_control_temperature_capacitance_multiplier].is_initialized
+      hpxml.header.temperature_capacitance_multiplier = args[:simulation_control_temperature_capacitance_multiplier].get
     end
 
     hpxml.header.building_id = 'MyBuilding'
