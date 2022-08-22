@@ -216,6 +216,7 @@ def get_combination_hashes(tsvfiles, dependencies)
   depval_array = []
   dependencies.each do |dep|
     depval_array << tsvfiles[dep].option_cols.keys
+    depval_array[-1].delete("Void")  # Dependency will never have Void option
   end
 
   if depval_array.size == 0
