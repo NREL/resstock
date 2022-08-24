@@ -65,7 +65,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_csv_path', true)
     arg.setDisplayName('Schedules: Output CSV Path')
-    arg.setDescription('Absolute/relative path of the csv file containing user-specified occupancy schedules. Relative paths are relative to the HPXML output path.')
+    arg.setDescription('Absolute/relative path of the CSV file containing occupancy schedules.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_output_path', true)
@@ -97,7 +97,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     hpxml_path = args[:hpxml_path]
     unless (Pathname.new hpxml_path).absolute?
-      hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
+      hpxml_path = File.expand_path(hpxml_path)
     end
     unless File.exist?(hpxml_path) && hpxml_path.downcase.end_with?('.xml')
       fail "'#{hpxml_path}' does not exist or is not an .xml file."
@@ -105,7 +105,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     hpxml_output_path = args[:hpxml_output_path]
     unless (Pathname.new hpxml_output_path).absolute?
-      hpxml_output_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_output_path))
+      hpxml_output_path = File.expand_path(hpxml_output_path)
     end
     args[:hpxml_output_path] = hpxml_output_path
 
@@ -150,7 +150,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     output_csv_path = args[:output_csv_path]
     unless (Pathname.new output_csv_path).absolute?
-      output_csv_path = File.expand_path(File.join(File.dirname(args[:hpxml_output_path]), output_csv_path))
+      output_csv_path = File.expand_path(output_csv_path)
     end
 
     success = schedule_generator.export(schedules_path: output_csv_path)
@@ -177,13 +177,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
     args[:mkc_ts_per_day] = 96
     args[:mkc_ts_per_hour] = args[:mkc_ts_per_day] / 24
 
-    calendar_year = 2007 # default to TMY
-    if !hpxml.header.sim_calendar_year.nil?
-      calendar_year = hpxml.header.sim_calendar_year
-    end
-    if epw_file.startDateActualYear.is_initialized # AMY
-      calendar_year = epw_file.startDateActualYear.get
-    end
+    calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
     args[:sim_year] = calendar_year
     args[:sim_start_day] = DateTime.new(args[:sim_year], 1, 1)
     args[:total_days_in_year] = Constants.NumDaysInYear(calendar_year)

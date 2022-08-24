@@ -77,6 +77,7 @@ class HPXML < Object
   BatteryTypeLithiumIon = 'Li-ion'
   BatteryLifetimeModelNone = 'None'
   BatteryLifetimeModelKandlerSmith = 'KandlerSmith'
+  BuildingAmerica = 'BuildingAmerica'
   CertificationEnergyStar = 'Energy Star'
   ClothesDryerControlTypeMoisture = 'moisture'
   ClothesDryerControlTypeTimer = 'timer'
@@ -309,12 +310,14 @@ class HPXML < Object
   UnitsEER = 'EER'
   UnitsCEER = 'CEER'
   UnitsHSPF = 'HSPF'
+  UnitsHSPF2 = 'HSPF2'
   UnitsKwh = 'kWh'
   UnitsKwhPerYear = 'kWh/year'
   UnitsKwhPerDay = 'kWh/day'
   UnitsKwPerTon = 'kW/ton'
   UnitsPercent = 'Percent'
   UnitsSEER = 'SEER'
+  UnitsSEER2 = 'SEER2'
   UnitsSLA = 'SLA'
   UnitsThermPerYear = 'therm/year'
   VerticalSurroundingsNoAboveOrBelow = 'no units above or below'
@@ -887,7 +890,7 @@ class HPXML < Object
              :heat_pump_sizing_methodology, :allow_increased_fixed_capacities,
              :apply_ashrae140_assumptions, :energystar_calculation_version, :schedules_filepaths,
              :occupancy_calculation_type, :extension_properties, :iecc_eri_calculation_version,
-             :zerh_calculation_version]
+             :zerh_calculation_version, :temperature_capacitance_multiplier]
     attr_accessor(*ATTRS)
     attr_reader(:emissions_scenarios)
     attr_reader(:utility_bill_scenarios)
@@ -960,7 +963,7 @@ class HPXML < Object
         calculation = XMLHelper.add_element(extension, element_name)
         XMLHelper.add_element(calculation, 'Version', calculation_version, :string)
       end
-      if (not @timestep.nil?) || (not @sim_begin_month.nil?) || (not @sim_begin_day.nil?) || (not @sim_end_month.nil?) || (not @sim_end_day.nil?) || (not @dst_enabled.nil?) || (not @dst_begin_month.nil?) || (not @dst_begin_day.nil?) || (not @dst_end_month.nil?) || (not @dst_end_day.nil?)
+      if (not @timestep.nil?) || (not @sim_begin_month.nil?) || (not @sim_begin_day.nil?) || (not @sim_end_month.nil?) || (not @sim_end_day.nil?) || (not @dst_enabled.nil?) || (not @dst_begin_month.nil?) || (not @dst_begin_day.nil?) || (not @dst_end_month.nil?) || (not @dst_end_day.nil?) || (not @temperature_capacitance_multiplier.nil?)
         extension = XMLHelper.create_elements_as_needed(software_info, ['extension'])
         simulation_control = XMLHelper.add_element(extension, 'SimulationControl')
         XMLHelper.add_element(simulation_control, 'Timestep', @timestep, :integer, @timestep_isdefaulted) unless @timestep.nil?
@@ -977,6 +980,7 @@ class HPXML < Object
           XMLHelper.add_element(daylight_saving, 'EndMonth', @dst_end_month, :integer, @dst_end_month_isdefaulted) unless @dst_end_month.nil?
           XMLHelper.add_element(daylight_saving, 'EndDayOfMonth', @dst_end_day, :integer, @dst_end_day_isdefaulted) unless @dst_end_day.nil?
         end
+        XMLHelper.add_element(simulation_control, 'TemperatureCapacitanceMultiplier', @temperature_capacitance_multiplier, :float, @temperature_capacitance_multiplier_isdefaulted) unless @temperature_capacitance_multiplier.nil?
       end
       if (not @heat_pump_sizing_methodology.nil?) || (not @allow_increased_fixed_capacities.nil?)
         hvac_sizing_control = XMLHelper.create_elements_as_needed(software_info, ['extension', 'HVACSizingControl'])
@@ -1052,6 +1056,7 @@ class HPXML < Object
       @dst_begin_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/BeginDayOfMonth', :integer)
       @dst_end_month = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/EndMonth', :integer)
       @dst_end_day = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/DaylightSaving/EndDayOfMonth', :integer)
+      @temperature_capacitance_multiplier = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/SimulationControl/TemperatureCapacitanceMultiplier', :float)
       @occupancy_calculation_type = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/OccupancyCalculationType', :string)
       @apply_ashrae140_assumptions = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/ApplyASHRAE140Assumptions', :boolean)
       @heat_pump_sizing_methodology = XMLHelper.get_value(hpxml, 'SoftwareInfo/extension/HVACSizingControl/HeatPumpSizingMethodology', :string)
@@ -3501,9 +3506,9 @@ class HPXML < Object
   end
 
   class CoolingSystem < BaseElement
-    ATTRS = [:id, :distribution_system_idref, :year_installed, :cooling_system_type,
-             :cooling_system_fuel, :cooling_capacity, :compressor_type, :fraction_cool_load_served,
-             :cooling_efficiency_seer, :cooling_efficiency_eer, :cooling_efficiency_ceer, :cooling_efficiency_kw_per_ton,
+    ATTRS = [:id, :distribution_system_idref, :year_installed, :cooling_system_type, :cooling_system_fuel,
+             :cooling_capacity, :compressor_type, :fraction_cool_load_served, :cooling_efficiency_seer,
+             :cooling_efficiency_seer2, :cooling_efficiency_eer, :cooling_efficiency_ceer, :cooling_efficiency_kw_per_ton,
              :cooling_shr, :third_party_certification, :clg_seed_id, :is_shared_system, :number_of_units_served,
              :shared_loop_watts, :shared_loop_motor_efficiency, :fan_coil_watts, :airflow_defect_ratio,
              :fan_watts_per_cfm, :charge_defect_ratio, :cooling_airflow_cfm, :location, :primary_system]
@@ -3574,6 +3579,11 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Units', UnitsSEER, :string)
         XMLHelper.add_element(annual_efficiency, 'Value', @cooling_efficiency_seer, :float, @cooling_efficiency_seer_isdefaulted)
       end
+      if not @cooling_efficiency_seer2.nil?
+        annual_efficiency = XMLHelper.add_element(cooling_system, 'AnnualCoolingEfficiency')
+        XMLHelper.add_element(annual_efficiency, 'Units', UnitsSEER2, :string)
+        XMLHelper.add_element(annual_efficiency, 'Value', @cooling_efficiency_seer2, :float, @cooling_efficiency_seer2_isdefaulted)
+      end
       if not @cooling_efficiency_eer.nil?
         annual_efficiency = XMLHelper.add_element(cooling_system, 'AnnualCoolingEfficiency')
         XMLHelper.add_element(annual_efficiency, 'Units', UnitsEER, :string)
@@ -3620,6 +3630,7 @@ class HPXML < Object
       @compressor_type = XMLHelper.get_value(cooling_system, 'CompressorType', :string)
       @fraction_cool_load_served = XMLHelper.get_value(cooling_system, 'FractionCoolLoadServed', :float)
       @cooling_efficiency_seer = XMLHelper.get_value(cooling_system, "AnnualCoolingEfficiency[Units='#{UnitsSEER}']/Value", :float)
+      @cooling_efficiency_seer2 = XMLHelper.get_value(cooling_system, "AnnualCoolingEfficiency[Units='#{UnitsSEER2}']/Value", :float)
       @cooling_efficiency_eer = XMLHelper.get_value(cooling_system, "AnnualCoolingEfficiency[Units='#{UnitsEER}']/Value", :float)
       @cooling_efficiency_ceer = XMLHelper.get_value(cooling_system, "AnnualCoolingEfficiency[Units='#{UnitsCEER}']/Value", :float)
       @cooling_efficiency_kw_per_ton = XMLHelper.get_value(cooling_system, "AnnualCoolingEfficiency[Units='#{UnitsKwPerTon}']/Value", :float)
@@ -3668,10 +3679,10 @@ class HPXML < Object
              :heating_capacity, :heating_capacity_17F, :cooling_capacity, :compressor_type,
              :cooling_shr, :backup_type, :backup_system_idref, :backup_heating_fuel, :backup_heating_capacity,
              :backup_heating_efficiency_percent, :backup_heating_efficiency_afue, :backup_heating_lockout_temp,
-             :backup_heating_switchover_temp, :fraction_heat_load_served, :fraction_cool_load_served,
-             :cooling_efficiency_seer, :cooling_efficiency_eer, :cooling_efficiency_ceer, :heating_efficiency_hspf,
-             :heating_efficiency_cop, :third_party_certification, :htg_seed_id, :clg_seed_id, :pump_watts_per_ton,
-             :fan_watts_per_cfm, :is_shared_system, :number_of_units_served, :shared_loop_watts,
+             :backup_heating_switchover_temp, :fraction_heat_load_served, :fraction_cool_load_served, :cooling_efficiency_seer,
+             :cooling_efficiency_seer2, :cooling_efficiency_eer, :cooling_efficiency_ceer, :heating_efficiency_hspf,
+             :heating_efficiency_hspf2, :heating_efficiency_cop, :third_party_certification, :htg_seed_id, :clg_seed_id,
+             :pump_watts_per_ton, :fan_watts_per_cfm, :is_shared_system, :number_of_units_served, :shared_loop_watts,
              :shared_loop_motor_efficiency, :airflow_defect_ratio, :charge_defect_ratio, :capacity_retention_fraction, :capacity_retention_temp,
              :heating_airflow_cfm, :cooling_airflow_cfm, :location, :primary_heating_system, :primary_cooling_system]
     attr_accessor(*ATTRS)
@@ -3779,6 +3790,11 @@ class HPXML < Object
         XMLHelper.add_element(annual_efficiency, 'Units', UnitsSEER, :string)
         XMLHelper.add_element(annual_efficiency, 'Value', @cooling_efficiency_seer, :float, @cooling_efficiency_seer_isdefaulted)
       end
+      if not @cooling_efficiency_seer2.nil?
+        annual_efficiency = XMLHelper.add_element(heat_pump, 'AnnualCoolingEfficiency')
+        XMLHelper.add_element(annual_efficiency, 'Units', UnitsSEER2, :string)
+        XMLHelper.add_element(annual_efficiency, 'Value', @cooling_efficiency_seer2, :float, @cooling_efficiency_seer2_isdefaulted)
+      end
       if not @cooling_efficiency_ceer.nil?
         annual_efficiency = XMLHelper.add_element(heat_pump, 'AnnualCoolingEfficiency')
         XMLHelper.add_element(annual_efficiency, 'Units', UnitsCEER, :string)
@@ -3793,6 +3809,11 @@ class HPXML < Object
         annual_efficiency = XMLHelper.add_element(heat_pump, 'AnnualHeatingEfficiency')
         XMLHelper.add_element(annual_efficiency, 'Units', UnitsHSPF, :string)
         XMLHelper.add_element(annual_efficiency, 'Value', @heating_efficiency_hspf, :float, @heating_efficiency_hspf_isdefaulted)
+      end
+      if not @heating_efficiency_hspf2.nil?
+        annual_efficiency = XMLHelper.add_element(heat_pump, 'AnnualHeatingEfficiency')
+        XMLHelper.add_element(annual_efficiency, 'Units', UnitsHSPF2, :string)
+        XMLHelper.add_element(annual_efficiency, 'Value', @heating_efficiency_hspf2, :float, @heating_efficiency_hspf2_isdefaulted)
       end
       if not @heating_efficiency_cop.nil?
         annual_efficiency = XMLHelper.add_element(heat_pump, 'AnnualHeatingEfficiency')
@@ -3849,9 +3870,11 @@ class HPXML < Object
       @fraction_heat_load_served = XMLHelper.get_value(heat_pump, 'FractionHeatLoadServed', :float)
       @fraction_cool_load_served = XMLHelper.get_value(heat_pump, 'FractionCoolLoadServed', :float)
       @cooling_efficiency_seer = XMLHelper.get_value(heat_pump, "AnnualCoolingEfficiency[Units='#{UnitsSEER}']/Value", :float)
+      @cooling_efficiency_seer2 = XMLHelper.get_value(heat_pump, "AnnualCoolingEfficiency[Units='#{UnitsSEER2}']/Value", :float)
       @cooling_efficiency_ceer = XMLHelper.get_value(heat_pump, "AnnualCoolingEfficiency[Units='#{UnitsCEER}']/Value", :float)
       @cooling_efficiency_eer = XMLHelper.get_value(heat_pump, "AnnualCoolingEfficiency[Units='#{UnitsEER}']/Value", :float)
       @heating_efficiency_hspf = XMLHelper.get_value(heat_pump, "AnnualHeatingEfficiency[Units='#{UnitsHSPF}']/Value", :float)
+      @heating_efficiency_hspf2 = XMLHelper.get_value(heat_pump, "AnnualHeatingEfficiency[Units='#{UnitsHSPF2}']/Value", :float)
       @heating_efficiency_cop = XMLHelper.get_value(heat_pump, "AnnualHeatingEfficiency[Units='#{UnitsCOP}']/Value", :float)
       @airflow_defect_ratio = XMLHelper.get_value(heat_pump, 'extension/AirflowDefectRatio', :float)
       @charge_defect_ratio = XMLHelper.get_value(heat_pump, 'extension/ChargeDefectRatio', :float)

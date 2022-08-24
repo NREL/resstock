@@ -190,7 +190,7 @@ def create_hpxmls
     'base-foundation-basement-garage.xml' => 'base.xml',
     'base-foundation-complex.xml' => 'base.xml',
     'base-foundation-conditioned-basement-slab-insulation.xml' => 'base.xml',
-    'base-foundation-conditioned-basement-wall-interior-insulation.xml' => 'base.xml',
+    'base-foundation-conditioned-basement-wall-insulation.xml' => 'base.xml',
     'base-foundation-conditioned-crawlspace.xml' => 'base.xml',
     'base-foundation-multiple.xml' => 'base-foundation-unconditioned-basement.xml',
     'base-foundation-slab.xml' => 'base.xml',
@@ -205,6 +205,7 @@ def create_hpxmls
     'base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-heating-only.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-1-speed-backup-lockout-temperature.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
+    'base-hvac-air-to-air-heat-pump-1-speed-seer2-hspf2.xml' => 'base-hvac-air-to-air-heat-pump-1-speed.xml',
     'base-hvac-air-to-air-heat-pump-2-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed.xml' => 'base.xml',
     'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml' => 'base-hvac-air-to-air-heat-pump-var-speed.xml',
@@ -272,6 +273,7 @@ def create_hpxmls
     'base-hvac-boiler-propane-only.xml' => 'base-hvac-boiler-gas-only.xml',
     'base-hvac-boiler-wood-only.xml' => 'base-hvac-boiler-gas-only.xml',
     'base-hvac-central-ac-only-1-speed.xml' => 'base.xml',
+    'base-hvac-central-ac-only-1-speed-seer2.xml' => 'base-hvac-central-ac-only-1-speed.xml',
     'base-hvac-central-ac-only-2-speed.xml' => 'base.xml',
     'base-hvac-central-ac-only-var-speed.xml' => 'base.xml',
     'base-hvac-central-ac-plus-air-to-air-heat-pump-heating.xml' => 'base-hvac-central-ac-only-1-speed.xml',
@@ -402,6 +404,7 @@ def create_hpxmls
     'base-simcontrol-daylight-saving-custom.xml' => 'base.xml',
     'base-simcontrol-daylight-saving-disabled.xml' => 'base.xml',
     'base-simcontrol-runperiod-1-month.xml' => 'base.xml',
+    'base-simcontrol-temperature-capacitance-multiplier.xml' => 'base.xml',
     'base-simcontrol-timestep-10-mins.xml' => 'base.xml',
     'base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml' => 'base-simcontrol-timestep-10-mins.xml',
     'base-simcontrol-timestep-10-mins-occupancy-stochastic-60-mins.xml' => 'base-simcontrol-timestep-10-mins.xml'
@@ -526,11 +529,11 @@ end
 
 def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   if hpxml_file.include? 'ASHRAE_Standard_140'
-    args['hpxml_path'] = "../workflow/tests/#{hpxml_file}"
+    args['hpxml_path'] = "workflow/tests/#{hpxml_file}"
   else
-    args['hpxml_path'] = "../workflow/sample_files/#{hpxml_file}"
+    args['hpxml_path'] = "workflow/sample_files/#{hpxml_file}"
   end
-  args['apply_validation'] = true
+  args['apply_validation'] = false # It's faster not to validate and the CI tests will catch issues
 
   if ['base.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 60
@@ -1223,6 +1226,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   if ['base-bldgtype-single-family-attached.xml'].include? hpxml_file
     args['geometry_unit_type'] = HPXML::ResidentialTypeSFA
     args['geometry_unit_cfa'] = 1800.0
+    args['geometry_unit_aspect_ratio'] = 0.6667
     args['geometry_building_num_units'] = 3
     args['geometry_unit_right_wall_is_adiabatic'] = true
     args['window_front_wwr'] = 0.18
@@ -1255,6 +1259,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   if ['base-bldgtype-multifamily.xml'].include? hpxml_file
     args['geometry_unit_type'] = HPXML::ResidentialTypeApartment
     args['geometry_unit_cfa'] = 900.0
+    args['geometry_unit_aspect_ratio'] = 0.6667
     args['geometry_foundation_type'] = HPXML::FoundationTypeAboveApartment
     args['geometry_attic_type'] = HPXML::AtticTypeBelowApartment
     args['geometry_unit_right_wall_is_adiabatic'] = true
@@ -1586,7 +1591,7 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
   elsif ['base-foundation-conditioned-basement-slab-insulation.xml'].include? hpxml_file
     args['slab_under_insulation_r'] = 10
     args['slab_under_width'] = 4
-  elsif ['base-foundation-conditioned-basement-wall-interior-insulation.xml'].include? hpxml_file
+  elsif ['base-foundation-conditioned-basement-wall-insulation.xml'].include? hpxml_file
     args['foundation_wall_type'] = HPXML::FoundationWallTypeConcreteBlockFoamCore
     args['foundation_wall_insulation_r'] = 18.9
     args['foundation_wall_insulation_distance_to_top'] = 1.0
@@ -1676,6 +1681,11 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heat_pump_type'] = HPXML::HVACTypeHeatPumpAirToAir
     args['heat_pump_heating_capacity_17_f'] = args['heat_pump_heating_capacity'] * 0.6
     args['heat_pump_backup_type'] = HPXML::HeatPumpBackupTypeIntegrated
+  elsif ['base-hvac-air-to-air-heat-pump-1-speed-seer2-hspf2.xml'].include? hpxml_file
+    args['heat_pump_cooling_efficiency_type'] = HPXML::UnitsSEER2
+    args['heat_pump_cooling_efficiency'] = (args['heat_pump_cooling_efficiency'] * 0.95).round(1)
+    args['heat_pump_heating_efficiency_type'] = HPXML::UnitsHSPF2
+    args['heat_pump_heating_efficiency'] = (args['heat_pump_heating_efficiency'] * 0.85).round(1)
   elsif ['base-hvac-air-to-air-heat-pump-1-speed-cooling-only.xml'].include? hpxml_file
     args['heat_pump_heating_capacity'] = 0.0
     args['heat_pump_heating_capacity_17_f'] = 0.0
@@ -1759,6 +1769,9 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['heating_system_fuel'] = HPXML::FuelTypeWoodCord
   elsif ['base-hvac-central-ac-only-1-speed.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
+  elsif ['base-hvac-central-ac-only-1-speed-seer2.xml'].include? hpxml_file
+    args['cooling_system_cooling_efficiency_type'] = HPXML::UnitsSEER2
+    args['cooling_system_cooling_efficiency'] = (args['cooling_system_cooling_efficiency'] * 0.95).round(1)
   elsif ['base-hvac-central-ac-only-2-speed.xml'].include? hpxml_file
     args['heating_system_type'] = 'none'
     args['cooling_system_cooling_efficiency'] = 18.0
@@ -2376,6 +2389,8 @@ def set_measure_argument_values(hpxml_file, args, sch_args, orig_parent)
     args['simulation_control_daylight_saving_enabled'] = false
   elsif ['base-simcontrol-runperiod-1-month.xml'].include? hpxml_file
     args['simulation_control_run_period'] = 'Jan 1 - Jan 31'
+  elsif ['base-simcontrol-temperature-capacitance-multiplier.xml'].include? hpxml_file
+    args['simulation_control_temperature_capacitance_multiplier'] = 7.0
   elsif ['base-simcontrol-timestep-10-mins.xml'].include? hpxml_file
     args['simulation_control_timestep'] = 10
   elsif ['base-simcontrol-timestep-10-mins-occupancy-stochastic-10-mins.xml'].include? hpxml_file
@@ -3048,10 +3063,10 @@ def apply_hpxml_modification(hpxml_file, hpxml)
     hpxml.rim_joists[-1].id = "RimJoist#{hpxml.rim_joists.size}"
     hpxml.rim_joists[-1].interior_adjacent_to = HPXML::LocationLivingSpace
     hpxml.rim_joists[-1].area = 116
-  elsif ['base-foundation-conditioned-basement-wall-interior-insulation.xml'].include? hpxml_file
+  elsif ['base-foundation-conditioned-basement-wall-insulation.xml'].include? hpxml_file
     hpxml.foundation_walls.each do |foundation_wall|
       foundation_wall.insulation_interior_r_value = 10
-      foundation_wall.insulation_interior_distance_to_top = 0
+      foundation_wall.insulation_interior_distance_to_top = 1
       foundation_wall.insulation_interior_distance_to_bottom = 8
       foundation_wall.insulation_exterior_r_value = 8.9
       foundation_wall.insulation_exterior_distance_to_top = 1

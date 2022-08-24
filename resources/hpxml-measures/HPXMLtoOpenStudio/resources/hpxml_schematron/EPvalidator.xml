@@ -35,6 +35,7 @@
       <sch:assert role='ERROR' test='number(h:CalendarYear) &gt;= 1600 or not(h:CalendarYear)'>Expected CalendarYear to be greater than or equal to 1600</sch:assert>
       <sch:assert role='ERROR' test='number(h:CalendarYear) &lt;= 9999 or not(h:CalendarYear)'>Expected CalendarYear to be less than or equal to 9999</sch:assert>
       <sch:assert role='ERROR' test='count(h:DaylightSaving) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DaylightSaving</sch:assert> <!-- See [DaylightSaving] -->
+      <sch:assert role='ERROR' test='count(h:TemperatureCapacitanceMultiplier) &lt;= 1'>Expected 0 or 1 element(s) for xpath: TemperatureCapacitanceMultiplier</sch:assert>
     </sch:rule>
   </sch:pattern>
 
@@ -872,7 +873,7 @@
       <sch:assert role='ERROR' test='count(h:CoolingCapacity) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingCapacity</sch:assert>
       <sch:assert role='ERROR' test='count(h:CompressorType) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CompressorType</sch:assert>
       <sch:assert role='ERROR' test='h:CompressorType[text()="single stage" or text()="two stage" or text()="variable speed"] or not(h:CompressorType)'>Expected CompressorType to be 'single stage' or 'two stage' or 'variable speed'</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) + count(h:YearInstalled) &gt;= 1'>Expected 1 or more element(s) for xpath: AnnualCoolingEfficiency[Units="SEER"]/Value | YearInstalled</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER" or h:Units="SEER2"]/h:Value) + count(h:YearInstalled) &gt;= 1'>Expected 1 or more element(s) for xpath: AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value | YearInstalled</sch:assert>
       <sch:assert role='ERROR' test='count(h:SensibleHeatFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SensibleHeatFraction</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:FanPowerWattsPerCFM) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/FanPowerWattsPerCFM</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanPowerWattsPerCFM) &gt;= 0 or not(h:extension/h:FanPowerWattsPerCFM)'>Expected extension/FanPowerWattsPerCFM to be greater than or equal to 0</sch:assert>
@@ -884,6 +885,7 @@
       <sch:assert role='ERROR' test='number(h:extension/h:ChargeDefectRatio) &lt;= 9 or not(h:extension/h:ChargeDefectRatio)'>Expected extension/ChargeDefectRatio to be less than or equal to 9</sch:assert>
       <!-- Warnings -->
       <sch:report role='WARN' test='number(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) &lt; 8'>SEER should typically be greater than or equal to 8.</sch:report>
+      <sch:report role='WARN' test='number(h:AnnualCoolingEfficiency[h:Units="SEER2"]/h:Value) &lt; 8'>SEER2 should typically be greater than or equal to 8.</sch:report>
       <sch:report role='WARN' test='number(h:CoolingCapacity) &lt;= 1000 and number(h:CoolingCapacity) &gt; 0 and h:CoolingCapacity'>Cooling capacity should typically be greater than or equal to 1000 Btu/hr.</sch:report>
     </sch:rule>
   </sch:pattern>
@@ -931,7 +933,7 @@
       <sch:assert role='ERROR' test='count(../../h:HVACDistribution/h:DistributionSystemType/h:AirDistribution/h:AirDistributionType[text()="regular velocity"]) + count(../../h:HVACDistribution/h:DistributionSystemType/h:Other[text()="DSE"]) &gt;= 0'>Expected 0 or more element(s) for xpath: ../../HVACDistribution/DistributionSystemType/AirDistribution/AirDistributionType[text()="regular velocity"] | ../../HVACDistribution/DistributionSystemType/Other[text()="DSE"]</sch:assert> <!-- See [HVACDistribution] -->
       <sch:assert role='ERROR' test='count(h:DistributionSystem) &lt;= 1'>Expected 0 or 1 element(s) for xpath: DistributionSystem</sch:assert>
       <sch:assert role='ERROR' test='count(h:CoolingCapacity) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingCapacity</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER"]/Value</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER" or h:Units="SEER2"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:SensibleHeatFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: SensibleHeatFraction</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:FanPowerWattsPerCFM) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/FanPowerWattsPerCFM</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanPowerWattsPerCFM) &gt;= 0 or not(h:extension/h:FanPowerWattsPerCFM)'>Expected extension/FanPowerWattsPerCFM to be greater than or equal to 0</sch:assert>
@@ -943,6 +945,7 @@
       <sch:assert role='ERROR' test='number(h:extension/h:ChargeDefectRatio) &lt;= 9 or not(h:extension/h:ChargeDefectRatio)'>Expected extension/ChargeDefectRatio to be less than or equal to 9</sch:assert>
       <!-- Warnings -->
       <sch:report role='WARN' test='number(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) &lt; 8'>SEER should typically be greater than or equal to 8.</sch:report>
+      <sch:report role='WARN' test='number(h:AnnualCoolingEfficiency[h:Units="SEER2"]/h:Value) &lt; 8'>SEER2 should typically be greater than or equal to 8.</sch:report>
       <sch:report role='WARN' test='number(h:CoolingCapacity) &lt;= 1000 and number(h:CoolingCapacity) &gt; 0 and h:CoolingCapacity'>Cooling capacity should typically be greater than or equal to 1000 Btu/hr.</sch:report>
     </sch:rule>
   </sch:pattern>
@@ -1024,8 +1027,8 @@
       <sch:assert role='ERROR' test='count(h:CoolingSensibleHeatFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingSensibleHeatFraction</sch:assert>
       <sch:assert role='ERROR' test='count(h:FractionHeatLoadServed) = 1'>Expected 1 element(s) for xpath: FractionHeatLoadServed</sch:assert>
       <sch:assert role='ERROR' test='count(h:FractionCoolLoadServed) = 1'>Expected 1 element(s) for xpath: FractionCoolLoadServed</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) + count(h:YearInstalled) &gt;= 1'>Expected 1 or more element(s) for xpath: AnnualCoolingEfficiency[Units="SEER"]/Value | YearInstalled</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AnnualHeatingEfficiency[h:Units="HSPF"]/h:Value) + count(h:YearInstalled) &gt;= 1'>Expected 1 or more element(s) for xpath: AnnualHeatingEfficiency[Units="HSPF"]/Value | YearInstalled</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER" or h:Units="SEER2"]/h:Value) + count(h:YearInstalled) &gt;= 1'>Expected 1 or more element(s) for xpath: AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value | YearInstalled</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AnnualHeatingEfficiency[h:Units="HSPF" or h:Units="HSPF2"]/h:Value) + count(h:YearInstalled) &gt;= 1'>Expected 1 or more element(s) for xpath: AnnualHeatingEfficiency[Units="HSPF" or Units="HSPF2"]/Value | YearInstalled</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:FanPowerWattsPerCFM) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/FanPowerWattsPerCFM</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanPowerWattsPerCFM) &gt;= 0 or not(h:extension/h:FanPowerWattsPerCFM)'>Expected extension/FanPowerWattsPerCFM to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:AirflowDefectRatio) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/AirflowDefectRatio</sch:assert>
@@ -1036,7 +1039,9 @@
       <sch:assert role='ERROR' test='number(h:extension/h:ChargeDefectRatio) &lt;= 9 or not(h:extension/h:ChargeDefectRatio)'>Expected extension/ChargeDefectRatio to be less than or equal to 9</sch:assert>
       <!-- Warnings -->
       <sch:report role='WARN' test='number(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) &lt; 8'>SEER should typically be greater than or equal to 8.</sch:report>
+      <sch:report role='WARN' test='number(h:AnnualCoolingEfficiency[h:Units="SEER2"]/h:Value) &lt; 8'>SEER2 should typically be greater than or equal to 8.</sch:report>
       <sch:report role='WARN' test='number(h:AnnualHeatingEfficiency[h:Units="HSPF"]/h:Value) &lt; 6'>HSPF should typically be greater than or equal to 6.</sch:report>
+      <sch:report role='WARN' test='number(h:AnnualHeatingEfficiency[h:Units="HSPF2"]/h:Value) &lt; 6'>HSPF2 should typically be greater than or equal to 6.</sch:report>
       <sch:report role='WARN' test='number(h:HeatingCapacity) &lt;= 1000 and number(h:HeatingCapacity) &gt; 0 and h:HeatingCapacity'>Heating capacity should typically be greater than or equal to 1000 Btu/hr.</sch:report>
       <sch:report role='WARN' test='number(h:CoolingCapacity) &lt;= 1000 and number(h:CoolingCapacity) &gt; 0 and h:CoolingCapacity'>Cooling capacity should typically be greater than or equal to 1000 Btu/hr.</sch:report>
     </sch:rule>
@@ -1054,8 +1059,8 @@
       <sch:assert role='ERROR' test='count(h:CoolingSensibleHeatFraction) &lt;= 1'>Expected 0 or 1 element(s) for xpath: CoolingSensibleHeatFraction</sch:assert>
       <sch:assert role='ERROR' test='count(h:FractionHeatLoadServed) = 1'>Expected 1 element(s) for xpath: FractionHeatLoadServed</sch:assert>
       <sch:assert role='ERROR' test='count(h:FractionCoolLoadServed) = 1'>Expected 1 element(s) for xpath: FractionCoolLoadServed</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER"]/Value</sch:assert>
-      <sch:assert role='ERROR' test='count(h:AnnualHeatingEfficiency[h:Units="HSPF"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualHeatingEfficiency[Units="HSPF"]/Value</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AnnualCoolingEfficiency[h:Units="SEER" or h:Units="SEER2"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualCoolingEfficiency[Units="SEER" or Units="SEER2"]/Value</sch:assert>
+      <sch:assert role='ERROR' test='count(h:AnnualHeatingEfficiency[h:Units="HSPF" or h:Units="HSPF2"]/h:Value) = 1'>Expected 1 element(s) for xpath: AnnualHeatingEfficiency[Units="HSPF" or Units="HSPF2"]/Value</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:FanPowerWattsPerCFM) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/FanPowerWattsPerCFM</sch:assert>
       <sch:assert role='ERROR' test='number(h:extension/h:FanPowerWattsPerCFM) &gt;= 0 or not(h:extension/h:FanPowerWattsPerCFM)'>Expected extension/FanPowerWattsPerCFM to be greater than or equal to 0</sch:assert>
       <sch:assert role='ERROR' test='count(h:extension/h:AirflowDefectRatio) &lt;= 1'>Expected 0 or 1 element(s) for xpath: extension/AirflowDefectRatio</sch:assert>
@@ -1066,7 +1071,9 @@
       <sch:assert role='ERROR' test='number(h:extension/h:ChargeDefectRatio) &lt;= 9 or not(h:extension/h:ChargeDefectRatio)'>Expected extension/ChargeDefectRatio to be less than or equal to 9</sch:assert>
       <!-- Warnings -->
       <sch:report role='WARN' test='number(h:AnnualCoolingEfficiency[h:Units="SEER"]/h:Value) &lt; 8'>SEER should typically be greater than or equal to 8.</sch:report>
+      <sch:report role='WARN' test='number(h:AnnualCoolingEfficiency[h:Units="SEER2"]/h:Value) &lt; 8'>SEER2 should typically be greater than or equal to 8.</sch:report>
       <sch:report role='WARN' test='number(h:AnnualHeatingEfficiency[h:Units="HSPF"]/h:Value) &lt; 6'>HSPF should typically be greater than or equal to 6.</sch:report>
+      <sch:report role='WARN' test='number(h:AnnualHeatingEfficiency[h:Units="HSPF2"]/h:Value) &lt; 6'>HSPF2 should typically be greater than or equal to 6.</sch:report>
       <sch:report role='WARN' test='number(h:HeatingCapacity) &lt;= 1000 and number(h:HeatingCapacity) &gt; 0 and h:HeatingCapacity'>Heating capacity should typically be greater than or equal to 1000 Btu/hr.</sch:report>
       <sch:report role='WARN' test='number(h:CoolingCapacity) &lt;= 1000 and number(h:CoolingCapacity) &gt; 0 and h:CoolingCapacity'>Cooling capacity should typically be greater than or equal to 1000 Btu/hr.</sch:report>
     </sch:rule>

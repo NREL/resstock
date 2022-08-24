@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_hpxml</name>
   <uid>a13a8983-2b01-4930-8af2-42030b6e4233</uid>
-  <version_id>746c9008-60d3-41dc-9914-3b93f6474db7</version_id>
-  <version_modified>20220706T191514Z</version_modified>
+  <version_id>2d89701c-63e9-4b72-a2e5-4cdec46684b8</version_id>
+  <version_modified>20220817T220040Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildResidentialHPXML</class_name>
   <display_name>HPXML Builder</display_name>
@@ -109,6 +109,14 @@
       <name>simulation_control_daylight_saving_period</name>
       <display_name>Simulation Control: Daylight Saving Period</display_name>
       <description>Enter a date like "Mar 15 - Dec 15". If not provided, the OS-HPXML default is used.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>simulation_control_temperature_capacitance_multiplier</name>
+      <display_name>Simulation Control: Temperature Capacitance Multiplier</display_name>
+      <description>Affects the transient calculation of indoor air temperatures. If not provided, the OS-HPXML default is used.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2115,7 +2123,7 @@
     <argument>
       <name>cooling_system_cooling_efficiency_type</name>
       <display_name>Cooling System: Efficiency Type</display_name>
-      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.</description>
+      <description>The efficiency type of the cooling system. System types central air conditioner and mini-split use SEER or SEER2. System types room air conditioner and packaged terminal air conditioner use EER or CEER. Ignored for system type evaporative cooler.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2124,6 +2132,10 @@
         <choice>
           <value>SEER</value>
           <display_name>SEER</display_name>
+        </choice>
+        <choice>
+          <value>SEER2</value>
+          <display_name>SEER2</display_name>
         </choice>
         <choice>
           <value>EER</value>
@@ -2140,7 +2152,6 @@
       <display_name>Cooling System: Efficiency</display_name>
       <description>The rated efficiency value of the cooling system. Ignored for evaporative cooler.</description>
       <type>Double</type>
-      <units>SEER or EER or CEER</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>13</default_value>
@@ -2266,7 +2277,7 @@
     <argument>
       <name>heat_pump_heating_efficiency_type</name>
       <display_name>Heat Pump: Heating Efficiency Type</display_name>
-      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF. System types ground-to-air and packaged terminal heat pump use COP.</description>
+      <description>The heating efficiency type of heat pump. System types air-to-air and mini-split use HSPF or HSPF2. System types ground-to-air and packaged terminal heat pump use COP.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2275,6 +2286,10 @@
         <choice>
           <value>HSPF</value>
           <display_name>HSPF</display_name>
+        </choice>
+        <choice>
+          <value>HSPF2</value>
+          <display_name>HSPF2</display_name>
         </choice>
         <choice>
           <value>COP</value>
@@ -2287,7 +2302,6 @@
       <display_name>Heat Pump: Heating Efficiency</display_name>
       <description>The rated heating efficiency value of the heat pump.</description>
       <type>Double</type>
-      <units>HSPF or COP</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>7.7</default_value>
@@ -2295,7 +2309,7 @@
     <argument>
       <name>heat_pump_cooling_efficiency_type</name>
       <display_name>Heat Pump: Cooling Efficiency Type</display_name>
-      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER. System types ground-to-air and packaged terminal heat pump use EER.</description>
+      <description>The cooling efficiency type of heat pump. System types air-to-air and mini-split use SEER or SEER2. System types ground-to-air and packaged terminal heat pump use EER.</description>
       <type>Choice</type>
       <required>true</required>
       <model_dependent>false</model_dependent>
@@ -2304,6 +2318,10 @@
         <choice>
           <value>SEER</value>
           <display_name>SEER</display_name>
+        </choice>
+        <choice>
+          <value>SEER2</value>
+          <display_name>SEER2</display_name>
         </choice>
         <choice>
           <value>EER</value>
@@ -2320,7 +2338,6 @@
       <display_name>Heat Pump: Cooling Efficiency</display_name>
       <description>The rated cooling efficiency value of the heat pump.</description>
       <type>Double</type>
-      <units>SEER or EER</units>
       <required>true</required>
       <model_dependent>false</model_dependent>
       <default_value>13</default_value>
@@ -2697,7 +2714,7 @@
     <argument>
       <name>hvac_control_heating_season_period</name>
       <display_name>HVAC Control: Heating Season Period</display_name>
-      <description>Enter a date like "Nov 1 - Jun 30". If not provided, the OS-HPXML default is used.</description>
+      <description>Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -2705,7 +2722,7 @@
     <argument>
       <name>hvac_control_cooling_season_period</name>
       <display_name>HVAC Control: Cooling Season Period</display_name>
-      <description>Enter a date like "Jun 1 - Oct 31". If not provided, the OS-HPXML default is used.</description>
+      <description>Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default is used. Can also provide 'BuildingAmerica' to use automatic seasons from the Building America House Simulation Protocols.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -6361,13 +6378,13 @@
       <filename>geometry.rb</filename>
       <filetype>rb</filetype>
       <usage_type>resource</usage_type>
-      <checksum>896E3BC5</checksum>
+      <checksum>80E1626B</checksum>
     </file>
     <file>
       <filename>build_residential_hpxml_test.rb</filename>
       <filetype>rb</filetype>
       <usage_type>test</usage_type>
-      <checksum>E3EB0D54</checksum>
+      <checksum>6678B9E5</checksum>
     </file>
     <file>
       <version>
@@ -6378,7 +6395,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>8664E480</checksum>
+      <checksum>EEFE5325</checksum>
     </file>
   </files>
 </measure>

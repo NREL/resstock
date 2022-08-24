@@ -112,6 +112,11 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Enter a date like "Mar 15 - Dec 15". If not provided, the OS-HPXML default is used.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument::makeStringArgument('simulation_control_temperature_capacitance_multiplier', false)
+    arg.setDisplayName('Simulation Control: Temperature Capacitance Multiplier')
+    arg.setDescription('Affects the transient calculation of indoor air temperatures. If not provided, the OS-HPXML default is used.')
+    args << arg
+
     site_type_choices = OpenStudio::StringVector.new
     site_type_choices << HPXML::SiteTypeSuburban
     site_type_choices << HPXML::SiteTypeUrban
@@ -996,6 +1001,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     cooling_efficiency_type_choices = OpenStudio::StringVector.new
     cooling_efficiency_type_choices << HPXML::UnitsSEER
+    cooling_efficiency_type_choices << HPXML::UnitsSEER2
     cooling_efficiency_type_choices << HPXML::UnitsEER
     cooling_efficiency_type_choices << HPXML::UnitsCEER
 
@@ -1050,13 +1056,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('cooling_system_cooling_efficiency_type', cooling_efficiency_type_choices, true)
     arg.setDisplayName('Cooling System: Efficiency Type')
-    arg.setDescription("The efficiency type of the cooling system. System types #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} use #{HPXML::UnitsSEER}. System types #{HPXML::HVACTypeRoomAirConditioner} and #{HPXML::HVACTypePTAC} use #{HPXML::UnitsEER} or #{HPXML::UnitsCEER}. Ignored for system type #{HPXML::HVACTypeEvaporativeCooler}.")
+    arg.setDescription("The efficiency type of the cooling system. System types #{HPXML::HVACTypeCentralAirConditioner} and #{HPXML::HVACTypeMiniSplitAirConditioner} use #{HPXML::UnitsSEER} or #{HPXML::UnitsSEER2}. System types #{HPXML::HVACTypeRoomAirConditioner} and #{HPXML::HVACTypePTAC} use #{HPXML::UnitsEER} or #{HPXML::UnitsCEER}. Ignored for system type #{HPXML::HVACTypeEvaporativeCooler}.")
     arg.setDefaultValue(HPXML::UnitsSEER)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('cooling_system_cooling_efficiency', true)
     arg.setDisplayName('Cooling System: Efficiency')
-    arg.setUnits("#{HPXML::UnitsSEER} or #{HPXML::UnitsEER} or #{HPXML::UnitsCEER}")
     arg.setDescription("The rated efficiency value of the cooling system. Ignored for #{HPXML::HVACTypeEvaporativeCooler}.")
     arg.setDefaultValue(13.0)
     args << arg
@@ -1112,6 +1117,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     heat_pump_heating_efficiency_type_choices = OpenStudio::StringVector.new
     heat_pump_heating_efficiency_type_choices << HPXML::UnitsHSPF
+    heat_pump_heating_efficiency_type_choices << HPXML::UnitsHSPF2
     heat_pump_heating_efficiency_type_choices << HPXML::UnitsCOP
 
     heat_pump_fuel_choices = OpenStudio::StringVector.new
@@ -1141,26 +1147,24 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_heating_efficiency_type', heat_pump_heating_efficiency_type_choices, true)
     arg.setDisplayName('Heat Pump: Heating Efficiency Type')
-    arg.setDescription("The heating efficiency type of heat pump. System types #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit} use #{HPXML::UnitsHSPF}. System types #{HPXML::HVACTypeHeatPumpGroundToAir} and #{HPXML::HVACTypeHeatPumpPTHP} use #{HPXML::UnitsCOP}.")
+    arg.setDescription("The heating efficiency type of heat pump. System types #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit} use #{HPXML::UnitsHSPF} or #{HPXML::UnitsHSPF2}. System types #{HPXML::HVACTypeHeatPumpGroundToAir} and #{HPXML::HVACTypeHeatPumpPTHP} use #{HPXML::UnitsCOP}.")
     arg.setDefaultValue(HPXML::UnitsHSPF)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_heating_efficiency', true)
     arg.setDisplayName('Heat Pump: Heating Efficiency')
-    arg.setUnits("#{HPXML::UnitsHSPF} or #{HPXML::UnitsCOP}")
     arg.setDescription('The rated heating efficiency value of the heat pump.')
     arg.setDefaultValue(7.7)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeChoiceArgument('heat_pump_cooling_efficiency_type', cooling_efficiency_type_choices, true)
     arg.setDisplayName('Heat Pump: Cooling Efficiency Type')
-    arg.setDescription("The cooling efficiency type of heat pump. System types #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit} use #{HPXML::UnitsSEER}. System types #{HPXML::HVACTypeHeatPumpGroundToAir} and #{HPXML::HVACTypeHeatPumpPTHP} use #{HPXML::UnitsEER}.")
+    arg.setDescription("The cooling efficiency type of heat pump. System types #{HPXML::HVACTypeHeatPumpAirToAir} and #{HPXML::HVACTypeHeatPumpMiniSplit} use #{HPXML::UnitsSEER} or #{HPXML::UnitsSEER2}. System types #{HPXML::HVACTypeHeatPumpGroundToAir} and #{HPXML::HVACTypeHeatPumpPTHP} use #{HPXML::UnitsEER}.")
     arg.setDefaultValue(HPXML::UnitsSEER)
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeDoubleArgument('heat_pump_cooling_efficiency', true)
     arg.setDisplayName('Heat Pump: Cooling Efficiency')
-    arg.setUnits("#{HPXML::UnitsSEER} or #{HPXML::UnitsEER}")
     arg.setDescription('The rated cooling efficiency value of the heat pump.')
     arg.setDefaultValue(13.0)
     args << arg
@@ -1346,12 +1350,12 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_heating_season_period', false)
     arg.setDisplayName('HVAC Control: Heating Season Period')
-    arg.setDescription('Enter a date like "Nov 1 - Jun 30". If not provided, the OS-HPXML default is used.')
+    arg.setDescription("Enter a date like 'Nov 1 - Jun 30'. If not provided, the OS-HPXML default is used. Can also provide '#{HPXML::BuildingAmerica}' to use automatic seasons from the Building America House Simulation Protocols.")
     args << arg
 
     arg = OpenStudio::Measure::OSArgument::makeStringArgument('hvac_control_cooling_season_period', false)
     arg.setDisplayName('HVAC Control: Cooling Season Period')
-    arg.setDescription('Enter a date like "Jun 1 - Oct 31". If not provided, the OS-HPXML default is used.')
+    arg.setDescription("Enter a date like 'Jun 1 - Oct 31'. If not provided, the OS-HPXML default is used. Can also provide '#{HPXML::BuildingAmerica}' to use automatic seasons from the Building America House Simulation Protocols.")
     args << arg
 
     duct_leakage_units_choices = OpenStudio::StringVector.new
@@ -3038,7 +3042,7 @@ class BuildResidentialHPXML < OpenStudio::Measure::ModelMeasure
 
     hpxml_path = args[:hpxml_path]
     unless (Pathname.new hpxml_path).absolute?
-      hpxml_path = File.expand_path(File.join(File.dirname(__FILE__), hpxml_path))
+      hpxml_path = File.expand_path(hpxml_path)
     end
 
     # Check for invalid HPXML file
@@ -3266,6 +3270,11 @@ end
 
 class HPXMLFile
   def self.create(runner, model, args, epw_file)
+    if (args[:hvac_control_heating_season_period].to_s == HPXML::BuildingAmerica) || (args[:hvac_control_cooling_season_period].to_s == HPXML::BuildingAmerica) || (args[:apply_defaults].is_initialized && args[:apply_defaults].get)
+      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
+      weather = WeatherProcess.new(model, runner)
+    end
+
     success = create_geometry_envelope(runner, model, args)
     return false if not success
 
@@ -3300,7 +3309,7 @@ class HPXMLFile
     set_heat_pumps(hpxml, args)
     set_secondary_heating_systems(hpxml, args)
     set_hvac_distribution(hpxml, args)
-    set_hvac_control(hpxml, args)
+    set_hvac_control(hpxml, args, epw_file, weather)
     set_ventilation_fans(hpxml, args)
     set_water_heating_systems(hpxml, args)
     set_hot_water_distribution(hpxml, args)
@@ -3357,8 +3366,6 @@ class HPXMLFile
 
     if args[:apply_defaults].is_initialized && args[:apply_defaults].get
       eri_version = Constants.ERIVersions[-1]
-      OpenStudio::Model::WeatherFile.setWeatherFile(model, epw_file)
-      weather = WeatherProcess.new(model, runner)
       HPXMLDefaults.apply(runner, hpxml, eri_version, weather, epw_file: epw_file)
     end
 
@@ -3463,6 +3470,10 @@ class HPXMLFile
       hpxml.header.dst_begin_day = begin_day
       hpxml.header.dst_end_month = end_month
       hpxml.header.dst_end_day = end_day
+    end
+
+    if args[:simulation_control_temperature_capacitance_multiplier].is_initialized
+      hpxml.header.temperature_capacitance_multiplier = args[:simulation_control_temperature_capacitance_multiplier].get
     end
 
     hpxml.header.building_id = 'MyBuilding'
@@ -4542,6 +4553,8 @@ class HPXMLFile
     if cooling_system_type != HPXML::HVACTypeEvaporativeCooler
       if args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsSEER
         cooling_efficiency_seer = args[:cooling_system_cooling_efficiency]
+      elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsSEER2
+        cooling_efficiency_seer2 = args[:cooling_system_cooling_efficiency]
       elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsEER
         cooling_efficiency_eer = args[:cooling_system_cooling_efficiency]
       elsif args[:cooling_system_cooling_efficiency_type] == HPXML::UnitsCEER
@@ -4569,6 +4582,7 @@ class HPXMLFile
                               compressor_type: compressor_type,
                               cooling_shr: cooling_shr,
                               cooling_efficiency_seer: cooling_efficiency_seer,
+                              cooling_efficiency_seer2: cooling_efficiency_seer2,
                               cooling_efficiency_eer: cooling_efficiency_eer,
                               cooling_efficiency_ceer: cooling_efficiency_ceer,
                               airflow_defect_ratio: airflow_defect_ratio,
@@ -4643,12 +4657,16 @@ class HPXMLFile
 
     if args[:heat_pump_heating_efficiency_type] == HPXML::UnitsHSPF
       heating_efficiency_hspf = args[:heat_pump_heating_efficiency]
+    elsif args[:heat_pump_heating_efficiency_type] == HPXML::UnitsHSPF2
+      heating_efficiency_hspf2 = args[:heat_pump_heating_efficiency]
     elsif args[:heat_pump_heating_efficiency_type] == HPXML::UnitsCOP
       heating_efficiency_cop = args[:heat_pump_heating_efficiency]
     end
 
     if args[:heat_pump_cooling_efficiency_type] == HPXML::UnitsSEER
       cooling_efficiency_seer = args[:heat_pump_cooling_efficiency]
+    elsif args[:heat_pump_cooling_efficiency_type] == HPXML::UnitsSEER2
+      cooling_efficiency_seer2 = args[:heat_pump_cooling_efficiency]
     elsif args[:heat_pump_cooling_efficiency_type] == HPXML::UnitsEER
       cooling_efficiency_eer = args[:heat_pump_cooling_efficiency]
     end
@@ -4705,7 +4723,9 @@ class HPXMLFile
                          backup_heating_switchover_temp: backup_heating_switchover_temp,
                          backup_heating_lockout_temp: backup_heating_lockout_temp,
                          heating_efficiency_hspf: heating_efficiency_hspf,
+                         heating_efficiency_hspf2: heating_efficiency_hspf2,
                          cooling_efficiency_seer: cooling_efficiency_seer,
+                         cooling_efficiency_seer2: cooling_efficiency_seer2,
                          heating_efficiency_cop: heating_efficiency_cop,
                          cooling_efficiency_eer: cooling_efficiency_eer,
                          airflow_defect_ratio: airflow_defect_ratio,
@@ -4881,7 +4901,7 @@ class HPXMLFile
     end
   end
 
-  def self.set_hvac_control(hpxml, args)
+  def self.set_hvac_control(hpxml, args, epw_file, weather)
     return if (args[:heating_system_type] == 'none') && (args[:cooling_system_type] == 'none') && (args[:heat_pump_type] == 'none')
 
     # Heating
@@ -4897,7 +4917,14 @@ class HPXMLFile
       end
 
       if args[:hvac_control_heating_season_period].is_initialized
-        begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_heating_season_period].get)
+        hvac_control_heating_season_period = args[:hvac_control_heating_season_period].get
+        if hvac_control_heating_season_period == HPXML::BuildingAmerica
+          heating_months, _cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+          sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
+          begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(heating_months, sim_calendar_year)
+        else
+          begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(hvac_control_heating_season_period)
+        end
         seasons_heating_begin_month = begin_month
         seasons_heating_begin_day = begin_day
         seasons_heating_end_month = end_month
@@ -4923,7 +4950,14 @@ class HPXMLFile
       end
 
       if args[:hvac_control_cooling_season_period].is_initialized
-        begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_cooling_season_period].get)
+        hvac_control_cooling_season_period = args[:hvac_control_cooling_season_period].get
+        if hvac_control_cooling_season_period == HPXML::BuildingAmerica
+          _heating_months, cooling_months = HVAC.get_default_heating_and_cooling_seasons(weather)
+          sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
+          begin_month, begin_day, end_month, end_day = Schedule.get_begin_and_end_dates_from_monthly_array(cooling_months, sim_calendar_year)
+        else
+          begin_month, begin_day, end_month, end_day = Schedule.parse_date_range(args[:hvac_control_cooling_season_period].get)
+        end
         seasons_cooling_begin_month = begin_month
         seasons_cooling_begin_day = begin_day
         seasons_cooling_end_month = end_month

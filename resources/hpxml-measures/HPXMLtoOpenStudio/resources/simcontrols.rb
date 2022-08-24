@@ -36,6 +36,7 @@ class SimControls
     insurf.setAlgorithm('TARP')
 
     zonecap = model.getZoneCapacitanceMultiplierResearchSpecial
+    zonecap.setTemperatureCapacityMultiplier(hpxml.header.temperature_capacitance_multiplier)
     zonecap.setHumidityCapacityMultiplier(15)
 
     convlim = model.getConvergenceLimits
