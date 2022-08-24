@@ -25,6 +25,7 @@ Fixes
 - Rename sources subfolders so all tsv_makers can be imported as packages ([#959](https://github.com/NREL/resstock/pull/959))
 - Fix heating and cooling auto-season inputs ([#975](https://github.com/NREL/resstock/pull/975))
 - Remove Void from dependency columns in TSVs and update tests.([#981](https://github.com/NREL/resstock/pull/981))
+- Update low-sample downscaling logic to use raw source_weight, which leads to minor changes to Geometry Floor Area and HVAC Partial Sapce Conditioning ([#982](https://github.com/NREL/resstock/pull/982))
 
 ## ResStock v2.5.0
 ###### February 9, 2022 - [Diff](https://github.com/NREL/OpenStudio-BuildStock/compare/v2.4.0...v2.5.0)
