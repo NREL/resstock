@@ -113,7 +113,7 @@ postprocessing:
       max_crawling_time: 1200 #time to wait for the crawler to complete before aborting it
 
 upgrades:
-  - upgrade_name: Basic Enclosure
+  - upgrade_name: Basic enclosure
     #Up01
     options:
       #Attic floor insulation up to IECC 2021 levels for homes with vented attics and less than R-30 existing insulation
@@ -289,7 +289,7 @@ upgrades:
                         # (https://remdb.nrel.gov/measures.php?gId=12&ctId=184&scId=2015&acId=2028)
             multiplier: Wall Area, Above-Grade, Conditioned (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-  - upgrade_name: Enhanced Enclosure
+  - upgrade_name: Enhanced enclosure
     #Up02
     options:
       #Basic Enclosure Measures
@@ -370,7 +370,7 @@ upgrades:
           - value: 5.54 # $/ft2 (4.3* $/ft2 * 1.289 inflation) https://remdb.nrel.gov/measures.php?gId=13&ctId=395&scId=6283&acId=6822
             multiplier: Roof Area (ft^2)
         lifetime: 60 # years effective useful life for opaque envelope components, from https://www.nyserda.ny.gov/-/media/Files/Programs/energy-code-training/Residential-Cost-Analysis-Report.pdf
-  - upgrade_name: Minimum-efficiency heat pumps with electric backup #also provides SEER 15 cooling measure profile
+  - upgrade_name: Heat pumps, min-efficiency, electric backup  #also provides SEER 15 cooling measure profile
     #Up03
     options:
       #ASHP
@@ -419,7 +419,7 @@ upgrades:
             - *ducted_mineff_HP_all_fuel_apply_logic
             - *ductless_mineff_HP_all_fuel_apply_logic
 
-  - upgrade_name: High-efficiency heat pumps with electric backup
+  - upgrade_name: Heat pumps, high-efficiency, electric backup
     #up04
     options:
       #ducted MSHP (using a ducted MSHP rather than ASHP to achieve high efficiency)
@@ -471,7 +471,7 @@ upgrades:
             - *ducted_higheff_HP_all_fuel_apply_logic
             - *nonducted_higheff_HP_all_fuel_apply_logic
 
-  - upgrade_name: Heat pump, min efficiency, with existing heating as backup
+  - upgrade_name: Heat pumps, min-efficiency, existing heating as backup
     #up05
     options:
     #all electric from the start
@@ -938,7 +938,7 @@ upgrades:
 
 
 
-  - upgrade_name: Universal HPWHs
+  - upgrade_name: Heat pump water heaters
     #up06
     options:
       #All homes get either a 50 gal 3.45 UEF water heater, a 66 gal 3.35 UEF water heater, or a 80 gal 3.45 UEF water heater, depending on occupants or bedrooms
@@ -1014,7 +1014,7 @@ upgrades:
           - value: 3828 # Median installed cost for 80 gal heat pump water heaters in Less et al. https://doi.org/10.20357/B7FP4D
             multiplier: Fixed (1)
         lifetime: 12
-  - upgrade_name: Minimum-efficiency all-electric homes
+  - upgrade_name: Whole-home electrification, min efficiency
     #up07
       #No enclosure measures
       #No upgrading of electric loads
@@ -1162,7 +1162,7 @@ upgrades:
             multiplier: Fixed (1)
         lifetime: 13 # REMDB https://remdb.nrel.gov/measures.php?gId=4&ctId=279&scId=4288&acId=4286
 
-  - upgrade_name: Highly-efficient all-electric homes
+  - upgrade_name: Whole-home electrification, high efficiency
     #up08
       #No enclosure measures
     options:
@@ -1243,7 +1243,7 @@ upgrades:
           - value: 1496 # ($1299*1.07 sales tax+ 94*1.1289 labor) https://www.ikea.com/us/en/p/tvaersaeker-range-with-induction-cooktop-stainless-steel-40466006/
             multiplier: Fixed (1)
         lifetime: 13
-  - upgrade_name: Highly-efficient all-electric homes + basic enclosure package (packages 1 & 8)
+  - upgrade_name: Whole-home electrification, high efficiency + basic enclosure package (packages 1 & 8)
     #up09
     options:
       #package 1
@@ -1273,7 +1273,7 @@ upgrades:
       - *elec_induction_range_80pct
       - *elec_induction_range_100pct
       - *elec_induction_range_120pct
-  - upgrade_name: Highly-efficient all-electric homes + enhanced enclosure package (packages 2 & 8)
+  - upgrade_name: Whole-home electrification, high efficiency + enhanced enclosure package (packages 2 & 8)
     #up10
     options:
       #package 2
