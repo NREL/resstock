@@ -8,10 +8,15 @@ require_relative '../measure.rb'
 require 'fileutils'
 
 class BuildResidentialHPXMLTest < MiniTest::Test
-  def test_workflows
-    this_dir = File.dirname(__FILE__)
-    tests_dir = File.join(this_dir, 'extra_files')
+  def setup
+    @tests_dir = File.join(File.dirname(__FILE__), 'extra_files')
+  end
 
+  def teardown
+    FileUtils.rm_rf(@tests_dir)
+  end
+
+  def test_workflows
     # Extra buildings that don't correspond with sample files
     hpxmls_files = {
       # Base files to derive from
@@ -42,6 +47,8 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'extra-state-code-different-than-epw.xml' => 'base-sfd.xml',
       'extra-time-zone-different-than-epw.xml' => 'base-sfd.xml',
       'extra-emissions-fossil-fuel-factors.xml' => 'base-sfd.xml',
+      'extra-bills-fossil-fuel-rates.xml' => 'base-sfd.xml',
+      'extra-seasons-building-america.xml' => 'base-sfd.xml',
 
       'extra-sfa-atticroof-flat.xml' => 'base-sfa.xml',
       'extra-sfa-atticroof-conditioned-eaves-gable.xml' => 'extra-sfa-slab.xml',
@@ -162,6 +169,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-emissions-args-not-all-specified.xml' => 'base-sfd.xml',
       'error-emissions-args-not-all-same-size.xml' => 'base-sfd.xml',
       'error-emissions-natural-gas-args-not-all-specified.xml' => 'base-sfd.xml',
+      'error-bills-args-not-all-same-size.xml' => 'base-sfd.xml',
       'error-invalid-aspect-ratio.xml' => 'base-sfd.xml',
       'error-negative-foundation-height.xml' => 'base-sfd.xml',
       'error-too-many-floors.xml' => 'base-sfd.xml',
@@ -217,6 +225,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       'error-emissions-args-not-all-specified.xml' => 'Did not specify all required emissions arguments.',
       'error-emissions-args-not-all-same-size.xml' => 'One or more emissions arguments does not have enough comma-separated elements specified.',
       'error-emissions-natural-gas-args-not-all-specified.xml' => 'Did not specify fossil fuel emissions units for natural gas emissions values.',
+      'error-bills-args-not-all-same-size.xml' => 'One or more utility bill arguments does not have enough comma-separated elements specified.',
       'error-invalid-aspect-ratio.xml' => 'Aspect ratio must be greater than zero.',
       'error-negative-foundation-height.xml' => 'Foundation height cannot be negative.',
       'error-too-many-floors.xml' => 'Number of above-grade floors must be six or less.',
@@ -290,7 +299,7 @@ class BuildResidentialHPXMLTest < MiniTest::Test
           flunk "Error: Did not successfully generate #{hpxml_file}."
         end
 
-        hpxml_path = File.absolute_path(File.join(tests_dir, hpxml_file))
+        hpxml_path = File.absolute_path(File.join(@tests_dir, hpxml_file))
         hpxml = HPXML.new(hpxml_path: hpxml_path, collapse_enclosure: false)
         hpxml.header.xml_generated_by = 'build_residential_hpxml_test.rb'
         hpxml.header.created_date_and_time = Time.new(2000, 1, 1).strftime('%Y-%m-%dT%H:%M:%S%:z') # Hard-code to prevent diffs
@@ -301,12 +310,24 @@ class BuildResidentialHPXMLTest < MiniTest::Test
         flunk "Error: Did not successfully generate #{hpxml_file}.\n#{e}\n#{e.backtrace.join('\n')}"
       end
     end
+
+    # Check generated HPXML files
+    hpxml = HPXML.new(hpxml_path: File.absolute_path(File.join(@tests_dir, 'extra-seasons-building-america.xml')))
+    hvac_control = hpxml.hvac_controls[0]
+    assert_equal(10, hvac_control.seasons_heating_begin_month)
+    assert_equal(1, hvac_control.seasons_heating_begin_day)
+    assert_equal(6, hvac_control.seasons_heating_end_month)
+    assert_equal(30, hvac_control.seasons_heating_end_day)
+    assert_equal(5, hvac_control.seasons_cooling_begin_month)
+    assert_equal(1, hvac_control.seasons_cooling_begin_day)
+    assert_equal(10, hvac_control.seasons_cooling_end_month)
+    assert_equal(31, hvac_control.seasons_cooling_end_day)
   end
 
   private
 
   def _set_measure_argument_values(hpxml_file, args)
-    args['hpxml_path'] = "tests/extra_files/#{hpxml_file}"
+    args['hpxml_path'] = File.join(File.dirname(__FILE__), "extra_files/#{hpxml_file}")
     args['apply_defaults'] = true
     args['apply_validation'] = true
 
@@ -764,6 +785,21 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['emissions_fuel_oil_values'] = '161.0, 0.0015'
       args['emissions_coal_values'] = '211.1, 0.0020'
       args['emissions_wood_values'] = '200.0, 0.0025'
+    elsif ['extra-bills-fossil-fuel-rates.xml'].include? hpxml_file
+      args['utility_bill_scenario_names'] = 'Scenario1, Scenario2'
+      args['utility_bill_propane_fixed_charges'] = '1, 2'
+      args['utility_bill_propane_marginal_rates'] = '3, 4'
+      args['utility_bill_fuel_oil_fixed_charges'] = '5, 6'
+      args['utility_bill_fuel_oil_marginal_rates'] = '6, 7'
+      args['utility_bill_coal_fixed_charges'] = '8, 9'
+      args['utility_bill_coal_marginal_rates'] = '10, 11'
+      args['utility_bill_wood_fixed_charges'] = '12, 13'
+      args['utility_bill_wood_marginal_rates'] = '14, 15'
+      args['utility_bill_wood_pellets_fixed_charges'] = '16, 17'
+      args['utility_bill_wood_pellets_marginal_rates'] = '18, 19'
+    elsif ['extra-seasons-building-america.xml'].include? hpxml_file
+      args['hvac_control_heating_season_period'] = HPXML::BuildingAmerica
+      args['hvac_control_cooling_season_period'] = HPXML::BuildingAmerica
     elsif ['extra-sfa-atticroof-flat.xml'].include? hpxml_file
       args['geometry_attic_type'] = HPXML::AtticTypeFlatRoof
       args['ducts_supply_leakage_to_outside_value'] = 0.0
@@ -1017,6 +1053,10 @@ class BuildResidentialHPXMLTest < MiniTest::Test
       args['emissions_electricity_values_or_filepaths'] = '../../HPXMLtoOpenStudio/resources/data/cambium/LRMER_MidCase.csv'
     elsif ['error-emissions-natural-gas-args-not-all-specified.xml'].include? hpxml_file
       args['emissions_natural_gas_values'] = '117.6'
+    elsif ['error-bills-args-not-all-same-size.xml'].include? hpxml_file
+      args['utility_bill_scenario_names'] = 'Scenario1'
+      args['utility_bill_electricity_fixed_charges'] = '1'
+      args['utility_bill_electricity_marginal_rates'] = '2,2'
     elsif ['error-invalid-aspect-ratio.xml'].include? hpxml_file
       args['geometry_unit_aspect_ratio'] = -1
     elsif ['error-negative-foundation-height.xml'].include? hpxml_file

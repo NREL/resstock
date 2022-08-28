@@ -11,9 +11,17 @@
       <SimulationControl>
         <Timestep>60</Timestep>
       </SimulationControl>
+      <HVACSizingControl>
+        <HeatPumpSizingMethodology>MaxLoad</HeatPumpSizingMethodology>
+      </HVACSizingControl>
       <AdditionalProperties>
-        <ParentHPXMLFile>base.xml</ParentHPXMLFile>
+        <ParentHPXMLFile>base-hvac-autosize-air-to-air-heat-pump-1-speed-sizing-methodology-maxload.xml</ParentHPXMLFile>
       </AdditionalProperties>
+      <UtilityBillScenarios>
+        <UtilityBillScenario>
+          <Name>Bills</Name>
+        </UtilityBillScenario>
+      </UtilityBillScenarios>
     </extension>
   </SoftwareInfo>
   <Building>
@@ -21,7 +29,7 @@
     <Site>
       <SiteID id='SiteID'/>
       <Address>
-        <StateCode>CO</StateCode>
+        <StateCode>FL</StateCode>
       </Address>
     </Site>
     <ProjectStatus>
@@ -56,13 +64,13 @@
       <ClimateandRiskZones>
         <ClimateZoneIECC>
           <Year>2006</Year>
-          <ClimateZone>5B</ClimateZone>
+          <ClimateZone>1A</ClimateZone>
         </ClimateZoneIECC>
         <WeatherStation>
           <SystemIdentifier id='WeatherStation'/>
-          <Name>USA_CO_Denver.Intl.AP.725650_TMY3</Name>
+          <Name>USA_FL_Miami.Intl.AP.722020_TMY3</Name>
           <extension>
-            <EPWFilePath>USA_CO_Denver.Intl.AP.725650_TMY3.epw</EPWFilePath>
+            <EPWFilePath>USA_FL_Miami.Intl.AP.722020_TMY3.epw</EPWFilePath>
           </extension>
         </WeatherStation>
       </ClimateandRiskZones>
@@ -89,7 +97,7 @@
             <WithinInfiltrationVolume>false</WithinInfiltrationVolume>
             <AttachedToRoof idref='Roof1'/>
             <AttachedToWall idref='Wall2'/>
-            <AttachedToFrameFloor idref='FrameFloor1'/>
+            <AttachedToFloor idref='Floor1'/>
           </Attic>
         </Attics>
         <Foundations>
@@ -179,7 +187,6 @@
             <SystemIdentifier id='FoundationWall1'/>
             <ExteriorAdjacentTo>ground</ExteriorAdjacentTo>
             <InteriorAdjacentTo>basement - conditioned</InteriorAdjacentTo>
-            <Type>concrete block foam core</Type>
             <Height>8.0</Height>
             <Area>1200.0</Area>
             <Thickness>8.0</Thickness>
@@ -192,21 +199,19 @@
               <Layer>
                 <InstallationType>continuous - exterior</InstallationType>
                 <NominalRValue>8.9</NominalRValue>
-                <DistanceToTopOfInsulation>1.0</DistanceToTopOfInsulation>
+                <DistanceToTopOfInsulation>0.0</DistanceToTopOfInsulation>
                 <DistanceToBottomOfInsulation>8.0</DistanceToBottomOfInsulation>
               </Layer>
               <Layer>
                 <InstallationType>continuous - interior</InstallationType>
-                <NominalRValue>10.0</NominalRValue>
-                <DistanceToTopOfInsulation>0.0</DistanceToTopOfInsulation>
-                <DistanceToBottomOfInsulation>8.0</DistanceToBottomOfInsulation>
+                <NominalRValue>0.0</NominalRValue>
               </Layer>
             </Insulation>
           </FoundationWall>
         </FoundationWalls>
-        <FrameFloors>
-          <FrameFloor>
-            <SystemIdentifier id='FrameFloor1'/>
+        <Floors>
+          <Floor>
+            <SystemIdentifier id='Floor1'/>
             <ExteriorAdjacentTo>attic - unvented</ExteriorAdjacentTo>
             <InteriorAdjacentTo>living space</InteriorAdjacentTo>
             <Area>1350.0</Area>
@@ -214,11 +219,11 @@
               <Type>gypsum board</Type>
             </InteriorFinish>
             <Insulation>
-              <SystemIdentifier id='FrameFloor1Insulation'/>
+              <SystemIdentifier id='Floor1Insulation'/>
               <AssemblyEffectiveRValue>39.3</AssemblyEffectiveRValue>
             </Insulation>
-          </FrameFloor>
-        </FrameFloors>
+          </Floor>
+        </Floors>
         <Slabs>
           <Slab>
             <SystemIdentifier id='Slab1'/>
@@ -318,37 +323,33 @@
         <HVAC>
           <HVACPlant>
             <PrimarySystems>
-              <PrimaryHeatingSystem idref='HeatingSystem1'/>
-              <PrimaryCoolingSystem idref='CoolingSystem1'/>
+              <PrimaryHeatingSystem idref='HeatPump1'/>
+              <PrimaryCoolingSystem idref='HeatPump1'/>
             </PrimarySystems>
-            <HeatingSystem>
-              <SystemIdentifier id='HeatingSystem1'/>
+            <HeatPump>
+              <SystemIdentifier id='HeatPump1'/>
               <DistributionSystem idref='HVACDistribution1'/>
-              <HeatingSystemType>
-                <Furnace/>
-              </HeatingSystemType>
-              <HeatingSystemFuel>natural gas</HeatingSystemFuel>
-              <HeatingCapacity>36000.0</HeatingCapacity>
-              <AnnualHeatingEfficiency>
-                <Units>AFUE</Units>
-                <Value>0.92</Value>
-              </AnnualHeatingEfficiency>
-              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
-            </HeatingSystem>
-            <CoolingSystem>
-              <SystemIdentifier id='CoolingSystem1'/>
-              <DistributionSystem idref='HVACDistribution1'/>
-              <CoolingSystemType>central air conditioner</CoolingSystemType>
-              <CoolingSystemFuel>electricity</CoolingSystemFuel>
-              <CoolingCapacity>24000.0</CoolingCapacity>
+              <HeatPumpType>air-to-air</HeatPumpType>
+              <HeatPumpFuel>electricity</HeatPumpFuel>
               <CompressorType>single stage</CompressorType>
+              <CoolingSensibleHeatFraction>0.73</CoolingSensibleHeatFraction>
+              <BackupType>integrated</BackupType>
+              <BackupSystemFuel>electricity</BackupSystemFuel>
+              <BackupAnnualHeatingEfficiency>
+                <Units>Percent</Units>
+                <Value>1.0</Value>
+              </BackupAnnualHeatingEfficiency>
+              <FractionHeatLoadServed>1.0</FractionHeatLoadServed>
               <FractionCoolLoadServed>1.0</FractionCoolLoadServed>
               <AnnualCoolingEfficiency>
                 <Units>SEER</Units>
                 <Value>13.0</Value>
               </AnnualCoolingEfficiency>
-              <SensibleHeatFraction>0.73</SensibleHeatFraction>
-            </CoolingSystem>
+              <AnnualHeatingEfficiency>
+                <Units>HSPF</Units>
+                <Value>7.7</Value>
+              </AnnualHeatingEfficiency>
+            </HeatPump>
           </HVACPlant>
           <HVACControl>
             <SystemIdentifier id='HVACControl1'/>

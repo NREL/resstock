@@ -45,7 +45,7 @@ jobs:
       - name: Build documentation
         run: |
           cd docs/read_the_docs
-          make html
+          make html SPHINXOPTS="-W --keep-going -n"
 
       - name: Save Docs
         uses: actions/upload-artifact@v2
@@ -134,8 +134,8 @@ jobs:
           path: |
             project_national/national_baseline/results_csvs/results_up00.csv
             project_testing/testing_baseline/results_csvs/results_up00.csv
-            project_national/national_upgrades/results_csvs/results_up13.csv
-            project_testing/testing_upgrades/results_csvs/results_up13.csv
+            project_national/national_upgrades/results_csvs/results_up14.csv
+            project_testing/testing_upgrades/results_csvs/results_up14.csv
           name: buildstockbatch
 
   compare-tools:

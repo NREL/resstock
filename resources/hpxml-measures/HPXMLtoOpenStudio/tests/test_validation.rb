@@ -46,6 +46,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
   end
 
   def test_validation_of_schematron_doc
+    begin_dir = Dir.pwd
     # Check that the schematron file is valid
 
     begin
@@ -55,10 +56,11 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         xml_doc = Nokogiri::XML(File.open(s_path)) do |config|
           config.options = Nokogiri::XML::ParseOptions::STRICT
         end
-        stron_doc = SchematronNokogiri::Schema.new(xml_doc)
+        SchematronNokogiri::Schema.new(xml_doc)
       end
     rescue LoadError
     end
+    Dir.chdir(begin_dir) # Prevent above code from changing the working dir and causing random test failures
   end
 
   def test_role_attributes_in_schematron_doc
@@ -273,11 +275,11 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         end
       elsif ['enclosure-garage-missing-roof-ceiling'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-garage.xml'))
-        hpxml.frame_floors.select { |w|
+        hpxml.floors.select { |w|
           w.interior_adjacent_to == HPXML::LocationGarage &&
             w.exterior_adjacent_to == HPXML::LocationAtticUnvented
-        }.reverse_each do |frame_floor|
-          frame_floor.delete
+        }.reverse_each do |floor|
+          floor.delete
         end
       elsif ['enclosure-garage-missing-slab'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-garage.xml'))
@@ -286,8 +288,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         end
       elsif ['enclosure-living-missing-ceiling-roof'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.frame_floors.reverse_each do |frame_floor|
-          frame_floor.delete
+        hpxml.floors.reverse_each do |floor|
+          floor.delete
         end
       elsif ['enclosure-living-missing-exterior-wall'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
@@ -457,10 +459,10 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.hvac_distributions[0].ducts[0].duct_location = HPXML::LocationOtherMultifamilyBufferSpace
       elsif ['multifamily-reference-surface'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
-        hpxml.frame_floors << hpxml.frame_floors[0].dup
-        hpxml.frame_floors[1].id = "FrameFloor#{hpxml.frame_floors.size}"
-        hpxml.frame_floors[1].exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
-        hpxml.frame_floors[1].other_space_above_or_below = HPXML::FrameFloorOtherSpaceAbove
+        hpxml.floors << hpxml.floors[0].dup
+        hpxml.floors[1].id = "Floor#{hpxml.floors.size}"
+        hpxml.floors[1].exterior_adjacent_to = HPXML::LocationOtherHeatedSpace
+        hpxml.floors[1].other_space_above_or_below = HPXML::FloorOtherSpaceAbove
       elsif ['multifamily-reference-water-heater'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.water_heating_systems[0].location = HPXML::LocationOtherNonFreezingSpace
@@ -1042,7 +1044,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       end
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('error', error_case, expected_errors)
+      _test_measure('error', expected_errors)
     end
   end
 
@@ -1066,6 +1068,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                                                   "Both 'refrigerator' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'refrigerator' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'refrigerator' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'extra_refrigerator' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'extra_refrigerator' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'extra_refrigerator' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'freezer' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'freezer' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'freezer' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'cooking_range' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'cooking_range' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'cooking_range' schedule file and monthly multipliers provided; the latter will be ignored.",
@@ -1078,12 +1086,39 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                                                   "Both 'plug_loads_other' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'plug_loads_other' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'plug_loads_other' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_vehicle' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_vehicle' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_vehicle' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_well_pump' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_well_pump' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'plug_loads_well_pump' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_grill' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_grill' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_grill' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_lighting' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_lighting' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_lighting' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_fireplace' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_fireplace' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'fuel_loads_fireplace' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'lighting_interior' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'lighting_interior' schedule file and weekend fractions provided; the latter will be ignored.",
                                                                                   "Both 'lighting_interior' schedule file and monthly multipliers provided; the latter will be ignored.",
                                                                                   "Both 'lighting_exterior' schedule file and weekday fractions provided; the latter will be ignored.",
                                                                                   "Both 'lighting_exterior' schedule file and weekend fractions provided; the latter will be ignored.",
-                                                                                  "Both 'lighting_exterior' schedule file and monthly multipliers provided; the latter will be ignored."],
+                                                                                  "Both 'lighting_exterior' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'pool_pump' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'pool_pump' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'pool_pump' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'pool_heater' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'pool_heater' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'pool_heater' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_pump' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_pump' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_pump' schedule file and monthly multipliers provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_heater' schedule file and weekday fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_heater' schedule file and weekend fractions provided; the latter will be ignored.",
+                                                                                  "Both 'hot_tub_heater' schedule file and monthly multipliers provided; the latter will be ignored."],
                               'schedule-file-and-setpoints' => ["Both 'heating_setpoint' schedule file and heating setpoint temperature provided; the latter will be ignored.",
                                                                 "Both 'cooling_setpoint' schedule file and cooling setpoint temperature provided; the latter will be ignored.",
                                                                 "Both 'water_heater_setpoint' schedule file and setpoint temperature provided; the latter will be ignored."],
@@ -1104,7 +1139,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-setpoints-daily-schedules.xml'))
         hpxml.hvac_controls[0].weekday_heating_setpoints = '64, 64, 64, 64, 64, 64, 64, 76, 70, 66, 66, 66, 66, 66, 66, 66, 66, 68, 68, 68, 68, 68, 64, 64'
       elsif ['schedule-file-and-weekday-weekend-multipliers'].include? warning_case
-        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-schedules-simple.xml'))
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-misc-loads-large-uncommon.xml'))
+        hpxml.header.utility_bill_scenarios.clear # we don't want the propane warning
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/occupancy-smooth.csv'
       elsif ['schedule-file-and-setpoints'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
@@ -1120,7 +1156,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       hpxml_doc = hpxml.to_oga()
 
       XMLHelper.write_file(hpxml_doc, @tmp_hpxml_path)
-      model, hpxml = _test_measure('warning', warning_case, expected_warnings)
+      _test_measure('warning', expected_warnings)
     end
   end
 
@@ -1146,7 +1182,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
     end
   end
 
-  def _test_measure(error_or_warning, error_or_warning_case, expected_errors_or_warnings)
+  def _test_measure(error_or_warning, expected_errors_or_warnings)
     # create an instance of the measure
     measure = HPXMLtoOpenStudio.new
 
@@ -1182,6 +1218,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         actual_errors_or_warnings << s
       end
     elsif error_or_warning == 'warning'
+      # show the output
+      show_output(result) unless result.value.valueName == 'Success'
+
       assert_equal('Success', result.value.valueName)
 
       result.stepWarnings.each do |s|

@@ -27,7 +27,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
   end
 
   # define the arguments that the user will input
-  def arguments(model)
+  def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     arg = OpenStudio::Ruleset::OSArgument.makeIntegerArgument('building_id', true)
@@ -194,6 +194,20 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     # Retrieve order of parameters to run
     parameters_ordered = get_parameters_ordered_from_options_lookup_tsv(lookup_csv_data, characteristics_dir)
 
+    # Check buildstock.csv has all parameters
+    missings = parameters_ordered - bldg_data.keys
+    if !missings.empty?
+      runner.registerError("Mismatch between buildstock.csv and options_lookup.tsv. Missing parameters: #{missings.join(', ')}.")
+      return false
+    end
+
+    # Check buildstock.csv doesn't have extra parameters
+    extras = bldg_data.keys - parameters_ordered - ['Building']
+    if !extras.empty?
+      runner.registerError("Mismatch between buildstock.csv and options_lookup.tsv. Extra parameters: #{extras.join(', ')}.")
+      return false
+    end
+
     # Retrieve options that have been selected for this building_id
     parameters_ordered.each do |parameter_name|
       # Register the option chosen for parameter_name with the runner
@@ -207,7 +221,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
       downselect_logic = args['downselect_logic'].get
       downselect_logic = downselect_logic.strip
-      downselected = evaluate_logic(downselect_logic, runner, past_results = false)
+      downselected = evaluate_logic(downselect_logic, runner, false)
 
       if downselected.nil?
         # unable to evaluate logic
@@ -230,7 +244,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       print_option_assignment(parameter_name, option_name, runner)
       options_measure_args = get_measure_args_from_option_names(lookup_csv_data, [option_name], parameter_name, lookup_file, runner)
       options_measure_args[option_name].each do |measure_subdir, args_hash|
-        update_args_hash(measures, measure_subdir, args_hash, add_new = false)
+        update_args_hash(measures, measure_subdir, args_hash, false)
       end
     end
 

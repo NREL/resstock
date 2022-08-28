@@ -81,6 +81,18 @@ Annual Outputs
 OpenStudio-HPXML will always generate an annual output file called ``results_annual.csv`` (or ``results_annual.json`` or ``results_annual.msgpack``), located in the run directory.
 The file includes the following sections of output:
 
+Annual Energy Consumption
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Annual energy consumption outputs are listed below.
+
+  ====================================  ===========================
+  Type                                  Notes
+  ====================================  ===========================
+  Energy Use: Total (MBtu)
+  Energy Use: Net (MBtu)                Subtracts any power produced by PV (including any battery storage) or generators.
+  ====================================  ===========================
+
 Annual Energy Consumption by Fuel Use
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -212,29 +224,28 @@ So the sum of all end uses for a given fuel (e.g., sum of all "End Use: Natural 
 Annual Emissions
 ~~~~~~~~~~~~~~~~
 
-Results for each emissions scenario defined in the HPXML file is listed as shown below.
+Results for each emissions scenario defined in the HPXML file are listed as shown below.
+Note that rows below with values of zero will be excluded.
 
-   ==============================================================  ==================================================================
-   Type                                                            Notes
-   ==============================================================  ==================================================================
-   Emissions: <EmissionsType>: <Scenario1Name>: Total (lb)         Scenario 1 total emissions
-   Emissions: <EmissionsType>: <Scenario1Name>: Electricity (lb)   Scenario 1 emissions for Electricity only
-   Emissions: <EmissionsType>: <Scenario1Name>: Natural Gas (lb)   Scenario 1 emissions for Natural Gas only
-   Emissions: <EmissionsType>: <Scenario1Name>: Fuel Oil (lb)      Scenario 1 emissions for Fuel Oil only
-   Emissions: <EmissionsType>: <Scenario1Name>: Propane (lb)       Scenario 1 emissions for Propane only
-   Emissions: <EmissionsType>: <Scenario1Name>: Wood Cord (lb)     Scenario 1 emissions for Wood Cord only
-   Emissions: <EmissionsType>: <Scenario1Name>: Wood Pellets (lb)  Scenario 1 emissions for Wood Pellets only
-   Emissions: <EmissionsType>: <Scenario1Name>: Coal (lb)          Scenario 1 emissions for Coal only
-   Emissions: <EmissionsType>: <Scenario2Name>: Total (lb)         Scenario 2 total emissions
-   Emissions: <EmissionsType>: <Scenario2Name>: Electricity (lb)   Scenario 2 emissions for Electricity only
-   Emissions: <EmissionsType>: <Scenario2Name>: Natural Gas (lb)   Scenario 2 emissions for Natural Gas only
-   Emissions: <EmissionsType>: <Scenario2Name>: Fuel Oil (lb)      Scenario 2 emissions for Fuel Oil only
-   Emissions: <EmissionsType>: <Scenario2Name>: Propane (lb)       Scenario 2 emissions for Propane only
-   Emissions: <EmissionsType>: <Scenario2Name>: Wood Cord (lb)     Scenario 2 emissions for Wood Cord only
-   Emissions: <EmissionsType>: <Scenario2Name>: Wood Pellets (lb)  Scenario 2 emissions for Wood Pellets only
-   Emissions: <EmissionsType>: <Scenario2Name>: Coal (lb)          Scenario 2 emissions for Coal only
-   ...
-   ==============================================================  ==================================================================
+   =======================================================================  ==================================================================
+   Type                                                                     Notes
+   =======================================================================  ==================================================================
+   Emissions: <EmissionsType>: <ScenarioName>: Total (lb)                   Scenario total emissions
+   Emissions: <EmissionsType>: <ScenarioName>: Electricity: Total (lb)      Scenario emissions for Electricity only
+   Emissions: <EmissionsType>: <ScenarioName>: Electricity: <EndUse> (lb)   Scenario emissions for this Electricity end use only (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Natural Gas: Total (lb)      Scenario emissions for Natural Gas only
+   Emissions: <EmissionsType>: <ScenarioName>: Natural Gas: <EndUse> (lb)   Scenario emissions for this Natural Gas end use only (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Fuel Oil: Total (lb)         Scenario emissions for Fuel Oil only
+   Emissions: <EmissionsType>: <ScenarioName>: Fuel Oil: <EndUse> (lb)      Scenario emissions for this Fuel Oil end use only (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Propane: Total (lb)          Scenario emissions for Propane only
+   Emissions: <EmissionsType>: <ScenarioName>: Propane: <EndUse> (lb)       Scenario emissions for this Propane end use only (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Wood Cord: Total (lb)        Scenario emissions for Wood Cord only
+   Emissions: <EmissionsType>: <ScenarioName>: Wood Cord: <EndUse> (lb)     Scenario emissions for this Wood Cord end use only (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: Total (lb)     Scenario emissions for Wood Pellets only
+   Emissions: <EmissionsType>: <ScenarioName>: Wood Pellets: <EndUse> (lb)  Scenario emissions for this Wood Pellets end use only (one row per end use)
+   Emissions: <EmissionsType>: <ScenarioName>: Coal: Total (lb)             Scenario emissions for Coal only
+   Emissions: <EmissionsType>: <ScenarioName>: Coal: <EndUse> (lb)          Scenario emissions for this Coal end use only (one row per end use)
+   =======================================================================  ==================================================================
 
 Annual Building Loads
 ~~~~~~~~~~~~~~~~~~~~~
@@ -285,12 +296,12 @@ Peak Building Loads
 
 Peak building loads are listed below.
 
-   ====================================  ==================================
-   Type                                  Notes
-   ====================================  ==================================
-   Peak Load: Heating: Delivered (kBtu)  Includes HVAC distribution losses.
-   Peak Load: Cooling: Delivered (kBtu)  Includes HVAC distribution losses.
-   ====================================  ==================================
+   =======================================  ==================================
+   Type                                     Notes
+   =======================================  ==================================
+   Peak Load: Heating: Delivered (kBtu/hr)  Includes HVAC distribution losses.
+   Peak Load: Cooling: Delivered (kBtu/hr)  Includes HVAC distribution losses.
+   =======================================  ==================================
 
 Note that the "Delivered" peak loads represent the energy delivered by the HVAC system; if a system is significantly undersized, there will be unmet peak load not reflected by these values.
 
@@ -309,14 +320,14 @@ Component loads disaggregated by Heating/Cooling are listed below.
    Type                                               Notes
    =================================================  =========================================================================================================
    Component Load: \*: Roofs (MBtu)                   Heat gain/loss through HPXML ``Roof`` elements adjacent to conditioned space
-   Component Load: \*: Ceilings (MBtu)                Heat gain/loss through HPXML ``FrameFloor`` elements (inferred to be ceilings) adjacent to conditioned space
+   Component Load: \*: Ceilings (MBtu)                Heat gain/loss through HPXML ``Floor`` elements (inferred to be ceilings) adjacent to conditioned space
    Component Load: \*: Walls (MBtu)                   Heat gain/loss through HPXML ``Wall`` elements adjacent to conditioned space
    Component Load: \*: Rim Joists (MBtu)              Heat gain/loss through HPXML ``RimJoist`` elements adjacent to conditioned space
    Component Load: \*: Foundation Walls (MBtu)        Heat gain/loss through HPXML ``FoundationWall`` elements adjacent to conditioned space
    Component Load: \*: Doors (MBtu)                   Heat gain/loss through HPXML ``Door`` elements adjacent to conditioned space
    Component Load: \*: Windows (MBtu)                 Heat gain/loss through HPXML ``Window`` elements adjacent to conditioned space, including solar
    Component Load: \*: Skylights (MBtu)               Heat gain/loss through HPXML ``Skylight`` elements adjacent to conditioned space, including solar
-   Component Load: \*: Floors (MBtu)                  Heat gain/loss through HPXML ``FrameFloor`` elements (inferred to be floors) adjacent to conditioned space
+   Component Load: \*: Floors (MBtu)                  Heat gain/loss through HPXML ``Floor`` elements (inferred to be floors) adjacent to conditioned space
    Component Load: \*: Slabs (MBtu)                   Heat gain/loss through HPXML ``Slab`` elements adjacent to conditioned space
    Component Load: \*: Internal Mass (MBtu)           Heat gain/loss from internal mass (e.g., furniture, interior walls/floors) in conditioned space
    Component Load: \*: Infiltration (MBtu)            Heat gain/loss from airflow induced by stack and wind effects
@@ -358,11 +369,13 @@ Depending on the outputs requested, the file may include:
    Fuel Consumptions                    Energy use for each fuel type (in kBtu for fossil fuels and kWh for electricity).
    End Use Consumptions                 Energy use for each end use type (in kBtu for fossil fuels and kWh for electricity).
    Emissions                            Emissions (e.g., CO2) for each scenario defined in the HPXML file.
+   Emission Fuels                       Emissions (e.g., CO2) disaggregated by fuel type for each scenario defined in the HPXML file.
+   Emission End Uses                    Emissions (e.g., CO2) disaggregated by end use for each scenario defined in the HPXML file.
    Hot Water Uses                       Water use for each end use type (in gallons).
    Total Loads                          Heating, cooling, and hot water loads (in kBtu) for the building.
    Component Loads                      Heating and cooling loads (in kBtu) disaggregated by component (e.g., Walls, Windows, Infiltration, Ducts, etc.).
    Unmet Hours                          Heating and cooling unmet hours.
-   Zone Temperatures                    Average temperatures (in deg-F) for each space modeled (e.g., living space, attic, garage, basement, crawlspace, etc.).
+   Zone Temperatures                    Zone temperatures (in deg-F) for each space (e.g., living space, attic, garage, basement, crawlspace, etc.) plus heating/cooling setpoints.
    Airflows                             Airflow rates (in cfm) for infiltration, mechanical ventilation (including clothes dryer exhaust), natural ventilation, whole house fans.
    Weather                              Weather file data including outdoor temperatures, relative humidity, wind speed, and solar.
    EnergyPlus Output Variables          These are optional and can be requested with the ReportSimulationOutput ``user_output_variables`` argument.
@@ -482,22 +495,33 @@ OpenStudio-HPXML can optionally generate a utility bills output file.
 The utility bills output file is called ``results_bills.csv`` (or ``results_bills.json`` or ``results_bills.msgpack``) and located in the run directory.
 Monthly fixed charges and marginal rates, as well as PV compensation types/rates/fees, are defined to determine how utility bills are calculated.
 
-The file includes:
+Results for each utility bill scenario defined in the HPXML file are listed as shown below.
+Note that rows below with values of zero will be excluded.
 
    =============================================  ====================
    Type                                           Notes
    =============================================  ====================
-   Total ($)                                      Annual total charges.
-   Electricity: Fixed ($)                         Annual fixed charges for electricity.
-   Electricity: Marginal ($)                      Annual energy charges for electricity.
-   Electricity: PV Credit ($)                     Annual production credit (negative value) for PV.
-   Electricity: Total ($)                         Annual total charges for electricity.
-   Natural Gas: Fixed ($)                         Annual fixed charges for natural gas.
-   Natural Gas: Marginal ($)                      Annual energy charges for natural gas.
-   Natural Gas: Total ($)                         Annual total charges for natural gas.
-   Fuel Oil: Total ($)                            Annual total charges for fuel oil.
-   Propane: Total ($)                             Annual total charges for propane.
-   Wood Cord: Total ($)                           Annual total charges for wood cord.
-   Wood Pellets: Total ($)                        Annual total charges for wood pellets.
-   Coal: Total ($)                                Annual total charges for coal.
+   <ScenarioName>: Total ($)                      Scenario annual total charges.
+   <ScenarioName>: Electricity: Fixed ($)         Scenario annual fixed charges for electricity.
+   <ScenarioName>: Electricity: Marginal ($)      Scenario annual energy charges for electricity.
+   <ScenarioName>: Electricity: PV Credit ($)     Scenario annual production credit (negative value) for PV.
+   <ScenarioName>: Electricity: Total ($)         Scenario annual total charges for electricity.
+   <ScenarioName>: Natural Gas: Fixed ($)         Scenario annual fixed charges for natural gas.
+   <ScenarioName>: Natural Gas: Marginal ($)      Scenario annual energy charges for natural gas.
+   <ScenarioName>: Natural Gas: Total ($)         Scenario annual total charges for natural gas.
+   <ScenarioName>: Fuel Oil: Fixed ($)            Scenario annual fixed charges for fuel oil.
+   <ScenarioName>: Fuel Oil: Marginal ($)         Scenario annual energy charges for fuel oil.
+   <ScenarioName>: Fuel Oil: Total ($)            Scenario annual total charges for fuel oil.
+   <ScenarioName>: Propane: Fixed ($)             Scenario annual fixed charges for propane.
+   <ScenarioName>: Propane: Marginal ($)          Scenario annual energy charges for propane.
+   <ScenarioName>: Propane: Total ($)             Scenario annual total charges for propane.
+   <ScenarioName>: Wood Cord: Fixed ($)           Scenario annual fixed charges for wood cord.
+   <ScenarioName>: Wood Cord: Marginal ($)        Scenario annual energy charges for wood cord.
+   <ScenarioName>: Wood Cord: Total ($)           Scenario annual total charges for wood cord.
+   <ScenarioName>: Wood Pellets: Fixed ($)        Scenario annual fixed charges for wood pellets.
+   <ScenarioName>: Wood Pellets: Marginal ($)     Scenario annual energy charges for wood pellets.
+   <ScenarioName>: Wood Pellets: Total ($)        Scenario annual total charges for wood pellets.
+   <ScenarioName>: Coal: Fixed ($)                Scenario annual fixed charges for coal.
+   <ScenarioName>: Coal: Marginal ($)             Scenario annual energy charges for coal.
+   <ScenarioName>: Coal: Total ($)                Scenario annual total charges for coal.
    =============================================  ====================

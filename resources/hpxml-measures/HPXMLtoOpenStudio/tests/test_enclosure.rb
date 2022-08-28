@@ -357,7 +357,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     end
   end
 
-  def test_frame_floors
+  def test_floors
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
 
@@ -368,13 +368,13 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
     hpxml = _create_hpxml('base-foundation-vented-crawlspace.xml')
     ceilings_values.each do |ceiling_values|
-      hpxml.frame_floors[1].insulation_assembly_r_value = ceiling_values[:assembly_r]
+      hpxml.floors[1].insulation_assembly_r_value = ceiling_values[:assembly_r]
       XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.frame_floors[1].id }[0]
-      _check_surface(hpxml.frame_floors[1], os_surface, ceiling_values[:layer_names])
+      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.floors[1].id }[0]
+      _check_surface(hpxml.floors[1], os_surface, ceiling_values[:layer_names])
     end
 
     # Floors
@@ -384,13 +384,13 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
 
     hpxml = _create_hpxml('base-foundation-vented-crawlspace.xml')
     floors_values.each do |floor_values|
-      hpxml.frame_floors[0].insulation_assembly_r_value = floor_values[:assembly_r]
+      hpxml.floors[0].insulation_assembly_r_value = floor_values[:assembly_r]
       XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
       model, hpxml = _test_measure(args_hash)
 
       # Check properties
-      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.frame_floors[0].id }[0]
-      _check_surface(hpxml.frame_floors[0], os_surface, floor_values[:layer_names])
+      os_surface = model.getSurfaces.select { |s| s.name.to_s == hpxml.floors[0].id }[0]
+      _check_surface(hpxml.floors[0], os_surface, floor_values[:layer_names])
     end
   end
 
@@ -667,6 +667,28 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     assert_in_delta(0.247, a_ext_ratio, 0.001)
   end
 
+  def test_aspect_ratios
+    # Test single-family attached
+    hpxml = _create_hpxml('base-bldgtype-single-family-attached.xml')
+    wall_outside = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+    wall_other_housing_unit = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+
+    wall_height = hpxml.building_construction.average_ceiling_height
+    left_right_wall_length = wall_other_housing_unit.area / wall_height
+    front_back_wall_length = ((wall_outside.area / wall_height) - left_right_wall_length) / 2.0
+    assert_in_delta(0.6667, front_back_wall_length / left_right_wall_length, 0.01)
+
+    # Test multifamily
+    hpxml = _create_hpxml('base-bldgtype-multifamily.xml')
+    wall_outside = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOutside && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+    wall_other_housing_unit = hpxml.walls.select { |w| w.exterior_adjacent_to == HPXML::LocationOtherHousingUnit && w.interior_adjacent_to == HPXML::LocationLivingSpace }[0]
+
+    wall_height = hpxml.building_construction.average_ceiling_height
+    left_right_wall_length = wall_other_housing_unit.area / wall_height
+    front_back_wall_length = ((wall_outside.area / wall_height) - left_right_wall_length) / 2.0
+    assert_in_delta(0.6667, front_back_wall_length / left_right_wall_length, 0.01)
+  end
+
   def _check_surface(hpxml_surface, os_surface, expected_layer_names)
     os_construction = os_surface.construction.get.to_LayeredConstruction.get
 
@@ -788,7 +810,7 @@ class HPXMLtoOpenStudioEnclosureTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
-    args_hash['output_dir'] = 'tests'
+    args_hash['output_dir'] = File.dirname(__FILE__)
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 

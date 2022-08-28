@@ -1148,7 +1148,6 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     u =  0.0743
     t_set = UnitConversions.convert(water_heating_system.temperature, 'F', 'C') + 1 # setpoint + 1/2 deadband
     ther_eff = 1.0
-    cop = 2.820
     tank_height = 1.2192
     cap = UnitConversions.convert(water_heating_system.heating_capacity / 1000.0, 'kBtu/hr', 'W')
     loc = water_heating_system.location
@@ -1176,7 +1175,7 @@ class HPXMLtoOpenStudioWaterHeaterTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
-    args_hash['output_dir'] = 'tests'
+    args_hash['output_dir'] = File.dirname(__FILE__)
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 

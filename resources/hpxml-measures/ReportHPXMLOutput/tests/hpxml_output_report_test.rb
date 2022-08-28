@@ -12,7 +12,7 @@ require_relative '../measure.rb'
 
 class ReportHPXMLOutputTest < MiniTest::Test
   def test_hpxml_with_primary_systems
-    args_hash = { 'hpxml_path' => '../workflow/sample_files/base-hvac-multiple.xml' }
+    args_hash = { 'hpxml_path' => '../../../workflow/sample_files/base-hvac-multiple.xml' }
     hpxml_csv = _test_measure(args_hash)
     assert(File.exist?(hpxml_csv))
     actual_rows = File.readlines(hpxml_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
@@ -33,7 +33,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
     end
     tmp_hpxml_path = File.join(File.dirname(__FILE__), 'tmp.xml')
     XMLHelper.write_file(hpxml.to_oga(), tmp_hpxml_path)
-    args_hash = { 'hpxml_path' => '../ReportHPXMLOutput/tests/tmp.xml' }
+    args_hash = { 'hpxml_path' => '../../../ReportHPXMLOutput/tests/tmp.xml' }
     hpxml_csv = _test_measure(args_hash)
     File.delete(tmp_hpxml_path) if File.exist?(tmp_hpxml_path)
     assert(File.exist?(hpxml_csv))
@@ -112,7 +112,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
     hpxml_files = ['base-hvac-air-to-air-heat-pump-1-speed.xml',
                    'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml']
     hpxml_files.each do |hpxml_file|
-      args_hash = { 'hpxml_path' => "../workflow/sample_files/#{hpxml_file}" }
+      args_hash = { 'hpxml_path' => "../../../workflow/sample_files/#{hpxml_file}" }
       hpxml_csv = _test_measure(args_hash)
       assert(File.exist?(hpxml_csv))
 
@@ -191,7 +191,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
                    'base-foundation-vented-crawlspace.xml',
                    'base-foundation-walkout-basement.xml']
     hpxml_files.each do |hpxml_file|
-      args_hash = { 'hpxml_path' => "../workflow/sample_files/#{hpxml_file}" }
+      args_hash = { 'hpxml_path' => "../../../workflow/sample_files/#{hpxml_file}" }
       hpxml_csv = _test_measure(args_hash)
       assert(File.exist?(hpxml_csv))
 

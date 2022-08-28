@@ -7,18 +7,15 @@ require 'fileutils'
 require_relative '../measure.rb'
 require_relative '../resources/util.rb'
 
-class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
+class HPXMLtoOpenStudioSchedulesTest < MiniTest::Test
   def setup
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))
     @sample_files_path = File.join(@root_path, 'workflow', 'sample_files')
     @tmp_hpxml_path = File.join(@sample_files_path, 'tmp.xml')
-    @tmp_output_path = File.join(@sample_files_path, 'tmp_output')
-    FileUtils.mkdir_p(@tmp_output_path)
   end
 
   def teardown
     File.delete(@tmp_hpxml_path) if File.exist? @tmp_hpxml_path
-    FileUtils.rm_rf(@tmp_output_path)
   end
 
   def sample_files_dir
@@ -28,7 +25,7 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
   def test_default_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     schedule_constants = 9
     schedule_rulesets = 17
@@ -102,7 +99,7 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(@tmp_hpxml_path)
     XMLHelper.write_file(hpxml.to_oga, @tmp_hpxml_path)
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     schedule_file_names = []
     model.getScheduleFiles.each do |schedule_file|
@@ -115,7 +112,7 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
   def test_stochastic_vacancy_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-stochastic-vacancy.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     schedule_constants = 9
     schedule_rulesets = 5
@@ -132,7 +129,7 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
   def test_smooth_schedules
     args_hash = {}
     args_hash['hpxml_path'] = File.absolute_path(File.join(sample_files_dir, 'base-schedules-detailed-occupancy-smooth.xml'))
-    model, hpxml = _test_measure(args_hash)
+    model, _hpxml = _test_measure(args_hash)
 
     schedule_constants = 9
     schedule_rulesets = 5
@@ -154,7 +151,7 @@ class HPXMLtoOpenStudioSimControlsTest < MiniTest::Test
     model = OpenStudio::Model::Model.new
 
     # get arguments
-    args_hash['output_dir'] = 'tests'
+    args_hash['output_dir'] = File.dirname(__FILE__)
     arguments = measure.arguments(model)
     argument_map = OpenStudio::Measure.convertOSArgumentVectorToMap(arguments)
 

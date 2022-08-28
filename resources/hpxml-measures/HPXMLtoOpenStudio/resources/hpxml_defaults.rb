@@ -6,7 +6,7 @@ class HPXMLDefaults
   # being written to the HPXML file. This is useful to associate additional values
   # with the HPXML objects that will ultimately get passed around.
 
-  def self.apply(hpxml, eri_version, weather, epw_file: nil, schedules_file: nil, convert_shared_systems: true)
+  def self.apply(runner, hpxml, eri_version, weather, epw_file: nil, schedules_file: nil, convert_shared_systems: true)
     cfa = hpxml.building_construction.conditioned_floor_area
     nbeds = hpxml.building_construction.number_of_bedrooms
     ncfl = hpxml.building_construction.number_of_conditioned_floors
@@ -33,6 +33,7 @@ class HPXMLDefaults
 
     apply_header(hpxml, epw_file)
     apply_emissions_scenarios(hpxml)
+    apply_utility_bill_scenarios(runner, hpxml)
     apply_site(hpxml)
     apply_neighbor_buildings(hpxml)
     apply_building_occupancy(hpxml, nbeds, schedules_file)
@@ -45,7 +46,7 @@ class HPXMLDefaults
     apply_rim_joists(hpxml)
     apply_walls(hpxml)
     apply_foundation_walls(hpxml)
-    apply_frame_floors(hpxml)
+    apply_floors(hpxml)
     apply_slabs(hpxml)
     apply_windows(hpxml)
     apply_skylights(hpxml)
@@ -103,7 +104,7 @@ class HPXMLDefaults
     if azimuth_areas.empty?
       primary_azimuth = 0
     else
-      primary_azimuth = azimuth_areas.max_by { |k, v| v }[0]
+      primary_azimuth = azimuth_areas.max_by { |_k, v| v }[0]
     end
     return [primary_azimuth,
             sanitize_azimuth(primary_azimuth + 90),
@@ -141,21 +142,15 @@ class HPXMLDefaults
       hpxml.header.sim_end_day_isdefaulted = true
     end
 
-    if (not epw_file.nil?) && epw_file.startDateActualYear.is_initialized # AMY
-      if not hpxml.header.sim_calendar_year.nil?
-        if hpxml.header.sim_calendar_year != epw_file.startDateActualYear.get
-          hpxml.header.sim_calendar_year = epw_file.startDateActualYear.get
-          hpxml.header.sim_calendar_year_isdefaulted = true
-        end
-      else
-        hpxml.header.sim_calendar_year = epw_file.startDateActualYear.get
+    sim_calendar_year = Location.get_sim_calendar_year(hpxml.header.sim_calendar_year, epw_file)
+    if not hpxml.header.sim_calendar_year.nil?
+      if hpxml.header.sim_calendar_year != sim_calendar_year
+        hpxml.header.sim_calendar_year = sim_calendar_year
         hpxml.header.sim_calendar_year_isdefaulted = true
       end
     else
-      if hpxml.header.sim_calendar_year.nil?
-        hpxml.header.sim_calendar_year = 2007 # For consistency with SAM utility bill calculations
-        hpxml.header.sim_calendar_year_isdefaulted = true
-      end
+      hpxml.header.sim_calendar_year = sim_calendar_year
+      hpxml.header.sim_calendar_year_isdefaulted = true
     end
 
     if hpxml.header.dst_enabled.nil?
@@ -207,6 +202,11 @@ class HPXMLDefaults
     if (not epw_file.nil?) && hpxml.header.time_zone_utc_offset.nil?
       hpxml.header.time_zone_utc_offset = epw_file.timeZone
       hpxml.header.time_zone_utc_offset_isdefaulted = true
+    end
+
+    if hpxml.header.temperature_capacitance_multiplier.nil?
+      hpxml.header.temperature_capacitance_multiplier = 1.0
+      hpxml.header.temperature_capacitance_multiplier_isdefaulted = true
     end
   end
 
@@ -271,6 +271,120 @@ class HPXMLDefaults
       scenario.wood_pellets_units_isdefaulted = true
       scenario.wood_pellets_value = wood_pellets
       scenario.wood_pellets_value_isdefaulted = true
+    end
+  end
+
+  def self.apply_utility_bill_scenarios(runner, hpxml)
+    hpxml_doc = nil
+    hpxml.header.utility_bill_scenarios.each do |scenario|
+      hpxml_doc = hpxml.to_oga if hpxml_doc.nil?
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeElectricity)
+        if scenario.elec_fixed_charge.nil?
+          scenario.elec_fixed_charge = 12.0 # https://www.nrdc.org/experts/samantha-williams/there-war-attrition-electricity-fixed-charges says $11.19/month in 2018
+          scenario.elec_fixed_charge_isdefaulted = true
+        end
+        if scenario.elec_marginal_rate.nil?
+          scenario.elec_marginal_rate, _ = UtilityBills.get_rates_from_eia_data(runner, hpxml.header.state_code, HPXML::FuelTypeElectricity, scenario.elec_fixed_charge)
+          scenario.elec_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeNaturalGas)
+        if scenario.natural_gas_fixed_charge.nil?
+          scenario.natural_gas_fixed_charge = 12.0 # https://www.aga.org/sites/default/files/aga_energy_analysis_-_natural_gas_utility_rate_structure.pdf says $11.25/month in 2015
+          scenario.natural_gas_fixed_charge_isdefaulted = true
+        end
+        if scenario.natural_gas_marginal_rate.nil?
+          scenario.natural_gas_marginal_rate, _ = UtilityBills.get_rates_from_eia_data(runner, hpxml.header.state_code, HPXML::FuelTypeNaturalGas, scenario.natural_gas_fixed_charge)
+          scenario.natural_gas_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypePropane)
+        if scenario.propane_fixed_charge.nil?
+          scenario.propane_fixed_charge = 0.0
+          scenario.propane_fixed_charge_isdefaulted = true
+        end
+        if scenario.propane_marginal_rate.nil?
+          scenario.propane_marginal_rate, _ = UtilityBills.get_rates_from_eia_data(runner, hpxml.header.state_code, HPXML::FuelTypePropane, nil)
+          scenario.propane_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeOil)
+        if scenario.fuel_oil_fixed_charge.nil?
+          scenario.fuel_oil_fixed_charge = 0.0
+          scenario.fuel_oil_fixed_charge_isdefaulted = true
+        end
+        if scenario.fuel_oil_marginal_rate.nil?
+          scenario.fuel_oil_marginal_rate, _ = UtilityBills.get_rates_from_eia_data(runner, hpxml.header.state_code, HPXML::FuelTypeOil, nil)
+          scenario.fuel_oil_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeCoal)
+        if scenario.coal_fixed_charge.nil?
+          scenario.coal_fixed_charge = 0.0
+          scenario.coal_fixed_charge_isdefaulted = true
+        end
+        if scenario.coal_marginal_rate.nil?
+          scenario.coal_marginal_rate = 0.015
+          scenario.coal_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeWoodCord)
+        if scenario.wood_fixed_charge.nil?
+          scenario.wood_fixed_charge = 0.0
+          scenario.wood_fixed_charge_isdefaulted = true
+        end
+        if scenario.wood_marginal_rate.nil?
+          scenario.wood_marginal_rate = 0.015
+          scenario.wood_marginal_rate_isdefaulted = true
+        end
+      end
+
+      if HPXML::has_fuel(hpxml_doc, HPXML::FuelTypeWoodPellets)
+        if scenario.wood_pellets_fixed_charge.nil?
+          scenario.wood_pellets_fixed_charge = 0.0
+          scenario.wood_pellets_fixed_charge_isdefaulted = true
+        end
+        if scenario.wood_pellets_marginal_rate.nil?
+          scenario.wood_pellets_marginal_rate = 0.015
+          scenario.wood_pellets_marginal_rate_isdefaulted = true
+        end
+      end
+
+      next unless hpxml.pv_systems.size > 0
+
+      if scenario.pv_compensation_type.nil?
+        scenario.pv_compensation_type = HPXML::PVCompensationTypeNetMetering
+        scenario.pv_compensation_type_isdefaulted = true
+      end
+
+      if scenario.pv_compensation_type == HPXML::PVCompensationTypeNetMetering
+        if scenario.pv_net_metering_annual_excess_sellback_rate_type.nil?
+          scenario.pv_net_metering_annual_excess_sellback_rate_type = HPXML::PVAnnualExcessSellbackRateTypeUserSpecified
+          scenario.pv_net_metering_annual_excess_sellback_rate_type_isdefaulted = true
+        end
+        if scenario.pv_net_metering_annual_excess_sellback_rate_type == HPXML::PVAnnualExcessSellbackRateTypeUserSpecified
+          if scenario.pv_net_metering_annual_excess_sellback_rate.nil?
+            scenario.pv_net_metering_annual_excess_sellback_rate = 0.03
+            scenario.pv_net_metering_annual_excess_sellback_rate_isdefaulted = true
+          end
+        end
+      elsif scenario.pv_compensation_type == HPXML::PVCompensationTypeFeedInTariff
+        if scenario.pv_feed_in_tariff_rate.nil?
+          scenario.pv_feed_in_tariff_rate = 0.12
+          scenario.pv_feed_in_tariff_rate_isdefaulted = true
+        end
+      end
+
+      if scenario.pv_monthly_grid_connection_fee_dollars_per_kw.nil? && scenario.pv_monthly_grid_connection_fee_dollars.nil?
+        scenario.pv_monthly_grid_connection_fee_dollars = 0.0
+        scenario.pv_monthly_grid_connection_fee_dollars_isdefaulted = true
+      end
     end
   end
 
@@ -637,23 +751,23 @@ class HPXMLDefaults
     end
   end
 
-  def self.apply_frame_floors(hpxml)
-    hpxml.frame_floors.each do |frame_floor|
-      if frame_floor.interior_finish_type.nil?
-        if frame_floor.is_floor
-          frame_floor.interior_finish_type = HPXML::InteriorFinishNone
-        elsif HPXML::conditioned_finished_locations.include? frame_floor.interior_adjacent_to
-          frame_floor.interior_finish_type = HPXML::InteriorFinishGypsumBoard
+  def self.apply_floors(hpxml)
+    hpxml.floors.each do |floor|
+      if floor.interior_finish_type.nil?
+        if floor.is_floor
+          floor.interior_finish_type = HPXML::InteriorFinishNone
+        elsif HPXML::conditioned_finished_locations.include? floor.interior_adjacent_to
+          floor.interior_finish_type = HPXML::InteriorFinishGypsumBoard
         else
-          frame_floor.interior_finish_type = HPXML::InteriorFinishNone
+          floor.interior_finish_type = HPXML::InteriorFinishNone
         end
-        frame_floor.interior_finish_type_isdefaulted = true
+        floor.interior_finish_type_isdefaulted = true
       end
-      next unless frame_floor.interior_finish_thickness.nil?
+      next unless floor.interior_finish_thickness.nil?
 
-      if frame_floor.interior_finish_type != HPXML::InteriorFinishNone
-        frame_floor.interior_finish_thickness = 0.5
-        frame_floor.interior_finish_thickness_isdefaulted = true
+      if floor.interior_finish_type != HPXML::InteriorFinishNone
+        floor.interior_finish_thickness = 0.5
+        floor.interior_finish_thickness_isdefaulted = true
       end
     end
   end
@@ -923,10 +1037,15 @@ class HPXMLDefaults
       cooling_system_fuel = HPXML::FuelTypeElectricity
 
       if cooling_system_type == HPXML::HVACTypeCentralAirConditioner
-        next unless cooling_system.cooling_efficiency_seer.nil?
-
-        cooling_system.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsSEER)
-        cooling_system.cooling_efficiency_seer_isdefaulted = true
+        if cooling_system.cooling_efficiency_seer.nil?
+          if cooling_system.cooling_efficiency_seer2.nil?
+            cooling_system.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, cooling_system_type, cooling_system_fuel, HPXML::UnitsSEER)
+          else
+            cooling_system.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(cooling_system.cooling_efficiency_seer2).round(2)
+            cooling_system.cooling_efficiency_seer2 = nil
+          end
+          cooling_system.cooling_efficiency_seer_isdefaulted = true
+        end
       elsif [HPXML::HVACTypeRoomAirConditioner].include? cooling_system_type
         next unless cooling_system.cooling_efficiency_eer.nil? && cooling_system.cooling_efficiency_ceer.nil?
 
@@ -943,13 +1062,23 @@ class HPXMLDefaults
       next unless [HPXML::HVACTypeHeatPumpAirToAir].include? heat_pump_type
 
       if heat_pump.cooling_efficiency_seer.nil?
-        heat_pump.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsSEER)
+        if heat_pump.cooling_efficiency_seer2.nil?
+          heat_pump.cooling_efficiency_seer = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsSEER)
+        else
+          heat_pump.cooling_efficiency_seer = HVAC.calc_seer_from_seer2(heat_pump.cooling_efficiency_seer2).round(2)
+          heat_pump.cooling_efficiency_seer2 = nil
+        end
         heat_pump.cooling_efficiency_seer_isdefaulted = true
       end
-      if heat_pump.heating_efficiency_hspf.nil?
+      next unless heat_pump.heating_efficiency_hspf.nil?
+
+      if heat_pump.heating_efficiency_hspf2.nil?
         heat_pump.heating_efficiency_hspf = HVAC.get_default_hvac_efficiency_by_year_installed(year_installed, heat_pump_type, heat_pump_fuel, HPXML::UnitsHSPF)
-        heat_pump.heating_efficiency_hspf_isdefaulted = true
+      else
+        heat_pump.heating_efficiency_hspf = HVAC.calc_hspf_from_hspf2(heat_pump.heating_efficiency_hspf2).round(2)
+        heat_pump.heating_efficiency_hspf2 = nil
       end
+      heat_pump.heating_efficiency_hspf_isdefaulted = true
     end
 
     # Default AC/HP compressor type
@@ -1212,7 +1341,6 @@ class HPXMLDefaults
       end
     end
     hpxml.heating_systems.each do |heating_system|
-      htg_ap = heating_system.additional_properties
       next unless [HPXML::HVACTypeStove,
                    HPXML::HVACTypePortableHeater,
                    HPXML::HVACTypeFixedHeater,
@@ -1282,7 +1410,7 @@ class HPXMLDefaults
       schedules_file_includes_heating_setpoint_temp = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnHeatingSetpoint)
       if hvac_control.heating_setpoint_temp.nil? && hvac_control.weekday_heating_setpoints.nil? && !schedules_file_includes_heating_setpoint_temp
         # No heating setpoints; set a default heating setpoint for, e.g., natural ventilation
-        htg_sp, htg_setback_sp, htg_setback_hrs_per_week, htg_setback_start_hr = HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual)
+        htg_sp, _htg_setback_sp, _htg_setback_hrs_per_week, _htg_setback_start_hr = HVAC.get_default_heating_setpoint(HPXML::HVACControlTypeManual)
         hvac_control.heating_setpoint_temp = htg_sp
         hvac_control.heating_setpoint_temp_isdefaulted = true
       end
@@ -1290,7 +1418,7 @@ class HPXMLDefaults
       schedules_file_includes_cooling_setpoint_temp = Schedule.schedules_file_includes_col_name(schedules_file, SchedulesFile::ColumnCoolingSetpoint)
       if hvac_control.cooling_setpoint_temp.nil? && hvac_control.weekday_cooling_setpoints.nil? && !schedules_file_includes_cooling_setpoint_temp
         # No cooling setpoints; set a default cooling setpoint for, e.g., natural ventilation
-        clg_sp, clg_setup_sp, clg_setup_hrs_per_week, clg_setup_start_hr = HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual)
+        clg_sp, _clg_setup_sp, _clg_setup_hrs_per_week, _clg_setup_start_hr = HVAC.get_default_cooling_setpoint(HPXML::HVACControlTypeManual)
         hvac_control.cooling_setpoint_temp = clg_sp
         hvac_control.cooling_setpoint_temp_isdefaulted = true
       end
@@ -2552,11 +2680,6 @@ class HPXMLDefaults
               htg_sys.backup_heating_capacity = hvac_sizing_values.Heat_Capacity_Supp.round
               htg_sys.backup_heating_capacity_isdefaulted = true
             end
-          elsif htg_sys.backup_type == HPXML::HeatPumpBackupTypeSeparate
-            if htg_sys.backup_system.heating_capacity.nil? || ((htg_sys.backup_system.heating_capacity - hvac_sizing_values.Heat_Capacity_Supp).abs >= 1.0)
-              htg_sys.backup_system.heating_capacity = hvac_sizing_values.Heat_Capacity_Supp.round
-              htg_sys.backup_system.heating_capacity_isdefaulted = true
-            end
           end
         end
 
@@ -2566,10 +2689,6 @@ class HPXMLDefaults
                  HPXML::HVACTypeElectricResistance].include?(htg_sys.heating_system_type))
           htg_sys.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow.round
           htg_sys.heating_airflow_cfm_isdefaulted = true
-        end
-        if htg_sys.is_a?(HPXML::HeatPump) && (htg_sys.backup_type == HPXML::HeatPumpBackupTypeSeparate)
-          htg_sys.backup_system.heating_airflow_cfm = hvac_sizing_values.Heat_Airflow_Supp.round
-          htg_sys.backup_system.heating_airflow_cfm_isdefaulted = true
         end
 
         # Heating GSHP loop

@@ -1035,7 +1035,7 @@ class Schedule
 
   def self.day_start_months(year)
     month_num_days = Constants.NumDaysInMonths(year)
-    return month_num_days.each_with_index.map { |n, i| get_day_num_from_month_day(year, i + 1, 1) }
+    return month_num_days.each_with_index.map { |_n, i| get_day_num_from_month_day(year, i + 1, 1) }
   end
 
   def self.day_end_months(year)
@@ -1090,6 +1090,23 @@ class Schedule
     if begin_month.nil? || end_month.nil? || begin_day == 0 || end_day == 0
       fail "Invalid date format specified for '#{date_range}'."
     end
+
+    return begin_month, begin_day, end_month, end_day
+  end
+
+  def self.get_begin_and_end_dates_from_monthly_array(months, year)
+    if months[0] == 1 && months[11] == 1 # Wrap around year
+      begin_month = 12 - months.reverse.index(0) + 1
+      end_month = months.index(0)
+    else
+      begin_month = months.index(1) + 1
+      end_month = 12 - months.reverse.index(1)
+    end
+
+    num_days_in_month = Constants.NumDaysInMonths(year)
+
+    begin_day = 1
+    end_day = num_days_in_month[end_month - 1]
 
     return begin_month, begin_day, end_month, end_day
   end
@@ -1390,6 +1407,8 @@ class SchedulesFile
           File.delete(tmp_schedules_path)
         rescue
         end
+      else
+        fail "Could not get external file for path '#{tmp_schedules_path}'."
       end
     end
   end
@@ -1400,7 +1419,7 @@ class SchedulesFile
 
     col_names = SchedulesFile.ColumnNames
 
-    @tmp_schedules[col_names[0]].each_with_index do |ts, i|
+    @tmp_schedules[col_names[0]].each_with_index do |_ts, i|
       col_names.each do |col_name|
         next unless affected_by_vacancy[col_name] # skip those unaffected by vacancy
 
@@ -1414,7 +1433,7 @@ class SchedulesFile
 
     col_names = @tmp_schedules.keys
 
-    @tmp_schedules[col_names[0]].each_with_index do |ts, i|
+    @tmp_schedules[col_names[0]].each_with_index do |_ts, i|
       SchedulesFile.SetpointColumnNames.each do |setpoint_col_name|
         next unless col_names.include?(setpoint_col_name)
 
