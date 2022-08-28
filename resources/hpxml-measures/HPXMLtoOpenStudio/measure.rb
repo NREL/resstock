@@ -2308,26 +2308,40 @@ class OSModel
 
     nonsurf_names = ['intgains', 'lighting', 'infil', 'mechvent', 'natvent', 'whf', 'ducts']
 
-    # EMS program: Initialize cumulative compontent loads 
+    # EMS program: Initialize coasting hours count variable
     program_init = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     program_init.setName("initialize_component_load_vars")
-    surfaces_sensors.keys.each do |k|
-      accum_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "hr_#{k}_accum")
-      program_init.addLine("Set #{accum_var.name} = 0")
-    end
-    nonsurf_names.each do |nonsurf_name|
-      accum_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "hr_#{nonsurf_name}_accum")
-      program_init.addLine("Set #{accum_var.name} = 0")
-    end
 
+    coast_hrs = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "coast_hrs")
+    program_init.addLine("Set #{coast_hrs.name} = 0") 
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{program_init.name} calling manager")
     program_calling_manager.setCallingPoint('BeginNewEnvironment')
     program_calling_manager.addProgram(program_init)
 
+    # Reset after warmup
+    program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
+    program_calling_manager.setName("#{program_init.name} calling manager")
+    program_calling_manager.setCallingPoint('AfterNewEnvironmentWarmUpIsComplete')
+    program_calling_manager.addProgram(program_init)
+
     # EMS program
     program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
     program.setName(Constants.ObjectNameComponentLoadsProgram)
+
+    # EMS program: Set trend variables
+    surfaces_sensors.keys.each do |k|
+      surf_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "hr_#{k}")
+      trend_var = OpenStudio::Model::EnergyManagementSystemTrendVariable.new(model, surf_var)
+      trend_var.setNumberOfTimestepsToBeLogged(23)
+      trend_var.setName("hr_#{k}_trend")
+    end
+    nonsurf_names.each do |name|
+      nonsurf_var = OpenStudio::Model::EnergyManagementSystemGlobalVariable.new(model, "hr_#{name}")
+      trend_var = OpenStudio::Model::EnergyManagementSystemTrendVariable.new(model, nonsurf_var)
+      trend_var.setNumberOfTimestepsToBeLogged(23)
+      trend_var.setName("hr_#{name}_trend")
+    end
 
     # EMS program: Surfaces
     surfaces_sensors.each do |k, surface_sensors|
@@ -2405,12 +2419,33 @@ class OSModel
     # EMS program: Heating vs Cooling logic
     program.addLine('Set htg_mode = 0')
     program.addLine('Set clg_mode = 0')
+    program.addLine('Set hvac_on = 0')
     program.addLine("If (#{liv_load_sensors[:htg].name} > 0)") # Assign hour to heating if heating load
     program.addLine('  Set htg_mode = 1')
+    program.addLine('  Set hvac_on = 1')
     program.addLine("ElseIf (#{liv_load_sensors[:clg].name} > 0)") # Assign hour to cooling if cooling load
     program.addLine('  Set clg_mode = 1')
+    program.addLine('  Set hvac_on = 1')
     program.addLine('EndIf')
 
+    # EMS program: Sum the last n hours of coasting if the hvac turned on
+    program.addLine("If (coast_hrs > 0) && (hvac_on==1)")
+    surfaces_sensors.keys.each do |k|
+      program.addLine("  Set hr_#{k}_trendsum = @TrendSum hr_#{k}_trend coast_hrs")
+    end
+    nonsurf_names.each do |name|
+      program.addLine("  Set hr_#{name}_trendsum = @TrendSum hr_#{name}_trend coast_hrs")
+    end
+    program.addLine("Else")
+    surfaces_sensors.keys.each do |k|
+      program.addLine("  Set hr_#{k}_trendsum = 0")
+    end
+    nonsurf_names.each do |name|
+      program.addLine("  Set hr_#{name}_trendsum = 0")
+    end
+    program.addLine("EndIf")
+
+    
     [:htg, :clg].each do |mode|
       if mode == :htg
         sign = ''
@@ -2418,28 +2453,20 @@ class OSModel
         sign = '-'
       end
       surfaces_sensors.keys.each do |k|
-        program.addLine("Set loads_#{mode}_#{k} = #{sign}(hr_#{k} + hr_#{k}_accum) * #{mode}_mode")
+        program.addLine("Set loads_#{mode}_#{k} = #{sign}(hr_#{k} + hr_#{k}_trendsum) * #{mode}_mode")
       end
-      nonsurf_names.each do |nonsurf_name|
-        program.addLine("Set loads_#{mode}_#{nonsurf_name} = #{sign}(hr_#{nonsurf_name} + hr_#{nonsurf_name}_accum) * #{mode}_mode")
+      nonsurf_names.each do |name|
+        program.addLine("Set loads_#{mode}_#{name} = #{sign}(hr_#{name} + hr_#{name}_trendsum) * #{mode}_mode")
       end
     end
 
-    # EMS program: Update cumulative load variables
-    program.addLine("If (htg_mode == 0) && (clg_mode == 0)")
-    surfaces_sensors.keys.each do |k|
-      program.addLine("  Set hr_#{k}_accum = hr_#{k}_accum + hr_#{k}") # Accumulated loads to be assigned when HVAC is on
-    end
-    nonsurf_names.each do |nonsurf_name|
-      program.addLine("  Set hr_#{nonsurf_name}_accum = hr_#{nonsurf_name}_accum + hr_#{nonsurf_name}")
-    end
+    # Update coast hours count
+    program.addLine("If (hvac_on == 0) && (coast_hrs == 23)")
+    program.addLine("  Set coast_hrs = 23") # Max of 24 hrs (including current)
+    program.addLine("ElseIf hvac_on == 0")
+    program.addLine("  Set coast_hrs = coast_hrs + 1") 
     program.addLine("Else") 
-    surfaces_sensors.keys.each do |k|
-      program.addLine("  Set hr_#{k}_accum = 0")
-    end
-    nonsurf_names.each do |nonsurf_name|
-      program.addLine("  Set hr_#{nonsurf_name}_accum = 0")
-    end
+    program.addLine("  Set coast_hrs = 0") 
     program.addLine('EndIf')
 
     # EMS calling manager
