@@ -141,6 +141,11 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_scenario_names', false)
+    arg.setDisplayName('Utility Bills: Scenario Names')
+    arg.setDescription('Names of utility bill scenarios. If multiple scenarios, use a comma-separated list. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
     return args
   end
 
@@ -377,6 +382,14 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
           register_value(runner, 'emissions_wood_values', emissions_wood_values)
         end
       end
+    end
+
+    # Utility Bills
+    if args['utility_bill_scenario_names'].is_initialized
+      utility_bill_scenario_names = args['utility_bill_scenario_names'].get
+
+      measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = utility_bill_scenario_names
+      register_value(runner, 'utility_bill_scenario_names', utility_bill_scenario_names)
     end
 
     # Get registered values and pass them to BuildResidentialScheduleFile
