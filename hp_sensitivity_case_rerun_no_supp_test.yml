@@ -1,0 +1,240 @@
+schema_version: '0.3'
+buildstock_directory: /projects/enduse/abc_typology/repos/resstock  # Relative to this file or absolute
+project_directory: project_national  # Relative to buildstock_directory
+output_directory: /projects/enduse/abc_typology/resstock_runs/hp_analysis_10k_rerun_no_supp_09022022
+# weather_files_url: https://s3.amazonaws.com/epwweatherfiles/project_resstock_national.zip
+weather_files_path: /shared-projects/buildstock/weather/BuildStock_TMY3_FIPS.zip  # Relative to this file or absolute path to zipped weather files
+# weather_files_path: ./resstock_national_weather_refactored.zip  # Relative to this file or absolute path to zipped weather files
+baseline:
+  n_buildings_represented: 133172057
+
+sampler: 
+  type: residential_quota
+  args: 
+    n_datapoints: 10000
+
+workflow_generator: 
+  type: residential_default
+  args: 
+    simulation_output: 
+      include_enduse_subcategories: true
+    reporting_measures:
+        - measure_dir_name: QOIReport
+
+    # residential_simulation_controls: 
+    #   timesteps_per_hr: 6
+    #   begin_month: 1
+    #   begin_day_of_month: 1
+    #   end_month: 12
+    #   end_day_of_month: 31
+    #   calendar_year: 2007
+
+eagle:
+  account: enduse
+  n_jobs: 8
+  minutes_per_sim: 10
+  sampling:
+    time: 20
+  postprocessing:
+    time: 800
+    n_workers: 2
+    # node_memory_mb: 751616
+
+upgrades:
+  - upgrade_name: HP_case_high_efficiency
+    options:
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct_maxefficiency # https://ashp.neep.org/#!/product/33195
+        option: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF, max load MSHP model
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF, max load MSHP model
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 15030.40
+            multiplier: Fixed (1)
+          - value: 155.17
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &HVAC_efficiency_MSHP_ductless_maxefficiency
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+        apply_logic:
+          - not: 
+            - or:
+              - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+              - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, max load
+          - HVAC Has Ducts|No
+        costs:
+          - value: 2820.60
+            multiplier: Fixed (1)
+          - value: 367.22
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      
+      # Ducts sealing and insulation Upgrade to R-8, 10% leakage
+      - &ducts_category1
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|85% Leakage, Uninsulated
+            - Ducts|53% Leakage, Uninsulated
+            - Ducts|34% Leakage, Uninsulated
+            - Ducts|30% Leakage, Uninsulated
+            - Ducts|85% Leakage, R-4
+            - Ducts|85% Leakage, R-6
+            - Ducts|53% Leakage, R-4
+            - Ducts|53% Leakage, R-6
+            - Ducts|34% Leakage, R-4
+            - Ducts|34% Leakage, R-6
+            - Ducts|30% Leakage, R-4
+            - Ducts|30% Leakage, R-6            
+        costs:
+          - value: 2.84
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category2
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|85% Leakage, R-8
+            - Ducts|53% Leakage, R-8
+            - Ducts|34% Leakage, R-8
+            - Ducts|30% Leakage, R-8   
+        costs:
+          - value: 1.04
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category3
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|24% Leakage, Uninsulated
+            - Ducts|24% Leakage, R-4
+            - Ducts|24% Leakage, R-6
+            - Ducts|20% Leakage, Uninsulated
+            - Ducts|20% Leakage, R-4
+            - Ducts|20% Leakage, R-6 
+        costs:
+          - value: 2.32
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category4
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|24% Leakage, R-8
+            - Ducts|20% Leakage, R-8
+        costs:
+          - value: 0.52
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category5
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|15% Leakage, Uninsulated
+            - Ducts|15% Leakage, R-4
+            - Ducts|15% Leakage, R-6
+            - Ducts|14% Leakage, Uninsulated
+            - Ducts|14% Leakage, R-4
+            - Ducts|14% Leakage, R-6
+            - Ducts|15% Leakage, R-6, 50% Surface Area, 1 return
+        costs:
+          - value: 2.06
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category6
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|15% Leakage, R-8
+            - Ducts|14% Leakage, R-8
+        costs:
+          - value: 0.26
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+      - &ducts_category7
+        option: Ducts|10% Leakage, R-8
+        apply_logic:
+          or: 
+            - Ducts|10% Leakage, Uninsulated
+            - Ducts|10% Leakage, R-4
+            - Ducts|10% Leakage, R-6
+        costs:
+          - value: 1.80
+            multiplier: Duct Unconditioned Surface Area (ft^2)
+        lifetime: 30
+
+
+  # With "No Supplemental"
+  - upgrade_name: HP_case_high_efficiency_nosupp
+    options:
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7
+
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct_maxefficiency_nosupp # https://ashp.neep.org/#!/product/31559
+        option: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF, no supp MSHP model
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 24, 13 HSPF, no supp MSHP model
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 6687.86
+            multiplier: Fixed (1)
+          - value: 155.17
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &HVAC_efficiency_MSHP_ductless_maxefficiency_nosupp
+        option: HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, no supp
+        apply_logic:
+          - not: 
+            - or: 
+              - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF, no supp
+          - HVAC Has Ducts|No
+        costs:
+          - value: 2556.60
+            multiplier: Fixed (1)
+          - value: 331.22
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+
+  - upgrade_name: HP_case_medium_efficiency_nosupp
+    options:
+      - *ducts_category1
+      - *ducts_category2
+      - *ducts_category3
+      - *ducts_category4
+      - *ducts_category5
+      - *ducts_category6
+      - *ducts_category7
+
+      # HVAC Upgrade
+      - &HVAC_efficiency_ASHP_duct_medefficiency_nosupp # https://ashp.neep.org/#!/product/31559
+        option: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, no supp
+        apply_logic:
+          - not: HVAC Heating Efficiency|ASHP, SEER 22, 10 HSPF, no supp
+          - HVAC Has Ducts|Yes
+        costs:
+          - value: 6687.86
+            multiplier: Fixed (1)
+          - value: 155.17
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
+      - &HVAC_efficiency_MSHP_ductless_medefficiency_nosupp
+        option: HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF, no supp
+        apply_logic:
+          - not: 
+            - or: 
+              - HVAC Heating Efficiency|MSHP, SEER 17, 9.5 HSPF
+              - HVAC Heating Efficiency|MSHP, SEER 29.3, 14 HSPF
+          - HVAC Has Ducts|No
+        costs:
+          - value: 2556.60
+            multiplier: Fixed (1)
+          - value: 331.22
+            multiplier: Size, Heating System (kBtu/h)
+        lifetime: 15
