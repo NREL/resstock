@@ -146,6 +146,86 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
     arg.setDescription('Names of utility bill scenarios. If multiple scenarios, use a comma-separated list. If multiple scenarios, use a comma-separated list.')
     args << arg
 
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Electricity Fixed Charges')
+    arg.setDescription('Electricity utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_electricity_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Electricity Marginal Rates')
+    arg.setDescription('Electricity utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_natural_gas_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Natural Gas Fixed Charges')
+    arg.setDescription('Natural gas utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_natural_gas_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Natural Gas Marginal Rates')
+    arg.setDescription('Natural gas utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_propane_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Propane Fixed Charges')
+    arg.setDescription('Propane utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_propane_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Propane Marginal Rates')
+    arg.setDescription('Propane utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_fuel_oil_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Fuel Oil Fixed Charges')
+    arg.setDescription('Fuel oil utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_fuel_oil_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Fuel Oil Marginal Rates')
+    arg.setDescription('Fuel oil utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_wood_fixed_charges', false)
+    arg.setDisplayName('Utility Bills: Wood Fixed Charges')
+    arg.setDescription('Wood utility bill monthly fixed charges. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_wood_marginal_rates', false)
+    arg.setDisplayName('Utility Bills: Wood Marginal Rates')
+    arg.setDescription('Wood utility bill marginal rates. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_compensation_types', false)
+    arg.setDisplayName('Utility Bills: PV Compensation Types')
+    arg.setDescription('Utility bill PV compensation types. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_net_metering_annual_excess_sellback_rate_types', false)
+    arg.setDisplayName('Utility Bills: PV Net Metering Annual Excess Sellback Rate Types')
+    arg.setDescription("Utility bill PV net metering annual excess sellback rate types. Only applies if the PV compensation type is 'NetMetering'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_net_metering_annual_excess_sellback_rates', false)
+    arg.setDisplayName('Utility Bills: PV Net Metering Annual Excess Sellback Rates')
+    arg.setDescription("Utility bill PV net metering annual excess sellback rates. Only applies if the PV compensation type is 'NetMetering' and the PV annual excess sellback rate type is 'User-Specified'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_feed_in_tariff_rates', false)
+    arg.setDisplayName('Utility Bills: PV Feed-In Tariff Rates')
+    arg.setDescription("Utility bill PV annual full/gross feed-in tariff rates. Only applies if the PV compensation type is 'FeedInTariff'. If multiple scenarios, use a comma-separated list.")
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_monthly_grid_connection_fee_units', false)
+    arg.setDisplayName('Utility Bills: PV Monthly Grid Connection Fee Units')
+    arg.setDescription('Utility bill PV monthly grid connection fee units. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
+    arg = OpenStudio::Measure::OSArgument.makeStringArgument('utility_bill_pv_monthly_grid_connection_fees', false)
+    arg.setDisplayName('Utility Bills: PV Monthly Grid Connection Fees')
+    arg.setDescription('Utility bill PV monthly grid connection fees. If multiple scenarios, use a comma-separated list.')
+    args << arg
+
     return args
   end
 
@@ -390,6 +470,102 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
 
       measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = utility_bill_scenario_names
       register_value(runner, 'utility_bill_scenario_names', utility_bill_scenario_names)
+
+      if args['utility_bill_electricity_fixed_charges'].is_initialized
+        utility_bill_electricity_fixed_charges = args['utility_bill_electricity_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = utility_bill_electricity_fixed_charges
+        register_value(runner, 'utility_bill_electricity_fixed_charges', utility_bill_electricity_fixed_charges)
+      end
+
+      if args['utility_bill_electricity_marginal_rates'].is_initialized
+        utility_bill_electricity_marginal_rates = args['utility_bill_electricity_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_electricity_marginal_rates'] = utility_bill_electricity_marginal_rates
+        register_value(runner, 'utility_bill_electricity_marginal_rates', utility_bill_electricity_marginal_rates)
+      end
+
+      if args['utility_bill_natural_gas_fixed_charges'].is_initialized
+        utility_bill_natural_gas_fixed_charges = args['utility_bill_natural_gas_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_fixed_charges'] = utility_bill_natural_gas_fixed_charges
+        register_value(runner, 'utility_bill_natural_gas_fixed_charges', utility_bill_natural_gas_fixed_charges)
+      end
+
+      if args['utility_bill_natural_gas_marginal_rates'].is_initialized
+        utility_bill_natural_gas_marginal_rates = args['utility_bill_natural_gas_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_marginal_rates'] = utility_bill_natural_gas_marginal_rates
+        register_value(runner, 'utility_bill_natural_gas_marginal_rates', utility_bill_natural_gas_marginal_rates)
+      end
+
+      if args['utility_bill_propane_fixed_charges'].is_initialized
+        utility_bill_propane_fixed_charges = args['utility_bill_propane_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_propane_fixed_charges'] = utility_bill_propane_fixed_charges
+        register_value(runner, 'utility_bill_propane_fixed_charges', utility_bill_propane_fixed_charges)
+      end
+
+      if args['utility_bill_propane_marginal_rates'].is_initialized
+        utility_bill_propane_marginal_rates = args['utility_bill_propane_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_propane_marginal_rates'] = utility_bill_propane_marginal_rates
+        register_value(runner, 'utility_bill_propane_marginal_rates', utility_bill_propane_marginal_rates)
+      end
+
+      if args['utility_bill_fuel_oil_fixed_charges'].is_initialized
+        utility_bill_fuel_oil_fixed_charges = args['utility_bill_fuel_oil_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_fixed_charges'] = utility_bill_fuel_oil_fixed_charges
+        register_value(runner, 'utility_bill_fuel_oil_fixed_charges', utility_bill_fuel_oil_fixed_charges)
+      end
+
+      if args['utility_bill_fuel_oil_marginal_rates'].is_initialized
+        utility_bill_fuel_oil_marginal_rates = args['utility_bill_fuel_oil_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_marginal_rates'] = utility_bill_fuel_oil_marginal_rates
+        register_value(runner, 'utility_bill_fuel_oil_marginal_rates', utility_bill_fuel_oil_marginal_rates)
+      end
+
+      if args['utility_bill_wood_fixed_charges'].is_initialized
+        utility_bill_wood_fixed_charges = args['utility_bill_wood_fixed_charges'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_wood_fixed_charges'] = utility_bill_wood_fixed_charges
+        register_value(runner, 'utility_bill_wood_fixed_charges', utility_bill_wood_fixed_charges)
+      end
+
+      if args['utility_bill_wood_marginal_rates'].is_initialized
+        utility_bill_wood_marginal_rates = args['utility_bill_wood_marginal_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_wood_marginal_rates'] = utility_bill_wood_marginal_rates
+        register_value(runner, 'utility_bill_wood_marginal_rates', utility_bill_wood_marginal_rates)
+      end
+
+      if args['utility_bill_pv_compensation_types'].is_initialized
+        utility_bill_pv_compensation_types = args['utility_bill_pv_compensation_types'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_compensation_types'] = utility_bill_pv_compensation_types
+        register_value(runner, 'utility_bill_pv_compensation_types', utility_bill_pv_compensation_types)
+      end
+
+      if args['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'].is_initialized
+        utility_bill_pv_net_metering_annual_excess_sellback_rate_types = args['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = utility_bill_pv_net_metering_annual_excess_sellback_rate_types
+        register_value(runner, 'utility_bill_pv_net_metering_annual_excess_sellback_rate_types', utility_bill_pv_net_metering_annual_excess_sellback_rate_types)
+      end
+
+      if args['utility_bill_pv_net_metering_annual_excess_sellback_rates'].is_initialized
+        utility_bill_pv_net_metering_annual_excess_sellback_rates = args['utility_bill_pv_net_metering_annual_excess_sellback_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = utility_bill_pv_net_metering_annual_excess_sellback_rates
+        register_value(runner, 'utility_bill_pv_net_metering_annual_excess_sellback_rates', utility_bill_pv_net_metering_annual_excess_sellback_rates)
+      end
+
+      if args['utility_bill_pv_feed_in_tariff_rates'].is_initialized
+        utility_bill_pv_feed_in_tariff_rates = args['utility_bill_pv_feed_in_tariff_rates'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_feed_in_tariff_rates'] = utility_bill_pv_feed_in_tariff_rates
+        register_value(runner, 'utility_bill_pv_feed_in_tariff_rates', utility_bill_pv_feed_in_tariff_rates)
+      end
+
+      if args['utility_bill_pv_monthly_grid_connection_fee_units'].is_initialized
+        utility_bill_pv_monthly_grid_connection_fee_units = args['utility_bill_pv_monthly_grid_connection_fee_units'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = utility_bill_pv_monthly_grid_connection_fee_units
+        register_value(runner, 'utility_bill_pv_monthly_grid_connection_fee_units', utility_bill_pv_monthly_grid_connection_fee_units)
+      end
+
+      if args['utility_bill_pv_monthly_grid_connection_fees'].is_initialized
+        utility_bill_pv_monthly_grid_connection_fees = args['utility_bill_pv_monthly_grid_connection_fees'].get
+        measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = utility_bill_pv_monthly_grid_connection_fees
+        register_value(runner, 'utility_bill_pv_monthly_grid_connection_fees', utility_bill_pv_monthly_grid_connection_fees)
+      end
     end
 
     # Get registered values and pass them to BuildResidentialScheduleFile
