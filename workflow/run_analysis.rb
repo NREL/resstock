@@ -141,6 +141,22 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
 
           if workflow_args.keys.include?('utility_bills')
             arguments['utility_bill_scenario_names'] = workflow_args['utility_bills'].collect { |s| s['scenario_name'] }.join(',')
+            arguments['utility_bill_electricity_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['elec_fixed_charge'] }.join(',')
+            arguments['utility_bill_electricity_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['elec_marginal_rate'] }.join(',')
+            arguments['utility_bill_natural_gas_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['gas_fixed_charge'] }.join(',')
+            arguments['utility_bill_natural_gas_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['gas_marginal_rate'] }.join(',')
+            arguments['utility_bill_propane_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['propane_fixed_charge'] }.join(',')
+            arguments['utility_bill_propane_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['propane_marginal_rate'] }.join(',')
+            arguments['utility_bill_fuel_oil_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['oil_fixed_charge'] }.join(',')
+            arguments['utility_bill_fuel_oil_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['oil_marginal_rate'] }.join(',')
+            arguments['utility_bill_wood_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['wood_fixed_charge'] }.join(',')
+            arguments['utility_bill_wood_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['wood_marginal_rate'] }.join(',')
+            arguments['utility_bill_pv_compensation_types'] = workflow_args['utility_bills'].collect { |s| s['pv_compensation_type'] }.join(',')
+            arguments['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = workflow_args['utility_bills'].collect { |s| s['pv_net_metering_annual_excess_sellback_rate_type'] }.join(',')
+            arguments['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = workflow_args['utility_bills'].collect { |s| s['pv_net_metering_annual_excess_sellback_rate'] }.join(',')
+            arguments['utility_bill_pv_feed_in_tariff_rates'] = workflow_args['utility_bills'].collect { |s| s['pv_feed_in_tariff_rate'] }.join(',')
+            arguments['utility_bill_pv_monthly_grid_connection_fee_units'] = workflow_args['utility_bills'].collect { |s| s['pv_monthly_grid_connection_fee_units'] }.join(',')
+            arguments['utility_bill_pv_monthly_grid_connection_fees'] = workflow_args['utility_bills'].collect { |s| s['pv_monthly_grid_connection_fee'] }.join(',')
           end
         elsif wfg_arg == 'simulation_output_report'
           arguments['include_timeseries_end_use_consumptions'] = true if !arguments.keys.include?('include_timeseries_end_use_consumptions')
