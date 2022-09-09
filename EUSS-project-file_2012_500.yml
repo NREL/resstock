@@ -73,7 +73,7 @@ workflow_generator:
       debug: true
 
 eagle:
-  account: enduse
+  account: reslabcall
   n_jobs: 10 #CHECK for full run, probably want hundreds
   minutes_per_sim: 60
   sampling:
@@ -91,7 +91,7 @@ postprocessing:
     region_name: 'us-west-2'
     s3:
       bucket: euss
-      prefix: test04-2018 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
+      prefix: test01-2012 #the folder within whatever bucket, should be specific to the run, can be in heirarchy (like GMLC/APS) in which case only the last part will be used by the athena database namer
     athena:
       glue_service_role: service-role/AWSGlueServiceRole-default
       database_name: euss-test #collection of Athena tables (post-crawling), can be constant for the entire analysis
