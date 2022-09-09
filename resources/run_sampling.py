@@ -56,6 +56,7 @@ def get_param2tsv(opt_lookup_df: pd.DataFrame, characteristics_dir: pathlib.Path
 def get_param_graph(param2dep):
     param2dep_graph = nx.DiGraph()
     for param, dep_list in param2dep.items():
+        param2dep_graph.add_node(param)
         for dep in dep_list:
             param2dep_graph.add_edge(dep, param)
     return param2dep_graph
@@ -92,7 +93,6 @@ def get_samples(probs, options, num_samples):
 
 def sample(param_tuple, sample_df, param:str, num_samples:int):
     start_time = time.time()
-    print(f"Sampling {param}")
     group2values, dep_cols, opt_cols = param_tuple
     if not dep_cols:
         probs = group2values[()]
@@ -130,7 +130,7 @@ def run_sampling(project_name, num_samples, output_file):
     sample_df = pd.DataFrame()
     sample_df.loc[:, "Building"] = list(range(1,num_samples+1))
     s_time = time.time()
-    with multiprocessing.Pool(processes=max(1, multiprocessing.cpu_count()-2)) as pool:
+    with multiprocessing.Pool(processes=max(multiprocessing.cpu_count() - 2, 1)) as pool:
         for level, params in get_topological_generations(param2dep):
             print(f"Sampling {len(params)} params in a batch at level {level}")
             results = []
@@ -138,11 +138,12 @@ def run_sampling(project_name, num_samples, output_file):
                 _, dep_cols, _ = param2tsv[param]
                 res = pool.apply_async(sample, (param2tsv[param], sample_df[dep_cols], param, num_samples))
                 results.append(res)
-       
-            print(f"Sampled {len(params)} params in a batch")
+
+            print(f"Submitted {len(results)} params in a batch")
             st = time.time()
             samples_dict = {param:res_val.get() for param, res_val in zip(params, results)}
-            print(f"Got the results in {time.time()-st:.2f}s")
+            print(f"Got results for {len(samples_dict)} params in {time.time()-st:.2f}s")
+            assert len(samples_dict) == len(params)
             new_df = pd.DataFrame(samples_dict)
             sample_df = pd.concat([sample_df, new_df], axis=1)
     print(f"Sampled in {time.time()-s_time:.2f} seconds")
