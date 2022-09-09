@@ -397,6 +397,25 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialHPXML'][0]['emissions_fuel_oil_values'] = values['emissions_fuel_oil_values']
     measures['BuildResidentialHPXML'][0]['emissions_wood_values'] = values['emissions_wood_values']
 
+    # Utility Bills
+    measures['BuildResidentialHPXML'][0]['utility_bill_scenario_names'] = values['utility_bill_scenario_names']
+    measures['BuildResidentialHPXML'][0]['utility_bill_electricity_fixed_charges'] = values['utility_bill_electricity_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_electricity_marginal_rates'] = values['utility_bill_electricity_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_fixed_charges'] = values['utility_bill_natural_gas_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_natural_gas_marginal_rates'] = values['utility_bill_natural_gas_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_propane_fixed_charges'] = values['utility_bill_propane_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_propane_marginal_rates'] = values['utility_bill_propane_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_fixed_charges'] = values['utility_bill_fuel_oil_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_fuel_oil_marginal_rates'] = values['utility_bill_fuel_oil_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_wood_fixed_charges'] = values['utility_bill_wood_fixed_charges']
+    measures['BuildResidentialHPXML'][0]['utility_bill_wood_marginal_rates'] = values['utility_bill_wood_marginal_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_compensation_types'] = values['utility_bill_pv_compensation_types']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = values['utility_bill_pv_net_metering_annual_excess_sellback_rate_types']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = values['utility_bill_pv_net_metering_annual_excess_sellback_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_feed_in_tariff_rates'] = values['utility_bill_pv_feed_in_tariff_rates']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fee_units'] = values['utility_bill_pv_monthly_grid_connection_fee_units']
+    measures['BuildResidentialHPXML'][0]['utility_bill_pv_monthly_grid_connection_fees'] = values['utility_bill_pv_monthly_grid_connection_fees']
+
     # Get registered values and pass them to BuildResidentialScheduleFile
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
