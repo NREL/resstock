@@ -29,6 +29,7 @@ class TestRunAnalysis < MiniTest::Test
                       'HPXMLtoOpenStudio',
                       'ReportSimulationOutput',
                       'ReportHPXMLOutput',
+                      'ReportUtilityBills',
                       'UpgradeCosts',
                       'QOIReport',
                       'ServerDirectoryCleanup']

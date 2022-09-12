@@ -37,6 +37,23 @@ This measure creates the baseline scenario. Set the following inputs:
 #. ``Emissions: Propane Values``: Propane emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
 #. ``Emissions: Fuel Oil Values``: Fuel oil emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
 #. ``Emissions: Wood Values``: Wood emissions factors values, specified as an annual factor. If multiple scenarios, use a comma-separated list. Units are lb/MBtu (million Btu).
+#. ``Utility Bills: Scenario Names``: Names of utility bill scenarios. If multiple scenarios, use a comma-separated list.
+#. ``Utility Bills: Electricity Fixed Charges``: Electricity monthly fixed charges. If multiple scenarios, use a comma-separated list.
+#. ``Utility Bills: Electricity Marginal Rates``: Electricity marginal rates. If multiple scenarios, use a comma-separated list. Units are $/kWh.
+#. ``Utility Bills: Natural Gas Fixed Charges``: Natural gas monthly fixed charges. If multiple scenarios, use a comma-separated list.
+#. ``Utility Bills: Natural Gas Marginal Rates``: Natural gas marginal rates. If multiple scenarios, use a comma-separated list. Units are $/therm.
+#. ``Utility Bills: Propane Fixed Charges``: Propane monthly fixed charges. If multiple scenarios, use a comma-separated list.
+#. ``Utility Bills: Propane Marginal Rates``: Propane marginal rates. If multiple scenarios, use a comma-separated list. Units are $/gallon.
+#. ``Utility Bills: Fuel Oil Fixed Charges``: Fuel oil monthly fixed charges. If multiple scenarios, use a comma-separated list.
+#. ``Utility Bills: Fuel Oil Marginal Rates``: Fuel oil marginal rates. If multiple scenarios, use a comma-separated list. Units are $/gallon.
+#. ``Utility Bills: Wood Fixed Charges``: Wood monthly fixed charges. If multiple scenarios, use a comma-separated list.
+#. ``Utility Bills: Wood Marginal Rates``: Wood marginal rates. If multiple scenarios, use a comma-separated list. Units are $/kBtu.
+#. ``Utility Bills: PV Compensation Types``: Photovoltaic compensation types. Can be NetMetering or FeedInTariff. If multiple scenarios, use a comma-separated list.
+#. ``Utility Bills: PV Net Metering Annual Excess Sellback Rate Types``: Photovoltaic net metering annual excess sellback rate types. Can be User-Specified or Retail Electricity Cost. Applies if compensation type is NetMetering. If multiple scenarios, use a comma-separated list.
+#. ``Utility Bills: PV Net Metering Annual Excess Sellback Rates``: Photovoltaic net metering annual excess sellback rates. Applies if compensation type is NetMetering. If multiple scenarios, use a comma-separated list. Units are $/kWh.
+#. ``Utility Bills: PV Feed-In Tariff Rates``: Photovoltaic annual full/gross feed-in tariff rates. Applies if compensation type is FeedInTariff. If multiple scenarios, use a comma-separated list. Units are $/kWh.
+#. ``Utility Bills: PV Monthly Grid Connection Fee Units``: Photovoltaic monthly grid connection fee units. Can be $ or $/kW. If multiple scenarios, use a comma-separated list.
+#. ``Utility Bills: PV Monthly Grid Connection Fees``: Photovoltaic monthly grid connection fees. If multiple scenarios, use a comma-separated list.
 
 As a meta measure, the ``BuildExistingModel`` measure incrementally applies the following OpenStudio measures to create residential building models:
 

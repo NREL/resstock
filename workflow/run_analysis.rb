@@ -137,11 +137,33 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       bld_exist_model_args['emissions_wood_values'] = emissions.collect { |s| s['wood_value'] }.join(',')
     end
 
+    if workflow_args.keys.include?('utility_bills')
+      utility_bills = workflow_args['utility_bills']
+      bld_exist_model_args['utility_bill_scenario_names'] = utility_bills.collect { |s| s['scenario_name'] }.join(',')
+      bld_exist_model_args['utility_bill_electricity_fixed_charges'] = utility_bills.collect { |s| s['elec_fixed_charge'] }.join(',')
+      bld_exist_model_args['utility_bill_electricity_marginal_rates'] = utility_bills.collect { |s| s['elec_marginal_rate'] }.join(',')
+      bld_exist_model_args['utility_bill_natural_gas_fixed_charges'] = utility_bills.collect { |s| s['gas_fixed_charge'] }.join(',')
+      bld_exist_model_args['utility_bill_natural_gas_marginal_rates'] = utility_bills.collect { |s| s['gas_marginal_rate'] }.join(',')
+      bld_exist_model_args['utility_bill_propane_fixed_charges'] = utility_bills.collect { |s| s['propane_fixed_charge'] }.join(',')
+      bld_exist_model_args['utility_bill_propane_marginal_rates'] = utility_bills.collect { |s| s['propane_marginal_rate'] }.join(',')
+      bld_exist_model_args['utility_bill_fuel_oil_fixed_charges'] = utility_bills.collect { |s| s['oil_fixed_charge'] }.join(',')
+      bld_exist_model_args['utility_bill_fuel_oil_marginal_rates'] = utility_bills.collect { |s| s['oil_marginal_rate'] }.join(',')
+      bld_exist_model_args['utility_bill_wood_fixed_charges'] = utility_bills.collect { |s| s['wood_fixed_charge'] }.join(',')
+      bld_exist_model_args['utility_bill_wood_marginal_rates'] = utility_bills.collect { |s| s['wood_marginal_rate'] }.join(',')
+      bld_exist_model_args['utility_bill_pv_compensation_types'] = utility_bills.collect { |s| s['pv_compensation_type'] }.join(',')
+      bld_exist_model_args['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = utility_bills.collect { |s| s['pv_net_metering_annual_excess_sellback_rate_type'] }.join(',')
+      bld_exist_model_args['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = utility_bills.collect { |s| s['pv_net_metering_annual_excess_sellback_rate'] }.join(',')
+      bld_exist_model_args['utility_bill_pv_feed_in_tariff_rates'] = utility_bills.collect { |s| s['pv_feed_in_tariff_rate'] }.join(',')
+      bld_exist_model_args['utility_bill_pv_monthly_grid_connection_fee_units'] = utility_bills.collect { |s| s['pv_monthly_grid_connection_fee_units'] }.join(',')
+      bld_exist_model_args['utility_bill_pv_monthly_grid_connection_fees'] = utility_bills.collect { |s| s['pv_monthly_grid_connection_fee'] }.join(',')
+    end
+
     if cfg['sampler']['type'] == 'residential_quota_downselect'
       bld_exist_model_args['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
     end
 
     sim_out_rep_args = {
+      'output_format' => 'csv',
       'timeseries_frequency' => 'none',
       'include_timeseries_total_consumptions' => false,
       'include_timeseries_fuel_consumptions' => false,
@@ -229,13 +251,15 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
       },
       {
         'measure_dir_name' => 'ReportHPXMLOutput',
-        'arguments' => {}
+        'arguments' => { 'output_format' => 'csv' }
+      },
+      {
+        'measure_dir_name' => 'ReportUtilityBills',
+        'arguments' => { 'output_format' => 'csv' }
       },
       {
         'measure_dir_name' => 'UpgradeCosts',
-        'arguments' => {
-          'debug' => debug
-        }
+        'arguments' => { 'debug' => debug }
       },
       {
         'measure_dir_name' => 'ServerDirectoryCleanup',
@@ -294,11 +318,11 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
     File.open(osw_paths[upgrade_name], 'w') do |f|
       f.write(JSON.pretty_generate(osw))
     end
-  end
+  end # end upgrade_names.each_with_index do |upgrade_name, upgrade_idx|
 
   measures = []
-  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
-    next unless ['measures'].include?(measure_dir_name)
+  cfg['workflow_generator']['args'].keys.each do |wfg_arg|
+    next unless ['measures'].include?(wfg_arg)
 
     cfg['workflow_generator']['args']['measures'].each do |k|
       measures << k['measure_dir_name']
@@ -306,8 +330,8 @@ def run_workflow(yml, n_threads, measures_only, debug_arg, overwrite, building_i
   end
 
   reporting_measures = []
-  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
-    next unless ['reporting_measures'].include?(measure_dir_name)
+  cfg['workflow_generator']['args'].keys.each do |wfg_arg|
+    next unless ['reporting_measures'].include?(wfg_arg)
 
     cfg['workflow_generator']['args']['reporting_measures'].each do |k|
       reporting_measures << k['measure_dir_name']
