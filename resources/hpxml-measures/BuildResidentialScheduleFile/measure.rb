@@ -65,7 +65,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('output_csv_path', true)
     arg.setDisplayName('Schedules: Output CSV Path')
-    arg.setDescription('Absolute/relative path of the CSV file containing occupancy schedules.')
+    arg.setDescription('Absolute/relative path of the CSV file containing occupancy schedules. Relative paths are relative to the HPXML output path.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('hpxml_output_path', true)
@@ -150,7 +150,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     output_csv_path = args[:output_csv_path]
     unless (Pathname.new output_csv_path).absolute?
-      output_csv_path = File.expand_path(output_csv_path)
+      output_csv_path = File.expand_path(File.join(File.dirname(args[:hpxml_output_path]), output_csv_path))
     end
 
     success = schedule_generator.export(schedules_path: output_csv_path)

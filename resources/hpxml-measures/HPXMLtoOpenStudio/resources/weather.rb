@@ -69,6 +69,7 @@ class WeatherProcess
   end
 
   def load_from_csv(csv_path)
+    require 'csv'
     csv_data = CSV.read(csv_path, headers: false)
 
     def to_datatype(data, dataclass)
