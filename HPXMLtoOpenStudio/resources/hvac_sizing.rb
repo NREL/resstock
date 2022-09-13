@@ -2510,7 +2510,7 @@ class HVACSizing
         d = DuctInfo.new
         d.Side = duct.duct_type
         d.Location = duct.duct_location
-        d.Area = duct.duct_surface_area
+        d.Area = duct.duct_surface_area * duct.duct_surface_area_multiplier
 
         # Calculate R-value w/ air film
         d.Rvalue = Airflow.get_duct_insulation_rvalue(duct.duct_insulation_r_value, d.Side)

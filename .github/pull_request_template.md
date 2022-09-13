@@ -14,5 +14,4 @@ PR Reviewer: Verify each has been completed.
 - [ ] Documentation has been updated
 - [ ] Changelog has been updated
 - [ ] `openstudio tasks.rb update_measures` has been run
-- [ ] Checked the code coverage report on CI
 - [ ] No unexpected changes to simulation results of sample files
