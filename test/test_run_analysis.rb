@@ -28,6 +28,7 @@ class TestRunAnalysis < MiniTest::Test
                       'ApplyUpgrade',
                       'ReportSimulationOutput',
                       'ReportHPXMLOutput',
+                      'ReportUtilityBills',
                       'UpgradeCosts',
                       'QOIReport',
                       'ServerDirectoryCleanup']

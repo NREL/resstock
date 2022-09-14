@@ -30,6 +30,7 @@ del df['job_id']
 
 build_existing_models = []
 report_simulation_outputs = ['color_index']
+report_utility_bills = []
 upgrade_costs = []
 qoi_reports = []
 
@@ -41,6 +42,8 @@ for col in df.columns.values:
     build_existing_models.append(col)
   elif col.startswith('report_simulation_output'):
     report_simulation_outputs.append(col)
+  elif col.startswith('report_utility_bills'):
+    report_utility_bills.append(col)
   elif col.startswith('upgrade_costs'):
     upgrade_costs.append(col)
   elif col.startswith('qoi_report'):
@@ -60,7 +63,7 @@ results_characteristics = results_characteristics.sort_index()
 results_characteristics.to_csv(os.path.join(outdir, 'results_characteristics.csv'))
 
 # results_output.csv
-results_output = df[['OSW'] + report_simulation_outputs + upgrade_costs + qoi_reports]
+results_output = df[['OSW'] + report_simulation_outputs + report_utility_bills + upgrade_costs + qoi_reports]
 results_output = results_output.dropna(how='all', axis=1)
 
 results_output = results_output.set_index('OSW')
@@ -165,6 +168,7 @@ df = df.rename(columns={'building_id': 'OSW'})
 del df['job_id']
 
 report_simulation_outputs = ['color_index']
+report_utility_bills = []
 upgrade_costs = []
 qoi_reports = []
 apply_upgrades = []
@@ -175,6 +179,8 @@ for col in df.columns.values:
 
   if col.startswith('report_simulation_output'):
     report_simulation_outputs.append(col)
+  elif col.startswith('report_utility_bills'):
+    report_utility_bills.append(col)
   elif col.startswith('upgrade_costs'):
     upgrade_costs.append(col)
   elif col.startswith('qoi_report'):
@@ -183,7 +189,7 @@ for col in df.columns.values:
     apply_upgrades.append(col)
 
 # results_output.csv
-results_output = df[['OSW'] + report_simulation_outputs + upgrade_costs + qoi_reports + apply_upgrades]
+results_output = df[['OSW'] + report_simulation_outputs + report_utility_bills + upgrade_costs + qoi_reports + apply_upgrades]
 results_output = results_output.dropna(how='all', axis=1)
 
 results_output = results_output.set_index('OSW')

@@ -88,8 +88,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   end
 
   measures = []
-  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
-    next unless ['measures'].include?(measure_dir_name)
+  cfg['workflow_generator']['args'].keys.each do |wfg_arg|
+    next unless ['measures'].include?(wfg_arg)
 
     cfg['workflow_generator']['args']['measures'].each do |k|
       measures << k['measure_dir_name']
@@ -97,8 +97,8 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
   end
 
   reporting_measures = []
-  cfg['workflow_generator']['args'].keys.each do |measure_dir_name|
-    next unless ['reporting_measures'].include?(measure_dir_name)
+  cfg['workflow_generator']['args'].keys.each do |wfg_arg|
+    next unless ['reporting_measures'].include?(wfg_arg)
 
     cfg['workflow_generator']['args']['reporting_measures'].each do |k|
       reporting_measures << k['measure_dir_name']
@@ -122,10 +122,10 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
 
     steps = []
     measure_dir_names.keys.each do |k|
-      workflow_args.each do |measure_dir_name, arguments|
-        next if k != measure_dir_name
+      workflow_args.each do |wfg_arg, arguments|
+        next if k != wfg_arg
 
-        if measure_dir_name == 'build_existing_model'
+        if wfg_arg == 'build_existing_model'
           arguments['building_id'] = 1
           arguments['sample_weight'] = Float(cfg['baseline']['n_buildings_represented']) / n_datapoints # aligns with buildstockbatch
 
@@ -138,19 +138,39 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
             arguments['emissions_fuel_oil_values'] = workflow_args['emissions'].collect { |s| s['oil_value'] }.join(',')
             arguments['emissions_wood_values'] = workflow_args['emissions'].collect { |s| s['wood_value'] }.join(',')
           end
-        elsif measure_dir_name == 'simulation_output_report'
+
+          if workflow_args.keys.include?('utility_bills')
+            arguments['utility_bill_scenario_names'] = workflow_args['utility_bills'].collect { |s| s['scenario_name'] }.join(',')
+            arguments['utility_bill_electricity_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['elec_fixed_charge'] }.join(',')
+            arguments['utility_bill_electricity_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['elec_marginal_rate'] }.join(',')
+            arguments['utility_bill_natural_gas_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['gas_fixed_charge'] }.join(',')
+            arguments['utility_bill_natural_gas_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['gas_marginal_rate'] }.join(',')
+            arguments['utility_bill_propane_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['propane_fixed_charge'] }.join(',')
+            arguments['utility_bill_propane_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['propane_marginal_rate'] }.join(',')
+            arguments['utility_bill_fuel_oil_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['oil_fixed_charge'] }.join(',')
+            arguments['utility_bill_fuel_oil_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['oil_marginal_rate'] }.join(',')
+            arguments['utility_bill_wood_fixed_charges'] = workflow_args['utility_bills'].collect { |s| s['wood_fixed_charge'] }.join(',')
+            arguments['utility_bill_wood_marginal_rates'] = workflow_args['utility_bills'].collect { |s| s['wood_marginal_rate'] }.join(',')
+            arguments['utility_bill_pv_compensation_types'] = workflow_args['utility_bills'].collect { |s| s['pv_compensation_type'] }.join(',')
+            arguments['utility_bill_pv_net_metering_annual_excess_sellback_rate_types'] = workflow_args['utility_bills'].collect { |s| s['pv_net_metering_annual_excess_sellback_rate_type'] }.join(',')
+            arguments['utility_bill_pv_net_metering_annual_excess_sellback_rates'] = workflow_args['utility_bills'].collect { |s| s['pv_net_metering_annual_excess_sellback_rate'] }.join(',')
+            arguments['utility_bill_pv_feed_in_tariff_rates'] = workflow_args['utility_bills'].collect { |s| s['pv_feed_in_tariff_rate'] }.join(',')
+            arguments['utility_bill_pv_monthly_grid_connection_fee_units'] = workflow_args['utility_bills'].collect { |s| s['pv_monthly_grid_connection_fee_units'] }.join(',')
+            arguments['utility_bill_pv_monthly_grid_connection_fees'] = workflow_args['utility_bills'].collect { |s| s['pv_monthly_grid_connection_fee'] }.join(',')
+          end
+        elsif wfg_arg == 'simulation_output_report'
           arguments['include_timeseries_end_use_consumptions'] = true if !arguments.keys.include?('include_timeseries_end_use_consumptions')
           arguments['include_timeseries_total_loads'] = true if !arguments.keys.include?('include_timeseries_total_loads')
           arguments['add_timeseries_dst_column'] = true if !arguments.keys.include?('add_timeseries_dst_column')
           arguments['add_timeseries_utc_column'] = true if !arguments.keys.include?('add_timeseries_utc_column')
 
           arguments['user_output_variables'] = arguments['output_variables'].collect { |o| o['name'] }.join(',') if arguments.keys.include?('output_variables')
-        elsif measure_dir_name == 'server_directory_cleanup'
+        elsif wfg_arg == 'server_directory_cleanup'
           arguments['retain_in_idf'] = true if !arguments.keys.include?('retain_in_idf')
           arguments['retain_schedules_csv'] = true if !arguments.keys.include?('retain_schedules_csv')
         end
 
-        steps << { 'measure_dir_name' => measure_dir_names[measure_dir_name],
+        steps << { 'measure_dir_name' => measure_dir_names[wfg_arg],
                    'arguments' => arguments }
       end
     end
@@ -161,7 +181,7 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
       workflow_args['build_existing_model']['downselect_logic'] = make_apply_logic_arg(cfg['sampler']['args']['logic'])
     end
 
-    step_idx = 1
+    step_idx = 0
     if upgrade_idx > 0
       measure_d = cfg['upgrades'][upgrade_idx - 1]
       apply_upgrade_measure = { 'measure_dir_name' => 'ApplyUpgrade',
@@ -193,43 +213,48 @@ def run_workflow(yml, n_threads, measures_only, debug, building_ids, keep_run_fo
         apply_upgrade_measure['arguments']['package_apply_logic'] = make_apply_logic_arg(measure_d['package_apply_logic'])
       end
 
-      steps.insert(step_idx, apply_upgrade_measure)
       step_idx += 1
+      steps.insert(step_idx, apply_upgrade_measure)
     end
 
-    workflow_args.keys.each do |measure_dir_name|
-      next unless ['measures'].include?(measure_dir_name)
+    workflow_args.keys.each do |wfg_arg|
+      next unless ['measures'].include?(wfg_arg)
 
-      workflow_args[measure_dir_name].each do |k|
+      workflow_args[wfg_arg].each do |k|
         step = { 'measure_dir_name' => k['measure_dir_name'] }
         if k.keys.include?('arguments')
           step['arguments'] = k['arguments']
         end
-        steps.insert(step_idx, step)
         step_idx += 1
+        steps.insert(step_idx, step)
       end
     end
 
-    step_idx += 1 # for ReportSimulationOutput
+    step_idx += 2 # for ReportSimulationOutput which is already in the steps array
     steps.insert(step_idx, { 'measure_dir_name' => 'ReportHPXMLOutput',
                              'arguments' => {
                                'output_format' => 'csv',
                              } })
-    step_idx += 1
 
+    step_idx += 1
+    steps.insert(step_idx, { 'measure_dir_name' => 'ReportUtilityBills',
+                             'arguments' => {
+                               'output_format' => 'csv',
+                             } })
+
+    step_idx += 1
     steps.insert(step_idx, { 'measure_dir_name' => 'UpgradeCosts' })
-    step_idx += 1
 
-    workflow_args.keys.each do |measure_dir_name|
-      next unless ['reporting_measures'].include?(measure_dir_name)
+    workflow_args.keys.each do |wfg_arg|
+      next unless ['reporting_measures'].include?(wfg_arg)
 
-      workflow_args[measure_dir_name].each do |k|
+      workflow_args[wfg_arg].each do |k|
         step = { 'measure_dir_name' => k['measure_dir_name'] }
         if k.keys.include?('arguments')
           step['arguments'] = k['arguments']
         end
-        steps.insert(step_idx, step)
         step_idx += 1
+        steps.insert(step_idx, step)
       end
     end
 
