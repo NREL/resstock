@@ -22,7 +22,9 @@ class TestTools < MiniTest::Test
       run_analysis_extras = run_analysis.headers - buildstockbatch.headers
       puts "#{project}_baseline, run_analysis - buildstockbatch: #{run_analysis_extras}" if !run_analysis_extras.empty?
 
-      buildstockbatch_extras -= ['apply_upgrade.applicable', 'apply_upgrade.upgrade_name', 'apply_upgrade.reference_scenario']
+      buildstockbatch_extras -= ['apply_upgrade.applicable']
+      buildstockbatch_extras -= ['apply_upgrade.upgrade_name']
+      buildstockbatch_extras -= ['apply_upgrade.reference_scenario']
       assert_equal(0, buildstockbatch_extras.size)
 
       assert_equal(0, run_analysis_extras.size)
@@ -44,8 +46,10 @@ class TestTools < MiniTest::Test
       puts "#{project}_upgrades, run_analysis - buildstockbatch: #{run_analysis_extras}" if !run_analysis_extras.empty?
 
       buildstockbatch_extras -= ['apply_upgrade.reference_scenario']
-      buildstockbatch_extras -= ['simulation_output_report.applicable'] # TODO: remove simulation_output_report.applicable from buildstockbatch
-      buildstockbatch_extras -= ['upgrade_costs.option_04_name'] # TODO: buildstockbatch writes this because another upgrade (Lighting) has 4 options; see https://github.com/NREL/buildstockbatch/pull/271
+      buildstockbatch_extras -= ['simulation_output_report.applicable'] # buildstockbatch contains simulation_output_report.applicable (old workflow)
+      buildstockbatch_extras -= ['upgrade_costs.option_04_name'] # buildstockbatch writes this because another upgrade (Lighting) has 4 options; see https://github.com/NREL/buildstockbatch/pull/271
+      buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_heating_lb'] # buildstockbatch has this column even though it's all null
+      buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_hot_water_lb'] # buildstockbatch has this column even though it's all null
       assert_equal(0, buildstockbatch_extras.size)
 
       assert_equal(0, run_analysis_extras.size)
