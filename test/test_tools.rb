@@ -55,10 +55,10 @@ class TestTools < MiniTest::Test
         buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_propane_heating_lb']
         buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_propane_hot_water_lb']
         buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_propane_total_lb']
-        buildstockbatch_extras -= ['report_simulation_output.bills_fuel_oil_marginal_usd']
-        buildstockbatch_extras -= ['report_simulation_output.bills_fuel_oil_total_usd']
-        buildstockbatch_extras -= ['report_simulation_output.bills_propane_marginal_usd']
-        buildstockbatch_extras -= ['report_simulation_output.bills_propane_total_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_fuel_oil_marginal_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_fuel_oil_total_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_propane_marginal_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_propane_total_usd']
       end
       puts "#{project}_upgrades, buildstockbatch - run_analysis: #{buildstockbatch_extras}" if !buildstockbatch_extras.empty?
 
