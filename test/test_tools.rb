@@ -17,14 +17,15 @@ class TestTools < MiniTest::Test
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
       buildstockbatch_extras = buildstockbatch.headers - run_analysis.headers
+      buildstockbatch_extras -= ['apply_upgrade.applicable']
+      buildstockbatch_extras -= ['apply_upgrade.upgrade_name']
+      buildstockbatch_extras -= ['apply_upgrade.reference_scenario']
       puts "#{project}_baseline, buildstockbatch - run_analysis: #{buildstockbatch_extras}" if !buildstockbatch_extras.empty?
 
       run_analysis_extras = run_analysis.headers - buildstockbatch.headers
       puts "#{project}_baseline, run_analysis - buildstockbatch: #{run_analysis_extras}" if !run_analysis_extras.empty?
 
-      buildstockbatch_extras -= ['apply_upgrade.applicable', 'apply_upgrade.upgrade_name', 'apply_upgrade.reference_scenario']
       assert_equal(0, buildstockbatch_extras.size)
-
       assert_equal(0, run_analysis_extras.size)
     end
   end
@@ -38,16 +39,33 @@ class TestTools < MiniTest::Test
       run_analysis = CSV.read(run_analysis_path, headers: true)
 
       buildstockbatch_extras = buildstockbatch.headers - run_analysis.headers
+      buildstockbatch_extras -= ['apply_upgrade.reference_scenario']
+      buildstockbatch_extras -= ['simulation_output_report.applicable'] # buildstockbatch contains simulation_output_report.applicable (old workflow)
+      buildstockbatch_extras -= ['upgrade_costs.option_04_name'] # buildstockbatch writes this because another upgrade (Lighting) has 4 options; see https://github.com/NREL/buildstockbatch/pull/271
+      if project == 'national'
+        # buildstockbatch has these column even though it's all null (because of join with baseline?)
+        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_heating_lb']
+        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_hot_water_lb']
+      elsif project == 'testing'
+        # buildstockbatch has these column even though it's all null (because of join with baseline?)
+        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_fuel_oil_heating_lb']
+        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_fuel_oil_total_lb']
+        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_heating_lb']
+        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_natural_gas_hot_water_lb']
+        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_propane_heating_lb']
+        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_propane_hot_water_lb']
+        buildstockbatch_extras -= ['report_simulation_output.emissions_co_2_e_lrmer_mid_case_15_propane_total_lb']
+        buildstockbatch_extras -= ['report_utility_bills.bills_fuel_oil_marginal_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_fuel_oil_total_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_propane_marginal_usd']
+        buildstockbatch_extras -= ['report_utility_bills.bills_propane_total_usd']
+      end
       puts "#{project}_upgrades, buildstockbatch - run_analysis: #{buildstockbatch_extras}" if !buildstockbatch_extras.empty?
 
       run_analysis_extras = run_analysis.headers - buildstockbatch.headers
       puts "#{project}_upgrades, run_analysis - buildstockbatch: #{run_analysis_extras}" if !run_analysis_extras.empty?
 
-      buildstockbatch_extras -= ['apply_upgrade.reference_scenario']
-      buildstockbatch_extras -= ['simulation_output_report.applicable'] # TODO: remove simulation_output_report.applicable from buildstockbatch
-      buildstockbatch_extras -= ['upgrade_costs.option_04_name'] # TODO: buildstockbatch writes this because another upgrade (Lighting) has 4 options; see https://github.com/NREL/buildstockbatch/pull/271
       assert_equal(0, buildstockbatch_extras.size)
-
       assert_equal(0, run_analysis_extras.size)
     end
   end
