@@ -78,6 +78,10 @@ class Waterheater
     set_temp_c = get_set_temp_c(water_heating_system.temperature, water_heating_system.water_heater_type)
     default_set_temp_c = get_set_temp_c(Waterheater.get_default_hot_water_temperature(eri_version), water_heating_system.water_heater_type)
     default_set_temp_c = set_temp_c if !set_temp_c.nil?
+
+    hpwh_type = "split"  #Valid options: split, integrated (default integrated)
+    split_hpwh_refrig = "r410a" #Valid options: r410a, co2 (default co2)
+    #TODO: Add HPXML element to populate these fields
     loop = create_new_loop(model, Constants.ObjectNamePlantLoopDHW, default_set_temp_c)
 
     new_pump = create_new_pump(model)
@@ -137,34 +141,48 @@ class Waterheater
     else
       runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterSetpoint}' schedule file and setpoint temperature provided; the latter will be ignored.") if !tset_C.nil?
     end
-
-    airflow_rate = 181.0 # cfm
-    min_temp = 42.0 # F
-    max_temp = 120.0 # F
+    if hpwh_type != 'split'
+      airflow_rate = 480.0 # cfm
+      min_temp = 0 # F #FIXME: should be different for different refrigerants
+      max_temp = 120.0 # F
+    else
+      airflow_rate = 181.0 # cfm
+      min_temp = 42.0 # F
+      max_temp = 120.0 # F
+    end
 
     # Coil:WaterHeating:AirToWaterHeatPump:Wrapped
-    coil = setup_hpwh_dxcoil(model, water_heating_system, weather, obj_name_hpwh, airflow_rate)
+    coil = setup_hpwh_dxcoil(model, water_heating_system, weather, obj_name_hpwh, airflow_rate, hpwh_type, split_hpwh_refrig)
 
     # WaterHeater:Stratified
-    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule)
+    tank = setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, bottom_element_setpoint_schedule, top_element_setpoint_schedule, hpwh_type, split_hpwh_refrig)
     loop.addSupplyBranchForComponent(tank)
 
     add_desuperheater(model, runner, water_heating_system, tank, loc_space, loc_schedule, loop, eri_version)
 
     # Fan:SystemModel
-    fan = setup_hpwh_fan(model, water_heating_system, obj_name_hpwh, airflow_rate)
+    fan = setup_hpwh_fan(model, water_heating_system, obj_name_hpwh, airflow_rate, hpwh_type, split_hpwh_refrig)
 
-    # WaterHeater:HeatPump:WrappedCondenser
-    hpwh = setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, control_setpoint_schedule)
+    #Wrapped or pumped condenser depending on HPWH type
+    if hpwh_type == 'split' && split_hpwh_refrig == 'co2'
+      # WaterHeater:HeatPump:PumpedCondenser
+      hpwh = setup_hpwh_pumped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, control_setpoint_schedule, hpwh_type, split_hpwh_refrig)
+
+    else #Note AO Smith split HPWH circulates refrigerant, not water, so wrapped condenser model is still appropriate
+      # WaterHeater:HeatPump:WrappedCondenser
+      hpwh = setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, control_setpoint_schedule, hpwh_type, split_hpwh_refrig)
+
+    end
 
     # Amb temp & RH sensors, temp sensor shared across programs
     amb_temp_sensor, amb_rh_sensors = get_loc_temp_rh_sensors(model, obj_name_hpwh, loc_schedule, loc_space, living_zone)
     hpwh_inlet_air_program = add_hpwh_inlet_air_and_zone_heat_gain_program(model, obj_name_hpwh, loc_space, hpwh_tamb, hpwh_rhamb, tank, coil, fan, amb_temp_sensor, amb_rh_sensors)
 
     # EMS for the HPWH control logic
-    op_mode = water_heating_system.operating_mode
-    hpwh_ctrl_program = add_hpwh_control_program(model, runner, obj_name_hpwh, amb_temp_sensor, top_element_setpoint_schedule, bottom_element_setpoint_schedule, min_temp, max_temp, op_mode, setpoint_schedule, control_setpoint_schedule, schedules_file)
 
+    op_mode = water_heating_system.operating_mode
+    hpwh_ctrl_program = add_hpwh_control_program(model, runner, obj_name_hpwh, amb_temp_sensor, top_element_setpoint_schedule, bottom_element_setpoint_schedule, min_temp, max_temp, op_mode, setpoint_schedule, control_setpoint_schedule, schedules_file, hpwh_type, split_hpwh_refrig, coil)
+  
     # ProgramCallingManagers
     program_calling_manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)
     program_calling_manager.setName("#{obj_name_hpwh} ProgramManager")
@@ -172,7 +190,7 @@ class Waterheater
     program_calling_manager.addProgram(hpwh_ctrl_program)
     program_calling_manager.addProgram(hpwh_inlet_air_program)
 
-    add_ec_adj(model, hpwh, ec_adj, loc_space, water_heating_system)
+    #add_ec_adj(model, hpwh, ec_adj, loc_space, water_heating_system) #FIXME: Double check if this works with split systems
 
     return loop
   end
@@ -678,7 +696,7 @@ class Waterheater
 
   private
 
-  def self.setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, setpoint_schedule)
+  def self.setup_hpwh_wrapped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, setpoint_schedule, hpwh_type, split_hpwh_refrig)
     h_condtop = (1.0 - (5.5 / 12.0)) * h_tank # in the 6th node of the tank (counting from top)
     h_condbot = 0.01 # bottom node
     h_hpctrl_up = (1.0 - (2.5 / 12.0)) * h_tank # in the 3rd node of the tank
@@ -686,7 +704,63 @@ class Waterheater
 
     hpwh = OpenStudio::Model::WaterHeaterHeatPumpWrappedCondenser.new(model, coil, tank, fan, setpoint_schedule, model.alwaysOnDiscreteSchedule)
     hpwh.setName("#{obj_name_hpwh} hpwh")
-    hpwh.setDeadBandTemperatureDifference(3.89)
+    if hpwh_type == 'split'
+      hpwh.setDeadBandTemperatureDifference(6.0)
+    else
+      hpwh.setDeadBandTemperatureDifference(3.89)
+    end
+    hpwh.setCondenserBottomLocation(h_condbot)
+    hpwh.setCondenserTopLocation(h_condtop)
+    if hpwh_type == 'split'
+      hpwh.setEvaporatorAirFlowRate(0.226534772736) #FIXME: don't hardcode this?
+      hpwh.setInletAirConfiguration('OutdoorAirOnly')
+    else
+      hpwh.setEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
+      hpwh.setInletAirConfiguration('Schedule')
+      hpwh.setInletAirTemperatureSchedule(hpwh_tamb)
+      hpwh.setInletAirHumiditySchedule(hpwh_rhamb)
+    end
+    hpwh.setMinimumInletAirTemperatureforCompressorOperation(UnitConversions.convert(min_temp, 'F', 'C'))
+    hpwh.setMaximumInletAirTemperatureforCompressorOperation(UnitConversions.convert(max_temp, 'F', 'C'))
+    if hpwh_type == 'split'
+      hpwh.setCompressorLocation('Outdoors')
+    else
+      hpwh.setCompressorLocation('Schedule')
+      hpwh.setCompressorAmbientTemperatureSchedule(hpwh_tamb)
+    end
+    hpwh.setFanPlacement('DrawThrough')
+    hpwh.setOnCycleParasiticElectricLoad(0)
+    hpwh.setOffCycleParasiticElectricLoad(0)
+    hpwh.setParasiticHeatRejectionLocation('Outdoors')
+    if hpwh_type == 'split'
+      hpwh.setTankElementControlLogic('Simultaneous')
+      hpwh.setControlSensor1HeightInStratifiedTank(h_hpctrl_up)
+      hpwh.setControlSensor1Weight(1)
+      hpwh.setControlSensor2HeightInStratifiedTank(h_hpctrl_low)
+    else
+      hpwh.setTankElementControlLogic('MutuallyExclusive')
+      hpwh.setControlSensor1HeightInStratifiedTank(h_hpctrl_up)
+      hpwh.setControlSensor1Weight(0.75)
+      hpwh.setControlSensor2HeightInStratifiedTank(h_hpctrl_low)
+    end
+
+    return hpwh
+  end
+
+  def self.setup_hpwh_pumped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, setpoint_schedule, hpwh_type, split_hpwh_refrig)
+    #FIXME: Write this for co2
+    h_condtop = (1.0 - (5.5 / 12.0)) * h_tank # in the 6th node of the tank (counting from top)
+    h_condbot = 0.01 # bottom node
+    h_hpctrl_up = (1.0 - (2.5 / 12.0)) * h_tank # in the 3rd node of the tank
+    h_hpctrl_low = (1.0 - (8.5 / 12.0)) * h_tank # in the 9th node of the tank
+
+    hpwh = OpenStudio::Model::WaterHeaterHeatPump.new(model, coil, tank, fan, setpoint_schedule, model.alwaysOnDiscreteSchedule)
+    hpwh.setName("#{obj_name_hpwh} hpwh")
+    if hpwh_type == 'split' 
+      hpwh.setDeadBandTemperatureDifference(6.0)
+    else
+      hpwh.setDeadBandTemperatureDifference(3.89)
+    end
     hpwh.setCondenserBottomLocation(h_condbot)
     hpwh.setCondenserTopLocation(h_condtop)
     hpwh.setEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
@@ -709,37 +783,78 @@ class Waterheater
     return hpwh
   end
 
-  def self.setup_hpwh_dxcoil(model, water_heating_system, weather, obj_name_hpwh, airflow_rate)
-    # Curves
-    hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
-    hpwh_cap.setName('HPWH-Cap-fT')
-    hpwh_cap.setCoefficient1Constant(0.563)
-    hpwh_cap.setCoefficient2x(0.0437)
-    hpwh_cap.setCoefficient3xPOW2(0.000039)
-    hpwh_cap.setCoefficient4y(0.0055)
-    hpwh_cap.setCoefficient5yPOW2(-0.000148)
-    hpwh_cap.setCoefficient6xTIMESY(-0.000145)
-    hpwh_cap.setMinimumValueofx(0)
-    hpwh_cap.setMaximumValueofx(100)
-    hpwh_cap.setMinimumValueofy(0)
-    hpwh_cap.setMaximumValueofy(100)
+  def self.setup_hpwh_dxcoil(model, water_heating_system, weather, obj_name_hpwh, airflow_rate, hpwh_type, split_hpwh_refrig)
+    
+    if hpwh_type == 'split' && split_hpwh_refrig == 'co2' #FIXME: Update
+      # Curves
+      hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
+      hpwh_cap.setName('HPWH-Cap-fT')
+      hpwh_cap.setCoefficient1Constant(0.563)
+      hpwh_cap.setCoefficient2x(0.0437)
+      hpwh_cap.setCoefficient3xPOW2(0.000039)
+      hpwh_cap.setCoefficient4y(0.0055)
+      hpwh_cap.setCoefficient5yPOW2(-0.000148)
+      hpwh_cap.setCoefficient6xTIMESY(-0.000145)
+      hpwh_cap.setMinimumValueofx(0)
+      hpwh_cap.setMaximumValueofx(100)
+      hpwh_cap.setMinimumValueofy(0)
+      hpwh_cap.setMaximumValueofy(100)
 
-    hpwh_cop = OpenStudio::Model::CurveBiquadratic.new(model)
-    hpwh_cop.setName('HPWH-COP-fT')
-    hpwh_cop.setCoefficient1Constant(1.1332)
-    hpwh_cop.setCoefficient2x(0.063)
-    hpwh_cop.setCoefficient3xPOW2(-0.0000979)
-    hpwh_cop.setCoefficient4y(-0.00972)
-    hpwh_cop.setCoefficient5yPOW2(-0.0000214)
-    hpwh_cop.setCoefficient6xTIMESY(-0.000686)
-    hpwh_cop.setMinimumValueofx(0)
-    hpwh_cop.setMaximumValueofx(100)
-    hpwh_cop.setMinimumValueofy(0)
-    hpwh_cop.setMaximumValueofy(100)
+      hpwh_cop = OpenStudio::Model::CurveBiquadratic.new(model)
+      hpwh_cop.setName('HPWH-COP-fT')
+      hpwh_cop.setCoefficient1Constant(1.1332)
+      hpwh_cop.setCoefficient2x(0.063)
+      hpwh_cop.setCoefficient3xPOW2(-0.0000979)
+      hpwh_cop.setCoefficient4y(-0.00972)
+      hpwh_cop.setCoefficient5yPOW2(-0.0000214)
+      hpwh_cop.setCoefficient6xTIMESY(-0.000686)
+      hpwh_cop.setMinimumValueofx(0)
+      hpwh_cop.setMaximumValueofx(100)
+      hpwh_cop.setMinimumValueofy(0)
+      hpwh_cop.setMaximumValueofy(100)
+    else
+      # Curves
+      hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
+      hpwh_cap.setName('HPWH-Cap-fT')
+      hpwh_cap.setCoefficient1Constant(0.563)
+      hpwh_cap.setCoefficient2x(0.0437)
+      hpwh_cap.setCoefficient3xPOW2(0.000039)
+      hpwh_cap.setCoefficient4y(0.0055)
+      hpwh_cap.setCoefficient5yPOW2(-0.000148)
+      hpwh_cap.setCoefficient6xTIMESY(-0.000145)
+      hpwh_cap.setMinimumValueofx(0)
+      hpwh_cap.setMaximumValueofx(100)
+      hpwh_cap.setMinimumValueofy(0)
+      hpwh_cap.setMaximumValueofy(100)
 
+      hpwh_cop = OpenStudio::Model::CurveBiquadratic.new(model)
+      hpwh_cop.setName('HPWH-COP-fT')
+      hpwh_cop.setCoefficient1Constant(1.1332)
+      hpwh_cop.setCoefficient2x(0.063)
+      hpwh_cop.setCoefficient3xPOW2(-0.0000979)
+      hpwh_cop.setCoefficient4y(-0.00972)
+      hpwh_cop.setCoefficient5yPOW2(-0.0000214)
+      hpwh_cop.setCoefficient6xTIMESY(-0.000686)
+      hpwh_cop.setMinimumValueofx(0)
+      hpwh_cop.setMaximumValueofx(100)
+      hpwh_cop.setMinimumValueofy(0)
+      hpwh_cop.setMaximumValueofy(100)
+    end
     # Assumptions and values
-    cap = 0.5 # kW
-    shr = 0.88 # unitless
+    if hpwh_type == 'split'
+      if split_hpwh_refrig == 'r410a'
+        cap = 0.714 # kW
+        shr = 0.98 # unitless
+      else
+        cap = 0.5 # kW FIXME: Populate
+        shr = 0.88 # unitless
+      end
+    else
+      cap = 0.5 # kW
+      shr = 0.88 # unitless
+    end
+    
+    
 
     # Calculate an altitude adjusted rated evaporator wetbulb temperature
     rated_ewb_F = 56.4
@@ -768,6 +883,15 @@ class Waterheater
       end
     end
 
+    #Overwrite for split systems
+    if hpwh_type == 'split'
+      if split_hpwh_refrig == 'r410a'
+        cop = 4.2
+      else
+        cop = 3.9 #FIXME: Update after validation done
+      end
+    end
+
     coil = OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped.new(model)
     coil.setName("#{obj_name_hpwh} coil")
     coil.setRatedHeatingCapacity(UnitConversions.convert(cap, 'kW', 'W') * cop)
@@ -787,7 +911,7 @@ class Waterheater
     return coil
   end
 
-  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp)
+  def self.setup_hpwh_stratified_tank(model, water_heating_system, obj_name_hpwh, h_tank, solar_fraction, hpwh_tamb, hpwh_bottom_element_sp, hpwh_top_element_sp, hpwh_type, split_hpwh_refrig)
     # Calculate some geometry parameters for UA, the location of sensors and heat sources in the tank
     v_actual = calc_storage_tank_actual_vol(water_heating_system.tank_volume, water_heating_system.fuel_type) # gal
     a_tank, a_side = calc_tank_areas(v_actual, UnitConversions.convert(h_tank, 'm', 'ft')) # sqft
@@ -805,9 +929,13 @@ class Waterheater
     tank_ua = apply_tank_jacket(water_heating_system, tank_ua, a_side)
     u_tank = ((5.678 * tank_ua) / a_tank) * (1.0 - solar_fraction)
 
-    h_UE = (1.0 - (3.5 / 12.0)) * h_tank # in the 3rd node of the tank (counting from top)
-    h_LE = (1.0 - (9.5 / 12.0)) * h_tank # in the 10th node of the tank (counting from top)
-
+    if hpwh_type == 'split'
+      h_UE = h_tank #Arbitrary, no upper element
+      h_LE = 0.0001 #Bottom node
+    else
+      h_UE = (1.0 - (3.5 / 12.0)) * h_tank # in the 3rd node of the tank (counting from top)
+      h_LE = (1.0 - (9.5 / 12.0)) * h_tank # in the 10th node of the tank (counting from top)
+    end
     tank = OpenStudio::Model::WaterHeaterStratified.new(model)
     tank.setName("#{obj_name_hpwh} tank")
     tank.setEndUseSubcategory('Domestic Hot Water')
@@ -817,14 +945,30 @@ class Waterheater
     tank.setHeaterPriorityControl('MasterSlave')
     tank.heater1SetpointTemperatureSchedule.remove
     tank.setHeater1SetpointTemperatureSchedule(hpwh_top_element_sp)
-    tank.setHeater1Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
+    if hpwh_type == 'split'
+      tank.setHeater1Capacity(0)
+    else
+      tank.setHeater1Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
+    end
     tank.setHeater1Height(h_UE)
     tank.setHeater1DeadbandTemperatureDifference(18.5)
     tank.heater2SetpointTemperatureSchedule.remove
     tank.setHeater2SetpointTemperatureSchedule(hpwh_bottom_element_sp)
-    tank.setHeater2Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
+    if hpwh_type == 'split'
+      if split_hpwh_refrig == 'r410a'
+        tank.setHeater2Capacity(UnitConversions.convert(1, 'kW', 'W')) #small 1 kW element in bottom of tank
+      else
+        tank.setHeater2Capacity(UnitConversions.convert(0, 'kW', 'W')) #No backup elements
+      end
+    else
+      tank.setHeater2Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
+    end
     tank.setHeater2Height(h_LE)
-    tank.setHeater2DeadbandTemperatureDifference(3.89)
+    if hpwh_type == 'split' && split_hpwh_refrig == 'r410a'
+      tank.setHeater2DeadbandTemperatureDifference(35)
+    else
+      tank.setHeater2DeadbandTemperatureDifference(3.89)
+    end
     tank.setHeaterFuelType(EPlus::FuelTypeElectricity)
     tank.setHeaterThermalEfficiency(1)
     tank.setOffCycleParasiticFuelConsumptionRate(parasitics)
@@ -852,7 +996,7 @@ class Waterheater
     return tank
   end
 
-  def self.setup_hpwh_fan(model, water_heating_system, obj_name_hpwh, airflow_rate)
+  def self.setup_hpwh_fan(model, water_heating_system, obj_name_hpwh, airflow_rate, hpwh_type, split_hpwh_refrig)
     fan_power = 0.0462 # W/cfm, Based on 1st gen AO Smith HPWH, could be updated but pretty minor impact
     fan = OpenStudio::Model::FanSystemModel.new(model)
     fan.setSpeedControlMethod('Discrete')
@@ -863,7 +1007,11 @@ class Waterheater
     fan.setEndUseSubcategory('Domestic Hot Water')
     fan.setMotorEfficiency(1.0)
     fan.setMotorInAirStreamFraction(1.0)
-    fan.setDesignMaximumAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
+    if hpwh_type == 'split'
+      fan.setDesignMaximumAirFlowRate(0.226534772736) #FIXME: Don't hardcode
+    else
+      fan.setDesignMaximumAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
+    end
     fan.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
 
     return fan
@@ -990,68 +1138,100 @@ class Waterheater
     return hpwh_inlet_air_program
   end
 
-  def self.add_hpwh_control_program(model, runner, obj_name_hpwh, amb_temp_sensor, hpwh_top_element_sp, hpwh_bottom_element_sp, min_temp, max_temp, op_mode, setpoint_schedule, control_setpoint_schedule, schedules_file)
-    # Lower element is enabled if the ambient air temperature prevents the HP from running
-    leschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_bottom_element_sp, *EPlus::EMSActuatorScheduleConstantValue)
-    leschedoverride_actuator.setName("#{obj_name_hpwh} LESchedOverride")
+  def self.add_hpwh_control_program(model, runner, obj_name_hpwh, amb_temp_sensor, hpwh_top_element_sp, hpwh_bottom_element_sp, min_temp, max_temp, op_mode, setpoint_schedule, control_setpoint_schedule, schedules_file, hpwh_type, split_hpwh_refrig, coil)
+    if hpwh_type == 'split' && split_hpwh_refrig == 'r410a'
+      #by default, element and thermocouple are colocated. EMS program is to engage element whenever the HP turns on
+      #Sensor for HPWH control temp
+      t_ctrl_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Water Heater Temperature Node 2')
+      t_ctrl_sensor.setName("#{obj_name_hpwh} T_ctrl")
+      t_ctrl_sensor.setKeyName("#{obj_name_hpwh} tank") #JEFFGOHERE
 
-    # Upper element is enabled unless mode is HP_only
-    ueschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_top_element_sp, *EPlus::EMSActuatorScheduleConstantValue)
-    ueschedoverride_actuator.setName("#{obj_name_hpwh} UESchedOverride")
+      #Sensor for HPWH setpoint temp
+      t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+      t_set_sensor.setName("#{obj_name_hpwh} T_set")
+      t_set_sensor.setKeyName(setpoint_schedule.name.to_s)
 
-    # Actuator for setpoint schedule
-    hpwhschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(control_setpoint_schedule, *EPlus::EMSActuatorScheduleConstantValue)
-    hpwhschedoverride_actuator.setName("#{obj_name_hpwh} HPWHSchedOverride")
+      #Sensor for HP power
+      hp_pow_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Cooling Coil Total Water Heating Energy')
+      hp_pow_sensor.setName("#{obj_name_hpwh} hp_pow")
+      hp_pow_sensor.setKeyName(coil.name.to_s)
 
-    # EMS for the HPWH control logic
-    t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-    t_set_sensor.setName("#{obj_name_hpwh} T_set")
-    t_set_sensor.setKeyName(setpoint_schedule.name.to_s)
+      #Actuator for lower element
+      leschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_bottom_element_sp, *EPlus::EMSActuatorScheduleConstantValue)
+      leschedoverride_actuator.setName("#{obj_name_hpwh} LESchedOverride")
 
-    op_mode_schedule = nil
-    if not schedules_file.nil?
-      op_mode_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnWaterHeaterOperatingMode)
-    end
-
-    # Sensor on op_mode_schedule
-    if not op_mode_schedule.nil?
-      Schedule.set_schedule_type_limits(model, op_mode_schedule, Constants.ScheduleTypeLimitsFraction)
-
-      op_mode_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
-      op_mode_sensor.setName("#{obj_name_hpwh} op_mode")
-      op_mode_sensor.setKeyName(op_mode_schedule.name.to_s)
-
-      runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterOperatingMode}' schedule file and operating mode provided; the latter will be ignored.") if !op_mode.nil?
-    end
-
-    hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
-    hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
-    hpwh_ctrl_program.addLine("Set #{hpwhschedoverride_actuator.name} = #{t_set_sensor.name}")
-    # If in HP only mode: still enable elements if ambient temperature is out of bounds, otherwise disable elements
-    if op_mode == HPXML::WaterHeaterOperatingModeHeatPumpOnly
-      hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, 'F', 'C').round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, 'F', 'C').round(2)})")
-      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{t_set_sensor.name}")
-      hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = #{t_set_sensor.name}")
-      hpwh_ctrl_program.addLine('Else')
+      #Control progam: element is on whenever the HP is
+      hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+      hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
+      hpwh_ctrl_program.addLine("If #{hp_pow_sensor.name} > 1")
+      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 100")
+      hpwh_ctrl_program.addLine("Else")
       hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
-      hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = 0")
-      hpwh_ctrl_program.addLine('EndIf')
+      hpwh_ctrl_program.addLine("Endif")
+      
     else
-      # First, check if ambient temperature is out of bounds for HP operation, if so enable lower element
-      hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, 'F', 'C').round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, 'F', 'C').round(2)})")
-      hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = #{t_set_sensor.name}")
-      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{t_set_sensor.name}")
-      hpwh_ctrl_program.addLine('Else')
-      hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = #{t_set_sensor.name} - 9.0")
-      hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
-      hpwh_ctrl_program.addLine('EndIf')
-      # Scheduled operating mode: if in HP only mode, disable both elements (this will override prior logic)
+      # Lower element is enabled if the ambient air temperature prevents the HP from running
+      leschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_bottom_element_sp, *EPlus::EMSActuatorScheduleConstantValue)
+      leschedoverride_actuator.setName("#{obj_name_hpwh} LESchedOverride")
+
+      # Upper element is enabled unless mode is HP_only
+      ueschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(hpwh_top_element_sp, *EPlus::EMSActuatorScheduleConstantValue)
+      ueschedoverride_actuator.setName("#{obj_name_hpwh} UESchedOverride")
+
+      # Actuator for setpoint schedule
+      hpwhschedoverride_actuator = OpenStudio::Model::EnergyManagementSystemActuator.new(control_setpoint_schedule, *EPlus::EMSActuatorScheduleConstantValue)
+      hpwhschedoverride_actuator.setName("#{obj_name_hpwh} HPWHSchedOverride")
+
+      # EMS for the HPWH control logic
+      t_set_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+      t_set_sensor.setName("#{obj_name_hpwh} T_set")
+      t_set_sensor.setKeyName(setpoint_schedule.name.to_s)
+
+      op_mode_schedule = nil
+      if not schedules_file.nil?
+        op_mode_schedule = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnWaterHeaterOperatingMode)
+      end
+
+      # Sensor on op_mode_schedule
       if not op_mode_schedule.nil?
-        hpwh_ctrl_program.addLine("If #{op_mode_sensor.name} == 1")
+        Schedule.set_schedule_type_limits(model, op_mode_schedule, Constants.ScheduleTypeLimitsFraction)
+
+        op_mode_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
+        op_mode_sensor.setName("#{obj_name_hpwh} op_mode")
+        op_mode_sensor.setKeyName(op_mode_schedule.name.to_s)
+
+        runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterOperatingMode}' schedule file and operating mode provided; the latter will be ignored.") if !op_mode.nil?
+      end
+
+      hpwh_ctrl_program = OpenStudio::Model::EnergyManagementSystemProgram.new(model)
+      hpwh_ctrl_program.setName("#{obj_name_hpwh} Control")
+      hpwh_ctrl_program.addLine("Set #{hpwhschedoverride_actuator.name} = #{t_set_sensor.name}")
+      # If in HP only mode: still enable elements if ambient temperature is out of bounds, otherwise disable elements
+      if op_mode == HPXML::WaterHeaterOperatingModeHeatPumpOnly
+        hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, 'F', 'C').round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, 'F', 'C').round(2)})")
+        hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{t_set_sensor.name}")
+        hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = #{t_set_sensor.name}")
+        hpwh_ctrl_program.addLine('Else')
+        hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
         hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = 0")
+        hpwh_ctrl_program.addLine('EndIf')
+      else
+        # First, check if ambient temperature is out of bounds for HP operation, if so enable lower element
+        hpwh_ctrl_program.addLine("If (#{amb_temp_sensor.name}<#{UnitConversions.convert(min_temp, 'F', 'C').round(2)}) || (#{amb_temp_sensor.name}>#{UnitConversions.convert(max_temp, 'F', 'C').round(2)})")
+        hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = #{t_set_sensor.name}")
+        hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = #{t_set_sensor.name}")
         hpwh_ctrl_program.addLine('Else')
         hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = #{t_set_sensor.name} - 9.0")
+        hpwh_ctrl_program.addLine("Set #{leschedoverride_actuator.name} = 0")
         hpwh_ctrl_program.addLine('EndIf')
+        # Scheduled operating mode: if in HP only mode, disable both elements (this will override prior logic)
+        if not op_mode_schedule.nil?
+          hpwh_ctrl_program.addLine("If #{op_mode_sensor.name} == 1")
+          hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = 0")
+          hpwh_ctrl_program.addLine('Else')
+          hpwh_ctrl_program.addLine("Set #{ueschedoverride_actuator.name} = #{t_set_sensor.name} - 9.0")
+          hpwh_ctrl_program.addLine('EndIf')
+        end
       end
     end
     return hpwh_ctrl_program
