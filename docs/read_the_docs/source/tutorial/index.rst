@@ -6,6 +6,7 @@ Tutorial
 .. toctree::
    
    installation
-   setup_analysis_project
-   run_project
+   workflow_architecture
+   workflow_run
+   worfklow_outputs
    conclusion
