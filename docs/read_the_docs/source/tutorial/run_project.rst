@@ -47,12 +47,13 @@ Run ``openstudio workflow/run_analysis.rb -h`` to see all available commands/arg
       -y, --yml <FILE>                 YML file
       -n, --threads N                  Number of parallel simulations (defaults to processor count)
       -m, --measures_only              Only run the OpenStudio and EnergyPlus measures
-      -d, --debug                      Save both existing and upgraded xml/osw files
-      -i, --building_id ID             Only run this building ID; can be called multiple times
+      -i, --building_id ID             Only run this building ID; can be called multiple times     
       -k, --keep_run_folders           Preserve run folder for all datapoints
       -s, --samplingonly               Run the sampling only
-      -h, --help                       Display help
+      -d, --debug                      Preserve lib folder and "existing" xml/osw files
+      -o, --overwrite                  Overwrite existing project directory
       -v, --version                    Display version
+      -h, --help                       Display help
 
 .. note::
   At this time the ``residential_quota_downselect`` sampler with ``resample`` is not supported.

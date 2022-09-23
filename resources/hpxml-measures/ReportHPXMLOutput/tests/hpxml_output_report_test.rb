@@ -13,9 +13,8 @@ require_relative '../measure.rb'
 class ReportHPXMLOutputTest < MiniTest::Test
   def test_hpxml_with_primary_systems
     args_hash = { 'hpxml_path' => '../../../workflow/sample_files/base-hvac-multiple.xml' }
-    hpxml_csv = _test_measure(args_hash)
-    assert(File.exist?(hpxml_csv))
-    actual_rows = File.readlines(hpxml_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
+    actual_multipliers = _test_measure(args_hash)
+    actual_rows = actual_multipliers.keys
     assert_includes(actual_rows, 'Systems: Heating Capacity (Btu/h)')
     assert_includes(actual_rows, 'Systems: Cooling Capacity (Btu/h)')
     assert_includes(actual_rows, 'Primary Systems: Cooling Capacity (Btu/h)')
@@ -34,10 +33,9 @@ class ReportHPXMLOutputTest < MiniTest::Test
     tmp_hpxml_path = File.join(File.dirname(__FILE__), 'tmp.xml')
     XMLHelper.write_file(hpxml.to_oga(), tmp_hpxml_path)
     args_hash = { 'hpxml_path' => '../../../ReportHPXMLOutput/tests/tmp.xml' }
-    hpxml_csv = _test_measure(args_hash)
+    actual_multipliers = _test_measure(args_hash)
+    actual_rows = actual_multipliers.keys
     File.delete(tmp_hpxml_path) if File.exist?(tmp_hpxml_path)
-    assert(File.exist?(hpxml_csv))
-    actual_rows = File.readlines(hpxml_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
     assert_includes(actual_rows, 'Systems: Heating Capacity (Btu/h)')
     assert_includes(actual_rows, 'Systems: Cooling Capacity (Btu/h)')
     refute_includes(actual_rows, 'Primary Systems: Cooling Capacity (Btu/h)')
@@ -50,8 +48,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
 
   def test_furnace_and_central_air_conditioner_xml
     args_hash = {}
-    hpxml_csv = _test_measure(args_hash)
-    assert(File.exist?(hpxml_csv))
+    actual_multipliers = _test_measure(args_hash)
 
     expected_multipliers = {
       'Enclosure: Wall Area Thermal Boundary (ft^2)' => 1200.0,
@@ -104,7 +101,6 @@ class ReportHPXMLOutputTest < MiniTest::Test
       'Design Loads Cooling Latent: Internal Gains (Btu/h)' => 0.0
     }
 
-    actual_multipliers = _get_actual_multipliers(hpxml_csv)
     assert_equal(expected_multipliers, actual_multipliers)
   end
 
@@ -113,8 +109,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
                    'base-hvac-air-to-air-heat-pump-var-speed-backup-boiler.xml']
     hpxml_files.each do |hpxml_file|
       args_hash = { 'hpxml_path' => "../../../workflow/sample_files/#{hpxml_file}" }
-      hpxml_csv = _test_measure(args_hash)
-      assert(File.exist?(hpxml_csv))
+      actual_multipliers = _test_measure(args_hash)
 
       if hpxml_file == 'base-hvac-air-to-air-heat-pump-1-speed.xml'
         hp_capacity = 36000.0
@@ -175,7 +170,6 @@ class ReportHPXMLOutputTest < MiniTest::Test
         'Design Loads Cooling Latent: Internal Gains (Btu/h)' => 0.0
       }
 
-      actual_multipliers = _get_actual_multipliers(hpxml_csv)
       assert_equal(expected_multipliers, actual_multipliers)
     end
   end
@@ -192,8 +186,7 @@ class ReportHPXMLOutputTest < MiniTest::Test
                    'base-foundation-walkout-basement.xml']
     hpxml_files.each do |hpxml_file|
       args_hash = { 'hpxml_path' => "../../../workflow/sample_files/#{hpxml_file}" }
-      hpxml_csv = _test_measure(args_hash)
-      assert(File.exist?(hpxml_csv))
+      actual_multipliers = _test_measure(args_hash)
 
       foundation_wall_area_exterior = 1200.0
       floor_area_foundation = 1350.0
@@ -232,22 +225,10 @@ class ReportHPXMLOutputTest < MiniTest::Test
         'Enclosure: Slab Exposed Perimeter Thermal Boundary (ft)' => slab_exposed_perimeter_thermal_boundary
       }
 
-      actual_multipliers = _get_actual_multipliers(hpxml_csv)
       expected_multipliers.each do |multiplier_name, expected_multiplier|
         assert_equal(expected_multiplier, actual_multipliers[multiplier_name])
       end
     end
-  end
-
-  def _get_actual_multipliers(hpxml_csv)
-    actual_multipliers = {}
-    File.readlines(hpxml_csv).each do |line|
-      next if line.strip.empty?
-
-      key, value = line.split(',').map { |x| x.strip }
-      actual_multipliers[key] = Float(value)
-    end
-    return actual_multipliers
   end
 
   def _test_measure(args_hash)
@@ -285,6 +266,37 @@ class ReportHPXMLOutputTest < MiniTest::Test
     File.delete(osw_path)
 
     hpxml_csv = File.join(File.dirname(template_osw), 'run', 'results_hpxml.csv')
-    return hpxml_csv
+
+    # Check written values exist and are registered
+    assert(File.exist?(hpxml_csv))
+    actual_multipliers = _get_actual_multipliers(hpxml_csv)
+
+    _check_for_runner_registered_values(File.join(File.dirname(hpxml_csv), 'results.json'), actual_multipliers)
+
+    return actual_multipliers
+  end
+
+  def _get_actual_multipliers(hpxml_csv)
+    actual_multipliers = {}
+    File.readlines(hpxml_csv).each do |line|
+      next if line.strip.empty?
+
+      key, value = line.split(',').map { |x| x.strip }
+      actual_multipliers[key] = Float(value)
+    end
+    return actual_multipliers
+  end
+
+  def _check_for_runner_registered_values(results_json, actual_multipliers)
+    require 'json'
+    runner_multipliers = JSON.parse(File.read(results_json))
+    runner_multipliers = runner_multipliers['ReportHPXMLOutput']
+
+    actual_multipliers.each do |name, value|
+      name = OpenStudio::toUnderscoreCase(name).chomp('_')
+
+      assert_includes(runner_multipliers.keys, name)
+      assert_equal(value, runner_multipliers[name])
+    end
   end
 end

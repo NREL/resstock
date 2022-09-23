@@ -106,7 +106,8 @@ class Airflow
       break
     end
 
-    apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor)
+    apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor,
+                                                  hpxml.header.natvent_days_per_week)
     apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
                                             vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
@@ -150,7 +151,7 @@ class Airflow
     end
   end
 
-  def self.get_default_mech_vent_flow_rate(hpxml, vent_fan, infil_measurements, weather, infil_a_ext, cfa, nbeds)
+  def self.get_default_mech_vent_flow_rate(hpxml, vent_fan, infil_measurements, weather, cfa, nbeds)
     # Calculates Qfan cfm requirement per ASHRAE 62.2-2019
     infil_volume = infil_measurements[0].infiltration_volume
     infil_height = infil_measurements[0].infiltration_height
@@ -267,7 +268,8 @@ class Airflow
     end
   end
 
-  def self.apply_natural_ventilation_and_whole_house_fan(model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor)
+  def self.apply_natural_ventilation_and_whole_house_fan(model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor,
+                                                         natvent_days_per_week)
     if @living_zone.thermostatSetpointDualSetpoint.is_initialized
       thermostat = @living_zone.thermostatSetpointDualSetpoint.get
       htg_sch = thermostat.heatingSetpointTemperatureSchedule.get
@@ -275,8 +277,7 @@ class Airflow
     end
 
     # NV Availability Schedule
-    nv_num_days_per_week = 7 # FUTURE: Expose via HPXML?
-    nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, nv_num_days_per_week)
+    nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week)
 
     nv_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     nv_avail_sensor.setName("#{Constants.ObjectNameNaturalVentilation} avail s")
@@ -380,6 +381,10 @@ class Airflow
     end
     vent_program.addLine("Set NVavail = #{nv_avail_sensor.name}")
     vent_program.addLine("Set ClgSsnAvail = #{nv_clg_ssn_sensor.name}")
+    vent_program.addLine("Set #{nv_flow_actuator.name} = 0") # Init
+    vent_program.addLine("Set #{whf_flow_actuator.name} = 0") # Init
+    vent_program.addLine("Set #{liv_to_zone_flow_rate_actuator.name} = 0") unless whf_zone.nil? # Init
+    vent_program.addLine("Set #{whf_elec_actuator.name} = 0") # Init
     vent_program.addLine('If (Wout < MaxHR) && (Phiout < MaxRH) && (Tin > Tout) && (Tin > Tnvsp) && (ClgSsnAvail > 0)')
     vent_program.addLine('  Set WHF_Flow = 0')
     vent_fans_whf.each do |vent_whf|
@@ -389,7 +394,6 @@ class Airflow
     vent_program.addLine('  Set Adj = (@Min Adj 1)')
     vent_program.addLine('  Set Adj = (@Max Adj 0)')
     vent_program.addLine('  If (WHF_Flow > 0)') # If available, prioritize whole house fan
-    vent_program.addLine("    Set #{nv_flow_actuator.name} = 0")
     vent_program.addLine("    Set #{whf_flow_actuator.name} = WHF_Flow*Adj")
     vent_program.addLine("    Set #{liv_to_zone_flow_rate_actuator.name} = WHF_Flow*Adj") unless whf_zone.nil?
     vent_program.addLine('    Set WHF_W = 0')
@@ -407,15 +411,7 @@ class Airflow
     vent_program.addLine('    Set SGNV = NVArea*Adj*((((Cs*dT)+(Cw*(Vwind^2)))^0.5)/1000)')
     vent_program.addLine("    Set MaxNV = #{UnitConversions.convert(max_flow_rate, 'cfm', 'm^3/s')}")
     vent_program.addLine("    Set #{nv_flow_actuator.name} = (@Min SGNV MaxNV)")
-    vent_program.addLine("    Set #{whf_flow_actuator.name} = 0")
-    vent_program.addLine("    Set #{liv_to_zone_flow_rate_actuator.name} = 0") unless whf_zone.nil?
-    vent_program.addLine("    Set #{whf_elec_actuator.name} = 0")
     vent_program.addLine('  EndIf')
-    vent_program.addLine('Else')
-    vent_program.addLine("  Set #{nv_flow_actuator.name} = 0")
-    vent_program.addLine("  Set #{whf_flow_actuator.name} = 0")
-    vent_program.addLine("  Set #{liv_to_zone_flow_rate_actuator.name} = 0") unless whf_zone.nil?
-    vent_program.addLine("  Set #{whf_elec_actuator.name} = 0")
     vent_program.addLine('EndIf')
 
     manager = OpenStudio::Model::EnergyManagementSystemProgramCallingManager.new(model)

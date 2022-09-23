@@ -426,9 +426,9 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
     expected_annual_rows = AnnualRows
-    actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    assert_equal(expected_annual_rows.sort, actual_annual_rows.sort)
-    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), expected_annual_rows)
+    actual_annual_rows = _get_actual_annual_rows(annual_csv)
+    assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
+    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), actual_annual_rows)
   end
 
   def test_annual_only2
@@ -452,9 +452,9 @@ class ReportSimulationOutputTest < MiniTest::Test
     assert(File.exist?(annual_csv))
     assert(!File.exist?(timeseries_csv))
     expected_annual_rows = AnnualRows + emission_annual_cols
-    actual_annual_rows = File.readlines(annual_csv).map { |x| x.split(',')[0].strip }.select { |x| !x.empty? }
-    assert_equal(expected_annual_rows.sort, actual_annual_rows.sort)
-    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), expected_annual_rows)
+    actual_annual_rows = _get_actual_annual_rows(annual_csv)
+    assert_equal(expected_annual_rows.sort, actual_annual_rows.keys.sort)
+    _check_for_runner_registered_values(File.join(File.dirname(annual_csv), 'results.json'), actual_annual_rows)
   end
 
   def test_timeseries_hourly_total_energy
@@ -1055,11 +1055,23 @@ class ReportSimulationOutputTest < MiniTest::Test
                   'output_format' => 'csv_dview',
                   'timeseries_frequency' => 'timestep',
                   'include_timeseries_fuel_consumptions' => true,
-                  'add_timeseries_dst_column' => true }
+                  'include_timeseries_weather' => true }
     annual_csv, timeseries_csv = _test_measure(args_hash)
     assert(File.exist?(annual_csv))
     assert(File.exist?(timeseries_csv))
-    assert_equal('wxDVFileHeaderVer.1', CSV.readlines(timeseries_csv)[0][0].strip)
+    timeseries_csv = CSV.readlines(timeseries_csv)
+    assert_equal('wxDVFileHeaderVer.1', timeseries_csv[0][0].strip)
+
+    args_hash['hpxml_path'] = File.join(File.dirname(__FILE__), '../../workflow/sample_files/base-simcontrol-daylight-saving-disabled.xml')
+    annual_csv, timeseries_csv2 = _test_measure(args_hash)
+    assert(File.exist?(annual_csv))
+    assert(File.exist?(timeseries_csv2))
+    timeseries_csv2 = CSV.readlines(timeseries_csv2)
+    assert_equal('wxDVFileHeaderVer.1', timeseries_csv2[0][0].strip)
+
+    col_ix = timeseries_csv[1].find_index('Weather| Drybulb Temperature')
+    assert_equal(Float(timeseries_csv[5][col_ix].strip), Float(timeseries_csv2[5][col_ix].strip)) # not in dst period, values line up
+    assert_equal(Float(timeseries_csv[5000 + 1][col_ix].strip), Float(timeseries_csv2[5000][col_ix].strip)) # in dst period, values are shifted forward
   end
 
   def test_timeseries_local_time_dst
@@ -1304,15 +1316,27 @@ class ReportSimulationOutputTest < MiniTest::Test
     end
   end
 
-  def _check_for_runner_registered_values(results_json, expected_annual_rows)
-    expected_registered_values = expected_annual_rows.map { |c| OpenStudio::toUnderscoreCase(c).chomp('_') }
+  def _get_actual_annual_rows(annual_csv)
+    actual_annual_rows = {}
+    File.readlines(annual_csv).each do |line|
+      next if line.strip.empty?
 
+      key, value = line.split(',').map { |x| x.strip }
+      actual_annual_rows[key] = Float(value)
+    end
+    return actual_annual_rows
+  end
+
+  def _check_for_runner_registered_values(results_json, actual_annual_rows)
     require 'json'
-    json = JSON.parse(File.read(results_json))
-    actual_registered_values = json['ReportSimulationOutput'].keys
+    runner_annual_rows = JSON.parse(File.read(results_json))
+    runner_annual_rows = runner_annual_rows['ReportSimulationOutput']
 
-    expected_registered_values.each do |val|
-      assert(actual_registered_values.include? val)
+    actual_annual_rows.each do |name, value|
+      name = OpenStudio::toUnderscoreCase(name).chomp('_')
+
+      assert_includes(runner_annual_rows.keys, name)
+      assert_equal(value, runner_annual_rows[name])
     end
   end
 end
