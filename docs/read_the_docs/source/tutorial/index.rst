@@ -8,5 +8,5 @@ Tutorial
    installation
    workflow_architecture
    workflow_run
-   worfklow_outputs
+   workflow_outputs
    conclusion

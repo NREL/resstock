@@ -1,51 +1,69 @@
-Workflow Architecure
-====================
+.. _workflow_architecture:
+
+Workflow Architecture
+=====================
+
+The key ResStock workflow components are described below.
+
+Projects
+--------
 
 At the top level of the ResStock repository you just downloaded, you will see two analysis project folders:
 
 - ``project_national``
 - ``project_testing``
  
-The following OpenStudio measures are used in the ResStock workflow. Their arguments can be set based on the method that is chosen for running ResStock. See :doc:`run_project` for more information.
+The national project contains inputs describing the existing residential building stock.
+The testing project contains inputs to test our OpenStudio workflows.
+Within each project folder are sample "baseline" and "upgrades" input files that may serve as examples for how to set up different types of ResStock analyses.
+The contents of the input file ultimately determines the set of workflow steps (i.e., OpenStudio measures) for each ResStock sample.
+See :doc:`workflow_run` for more information about running ResStock analyses.
 
-BuildExistingModel
-  ResStockArguments
-  BuildResidentialHPXML
-  BuildResidentialScheduleFile
-ApplyUpgrade (optional)
-  ResStockArguments
-  BuildResidentialHPXML
-  BuildResidentialScheduleFile
-HPXMLtoOpenStudio
-**Other Measures** FIXME: need to fix both wfgs for this order change
-ReportSimulationOutput
-ReportHPXMLOutput
-UpgradeCosts
-**Other Reporting Measures**
+Measures
+--------
 
-OpenStudio Measures
--------------------
+ResStock uses a mixture of both OpenStudio "model" and "reporting" measures in its workflow.
+The following depicts the order in which workflow steps are applied:
 
-.. _build-existing-model:
+* BuildExistingModel
 
-Build Existing Model
-********************
+  * ResStockArguments
+  * BuildResidentialHPXML
+  * BuildResidentialScheduleFile
 
-This measure creates the baseline scenario.
+* ApplyUpgrade
 
-As a meta measure, the ``BuildExistingModel`` measure incrementally applies the following OpenStudio measures to create residential building models:
+  * ResStockArguments
+  * BuildResidentialHPXML
+  * BuildResidentialScheduleFile
 
-#. ``ResStockArguments``
-#. ``BuildResidentialHPXML``
-#. ``BuildResidentialScheduleFile``
+* HPXMLtoOpenStudio
+* *Other Model Measures*
+* ReportSimulationOutput
+* ReportHPXMLOutput
+* UpgradeCosts
+* *Other Reporting Measures*
 
-All of these measures, with the exception of ``ResStockArguments``, are located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
-See the `OpenStudio-HPXML documentation <https://openstudio-hpxml.readthedocs.io/en/latest/>`_ for information on workflow inputs.
-  
-.. _tutorial-apply-upgrade:
+Model Measures
+**************
 
-Apply Upgrade
-*************
+Model measures are applied *before* the simulation is run.
+
+**BuildExistingModel**
+
+.. include:: ../../../../measures/BuildExistingModel/measure.xml
+   :start-after: <modeler_description>
+   :end-before: <
+
+It is a meta measure; meaning, it incrementally applies *other* measures (i.e., ResStockArguments, BuildResidentialHPXML, and BuildResidentialScheduleFile) to create residential models.
+
+**ApplyUpgrade**
+
+This measure can be optionally applied to the workflow.
+
+.. include:: ../../../../measures/ApplyUpgrade/measure.xml
+   :start-after: <modeler_description>
+   :end-before: <
 
 Each "Apply Upgrade" measure defines an upgrade scenario. An upgrade scenario is a collection of options exercised with some logic and costs applied. In the simplest case, we apply the new option to all housing units. The available upgrade options are in ``resources/options_lookup.tsv`` in your git repository. 
 
@@ -53,39 +71,42 @@ For this example, we will upgrade all windows by applying the ``Windows|Triple, 
 
 Like the **downselect logic**, excluded datapoints (i.e., datapoints for which the upgrade does not apply) will result in "completed invalid workflow". Note that using no downselect logic will apply the option to all housing units. For a full explanation of how to set up the options and logic surrounding them, see :doc:`../upgrade_scenario_config`.
 
-HPXML to OpenStudio
-*******************
+**ResStockArguments**
 
-Translate HPXML file to OpenStudio model. 
+.. include:: ../../../../measures/ResStockArguments/measure.xml
+   :start-after: <modeler_description>
+   :end-before: <
+
+**BuildResidentialHPXML, BuildResidentialScheduleFile, HPXMLtoOpenStudio**
+
+These measures are located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
+See also the `OpenStudio-HPXML Workflow Inputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html>`_ for documentation on workflow inputs.
+
+**Other Model Measures**
+
+Additional model measures can be optionally applied to the workflow.
 
 Reporting Measures
-------------------
+******************
 
-In general, reporting measures process data after the simulation has finished and produced results.
+Reporting measures are applied *after* the simulation is run.
 
-.. _report-simulation-output:
+**ReportSimulationOutput, ReportHPXMLOutput**
 
-Report Simulation Output
-************************
+These measures are located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
 
-This measure reports simulation outputs for residential HPXML-based models, and is located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
+**UpgradeCosts**
 
-.. _report-hpxml-output:
+.. include:: ../../../../measures/UpgradeCosts/measure.xml
+   :start-after: <modeler_description>
+   :end-before: <
 
-Report HPXML Output
-*******************
+**Other Reporting Measures**
 
-This measure reports HPXML outputs for residential HPXML-based models, and is located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
+Additional reporting measures can be optionally applied to the workflow.
 
-.. _upgrade-costs:
-
-Upgrade Costs
-*************
-
-This measure calculates upgrade costs by multiplying cost values by cost multipliers.
-
-Manual Sampling
----------------
+Sampling
+--------
    
 To run the sampling script yourself, from the command line execute, e.g. ``ruby resources/run_sampling.rb -p project_national -n 10000 -o buildstock.csv``, and a file ``buildstock.csv`` will be created in the ``resources`` directory. 
  
