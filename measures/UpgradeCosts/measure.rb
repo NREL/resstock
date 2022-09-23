@@ -29,6 +29,12 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
   def arguments(model) # rubocop:disable Lint/UnusedMethodArgument
     args = OpenStudio::Measure::OSArgumentVector.new
 
+    arg = OpenStudio::Measure::OSArgument.makeBoolArgument('debug', false)
+    arg.setDisplayName('Debug Mode?')
+    arg.setDescription('If true, retain existing and upgraded intermediate files.')
+    arg.setDefaultValue(false)
+    args << arg
+
     return args
   end
 
@@ -60,6 +66,8 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     if !runner.validateUserArguments(arguments(model), user_arguments)
       return false
     end
+
+    debug = runner.getBoolArgumentValue('debug', user_arguments)
 
     # Retrieve values from BuildExistingModel, ApplyUpgrade, ReportHPXMLOutput
     values = { 'apply_upgrade' => get_values_from_runner_past_results(runner, 'apply_upgrade'),
@@ -108,6 +116,7 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     end
 
     if not has_costs
+      remove_intermediate_files() if !debug
       register_value(runner, upgrade_cost_name, 0.0)
       runner.registerInfo("Registering 0.0 for #{upgrade_cost_name}.")
       return true
@@ -151,7 +160,16 @@ class UpgradeCosts < OpenStudio::Measure::ReportingMeasure
     register_value(runner, upgrade_cost_name, upgrade_cost)
     runner.registerInfo("Registering #{upgrade_cost} for #{upgrade_cost_name}.")
 
+    remove_intermediate_files() if !debug
+
     return true
+  end
+
+  def remove_intermediate_files()
+    FileUtils.rm_rf(File.expand_path('../existing.osw'))
+    FileUtils.rm_rf(File.expand_path('../existing.xml'))
+    FileUtils.rm_rf(File.expand_path('../upgraded.osw'))
+    FileUtils.rm_rf(File.expand_path('../upgraded.xml'))
   end
 
   def retrieve_hpxmls(existing_hpxml, upgraded_hpxml)

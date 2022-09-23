@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_existing_model</name>
   <uid>dedf59bb-3b88-4f16-8755-2c1ff5519cbf</uid>
-  <version_id>e32720a9-1323-402a-9112-cec7a055cb1d</version_id>
-  <version_modified>20220907T192923Z</version_modified>
+  <version_id>0d1f6325-f179-4ec8-9ada-26499f6c4c53</version_id>
+  <version_modified>20220912T204948Z</version_modified>
   <xml_checksum>2C38F48B</xml_checksum>
   <class_name>BuildExistingModel</class_name>
   <display_name>Build Existing Model</display_name>
@@ -39,14 +39,6 @@
       <name>downselect_logic</name>
       <display_name>Downselect Logic</display_name>
       <description>Logic that specifies the subset of the building stock to be considered in the analysis. Specify one or more parameter|option as found in resources\options_lookup.tsv. When multiple are included, they must be separated by '||' for OR and '&amp;&amp;' for AND, and using parentheses as appropriate. Prefix an option with '!' for not.</description>
-      <type>String</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>measures_to_ignore</name>
-      <display_name>Measures to Ignore</display_name>
-      <description>Measures to exclude from the OpenStudio Workflow specified by listing one or more measure directories separated by '|'. Core ResStock measures cannot be ignored (this measure will fail). INTENDED FOR ADVANCED USERS/WORKFLOW DEVELOPERS.</description>
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
@@ -104,42 +96,6 @@
       <units>year</units>
       <required>false</required>
       <model_dependent>false</model_dependent>
-    </argument>
-    <argument>
-      <name>debug</name>
-      <display_name>Debug Mode?</display_name>
-      <description>If true: 1) Writes in.osm file, 2) Generates additional log output, and 3) Creates all EnergyPlus output files.</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
-    </argument>
-    <argument>
-      <name>add_component_loads</name>
-      <display_name>Annual Component Loads?</display_name>
-      <description>If true, output the annual component loads.</description>
-      <type>Boolean</type>
-      <required>false</required>
-      <model_dependent>false</model_dependent>
-      <choices>
-        <choice>
-          <value>true</value>
-          <display_name>true</display_name>
-        </choice>
-        <choice>
-          <value>false</value>
-          <display_name>false</display_name>
-        </choice>
-      </choices>
     </argument>
     <argument>
       <name>os_hescore_directory</name>
@@ -364,7 +320,7 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>DABDA659</checksum>
+      <checksum>BB3171DA</checksum>
     </file>
   </files>
 </measure>
