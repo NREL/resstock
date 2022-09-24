@@ -902,7 +902,12 @@ class Waterheater
     coil.setRatedCondenserWaterTemperature(48.89)
     coil.setRatedEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
     coil.setEvaporatorFanPowerIncludedinRatedCOP(true)
-    coil.setEvaporatorAirTemperatureTypeforCurveObjects('WetBulbTemperature')
+    if hpwh_type == 'split'
+      coil.setEvaporatorAirTemperatureTypeforCurveObjects('DryBulbTemperature')
+    else
+      coil.setEvaporatorAirTemperatureTypeforCurveObjects('WetBulbTemperature')
+    end
+    
     coil.setHeatingCapacityFunctionofTemperatureCurve(hpwh_cap)
     coil.setHeatingCOPFunctionofTemperatureCurve(hpwh_cop)
     coil.setMaximumAmbientTemperatureforCrankcaseHeaterOperation(0)
