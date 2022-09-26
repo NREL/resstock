@@ -25,31 +25,33 @@ Measures
 ResStock uses a mixture of both OpenStudio "model" and "reporting" measures in its workflow.
 The following depicts the order in which workflow steps are applied:
 
-* BuildExistingModel
+1. BuildExistingModel
 
-  * ResStockArguments
-  * BuildResidentialHPXML
-  * BuildResidentialScheduleFile
+  a. ResStockArguments
+  b. BuildResidentialHPXML
+  c. BuildResidentialScheduleFile
 
-* ApplyUpgrade
+2. ApplyUpgrade
 
-  * ResStockArguments
-  * BuildResidentialHPXML
-  * BuildResidentialScheduleFile
+  a. ResStockArguments
+  b. BuildResidentialHPXML
+  c. BuildResidentialScheduleFile
 
-* HPXMLtoOpenStudio
-* *Other Model Measures*
-* ReportSimulationOutput
-* ReportHPXMLOutput
-* UpgradeCosts
-* *Other Reporting Measures*
+3. HPXMLtoOpenStudio
+4. *Other Model Measures*
+5. ReportSimulationOutput
+6. ReportHPXMLOutput
+7. ReportUtilityBills
+8. UpgradeCosts
+9. *Other Reporting Measures*
 
 Model Measures
 **************
 
 Model measures are applied *before* the simulation is run.
 
-**BuildExistingModel**
+BuildExistingModel
+~~~~~~~~~~~~~~~~~~
 
 .. include:: ../../../../measures/BuildExistingModel/measure.xml
    :start-after: <modeler_description>
@@ -57,7 +59,10 @@ Model measures are applied *before* the simulation is run.
 
 It is a meta measure; meaning, it incrementally applies *other* measures (i.e., ResStockArguments, BuildResidentialHPXML, and BuildResidentialScheduleFile) to create residential models.
 
-**ApplyUpgrade**
+.. _tutorial-apply-upgrade:
+
+ApplyUpgrade
+~~~~~~~~~~~~
 
 This measure can be optionally applied to the workflow.
 
@@ -71,18 +76,21 @@ For this example, we will upgrade all windows by applying the ``Windows|Triple, 
 
 Like the **downselect logic**, excluded datapoints (i.e., datapoints for which the upgrade does not apply) will result in "completed invalid workflow". Note that using no downselect logic will apply the option to all housing units. For a full explanation of how to set up the options and logic surrounding them, see :doc:`../upgrade_scenario_config`.
 
-**ResStockArguments**
+ResStockArguments
+~~~~~~~~~~~~~~~~~
 
 .. include:: ../../../../measures/ResStockArguments/measure.xml
    :start-after: <modeler_description>
    :end-before: <
 
-**BuildResidentialHPXML, BuildResidentialScheduleFile, HPXMLtoOpenStudio**
+BuildResidentialHPXML, BuildResidentialScheduleFile, HPXMLtoOpenStudio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These measures are located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
 See also the `OpenStudio-HPXML Workflow Inputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_inputs.html>`_ for documentation on workflow inputs.
 
-**Other Model Measures**
+Other Model Measures
+~~~~~~~~~~~~~~~~~~~~
 
 Additional model measures can be optionally applied to the workflow.
 
@@ -91,17 +99,20 @@ Reporting Measures
 
 Reporting measures are applied *after* the simulation is run.
 
-**ReportSimulationOutput, ReportHPXMLOutput**
+ReportSimulationOutput, ReportHPXMLOutput, ReportUtilityBills
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These measures are located in the `OpenStudio-HPXML <https://github.com/NREL/OpenStudio-HPXML>`_ repository.
 
-**UpgradeCosts**
+UpgradeCosts
+~~~~~~~~~~~~
 
 .. include:: ../../../../measures/UpgradeCosts/measure.xml
    :start-after: <modeler_description>
    :end-before: <
 
-**Other Reporting Measures**
+Other Reporting Measures
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Additional reporting measures can be optionally applied to the workflow.
 
