@@ -42,17 +42,6 @@ jobs:
           path: resources/buildstock.csv
           name: samples
 
-      - name: Build documentation
-        run: |
-          cd docs/read_the_docs
-          make html SPHINXOPTS="-W --keep-going -n"
-
-      - name: Save Docs
-        uses: actions/upload-artifact@v2
-        with:
-          name: documentation
-          path: docs/read_the_docs/_build/html/
-
   analysis-tests:
     runs-on: ubuntu-latest
     container:
@@ -270,10 +259,10 @@ jobs:
           branch_name="${{ github.head_ref }}"
           git pull origin $branch_name
           cp -r samples/buildstock*.csv test/base_results/baseline/annual
-          cp -r results/baseline/annual/results*.csv test/base_results/baseline/annual
-          cp -r results/baseline/timeseries/results*.csv test/base_results/baseline/timeseries
-          cp -r results/upgrades/annual/results*.csv test/base_results/upgrades/annual
-          cp -r results/upgrades/timeseries/results*.csv test/base_results/upgrades/timeseries
+          cp -r results/baseline/annual/*.csv test/base_results/baseline/annual
+          cp -r results/baseline/timeseries/*.csv test/base_results/baseline/timeseries
+          cp -r results/upgrades/annual/*.csv test/base_results/upgrades/annual
+          cp -r results/upgrades/timeseries/*.csv test/base_results/upgrades/timeseries
           git add test/base_results
           git status
           if [[ $(git diff --cached --exit-code) ]]; then
@@ -283,3 +272,14 @@ jobs:
             echo "Pushing to branch: $branch_name"
             git push -u origin $branch_name
           fi
+
+      - name: Build documentation
+        run: |
+          cd docs/read_the_docs
+          make html SPHINXOPTS="-W --keep-going -n"
+
+      - name: Save Docs
+        uses: actions/upload-artifact@v2
+        with:
+          name: documentation
+          path: docs/read_the_docs/_build/html/
