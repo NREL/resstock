@@ -31,6 +31,8 @@ del df['job_id']
 
 build_existing_models = []
 report_simulation_outputs = ['color_index']
+simulation_outputs = []
+emissions = []
 report_utility_bills = []
 upgrade_costs = []
 qoi_reports = []
@@ -43,6 +45,10 @@ for col in df.columns.values:
     build_existing_models.append(col)
   elif col.startswith('report_simulation_output'):
     report_simulation_outputs.append(col)
+    if 'emissions' in col:
+      emissions.append(col)
+    else:
+      simulation_outputs.append(col)
   elif col.startswith('report_utility_bills'):
     report_utility_bills.append(col)
   elif col.startswith('upgrade_costs'):
@@ -52,6 +58,8 @@ for col in df.columns.values:
 
 build_existing_models = sorted(build_existing_models)
 report_simulation_outputs = sorted(report_simulation_outputs)
+simulation_outputs = sorted(simulation_outputs)
+emissions = sorted(emissions)
 report_utility_bills = sorted(report_utility_bills)
 upgrade_costs = sorted(upgrade_costs)
 qoi_reports = sorted(qoi_reports)
@@ -82,9 +90,11 @@ def write_csv_cols(outdir, array, filename):
   for x in array:
     wtr.writerow([x])
 
-write_csv_cols(outdir, build_existing_models, 'build_existing_model.csv')
-write_csv_cols(outdir, report_simulation_outputs, 'report_simulation_output.csv')
-write_csv_cols(outdir, report_utility_bills, 'report_utility_bills.csv')
+# these are used by readthedocs
+write_csv_cols(outdir, build_existing_models, 'characteristics.csv')
+write_csv_cols(outdir, simulation_outputs, 'simulation_outputs.csv')
+write_csv_cols(outdir, emissions, 'emissions.csv')
+write_csv_cols(outdir, report_utility_bills, 'utility_bills.csv')
 write_csv_cols(outdir, upgrade_costs, 'upgrade_costs.csv')
 write_csv_cols(outdir, qoi_reports, 'qoi_report.csv')
 

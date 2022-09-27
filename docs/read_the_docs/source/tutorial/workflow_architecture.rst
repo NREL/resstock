@@ -72,6 +72,8 @@ They contribute to the generation of the model.
 
 **BuildExistingModel**
 
+  BuildExistingModel is a meta measure; meaning, it incrementally applies other measures (i.e., ResStockArguments, BuildResidentialHPXML, and BuildResidentialScheduleFile) to create "baseline" residential models.
+
   .. include:: ../../../../measures/BuildExistingModel/measure.xml
      :start-after: <description>
      :end-before: <
@@ -79,8 +81,6 @@ They contribute to the generation of the model.
   .. include:: ../../../../measures/BuildExistingModel/measure.xml
      :start-after: <modeler_description>
      :end-before: <
-
-  It is a meta measure; meaning, it incrementally applies *other* measures (i.e., ResStockArguments, BuildResidentialHPXML, and BuildResidentialScheduleFile) to create "baseline" residential models.
 
 **ResStockArguments**
 
@@ -117,7 +117,7 @@ They contribute to the generation of the model.
 **ApplyUpgrade**
 
   This measure can be optionally applied to the workflow.
-  Like the BuildExistingModel measure, ApplyUpgrade is a meta measure; it, too, incrementally applies *other* measures (i.e., ResStockArguments, BuildResidentialHPXML, and BuildResidentialScheduleFile) to create "upgraded" residential models.
+  Like the BuildExistingModel measure, ApplyUpgrade is a meta measure; it, too, incrementally applies other measures (i.e., ResStockArguments, BuildResidentialHPXML, and BuildResidentialScheduleFile) to create "upgraded" residential models.
 
   .. include:: ../../../../measures/ApplyUpgrade/measure.xml
      :start-after: <description>

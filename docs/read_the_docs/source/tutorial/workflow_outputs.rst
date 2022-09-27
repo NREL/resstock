@@ -16,10 +16,16 @@ See the `OpenStudio-HPXML Workflow Outputs <https://openstudio-hpxml.readthedocs
 Simulation Output
 *****************
 
-Includes energy use (total, by end use, by fuel type), emissions, hot water, loads, peak loads, unmet hours, component loads.
+Includes energy use (total, by end use, by fuel type), hot water, loads, peak loads, unmet hours, component loads.
 
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/report_simulation_output.csv
+   :file: ../../../../test/base_results/baseline/annual/simulation_outputs.csv
+
+Emissions
+*********
+
+.. csv-table::
+   :file: ../../../../test/base_results/baseline/annual/emissions.csv
 
 Utility Bills
 *************
@@ -27,7 +33,7 @@ Utility Bills
 Includes fixed and marginal costs (total, by fuel type), and PV credits.
 
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/report_utility_bills.csv
+   :file: ../../../../test/base_results/baseline/annual/utility_bills.csv
 
 Other Outputs
 -------------
@@ -38,7 +44,7 @@ Characteristics
 ***************
 
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/build_existing_model.csv
+   :file: ../../../../test/base_results/baseline/annual/characteristics.csv
 
 .. _upgrade-costs:
 
