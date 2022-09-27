@@ -1,11 +1,12 @@
+.. _workflow_outputs:
+
 Workflow Outputs
 ================
 
 ResStock generates both a standard set of outputs as well as other outputs.
-The standard set of outputs include annual energy consumption (e.g., by end use and fuel type), emissions, utility bills, etc., as well as optionally requested timeseries outputs.
-Other outputs include building characteristics, upgrade cost multipliers, and quantities of interest.
+The standard set of outputs include annual energy consumption, emissions, utility bills, etc., as well as optionally requested timeseries outputs.
 
-TODO: something about results.csv (bsb vs run_analysis)
+Other outputs include dwelling unit characteristics, upgrade cost information, and (optionally) quantities of interest.
 
 Standard Outputs
 ----------------
@@ -23,7 +24,7 @@ Includes energy use (total, by end use, by fuel type), emissions, hot water, loa
 Utility Bills
 *************
 
-Fixed and marginal costs (total, by fuel type), PV credit.
+Fixed and marginal costs (total, by fuel type), and PV credits.
 
 .. csv-table::
    :file: ../../../../test/base_results/baseline/annual/report_utility_bills.csv
@@ -31,7 +32,7 @@ Fixed and marginal costs (total, by fuel type), PV credit.
 Other Outputs
 -------------
 
-Additionally you can find other outputs, including building IDs and characteristics, weights, upgrade cost multipliers, and quantities of interest.
+Additionally you can find other outputs, including characteristics, sample weights, upgrade costs, and quantities of interest.
 
 Characteristics
 ***************
@@ -44,25 +45,11 @@ Characteristics
 Upgrade Costs
 *************
 
-Multipliers
-
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/upgrade_costs.csv
+   :file: ../../../../test/base_results/upgrades/annual/upgrade_costs.csv
 
-Options applied, option costs, upgrade cost.
-
-QOIs
-****
+Quantities of Interests
+***********************
 
 .. csv-table::
    :file: ../../../../test/base_results/baseline/annual/qoi_report.csv
-   
-Additional Outputs
-******************
-
-- building_id
-
-  This is the unique identifier assigned to the ResStock sample.
-  Upgrades correspond to baseline models based on the building ID.
-
-- weight
