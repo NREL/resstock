@@ -85,6 +85,7 @@ def write_csv_cols(outdir, array, filename):
 write_csv_cols(outdir, build_existing_models, 'build_existing_model.csv')
 write_csv_cols(outdir, report_simulation_outputs, 'report_simulation_output.csv')
 write_csv_cols(outdir, report_utility_bills, 'report_utility_bills.csv')
+write_csv_cols(outdir, upgrade_costs, 'upgrade_costs.csv')
 write_csv_cols(outdir, qoi_reports, 'qoi_report.csv')
 
 # Timeseries
@@ -188,7 +189,6 @@ report_simulation_outputs = ['color_index']
 report_utility_bills = []
 upgrade_costs = []
 qoi_reports = []
-apply_upgrades = []
 
 for col in df.columns.values:
   if any([col_exclusion in col for col_exclusion in col_exclusions]):
@@ -202,24 +202,19 @@ for col in df.columns.values:
     upgrade_costs.append(col)
   elif col.startswith('qoi_report'):
     qoi_reports.append(col)
-  elif col.startswith('apply_upgrade'):
-    apply_upgrades.append(col)
 
 report_simulation_outputs = sorted(report_simulation_outputs)
 report_utility_bills = sorted(report_utility_bills)
 upgrade_costs = sorted(upgrade_costs)
 qoi_reports = sorted(qoi_reports)
-apply_upgrades = sorted(apply_upgrades)
 
 # results_output.csv
-results_output = df[['OSW'] + report_simulation_outputs + report_utility_bills + upgrade_costs + qoi_reports + apply_upgrades]
+results_output = df[['OSW'] + report_simulation_outputs + report_utility_bills + upgrade_costs + qoi_reports]
 results_output = results_output.dropna(how='all', axis=1)
 
 results_output = results_output.set_index('OSW')
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
-
-write_csv_cols(outdir, upgrade_costs, 'upgrade_costs.csv')
 
 # Timeseries
 

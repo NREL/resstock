@@ -56,7 +56,7 @@ Option <#> Cost <#> Multiplier
 
 The cost above is multiplied by this value, which is a function of the building. Since there can be multiple costs (currently 2), this permits both fixed and variable costs for upgrades that depend on the properties of the baseline house.
 
-See the :ref:`upgrade-costs-columns` workflow outputs for a list of all available multiplier types.
+See the :ref:`upgrade-costs` workflow outputs for a list of all available multiplier types.
 
 Package Apply Logic
 -------------------

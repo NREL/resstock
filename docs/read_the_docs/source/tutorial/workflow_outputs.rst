@@ -24,7 +24,7 @@ Includes energy use (total, by end use, by fuel type), emissions, hot water, loa
 Utility Bills
 *************
 
-Fixed and marginal costs (total, by fuel type), and PV credits.
+Includes fixed and marginal costs (total, by fuel type), and PV credits.
 
 .. csv-table::
    :file: ../../../../test/base_results/baseline/annual/report_utility_bills.csv
@@ -32,7 +32,7 @@ Fixed and marginal costs (total, by fuel type), and PV credits.
 Other Outputs
 -------------
 
-Additionally you can find other outputs, including characteristics, sample weights, upgrade costs, and quantities of interest.
+Additionally you can find other outputs, including characteristics, sample weights, upgrade related multipliers and costs, and quantities of interest.
 
 Characteristics
 ***************
@@ -40,13 +40,28 @@ Characteristics
 .. csv-table::
    :file: ../../../../test/base_results/baseline/annual/build_existing_model.csv
 
-.. _upgrade-costs-columns:
+.. _upgrade-costs:
 
 Upgrade Costs
 *************
 
+Upgrade cost multipliers include:
+
 .. csv-table::
-   :file: ../../../../test/base_results/upgrades/annual/upgrade_costs.csv
+   :file: ../../../../test/base_results/baseline/annual/upgrade_costs.csv
+
+Other upgrade cost information includes:
+
+.. list-table::
+
+   * - upgrade_costs.option_<#>_name
+   * - upgrade_costs.option_<#>_cost_usd
+   * - upgrade_costs.option_<#>_lifetime_yrs
+   * - upgrade_costs.upgrade_cost_usd
+
+where <#> represents any of the defined option numbers.
+
+Note that option level information will only exist when applicable for a given upgrade.
 
 Quantities of Interests
 ***********************
