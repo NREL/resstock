@@ -19,13 +19,13 @@ Simulation Output
 Includes energy use (total, by end use, by fuel type), hot water, loads, peak loads, unmet hours, component loads.
 
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/simulation_outputs.csv
+   :file: ../../../../test/base_results/outputs/simulation_outputs.csv
 
 Emissions
 *********
 
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/emissions.csv
+   :file: ../../../../test/base_results/outputs/emissions.csv
 
 Utility Bills
 *************
@@ -33,7 +33,7 @@ Utility Bills
 Includes fixed and marginal costs (total, by fuel type), and PV credits.
 
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/utility_bills.csv
+   :file: ../../../../test/base_results/outputs/utility_bills.csv
 
 Other Outputs
 -------------
@@ -44,7 +44,7 @@ Characteristics
 ***************
 
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/characteristics.csv
+   :file: ../../../../test/base_results/outputs/characteristics.csv
 
 .. _upgrade-costs:
 
@@ -54,7 +54,7 @@ Upgrade Costs
 Upgrade cost multipliers include:
 
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/upgrade_costs.csv
+   :file: ../../../../test/base_results/outputs/cost_multipliers.csv
 
 Other upgrade cost information includes:
 

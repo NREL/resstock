@@ -35,6 +35,7 @@ simulation_outputs = []
 emissions = []
 report_utility_bills = []
 upgrade_costs = []
+cost_multipliers = []
 qoi_reports = []
 
 for col in df.columns.values:
@@ -53,6 +54,10 @@ for col in df.columns.values:
     report_utility_bills.append(col)
   elif col.startswith('upgrade_costs'):
     upgrade_costs.append(col)
+    if 'debug' in col or 'upgrade_cost_usd' in col:
+      # nop
+    else:
+      cost_multipliers.append(col)
   elif col.startswith('qoi_report'):
     qoi_reports.append(col)
 
@@ -62,6 +67,7 @@ simulation_outputs = sorted(simulation_outputs)
 emissions = sorted(emissions)
 report_utility_bills = sorted(report_utility_bills)
 upgrade_costs = sorted(upgrade_costs)
+cost_multipliers = sorted(cost_multipliers)
 qoi_reports = sorted(qoi_reports)
 
 # Annual
@@ -85,18 +91,21 @@ results_output = results_output.set_index('OSW')
 results_output = results_output.sort_index()
 results_output.to_csv(os.path.join(outdir, 'results_output.csv'))
 
-def write_csv_cols(outdir, array, filename):
-  wtr = csv.writer(open(os.path.join(outdir, '{}'.format(filename)), 'w'), delimiter=',', lineterminator='\n')
+def write_csv_cols(array, filename):
+  wtr = csv.writer(open(os.path.join('outputs', '{}'.format(filename)), 'w'), delimiter=',', lineterminator='\n')
   for x in array:
     wtr.writerow([x])
 
-# these are used by readthedocs
-write_csv_cols(outdir, build_existing_models, 'characteristics.csv')
-write_csv_cols(outdir, simulation_outputs, 'simulation_outputs.csv')
-write_csv_cols(outdir, emissions, 'emissions.csv')
-write_csv_cols(outdir, report_utility_bills, 'utility_bills.csv')
-write_csv_cols(outdir, upgrade_costs, 'upgrade_costs.csv')
-write_csv_cols(outdir, qoi_reports, 'qoi_report.csv')
+# files for readthedocs
+if not os.path.exists('outputs'):
+  os.makedirs('outputs')
+
+write_csv_cols(build_existing_models, 'characteristics.csv')
+write_csv_cols(simulation_outputs, 'simulation_outputs.csv')
+write_csv_cols(emissions, 'emissions.csv')
+write_csv_cols(report_utility_bills, 'utility_bills.csv')
+write_csv_cols(cost_multipliers, 'cost_multipliers.csv')
+write_csv_cols(qoi_reports, 'qoi_report.csv')
 
 # Timeseries
 
