@@ -127,7 +127,7 @@ They contribute to the generation of the model.
      :start-after: <modeler_description>
      :end-before: <
 
-  Each "Apply Upgrade" measure defines an upgrade scenario.
+  Each instance of the ApplyUpgrade measure defines an upgrade scenario.
   An upgrade scenario is a collection of options exercised with some logic and costs applied.
   In the simplest case, we apply the new option to all housing units.
   The available upgrade options are in ``resources/options_lookup.tsv`` in your git repository.
@@ -135,7 +135,8 @@ They contribute to the generation of the model.
   We do this by entering that in the **Option 1** box on the Apply Upgrade measure.
   Also, we'll give the upgrade scenario a name: "Triple-Pane Windows" and a cost of $40/ft\ :superscript:`2` of window area by entering the number in **Option 1 Cost Value** and selecting "Window Area (ft^2)" for **Option 1 Cost Multiplier**.
   Like the **downselect logic**, excluded datapoints (i.e., datapoints for which the upgrade does not apply) will result in "completed invalid workflow".
-  Note that using no downselect logic will apply the option to all housing units. For a full explanation of how to set up the options and logic surrounding them, see :doc:`../upgrade_scenario_config`.
+  Note that using no downselect logic will apply the option to all housing units.
+  For a full explanation of how to set up the options and logic surrounding them, see :doc:`../upgrade_scenario_config`.
 
 **HPXMLtoOpenStudio**
 

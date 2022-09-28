@@ -66,6 +66,7 @@ Other upgrade cost information includes:
    * - upgrade_costs.upgrade_cost_usd
 
 where <#> represents any of the defined option numbers.
+See :doc:`../upgrade_scenario_config` for more information.
 
 Note that option level information will only exist when applicable for a given upgrade.
 
@@ -73,4 +74,4 @@ Quantities of Interests
 ***********************
 
 .. csv-table::
-   :file: ../../../../test/base_results/baseline/annual/qoi_report.csv
+   :file: ../../../../test/base_results/outputs/qoi_report.csv
