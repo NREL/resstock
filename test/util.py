@@ -55,7 +55,7 @@ for col in df.columns.values:
   elif col.startswith('upgrade_costs'):
     upgrade_costs.append(col)
     if 'debug' in col or 'upgrade_cost_usd' in col:
-      # nop
+      pass # nop
     else:
       cost_multipliers.append(col)
   elif col.startswith('qoi_report'):
