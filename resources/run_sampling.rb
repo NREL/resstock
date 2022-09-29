@@ -218,10 +218,8 @@ class RunSampling
       return { prob_dist[0][0] => num_samples } # Simply return num_samples for only item
     end
 
-    return_samples = {}
     return_samples_v2 = {}
     prob_dist.each do |item|
-      return_samples[item[0]] = 0
       return_samples_v2[item[0]] = 0
     end
 
@@ -252,56 +250,8 @@ class RunSampling
 
     remaining_sample_dist[0, remaining_samples].map{|v| return_samples_v2[v[1]] += 1}
 
-    remaining_samples = num_samples
-    while remaining_samples > 0
-      # Choose highest probability item (first in array)
-      max_item = prob_dist[0]
-
-      # Increment the number of samples for the highest probability
-      return_samples[max_item[0]] += 1
-
-      # Calculate new probability
-      target_num_samples = remaining_samples * max_item[1] / sum
-      new_probability = (target_num_samples - 1) / target_num_samples * max_item[1]
-
-      # Remove item, insert back into the appropriate sorted
-      # position based on its new probability value
-      prob_dist.delete_at(0)
-      index = binary_search(prob_dist.transpose[1], new_probability)
-      prob_dist.insert(index, [max_item[0], new_probability])
-
-      # Update sum and remaining_samples
-      sum += (new_probability - max_item[1])
-      remaining_samples -= 1
-
-      # We'll never choose to sample an item beyond the first
-      # remaining_samples number of items, so discard the rest.
-      if prob_dist.size > remaining_samples
-        prob_dist.pop
-      end
-    end
-
-    if not (return_samples == return_samples_v2)
-      # If the two sample counts (new and old) aren't equal, make sure:
-      # 1. there is no more than 1 sample difference for any options and sum of differences (extra and deficit) is zero.
-      # 2. The options for which there is one sample extra, and corresponding options for which there is one sample
-      # deficit have exact same probability.
-      # The reason for this discrepancy is as follow. Suppose, we want three samples between option=Yes and option=No
-      # If both Yes and No has same probability (0.5), the samples could be [Yes, Yes, No] or [Yes, No, No].
-      diffs = return_samples_v2.map{ |key, v| [sample_dist_hash[key], key, return_samples[key] - v]}
-      raise "Sample count diff doesn't sum to zero" unless diffs.transpose[2].inject(0, :+) == 0
-      raise "There are differences of more than 1 samples" unless diffs.transpose[2].map{|v| v.abs() <= 1}.all?
-      negative_diffs = diffs.select{|v| v[2]<0}.sort
-      positive_diffs = diffs.select{|v| v[2]>0}.sort
-      while negative_diffs.size > 0
-        negative_diff = negative_diffs.pop()
-        positive_diff = positive_diffs.pop()
-        raise "Matching diff with same probability not found" unless (negative_diff[0] - positive_diff[0]).abs < 1e-9
-      end
-    end
     # Remove items with no samples
     return_samples_v2.delete_if { |_k, v| v == 0 }
-    return_samples.delete_if { |_k, v| v == 0 }
 
     if return_samples_v2.values.reduce(:+) != num_samples
       register_error('Sampling algorithm unexpectedly failed.', nil)
