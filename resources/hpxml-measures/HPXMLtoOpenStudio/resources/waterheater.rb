@@ -80,7 +80,7 @@ class Waterheater
     default_set_temp_c = set_temp_c if !set_temp_c.nil?
 
     hpwh_type = "split"  #Valid options: split, integrated (default integrated)
-    split_hpwh_refrig = "r410a" #Valid options: r410a, co2 (default co2)
+    split_hpwh_refrig = "co2" #Valid options: r410a, co2 (default co2)
     #TODO: Add HPXML element to populate these fields
     loop = create_new_loop(model, Constants.ObjectNamePlantLoopDHW, default_set_temp_c)
 
@@ -142,8 +142,13 @@ class Waterheater
       runner.registerWarning("Both '#{SchedulesFile::ColumnWaterHeaterSetpoint}' schedule file and setpoint temperature provided; the latter will be ignored.") if !tset_C.nil?
     end
     if hpwh_type != 'split'
-      airflow_rate = 480.0 # cfm
-      min_temp = 0 # F #FIXME: should be different for different refrigerants
+      if split_hpwh_refrig == 'co2'
+        airflow_rate = 775.0 # cfm
+        min_temp = -25.0 # F 
+      else
+        airflow_rate = 480.0 # cfm
+        min_temp = 0.0 # F
+      end
       max_temp = 120.0 # F
     else
       airflow_rate = 181.0 # cfm
@@ -748,70 +753,51 @@ class Waterheater
   end
 
   def self.setup_hpwh_pumped_condenser(model, obj_name_hpwh, coil, tank, fan, h_tank, airflow_rate, hpwh_tamb, hpwh_rhamb, min_temp, max_temp, setpoint_schedule, hpwh_type, split_hpwh_refrig)
-    #FIXME: Write this for co2
-    h_condtop = (1.0 - (5.5 / 12.0)) * h_tank # in the 6th node of the tank (counting from top)
-    h_condbot = 0.01 # bottom node
-    h_hpctrl_up = (1.0 - (2.5 / 12.0)) * h_tank # in the 3rd node of the tank
-    h_hpctrl_low = (1.0 - (8.5 / 12.0)) * h_tank # in the 9th node of the tank
-
     hpwh = OpenStudio::Model::WaterHeaterHeatPump.new(model, coil, tank, fan, setpoint_schedule, model.alwaysOnDiscreteSchedule)
     hpwh.setName("#{obj_name_hpwh} hpwh")
-    if hpwh_type == 'split' 
-      hpwh.setDeadBandTemperatureDifference(6.0)
-    else
-      hpwh.setDeadBandTemperatureDifference(3.89)
-    end
-    hpwh.setCondenserBottomLocation(h_condbot)
-    hpwh.setCondenserTopLocation(h_condtop)
+    hpwh.setDeadBandTemperatureDifference(2.0)
     hpwh.setEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
-    hpwh.setInletAirConfiguration('Schedule')
-    hpwh.setInletAirTemperatureSchedule(hpwh_tamb)
-    hpwh.setInletAirHumiditySchedule(hpwh_rhamb)
-    hpwh.setMinimumInletAirTemperatureforCompressorOperation(UnitConversions.convert(min_temp, 'F', 'C'))
+    hpwh.setInletAirConfiguration('OutdoorAirOnly') 
+    hpwh.setMinimumInletAirTemperatureforCompressorOperation(-31.7) #FIXME, hardcoded from SanCO2 specs
     hpwh.setMaximumInletAirTemperatureforCompressorOperation(UnitConversions.convert(max_temp, 'F', 'C'))
-    hpwh.setCompressorLocation('Schedule')
-    hpwh.setCompressorAmbientTemperatureSchedule(hpwh_tamb)
+    hpwh.setCompressorLocation('Outdoors')
     hpwh.setFanPlacement('DrawThrough')
     hpwh.setOnCycleParasiticElectricLoad(0)
     hpwh.setOffCycleParasiticElectricLoad(0)
     hpwh.setParasiticHeatRejectionLocation('Outdoors')
-    hpwh.setTankElementControlLogic('MutuallyExclusive')
-    hpwh.setControlSensor1HeightInStratifiedTank(h_hpctrl_up)
-    hpwh.setControlSensor1Weight(0.75)
-    hpwh.setControlSensor2HeightInStratifiedTank(h_hpctrl_low)
 
     return hpwh
   end
 
   def self.setup_hpwh_dxcoil(model, water_heating_system, weather, obj_name_hpwh, airflow_rate, hpwh_type, split_hpwh_refrig)
     
-    if hpwh_type == 'split' && split_hpwh_refrig == 'co2' #FIXME: Update
+    if hpwh_type == 'split' && split_hpwh_refrig == 'co2' #FIXME: FINAL UPDATES
       # Curves
       hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
       hpwh_cap.setName('HPWH-Cap-fT')
-      hpwh_cap.setCoefficient1Constant(0.563)
-      hpwh_cap.setCoefficient2x(0.0437)
-      hpwh_cap.setCoefficient3xPOW2(0.000039)
-      hpwh_cap.setCoefficient4y(0.0055)
-      hpwh_cap.setCoefficient5yPOW2(-0.000148)
-      hpwh_cap.setCoefficient6xTIMESY(-0.000145)
-      hpwh_cap.setMinimumValueofx(0)
+      hpwh_cap.setCoefficient1Constant(1.8145748)
+      hpwh_cap.setCoefficient2x(-0.0095458)
+      hpwh_cap.setCoefficient3xPOW2(0.0002758)
+      hpwh_cap.setCoefficient4y(0.0035917)
+      hpwh_cap.setCoefficient5yPOW2(-0.0004863)
+      hpwh_cap.setCoefficient6xTIMESY(0.0002532)
+      hpwh_cap.setMinimumValueofx(-40)
       hpwh_cap.setMaximumValueofx(100)
       hpwh_cap.setMinimumValueofy(0)
-      hpwh_cap.setMaximumValueofy(100)
+      hpwh_cap.setMaximumValueofy(55) # To prevent going off the perf map at high tank temps
 
       hpwh_cop = OpenStudio::Model::CurveBiquadratic.new(model)
       hpwh_cop.setName('HPWH-COP-fT')
-      hpwh_cop.setCoefficient1Constant(1.1332)
-      hpwh_cop.setCoefficient2x(0.063)
-      hpwh_cop.setCoefficient3xPOW2(-0.0000979)
-      hpwh_cop.setCoefficient4y(-0.00972)
-      hpwh_cop.setCoefficient5yPOW2(-0.0000214)
-      hpwh_cop.setCoefficient6xTIMESY(-0.000686)
-      hpwh_cop.setMinimumValueofx(0)
+      hpwh_cop.setCoefficient1Constant(1.6310928)
+      hpwh_cop.setCoefficient2x(0.0415163)
+      hpwh_cop.setCoefficient3xPOW2(-0.0001102)
+      hpwh_cop.setCoefficient4y(-0.0117365)
+      hpwh_cop.setCoefficient5yPOW2(-0.0001688)
+      hpwh_cop.setCoefficient6xTIMESY(-0.000210)
+      hpwh_cop.setMinimumValueofx(-40)
       hpwh_cop.setMaximumValueofx(100)
       hpwh_cop.setMinimumValueofy(0)
-      hpwh_cop.setMaximumValueofy(100)
+      hpwh_cop.setMaximumValueofy(55)
     else
       # Curves
       hpwh_cap = OpenStudio::Model::CurveBiquadratic.new(model)
@@ -822,7 +808,7 @@ class Waterheater
       hpwh_cap.setCoefficient4y(0.0055)
       hpwh_cap.setCoefficient5yPOW2(-0.000148)
       hpwh_cap.setCoefficient6xTIMESY(-0.000145)
-      hpwh_cap.setMinimumValueofx(0)
+      hpwh_cap.setMinimumValueofx(-20)
       hpwh_cap.setMaximumValueofx(100)
       hpwh_cap.setMinimumValueofy(0)
       hpwh_cap.setMaximumValueofy(100)
@@ -835,7 +821,7 @@ class Waterheater
       hpwh_cop.setCoefficient4y(-0.00972)
       hpwh_cop.setCoefficient5yPOW2(-0.0000214)
       hpwh_cop.setCoefficient6xTIMESY(-0.000686)
-      hpwh_cop.setMinimumValueofx(0)
+      hpwh_cop.setMinimumValueofx(-20)
       hpwh_cop.setMaximumValueofx(100)
       hpwh_cop.setMinimumValueofy(0)
       hpwh_cop.setMaximumValueofy(100)
@@ -846,16 +832,14 @@ class Waterheater
         cap = 0.714 # kW
         shr = 0.98 # unitless
       else
-        cap = 0.5 # kW FIXME: Populate
-        shr = 0.88 # unitless
+        cap = 1.08 # kW
+        shr = 0.99 # unitless
       end
     else
       cap = 0.5 # kW
       shr = 0.88 # unitless
     end
     
-    
-
     # Calculate an altitude adjusted rated evaporator wetbulb temperature
     rated_ewb_F = 56.4
     rated_edb_F = 67.5
@@ -888,18 +872,27 @@ class Waterheater
       if split_hpwh_refrig == 'r410a'
         cop = 4.2
       else
-        cop = 3.9 #FIXME: Update after validation done
+        cop = 2.25 #FIXME: Update after validation done
       end
     end
 
-    coil = OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped.new(model)
+    if hpwh_type == 'split' && split_hpwh_refrig == 'co2'
+      coil = OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPump.new(model)
+    else
+      coil = OpenStudio::Model::CoilWaterHeatingAirToWaterHeatPumpWrapped.new(model)
+    end
     coil.setName("#{obj_name_hpwh} coil")
     coil.setRatedHeatingCapacity(UnitConversions.convert(cap, 'kW', 'W') * cop)
     coil.setRatedCOP(cop)
     coil.setRatedSensibleHeatRatio(shr)
     coil.setRatedEvaporatorInletAirDryBulbTemperature(rated_edb)
     coil.setRatedEvaporatorInletAirWetBulbTemperature(UnitConversions.convert(twb_adj, 'F', 'C'))
-    coil.setRatedCondenserWaterTemperature(48.89)
+    if hpwh_type != 'split' || split_hpwh_refrig != 'co2'
+      coil.setRatedCondenserWaterTemperature(48.89)
+      coil.setRatedCondenserWaterFlowRate(0.00002208157) #0.35 gpm
+      coil.setCondenserWaterPumpPower(28) #W
+      coil.setFractionofCondenserPumpHeattoWater(1)
+    end
     coil.setRatedEvaporatorAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
     coil.setEvaporatorFanPowerIncludedinRatedCOP(true)
     if hpwh_type == 'split'
@@ -907,10 +900,14 @@ class Waterheater
     else
       coil.setEvaporatorAirTemperatureTypeforCurveObjects('WetBulbTemperature')
     end
-    
     coil.setHeatingCapacityFunctionofTemperatureCurve(hpwh_cap)
     coil.setHeatingCOPFunctionofTemperatureCurve(hpwh_cop)
-    coil.setMaximumAmbientTemperatureforCrankcaseHeaterOperation(0)
+    coil.setMaximumAmbientTemperatureforCrankcaseHeaterOperation(5)
+    if hpwh_type == 'split' && split_hpwh_refrig == 'co2'
+      coil.setCrankcaseHeaterCapacity(120) #W. Used to model heat trace, assuming x ft of pipe outside and y W/ft
+    else
+      coil.setCrankcaseHeaterCapacity(0)
+    end
     coil.additionalProperties.setFeature('HPXML_ID', water_heating_system.id) # Used by reporting measure
 
     return coil
@@ -946,14 +943,15 @@ class Waterheater
     tank.setEndUseSubcategory('Domestic Hot Water')
     tank.setTankVolume(UnitConversions.convert(v_actual, 'gal', 'm^3'))
     tank.setTankHeight(h_tank)
-    tank.setMaximumTemperatureLimit(90)
     tank.setHeaterPriorityControl('MasterSlave')
     tank.heater1SetpointTemperatureSchedule.remove
     tank.setHeater1SetpointTemperatureSchedule(hpwh_top_element_sp)
     if hpwh_type == 'split'
       tank.setHeater1Capacity(0)
+      tank.setMaximumTemperatureLimit(60) #FIXME: Helps with overheating the tank, but is there a better way?
     else
       tank.setHeater1Capacity(UnitConversions.convert(e_cap, 'kW', 'W'))
+      tank.setMaximumTemperatureLimit(90)
     end
     tank.setHeater1Height(h_UE)
     tank.setHeater1DeadbandTemperatureDifference(18.5)
@@ -1002,6 +1000,7 @@ class Waterheater
   end
 
   def self.setup_hpwh_fan(model, water_heating_system, obj_name_hpwh, airflow_rate, hpwh_type, split_hpwh_refrig)
+
     fan_power = 0.0462 # W/cfm, Based on 1st gen AO Smith HPWH, could be updated but pretty minor impact
     fan = OpenStudio::Model::FanSystemModel.new(model)
     fan.setSpeedControlMethod('Discrete')
@@ -1012,8 +1011,8 @@ class Waterheater
     fan.setEndUseSubcategory('Domestic Hot Water')
     fan.setMotorEfficiency(1.0)
     fan.setMotorInAirStreamFraction(1.0)
-    if hpwh_type == 'split'
-      fan.setDesignMaximumAirFlowRate(0.226534772736) #FIXME: Don't hardcode
+    if hpwh_type == 'split' and split_hpwh_refrig == 'co2'
+      fan.setDesignMaximumAirFlowRate(0.3657) #FIXME: no hardcode
     else
       fan.setDesignMaximumAirFlowRate(UnitConversions.convert(airflow_rate, 'ft^3/min', 'm^3/s'))
     end
