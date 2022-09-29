@@ -217,7 +217,7 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     end
 
     # Get defaulted hpxml
-    hpxml_path = File.expand_path('../in.xml') # this is the defaulted hpxml
+    hpxml_path = File.expand_path('../existing.xml') # this is the defaulted hpxml
     if File.exist?(hpxml_path)
       hpxml = HPXML.new(hpxml_path: hpxml_path)
     else
@@ -322,7 +322,6 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     hpxml_path = File.expand_path('../upgraded.xml')
     measures['BuildResidentialHPXML'] = [{ 'hpxml_path' => hpxml_path }]
     measures['BuildResidentialScheduleFile'] = [{ 'hpxml_path' => hpxml_path, 'hpxml_output_path' => hpxml_path }]
-    measures['HPXMLtoOpenStudio'] = [{ 'hpxml_path' => hpxml_path }]
 
     new_runner.result.stepValues.each do |step_value|
       value = get_value_from_workflow_step_value(step_value)
@@ -420,15 +419,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
     measures['BuildResidentialScheduleFile'][0]['schedules_random_seed'] = values['building_id']
     measures['BuildResidentialScheduleFile'][0]['output_csv_path'] = File.expand_path('../schedules.csv')
 
-    # Get registered values and pass them to HPXMLtoOpenStudio
-    measures['HPXMLtoOpenStudio'][0]['output_dir'] = File.expand_path('..')
-    measures['HPXMLtoOpenStudio'][0]['debug'] = values['debug']
-    measures['HPXMLtoOpenStudio'][0]['add_component_loads'] = values['add_component_loads']
-
-    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'], 'HPXMLtoOpenStudio' => measures['HPXMLtoOpenStudio'] },
+    # Specify measures to run
+    measures['BuildResidentialHPXML'][0]['apply_defaults'] = true
+    measures_to_apply_hash = { hpxml_measures_dir => { 'BuildResidentialHPXML' => measures['BuildResidentialHPXML'], 'BuildResidentialScheduleFile' => measures['BuildResidentialScheduleFile'] },
                                measures_dir => {} }
 
-    upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile', 'HPXMLtoOpenStudio']
+    upgrade_measures = measures.keys - ['ResStockArguments', 'BuildResidentialHPXML', 'BuildResidentialScheduleFile']
     upgrade_measures.each do |upgrade_measure|
       measures_to_apply_hash[measures_dir][upgrade_measure] = measures[upgrade_measure]
     end
@@ -450,6 +446,12 @@ class ApplyUpgrade < OpenStudio::Measure::ModelMeasure
       end
       return false
     end
+
+    # Copy upgraded.xml to home.xml for downstream HPXMLtoOpenStudio
+    # This will overwrite home.xml from BuildExistingModel
+    # We need upgraded.xml (and not just home.xml) for UpgradeCosts
+    in_path = File.expand_path('../home.xml')
+    FileUtils.cp(hpxml_path, in_path)
 
     return true
   end
