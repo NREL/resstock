@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import yaml
 from functools import reduce
@@ -43,10 +44,28 @@ class ZonalHeatPump():
                                         applied_only=True,
                                         get_query_only=self.get_query_only)
 
-    df['end_use_heating_m_btu__baseline'] = df['end_use_electricity_heating_m_btu__baseline'] + df['end_use_natural_gas_heating_m_btu__baseline'] + df['end_use_propane_heating_m_btu__baseline'] + df['end_use_fuel_oil_heating_m_btu__baseline']
-    df['end_use_heating_m_btu__savings'] = df['end_use_electricity_heating_m_btu__savings'] + df['end_use_natural_gas_heating_m_btu__savings'] + df['end_use_propane_heating_m_btu__savings'] + df['end_use_fuel_oil_heating_m_btu__savings']
-    df['end_use_cooling_m_btu__baseline'] = df['end_use_electricity_cooling_m_btu__baseline']
-    df['end_use_cooling_m_btu__savings'] = df['end_use_electricity_cooling_m_btu__savings']
+    df['end_use_heating_m_btu__baseline'] = df['end_use_electricity_heating_m_btu__baseline'] + \
+                                            df['end_use_electricity_heating_fans_pumps_m_btu__baseline'] + \
+                                            df['end_use_electricity_heating_heat_pump_backup_m_btu__baseline'] + \
+                                            df['end_use_natural_gas_heating_m_btu__baseline'] + \
+                                            df['end_use_natural_gas_heating_heat_pump_backup_m_btu__baseline'] + \
+                                            df['end_use_propane_heating_m_btu__baseline'] + \
+                                            df['end_use_propane_heating_heat_pump_backup_m_btu__baseline'] + \
+                                            df['end_use_fuel_oil_heating_m_btu__baseline'] + \
+                                            df['end_use_fuel_oil_heating_heat_pump_backup_m_btu__baseline']
+    df['end_use_heating_m_btu__savings'] = df['end_use_electricity_heating_m_btu__savings'] + \
+                                           df['end_use_electricity_heating_fans_pumps_m_btu__savings'] + \
+                                           df['end_use_electricity_heating_heat_pump_backup_m_btu__savings'] + \
+                                           df['end_use_natural_gas_heating_m_btu__savings'] + \
+                                           df['end_use_natural_gas_heating_heat_pump_backup_m_btu__savings'] + \
+                                           df['end_use_propane_heating_m_btu__savings'] + \
+                                           df['end_use_propane_heating_heat_pump_backup_m_btu__savings'] + \
+                                           df['end_use_fuel_oil_heating_m_btu__savings'] + \
+                                           df['end_use_fuel_oil_heating_heat_pump_backup_m_btu__savings']
+    df['end_use_cooling_m_btu__baseline'] = df['end_use_electricity_cooling_m_btu__baseline'] + \
+                                            df['end_use_electricity_cooling_fans_pumps_m_btu__baseline']
+    df['end_use_cooling_m_btu__savings'] = df['end_use_electricity_cooling_m_btu__savings'] + \
+                                           df['end_use_electricity_cooling_fans_pumps_m_btu__savings']
 
     df['upgrade_name'] = upgrade_name
 
@@ -267,10 +286,16 @@ if __name__ == '__main__':
   enduses = [
              'energy_use_total_m_btu',
              'end_use_electricity_heating_m_btu',
+             'end_use_electricity_heating_fans_pumps_m_btu',
+             'end_use_electricity_heating_heat_pump_backup_m_btu',
              'end_use_natural_gas_heating_m_btu',
+             'end_use_natural_gas_heating_heat_pump_backup_m_btu',
              'end_use_propane_heating_m_btu',
+             'end_use_propane_heating_heat_pump_backup_m_btu',
              'end_use_fuel_oil_heating_m_btu',
-             'end_use_electricity_cooling_m_btu'
+             'end_use_fuel_oil_heating_heat_pump_backup_m_btu',
+             'end_use_electricity_cooling_m_btu',
+             'end_use_electricity_cooling_fans_pumps_m_btu'
              ]
 
   group_by = [
@@ -307,23 +332,25 @@ if __name__ == '__main__':
 
   enduses += ['end_use_heating_m_btu', 'end_use_cooling_m_btu']
   stacked_bar(df, enduses, group_by)
-
-
-
-
   
   # comparing across characteristics
   enduses = [
               'report_simulation_output.energy_use_total_m_btu',
               'report_simulation_output.end_use_electricity_heating_m_btu',
+              'report_simulation_output.end_use_electricity_heating_fans_pumps_m_btu',
+              'report_simulation_output.end_use_electricity_heating_heat_pump_backup_m_btu',
               'report_simulation_output.end_use_natural_gas_heating_m_btu',
+              'report_simulation_output.end_use_natural_gas_heating_heat_pump_backup_m_btu',
               'report_simulation_output.end_use_propane_heating_m_btu',
+              'report_simulation_output.end_use_propane_heating_heat_pump_backup_m_btu',
               'report_simulation_output.end_use_fuel_oil_heating_m_btu',
-              'report_simulation_output.end_use_electricity_cooling_m_btu'
+              'report_simulation_output.end_use_fuel_oil_heating_heat_pump_backup_m_btu',
+              'report_simulation_output.end_use_electricity_cooling_m_btu',
+              'report_simulation_output.end_use_electricity_cooling_fans_pumps_m_btu'
              ]
 
   group_by = [
-                'build_existing_model.ashrae_iecc_climate_zone_2004',
+                # 'build_existing_model.ashrae_iecc_climate_zone_2004',
                 # 'build_existing_model.geometry_building_type_recs',
                 # 'build_existing_model.geometry_building_type_acs',
                 # 'build_existing_model.geometry_building_type',
@@ -351,16 +378,34 @@ if __name__ == '__main__':
   else:
     baseline = pd.read_csv(path)
 
-    baseline['report_simulation_output.end_use_heating_m_btu'] = baseline['report_simulation_output.end_use_electricity_heating_m_btu'] + baseline['report_simulation_output.end_use_natural_gas_heating_m_btu'] + baseline['report_simulation_output.end_use_propane_heating_m_btu'] + baseline['report_simulation_output.end_use_fuel_oil_heating_m_btu']
-    baseline['report_simulation_output.end_use_cooling_m_btu'] = baseline['report_simulation_output.end_use_electricity_cooling_m_btu']
+    baseline['report_simulation_output.end_use_heating_m_btu'] = baseline['report_simulation_output.end_use_electricity_heating_m_btu'] + \
+                                                                 baseline['report_simulation_output.end_use_electricity_heating_fans_pumps_m_btu'] + \
+                                                                 baseline['report_simulation_output.end_use_electricity_heating_heat_pump_backup_m_btu'] + \
+                                                                 baseline['report_simulation_output.end_use_natural_gas_heating_m_btu'] + \
+                                                                 baseline['report_simulation_output.end_use_natural_gas_heating_heat_pump_backup_m_btu'] + \
+                                                                 baseline['report_simulation_output.end_use_propane_heating_m_btu'] + \
+                                                                 baseline['report_simulation_output.end_use_propane_heating_heat_pump_backup_m_btu'] + \
+                                                                 baseline['report_simulation_output.end_use_fuel_oil_heating_m_btu'] + \
+                                                                 baseline['report_simulation_output.end_use_fuel_oil_heating_heat_pump_backup_m_btu']
+    baseline['report_simulation_output.end_use_cooling_m_btu'] = baseline['report_simulation_output.end_use_electricity_cooling_m_btu'] + \
+                                                                 baseline['report_simulation_output.end_use_electricity_cooling_fans_pumps_m_btu']
 
     ups = {}
     for upgrade_id in upgrades.keys():
       path = os.path.join(os.path.dirname(__file__), f'results_up{upgrade_id}.csv')
       up = pd.read_csv(path)
       
-      up['report_simulation_output.end_use_heating_m_btu'] = up['report_simulation_output.end_use_electricity_heating_m_btu'] + up['report_simulation_output.end_use_natural_gas_heating_m_btu'] + up['report_simulation_output.end_use_propane_heating_m_btu'] + up['report_simulation_output.end_use_fuel_oil_heating_m_btu']
-      up['report_simulation_output.end_use_cooling_m_btu'] = up['report_simulation_output.end_use_electricity_cooling_m_btu']      
+      up['report_simulation_output.end_use_heating_m_btu'] = up['report_simulation_output.end_use_electricity_heating_m_btu'] + \
+                                                             up['report_simulation_output.end_use_electricity_heating_fans_pumps_m_btu'] + \
+                                                             up['report_simulation_output.end_use_electricity_heating_heat_pump_backup_m_btu'] + \
+                                                             up['report_simulation_output.end_use_natural_gas_heating_m_btu'] + \
+                                                             up['report_simulation_output.end_use_natural_gas_heating_heat_pump_backup_m_btu'] + \
+                                                             up['report_simulation_output.end_use_propane_heating_m_btu'] + \
+                                                             up['report_simulation_output.end_use_propane_heating_heat_pump_backup_m_btu'] + \
+                                                             up['report_simulation_output.end_use_fuel_oil_heating_m_btu'] + \
+                                                             up['report_simulation_output.end_use_fuel_oil_heating_heat_pump_backup_m_btu']
+      up['report_simulation_output.end_use_cooling_m_btu'] = up['report_simulation_output.end_use_electricity_cooling_m_btu'] + \
+                                                             up['report_simulation_output.end_use_electricity_cooling_fans_pumps_m_btu']
       
       ups[upgrade_id] = up
 
@@ -386,8 +431,8 @@ if __name__ == '__main__':
     up = up.set_index('building_id').sort_index()
     up = up[enduses]
 
-    df = baseline[enduses].subtract(up[enduses]) # absolute
-    # df = baseline[enduses].subtract(up[enduses]).div(baseline[enduses]) # percent
+    # df = baseline[enduses].subtract(up[enduses]) # absolute
+    df = baseline[enduses].subtract(up[enduses]).div(baseline[enduses]).replace((-np.inf, np.inf), (np.nan, np.nan)) # percent
     df = baseline[group_by].join(df)
     df['upgrade_name'] = upgrades[upgrade_id]
 
@@ -401,4 +446,41 @@ if __name__ == '__main__':
     # density(baseline, up, enduses, group_by) # histograms with density lines
     box(df, enduses, group_by) # box and whisker
 
-  box(pd.concat([ups[1], ups[4]]), enduses, group_by)
+  # absolute savings
+  # box(pd.concat([ups[1], ups[4]]), enduses, group_by)
+
+  # percent savings
+  # df.to_csv(os.path.join(os.path.dirname(__file__), 'percent.csv'))
+  # heating
+  t = pd.concat([ups[1], ups[4]])
+  t = t[t['report_simulation_output.end_use_heating_m_btu'].notna()]
+  t = t[t['report_simulation_output.end_use_heating_m_btu'] > -2]
+
+  fig = px.box(t, x='report_simulation_output.end_use_heating_m_btu', boxmode='overlay', template='plotly_white', facet_row='upgrade_name')
+
+  fig.update_layout(font={'size': 28}, legend_title='',
+                    showlegend=False)
+  fig.update_xaxes(title='end_use_heating_m_btu', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+  fig.update_xaxes(row=2, title='', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+  fig.update_yaxes(title='', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+  # fig.update_xaxes(range=[-5, 1]) # this messes up the plot for some reason
+
+  path = os.path.join(os.path.dirname(__file__), f'box_heating.html')
+  plotly.offline.plot(fig, filename=path, auto_open=False)
+
+  # cooling
+  t = pd.concat([ups[1], ups[4]])
+  t = t[t['report_simulation_output.end_use_cooling_m_btu'].notna()]
+  t = t[t['report_simulation_output.end_use_cooling_m_btu'] > -10]
+
+  fig = px.box(t, x='report_simulation_output.end_use_cooling_m_btu', boxmode='overlay', template='plotly_white', facet_row='upgrade_name')
+
+  fig.update_layout(font={'size': 28}, legend_title='',
+                    showlegend=False)
+  fig.update_xaxes(title='end_use_cooling_m_btu', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+  fig.update_xaxes(row=2, title='', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+  fig.update_yaxes(title='', tickfont={'size': 24}, showline=True, linecolor='black', mirror=True)
+  # fig.update_xaxes(range=[-5, 1])
+
+  path = os.path.join(os.path.dirname(__file__), f'box_cooling.html')
+  plotly.offline.plot(fig, filename=path, auto_open=False)
