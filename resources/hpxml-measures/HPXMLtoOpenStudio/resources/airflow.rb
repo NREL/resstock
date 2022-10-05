@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Airflow
-  def self.apply(model, weather, spaces, hpxml, cfa, nbeds,
+  def self.apply(runner, model, weather, spaces, hpxml, cfa, nbeds,
                  ncfl_ag, duct_systems, airloop_map, clg_ssn_sensor, eri_version,
                  frac_windows_operable, apply_ashrae140_assumptions, schedules_file)
 
@@ -106,7 +106,7 @@ class Airflow
       break
     end
 
-    apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor,
+    apply_natural_ventilation_and_whole_house_fan(runner, model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor,
                                                   hpxml.header.natvent_days_per_week, schedules_file)
     apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
@@ -268,7 +268,7 @@ class Airflow
     end
   end
 
-  def self.apply_natural_ventilation_and_whole_house_fan(model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor,
+  def self.apply_natural_ventilation_and_whole_house_fan(runner, model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor,
                                                          natvent_days_per_week, schedules_file)
     if @living_zone.thermostatSetpointDualSetpoint.is_initialized
       thermostat = @living_zone.thermostatSetpointDualSetpoint.get
@@ -277,7 +277,7 @@ class Airflow
     end
 
     # NV Availability Schedule
-    nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, schedules_file)
+    nv_avail_sch = create_nv_and_whf_avail_sch(runner, model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, schedules_file)
 
     nv_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     nv_avail_sensor.setName("#{Constants.ObjectNameNaturalVentilation} avail s")
@@ -289,7 +289,7 @@ class Airflow
     vent_fans_whf.each_with_index do |vent_whf, index|
       whf_num_days_per_week = 7 # FUTURE: Expose via HPXML?
       obj_name = "#{Constants.ObjectNameWholeHouseFan} #{index}"
-      whf_avail_sch = create_nv_and_whf_avail_sch(model, obj_name, whf_num_days_per_week)
+      whf_avail_sch = create_nv_and_whf_avail_sch(runner, model, obj_name, whf_num_days_per_week)
 
       whf_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
       whf_avail_sensor.setName("#{obj_name} avail s")
@@ -420,7 +420,7 @@ class Airflow
     manager.addProgram(vent_program)
   end
 
-  def self.create_nv_and_whf_avail_sch(model, obj_name, num_days_per_week, schedules_file = nil)
+  def self.create_nv_and_whf_avail_sch(runner, model, obj_name, num_days_per_week, schedules_file = nil)
     if not schedules_file.nil?
       avail_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnNaturalVentilation)
     end
