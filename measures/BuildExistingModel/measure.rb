@@ -333,7 +333,7 @@ class BuildExistingModel < OpenStudio::Measure::ModelMeasure
       value = get_value_from_workflow_step_value(step_value)
       next if value == ''
 
-      if ['schedules_type', 'schedules_vacancy_period'].include?(step_value.name)
+      if ['schedules_type', 'schedules_vacancy_period', 'schedules_outage_period', 'schedules_outage_window_natvent_availability'].include?(step_value.name)
         measures['BuildResidentialScheduleFile'][0][step_value.name] = value
       else
         measures['BuildResidentialHPXML'][0][step_value.name] = value
