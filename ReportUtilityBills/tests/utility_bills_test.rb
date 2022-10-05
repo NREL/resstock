@@ -2,13 +2,13 @@
 
 require 'oga'
 require_relative '../../HPXMLtoOpenStudio/resources/utility_bills'
-require_relative '../../HPXMLtoOpenStudio/resources/constants'
 require_relative '../../HPXMLtoOpenStudio/resources/energyplus'
 require_relative '../../HPXMLtoOpenStudio/resources/hpxml'
 require_relative '../../HPXMLtoOpenStudio/resources/hpxml_defaults'
 require_relative '../../HPXMLtoOpenStudio/resources/minitest_helper'
 require_relative '../../HPXMLtoOpenStudio/resources/schedules'
 require_relative '../../HPXMLtoOpenStudio/resources/unit_conversions'
+require_relative '../../HPXMLtoOpenStudio/resources/version'
 require_relative '../../HPXMLtoOpenStudio/resources/xmlhelper'
 require_relative '../resources/util.rb'
 require 'openstudio'
@@ -60,7 +60,7 @@ class ReportUtilityBillsTest < MiniTest::Test
                                              propane_marginal_rate: 2.4532692307692305,
                                              fuel_oil_marginal_rate: 3.495346153846154)
 
-    HPXMLDefaults.apply_header(@hpxml, nil)
+    HPXMLDefaults.apply_header(@hpxml, nil, nil)
     HPXMLDefaults.apply_utility_bill_scenarios(nil, @hpxml)
 
     @root_path = File.absolute_path(File.join(File.dirname(__FILE__), '..', '..'))

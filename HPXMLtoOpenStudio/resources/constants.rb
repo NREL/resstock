@@ -146,6 +146,10 @@ class Constants
     return 'cooling setpoint'
   end
 
+  def self.ObjectNameCoolingSequentialFraction
+    return 'cooling sequential fraction'
+  end
+
   def self.ObjectNameDehumidifier
     return 'dehumidifier'
   end
@@ -232,6 +236,10 @@ class Constants
 
   def self.ObjectNameHeatingSetpoint
     return 'heating setpoint'
+  end
+
+  def self.ObjectNameHeatingSequentialFraction
+    return 'heating sequential fraction'
   end
 
   def self.ObjectNameHotWaterRecircPump

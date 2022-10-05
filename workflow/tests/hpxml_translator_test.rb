@@ -5,10 +5,6 @@ require 'openstudio'
 require 'fileutils'
 require 'parallel'
 require_relative '../../HPXMLtoOpenStudio/measure.rb'
-require_relative '../../HPXMLtoOpenStudio/resources/constants'
-require_relative '../../HPXMLtoOpenStudio/resources/meta_measure'
-require_relative '../../HPXMLtoOpenStudio/resources/unit_conversions'
-require_relative '../../HPXMLtoOpenStudio/resources/xmlhelper'
 
 class HPXMLTest < MiniTest::Test
   def setup
@@ -486,6 +482,11 @@ class HPXMLTest < MiniTest::Test
   def _get_hvac_sizing_results(hpxml, xml)
     results = {}
     return if xml.include? 'ASHRAE_Standard_140'
+
+    # Design temperatures
+    hpxml.hvac_plant.class::TEMPERATURE_ATTRS.keys.each do |attr|
+      results["temperature_#{attr.to_s.gsub('temp_', '')} [F]"] = hpxml.hvac_plant.send(attr.to_s)
+    end
 
     # Heating design loads
     hpxml.hvac_plant.class::HDL_ATTRS.keys.each do |attr|
@@ -1356,6 +1357,12 @@ class HPXMLTest < MiniTest::Test
     if hpxml_path.include? 'base-hvac-undersized.xml'
       assert_operator(unmet_hours_htg, :>, 1000)
       assert_operator(unmet_hours_clg, :>, 1000)
+    elsif hpxml_path.include? 'base-schedules-detailed-occupancy-stochastic-outage.xml'
+      assert_operator(unmet_hours_htg, :>, 1000)
+      assert_operator(unmet_hours_clg, :<, 350)
+    elsif hpxml_path.include? 'base-schedules-detailed-occupancy-stochastic-outage-natvent.xml'
+      assert_operator(unmet_hours_htg, :<, 350)
+      assert_operator(unmet_hours_clg, :>, 100)
     else
       if hpxml.total_fraction_heat_load_served == 0
         assert_equal(0, unmet_hours_htg)

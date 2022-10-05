@@ -92,6 +92,8 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
     bldg_outputs[BO::SystemsHeatPumpBackupCapacity] = BaseOutput.new
     bldg_outputs[BO::SystemsWaterHeaterVolume] = BaseOutput.new
     bldg_outputs[BO::SystemsMechanicalVentilationFlowRate] = BaseOutput.new
+    bldg_outputs[BO::DesignTemperatureHeating] = BaseOutput.new
+    bldg_outputs[BO::DesignTemperatureCooling] = BaseOutput.new
     bldg_outputs[BO::DesignLoadsHeatingTotal] = BaseOutput.new
     bldg_outputs[BO::DesignLoadsHeatingDucts] = BaseOutput.new
     bldg_outputs[BO::DesignLoadsHeatingWindows] = BaseOutput.new
@@ -312,6 +314,10 @@ class ReportHPXMLOutput < OpenStudio::Measure::ReportingMeasure
 
         bldg_output += ventilation_fan.flow_rate.to_f
       end
+    elsif bldg_type == BO::DesignTemperatureHeating
+      bldg_output += hpxml.hvac_plant.temp_heating
+    elsif bldg_type == BO::DesignTemperatureCooling
+      bldg_output += hpxml.hvac_plant.temp_cooling
     elsif bldg_type == BO::DesignLoadsHeatingTotal
       bldg_output += hpxml.hvac_plant.hdl_total
     elsif bldg_type == BO::DesignLoadsHeatingDucts

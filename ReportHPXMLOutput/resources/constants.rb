@@ -21,6 +21,9 @@ class BO
   SystemsWaterHeaterVolume = 'Systems: Water Heater Tank Volume'
   SystemsMechanicalVentilationFlowRate = 'Systems: Mechanical Ventilation Flow Rate'
 
+  DesignTemperatureHeating = 'Design Temperature: Heating'
+  DesignTemperatureCooling = 'Design Temperature: Cooling'
+
   DesignLoadsHeatingTotal = 'Design Loads Heating: Total'
   DesignLoadsHeatingDucts = 'Design Loads Heating: Ducts'
   DesignLoadsHeatingWindows = 'Design Loads Heating: Windows'
@@ -64,6 +67,8 @@ class BO
       return 'cfm'
     elsif bldg_type == 'Fixed'
       return '1'
+    elsif bldg_type.include? 'Design Temperature'
+      return 'F'
     elsif bldg_type.include? 'Design Loads'
       return 'Btu/h'
     end
