@@ -204,7 +204,7 @@ class HVAC
 
   def self.apply_ground_to_air_heat_pump(model, runner, weather, heat_pump,
                                          sequential_heat_load_fracs, sequential_cool_load_fracs,
-                                         control_zone)
+                                         control_zone, ground_conductivity)
 
     obj_name = Constants.ObjectNameGroundSourceHeatPump
 
@@ -252,8 +252,8 @@ class HVAC
     ground_heat_exch_vert = OpenStudio::Model::GroundHeatExchangerVertical.new(model)
     ground_heat_exch_vert.setName(obj_name + ' exchanger')
     ground_heat_exch_vert.setBoreHoleRadius(UnitConversions.convert(hp_ap.bore_diameter / 2.0, 'in', 'm'))
-    ground_heat_exch_vert.setGroundThermalConductivity(UnitConversions.convert(hp_ap.ground_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
-    ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(hp_ap.ground_conductivity / hp_ap.ground_diffusivity, 'Btu/(ft^3*F)', 'J/(m^3*K)'))
+    ground_heat_exch_vert.setGroundThermalConductivity(UnitConversions.convert(ground_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
+    ground_heat_exch_vert.setGroundThermalHeatCapacity(UnitConversions.convert(ground_conductivity / hp_ap.ground_diffusivity, 'Btu/(ft^3*F)', 'J/(m^3*K)'))
     ground_heat_exch_vert.setGroundTemperature(UnitConversions.convert(weather.data.AnnualAvgDrybulb, 'F', 'C'))
     ground_heat_exch_vert.setGroutThermalConductivity(UnitConversions.convert(hp_ap.grout_conductivity, 'Btu/(hr*ft*R)', 'W/(m*K)'))
     ground_heat_exch_vert.setPipeThermalConductivity(UnitConversions.convert(hp_ap.pipe_cond, 'Btu/(hr*ft*R)', 'W/(m*K)'))
@@ -591,8 +591,8 @@ class HVAC
       disaggregate_fan_or_pump(model, pump, zone_hvac, nil, nil, heating_system)
     end
 
-    control_zone.setSequentialHeatingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, sequential_heat_load_fracs))
-    control_zone.setSequentialCoolingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, [0]))
+    control_zone.setSequentialHeatingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, sequential_heat_load_fracs, Constants.ObjectNameHeatingSequentialFraction))
+    control_zone.setSequentialCoolingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, [0], Constants.ObjectNameCoolingSequentialFraction))
 
     return zone_hvac
   end
@@ -610,8 +610,8 @@ class HVAC
     zone_hvac.addToThermalZone(control_zone)
     zone_hvac.additionalProperties.setFeature('HPXML_ID', heating_system.id) # Used by reporting measure
 
-    control_zone.setSequentialHeatingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, sequential_heat_load_fracs))
-    control_zone.setSequentialCoolingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, [0]))
+    control_zone.setSequentialHeatingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, sequential_heat_load_fracs, Constants.ObjectNameHeatingSequentialFraction))
+    control_zone.setSequentialCoolingFractionSchedule(zone_hvac, get_sequential_load_schedule(model, [0], Constants.ObjectNameCoolingSequentialFraction))
   end
 
   def self.apply_unit_heater(model, heating_system,
@@ -647,8 +647,8 @@ class HVAC
     unitary_system.setControllingZoneorThermostatLocation(control_zone)
     unitary_system.addToThermalZone(control_zone)
 
-    control_zone.setSequentialHeatingFractionSchedule(unitary_system, get_sequential_load_schedule(model, sequential_heat_load_fracs))
-    control_zone.setSequentialCoolingFractionSchedule(unitary_system, get_sequential_load_schedule(model, [0]))
+    control_zone.setSequentialHeatingFractionSchedule(unitary_system, get_sequential_load_schedule(model, sequential_heat_load_fracs, Constants.ObjectNameHeatingSequentialFraction))
+    control_zone.setSequentialCoolingFractionSchedule(unitary_system, get_sequential_load_schedule(model, [0], Constants.ObjectNameCoolingSequentialFraction))
   end
 
   def self.apply_ideal_air_loads(model, obj_name, sequential_cool_load_fracs,
@@ -677,8 +677,8 @@ class HVAC
     ideal_air.setHumidificationControlType('None')
     ideal_air.addToThermalZone(control_zone)
 
-    control_zone.setSequentialCoolingFractionSchedule(ideal_air, get_sequential_load_schedule(model, sequential_cool_load_fracs))
-    control_zone.setSequentialHeatingFractionSchedule(ideal_air, get_sequential_load_schedule(model, sequential_heat_load_fracs))
+    control_zone.setSequentialCoolingFractionSchedule(ideal_air, get_sequential_load_schedule(model, sequential_cool_load_fracs, Constants.ObjectNameCoolingSequentialFraction))
+    control_zone.setSequentialHeatingFractionSchedule(ideal_air, get_sequential_load_schedule(model, sequential_heat_load_fracs, Constants.ObjectNameHeatingSequentialFraction))
   end
 
   def self.apply_dehumidifiers(model, dehumidifiers, living_space)
@@ -786,7 +786,7 @@ class HVAC
     equip.setSchedule(ceiling_fan_sch)
   end
 
-  def self.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, heating_days, cooling_days, year, schedules_file)
+  def self.apply_setpoints(model, runner, weather, hvac_control, living_zone, has_ceiling_fan, heating_season, cooling_season, year, schedules_file)
     heating_sch = nil
     cooling_sch = nil
     if not schedules_file.nil?
@@ -795,29 +795,34 @@ class HVAC
     end
 
     # permit mixing detailed schedules with simple schedules
+    steps_in_hour = model.getTimestep.numberOfTimestepsPerHour
     if heating_sch.nil?
-      htg_weekday_setpoints, htg_weekend_setpoints = get_heating_setpoints(hvac_control, year)
+      htg_weekday_setpoints, htg_weekend_setpoints = get_heating_setpoints(hvac_control, year, steps_in_hour)
     else
       runner.registerWarning("Both '#{SchedulesFile::ColumnHeatingSetpoint}' schedule file and heating setpoint temperature provided; the latter will be ignored.") if !hvac_control.heating_setpoint_temp.nil?
     end
 
     if cooling_sch.nil?
-      clg_weekday_setpoints, clg_weekend_setpoints = get_cooling_setpoints(hvac_control, has_ceiling_fan, year, weather)
+      clg_weekday_setpoints, clg_weekend_setpoints = get_cooling_setpoints(hvac_control, has_ceiling_fan, year, weather, steps_in_hour)
     else
       runner.registerWarning("Both '#{SchedulesFile::ColumnCoolingSetpoint}' schedule file and cooling setpoint temperature provided; the latter will be ignored.") if !hvac_control.cooling_setpoint_temp.nil?
     end
 
     # only deal with deadband issue if both schedules are simple
     if heating_sch.nil? && cooling_sch.nil?
-      htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = create_setpoint_schedules(runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
+      htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints = create_setpoint_schedules(runner, heating_season, cooling_season, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints)
     end
 
     if heating_sch.nil?
+      htg_weekday_setpoints = Schedule.create_hourly_by_day(htg_weekday_setpoints, steps_in_hour)
+      htg_weekend_setpoints = Schedule.create_hourly_by_day(htg_weekend_setpoints, steps_in_hour)
       heating_setpoint = HourlyByDaySchedule.new(model, Constants.ObjectNameHeatingSetpoint, htg_weekday_setpoints, htg_weekend_setpoints, nil, false)
       heating_sch = heating_setpoint.schedule
     end
 
     if cooling_sch.nil?
+      clg_weekday_setpoints = Schedule.create_hourly_by_day(clg_weekday_setpoints, steps_in_hour)
+      clg_weekend_setpoints = Schedule.create_hourly_by_day(clg_weekend_setpoints, steps_in_hour)
       cooling_setpoint = HourlyByDaySchedule.new(model, Constants.ObjectNameCoolingSetpoint, clg_weekday_setpoints, clg_weekend_setpoints, nil, false)
       cooling_sch = cooling_setpoint.schedule
     end
@@ -830,7 +835,7 @@ class HVAC
     living_zone.setThermostatSetpointDualSetpoint(thermostat_setpoint)
   end
 
-  def self.create_setpoint_schedules(runner, heating_days, cooling_days, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints, year)
+  def self.create_setpoint_schedules(runner, heating_season, cooling_season, htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints)
     # Create setpoint schedules
     # This method ensures that we don't construct a setpoint schedule where the cooling setpoint
     # is less than the heating setpoint, which would result in an E+ error.
@@ -839,22 +844,21 @@ class HVAC
     # to prevent unmet hours being reported. This is a dangerous idea. These setpoints are used
     # by natural ventilation, Kiva initialization, and probably other things.
 
-    num_days = Constants.NumDaysInYear(year)
     warning = false
-    (0..(num_days - 1)).to_a.each do |i|
-      if (heating_days[i] == cooling_days[i]) # both (or neither) heating/cooling seasons
-        htg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
-        htg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : h }
-        clg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
-        clg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? (h + c) / 2.0 : c }
-      elsif heating_days[i] == 1 # heating only seasons; cooling has minimum of heating
+    heating_season.zip(cooling_season).each_with_index do |(hs, cs), i|
+      if (hs == cs) # both (or neither) heating/cooling seasons
+        htg_wkdy = average_setpoint(Constants.ObjectNameHeatingSetpoint, htg_weekday_setpoints[i], clg_weekday_setpoints[i])
+        htg_wked = average_setpoint(Constants.ObjectNameHeatingSetpoint, htg_weekend_setpoints[i], clg_weekend_setpoints[i])
+        clg_wkdy = average_setpoint(Constants.ObjectNameCoolingSetpoint, htg_weekday_setpoints[i], clg_weekday_setpoints[i])
+        clg_wked = average_setpoint(Constants.ObjectNameCoolingSetpoint, htg_weekend_setpoints[i], clg_weekend_setpoints[i])
+      elsif hs == 1 # heating only seasons; cooling has minimum of heating
         htg_wkdy = htg_weekday_setpoints[i]
         htg_wked = htg_weekend_setpoints[i]
-        clg_wkdy = htg_weekday_setpoints[i].zip(clg_weekday_setpoints[i]).map { |h, c| c < h ? h : c }
-        clg_wked = htg_weekend_setpoints[i].zip(clg_weekend_setpoints[i]).map { |h, c| c < h ? h : c }
-      elsif cooling_days[i] == 1 # cooling only seasons; heating has maximum of cooling
-        htg_wkdy = clg_weekday_setpoints[i].zip(htg_weekday_setpoints[i]).map { |c, h| c < h ? c : h }
-        htg_wked = clg_weekend_setpoints[i].zip(htg_weekend_setpoints[i]).map { |c, h| c < h ? c : h }
+        clg_wkdy = min_setpoint(Constants.ObjectNameHeatingSetpoint, htg_weekday_setpoints[i], clg_weekday_setpoints[i])
+        clg_wked = min_setpoint(Constants.ObjectNameHeatingSetpoint, htg_weekend_setpoints[i], clg_weekend_setpoints[i])
+      elsif cs == 1 # cooling only seasons; heating has maximum of cooling
+        htg_wkdy = min_setpoint(Constants.ObjectNameCoolingSetpoint, clg_weekday_setpoints[i], htg_weekday_setpoints[i])
+        htg_wked = min_setpoint(Constants.ObjectNameCoolingSetpoint, clg_weekend_setpoints[i], htg_weekend_setpoints[i])
         clg_wkdy = clg_weekday_setpoints[i]
         clg_wked = clg_weekend_setpoints[i]
       else
@@ -876,13 +880,41 @@ class HVAC
     return htg_weekday_setpoints, htg_weekend_setpoints, clg_weekday_setpoints, clg_weekend_setpoints
   end
 
-  def self.get_heating_setpoints(hvac_control, year)
+  def self.average_setpoint(setp, htg, clg)
+    if clg < htg
+      return (htg + clg) / 2.0
+    else
+      if setp == Constants.ObjectNameHeatingSetpoint
+        return htg
+      elsif setp == Constants.ObjectNameCoolingSetpoint
+        return clg
+      end
+    end
+  end
+
+  def self.min_setpoint(setp, htg, clg)
+    if clg < htg
+      if setp == Constants.ObjectNameHeatingSetpoint
+        return htg
+      elsif setp == Constants.ObjectNameCoolingSetpoint
+        return clg
+      end
+    else
+      if setp == Constants.ObjectNameHeatingSetpoint
+        return clg
+      elsif setp == Constants.ObjectNameCoolingSetpoint
+        return htg
+      end
+    end
+  end
+
+  def self.get_heating_setpoints(hvac_control, year, steps_in_hour)
     num_days = Constants.NumDaysInYear(year)
 
     if hvac_control.weekday_heating_setpoints.nil? || hvac_control.weekend_heating_setpoints.nil?
       # Base heating setpoint
       htg_setpoint = hvac_control.heating_setpoint_temp
-      htg_weekday_setpoints = [[htg_setpoint] * 24] * num_days
+      htg_weekday_setpoints = [[htg_setpoint] * 24 * steps_in_hour] * num_days
       # Apply heating setback?
       htg_setback = hvac_control.heating_setback_temp
       if not htg_setback.nil?
@@ -890,7 +922,7 @@ class HVAC
         htg_setback_start_hr = hvac_control.heating_setback_start_hour
         for d in 1..num_days
           for hr in htg_setback_start_hr..htg_setback_start_hr + Integer(htg_setback_hrs_per_week / 7.0) - 1
-            htg_weekday_setpoints[d - 1][hr % 24] = htg_setback
+            htg_weekday_setpoints[d - 1][hr % (24 * steps_in_hour)] = htg_setback
           end
         end
       end
@@ -906,16 +938,16 @@ class HVAC
     htg_weekday_setpoints = htg_weekday_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
     htg_weekend_setpoints = htg_weekend_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
 
-    return htg_weekday_setpoints, htg_weekend_setpoints
+    return htg_weekday_setpoints.flatten, htg_weekend_setpoints.flatten
   end
 
-  def self.get_cooling_setpoints(hvac_control, has_ceiling_fan, year, weather)
+  def self.get_cooling_setpoints(hvac_control, has_ceiling_fan, year, weather, steps_in_hour)
     num_days = Constants.NumDaysInYear(year)
 
     if hvac_control.weekday_cooling_setpoints.nil? || hvac_control.weekend_cooling_setpoints.nil?
       # Base cooling setpoint
       clg_setpoint = hvac_control.cooling_setpoint_temp
-      clg_weekday_setpoints = [[clg_setpoint] * 24] * num_days
+      clg_weekday_setpoints = [[clg_setpoint] * 24 * steps_in_hour] * num_days
       # Apply cooling setup?
       clg_setup = hvac_control.cooling_setup_temp
       if not clg_setup.nil?
@@ -923,7 +955,7 @@ class HVAC
         clg_setup_start_hr = hvac_control.cooling_setup_start_hour
         for d in 1..num_days
           for hr in clg_setup_start_hr..clg_setup_start_hr + Integer(clg_setup_hrs_per_week / 7.0) - 1
-            clg_weekday_setpoints[d - 1][hr % 24] = clg_setup
+            clg_weekday_setpoints[d - 1][hr % (24 * steps_in_hour)] = clg_setup
           end
         end
       end
@@ -943,8 +975,8 @@ class HVAC
         Schedule.months_to_days(year, months).each_with_index do |operation, d|
           next if operation != 1
 
-          clg_weekday_setpoints[d] = [clg_weekday_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
-          clg_weekend_setpoints[d] = [clg_weekend_setpoints[d], Array.new(24, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
+          clg_weekday_setpoints[d] = [clg_weekday_setpoints[d], Array.new(24 * steps_in_hour, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
+          clg_weekend_setpoints[d] = [clg_weekend_setpoints[d], Array.new(24 * steps_in_hour, clg_ceiling_fan_offset)].transpose.map { |i| i.reduce(:+) }
         end
       end
     end
@@ -952,7 +984,7 @@ class HVAC
     clg_weekday_setpoints = clg_weekday_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
     clg_weekend_setpoints = clg_weekend_setpoints.map { |i| i.map { |j| UnitConversions.convert(j, 'F', 'C') } }
 
-    return clg_weekday_setpoints, clg_weekend_setpoints
+    return clg_weekday_setpoints.flatten, clg_weekend_setpoints.flatten
   end
 
   def self.get_default_heating_setpoint(control_type)
@@ -1671,8 +1703,8 @@ class HVAC
     air_terminal.setName(obj_name + ' terminal')
     air_loop.multiAddBranchForZone(control_zone, air_terminal)
 
-    control_zone.setSequentialHeatingFractionSchedule(air_terminal, get_sequential_load_schedule(model, sequential_heat_load_fracs))
-    control_zone.setSequentialCoolingFractionSchedule(air_terminal, get_sequential_load_schedule(model, sequential_cool_load_fracs))
+    control_zone.setSequentialHeatingFractionSchedule(air_terminal, get_sequential_load_schedule(model, sequential_heat_load_fracs, Constants.ObjectNameHeatingSequentialFraction))
+    control_zone.setSequentialCoolingFractionSchedule(air_terminal, get_sequential_load_schedule(model, sequential_cool_load_fracs, Constants.ObjectNameCoolingSequentialFraction))
 
     return air_loop
   end
@@ -3356,7 +3388,6 @@ class HVAC
     else
       hp_ap.design_hw = [35.0, weather.design.HeatingDrybulb + 35.0, weather.data.AnnualAvgDrybulb - 10.0].min # Temperature of fluid entering indoor coil, use 35F as upper bound
     end
-    hp_ap.ground_conductivity = 0.6 # Btu/h-ft-R
     hp_ap.ground_diffusivity = 0.0208
     hp_ap.grout_conductivity = 0.4 # Btu/h-ft-R
     hp_ap.bore_diameter = 5.0 # in
@@ -3529,17 +3560,17 @@ class HVAC
     return sequential_load_fracs
   end
 
-  def self.get_sequential_load_schedule(model, fractions)
+  def self.get_sequential_load_schedule(model, fractions, sch_name)
     values = fractions.map { |f| f > 1 ? 1.0 : f.round(5) }
 
     if values.uniq.length == 1
       s = OpenStudio::Model::ScheduleConstant.new(model)
       s.setValue(values[0])
     else
-      s = Schedule.create_ruleset_from_daily_season(model, values)
+      s = Schedule.create_interval_from_season(model, values)
     end
 
-    s.setName('Sequential Fraction Schedule')
+    s.setName(sch_name)
     Schedule.set_schedule_type_limits(model, s, Constants.ScheduleTypeLimitsFraction)
     return s
   end

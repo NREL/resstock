@@ -107,7 +107,7 @@ class Airflow
     end
 
     apply_natural_ventilation_and_whole_house_fan(model, hpxml.site, vent_fans_whf, open_window_area, clg_ssn_sensor,
-                                                  hpxml.header.natvent_days_per_week)
+                                                  hpxml.header.natvent_days_per_week, schedules_file)
     apply_infiltration_and_ventilation_fans(model, weather, hpxml.site, vent_fans_mech, vent_fans_kitchen, vent_fans_bath, vented_dryers,
                                             hpxml.building_construction.has_flue_or_chimney, hpxml.air_infiltration_measurements,
                                             vented_attic, vented_crawl, clg_ssn_sensor, schedules_file)
@@ -269,7 +269,7 @@ class Airflow
   end
 
   def self.apply_natural_ventilation_and_whole_house_fan(model, site, vent_fans_whf, open_window_area, nv_clg_ssn_sensor,
-                                                         natvent_days_per_week)
+                                                         natvent_days_per_week, schedules_file)
     if @living_zone.thermostatSetpointDualSetpoint.is_initialized
       thermostat = @living_zone.thermostatSetpointDualSetpoint.get
       htg_sch = thermostat.heatingSetpointTemperatureSchedule.get
@@ -277,7 +277,7 @@ class Airflow
     end
 
     # NV Availability Schedule
-    nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week)
+    nv_avail_sch = create_nv_and_whf_avail_sch(model, Constants.ObjectNameNaturalVentilation, natvent_days_per_week, schedules_file)
 
     nv_avail_sensor = OpenStudio::Model::EnergyManagementSystemSensor.new(model, 'Schedule Value')
     nv_avail_sensor.setName("#{Constants.ObjectNameNaturalVentilation} avail s")
@@ -420,23 +420,30 @@ class Airflow
     manager.addProgram(vent_program)
   end
 
-  def self.create_nv_and_whf_avail_sch(model, obj_name, num_days_per_week)
-    avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
-    avail_sch.setName("#{obj_name} avail schedule")
-    Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff)
-    on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
-    on_rule.setName("#{obj_name} avail schedule rule")
-    on_rule_day = on_rule.daySchedule
-    on_rule_day.setName("#{obj_name} avail schedule day")
-    on_rule_day.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
-    method_array = ['setApplyMonday', 'setApplyWednesday', 'setApplyFriday', 'setApplySaturday', 'setApplyTuesday', 'setApplyThursday', 'setApplySunday']
-    for i in 1..7 do
-      if num_days_per_week >= i
-        on_rule.public_send(method_array[i - 1], true)
-      end
+  def self.create_nv_and_whf_avail_sch(model, obj_name, num_days_per_week, schedules_file = nil)
+    if not schedules_file.nil?
+      avail_sch = schedules_file.create_schedule_file(col_name: SchedulesFile::ColumnNaturalVentilation)
     end
-    on_rule.setStartDate(OpenStudio::Date::fromDayOfYear(1))
-    on_rule.setEndDate(OpenStudio::Date::fromDayOfYear(365))
+    if avail_sch.nil?
+      avail_sch = OpenStudio::Model::ScheduleRuleset.new(model)
+      avail_sch.setName("#{obj_name} avail schedule")
+      on_rule = OpenStudio::Model::ScheduleRule.new(avail_sch)
+      on_rule.setName("#{obj_name} avail schedule rule")
+      on_rule_day = on_rule.daySchedule
+      on_rule_day.setName("#{obj_name} avail schedule day")
+      on_rule_day.addValue(OpenStudio::Time.new(0, 24, 0, 0), 1)
+      method_array = ['setApplyMonday', 'setApplyWednesday', 'setApplyFriday', 'setApplySaturday', 'setApplyTuesday', 'setApplyThursday', 'setApplySunday']
+      for i in 1..7 do
+        if num_days_per_week >= i
+          on_rule.public_send(method_array[i - 1], true)
+        end
+      end
+      on_rule.setStartDate(OpenStudio::Date::fromDayOfYear(1))
+      on_rule.setEndDate(OpenStudio::Date::fromDayOfYear(365))
+    else
+      runner.registerWarning("Both '#{SchedulesFile::ColumnNaturalVentilation}' schedule file and natural ventilation days per week provided; the latter will be ignored.") if !num_days_per_week.nil?
+    end
+    Schedule.set_schedule_type_limits(model, avail_sch, Constants.ScheduleTypeLimitsOnOff)
     return avail_sch
   end
 

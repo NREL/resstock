@@ -3,8 +3,8 @@
   <schema_version>3.0</schema_version>
   <name>build_residential_schedule_file</name>
   <uid>f770b2db-1a9f-4e99-99a7-7f3161a594b1</uid>
-  <version_id>76e2188f-cdb8-4abb-b89a-450c51ef51d9</version_id>
-  <version_modified>20220818T232732Z</version_modified>
+  <version_id>e95ee413-195f-462b-b8b1-97f196cfa7c2</version_id>
+  <version_modified>20221005T152836Z</version_modified>
   <xml_checksum>03F02484</xml_checksum>
   <class_name>BuildResidentialScheduleFile</class_name>
   <display_name>Schedule File Builder</display_name>
@@ -45,6 +45,32 @@
       <type>String</type>
       <required>false</required>
       <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_outage_period</name>
+      <display_name>Schedules: Outage Period</display_name>
+      <description>Specifies the outage period. Enter a date/time like "Dec 15 10am - Jan 15 2pm". 12am is the final hour of a given day.</description>
+      <type>String</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+    </argument>
+    <argument>
+      <name>schedules_outage_window_natvent_availability</name>
+      <display_name>Schedules: Outage Period Natural Ventilation Availability</display_name>
+      <description>Whether natural ventilation is available during the outage period.</description>
+      <type>Boolean</type>
+      <required>false</required>
+      <model_dependent>false</model_dependent>
+      <choices>
+        <choice>
+          <value>true</value>
+          <display_name>true</display_name>
+        </choice>
+        <choice>
+          <value>false</value>
+          <display_name>false</display_name>
+        </choice>
+      </choices>
     </argument>
     <argument>
       <name>schedules_random_seed</name>
@@ -891,18 +917,6 @@
       <checksum>127D96AC</checksum>
     </file>
     <file>
-      <filename>build_residential_schedule_file_test.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>test</usage_type>
-      <checksum>41CA164F</checksum>
-    </file>
-    <file>
-      <filename>schedules.rb</filename>
-      <filetype>rb</filetype>
-      <usage_type>resource</usage_type>
-      <checksum>15F4F182</checksum>
-    </file>
-    <file>
       <version>
         <software_program>OpenStudio</software_program>
         <identifier>3.2.0</identifier>
@@ -911,7 +925,19 @@
       <filename>measure.rb</filename>
       <filetype>rb</filetype>
       <usage_type>script</usage_type>
-      <checksum>AAE8B0D8</checksum>
+      <checksum>5BDD23DE</checksum>
+    </file>
+    <file>
+      <filename>schedules.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>resource</usage_type>
+      <checksum>69CE2AD2</checksum>
+    </file>
+    <file>
+      <filename>build_residential_schedule_file_test.rb</filename>
+      <filetype>rb</filetype>
+      <usage_type>test</usage_type>
+      <checksum>C0798C31</checksum>
     </file>
   </files>
 </measure>

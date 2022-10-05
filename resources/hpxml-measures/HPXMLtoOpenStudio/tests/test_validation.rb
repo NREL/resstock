@@ -152,6 +152,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'invalid-foundation-wall-properties' => ['Expected DepthBelowGrade to be less than or equal to Height [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall, id: "FoundationWall1"]',
                                                                      'Expected DistanceToBottomOfInsulation to be greater than or equal to DistanceToTopOfInsulation [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWall1Insulation"]',
                                                                      'Expected DistanceToBottomOfInsulation to be less than or equal to ../../Height [context: /HPXML/Building/BuildingDetails/Enclosure/FoundationWalls/FoundationWall/Insulation/Layer[InstallationType="continuous - exterior" or InstallationType="continuous - interior"], id: "FoundationWall1Insulation"]'],
+                            'invalid-ground-conductivity' => ['Expected extension/GroundConductivity to be greater than 0'],
                             'invalid-hvac-installation-quality' => ['Expected extension/AirflowDefectRatio to be greater than or equal to -0.9 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="air-to-air"], id: "HeatPump1"]',
                                                                     'Expected extension/ChargeDefectRatio to be greater than or equal to -0.9 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="air-to-air"], id: "HeatPump1"]'],
                             'invalid-hvac-installation-quality2' => ['Expected extension/AirflowDefectRatio to be less than or equal to 9 [context: /HPXML/Building/BuildingDetails/Systems/HVAC/HVACPlant/HeatPump[HeatPumpType="air-to-air"], id: "HeatPump1"]',
@@ -384,6 +385,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml.foundation_walls[0].depth_below_grade = 9.0
         hpxml.foundation_walls[0].insulation_interior_distance_to_top = 12.0
         hpxml.foundation_walls[0].insulation_interior_distance_to_bottom = 10.0
+      elsif ['invalid-ground-conductivity'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
+        hpxml.site.ground_conductivity = 0.0
       elsif ['invalid-hvac-installation-quality'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-air-to-air-heat-pump-1-speed.xml'))
         hpxml.heat_pumps[0].airflow_defect_ratio = -99
@@ -398,7 +402,7 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.transaction = 'modify'
         hpxml.site.site_type = 'mountain'
-        hpxml.climate_and_risk_zones.iecc_year = 2020
+        hpxml.climate_and_risk_zones.climate_zone_ieccs[0].year = 2020
         hpxml.roofs.each do |roof|
           roof.radiant_barrier_grade = 4
         end
@@ -741,7 +745,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                             'unattached-hvac-distribution' => ["Attached HVAC distribution system 'foobar' not found for HVAC system 'HeatingSystem1'."],
                             'unattached-skylight' => ["Attached roof 'foobar' not found for skylight 'Skylight1'."],
                             'unattached-solar-thermal-system' => ["Attached water heating system 'foobar' not found for solar thermal system 'SolarThermalSystem1'."],
+                            'unattached-shared-clothes-washer-dhw-distribution' => ["Attached hot water distribution 'foobar' not found for clothes washer"],
                             'unattached-shared-clothes-washer-water-heater' => ["Attached water heating system 'foobar' not found for clothes washer"],
+                            'unattached-shared-dishwasher-dhw-distribution' => ["Attached hot water distribution 'foobar' not found for dishwasher"],
                             'unattached-shared-dishwasher-water-heater' => ["Attached water heating system 'foobar' not found for dishwasher"],
                             'unattached-window' => ["Attached wall 'foobar' not found for window 'Window1'."] }
 
@@ -1024,9 +1030,17 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['unattached-solar-thermal-system'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-dhw-solar-indirect-flat-plate.xml'))
         hpxml.solar_thermal_systems[0].water_heating_system_idref = 'foobar'
+      elsif ['unattached-shared-clothes-washer-dhw-distribution'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
+        hpxml.clothes_washers[0].water_heating_system_idref = nil
+        hpxml.clothes_washers[0].hot_water_distribution_idref = 'foobar'
       elsif ['unattached-shared-clothes-washer-water-heater'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
         hpxml.clothes_washers[0].water_heating_system_idref = 'foobar'
+      elsif ['unattached-shared-dishwasher-dhw-distribution'].include? error_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
+        hpxml.dishwashers[0].water_heating_system_idref = nil
+        hpxml.dishwashers[0].hot_water_distribution_idref = 'foobar'
       elsif ['unattached-shared-dishwasher-water-heater'].include? error_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-bldgtype-multifamily-shared-laundry-room.xml'))
         hpxml.dishwashers[0].water_heating_system_idref = 'foobar'

@@ -1024,6 +1024,20 @@ class Schedule
     return season
   end
 
+  def self.get_season(year, steps_in_day, start_month, start_day, end_month, end_day)
+    start_day_num = get_day_num_from_month_day(year, start_month, start_day)
+    end_day_num = get_day_num_from_month_day(year, end_month, end_day)
+
+    season = Array.new(Constants.NumHoursInYear(year), 0)
+    if end_day_num >= start_day_num
+      season.fill(1, (start_day_num - 1) * steps_in_day, (end_day_num - start_day_num + 1) * steps_in_day) # Fill between start/end days
+    else # Wrap around year
+      season.fill(1, (start_day_num - 1) * steps_in_day) # Fill between start day and end of year
+      season.fill(1, 0, end_day_num * steps_in_day) # Fill between start of year and end day
+    end
+    return season
+  end
+
   def self.months_to_days(year, months)
     month_num_days = Constants.NumDaysInMonths(year)
     days = []
@@ -1043,30 +1057,26 @@ class Schedule
     return month_num_days.each_with_index.map { |n, i| get_day_num_from_month_day(year, i + 1, n) }
   end
 
-  def self.create_ruleset_from_daily_season(model, values)
-    s = OpenStudio::Model::ScheduleRuleset.new(model)
-    year = model.getYearDescription.assumedYear
-    start_value = values[0]
-    start_date = OpenStudio::Date::fromDayOfYear(1, year)
-    values.each_with_index do |value, i|
-      i += 1
-      next unless value != start_value || i == values.length
-
-      rule = OpenStudio::Model::ScheduleRule.new(s)
-      set_weekday_rule(rule)
-      set_weekend_rule(rule)
-      i += 1 if i == values.length
-      end_date = OpenStudio::Date::fromDayOfYear(i - 1, year)
-      rule.setStartDate(start_date)
-      rule.setEndDate(end_date)
-      day_schedule = rule.daySchedule
-      day_schedule.addValue(OpenStudio::Time.new(0, 24, 0, 0), start_value)
-      break if i == values.length + 1
-
-      start_date = OpenStudio::Date::fromDayOfYear(i, year)
-      start_value = value
-    end
+  def self.create_interval_from_season(model, values)
+    start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, model.getYearDescription.assumedYear)
+    steps_in_hour = model.getTimestep.numberOfTimestepsPerHour
+    minutes = 60 / steps_in_hour
+    timestep_day = OpenStudio::Time.new(0, 0, minutes)
+    time_series_season = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(values), '')
+    s = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_season, model).get
     return s
+  end
+
+  def self.create_hourly_by_day(array, steps_in_hour)
+    hourly_by_day = []
+    array.each_slice(24 * steps_in_hour) do |d|
+      hourly = []
+      (0...d.length).step(steps_in_hour).each do |i|
+        hourly << d[i]
+      end
+      hourly_by_day << hourly
+    end
+    return hourly_by_day
   end
 
   def self.parse_date_range(date_range)
@@ -1092,6 +1102,45 @@ class Schedule
     end
 
     return begin_month, begin_day, end_month, end_day
+  end
+
+  def self.parse_date_time_range(date_range)
+    begin_end_dates = date_range.split('-').map { |v| v.strip }
+    if begin_end_dates.size != 2
+      fail "Invalid date format specified for '#{date_range}'."
+    end
+
+    begin_values = begin_end_dates[0].split(' ').map { |v| v.strip }
+    end_values = begin_end_dates[1].split(' ').map { |v| v.strip }
+
+    if (begin_values.size != 3) || (end_values.size != 3)
+      fail "Invalid date format specified for '#{date_range}'."
+    end
+
+    require 'date'
+    begin_month = Date::ABBR_MONTHNAMES.index(begin_values[0].capitalize)
+    end_month = Date::ABBR_MONTHNAMES.index(end_values[0].capitalize)
+    begin_day = begin_values[1].to_i
+    end_day = end_values[1].to_i
+
+    if ((!begin_values[2].include?('am') && !begin_values[2].include?('pm')) || (!end_values[2].include?('am') && !end_values[2].include?('pm')))
+      fail "Invalid time format specified for '#{date_range}'."
+    end
+
+    begin_hour = begin_values[2].to_i
+    end_hour = end_values[2].to_i
+    if begin_values[2].include?('pm') || begin_values[2].include?('12am')
+      begin_hour += 12
+    end
+    if end_values[2].include?('pm') || end_values[2].include?('12am')
+      end_hour += 12
+    end
+
+    if begin_month.nil? || end_month.nil? || begin_day == 0 || end_day == 0
+      fail "Invalid date format specified for '#{date_range}'."
+    end
+
+    return begin_month, begin_day, begin_hour, end_month, end_day, end_hour
   end
 
   def self.get_begin_and_end_dates_from_monthly_array(months, year)
@@ -1152,8 +1201,12 @@ class SchedulesFile
   ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
   ColumnHotWaterFixtures = 'hot_water_fixtures'
   ColumnVacancy = 'vacancy'
+  ColumnOutage = 'outage'
   ColumnHeatingSetpoint = 'heating_setpoint'
   ColumnCoolingSetpoint = 'cooling_setpoint'
+  ColumnHeatingSeason = 'heating_season'
+  ColumnCoolingSeason = 'cooling_season'
+  ColumnNaturalVentilation = 'natural_ventilation'
   ColumnWaterHeaterSetpoint = 'water_heater_setpoint'
   ColumnWaterHeaterOperatingMode = 'water_heater_operating_mode'
   ColumnSleeping = 'sleeping'
@@ -1171,6 +1224,7 @@ class SchedulesFile
 
     @tmp_schedules = Marshal.load(Marshal.dump(@schedules))
     set_vacancy
+    set_outage
     convert_setpoints
 
     tmpdir = Dir.tmpdir
@@ -1428,6 +1482,21 @@ class SchedulesFile
     end
   end
 
+  def set_outage
+    return unless @tmp_schedules.keys.include? ColumnOutage
+    return if @tmp_schedules[ColumnOutage].all? { |i| i == 0 }
+
+    col_names = SchedulesFile.ColumnNames
+
+    @tmp_schedules[col_names[0]].each_with_index do |_ts, i|
+      col_names.each do |col_name|
+        next unless affected_by_outage[col_name] # skip those unaffected by outage
+
+        @tmp_schedules[col_name][i] *= (1.0 - @tmp_schedules[ColumnOutage][i])
+      end
+    end
+  end
+
   def convert_setpoints
     return if @tmp_schedules.keys.none? { |k| SchedulesFile.SetpointColumnNames.include?(k) }
 
@@ -1523,6 +1592,19 @@ class SchedulesFile
       affected_by_vacancy[column_name] = false
     end
     return affected_by_vacancy
+  end
+
+  def affected_by_outage
+    affected_by_outage = {}
+    column_names = SchedulesFile.ColumnNames
+    column_names.each do |column_name|
+      affected_by_outage[column_name] = true
+      next unless ([ColumnOccupants,
+                    ColumnSleeping] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames).include? column_name
+
+      affected_by_outage[column_name] = false
+    end
+    return affected_by_outage
   end
 
   def max_value_one
