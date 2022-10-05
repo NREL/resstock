@@ -1010,20 +1010,6 @@ class Schedule
     return day_num
   end
 
-  def self.get_daily_season(year, start_month, start_day, end_month, end_day)
-    start_day_num = get_day_num_from_month_day(year, start_month, start_day)
-    end_day_num = get_day_num_from_month_day(year, end_month, end_day)
-
-    season = Array.new(Constants.NumDaysInYear(year), 0)
-    if end_day_num >= start_day_num
-      season.fill(1, start_day_num - 1, end_day_num - start_day_num + 1) # Fill between start/end days
-    else # Wrap around year
-      season.fill(1, start_day_num - 1) # Fill between start day and end of year
-      season.fill(1, 0, end_day_num) # Fill between start of year and end day
-    end
-    return season
-  end
-
   def self.get_season(year, steps_in_day, start_month, start_day, end_month, end_day)
     start_day_num = get_day_num_from_month_day(year, start_month, start_day)
     end_day_num = get_day_num_from_month_day(year, end_month, end_day)
@@ -1057,13 +1043,11 @@ class Schedule
     return month_num_days.each_with_index.map { |n, i| get_day_num_from_month_day(year, i + 1, n) }
   end
 
-  def self.create_interval_from_season(model, values)
-    start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, model.getYearDescription.assumedYear)
-    steps_in_hour = model.getTimestep.numberOfTimestepsPerHour
-    minutes = 60 / steps_in_hour
-    timestep_day = OpenStudio::Time.new(0, 0, minutes)
-    time_series_season = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(values), '')
-    s = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series_season, model).get
+  def self.create_interval_from_array(model, values, units, year, days, hours, minutes = 0, seconds = 0)
+    start_date = OpenStudio::Date.new(OpenStudio::MonthOfYear.new(1), 1, year)
+    timestep_day = OpenStudio::Time.new(days, hours, minutes, seconds)
+    time_series = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(values), units)
+    s = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series, model).get
     return s
   end
 

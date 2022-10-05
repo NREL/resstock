@@ -983,16 +983,14 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     end_day_num = Schedule.get_day_num_from_month_day(year, seasons_heating_end_month, seasons_heating_end_day)
     start_date = OpenStudio::Date::fromDayOfYear(start_day_num, year)
     end_date = OpenStudio::Date::fromDayOfYear(end_day_num, year)
-    heating_days = zone.sequentialHeatingFractionSchedule(zone.airLoopHVACTerminals[0]).get.to_ScheduleRuleset.get
-    assert_equal(heating_days.scheduleRules.size, 3)
-    start_dates = []
-    end_dates = []
-    heating_days.scheduleRules.each do |schedule_rule|
-      next unless schedule_rule.daySchedule.values.include? 1
-
-      start_dates.push(schedule_rule.startDate.get)
-      end_dates.push(schedule_rule.endDate.get)
-    end
+    assert(zone.sequentialHeatingFractionSchedule(zone.airLoopHVACTerminals[0]).is_initialized)
+    assert(zone.sequentialHeatingFractionSchedule(zone.airLoopHVACTerminals[0]).get.to_ScheduleInterval.is_initialized)
+    heating_schedule = zone.sequentialHeatingFractionSchedule(zone.airLoopHVACTerminals[0]).get.to_ScheduleInterval.get
+    heating_season = heating_schedule.timeSeries.values.map { |v| Integer(v) }
+    start_ix = (heating_season.rindex(0) / 24) + 1
+    start_dates = [OpenStudio::Date::fromDayOfYear(start_ix + 1, year)]
+    end_ix = (heating_season.index(0) / 24) - 1
+    end_dates = [OpenStudio::Date::fromDayOfYear(end_ix + 1, year)]
     assert_includes(start_dates, start_date)
     assert_includes(end_dates, end_date)
 
@@ -1001,14 +999,12 @@ class HPXMLtoOpenStudioHVACTest < MiniTest::Test
     end_day_num = Schedule.get_day_num_from_month_day(year, seasons_cooling_end_month, seasons_cooling_end_day)
     start_date = OpenStudio::Date::fromDayOfYear(start_day_num, year)
     end_date = OpenStudio::Date::fromDayOfYear(end_day_num, year)
-    cooling_days = zone.sequentialCoolingFractionSchedule(zone.airLoopHVACTerminals[0]).get.to_ScheduleRuleset.get
-    assert_equal(cooling_days.scheduleRules.size, 3)
-    cooling_days.scheduleRules.each do |schedule_rule|
-      next unless schedule_rule.daySchedule.values.include? 1
-
-      start_dates.push(schedule_rule.startDate.get)
-      end_dates.push(schedule_rule.endDate.get)
-    end
+    cooling_schedule = zone.sequentialCoolingFractionSchedule(zone.airLoopHVACTerminals[0]).get.to_ScheduleInterval.get
+    cooling_season = cooling_schedule.timeSeries.values.map { |v| Integer(v) }
+    start_ix = (cooling_season.index(1) / 24)
+    start_dates = [OpenStudio::Date::fromDayOfYear(start_ix + 1, year)]
+    end_ix = (cooling_season.rindex(1) / 24)
+    end_dates = [OpenStudio::Date::fromDayOfYear(end_ix + 1, year)]
     assert_includes(start_dates, start_date)
     assert_includes(end_dates, end_date)
   end
