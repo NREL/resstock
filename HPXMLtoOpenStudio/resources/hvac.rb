@@ -3567,7 +3567,10 @@ class HVAC
       s = OpenStudio::Model::ScheduleConstant.new(model)
       s.setValue(values[0])
     else
-      s = Schedule.create_interval_from_season(model, values)
+      year = model.getYearDescription.assumedYear
+      steps_in_hour = model.getTimestep.numberOfTimestepsPerHour
+      minutes = 60 / steps_in_hour
+      s = Schedule.create_interval_from_array(model, values, '', year, 0, 0, minutes)
     end
 
     s.setName(sch_name)
