@@ -1,7 +1,7 @@
-.. _workflow_architecture:
+.. _architecture:
 
-Workflow Architecture
-=====================
+Architecture
+============
 
 The key ResStock workflow components are described below.
 

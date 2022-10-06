@@ -1,11 +1,11 @@
-.. _workflow_run:
+.. _run_project:
 
-Workflow Run
-============
+Run the Project
+===============
 
 Both buildstockbatch and run_analysis.rb can used to run ResStock analyses.
 They use a common project definition, the YAML file, to provide the details of the analysis.
-See `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page for more information.
+See the `Residential HPXML Workflow Generator <https://buildstockbatch.readthedocs.io/en/latest/workflow_generators/residential_hpxml.html>`_ documentation page for more information.
 
 .. _buildstockbatch:
 
