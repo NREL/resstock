@@ -202,7 +202,7 @@ class OSModel
     spaces = {}
     create_or_get_space(model, spaces, HPXML::LocationLivingSpace)
     set_foundation_and_walls_top()
-    set_heating_and_cooling_seasons()
+    set_heating_and_cooling_seasons(runner)
     add_setpoints(runner, model, weather, spaces)
 
     # Geometry/Envelope
@@ -2662,7 +2662,7 @@ class OSModel
     @walls_top = @foundation_top + 8.0 * @ncfl_ag
   end
 
-  def self.set_heating_and_cooling_seasons()
+  def self.set_heating_and_cooling_seasons(runner)
     return if @hpxml.hvac_controls.size == 0
 
     @heating_season = nil
@@ -2679,22 +2679,26 @@ class OSModel
     steps_in_hour = 60 / @hpxml.header.timestep
     steps_in_day = 24 * steps_in_hour
 
-    if @heating_season.nil?
-      htg_start_month = hvac_control.seasons_heating_begin_month
-      htg_start_day = hvac_control.seasons_heating_begin_day
-      htg_end_month = hvac_control.seasons_heating_end_month
-      htg_end_day = hvac_control.seasons_heating_end_day
+    htg_start_month = hvac_control.seasons_heating_begin_month
+    htg_start_day = hvac_control.seasons_heating_begin_day
+    htg_end_month = hvac_control.seasons_heating_end_month
+    htg_end_day = hvac_control.seasons_heating_end_day
 
+    clg_start_month = hvac_control.seasons_cooling_begin_month
+    clg_start_day = hvac_control.seasons_cooling_begin_day
+    clg_end_month = hvac_control.seasons_cooling_end_month
+    clg_end_day = hvac_control.seasons_cooling_end_day
+
+    if @heating_season.nil?
       @heating_season = Schedule.get_season(@hpxml.header.sim_calendar_year, steps_in_day, htg_start_month, htg_start_day, htg_end_month, htg_end_day)
+    else
+      runner.registerWarning("Both '#{SchedulesFile::ColumnHeatingSeason}' schedule file and heating season provided; the latter will be ignored.") if !htg_start_month.nil? && !htg_start_day.nil? && !htg_end_month.nil? && !htg_end_day.nil?
     end
 
     if @cooling_season.nil?
-      clg_start_month = hvac_control.seasons_cooling_begin_month
-      clg_start_day = hvac_control.seasons_cooling_begin_day
-      clg_end_month = hvac_control.seasons_cooling_end_month
-      clg_end_day = hvac_control.seasons_cooling_end_day
-
       @cooling_season = Schedule.get_season(@hpxml.header.sim_calendar_year, steps_in_day, clg_start_month, clg_start_day, clg_end_month, clg_end_day)
+    else
+      runner.registerWarning("Both '#{SchedulesFile::ColumnCoolingSeason}' schedule file and cooling season provided; the latter will be ignored.") if !clg_start_month.nil? && !clg_start_day.nil? && !clg_end_month.nil? && !clg_end_day.nil?
     end
   end
 end
