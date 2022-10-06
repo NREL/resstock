@@ -58,7 +58,7 @@ class BuildResidentialScheduleFile < OpenStudio::Measure::ModelMeasure
 
     arg = OpenStudio::Measure::OSArgument.makeStringArgument('schedules_outage_period', false)
     arg.setDisplayName('Schedules: Outage Period')
-    arg.setDescription('Specifies the outage period. Enter a date/time like "Dec 15 10am - Jan 15 2pm". 12am is the final hour of a given day.')
+    arg.setDescription('Specifies the outage period. Enter a date/time like "Dec 15 10am - Jan 15 2pm". For start date/time, "12am" is the beginning of the day. For end date/time, "12am" is the end of the day.')
     args << arg
 
     arg = OpenStudio::Measure::OSArgument.makeBoolArgument('schedules_outage_window_natvent_availability', false)

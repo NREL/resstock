@@ -1113,8 +1113,10 @@ class Schedule
 
     begin_hour = begin_values[2].to_i
     end_hour = end_values[2].to_i
-    if begin_values[2].include?('pm') || begin_values[2].include?('12am')
+    if begin_values[2].include?('pm')
       begin_hour += 12
+    elsif begin_values[2].include?('am')
+      begin_hour = 0 if begin_hour == 12
     end
     if end_values[2].include?('pm') || end_values[2].include?('12am')
       end_hour += 12
