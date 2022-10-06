@@ -36,7 +36,11 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
       deps = []
       unprocessed_parameters.each do |p|
         tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{p}.tsv")
-        tsvfile = TsvFile.new(tsvpath, nil)
+        tsvfile = tsvfiles[p]
+        if tsvfile.nil?
+          tsvfile = TsvFile.new(tsvpath, nil)
+          tsvfiles[p] = tsvfile
+        end
         tsvfile.dependency_cols.keys.each do |d|
           next if deps.include?(d)
 
@@ -68,8 +72,11 @@ def integrity_check(project_dir_name, housing_characteristics_dir = 'housing_cha
 
       tsvpath = File.join(project_dir_name, housing_characteristics_dir, "#{parameter_name}.tsv")
       check_file_exists(tsvpath, nil)
-      tsvfile = TsvFile.new(tsvpath, nil)
-      tsvfiles[parameter_name] = tsvfile
+      tsvfile = tsvfiles[parameter_name]
+      if tsvfile.nil?
+        tsvfile = TsvFile.new(tsvpath, nil)
+        tsvfiles[parameter_name] = tsvfile
+      end
 
       # Dependencies not yet processed? Skip until a subsequent pass
       skip = false
