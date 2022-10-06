@@ -1144,6 +1144,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                               'schedule-file-and-setpoints' => ["Both 'heating_setpoint' schedule file and heating setpoint temperature provided; the latter will be ignored.",
                                                                 "Both 'cooling_setpoint' schedule file and cooling setpoint temperature provided; the latter will be ignored.",
                                                                 "Both 'water_heater_setpoint' schedule file and setpoint temperature provided; the latter will be ignored."],
+                              'schedule-file-and-seasons' => ["Both 'heating_season' schedule file and heating season provided; the latter will be ignored.",
+                                                              "Both 'cooling_season' schedule file and cooling season provided; the latter will be ignored."],
+                              'schedule-file-and-natural-ventilation' => ["Both 'natural_ventilation' schedule file and natural ventilation days per week provided; the latter will be ignored."],
                               'schedule-file-and-operating-mode' => ["Both 'water_heater_operating_mode' schedule file and operating mode provided; the latter will be ignored."] }
 
     all_expected_warnings.each_with_index do |(warning_case, expected_warnings), i|
@@ -1168,6 +1171,12 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base.xml'))
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/setpoints.csv'
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/water-heater-setpoints.csv'
+      elsif ['schedule-file-and-seasons'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-seasons.xml'))
+        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/seasons.csv'
+      elsif ['schedule-file-and-natural-ventilation'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-windows-natural-ventilation-availability.xml'))
+        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/natural-ventilation.csv'
       elsif ['schedule-file-and-operating-mode'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-dhw-tank-heat-pump-operating-mode-heat-pump-only.xml'))
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/water-heater-operating-modes.csv'
