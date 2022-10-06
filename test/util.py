@@ -32,6 +32,7 @@ del df['job_id']
 build_existing_models = []
 report_simulation_outputs = ['color_index']
 simulation_outputs = []
+component_loads = []
 emissions = []
 report_utility_bills = []
 upgrade_costs = []
@@ -49,7 +50,10 @@ for col in df.columns.values:
     if 'emissions' in col:
       emissions.append(col)
     else:
-      simulation_outputs.append(col)
+      if 'component_load' in col:
+        component_loads.append(col)
+      else:
+        simulation_outputs.append(col)
   elif col.startswith('report_utility_bills'):
     report_utility_bills.append(col)
   elif col.startswith('upgrade_costs'):
@@ -64,6 +68,7 @@ for col in df.columns.values:
 build_existing_models = sorted(build_existing_models)
 report_simulation_outputs = sorted(report_simulation_outputs)
 simulation_outputs = sorted(simulation_outputs)
+component_loads = sorted(component_loads)
 emissions = sorted(emissions)
 report_utility_bills = sorted(report_utility_bills)
 upgrade_costs = sorted(upgrade_costs)
@@ -102,6 +107,7 @@ if not os.path.exists('outputs'):
 
 write_csv_cols(build_existing_models, 'characteristics.csv')
 write_csv_cols(simulation_outputs, 'simulation_outputs.csv')
+write_csv_cols(component_loads, 'component_loads.csv')
 write_csv_cols(emissions, 'emissions.csv')
 write_csv_cols(report_utility_bills, 'utility_bills.csv')
 write_csv_cols(cost_multipliers, 'cost_multipliers.csv')
