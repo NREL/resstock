@@ -8,7 +8,7 @@ The default set of outputs include dwelling unit characteristics, annual simulat
 Characteristics
 ***************
 
-Default characteristics nclude sampled properties for each dwelling unit.
+Default characteristics include sampled properties for each dwelling unit.
 
 .. csv-table::
    :file: ../../../../test/base_results/outputs/characteristics.csv
@@ -16,9 +16,9 @@ Default characteristics nclude sampled properties for each dwelling unit.
 Simulation Output
 *****************
 
-Default annual simulation outputs include energy consumption (total, by fuel, and by end use), hot water uses, building loads, unmet hours, and peak building electricity/loads.
+Default annual simulation outputs include energy consumptions (total, by fuel, and by end use), hot water uses, building loads, unmet hours, and peak building electricity/loads.
 
-See the OpenStudio-HPXML Workflow Outputs section on `Annual Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-outputs>`_ for documentation on annual outputs.
+See the OpenStudio-HPXML Workflow Outputs section on `Annual Outputs <https://openstudio-hpxml.readthedocs.io/en/latest/workflow_outputs.html#annual-outputs>`_ for more information about annual outputs.
 
 .. csv-table::
    :file: ../../../../test/base_results/outputs/simulation_outputs.csv
