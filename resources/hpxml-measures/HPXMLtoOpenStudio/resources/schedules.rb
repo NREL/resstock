@@ -999,6 +999,18 @@ class Schedule
     return '0.837, 0.835, 1.084, 1.084, 1.084, 1.096, 1.096, 1.096, 1.096, 0.931, 0.925, 0.837'
   end
 
+  def self.DehumidifierWeekdayFractions
+    return '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042'
+  end
+
+  def self.DehumidifierWeekendFractions
+    return '0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042, 0.042'
+  end
+
+  def self.DehumidifierMonthlyMultipliers
+    return '1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0'
+  end
+
   def self.get_day_num_from_month_day(year, month, day)
     # Returns a value between 1 and 365 (or 366 for a leap year)
     # Returns e.g. 32 for month=2 and day=1 (Feb 1)
@@ -1049,6 +1061,20 @@ class Schedule
     time_series = OpenStudio::TimeSeries.new(start_date, timestep_day, OpenStudio::createVector(values), units)
     s = OpenStudio::Model::ScheduleInterval.fromTimeSeries(time_series, model).get
     return s
+  end
+
+  def self.create_daily_sch(hours_in_operation, start_hour)
+    daily_sch = [0.0] * 24
+    remaining_hrs = hours_in_operation
+    for hr in 1..(hours_in_operation.ceil)
+      if remaining_hrs >= 1
+        daily_sch[(start_hour + hr - 1) % 24] = 1.0
+      else
+        daily_sch[(start_hour + hr - 1) % 24] = remaining_hrs
+      end
+      remaining_hrs -= 1
+    end
+    return daily_sch
   end
 
   def self.create_hourly_by_day(array, steps_in_hour)
@@ -1186,6 +1212,9 @@ class SchedulesFile
   ColumnHotWaterDishwasher = 'hot_water_dishwasher'
   ColumnHotWaterClothesWasher = 'hot_water_clothes_washer'
   ColumnHotWaterFixtures = 'hot_water_fixtures'
+  ColumnDehumidifier = 'dehumidifier'
+  ColumnKitchenFan = 'kitchen_fan'
+  ColumnBathFan = 'bath_fan'
   ColumnVacancy = 'vacancy'
   ColumnOutage = 'outage'
   ColumnHeatingSetpoint = 'heating_setpoint'
@@ -1529,7 +1558,10 @@ class SchedulesFile
       ColumnHotTubHeater,
       ColumnHotWaterDishwasher,
       ColumnHotWaterClothesWasher,
-      ColumnHotWaterFixtures
+      ColumnHotWaterFixtures,
+      ColumnDehumidifier,
+      ColumnKitchenFan,
+      ColumnBathFan
     ]
   end
 
@@ -1573,6 +1605,7 @@ class SchedulesFile
                     ColumnPoolHeater,
                     ColumnHotTubPump,
                     ColumnHotTubHeater,
+                    ColumnDehumidifier,
                     ColumnSleeping] + SchedulesFile.HVACSetpointColumnNames + SchedulesFile.WaterHeaterColumnNames).include? column_name
 
       affected_by_vacancy[column_name] = false

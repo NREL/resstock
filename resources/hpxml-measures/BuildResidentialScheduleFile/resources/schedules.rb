@@ -68,6 +68,12 @@ class ScheduleGenerator
       return false if not success
     end
 
+    success = set_kitchen_fan(args: args)
+    return false if not success
+
+    success = set_bath_fan(args: args)
+    return false if not success
+
     success = set_vacancy(args: args)
     return false if not success
 
@@ -103,6 +109,7 @@ class ScheduleGenerator
     create_average_pool_heater
     create_average_hot_tub_pump
     create_average_hot_tub_heater
+    create_average_dehumidifier
   end
 
   def create_average_occupants
@@ -206,6 +213,10 @@ class ScheduleGenerator
 
   def create_average_hot_tub_heater
     create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnHotTubHeater, weekday_sch: Schedule.HotTubHeaterWeekdayFractions, weekend_sch: Schedule.HotTubHeaterWeekendFractions, monthly_sch: Schedule.HotTubHeaterMonthlyMultipliers)
+  end
+
+  def create_average_dehumidifier
+    create_timeseries_from_weekday_weekend_monthly(sch_name: SchedulesFile::ColumnDehumidifier, weekday_sch: Schedule.DehumidifierWeekdayFractions, weekend_sch: Schedule.DehumidifierWeekendFractions, monthly_sch: Schedule.DehumidifierMonthlyMultipliers)
   end
 
   def create_timeseries_from_weekday_weekend_monthly(sch_name:,
@@ -787,6 +798,24 @@ class ScheduleGenerator
     return true
   end
 
+  def set_kitchen_fan(args:)
+    return true if !args[:has_kitchen_fan]
+
+    daily_sch = Schedule.create_daily_sch(args[:kitchen_fan_hours_in_operation], args[:kitchen_fan_start_hour])
+    kitchen_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten
+    @schedules[SchedulesFile::ColumnKitchenFan] = kitchen_fan
+    return true
+  end
+
+  def set_bath_fan(args:)
+    return true if !args[:has_bath_fan]
+
+    daily_sch = Schedule.create_daily_sch(args[:bath_fan_hours_in_operation], args[:bath_fan_start_hour])
+    bath_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten
+    @schedules[SchedulesFile::ColumnBathFan] = bath_fan
+    return true
+  end
+
   def set_vacancy(args:)
     if (not args[:schedules_vacancy_begin_month].nil?) && (not args[:schedules_vacancy_begin_day].nil?) && (not args[:schedules_vacancy_end_month].nil?) && (not args[:schedules_vacancy_end_day].nil?)
       start_day_num = Schedule.get_day_num_from_month_day(@sim_year, args[:schedules_vacancy_begin_month], args[:schedules_vacancy_begin_day])
@@ -804,6 +833,23 @@ class ScheduleGenerator
     return true
   end
 
+  def set_natural_ventilation(args:)
+    method_array = [1, 3, 5, 6, 2, 4, 0] # monday, wednesday, friday, saturday, tuesday, thursday, sunday
+    natural_ventilation = []
+    @total_days_in_year.times do |day|
+      today = @sim_start_day + day
+      availability = method_array[0...args[:window_natvent_availability]]
+      @steps_in_day.times do |_step|
+        if availability.include? today.wday
+          natural_ventilation << 1
+        else
+          natural_ventilation << 0
+        end
+      end
+    end
+    @schedules[SchedulesFile::ColumnNaturalVentilation] = natural_ventilation
+  end
+
   def set_outage(args:)
     if (not args[:schedules_outage_begin_month].nil?) && (not args[:schedules_outage_begin_day].nil?) && (not args[:schedules_outage_begin_hour].nil?) && (not args[:schedules_outage_end_month].nil?) && (not args[:schedules_outage_end_day].nil?) && (not args[:schedules_outage_end_hour].nil?)
       outage = Array.new(@schedules[SchedulesFile::ColumnOccupants].length, 0)
@@ -815,19 +861,8 @@ class ScheduleGenerator
       # natural ventilation during outage period
       natural_ventilation = nil
       if args[:schedules_outage_window_natvent_availability].is_initialized
-        method_array = [1, 3, 5, 6, 2, 4, 0] # monday, wednesday, friday, saturday, tuesday, thursday, sunday
-        natural_ventilation = []
-        @total_days_in_year.times do |day|
-          today = @sim_start_day + day
-          availability = method_array[0...args[:window_natvent_availability]]
-          @steps_in_day.times do |_step|
-            if availability.include? today.wday
-              natural_ventilation << 1
-            else
-              natural_ventilation << 0
-            end
-          end
-        end
+        set_natural_ventilation(args: args)
+        natural_ventilation = @schedules[SchedulesFile::ColumnNaturalVentilation]
       end
 
       start_day_num = Schedule.get_day_num_from_month_day(@sim_year, args[:schedules_outage_begin_month], args[:schedules_outage_begin_day])

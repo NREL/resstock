@@ -1201,7 +1201,7 @@ class HPXMLTest < MiniTest::Test
     end
 
     # HVAC Load Fractions
-    if (not hpxml_path.include? 'location-miami') && (not hpxml_path.include? 'location-honolulu') && (not hpxml_path.include? 'location-phoenix')
+    if (not hpxml_path.include? 'location-miami') && (not hpxml_path.include? 'location-honolulu') && (not hpxml_path.include? 'location-phoenix') && (not hpxml_path.include? 'outage-full-year')
       htg_energy = results.select { |k, _v| (k.include?(': Heating (MBtu)') || k.include?(': Heating Fans/Pumps (MBtu)')) && !k.include?('Load') }.values.sum(0.0)
       assert_equal(hpxml.total_fraction_heat_load_served > 0, htg_energy > 0)
     end
@@ -1270,8 +1270,10 @@ class HPXMLTest < MiniTest::Test
     end
 
     # Lighting
-    ltg_energy = results.select { |k, _v| k.include? 'End Use: Electricity: Lighting' }.values.sum(0.0)
-    assert_equal(hpxml.lighting_groups.size > 0, ltg_energy > 0)
+    if (not hpxml_path.include? 'outage-full-year')
+      ltg_energy = results.select { |k, _v| k.include? 'End Use: Electricity: Lighting' }.values.sum(0.0)
+      assert_equal(hpxml.lighting_groups.size > 0, ltg_energy > 0)
+    end
 
     # Get fuels
     htg_fuels = []
@@ -1321,7 +1323,7 @@ class HPXMLTest < MiniTest::Test
       energy_cd = results.fetch("End Use: #{fuel_name}: Clothes Dryer (MBtu)", 0)
       energy_cr = results.fetch("End Use: #{fuel_name}: Range/Oven (MBtu)", 0)
       if htg_fuels.include? fuel
-        if (not hpxml_path.include? 'autosize') && (not is_warm_climate)
+        if (not hpxml_path.include? 'autosize') && (not is_warm_climate) && (not hpxml_path.include? 'outage-full-year')
           assert_operator(energy_htg, :>, 0)
         end
       else
@@ -1357,12 +1359,13 @@ class HPXMLTest < MiniTest::Test
     if hpxml_path.include? 'base-hvac-undersized.xml'
       assert_operator(unmet_hours_htg, :>, 1000)
       assert_operator(unmet_hours_clg, :>, 1000)
-    elsif hpxml_path.include? 'base-schedules-detailed-occupancy-stochastic-outage.xml'
-      assert_operator(unmet_hours_htg, :>, 1000)
-      assert_operator(unmet_hours_clg, :<, 350)
-    elsif hpxml_path.include? 'base-schedules-detailed-occupancy-stochastic-outage-natvent.xml'
-      assert_operator(unmet_hours_htg, :<, 350)
-      assert_operator(unmet_hours_clg, :>, 100)
+    elsif hpxml_path.include? 'outage'
+      assert_operator(unmet_hours_htg, :>, 4500) if hpxml_path.include? 'full-year'
+      assert_operator(unmet_hours_clg, :>, 2400) if hpxml_path.include? 'full-year'
+      assert_operator(unmet_hours_htg, :<, 350) if hpxml_path.include? 'summer'
+      assert_operator(unmet_hours_clg, :>, 100) if hpxml_path.include? 'summer'
+      assert_operator(unmet_hours_htg, :>, 150) if hpxml_path.include? 'winter'
+      assert_operator(unmet_hours_clg, :<, 350) if hpxml_path.include? 'winter'
     else
       if hpxml.total_fraction_heat_load_served == 0
         assert_equal(0, unmet_hours_htg)

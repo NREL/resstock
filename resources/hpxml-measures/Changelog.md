@@ -28,9 +28,11 @@ __New Features__
 - New capabilities for hourly/sub-hourly scheduling via schedule CSV files:
   - Detailed HVAC seasons.
   - Detailed natural ventilation for operable windows.
+  - Detailed dehumidifier availability schedule.
 - BuildResidentialScheduleFile measure:
   - Adds optional argument for specifying a power outage period.
   - Adds optional argument for controlling natural ventilation availability during a power outage period.
+- Improves Kiva foundation model heat transfer by providing better initial temperature assumptions based on foundation type and insulation levels.
 
 __Bugfixes__
 - Fixes possible incorrect autosizing of heat pump *separate* backup systems with respect to duct loads.
