@@ -802,7 +802,7 @@ class ScheduleGenerator
     return true if !args[:has_kitchen_fan]
 
     daily_sch = Schedule.create_daily_sch(args[:kitchen_fan_hours_in_operation], args[:kitchen_fan_start_hour])
-    kitchen_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten
+    kitchen_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten * @total_days_in_year
     @schedules[SchedulesFile::ColumnKitchenFan] = kitchen_fan
     return true
   end
@@ -811,7 +811,7 @@ class ScheduleGenerator
     return true if !args[:has_bath_fan]
 
     daily_sch = Schedule.create_daily_sch(args[:bath_fan_hours_in_operation], args[:bath_fan_start_hour])
-    bath_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten
+    bath_fan = daily_sch.map { |v| [v] * args[:steps_in_hour] }.flatten * @total_days_in_year
     @schedules[SchedulesFile::ColumnBathFan] = bath_fan
     return true
   end
