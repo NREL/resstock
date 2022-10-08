@@ -1146,6 +1146,8 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
                                                                 "Both 'water_heater_setpoint' schedule file and setpoint temperature provided; the latter will be ignored."],
                               'schedule-file-and-seasons' => ["Both 'heating_season' schedule file and heating season provided; the latter will be ignored.",
                                                               "Both 'cooling_season' schedule file and cooling season provided; the latter will be ignored."],
+                              'schedule-file-and-local-ventilation' => ["Both 'kitchen_fan' schedule file and mech vent range fan hours in operation and start hour provided; the latter will be ignored.",
+                                                                        "Both 'bath_fan' schedule file and mech vent bath fan hours in operation and start hour provided; the latter will be ignored."],
                               'schedule-file-and-natural-ventilation' => ["Both 'natural_ventilation' schedule file and natural ventilation days per week provided; the latter will be ignored."],
                               'schedule-file-and-operating-mode' => ["Both 'water_heater_operating_mode' schedule file and operating mode provided; the latter will be ignored."] }
 
@@ -1174,6 +1176,9 @@ class HPXMLtoOpenStudioValidationTest < MiniTest::Test
       elsif ['schedule-file-and-seasons'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-hvac-seasons.xml'))
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/seasons.csv'
+      elsif ['schedule-file-and-local-ventilation'].include? warning_case
+        hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-mechvent-bath-kitchen-fans.xml'))
+        hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/local-ventilation.csv'
       elsif ['schedule-file-and-natural-ventilation'].include? warning_case
         hpxml = HPXML.new(hpxml_path: File.join(@sample_files_path, 'base-enclosure-windows-natural-ventilation-availability.xml'))
         hpxml.header.schedules_filepaths << 'HPXMLtoOpenStudio/resources/schedule_files/natural-ventilation.csv'
